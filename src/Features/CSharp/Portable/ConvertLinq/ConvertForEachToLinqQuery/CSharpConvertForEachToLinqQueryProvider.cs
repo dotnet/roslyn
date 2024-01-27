@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         }
                         else
                         {
-                            statementsCannotBeConverted = new[] { current };
+                            statementsCannotBeConverted = [current];
                             break;
                         }
 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         else
                         {
                             // As above, if there is an empty initializer, stop processing.
-                            statementsCannotBeConverted = new[] { current };
+                            statementsCannotBeConverted = [current];
                         }
 
                         break;
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
                     default:
                         // If no specific case found, stop processing.
-                        statementsCannotBeConverted = new[] { current };
+                        statementsCannotBeConverted = [current];
                         break;
                 }
             }

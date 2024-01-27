@@ -511,10 +511,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpgradeProject
                     </Project>
                 </Workspace>
                 """,
-                new[] {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
                     string.Format(CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
-                });
+                ]);
         }
 
         [Fact]
@@ -541,11 +541,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpgradeProject
                     </Project>
                 </Workspace>
                 """,
-                new[]
-                {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0"),
                     string.Format(CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0, "8.0")
-                }
+                ]
     );
         }
 
@@ -571,9 +570,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpgradeProject
                     </Project>
                 </Workspace>
                 """,
-                new[] {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0")
-                    });
+                    ]);
         }
 
         [Fact]
@@ -600,9 +599,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpgradeProject
                     </Project>
                 </Workspace>
                 """,
-                new[] {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0")
-                    });
+                    ]);
         }
 
         [Fact]
@@ -630,17 +629,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpgradeProject
                     </Project>
                 </Workspace>
                 """,
-                new[] {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, defaultVersion),
                     string.Format(CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0, defaultVersion)
-                    });
+                ]);
         }
 
         [Fact]
         public async Task OnlyOfferFixAllProjectsToCSharp8WhenApplicable()
         {
             await TestExactActionSetOfferedAsync(
-
                 """
                 <Workspace>
                     <Project Language="C#" LanguageVersion="6" CommonReferences="true">
@@ -657,9 +655,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpgradeProject
                     </Project>
                 </Workspace>
                 """,
-            new[] {
-                string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0"),
-                });
+                [string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0")]);
         }
 
         [Fact]
@@ -667,7 +663,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpgradeProject
         {
             var defaultEffectiveVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion().ToDisplayString();
             await TestExactActionSetOfferedAsync(
-
                 $$"""
                 <Workspace>
                     <Project Language="C#" LanguageVersion="6">
@@ -687,10 +682,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpgradeProject
                     </Project>
                 </Workspace>
                 """,
-                new[] {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, defaultEffectiveVersion),
                     string.Format(CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0, defaultEffectiveVersion)
-                    });
+                ]);
         }
 
         [Fact]

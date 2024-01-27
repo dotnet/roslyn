@@ -784,54 +784,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMethodSynchronous
         public async Task RemoveAsyncInLocalFunctionKeepsTrivia(string asyncReturn, string expectedReturn)
         {
             await VerifyCS.VerifyCodeFixAsync(
-                $$"""
-                using System;
-                using System.Threading.Tasks;
+$@"using System;
+using System.Threading.Tasks;
 
-                class C
-                {
-                    public void M1()
-                    {
-                        // Leading trivia
-                        /*1*/ async {{asyncReturn}} /*2*/ {|CS1998:M2Async|}/*3*/() /*4*/
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
-                }
-                """,
-                $$"""
-                using System;
-                using System.Threading.Tasks;
+class C
+{{
+    public void M1()
+    {{
+        // Leading trivia
+        /*1*/ async {asyncReturn} /*2*/ {{|CS1998:M2Async|}}/*3*/() /*4*/
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+}}",
+$@"using System;
+using System.Threading.Tasks;
 
-                class C
-                {
-                    public void M1()
-                    {
-                        // Leading trivia
-                        /*1*/
-                        {{expectedReturn}} /*2*/ M2/*3*/() /*4*/
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
-                }
-                """);
+class C
+{{
+    public void M1()
+    {{
+        // Leading trivia
+        /*1*/
+        {expectedReturn} /*2*/ M2/*3*/() /*4*/
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+}}");
         }
 
         [Theory]
-        [InlineData("", "Task<C>", """
-            C
-            """)]
-        [InlineData("", "Task<int>", """
-            int
-            """)]
-        [InlineData("", "Task", """
-            void
-            """)]
-        [InlineData("", "void", """
-            void
-            """)]
+        [InlineData("", "Task<C>", "\r\n    C")]
+        [InlineData("", "Task<int>", "\r\n    int")]
+        [InlineData("", "Task", "\r\n    void")]
+        [InlineData("", "void", "\r\n    void")]
         [InlineData("public", "Task<C>", " C")]
         [InlineData("public", "Task<int>", " int")]
         [InlineData("public", "Task", " void")]
@@ -841,32 +829,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMethodSynchronous
         public async Task RemoveAsyncKeepsTrivia(string modifiers, string asyncReturn, string expectedReturn)
         {
             await VerifyCS.VerifyCodeFixAsync(
-                $$"""
-                using System;
-                using System.Threading.Tasks;
+$@"using System;
+using System.Threading.Tasks;
 
-                class C
-                {
-                    // Leading trivia
-                    {{modifiers}}/*1*/ async {{asyncReturn}} /*2*/ {|CS1998:M2Async|}/*3*/() /*4*/
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """,
-                $$"""
-                using System;
-                using System.Threading.Tasks;
+class C
+{{
+    // Leading trivia
+    {modifiers}/*1*/ async {asyncReturn} /*2*/ {{|CS1998:M2Async|}}/*3*/() /*4*/
+    {{
+        throw new NotImplementedException();
+    }}
+}}",
+$@"using System;
+using System.Threading.Tasks;
 
-                class C
-                {
-                    // Leading trivia
-                    {{modifiers}}/*1*/{{expectedReturn}} /*2*/ M2/*3*/() /*4*/
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
+class C
+{{
+    // Leading trivia
+    {modifiers}/*1*/{expectedReturn} /*2*/ M2/*3*/() /*4*/
+    {{
+        throw new NotImplementedException();
+    }}
+}}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]

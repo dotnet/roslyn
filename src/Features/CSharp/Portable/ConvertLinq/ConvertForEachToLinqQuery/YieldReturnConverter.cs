@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         {
             var queryOrLinqInvocationExpression = CreateQueryExpressionOrLinqInvocation(
                selectExpression: _yieldReturnStatement.Expression,
-               leadingTokensForSelect: new[] { _yieldReturnStatement.YieldKeyword, _yieldReturnStatement.ReturnOrBreakKeyword },
+               leadingTokensForSelect: [_yieldReturnStatement.YieldKeyword, _yieldReturnStatement.ReturnOrBreakKeyword],
                trailingTokensForSelect: _yieldBreakStatement != null
                                         ? [_yieldReturnStatement.SemicolonToken,
                                             _yieldBreakStatement.YieldKeyword,

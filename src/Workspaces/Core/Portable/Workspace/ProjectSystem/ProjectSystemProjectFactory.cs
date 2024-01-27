@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                                 SolutionId.CreateNewId(SolutionPath),
                                 VersionStamp.Create(),
                                 SolutionPath,
-                                projects: new[] { projectInfo },
+                                projects: [projectInfo],
                                 analyzerReferences: w.CurrentSolution.AnalyzerReferences).WithTelemetryId(SolutionTelemetryId);
                             var newSolution = w.CreateSolution(solutionInfo);
 
