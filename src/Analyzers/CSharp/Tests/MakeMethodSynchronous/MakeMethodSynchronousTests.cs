@@ -784,35 +784,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMethodSynchronous
         public async Task RemoveAsyncInLocalFunctionKeepsTrivia(string asyncReturn, string expectedReturn)
         {
             await VerifyCS.VerifyCodeFixAsync(
-$@"using System;
-using System.Threading.Tasks;
+                $$"""
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{{
-    public void M1()
-    {{
-        // Leading trivia
-        /*1*/ async {asyncReturn} /*2*/ {{|CS1998:M2Async|}}/*3*/() /*4*/
-        {{
-            throw new NotImplementedException();
-        }}
-    }}
-}}",
-$@"using System;
-using System.Threading.Tasks;
+                class C
+                {
+                    public void M1()
+                    {
+                        // Leading trivia
+                        /*1*/ async {{asyncReturn}} /*2*/ {|CS1998:M2Async|}/*3*/() /*4*/
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+                """,
+                $$"""
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{{
-    public void M1()
-    {{
-        // Leading trivia
-        /*1*/
-        {expectedReturn} /*2*/ M2/*3*/() /*4*/
-        {{
-            throw new NotImplementedException();
-        }}
-    }}
-}}");
+                class C
+                {
+                    public void M1()
+                    {
+                        // Leading trivia
+                        /*1*/
+                        {{expectedReturn}} /*2*/ M2/*3*/() /*4*/
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+                """);
         }
 
         [Theory]
@@ -829,28 +833,32 @@ class C
         public async Task RemoveAsyncKeepsTrivia(string modifiers, string asyncReturn, string expectedReturn)
         {
             await VerifyCS.VerifyCodeFixAsync(
-$@"using System;
-using System.Threading.Tasks;
+                $$"""
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{{
-    // Leading trivia
-    {modifiers}/*1*/ async {asyncReturn} /*2*/ {{|CS1998:M2Async|}}/*3*/() /*4*/
-    {{
-        throw new NotImplementedException();
-    }}
-}}",
-$@"using System;
-using System.Threading.Tasks;
+                class C
+                {
+                    // Leading trivia
+                    {{modifiers}}/*1*/ async {{asyncReturn}} /*2*/ {|CS1998:M2Async|}/*3*/() /*4*/
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+                $$"""
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{{
-    // Leading trivia
-    {modifiers}/*1*/{expectedReturn} /*2*/ M2/*3*/() /*4*/
-    {{
-        throw new NotImplementedException();
-    }}
-}}");
+                class C
+                {
+                    // Leading trivia
+                    {{modifiers}}/*1*/{{expectedReturn}} /*2*/ M2/*3*/() /*4*/
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
