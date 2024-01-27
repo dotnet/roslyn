@@ -193,7 +193,7 @@ public class UseCollectionExpressionForArrayTests
     }
 
     [Fact]
-    public async Task TestNotWithIncompatibleExplicitArrays()
+    public async Task TestNotWithIncompatibleExplicitArrays_Strict()
     {
         await new VerifyCS.Test
         {
@@ -201,6 +201,31 @@ public class UseCollectionExpressionForArrayTests
                 class C
                 {
                     object[] i = new string[] { "" };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithIncompatibleExplicitArrays()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    object[] i = [|[|new|] string[]|] { "" };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    object[] i = [""];
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -371,10 +396,35 @@ public class UseCollectionExpressionForArrayTests
             TestCode = """
                 class C
                 {
+                    object[] i = [|[|new|][]|] { "" };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    object[] i = [""];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithIncompatibleImplicitArrays_Strict()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
                     object[] i = new[] { "" };
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
         }.RunAsync();
     }
 
@@ -4675,6 +4725,185 @@ public class UseCollectionExpressionForArrayTests
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly = [|[|new|] object[][]|]
+                    {
+                        [|[|new|][]|] { "[]", "[]" },
+                        [|[|new|][]|] { "[]", "[]" },
+                    };
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly =
+                    [
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray1_Strict()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly = new object[][]
+                    {
+                        new[] { "[]", "[]" },
+                        new[] { "[]", "[]" },
+                    };
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly = new object[][]
+                    {
+                        new[] { "[]", "[]" },
+                        new[] { "[]", "[]" },
+                    };
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly =
+                    [
+                        [|[|new|][]|] { "[]", "[]" },
+                        [|[|new|][]|] { "[]", "[]" },
+                    ];
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly =
+                    [
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    ];
+                }
+                """,
+            BatchFixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly =
+                    [
+                        ["[]", "[]"],
+                        ["[]", "[]"],
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDimensionalArray2_Strict()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly =
+                    [
+                        new[] { "[]", "[]" },
+                        new[] { "[]", "[]" },
+                    ];
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+                
+                class C
+                {
+                    public static readonly IEnumerable<object[]> EmptyOrConstantsOnly =
+                    [
+                        new[] { "[]", "[]" },
+                        new[] { "[]", "[]" },
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
         }.RunAsync();
     }
 }

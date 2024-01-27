@@ -40,7 +40,7 @@ internal static class UseCollectionExpressionHelpers
         ExpressionSyntax expression,
         INamedTypeSymbol? expressionType,
         bool isSingletonInstance,
-        bool allowInterfaceConversion,
+        bool allowSemanticsChange,
         bool skipVerificationForReplacedNode,
         CancellationToken cancellationToken,
         out bool changesSemantics)
@@ -50,7 +50,7 @@ internal static class UseCollectionExpressionHelpers
         // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
         // types that could accept the collection expression).
         return CanReplaceWithCollectionExpression(
-            semanticModel, expression, s_emptyCollectionExpression, expressionType, isSingletonInstance, allowInterfaceConversion, skipVerificationForReplacedNode, cancellationToken, out changesSemantics);
+            semanticModel, expression, s_emptyCollectionExpression, expressionType, isSingletonInstance, allowSemanticsChange, skipVerificationForReplacedNode, cancellationToken, out changesSemantics);
     }
 
     public static bool CanReplaceWithCollectionExpression(
@@ -59,7 +59,7 @@ internal static class UseCollectionExpressionHelpers
         CollectionExpressionSyntax replacementExpression,
         INamedTypeSymbol? expressionType,
         bool isSingletonInstance,
-        bool allowInterfaceConversion,
+        bool allowSemanticsChange,
         bool skipVerificationForReplacedNode,
         CancellationToken cancellationToken,
         out bool changesSemantics)
@@ -254,8 +254,16 @@ internal static class UseCollectionExpressionHelpers
             if (s_tupleNamesCanDifferComparer.Equals(type, convertedType))
                 return true;
 
-            if (allowInterfaceConversion &&
-                IsWellKnownInterface(convertedType) &&
+            // Before this point are all the changes that we can detect that are always safe to make.
+            if (!allowSemanticsChange)
+                return false;
+
+            // After this point are all the changes that we can detect that may change runtime semantics (for example,
+            // converting an array into a compiler-generated IEnumerable), but which can be ok since the user has opted
+            // into allowing that.
+            changesSemantics = true;
+
+            if (IsWellKnownInterface(convertedType) &&
                 type.AllInterfaces.Contains(convertedType))
             {
                 // In the case of a singleton (like `Array.Empty<T>()`) we don't want to convert to `IList<T>` as that
@@ -263,8 +271,20 @@ internal static class UseCollectionExpressionHelpers
                 if (isSingletonInstance && IsWellKnownReadWriteInterface(convertedType))
                     return false;
 
-                changesSemantics = true;
                 return true;
+            }
+
+            // Implicit reference array conversion is acceptable if the user is ok with semantics changing.  For example:
+            //
+            // `object[] obj = new[] { "a" }`
+            //
+            // Before the change this would be a string-array.  With a collection expression this will become an object[].
+            if (type is IArrayTypeSymbol&&
+                convertedType is IArrayTypeSymbol)
+            {
+                var conversion = compilation.ClassifyConversion(type, convertedType);
+                if (conversion.IsIdentityOrImplicitReference())
+                    return true;
             }
 
             // Add more cases to support here.
@@ -754,7 +774,7 @@ internal static class UseCollectionExpressionHelpers
         TArrayCreationExpressionSyntax expression,
         INamedTypeSymbol? expressionType,
         bool isSingletonInstance,
-        bool allowInterfaceConversion,
+        bool allowSemanticsChange,
         Func<TArrayCreationExpressionSyntax, TypeSyntax> getType,
         Func<TArrayCreationExpressionSyntax, InitializerExpressionSyntax?> getInitializer,
         CancellationToken cancellationToken,
@@ -861,7 +881,7 @@ internal static class UseCollectionExpressionHelpers
         }
 
         if (!CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, isSingletonInstance, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
+                semanticModel, expression, expressionType, isSingletonInstance, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
         {
             return default;
         }
