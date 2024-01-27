@@ -108,7 +108,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             public override TypeSyntax VisitDynamicType(IDynamicTypeSymbol symbol)
-                => AddInformationTo(SyntaxFactory.IdentifierName("dynamic"), symbol);
+            {
+                var typeSyntax = SyntaxFactory.IdentifierName("dynamic");
+                return symbol.NullableAnnotation is NullableAnnotation.Annotated
+                    ? AddInformationTo(SyntaxFactory.NullableType(typeSyntax), symbol)
+                    : AddInformationTo(typeSyntax, symbol);
+            }
 
             public static bool TryCreateNativeIntegerType(INamedTypeSymbol symbol, [NotNullWhen(true)] out TypeSyntax? syntax)
             {

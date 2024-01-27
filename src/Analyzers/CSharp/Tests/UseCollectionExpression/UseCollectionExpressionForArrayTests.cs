@@ -4606,4 +4606,75 @@ public class UseCollectionExpressionForArrayTests
             TestState = { OutputKind = OutputKind.ConsoleApplication }
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestNullableArrays1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable disable
+
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        GetActiveStatementDebugInfosCSharp(
+                            [|[|new|][]|] { GetGeneratedCodeFromMarkedSource() },
+                            filePaths: [|[|new|][]|] { this.filePath });
+                    }
+
+                #nullable enable
+
+                    public static void GetActiveStatementDebugInfosCSharp(
+                        string[] markedSources,
+                        string[]? filePaths = null,
+                        int[]? methodRowIds = null,
+                        Guid[]? modules = null,
+                        int[]? methodVersions = null,
+                        int[]? ilOffsets = null)
+                    {
+                    }
+
+                    private static string GetGeneratedCodeFromMarkedSource() => "";
+
+                    private string? filePath;
+                }
+                """,
+            FixedCode = """
+                #nullable disable
+                
+                using System;
+                
+                class C
+                {
+                    void M()
+                    {
+                        GetActiveStatementDebugInfosCSharp(
+                            [GetGeneratedCodeFromMarkedSource()],
+                            filePaths: [this.filePath]);
+                    }
+                
+                #nullable enable
+                
+                    public static void GetActiveStatementDebugInfosCSharp(
+                        string[] markedSources,
+                        string[]? filePaths = null,
+                        int[]? methodRowIds = null,
+                        Guid[]? modules = null,
+                        int[]? methodVersions = null,
+                        int[]? ilOffsets = null)
+                    {
+                    }
+                
+                    private static string GetGeneratedCodeFromMarkedSource() => "";
+                
+                    private string? filePath;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }
