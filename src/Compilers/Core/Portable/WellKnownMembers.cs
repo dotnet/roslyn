@@ -4459,6 +4459,67 @@ namespace Microsoft.CodeAnalysis
                         (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerable_T,
                         1,
                         (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
+                // System_Math__RoundDoubleMidpointRounding
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Math,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_MidpointRounding - WellKnownType.ExtSentinel),
+
+                // System_Math__RoundDecimal
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Math,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Decimal, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Decimal,
+                // System_Math__RoundDecimalMidpointRounding
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Math,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Decimal, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Decimal,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_MidpointRounding - WellKnownType.ExtSentinel),
+                // System_Math__CeilingDecimal
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Math,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Decimal, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Decimal,
+                // System_Math__FloorDecimal
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Math,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Decimal, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Decimal,
+                // System_Math__TruncateDecimal
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Math,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Decimal, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Decimal,
+                // Microsoft_VisualBasic_Conversion__FixDecimal
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.ExtSentinel, WellKnownType.Microsoft_VisualBasic_Conversion - WellKnownType.ExtSentinel,                // DeclaringTypeId
+
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Decimal, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Decimal,
+                // Microsoft_VisualBasic_Conversion__IntDecimal
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.ExtSentinel, WellKnownType.Microsoft_VisualBasic_Conversion - WellKnownType.ExtSentinel,                // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Decimal, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Decimal,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -5010,6 +5071,14 @@ namespace Microsoft.CodeAnalysis
                 "CopyTo",                                   // System_ReadOnlySpan_T__CopyTo_Span_T
                 "AsSpan",                                   // System_Collections_Immutable_ImmutableArray_T__AsSpan
                 "AddRange",                                 // System_Collections_Generic_List_T__AddRange
+                "Round",                                    // System_Math__RoundDoubleMidpointRounding
+                "Round",                                    // System_Math__RoundDecimal
+                "Round",                                    // System_Math__RoundDecimalMidpointRounding
+                "Ceiling",                                  // System_Math__CeilingDecimal
+                "Floor",                                    // System_Math__FloorDecimal
+                "Truncate",                                 // System_Math__TruncateDecimal
+                "Fix",                                      // Microsoft_VisualBasic_Conversion__FixDecimal
+                "Int",                                      // Microsoft_VisualBasic_Conversion__IntDecimal
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
