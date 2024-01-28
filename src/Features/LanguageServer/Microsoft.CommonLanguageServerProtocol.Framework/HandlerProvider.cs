@@ -10,14 +10,17 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <inheritdoc/>
-internal class HandlerProvider : IHandlerProvider
+public class HandlerProvider : IHandlerProvider
 {
     private readonly ILspServices _lspServices;
     private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>? _requestHandlers;
+
+    private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>? _extensionRequestHandlers;
 
     public HandlerProvider(ILspServices lspServices)
     {
@@ -50,10 +53,18 @@ internal class HandlerProvider : IHandlerProvider
         return requestHandlers.Keys.ToImmutableArray();
     }
 
-    private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
-        => _requestHandlers ??= CreateMethodToHandlerMap(_lspServices);
+    public void AddExternalExtensions(ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> externalHandlers)
+    {
+        // TODO: This is not correct. We need to...
+        // 1. Rerun the CreateMethodToHandlerMap (or insert these into the map)
+        // 2. Call SetupRequestDispatcher, which currently lives in the AbstractLanguageServer
+        _extensionRequestHandlers = externalHandlers;
+    }
 
-    private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> CreateMethodToHandlerMap(ILspServices lspServices)
+    private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
+        => _requestHandlers ??= CreateMethodToHandlerMap(_lspServices, _extensionRequestHandlers);
+
+    private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> CreateMethodToHandlerMap(ILspServices lspServices, ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> externalRequestHandlers)
     {
         var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IMethodHandler>>();
 
@@ -105,6 +116,11 @@ internal class HandlerProvider : IHandlerProvider
         }
 
         VerifyHandlers(requestHandlerDictionary.Keys);
+
+        if (externalRequestHandlers != null)
+        {
+            requestHandlerDictionary.Concat(externalRequestHandlers);
+        }
 
         return requestHandlerDictionary.ToImmutable();
 

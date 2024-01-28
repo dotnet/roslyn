@@ -83,9 +83,8 @@ public abstract class AbstractLanguageServer<TRequestContext>
     protected virtual IHandlerProvider GetHandlerProvider()
     {
         var lspServices = _lspServices.Value;
-        var handlerProvider = new HandlerProvider(lspServices);
+        var handlerProvider = lspServices.GetRequiredService<IHandlerProvider>();
         SetupRequestDispatcher(handlerProvider);
-
         return handlerProvider;
     }
 
@@ -112,6 +111,7 @@ public abstract class AbstractLanguageServer<TRequestContext>
                 UseSingleObjectParameterDeserialization = true,
             };
 
+            // TODO: This needs to get called for each extension handler added 
             _jsonRpc.AddLocalRpcMethod(method, delegatingEntryPoint, methodAttribute);
         }
     }

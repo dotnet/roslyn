@@ -17,4 +17,6 @@ public interface IHandlerProvider
     ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods();
 
     IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType);
+
+    void AddExternalExtensions(ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> externalHandlers);
 }
