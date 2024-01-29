@@ -116,60 +116,67 @@ namespace Microsoft.CodeAnalysis
             /// compilation state as the now 'old' state
             /// </summary>
             public ICompilationTracker Fork(
-                ProjectState newProject,
+                ProjectState newProjectState,
                 CompilationAndGeneratorDriverTranslationAction? translate)
             {
-                var state = ReadState();
+                return new CompilationTracker(
+                    newProjectState,
+                    ForkState(oldProjectState: this.ProjectState, ReadState(), translate),
+                    this.SkeletonReferenceCache.Clone());
 
-                var baseCompilation = state.CompilationWithoutGeneratedDocuments;
-                if (baseCompilation != null)
+                static CompilationTrackerState ForkState(
+                    ProjectState oldProjectState,
+                    CompilationTrackerState state,
+                    CompilationAndGeneratorDriverTranslationAction? translate)
                 {
-                    var intermediateProjects = state is InProgressState inProgressState
-                        ? inProgressState.IntermediateProjects
-                        : [];
-
-                    if (translate is not null)
+                    var baseCompilation = state.CompilationWithoutGeneratedDocuments;
+                    if (baseCompilation != null)
                     {
-                        // We have a translation action; are we able to merge it with the prior one?
-                        var merged = false;
-                        if (intermediateProjects.Any())
+                        var intermediateProjects = state is InProgressState inProgressState
+                            ? inProgressState.IntermediateProjects
+                            : [];
+
+                        if (translate is not null)
                         {
-                            var (priorState, priorAction) = intermediateProjects.Last();
-                            var mergedTranslation = translate.TryMergeWithPrior(priorAction);
-                            if (mergedTranslation != null)
+                            // We have a translation action; are we able to merge it with the prior one?
+                            var merged = false;
+                            if (!intermediateProjects.IsEmpty)
                             {
-                                // We can replace the prior action with this new one
-                                intermediateProjects = intermediateProjects.SetItem(intermediateProjects.Count - 1,
-                                    (oldState: priorState, mergedTranslation));
-                                merged = true;
+                                var (priorState, priorAction) = intermediateProjects.Last();
+                                var mergedTranslation = translate.TryMergeWithPrior(priorAction);
+                                if (mergedTranslation != null)
+                                {
+                                    // We can replace the prior action with this new one
+                                    intermediateProjects = intermediateProjects.SetItem(
+                                        intermediateProjects.Count - 1,
+                                        (oldState: priorState, mergedTranslation));
+                                    merged = true;
+                                }
+                            }
+
+                            if (!merged)
+                            {
+                                // Just add it to the end
+                                intermediateProjects = intermediateProjects.Add((oldProjectState, translate));
                             }
                         }
 
-                        if (!merged)
-                        {
-                            // Just add it to the end
-                            intermediateProjects = intermediateProjects.Add((oldState: this.ProjectState, translate));
-                        }
+                        var newState = CompilationTrackerState.Create(
+                            baseCompilation, state.GeneratorInfo, state.FinalCompilationWithGeneratedDocuments, intermediateProjects);
+                        return newState;
                     }
-
-                    var newState = CompilationTrackerState.Create(
-                        baseCompilation, state.GeneratorInfo, state.FinalCompilationWithGeneratedDocuments, intermediateProjects);
-
-                    return new CompilationTracker(newProject, newState, this.SkeletonReferenceCache.Clone());
-                }
-                else
-                {
-                    // We may still have a cached generator; we'll have to remember to run generators again since we are making some
-                    // change here. We'll also need to update the other state of the driver if appropriate.
-                    var generatorInfo = state.GeneratorInfo.WithDocumentsAreFinal(false);
-
-                    if (generatorInfo.Driver != null && translate != null)
+                    else
                     {
-                        generatorInfo = generatorInfo.WithDriver(translate.TransformGeneratorDriver(generatorInfo.Driver));
-                    }
+                        // We may still have a cached generator; we'll have to remember to run generators again since we are making some
+                        // change here. We'll also need to update the other state of the driver if appropriate.
+                        var generatorInfo = state.GeneratorInfo.WithDocumentsAreFinal(false);
+                        if (generatorInfo.Driver != null && translate != null)
+                        {
+                            generatorInfo = generatorInfo.WithDriver(translate.TransformGeneratorDriver(generatorInfo.Driver));
+                        }
 
-                    var newState = new NoCompilationState(generatorInfo);
-                    return new CompilationTracker(newProject, newState, this.SkeletonReferenceCache.Clone());
+                        return new NoCompilationState(generatorInfo);
+                    }
                 }
             }
 
