@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(CS8345);
+            => [CS8345];
 
         public override FixAllProvider? GetFixAllProvider()
         {

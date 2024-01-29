@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var relatedDocumentId in relatedDocumentIds)
                 {
                     var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
-                    return solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState);
+                    return solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
                 }
 
                 return solution;
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis
                     foreach (var relatedDocumentId in relatedDocumentIds)
                     {
                         if (processedDocuments.Add(relatedDocumentId))
-                            solution = solution.WithDocumentContentsFrom(relatedDocumentId, changedDocument.DocumentState);
+                            solution = solution.WithDocumentContentsFrom(relatedDocumentId, changedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
                     }
                 }
 
@@ -1154,7 +1154,7 @@ namespace Microsoft.CodeAnalysis
                             foreach (var linkedDocumentId in linkedDocumentIds)
                             {
                                 previousSolution = newSolution;
-                                newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState);
+                                newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
 
                                 if (previousSolution != newSolution)
                                     updatedDocumentIds.Add(linkedDocumentId);
@@ -1252,7 +1252,7 @@ namespace Microsoft.CodeAnalysis
                 CheckProjectIsInSolution(oldSolution, documentId.ProjectId);
                 CheckAnalyzerConfigDocumentIsNotInSolution(oldSolution, documentId);
 
-                return oldSolution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo));
+                return oldSolution.AddAnalyzerConfigDocuments([documentInfo]);
             },
             WorkspaceChangeKind.AnalyzerConfigDocumentAdded, documentId: documentId);
         }

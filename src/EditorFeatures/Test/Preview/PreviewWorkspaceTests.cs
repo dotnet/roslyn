@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.IsType<NoOpPersistentStorage>(storage);
         }
 
-        [ConditionalFact(typeof(Bitness32))]
+
         [WorkItem("https://github.com/dotnet/roslyn/issues/28639")]
         public void TestPreviewWorkspaceDoesNotLeakSolution()
         {

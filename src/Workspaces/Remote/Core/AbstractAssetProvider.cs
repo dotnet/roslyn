@@ -24,12 +24,14 @@ internal abstract class AbstractAssetProvider
 
     public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
     {
-        var solutionChecksums = await GetAssetAsync<SolutionStateChecksums>(AssetHint.None, solutionChecksum, cancellationToken).ConfigureAwait(false);
+        var solutionCompilationChecksums = await GetAssetAsync<SolutionCompilationStateChecksums>(AssetHint.None, solutionChecksum, cancellationToken).ConfigureAwait(false);
+        var solutionChecksums = await GetAssetAsync<SolutionStateChecksums>(AssetHint.None, solutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+
         var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(AssetHint.None, solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<ProjectInfo>.GetInstance(solutionChecksums.Projects.Length, out var projects);
         foreach (var (projectChecksum, projectId) in solutionChecksums.Projects)
-            projects.AddIfNotNull(await CreateProjectInfoAsync(projectId, projectChecksum, cancellationToken).ConfigureAwait(false));
+            projects.Add(await CreateProjectInfoAsync(projectId, projectChecksum, cancellationToken).ConfigureAwait(false));
 
         var analyzerReferences = await CreateCollectionAsync<AnalyzerReference>(AssetHint.None, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
@@ -37,18 +39,13 @@ internal abstract class AbstractAssetProvider
             solutionAttributes.Id, solutionAttributes.Version, solutionAttributes.FilePath, projects.ToImmutableAndClear(), analyzerReferences).WithTelemetryId(solutionAttributes.TelemetryId);
     }
 
-    public async Task<ProjectInfo?> CreateProjectInfoAsync(ProjectId projectId, Checksum projectChecksum, CancellationToken cancellationToken)
+    public async Task<ProjectInfo> CreateProjectInfoAsync(ProjectId projectId, Checksum projectChecksum, CancellationToken cancellationToken)
     {
         var projectChecksums = await GetAssetAsync<ProjectStateChecksums>(assetHint: projectId, projectChecksum, cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfFalse(projectId == projectChecksums.ProjectId);
 
         var attributes = await GetAssetAsync<ProjectInfo.ProjectAttributes>(assetHint: projectId, projectChecksums.Info, cancellationToken).ConfigureAwait(false);
-        if (!RemoteSupportedLanguages.IsSupported(attributes.Language))
-        {
-            // only add project our workspace supports. 
-            // workspace doesn't allow creating project with unknown languages
-            return null;
-        }
+        Contract.ThrowIfFalse(RemoteSupportedLanguages.IsSupported(attributes.Language));
 
         var compilationOptions = attributes.FixUpCompilationOptions(
             await GetAssetAsync<CompilationOptions>(assetHint: projectId, projectChecksums.CompilationOptions, cancellationToken).ConfigureAwait(false));

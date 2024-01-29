@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
             var context = new CodeFixContext(
                 document,
                 firstDiagnostic.Location.SourceSpan,
-                ImmutableArray.Create(firstDiagnostic),
+                [firstDiagnostic],
                 (a, _) => action ??= a,
                 options,
                 cancellationToken);

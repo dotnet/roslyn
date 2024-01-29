@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.ComponentModel;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -186,6 +184,21 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public abstract Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken);
 
+        // Kept around for binary compat with TypeScript.
+        public static DefinitionItem Create(
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            DocumentSpan sourceSpan,
+            ImmutableArray<TaggedText> nameDisplayParts = default,
+            bool displayIfNoReferences = true)
+        {
+            return Create(
+                tags, displayParts,
+                sourceSpan,
+                classifiedSpans: null,
+                nameDisplayParts, displayIfNoReferences);
+        }
+
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
@@ -196,8 +209,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
             return Create(
                 tags, displayParts,
-                ImmutableArray.Create(sourceSpan),
-                ImmutableArray.Create(classifiedSpans),
+                [sourceSpan],
+                [classifiedSpans],
                 nameDisplayParts, displayIfNoReferences);
         }
 
@@ -283,8 +296,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             var originationParts = GetOriginationParts(symbol);
             return new DefaultDefinitionItem(
                 tags, displayParts, nameDisplayParts, originationParts,
-                sourceSpans: ImmutableArray<DocumentSpan>.Empty,
-                classifiedSpans: ImmutableArray<ClassifiedSpansAndHighlightSpan?>.Empty,
+                sourceSpans: [],
+                classifiedSpans: [],
                 properties: properties,
                 displayableProperties: ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences: displayIfNoReferences);
@@ -315,10 +328,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
             return new DefaultDefinitionItem(
                 tags: tags,
                 displayParts: displayParts,
-                nameDisplayParts: ImmutableArray<TaggedText>.Empty,
+                nameDisplayParts: [],
                 originationParts: originationParts,
-                sourceSpans: ImmutableArray<DocumentSpan>.Empty,
-                classifiedSpans: ImmutableArray<ClassifiedSpansAndHighlightSpan?>.Empty,
+                sourceSpans: [],
+                classifiedSpans: [],
                 properties: properties,
                 displayableProperties: ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences: displayIfNoReferences);
@@ -336,11 +349,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 var assemblyName = symbol.ContainingAssembly?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
                 if (!string.IsNullOrWhiteSpace(assemblyName))
                 {
-                    return ImmutableArray.Create(new TaggedText(TextTags.Assembly, assemblyName));
+                    return [new TaggedText(TextTags.Assembly, assemblyName)];
                 }
             }
 
-            return ImmutableArray<TaggedText>.Empty;
+            return [];
         }
 
         public DetachedDefinitionItem Detach()

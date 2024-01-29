@@ -65,9 +65,13 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         protected SimplifyTypeNamesDiagnosticAnalyzerBase()
             : base(ImmutableDictionary<DiagnosticDescriptor, ImmutableHashSet<IOption2>>.Empty
-                  .Add(s_descriptorSimplifyNames, ImmutableHashSet<IOption2>.Empty)
-                  .Add(s_descriptorSimplifyMemberAccess, ImmutableHashSet<IOption2>.Empty)
-                  .Add(s_descriptorPreferBuiltinOrFrameworkType, ImmutableHashSet.Create<IOption2>(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)),
+                  .Add(s_descriptorSimplifyNames, [])
+                  .Add(s_descriptorSimplifyMemberAccess, [])
+                  .Add(s_descriptorPreferBuiltinOrFrameworkType,
+                  [
+                      CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
+                      CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
+                  ]),
                   fadingOption: null)
         {
         }
@@ -89,7 +93,10 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         }
 
         protected static ImmutableArray<NotificationOption2> GetAllNotifications(SimplifierOptions options)
-            => ImmutableArray.Create(options.PreferPredefinedTypeKeywordInDeclaration.Notification, options.PreferPredefinedTypeKeywordInMemberAccess.Notification);
+            => [
+                options.PreferPredefinedTypeKeywordInDeclaration.Notification,
+                options.PreferPredefinedTypeKeywordInMemberAccess.Notification,
+            ];
 
         protected sealed override void InitializeWorker(AnalysisContext context)
         {

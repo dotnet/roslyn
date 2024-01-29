@@ -3424,6 +3424,112 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void SignatureMismatch_10()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            struct Program
+            {
+                public void InterceptableMethod() => Console.Write("Original");
+
+                public static void Main()
+                {
+                    new Program().InterceptableMethod();
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 10, 23)]
+                public static void Interceptor(this in Program x) => Console.Write("Intercepted");
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(16,6): error CS9148: Interceptor must have a 'this' parameter matching parameter 'ref Program this' on 'Program.InterceptableMethod()'.
+            //     [InterceptsLocation("Program.cs", 10, 23)]
+            Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, @"InterceptsLocation(""Program.cs"", 10, 23)").WithArguments("ref Program this", "Program.InterceptableMethod()").WithLocation(16, 6));
+    }
+
+    [Fact]
+    public void SignatureMismatch_11()
+    {
+        var source = ("""
+            using System;
+
+            struct Program
+            {
+                public readonly void InterceptableMethod() => Console.Write("Original");
+
+                public static void Main()
+                {
+                    new Program().InterceptableMethod();
+                }
+            }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            using System.Runtime.CompilerServices;
+            using System;
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 9, 23)]
+                public static void Interceptor(this in Program x) => Console.Write("Intercepted");
+            }
+            """, "Interceptor.cs");
+        var verifier = CompileAndVerify(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Original");
+        verifier.VerifyDiagnostics();
+
+        verifier = CompileAndVerify(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Intercepted");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("ref")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/71714")]
+    public void SignatureMismatch_12(string interceptorRefKind)
+    {
+        var source = ("""
+            using System;
+
+            struct Program
+            {
+                public readonly void InterceptableMethod() => Console.Write("Original");
+
+                public static void Main()
+                {
+                    new Program().InterceptableMethod();
+                }
+            }
+            """, "Program.cs");
+
+        var interceptor = ($$"""
+            using System.Runtime.CompilerServices;
+            using System;
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 9, 23)]
+                public static void Interceptor(this {{interceptorRefKind}} Program x) => Console.Write("Intercepted");
+            }
+            """, "Interceptor.cs");
+        var verifier = CompileAndVerify(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Original");
+        verifier.VerifyDiagnostics();
+
+        // 'this ref readonly' should probably be compatible with 'readonly' original method.
+        // Tracked by https://github.com/dotnet/roslyn/issues/71714
+        var comp = CreateCompilation(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Interceptor.cs(6,6): error CS9148: Interceptor must have a 'this' parameter matching parameter 'in Program this' on 'Program.InterceptableMethod()'.
+            //     [InterceptsLocation("Program.cs", 9, 23)]
+            Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, @"InterceptsLocation(""Program.cs"", 9, 23)").WithArguments("in Program this", "Program.InterceptableMethod()").WithLocation(6, 6));
+    }
+
+    [Fact]
     public void ScopedMismatch_01()
     {
         // Unsafe 'scoped' difference
@@ -4826,5 +4932,481 @@ partial struct CustomHandler
                 // Program.cs(14,6): error CS9161: An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.
                 //     [InterceptsLocation("Program.cs", 5, 3)]
                 Diagnostic(ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly, @"InterceptsLocation(""Program.cs"", 5, 3)").WithLocation(14, 6));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70841")]
+    public void InterceptorEnumBaseMethod()
+    {
+        var program = ("""
+            using System;
+
+            var value = MyEnum.Second;
+            Console.WriteLine(value.ToString());
+
+            public enum MyEnum
+            {
+                First,
+                Second,
+            }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            using System.Runtime.CompilerServices;
+
+            namespace MyInterceptors
+            {
+                public static class Interceptors
+                {
+                    [InterceptsLocation(@"Program.cs", 4, 25)]
+                    public static string OtherToString(this System.Enum value)
+                        => "Wrong Value" + value;
+                }
+            }
+            """, "Interceptor.cs");
+
+        var verifier = CompileAndVerify(new[] { program, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Second");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       21 (0x15)
+              .maxstack  1
+              .locals init (MyEnum V_0) //value
+              IL_0000:  ldc.i4.1
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  constrained. "MyEnum"
+              IL_000a:  callvirt   "string object.ToString()"
+              IL_000f:  call       "void System.Console.WriteLine(string)"
+              IL_0014:  ret
+            }
+            """);
+
+        verifier = CompileAndVerify(new[] { program, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Wrong ValueSecond");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       17 (0x11)
+              .maxstack  1
+              IL_0000:  ldc.i4.1
+              IL_0001:  box        "MyEnum"
+              IL_0006:  call       "string MyInterceptors.Interceptors.OtherToString(System.Enum)"
+              IL_000b:  call       "void System.Console.WriteLine(string)"
+              IL_0010:  ret
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70841")]
+    public void InterceptorStructBaseMethod()
+    {
+        var program = ("""
+            using System;
+
+            MyStruct value = default;
+            Console.WriteLine(value.Equals((object)1));
+
+            public struct MyStruct { }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            using System.Runtime.CompilerServices;
+
+            namespace MyInterceptors
+            {
+                public static class Interceptors
+                {
+                    [InterceptsLocation(@"Program.cs", 4, 25)]
+                    public static bool Equals(this System.ValueType value, object other) => true;
+                }
+            }
+            """, "Interceptor.cs");
+
+        var verifier = CompileAndVerify(new[] { program, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "False");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       33 (0x21)
+              .maxstack  2
+              .locals init (MyStruct V_0) //value
+              IL_0000:  ldloca.s   V_0
+              IL_0002:  initobj    "MyStruct"
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  ldc.i4.1
+              IL_000b:  box        "int"
+              IL_0010:  constrained. "MyStruct"
+              IL_0016:  callvirt   "bool object.Equals(object)"
+              IL_001b:  call       "void System.Console.WriteLine(bool)"
+              IL_0020:  ret
+            }
+            """);
+
+        verifier = CompileAndVerify(new[] { program, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "True");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       31 (0x1f)
+              .maxstack  2
+              .locals init (MyStruct V_0)
+              IL_0000:  ldloca.s   V_0
+              IL_0002:  initobj    "MyStruct"
+              IL_0008:  ldloc.0
+              IL_0009:  box        "MyStruct"
+              IL_000e:  ldc.i4.1
+              IL_000f:  box        "int"
+              IL_0014:  call       "bool MyInterceptors.Interceptors.Equals(System.ValueType, object)"
+              IL_0019:  call       "void System.Console.WriteLine(bool)"
+              IL_001e:  ret
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70841")]
+    public void InterceptorTypeParameterObjectMethod()
+    {
+        var program = ("""
+            using System;
+
+            M("a");
+            void M<T>(T value)
+            {
+                Console.WriteLine(value.Equals((object)1));
+            }
+
+            public struct MyStruct { }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            using System.Runtime.CompilerServices;
+
+            namespace MyInterceptors
+            {
+                public static class Interceptors
+                {
+                    [InterceptsLocation(@"Program.cs", 6, 29)]
+                    public static new bool Equals(this object value, object other) => true;
+                }
+            }
+            """, "Interceptor.cs");
+
+        var verifier = CompileAndVerify(new[] { program, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "False");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.<<Main>$>g__M|0_0<T>(T)", """
+            {
+              // Code size       25 (0x19)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  ldc.i4.1
+              IL_0003:  box        "int"
+              IL_0008:  constrained. "T"
+              IL_000e:  callvirt   "bool object.Equals(object)"
+              IL_0013:  call       "void System.Console.WriteLine(bool)"
+              IL_0018:  ret
+            }
+            """);
+
+        verifier = CompileAndVerify(new[] { program, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "True");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.<<Main>$>g__M|0_0<T>(T)", """
+            {
+              // Code size       23 (0x17)
+              .maxstack  2
+              IL_0000:  ldarg.0
+              IL_0001:  box        "T"
+              IL_0006:  ldc.i4.1
+              IL_0007:  box        "int"
+              IL_000c:  call       "bool MyInterceptors.Interceptors.Equals(object, object)"
+              IL_0011:  call       "void System.Console.WriteLine(bool)"
+              IL_0016:  ret
+            }
+            """);
+    }
+
+    [Theory]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/70841")]
+    [InlineData("where T : struct, I")]
+    [InlineData("where T : I")]
+    public void InterceptorStructConstrainedInterfaceMethod(string constraints)
+    {
+        var program = ($$"""
+            using System;
+
+            C.M(default(MyStruct));
+
+            class C
+            {
+                public static void M<T>(T t) {{constraints}}
+                {
+                    t.IM();
+                }
+            }
+
+            public struct MyStruct : I
+            {
+                public void IM()
+                {
+                    Console.Write("Original");
+                }
+            }
+
+            public interface I
+            {
+                void IM();
+            }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            using System.Runtime.CompilerServices;
+            using System;
+
+            namespace MyInterceptors
+            {
+                public static class Interceptors
+                {
+                    [InterceptsLocation(@"Program.cs", 9, 11)]
+                    public static void IM(this I @this) { Console.Write("Interceptor"); }
+                }
+            }
+            """, "Interceptor.cs");
+
+        var verifier = CompileAndVerify(new[] { program, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Original");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M<T>(T)", """
+            {
+              // Code size       14 (0xe)
+              .maxstack  1
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  constrained. "T"
+              IL_0008:  callvirt   "void I.IM()"
+              IL_000d:  ret
+            }
+            """);
+
+        verifier = CompileAndVerify(new[] { program, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Interceptor");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M<T>(T)", """
+            {
+              // Code size       12 (0xc)
+              .maxstack  1
+              IL_0000:  ldarg.0
+              IL_0001:  box        "T"
+              IL_0006:  call       "void MyInterceptors.Interceptors.IM(I)"
+              IL_000b:  ret
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70311")]
+    public void InterceptorGeneric_01()
+    {
+        var source = ("""
+            #nullable enable
+            using System;
+
+            class C
+            {
+                public string Method1<T>(T arg) => "Original";
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    string? x = null;
+
+                    Console.Write(c.Method1(x));
+                }
+            }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            #nullable enable
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 16, 25)]
+                public static string Generic<T>(this C s, T arg) => "Interceptor";
+            }
+            """, "Interceptor.cs");
+
+        var verifier = CompileAndVerify(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Original");
+        verifier.VerifyDiagnostics();
+
+        verifier = CompileAndVerify(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Interceptor");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70311")]
+    public void InterceptorGeneric_02()
+    {
+        var source = ("""
+            #nullable enable
+            using System;
+
+            class C<T>
+            {
+                public string Method1<U>(U arg) => "Original";
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C<int>();
+                    string? x = null;
+
+                    Console.Write(c.Method1(x));
+                }
+            }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            #nullable enable
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 16, 25)]
+                public static string Generic<T, U>(this C<T> s, U arg) => "Interceptor";
+            }
+            """, "Interceptor.cs");
+
+        var verifier = CompileAndVerify(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Original");
+        verifier.VerifyDiagnostics();
+
+        verifier = CompileAndVerify(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "Interceptor");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70311")]
+    public void InterceptorGeneric_03()
+    {
+        var source = ("""
+            #nullable enable
+
+            class C<T>
+            {
+                public string? Method1<U>(U arg) => null;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C<int>();
+                    string? x = null;
+
+                    c.Method1(x);
+                }
+            }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            #nullable enable
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static string? Generic<T, U>(this T s, U arg) => arg?.ToString();
+            }
+            """, "Interceptor.cs");
+
+        var comp = CreateCompilation(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Interceptor.cs(6,6): error CS9144: Cannot intercept method 'C<int>.Method1<string>(string)' with interceptor 'D.Generic<int, string>(int, string)' because the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 15, 11)]
+            Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("C<int>.Method1<string>(string)", "D.Generic<int, string>(int, string)").WithLocation(6, 6));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70311")]
+    public void InterceptorGeneric_04()
+    {
+        // interceptor type parameter substitution meets constraints
+        var source = ("""
+            #nullable enable
+
+            class C<T>
+            {
+                public string? Method1<U>(U arg) => null;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C<int>();
+                    string? x = null;
+
+                    c.Method1(x);
+                }
+            }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            #nullable enable
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static string? Generic<T, U>(this C<T> s, U arg) where T : struct => arg?.ToString();
+            }
+            """, "Interceptor.cs");
+
+        var comp = CreateCompilation(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70311")]
+    public void InterceptorGeneric_05()
+    {
+        // interceptor type parameter substitution violates constraints
+        var source = ("""
+            #nullable enable
+
+            class C<T>
+            {
+                public string? Method1<U>(U arg) => null;
+            }
+
+            static class Program
+            {
+                public static void Main()
+                {
+                    var c = new C<int>();
+                    string? x = null;
+
+                    c.Method1(x);
+                }
+            }
+            """, "Program.cs");
+
+        var interceptor = ("""
+            #nullable enable
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static string? Generic<T, U>(this C<T> s, U arg) where T : class => arg?.ToString();
+            }
+            """, "Interceptor.cs");
+
+        var comp = CreateCompilation(new[] { source, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(new[] { source, interceptor, s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Interceptor.cs(6,6): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'D.Generic<T, U>(C<T>, U)'
+            //     [InterceptsLocation("Program.cs", 15, 11)]
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("D.Generic<T, U>(C<T>, U)", "T", "int").WithLocation(6, 6));
     }
 }

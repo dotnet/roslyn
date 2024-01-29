@@ -391,10 +391,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var inheritedDocumentation = GetDocumentationComment(symbol, visitedSymbols, compilation, preferredCulture: null, expandIncludes: true, expandInheritdoc: true, cancellationToken);
                 if (inheritedDocumentation == DocumentationComment.Empty)
                 {
-                    return Array.Empty<XNode>();
+                    return [];
                 }
 
-                var document = XDocument.Parse(inheritedDocumentation.FullXmlFragment);
+                var document = XDocument.Parse(inheritedDocumentation.FullXmlFragment, LoadOptions.PreserveWhitespace);
                 string xpathValue;
                 if (string.IsNullOrEmpty(pathAttribute?.Value))
                 {
@@ -452,11 +452,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 var loadedElements = TrySelectNodes(document, xpathValue);
-                return loadedElements ?? Array.Empty<XNode>();
+                return loadedElements ?? [];
             }
             catch (XmlException)
             {
-                return Array.Empty<XNode>();
+                return [];
             }
             finally
             {

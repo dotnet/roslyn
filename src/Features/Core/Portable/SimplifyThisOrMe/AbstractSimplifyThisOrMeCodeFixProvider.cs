@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         protected abstract SyntaxNode Rewrite(SyntaxNode root, ISet<TMemberAccessExpressionSyntax> memberAccessNodes);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId);
+            [IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId];
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

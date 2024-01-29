@@ -42,7 +42,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var expected = CreateCodeAction(
             title: CSharpAnalyzersResources.Use_implicit_type,
             kind: CodeActionKind.Refactor,
-            children: Array.Empty<VSInternalCodeAction>(),
+            children: [],
             data: CreateCodeActionResolveData(
                 CSharpAnalyzersResources.Use_implicit_type,
                 caretLocation,
@@ -79,7 +79,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var expected = CreateCodeAction(
             title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
             kind: CodeActionKind.Refactor,
-            children: Array.Empty<VSInternalCodeAction>(),
+            children: [],
             data: CreateCodeActionResolveData(
                 string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                 caretLocation,
@@ -212,6 +212,12 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         // Asserts that there are NestedActions on Inline
         Assert.NotNull(data!.NestedCodeActions);
         Assert.NotEmpty(data!.NestedCodeActions);
+
+        // Asserts that the second NestedAction's path is correct
+        var nestedActionData = GetCodeActionResolveData(data!.NestedCodeActions!.Value[1]);
+        Assert.NotNull(nestedActionData);
+        Assert.Equal("Inline 'A()'", nestedActionData!.CodeActionPath[0]);
+        Assert.Equal("Inline and keep 'A()'", nestedActionData!.CodeActionPath[1]);
 
         // Asserts that there is a Command present on an action with nested actions
         Assert.NotNull(inline.Command);

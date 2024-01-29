@@ -68,7 +68,7 @@ namespace Roslyn.Utilities
             {
                 if (builders.Count == 0)
                 {
-                    return ImmutableArray<T>.Empty;
+                    return [];
                 }
 
                 if (builders.Count == 1)

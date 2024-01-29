@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
             }
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Solution_Predicate_FindSourceDeclarationsAsync, cancellationToken))
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
             }
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Predicate_FindSourceDeclarationsAsync, cancellationToken))
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            return ImmutableArray<ISymbol>.Empty;
+            return [];
         }
     }
 }

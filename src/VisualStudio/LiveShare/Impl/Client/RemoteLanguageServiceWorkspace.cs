@@ -81,7 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         public RemoteLanguageServiceWorkspace(
             ExportProvider exportProvider,
             IGlobalOptionService globalOptions,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             OpenTextBufferProvider openTextBufferProvider,
             IVsFolderWorkspaceService vsFolderWorkspaceService,
             SVsServiceProvider serviceProvider,

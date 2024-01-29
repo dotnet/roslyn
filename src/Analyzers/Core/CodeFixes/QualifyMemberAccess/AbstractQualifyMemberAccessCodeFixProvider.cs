@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         protected abstract TSimpleNameSyntax? GetNode(Diagnostic diagnostic, CancellationToken cancellationToken);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId);
+            => [IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

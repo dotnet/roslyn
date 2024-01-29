@@ -1227,6 +1227,8 @@ namespace System
         {
             var source = """
                 using System;
+                using System.Globalization;
+
                 static class C
                 {
                     static void Main()
@@ -1238,7 +1240,7 @@ namespace System
                     static void Write(ReadOnlySpan<double> span)
                     {
                         foreach (double x in span)
-                            Console.Write(x + " ");
+                            Console.Write(x.ToString(CultureInfo.InvariantCulture) + " ");
                     }
                 }
                 """;

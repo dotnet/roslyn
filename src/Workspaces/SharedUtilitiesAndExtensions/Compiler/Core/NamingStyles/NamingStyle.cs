@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             }
 
             name = name[Prefix.Length..^Suffix.Length];
-            IEnumerable<string> words = new[] { name };
+            IEnumerable<string> words = [name];
 
             if (!string.IsNullOrEmpty(WordSeparator))
             {

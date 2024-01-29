@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// A set of documents that were added by <see cref="ProjectSystemProject.AddSourceTextContainer"/>, and aren't otherwise
         /// tracked for opening/closing.
         /// </summary>
-        public ImmutableHashSet<DocumentId> DocumentsNotFromFiles { get; private set; } = ImmutableHashSet<DocumentId>.Empty;
+        public ImmutableHashSet<DocumentId> DocumentsNotFromFiles { get; private set; } = [];
 
         /// <remarks>Should be updated with <see cref="ImmutableInterlocked"/>.</remarks>
         private ImmutableDictionary<ProjectId, string?> _projectToMaxSupportedLangVersionMap = ImmutableDictionary<ProjectId, string?>.Empty;
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                                 SolutionId.CreateNewId(SolutionPath),
                                 VersionStamp.Create(),
                                 SolutionPath,
-                                projects: new[] { projectInfo },
+                                projects: [projectInfo],
                                 analyzerReferences: w.CurrentSolution.AnalyzerReferences).WithTelemetryId(SolutionTelemetryId);
                             var newSolution = w.CreateSolution(solutionInfo);
 

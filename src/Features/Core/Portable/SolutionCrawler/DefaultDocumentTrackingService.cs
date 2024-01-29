@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
 
         public ImmutableArray<DocumentId> GetVisibleDocuments()
-            => ImmutableArray<DocumentId>.Empty;
+            => [];
 
         public DocumentId? TryGetActiveDocument()
             => null;
