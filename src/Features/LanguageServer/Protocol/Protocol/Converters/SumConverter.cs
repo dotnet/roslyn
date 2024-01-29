@@ -87,7 +87,7 @@ namespace Roslyn.LanguageServer.Protocol
                         sumValue = token.ToObject(unionTypeInfo.Type, serializer);
                     }
 
-                    object?[] args = { sumValue };
+                    object?[] args = [sumValue];
                     var sum = unionTypeInfo.Constructor.Invoke(args);
                     return sum;
                 }
@@ -186,7 +186,7 @@ namespace Roslyn.LanguageServer.Protocol
                 foreach (var parameterType in parameterTypes)
                 {
                     var parameterTypeInfo = NormalizeToNonNullable(parameterType).GetTypeInfo();
-                    var declaredConstructor = typeInfo.GetConstructor(new Type[] { parameterType }) ??
+                    var declaredConstructor = typeInfo.GetConstructor([parameterType]) ??
                         throw new ArgumentException(nameof(sumTypeType), "All constructor parameter types must be represented in the generic type arguments of the SumType");
 
                     var kindAttribute = parameterType.GetCustomAttribute<KindAttribute>();

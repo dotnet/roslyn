@@ -133,9 +133,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             var dispatcher = await TestServices.Shell.GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
             OLECMD[] commands =
-            {
+            [
                 new OLECMD { cmdID = commandId },
-            };
+            ];
 
             var status = dispatcher.QueryStatus(commandGuid, (uint)commands.Length, commands, pCmdText: IntPtr.Zero);
             ErrorHandler.ThrowOnFailure(status);

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                         editor.RemoveNode(nodeToRemove, SyntaxRemoveOptions.KeepNoTrivia);
                     }
 
-                    editor.InsertAfter(namespaceDeclaration, new[] { newNamespaceDeclaration, itemsAfterNamespaceDeclaration });
+                    editor.InsertAfter(namespaceDeclaration, [newNamespaceDeclaration, itemsAfterNamespaceDeclaration]);
                 }
                 else if (itemsBefore.Any())
                 {

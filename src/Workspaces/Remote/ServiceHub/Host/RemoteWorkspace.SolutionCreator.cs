@@ -140,13 +140,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     if (!oldMap.ContainsKey(projectId))
                     {
                         var projectInfo = await _assetProvider.CreateProjectInfoAsync(projectId, newProjectChecksums.Checksum, cancellationToken).ConfigureAwait(false);
-                        if (projectInfo == null)
-                        {
-                            // this project is not supported in OOP
-                            continue;
-                        }
-
-                        // we have new project added
                         solution = solution.AddProject(projectInfo);
                     }
                 }

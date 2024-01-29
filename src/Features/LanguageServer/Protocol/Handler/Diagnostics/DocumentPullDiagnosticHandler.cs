@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             => diagnosticsParams.TextDocument;
 
         protected override VSInternalDiagnosticReport[] CreateReport(TextDocumentIdentifier identifier, Roslyn.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
-            => new[]
-            {
+            => [
                 new VSInternalDiagnosticReport
                 {
                     Diagnostics = diagnostics,
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     // values which are cached and may be out of date.
                     Supersedes = WorkspaceDiagnosticIdentifier,
                 }
-            };
+            ];
 
         protected override VSInternalDiagnosticReport[] CreateRemovedReport(TextDocumentIdentifier identifier)
             => CreateReport(identifier, diagnostics: null, resultId: null);
