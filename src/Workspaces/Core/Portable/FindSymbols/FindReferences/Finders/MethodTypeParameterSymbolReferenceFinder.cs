@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (ordinal >= 0)
             {
                 if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.TypeParameters.Length)
-                    return new(ImmutableArray.Create<ISymbol>(method.PartialDefinitionPart.TypeParameters[ordinal]));
+                    return new([method.PartialDefinitionPart.TypeParameters[ordinal]]);
 
                 if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.TypeParameters.Length)
-                    return new(ImmutableArray.Create<ISymbol>(method.PartialImplementationPart.TypeParameters[ordinal]));
+                    return new([method.PartialImplementationPart.TypeParameters[ordinal]]);
             }
 
-            return new(ImmutableArray<ISymbol>.Empty);
+            return new([]);
         }
 
         protected sealed override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(

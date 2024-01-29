@@ -240,14 +240,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 targetFramework: null,
                 targetFrameworkIdentifier: null,
                 projectAssetsFilePath: null,
-                commandLineArgs: ImmutableArray<string>.Empty,
-                documents: ImmutableArray<DocumentFileInfo>.Empty,
-                additionalDocuments: ImmutableArray<DocumentFileInfo>.Empty,
-                analyzerConfigDocuments: ImmutableArray<DocumentFileInfo>.Empty,
-                projectReferences: ImmutableArray<ProjectFileReference>.Empty,
-                packageReferences: ImmutableArray<PackageReference>.Empty,
-                projectCapabilities: ImmutableArray<string>.Empty,
-                contentFilePaths: ImmutableArray<string>.Empty,
+                commandLineArgs: [],
+                documents: [],
+                additionalDocuments: [],
+                analyzerConfigDocuments: [],
+                projectReferences: [],
+                packageReferences: [],
+                projectCapabilities: [],
+                contentFilePaths: [],
                 isSdkStyle: false);
     }
 }

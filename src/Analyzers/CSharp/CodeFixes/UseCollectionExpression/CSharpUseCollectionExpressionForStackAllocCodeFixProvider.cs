@@ -27,7 +27,7 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId)
 {
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId];
 
     protected sealed override async Task FixAsync(
         Document document,
@@ -78,7 +78,7 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
                 // if we have `stackalloc[] { ... }` we have no subsequent matches to add to the collection. All values come
                 // from within the initializer.
                 ImplicitStackAllocArrayCreationExpressionSyntax
-                    => ImmutableArray<CollectionExpressionMatch<StatementSyntax>>.Empty,
+                    => [],
 
                 // we have `stackalloc T[...] ...;` defer to analyzer to find the items that follow that may need to
                 // be added to the collection expression.

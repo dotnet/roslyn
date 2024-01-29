@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                     // Find the destination for the local function after the callsite has been fixed up.
                     var destination = insertionPoint.With(documentWithUpdatedCallSite).GetContext();
-                    var updatedDestination = codeGenerationService.AddStatements(destination, new[] { localMethod }, info, cancellationToken);
+                    var updatedDestination = codeGenerationService.AddStatements(destination, [localMethod], info, cancellationToken);
 
                     var finalRoot = documentWithUpdatedCallSite.Root.ReplaceNode(destination, updatedDestination);
                     return finalRoot;
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 if (AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0)
                 {
-                    return ImmutableArray<ITypeParameterSymbol>.Empty;
+                    return [];
                 }
 
                 var set = new HashSet<ITypeParameterSymbol>(AnalyzerResult.MethodTypeParametersInConstraintList);
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     }
 
                     typeParameters.Add(CodeGenerationSymbolFactory.CreateTypeParameter(
-                        parameter.GetAttributes(), parameter.Variance, parameter.Name, ImmutableArray.Create<ITypeSymbol>(), parameter.NullableAnnotation,
+                        parameter.GetAttributes(), parameter.Variance, parameter.Name, [], parameter.NullableAnnotation,
                         parameter.HasConstructorConstraint, parameter.HasReferenceTypeConstraint, parameter.HasUnmanagedTypeConstraint,
                         parameter.HasValueTypeConstraint, parameter.HasNotNullConstraint, parameter.Ordinal));
                 }
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                         parameters.Add(
                             CodeGenerationSymbolFactory.CreateParameterSymbol(
-                                attributes: ImmutableArray<AttributeData>.Empty,
+                                attributes: [],
                                 refKind: refKind,
                                 isParams: false,
                                 type: type,

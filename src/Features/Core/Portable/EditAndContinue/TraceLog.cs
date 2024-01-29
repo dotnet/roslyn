@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public readonly Arg[]? Args = args;
 
             internal string GetDebuggerDisplay()
-                => (MessageFormat == null) ? "" : string.Format(MessageFormat, Args?.Select(a => a.GetDebuggerDisplay()).ToArray() ?? Array.Empty<object>());
+                => (MessageFormat == null) ? "" : string.Format(MessageFormat, Args?.Select(a => a.GetDebuggerDisplay()).ToArray() ?? []);
         }
 
         internal sealed class FileLogger(string logDirectory, TraceLog traceLog)
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 try
                 {
                     path = Path.Combine(_logDirectory, _traceLog._fileName);
-                    File.AppendAllLines(path, new[] { entry.GetDebuggerDisplay() });
+                    File.AppendAllLines(path, [entry.GetDebuggerDisplay()]);
                 }
                 catch (Exception e)
                 {

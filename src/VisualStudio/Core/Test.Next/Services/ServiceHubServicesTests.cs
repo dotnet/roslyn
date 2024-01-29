@@ -254,9 +254,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var remoteWorkspace = client.GetRemoteWorkspace();
 
             var solution = workspace.CurrentSolution;
-            solution = AddProject(solution, LanguageNames.CSharp, documents: Array.Empty<string>(), additionalDocuments: Array.Empty<string>(), p2pReferences: Array.Empty<ProjectId>());
+            solution = AddProject(solution, LanguageNames.CSharp, documents: [], additionalDocuments: [], p2pReferences: []);
             var projectId1 = solution.ProjectIds.Single();
-            solution = AddProject(solution, LanguageNames.CSharp, documents: Array.Empty<string>(), additionalDocuments: Array.Empty<string>(), p2pReferences: Array.Empty<ProjectId>());
+            solution = AddProject(solution, LanguageNames.CSharp, documents: [], additionalDocuments: [], p2pReferences: []);
             var projectId2 = solution.ProjectIds.Where(id => id != projectId1).Single();
 
             var project1ToProject2 = new ProjectReference(projectId2);
@@ -403,7 +403,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     return sourceTexts;
                 });
 
-            using var localWorkspace = CreateWorkspace(syncWithRemoteServer ? Array.Empty<Type>() : [typeof(NoSyncWorkspaceConfigurationService)]);
+            using var localWorkspace = CreateWorkspace(syncWithRemoteServer ? [] : [typeof(NoSyncWorkspaceConfigurationService)]);
 
             DocumentId tempDocId;
 
@@ -855,7 +855,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             ],
             [
                 "cs additional file content"
-            ], Array.Empty<ProjectId>());
+            ], []);
 
             solution = AddProject(solution, LanguageNames.VisualBasic,
             [
@@ -882,7 +882,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             [
                 "cs additional file content",
                 "cs additional file content2"
-            ], Array.Empty<ProjectId>());
+            ], []);
 
             solution = AddProject(solution, LanguageNames.CSharp,
             [
@@ -894,7 +894,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             ],
             [
                 "cs additional file content"
-            ], Array.Empty<ProjectId>());
+            ], []);
 
             solution = AddProject(solution, LanguageNames.VisualBasic,
             [
@@ -906,7 +906,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             ],
             [
                 "vb additional file content"
-            ], Array.Empty<ProjectId>());
+            ], []);
 
             return solution;
         }

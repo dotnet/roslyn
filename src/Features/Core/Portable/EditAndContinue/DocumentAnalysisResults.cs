@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 documentId,
                 filePath,
                 activeStatementsOpt: default,
-                rudeEdits: ImmutableArray<RudeEditDiagnostic>.Empty,
+                rudeEdits: [],
                 syntaxError: null,
                 semanticEditsOpt: default,
                 exceptionRegionsOpt: default,

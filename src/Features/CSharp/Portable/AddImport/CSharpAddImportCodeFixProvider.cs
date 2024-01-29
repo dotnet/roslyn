@@ -149,18 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         public const string CS8415 = nameof(CS8415);
 
         public static ImmutableArray<string> FixableTypeIds =
-            ImmutableArray.Create(
-                CS0103,
-                CS0246,
-                CS0305,
-                CS0308,
-                CS0122,
-                CS0307,
-                CS0616,
-                CS1580,
-                CS1581,
-                CS8129,
-                IDEDiagnosticIds.UnboundIdentifierId);
+            [CS0103, CS0246, CS0305, CS0308, CS0122, CS0307, CS0616, CS1580, CS1581, CS8129, IDEDiagnosticIds.UnboundIdentifierId];
 
         public static ImmutableArray<string> FixableDiagnosticIds =
             FixableTypeIds.Concat(ImmutableArray.Create(

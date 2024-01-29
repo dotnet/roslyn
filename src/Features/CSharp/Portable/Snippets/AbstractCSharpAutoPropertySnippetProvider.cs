@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                 type: compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(allowVar: false),
                 explicitInterfaceSpecifier: null,
                 identifier: identifierName.ToIdentifierToken(),
-                accessorList: SyntaxFactory.AccessorList(new SyntaxList<AccessorDeclarationSyntax>(accessors.Where(a => a is not null)!)));
+                accessorList: SyntaxFactory.AccessorList([.. accessors.Where(a => a is not null)!]));
         }
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)

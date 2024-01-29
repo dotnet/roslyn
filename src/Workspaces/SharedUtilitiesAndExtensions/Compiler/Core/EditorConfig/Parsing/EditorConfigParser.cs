@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
         private static readonly Regex s_propertyMatcher = new(@"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$", RegexOptions.Compiled);
 
         private static ImmutableHashSet<string> ReservedKeys { get; }
-            = ImmutableHashSet.CreateRange(AnalyzerConfigOptions.KeyComparer, new[] {
+            = ImmutableHashSet.CreateRange(AnalyzerConfigOptions.KeyComparer, [
                 "root",
                 "indent_style",
                 "indent_size",
@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                 "charset",
                 "trim_trailing_whitespace",
                 "insert_final_newline",
-            });
+            ]);
 
         private static ImmutableHashSet<string> ReservedValues { get; }
-            = ImmutableHashSet.CreateRange(CaseInsensitiveComparison.Comparer, new[] { "unset" });
+            = ImmutableHashSet.CreateRange(CaseInsensitiveComparison.Comparer, ["unset"]);
 
         public static TEditorConfigFile Parse<TEditorConfigFile, TResult, TAccumulator>(string text, string? pathToFile, TAccumulator accumulator)
             where TAccumulator : IEditorConfigOptionAccumulator<TEditorConfigFile, TResult>

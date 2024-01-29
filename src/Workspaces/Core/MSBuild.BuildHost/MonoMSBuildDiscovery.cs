@@ -25,7 +25,7 @@ internal static class MonoMSBuildDiscovery
             var path = Environment.GetEnvironmentVariable("PATH");
             if (path == null)
             {
-                return Array.Empty<string>();
+                return [];
             }
 
             s_searchPaths = path

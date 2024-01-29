@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _pathResolver,
                 _projectFileExtensionRegistry,
                 buildHostProcessManager,
-                requestedProjectPaths: ImmutableArray.Create(projectFilePath),
+                requestedProjectPaths: [projectFilePath],
                 baseDirectory: Directory.GetCurrentDirectory(),
                 globalProperties: Properties,
                 projectMap,

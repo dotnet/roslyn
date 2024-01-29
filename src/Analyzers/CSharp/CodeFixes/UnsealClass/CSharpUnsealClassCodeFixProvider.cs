@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnsealClass
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CS0509);
+            [CS0509];
 
         protected override string TitleFormat => CSharpCodeFixesResources.Unseal_class_0;
     }

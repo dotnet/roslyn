@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
             foreach (var block in blocks)
             {
                 if (cancellationToken.IsCancellationRequested)
-                    return ImmutableArray<TextSpan>.Empty;
+                    return [];
 
                 switch (block)
                 {

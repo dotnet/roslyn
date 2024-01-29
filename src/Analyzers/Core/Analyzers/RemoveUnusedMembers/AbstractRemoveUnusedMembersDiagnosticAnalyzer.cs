@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             hasAnyCodeStyleOption: false, isUnnecessary: true);
 
         protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_removeUnusedMembersRule, s_removeUnreadMembersRule),
+            : base([s_removeUnusedMembersRule, s_removeUnreadMembersRule],
                    GeneratedCodeAnalysisFlags.Analyze) // We want to analyze references in generated code, but not report unused members in generated code.
         {
         }
@@ -718,6 +718,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                     // This is commonly used for static holder types
                                     // that want to block instantiation of the type.
                                     if (methodSymbol.Parameters.Length == 0)
+                                    {
+                                        return false;
+                                    }
+
+                                    // Having a private copy constructor in a record means it's implicitly used by
+                                    // the record's clone method
+                                    if (methodSymbol.ContainingType.IsRecord &&
+                                        methodSymbol.Parameters.Length == 1 &&
+                                        methodSymbol.Parameters[0].RefKind == RefKind.None &&
+                                        methodSymbol.Parameters[0].Type.Equals(memberSymbol.ContainingType))
                                     {
                                         return false;
                                     }

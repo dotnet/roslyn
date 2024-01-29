@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         {
         }
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseBlockScopedNamespaceDiagnosticId, IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId);
+            => [IDEDiagnosticIds.UseBlockScopedNamespaceDiagnosticId, IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

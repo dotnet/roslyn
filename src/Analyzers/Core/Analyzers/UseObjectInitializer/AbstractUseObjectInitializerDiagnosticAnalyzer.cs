@@ -165,8 +165,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                         location1,
                         NotificationOption2.ForSeverity(s_unnecessaryCodeDescriptor.DefaultSeverity),
                         additionalLocations: locations,
-                        additionalUnnecessaryLocations: ImmutableArray.Create(
-                            syntaxTree.GetLocation(TextSpan.FromBounds(match.Initializer.FullSpan.End, match.Statement.Span.End)))));
+                        additionalUnnecessaryLocations: [syntaxTree.GetLocation(TextSpan.FromBounds(match.Initializer.FullSpan.End, match.Statement.Span.End))]));
                 }
                 else
                 {

@@ -16,10 +16,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeRefactoringProvider
     {
-        protected static readonly ImmutableArray<FixAllScope> DefaultFixAllScopes = ImmutableArray.Create(FixAllScope.Document,
-            FixAllScope.Project, FixAllScope.Solution);
-        protected static readonly ImmutableArray<FixAllScope> AllFixAllScopes = ImmutableArray.Create(FixAllScope.Document,
-            FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingType, FixAllScope.ContainingMember);
+        protected static readonly ImmutableArray<FixAllScope> DefaultFixAllScopes = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution];
+        protected static readonly ImmutableArray<FixAllScope> AllFixAllScopes = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingType, FixAllScope.ContainingMember];
 
         protected abstract ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
 
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             CancellationToken cancellationToken)
         {
             return FixAllWithEditorAsync(document,
-                editor => FixAllAsync(document, ImmutableArray.Create(fixAllSpan), editor, optionsProvider, equivalenceKey, cancellationToken),
+                editor => FixAllAsync(document, [fixAllSpan], editor, optionsProvider, equivalenceKey, cancellationToken),
                 cancellationToken);
         }
 
@@ -61,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Task FixAllAsync(SyntaxEditor editor)
             {
                 // Fix the entire document if there are no sub-spans to fix.
-                var spans = fixAllSpans.HasValue ? fixAllSpans.Value : ImmutableArray.Create(editor.OriginalRoot.FullSpan);
+                var spans = fixAllSpans.HasValue ? fixAllSpans.Value : [editor.OriginalRoot.FullSpan];
                 return this.FixAllAsync(document, spans, editor, optionsProvider, equivalenceKey, cancellationToken);
             }
         }

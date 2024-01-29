@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             private RenameSymbolDocumentAction(
                 AnalysisResult analysis)
-                : base(ImmutableArray<ErrorResource>.Empty)
+                : base([])
             {
                 _analysis = analysis;
             }

@@ -46,8 +46,8 @@ namespace Roslyn.Test.Utilities
 
         Checksum IChecksummedObject.Checksum => _checksum;
 
-        public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language) => ImmutableArray<DiagnosticAnalyzer>.Empty;
-        public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages() => ImmutableArray<DiagnosticAnalyzer>.Empty;
-        public override ImmutableArray<ISourceGenerator> GetGenerators(string language) => ImmutableArray.Create(_generator);
+        public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language) => [];
+        public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages() => [];
+        public override ImmutableArray<ISourceGenerator> GetGenerators(string language) => [_generator];
     }
 }

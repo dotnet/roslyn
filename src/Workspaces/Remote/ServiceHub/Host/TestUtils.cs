@@ -114,8 +114,12 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var set = new HashSet<Checksum>();
 
-                var solutionChecksums = await assetService.GetAssetAsync<SolutionStateChecksums>(
+                var solutionCompilationChecksums = await assetService.GetAssetAsync<SolutionCompilationStateChecksums>(
                     assetHint: AssetHint.None, solutionChecksum, CancellationToken.None).ConfigureAwait(false);
+                var solutionChecksums = await assetService.GetAssetAsync<SolutionStateChecksums>(
+                    assetHint: AssetHint.None, solutionCompilationChecksums.SolutionState, CancellationToken.None).ConfigureAwait(false);
+
+                solutionCompilationChecksums.AddAllTo(set);
                 solutionChecksums.AddAllTo(set);
 
                 foreach (var (projectChecksum, projectId) in solutionChecksums.Projects)
@@ -192,16 +196,22 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             if (projectId == null)
             {
-                var solutionChecksums = await solution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                await solutionChecksums.FindAsync(solution.CompilationState, assetHint: AssetHint.None, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
+                var compilationChecksums = await solution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                await compilationChecksums.FindAsync(solution.CompilationState, assetHint: AssetHint.None, Flatten(compilationChecksums), map, cancellationToken).ConfigureAwait(false);
+
+                var solutionChecksums = await solution.CompilationState.SolutionState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                await solutionChecksums.FindAsync(solution.CompilationState.SolutionState, assetHint: AssetHint.None, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
 
                 foreach (var project in solution.Projects)
                     await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                var solutionChecksums = await solution.CompilationState.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
-                await solutionChecksums.FindAsync(solution.CompilationState, assetHint: projectId, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
+                var compilationChecksums = await solution.CompilationState.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+                await compilationChecksums.FindAsync(solution.CompilationState, assetHint: projectId, Flatten(compilationChecksums), map, cancellationToken).ConfigureAwait(false);
+
+                var solutionChecksums = await solution.CompilationState.SolutionState.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+                await solutionChecksums.FindAsync(solution.CompilationState.SolutionState, assetHint: projectId, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
 
                 var project = solution.GetRequiredProject(projectId);
                 await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
@@ -225,6 +235,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 var documentChecksums = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                 await documentChecksums.FindAsync(document.State, Flatten(documentChecksums), map, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        private static HashSet<Checksum> Flatten(SolutionCompilationStateChecksums checksums)
+        {
+            var set = new HashSet<Checksum>();
+            checksums.AddAllTo(set);
+            return set;
         }
 
         private static HashSet<Checksum> Flatten(SolutionStateChecksums checksums)

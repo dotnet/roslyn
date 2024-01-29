@@ -432,6 +432,16 @@
         <target state="translated">Cette version de « {0} » ne peut pas être utilisée avec des expressions de collection.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingAdd">
+        <source>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</source>
+        <target state="new">Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingConstructor">
+        <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
+        <target state="new">Collection expression type must have an applicable constructor that can be called with no arguments.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
         <source>There is no target type for the collection expression.</source>
         <target state="new">There is no target type for the collection expression.</target>
@@ -2319,7 +2329,7 @@
       </trans-unit>
       <trans-unit id="IDS_ImplicitIndexerInitializer">
         <source>implicit indexer initializer</source>
-        <target state="new">implicit indexer initializer</target>
+        <target state="translated">initialiseur d’indexeur implicite</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Missing">
@@ -2359,7 +2369,7 @@
       </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
         <source>{0} is not a valid C# spread operation</source>
-        <target state="new">{0} is not a valid C# spread operation</target>
+        <target state="translated">{0} n’est pas une opération de propagation C# valide</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">

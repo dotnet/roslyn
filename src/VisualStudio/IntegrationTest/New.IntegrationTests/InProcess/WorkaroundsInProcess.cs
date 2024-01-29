@@ -7,10 +7,13 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Utilities.UnifiedSettings;
+using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
@@ -94,6 +97,24 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 await TestServices.SolutionExplorer.CloseSolutionAsync(cancellationToken);
 
                 s_gitHubCopilotWorkaroundApplied = true;
+            }
+        }
+
+        public async Task DisableAutoSurroundAsync(CancellationToken cancellationToken)
+        {
+            // Disable auto surround because it will exit the completion session
+            // Tracking issue: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1940994
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var settingManager = await GetRequiredGlobalServiceAsync<SVsUnifiedSettingsManager, ISettingsManager>(cancellationToken);
+            var reader = settingManager.GetReader();
+            var settingName = "textEditor.general.display.autoBraceSurround";
+            var settingRetrieval = reader.GetValue<bool>(settingName);
+            if (settingRetrieval.Value)
+            {
+                var writer = settingManager.GetWriter("Roslyn Integration test");
+                writer.EnqueueChange(settingName, false);
+                var result = writer.RequestCommit("Integration test workaround");
+                Assert.True(result.Outcome is SettingCommitOutcome.Success or SettingCommitOutcome.NoChangesQueued);
             }
         }
     }

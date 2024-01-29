@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public bool SupportGetDiagnostics => false;
 
         public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
-            => new(ImmutableArray<DiagnosticData>.Empty);
+            => new([]);
 
         /// <summary>
         /// Clears all diagnostics reported thru this source.

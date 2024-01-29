@@ -90,7 +90,7 @@ internal static class SourceMarkers
         var matches = s_trackingStatementPattern.Matches(src);
         if (matches.Count == 0)
         {
-            return Array.Empty<TextSpan>();
+            return [];
         }
 
         var result = new TextSpan[count];

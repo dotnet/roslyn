@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 // description.  Otherwise, replace it with 'a, 'b etc. and show its sig in the 'Types:' section.
 
                 if (firstSymbol.IsAnonymousDelegateType())
-                    directStructuralTypes = directStructuralTypes.Except(new[] { (INamedTypeSymbol)firstSymbol });
+                    directStructuralTypes = directStructuralTypes.Except([(INamedTypeSymbol)firstSymbol]);
 
                 var info = LanguageServices.GetRequiredService<IStructuralTypeDisplayService>().GetTypeDisplayInfo(
                     firstSymbol, directStructuralTypes.ToImmutableArrayOrEmpty(), _semanticModel, _position);
