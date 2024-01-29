@@ -691,8 +691,7 @@ namespace NS
                 expectedIndentation: 4);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537802")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537802")]
         public void EmbeddedStatement()
         {
             var code = @"class Program
@@ -737,8 +736,7 @@ namespace NS
                 expectedIndentation: 4);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537883")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537883")]
         public void EnterAfterComment()
         {
             var code = @"class Program
@@ -757,8 +755,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538121")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538121")]
         public void NestedBlock1()
         {
             var code = @"class Program
@@ -1273,8 +1270,7 @@ namespace NS
                 expectedIndentation: 24);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538333")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538333")]
         public void Statement1()
         {
             var code = @"class Program
@@ -1288,8 +1284,7 @@ namespace NS
                 expectedIndentation: 4);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538933")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538933")]
         public void EndOfFile1()
         {
             var code = @"class Program
@@ -1306,8 +1301,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539059")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539059")]
         public void VerbatimString()
         {
             var code = @"class Program
@@ -1753,8 +1747,7 @@ class Program
         }
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540634")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544268")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544268")]
         public void FirstArgumentInArgumentList()
         {
             var code = @"class Program
@@ -2254,8 +2247,7 @@ class Class
                 expectedIndentation: 12);
         }
 
-        [WorkItem(9216, "DevDiv_Projects/Roslyn")]
-        [WpfFact]
+        [WpfFact, WorkItem(9216, "DevDiv_Projects/Roslyn")]
         public void FollowPreviousLineInMultilineStatements()
         {
             var code = @"class Program
@@ -2886,8 +2878,7 @@ class Program
                 expectedIndentation: 36);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5495")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/5495")]
         public void AfterBadQueryContinuationWithSelectOrGroupClause()
         {
             var code = @"using System.Collections.Generic;
@@ -2936,8 +2927,7 @@ namespace ConsoleApplication1
                 expectedIndentation: 25);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5495")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/5495")]
         public void AfterPartialFromClause()
         {
             var code = @"
@@ -2958,8 +2948,7 @@ class C
                 expectedIndentation: 16);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5635")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/5635")]
         public void ConstructorInitializerMissingBaseOrThisKeyword()
         {
             var code = @"
@@ -3171,8 +3160,7 @@ class C
                 expectedIndentation: 12);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28752")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/28752")]
         public void EnterAfterBlankLineAfterCommentedOutCode1()
         {
             var code = @"class Test
@@ -3196,8 +3184,7 @@ class C
                 expectedIndentation: 8);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28752")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/28752")]
         public void EnterAfterBlankLineAfterCommentedOutCode2()
         {
             var code = @"
@@ -3227,8 +3214,7 @@ class T
                 expectedIndentation: 4);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38819")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38819")]
         public void IndentationOfReturnInFileWithTabs1()
         {
             var code = @"

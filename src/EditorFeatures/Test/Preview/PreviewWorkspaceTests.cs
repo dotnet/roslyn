@@ -99,8 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.Equal(0, previewWorkspace.CurrentSolution.Projects.First().DocumentIds.Count);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923121")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923121")]
         public void TestPreviewOpenCloseFile()
         {
             using var previewWorkspace = new PreviewWorkspace();

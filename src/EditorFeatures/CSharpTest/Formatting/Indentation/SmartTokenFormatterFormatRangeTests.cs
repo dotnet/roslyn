@@ -2170,8 +2170,7 @@ int         nextLine            =           30          ;$$
             await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537776")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537776")]
         public async Task DisappearedTokens()
         {
             var code = @"class Class1
@@ -2222,8 +2221,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537793")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537793")]
         public async Task Delegate1()
         {
             var code = @"delegate void MyDelegate(int a,int b);$$";
@@ -2236,8 +2234,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.DelegateKeyword);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
         public async Task DoubleInitializer()
         {
             var code = @"class C
@@ -2262,8 +2259,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537825")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537825")]
         public async Task MissingToken1()
         {
             var code = @"public class Class1
