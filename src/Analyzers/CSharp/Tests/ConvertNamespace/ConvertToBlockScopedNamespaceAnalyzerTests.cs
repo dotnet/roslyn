@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
             get
             {
                 yield return new object[] { "" };
-                yield return new object[] { """
-
-                    """ };
+                yield return new object[] { "\r\n" };
             }
         }
 
