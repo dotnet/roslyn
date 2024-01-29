@@ -109,12 +109,11 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
                 {
                     // wait for action to complete
                     await textViewWindowVerifier.TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                        new[]
-                        {
+                        [
                             FeatureAttribute.Workspace,
                             FeatureAttribute.LightBulb,
                             FeatureAttribute.Rename,
-                        },
+                        ],
                         cancellationToken);
 
                     if (codeActionLogger.Messages.Any())
@@ -147,7 +146,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
         public static async Task CurrentTokenTypeAsync(this ITextViewWindowVerifierInProcess textViewWindowVerifier, string tokenType, CancellationToken cancellationToken)
         {
             await textViewWindowVerifier.TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.Classification },
+                [FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.Classification],
                 cancellationToken);
 
             var actualTokenTypes = await textViewWindowVerifier.TestServices.Editor.GetCurrentClassificationsAsync(cancellationToken);

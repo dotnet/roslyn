@@ -36,20 +36,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var documentInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "doc");
             Assert.Throws<ArgumentException>("documents[1]",
-                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", documents: new[] { documentInfo, documentInfo }));
+                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", documents: [documentInfo, documentInfo]));
 
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: "C#",
                 additionalDocuments: new DocumentInfo[] { null }));
 
             Assert.Throws<ArgumentException>("additionalDocuments[1]",
-                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", additionalDocuments: new[] { documentInfo, documentInfo }));
+                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", additionalDocuments: [documentInfo, documentInfo]));
 
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: "C#",
                 projectReferences: new ProjectReference[] { null }));
 
             var projectReference = new ProjectReference(ProjectId.CreateNewId());
             Assert.Throws<ArgumentException>("projectReferences[1]",
-                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", projectReferences: new[] { projectReference, projectReference }));
+                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", projectReferences: [projectReference, projectReference]));
 
             Assert.Throws<ArgumentNullException>("analyzerReferences[0]", () => ProjectInfo.Create(pid, VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: "C#",
                 analyzerReferences: new AnalyzerReference[] { null }));
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var version = VersionStamp.Default;
             var documentInfo = DocumentInfo.Create(DocumentId.CreateNewId(ProjectId.CreateNewId()), "doc");
 
-            var info1 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", documents: new[] { documentInfo });
+            var info1 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", documents: [documentInfo]);
             Assert.Same(documentInfo, ((ImmutableArray<DocumentInfo>)info1.Documents).Single());
 
             var info2 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#");
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var version = VersionStamp.Default;
             var documentInfo = DocumentInfo.Create(DocumentId.CreateNewId(ProjectId.CreateNewId()), "doc");
 
-            var info1 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", additionalDocuments: new[] { documentInfo });
+            var info1 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", additionalDocuments: [documentInfo]);
             Assert.Same(documentInfo, ((ImmutableArray<DocumentInfo>)info1.AdditionalDocuments).Single());
 
             var info2 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#");
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var version = VersionStamp.Default;
             var projectReference = new ProjectReference(ProjectId.CreateNewId());
 
-            var info1 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", projectReferences: new[] { projectReference });
+            var info1 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", projectReferences: [projectReference]);
             Assert.Same(projectReference, ((ImmutableArray<ProjectReference>)info1.ProjectReferences).Single());
 
             var info2 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#");

@@ -506,10 +506,10 @@ class Program
                     </Project>
                 </Workspace>
                 """,
-                new[] {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
                     string.Format(CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
-                });
+                ]);
         }
 
         [Fact]
@@ -536,11 +536,10 @@ class Program
                     </Project>
                 </Workspace>
                 """,
-                new[]
-                {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0"),
                     string.Format(CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0, "8.0")
-                }
+                ]
     );
         }
 
@@ -566,9 +565,9 @@ class Program
                     </Project>
                 </Workspace>
                 """,
-                new[] {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0")
-                    });
+                    ]);
         }
 
         [Fact]
@@ -595,9 +594,9 @@ class Program
                     </Project>
                 </Workspace>
                 """,
-                new[] {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0")
-                    });
+                    ]);
         }
 
         [Fact]
@@ -623,17 +622,16 @@ class C
     <Project Language=""Visual Basic"">
     </Project>
 </Workspace>",
-                new[] {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, defaultVersion),
                     string.Format(CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0, defaultVersion)
-                    });
+                    ]);
         }
 
         [Fact]
         public async Task OnlyOfferFixAllProjectsToCSharp8WhenApplicable()
         {
             await TestExactActionSetOfferedAsync(
-
                 """
                 <Workspace>
                     <Project Language="C#" LanguageVersion="6" CommonReferences="true">
@@ -650,9 +648,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-            new[] {
-                string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0"),
-                });
+                [string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0")]);
         }
 
         [Fact]
@@ -678,10 +674,10 @@ class C
     <Project Language=""Visual Basic"">
     </Project>
 </Workspace>",
-                new[] {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, defaultEffectiveVersion),
                     string.Format(CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0, defaultEffectiveVersion)
-                    });
+                    ]);
         }
 
         [Fact]

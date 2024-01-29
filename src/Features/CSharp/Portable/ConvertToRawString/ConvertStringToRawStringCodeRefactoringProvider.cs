@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
 {
     private static readonly BidirectionalMap<ConvertToRawKind, string> s_kindToEquivalenceKeyMap =
-        new(new[]
-        {
+        new(
+        [
             KeyValuePairUtil.Create(ConvertToRawKind.SingleLine, nameof(ConvertToRawKind.SingleLine)),
             KeyValuePairUtil.Create(ConvertToRawKind.MultiLineIndented, nameof(ConvertToRawKind.MultiLineIndented)),
             KeyValuePairUtil.Create(ConvertToRawKind.MultiLineWithoutLeadingWhitespace, nameof(ConvertToRawKind.MultiLineWithoutLeadingWhitespace)),
-        });
+        ]);
 
     private static readonly ImmutableArray<IConvertStringProvider> s_convertStringProviders = [ConvertRegularStringToRawStringProvider.Instance, ConvertInterpolatedStringToRawStringProvider.Instance];
 

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => DocumentInfo.Create(id: null, "doc"));
             Assert.Throws<ArgumentNullException>(() => DocumentInfo.Create(documentId, name: null));
 
-            Assert.Throws<ArgumentNullException>(() => DocumentInfo.Create(documentId, "doc", folders: new[] { "folder", null }));
+            Assert.Throws<ArgumentNullException>(() => DocumentInfo.Create(documentId, "doc", folders: ["folder", null]));
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
-            var info1 = DocumentInfo.Create(documentId, "doc", folders: new[] { "folder" });
+            var info1 = DocumentInfo.Create(documentId, "doc", folders: ["folder"]);
             Assert.Equal("folder", ((ImmutableArray<string>)info1.Folders).Single());
 
             var info2 = DocumentInfo.Create(documentId, "doc");

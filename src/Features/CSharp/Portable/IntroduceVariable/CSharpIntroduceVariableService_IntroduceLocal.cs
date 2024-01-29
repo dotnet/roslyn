@@ -426,17 +426,17 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             if (precedingEndOfLine == default)
             {
                 return oldStatements.ReplaceRange(
-                    nextStatement, new[] { newStatement, nextStatement });
+                    nextStatement, [newStatement, nextStatement]);
             }
 
             var endOfLineIndex = nextStatementLeading.IndexOf(precedingEndOfLine) + 1;
 
             return oldStatements.ReplaceRange(
-                nextStatement, new[]
-                {
+                nextStatement,
+                [
                     newStatement.WithLeadingTrivia(nextStatementLeading.Take(endOfLineIndex)),
                     nextStatement.WithLeadingTrivia(nextStatementLeading.Skip(endOfLineIndex)),
-                });
+                ]);
         }
 
         private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax or SwitchSectionSyntax;
