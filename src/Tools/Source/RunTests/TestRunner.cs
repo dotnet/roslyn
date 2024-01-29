@@ -225,13 +225,26 @@ namespace RunTests
                     command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgEnableMiniDump=1");
                     command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgMiniDumpType=1");
                     command.AppendLine($"{setEnvironmentVariable} DOTNET_EnableCrashReport=1");
-                }
 
-                // https://github.com/dotnet/runtime/issues/97186#issuecomment-1899748532
-                // Helping to see if this is reproducible on Linux by disabling GC regionns
-                if (isUnix)
-                {
-                    command.AppendLine($"{setEnvironmentVariable} DOTNET_GCName=libclrgc.so");
+                    // Find the eng directory
+                    var startPath = Path.GetDirectoryName(typeof(TestRunner).Assembly.Location)!;
+                    var path = Path.GetDirectoryName(startPath)!;
+                    var gcPath = Path.Combine(path, "eng", "libclrgc.dynlib");
+                    do
+                    {
+                        if (File.Exists(gcPath))
+                        {
+                            break;
+                        }
+
+                        path = Path.GetDirectoryName(path)!;
+                        if (string.IsNullOrEmpty(path))
+                        {
+                            throw new FileNotFoundException($"Could not find libclrgc.dynlib from {startPath}");
+                        }
+                    } while (true);
+
+                    command.AppendLine($"{setEnvironmentVariable} DOTNET_GCName={gcPath}");
                 }
 
                 // Set the dump folder so that dotnet writes all dump files to this location automatically. 
