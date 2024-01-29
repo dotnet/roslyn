@@ -8846,8 +8846,7 @@ class C
 }", optionName);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64291")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64291")]
         public async Task TestImplicitObjectCreationInInitialization()
         {
             var source =

@@ -2029,8 +2029,7 @@ class Class
             await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.CharacterLiteralToken, SyntaxKind.None);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         public async Task CharLiterals1()
         {
             var code = @"';$$";

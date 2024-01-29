@@ -1605,21 +1605,18 @@ Systen.Console.WriteLine();
             await VerifyItemExistsAsync("call(" + prefix + "$$)", "args", sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55969")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_1()
             => await VerifyItemIsAbsentAsync(@"$$", "args", sourceCodeKind: SourceCodeKind.Regular);
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55969")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_2()
             => await VerifyItemExistsAsync(
                 @"using System;
 Console.WriteLine();
 $$", "args", sourceCodeKind: SourceCodeKind.Regular);
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55969")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_3()
             => await VerifyItemIsAbsentAsync(
                 @"using System;

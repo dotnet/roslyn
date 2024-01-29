@@ -605,8 +605,7 @@ class C
                 semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Bar"), preserveLocalVariables: true)]);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/69027")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69027")]
         public void Method_StackAlloc_LineChange()
         {
             var src1 = @"
@@ -633,8 +632,7 @@ class C
                 new[] { new SourceLineUpdate(5, 6) });
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/69027")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69027")]
         public void Method_StackAlloc_Recompile()
         {
             var src1 = @"
@@ -669,8 +667,7 @@ class C
                 [Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc bool[64]", GetResource("method"))]);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/69027")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69027")]
         public void Method_StackAlloc_NonActive()
         {
             var src1 = @"

@@ -253,8 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             solutionObjectReference.AssertReleased();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/pull/67142")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/67142")]
         public void TestPreviewWorkspaceDoesNotLeakItself()
         {
             var composition = EditorTestCompositions.EditorFeatures;

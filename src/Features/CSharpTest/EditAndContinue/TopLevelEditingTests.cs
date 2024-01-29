@@ -1134,8 +1134,7 @@ class C
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
-        [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1831006")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1831006")]
         public void Type_Attribute_Update_Null()
         {
             var attribute = @"
@@ -10688,8 +10687,7 @@ class C
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68458")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68458")]
         public void Constructor_Parameter_AddAttribute_Record_ReplacingSynthesizedWithCustomProperty()
         {
             var src1 = "record C(int P) { }" + s_attributeSource;
@@ -11312,8 +11310,7 @@ class C(int x)
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/69159")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69159")]
         public void Constructor_Parameter_Insert_Primary_Captured_Class()
         {
             var src1 = "class C(int a) { int X => a; }";
@@ -11695,8 +11692,7 @@ class C(int x, int y)
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
         public void Constructor_Parameter_Reorder_Primary_NotLifted_Record_Struct()
         {
             var src1 = "record struct C(int x, byte y) { }";
@@ -11708,8 +11704,7 @@ class C(int x, int y)
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
         public void Constructor_Parameter_Reorder_Primary_Lifted_Struct()
         {
             var src1 = "struct C(int x, byte y) { int M() => x + y; }";
@@ -11721,8 +11716,7 @@ class C(int x, int y)
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
         public void Constructor_Parameter_Reorder_Primary_Lifted_Class()
         {
             var src1 = "class C(int x, byte y) { int M() => x + y; }";
@@ -11737,8 +11731,7 @@ class C(int x, int y)
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69894")]
         public void Constructor_Parameter_Reorder_Primary_Lifted_Record()
         {
@@ -12344,8 +12337,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Constructor_Instance_Update_Initializer_StackAlloc_Update()
         {
             var src1 = "class C { C() : this(stackalloc int[1]) {} C(Span<int> span) {} }";
@@ -12356,8 +12348,7 @@ class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[2]", FeaturesResources.constructor));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Constructor_Instance_Update_Initializer_StackAlloc_Delete()
         {
             var src1 = "class C { C() : this(stackalloc int[1]) {} C(Span<int> span) {} }";
@@ -12368,8 +12359,7 @@ class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "C()", FeaturesResources.constructor));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Constructor_Instance_Update_Initializer_StackAlloc_Insert()
         {
             var src1 = "class C { C() : this(default) {} C(Span<int> span) {} }";
@@ -12566,8 +12556,7 @@ partial class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("C").PartialImplementationPart, partialType: "C"));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2068")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2068")]
         public void Constructor_Instance_Update_Modifier_Extern_Add()
         {
             var src1 = "class C { }";
@@ -14174,8 +14163,7 @@ partial class C
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2068")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2068")]
         public void Constructor_Static_Update_Modifier_Extern_Add()
         {
             var src1 = "class C { }";
@@ -15050,8 +15038,7 @@ public class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void MemberInitializer_Update_StackAllocInConstructor_Initializer_Field()
         {
             var src1 = "class C : B { int a = 1; C() : base(stackalloc int[1]) { } } class B(System.Span<int> s);";
@@ -15075,8 +15062,7 @@ public class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/67307")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67307")]
         public void MemberInitializer_Update_StackAllocInOtherInitializer()
         {
             var src1 = "class C { int a = 1; int b = G(stackalloc int[10]); static int G(Span<int> span) => 1; }";
@@ -18650,8 +18636,7 @@ readonly struct S
             ]);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/69317")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69317")]
         public void Property_Rename_ShadowingPrimaryParameter()
         {
             var src1 = @"
@@ -18687,8 +18672,7 @@ class C(int A, int B)
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/69317")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69317")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69216")]
         public void Property_Rename_ShadowingPrimaryParameter_WithInitializer()
         {
@@ -20649,8 +20633,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Fact]
-        [WorkItem(67268, "https://github.com/dotnet/roslyn/issues/67268")]
+        [Fact, WorkItem(67268, "https://github.com/dotnet/roslyn/issues/67268")]
         public void Parameter_Reorder_Constructor()
         {
             var src1 = @"class C { C(int a, int b) {} }";

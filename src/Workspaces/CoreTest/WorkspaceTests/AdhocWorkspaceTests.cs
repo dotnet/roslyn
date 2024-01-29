@@ -578,8 +578,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(typeof(DefaultDocumentTextDifferencingService), service.GetType());
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/pull/67142")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/67142")]
         public void TestNotGCRootedOnConstruction()
         {
             var composition = FeaturesTestCompositions.Features;
