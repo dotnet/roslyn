@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 }
 
                 var addImportOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-                var addedCompilationRoot = compilationRoot.AddUsingDirectives(new[] { usingDirective }, addImportOptions.PlaceSystemNamespaceFirst, Formatter.Annotation);
+                var addedCompilationRoot = compilationRoot.AddUsingDirectives([usingDirective], addImportOptions.PlaceSystemNamespaceFirst, Formatter.Annotation);
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(document.Id, addedCompilationRoot, PreservationMode.PreserveIdentity);
             }
 

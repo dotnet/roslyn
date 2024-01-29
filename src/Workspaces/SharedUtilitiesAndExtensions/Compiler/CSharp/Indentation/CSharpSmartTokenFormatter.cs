@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
             var formatter = CSharpSyntaxFormatting.Instance;
             var result = formatter.GetFormattingResult(
-                _root, new[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, _options.FormattingOptions, smartTokenformattingRules, cancellationToken);
+                _root, [TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End)], _options.FormattingOptions, smartTokenformattingRules, cancellationToken);
             return result.GetTextChanges(cancellationToken);
         }
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
             var formatter = CSharpSyntaxFormatting.Instance;
             var result = formatter.GetFormattingResult(
-                _root, new[] { TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition) }, _options.FormattingOptions, smartTokenformattingRules, cancellationToken);
+                _root, [TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition)], _options.FormattingOptions, smartTokenformattingRules, cancellationToken);
             return result.GetTextChanges(cancellationToken);
         }
 

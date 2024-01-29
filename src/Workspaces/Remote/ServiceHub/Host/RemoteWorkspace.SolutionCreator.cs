@@ -61,7 +61,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     var newSolutionCompilationChecksums = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
                         assetHint: AssetHint.None, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
-
                     var oldSolutionChecksums = await solution.CompilationState.SolutionState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                     var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
                         assetHint: AssetHint.None, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
@@ -125,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var _ = ArrayBuilder<(ProjectId projectId, ProjectStateChecksums oldProjectStateChecksums, ProjectStateChecksums newProjectStateChecksums)>.GetInstance(out var changedProjects);
                 foreach (var (newProjectChecksum, projectId) in newSolutionChecksums.Projects)
                 {
-                    // If it's not a project in the current solution, then 
+                    // If it's not a project in the local solution, then it's definitely not getting changed.
                     if (!oldProjectIds.Object.Contains(projectId))
                         continue;
 

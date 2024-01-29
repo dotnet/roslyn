@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
                 category: WorkspacesResources.Workspace_error,
                 defaultSeverity: DiagnosticSeverity.Error,
                 isEnabledByDefault: true,
-                customTags: new[] { WellKnownDiagnosticTags.NotConfigurable });
+                customTags: [WellKnownDiagnosticTags.NotConfigurable]);
         }
     }
 }
