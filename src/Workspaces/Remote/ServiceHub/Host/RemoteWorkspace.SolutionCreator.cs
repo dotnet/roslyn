@@ -513,9 +513,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 ProjectId? projectConeId,
                 CancellationToken cancellationToken)
             {
+                // In the case of a cone sync, we only want to compare the checksum of the cone sync'ed over to the
+                // current checksum of that same cone. What is outside of those cones is totally allowed to be
+                // different.
+                //
+                // Note: this is acceptable because that's the contract of a cone sync.  Features themselves are not
+                // allowed to cone-sync and then do anything that needs host/remote invariants outside of that cone.
                 var currentSolutionChecksum = projectConeId == null
-                    ? await incrementalSolutionBuilt.CompilationState.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false)
-                    : await incrementalSolutionBuilt.CompilationState.GetChecksumAsync(projectConeId, CancellationToken.None).ConfigureAwait(false);
+                    ? await incrementalSolutionBuilt.CompilationState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
+                    : await incrementalSolutionBuilt.CompilationState.GetChecksumAsync(projectConeId, cancellationToken).ConfigureAwait(false);
 
                 // If they're the same, everything was good.
                 if (checksumFromRequest == currentSolutionChecksum)
