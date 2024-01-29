@@ -1,5 +1,6 @@
 {
   "properties": {
+    // CompletionOptionsStorage.TriggerOnTypingLetters
     "textEditor.csharp.intellisense.triggerCompletionOnTypingLetters": {
       "title": "@Show_completion_list_after_a_character_is_typed;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -14,6 +15,7 @@
         }
       }
     },
+    // CompletionOptionsStorage.TriggerOnDeletion
     "textEditor.csharp.intellisense.triggerCompletionOnDeletion": {
       "title": "@Show_completion_list_after_a_character_is_deleted;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -29,6 +31,7 @@
         }
       }
     },
+    // CompletionOptionsStorage.TriggerInArgumentLists
     "textEditor.csharp.intellisense.triggerCompletionInArgumentLists": {
       "title": "@Automatically_show_completion_list_in_argument_lists;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -43,6 +46,7 @@
         }
       }
     },
+    // CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems
     "textEditor.csharp.intellisense.highlightMatchingPortionsOfCompletionListItems": {
       "title": "@Highlight_matching_portions_of_completion_list_items;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -57,6 +61,7 @@
         }
       }
     },
+    // CompletionViewOptionsStorage.ShowCompletionItemFilters
     "textEditor.csharp.intellisense.showCompletionItemFilters": {
       "title": "@Show_completion_item_filters;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -71,6 +76,7 @@
         }
       }
     },
+    // CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon
     "textEditor.csharp.intellisense.completeStatementOnSemicolon": {
       "title": "@Automatically_complete_statement_on_semicolon;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -85,6 +91,7 @@
         }
       }
     },
+    // CompletionOptionsStorage.SnippetsBehavior
     "textEditor.csharp.intellisense.snippetsBehavior": {
       "title": "@Snippets_behavior;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "string",
@@ -103,6 +110,10 @@
               "result": "neverInclude",
               "match": 1
             },
+            // '0' matches to SnippetsRule.Default. Means the behavior is decided by langauge.
+            // '2' matches to SnippetsRule.AlwaysInclude. It's the default behavior for C#
+            // Put both mapping here, so it's possible for unified setting to load '0' from the storage.
+            // Put '2' in front, so unifed settings would persist '2' to storage when 'alwasyInclude' is selected.
             {
               "result": "alwaysInclude",
               "match": 2
@@ -119,6 +130,7 @@
         }
       }
     },
+    // CompletionOptionsStorage.EnterKeyBehavior
     "textEditor.csharp.intellisense.returnKeyCompletionBehavior": {
       "title": "@Enter_key_behavior_colon;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "string",
@@ -133,6 +145,10 @@
             "path": "TextEditor.CSharp.Specific.EnterKeyBehavior"
           },
           "map": [
+            // '0' matches to EnterKeyRule.Default. Means the behavior is decided by langauge.
+            // '1' matches to SnippetsRule.Never. It's the default behavior for C#
+            // Put both mapping here, so it's possible for unified setting to load '0' from the storage.
+            // Put '1' in front, so unifed settings would persist '2' to storage when 'never' is selected.
             {
               "result": "never",
               "match": 1
@@ -153,6 +169,7 @@
         }
       }
     },
+    // CompletionOptionsStorage.ShowNameSuggestions
     "textEditor.csharp.intellisense.showNameCompletionSuggestions": {
       "title": "@Show_name_suggestions;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -167,6 +184,7 @@
         }
       }
     },
+    // CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces
     "textEditor.csharp.intellisense.showCompletionItemsFromUnimportedNamespaces": {
       "title": "@Show_items_from_unimported_namespaces;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -181,6 +199,7 @@
         }
       }
     },
+    // CompletionViewOptionsStorage.EnableArgumentCompletionSnippets
     "textEditor.csharp.intellisense.enableArgumentCompletionSnippets": {
       "title": "@Tab_twice_to_insert_arguments;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -195,6 +214,7 @@
         }
       }
     },
+    // CompletionOptionsStorage.ShowNewSnippetExperienceUserOption
     "textEditor.csharp.intellisense.showNewSnippetExperience": {
       "title": "@Show_new_snippet_experience_experimental;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
