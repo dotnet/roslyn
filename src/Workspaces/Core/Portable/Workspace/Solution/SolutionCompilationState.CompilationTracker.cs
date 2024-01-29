@@ -258,8 +258,8 @@ namespace Microsoft.CodeAnalysis
                 // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
                 // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
                 var finalState = FinalState.Create(
-                    finalCompilationSource: compilationPair.CompilationWithGeneratedDocuments,
-                    compilationWithoutGeneratedFiles: compilationPair.CompilationWithoutGeneratedDocuments,
+                    finalCompilationWithGeneratedDocuments: compilationPair.CompilationWithGeneratedDocuments,
+                    compilationWithoutGeneratedDocuments: compilationPair.CompilationWithoutGeneratedDocuments,
                     hasSuccessfullyLoaded: false,
                     generatorInfo,
                     finalCompilation: compilationPair.CompilationWithGeneratedDocuments,
@@ -704,10 +704,10 @@ namespace Microsoft.CodeAnalysis
             /// match the states included in <paramref name="generatorInfo"/>. If a generator run here produces
             /// the same set of generated documents as are in <paramref name="generatorInfo"/>, and we don't need to make any other
             /// changes to references, we can then use this compilation instead of re-adding source generated files again to the
-            /// <paramref name="compilationWithoutGeneratedFiles"/>.</param>
+            /// <paramref name="compilationWithoutGeneratedDocuments"/>.</param>
             private async Task<CompilationInfo> FinalizeCompilationAsync(
                 SolutionCompilationState compilationState,
-                Compilation compilationWithoutGeneratedFiles,
+                Compilation compilationWithoutGeneratedDocuments,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 Compilation? compilationWithStaleGeneratedTrees,
                 CancellationToken cancellationToken)
@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis
                     //     For the latter, we use a heuristic if the underlying compilation defines "System.Object" type.
                     var hasSuccessfullyLoaded = this.ProjectState.HasAllInformation &&
                         (this.ProjectState.MetadataReferences.Count > 0 ||
-                         compilationWithoutGeneratedFiles.GetTypeByMetadataName("System.Object") != null);
+                         compilationWithoutGeneratedDocuments.GetTypeByMetadataName("System.Object") != null);
 
                     var newReferences = new List<MetadataReference>();
                     var metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
@@ -747,10 +747,10 @@ namespace Microsoft.CodeAnalysis
                                     await compilationState.GetCompilationAsync(
                                         projectReference.ProjectId, cancellationToken).ConfigureAwait(false);
 
-                                if (compilationWithoutGeneratedFiles.ScriptCompilationInfo!.PreviousScriptCompilation != previousSubmissionCompilation)
+                                if (compilationWithoutGeneratedDocuments.ScriptCompilationInfo!.PreviousScriptCompilation != previousSubmissionCompilation)
                                 {
-                                    compilationWithoutGeneratedFiles = compilationWithoutGeneratedFiles.WithScriptCompilationInfo(
-                                        compilationWithoutGeneratedFiles.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
+                                    compilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments.WithScriptCompilationInfo(
+                                        compilationWithoutGeneratedDocuments.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
 
                                     compilationWithStaleGeneratedTrees = compilationWithStaleGeneratedTrees?.WithScriptCompilationInfo(
                                         compilationWithStaleGeneratedTrees.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
@@ -780,32 +780,32 @@ namespace Microsoft.CodeAnalysis
                     // that doesn't have generated files, and the one we're trying to reuse that has generated files.
                     // Since we updated both of these compilations together in response to edits, we only have to check one
                     // for a potential mismatch.
-                    if (!Enumerable.SequenceEqual(compilationWithoutGeneratedFiles.ExternalReferences, newReferences))
+                    if (!Enumerable.SequenceEqual(compilationWithoutGeneratedDocuments.ExternalReferences, newReferences))
                     {
-                        compilationWithoutGeneratedFiles = compilationWithoutGeneratedFiles.WithReferences(newReferences);
+                        compilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments.WithReferences(newReferences);
                         compilationWithStaleGeneratedTrees = compilationWithStaleGeneratedTrees?.WithReferences(newReferences);
                     }
 
                     // We will finalize the compilation by adding full contents here.
-                    var (compilationWithGeneratedFiles, nextGeneratorInfo) = await AddExistingOrComputeNewGeneratorInfoAsync(
+                    var (compilationWithGeneratedDocuments, nextGeneratorInfo) = await AddExistingOrComputeNewGeneratorInfoAsync(
                         compilationState,
-                        compilationWithoutGeneratedFiles,
+                        compilationWithoutGeneratedDocuments,
                         generatorInfo,
                         compilationWithStaleGeneratedTrees,
                         cancellationToken).ConfigureAwait(false);
 
                     var finalState = FinalState.Create(
-                        compilationWithGeneratedFiles,
-                        compilationWithoutGeneratedFiles,
+                        compilationWithGeneratedDocuments,
+                        compilationWithoutGeneratedDocuments,
                         hasSuccessfullyLoaded,
                         nextGeneratorInfo,
-                        compilationWithGeneratedFiles,
+                        compilationWithGeneratedDocuments,
                         this.ProjectState.Id,
                         metadataReferenceToProjectId);
 
                     this.WriteState(finalState);
 
-                    return new CompilationInfo(compilationWithGeneratedFiles, hasSuccessfullyLoaded, nextGeneratorInfo);
+                    return new CompilationInfo(compilationWithGeneratedDocuments, hasSuccessfullyLoaded, nextGeneratorInfo);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
