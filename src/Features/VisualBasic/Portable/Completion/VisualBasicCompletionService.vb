@@ -124,11 +124,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
         Public Overrides Function GetDefaultCompletionListSpan(text As SourceText, caretPosition As Integer) As TextSpan
             Return CompletionUtilities.GetCompletionItemSpan(text, caretPosition)
         End Function
-
-        Friend Overrides Function SupportsTriggerOnDeletion(options As CompletionOptions) As Boolean
-            ' If the option is null (i.e. default) or 'true', then we want to trigger completion.
-            ' Only if the option is false do we not want to trigger.
-            Return If(options.TriggerOnDeletion = False, False, True)
-        End Function
     End Class
 End Namespace

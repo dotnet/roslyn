@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public bool TriggerOnTyping { get; init; } = true;
         public bool TriggerOnTypingLetters { get; init; } = true;
-        public bool? TriggerOnDeletion { get; init; } = null;
+        public bool TriggerOnDeletion { get; init; } = true;
         public bool TriggerInArgumentLists { get; init; } = true;
         public EnterKeyRule EnterKeyBehavior { get; init; } = EnterKeyRule.Default;
         public SnippetsRule SnippetsBehavior { get; init; } = SnippetsRule.Default;
