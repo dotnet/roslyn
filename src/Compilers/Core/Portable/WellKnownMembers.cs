@@ -2990,7 +2990,7 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Char,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
 
-                // System_String__Concat_ReadOnlySpanReadOnlySpan
+                // System_String__Concat_2ReadOnlySpans
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
                 0,                                                                                                          // Arity
@@ -3005,7 +3005,7 @@ namespace Microsoft.CodeAnalysis
                     1,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Char,
 
-                // System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan
+                // System_String__Concat_3ReadOnlySpans
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
                 0,                                                                                                          // Arity
@@ -3024,7 +3024,7 @@ namespace Microsoft.CodeAnalysis
                     1,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Char,
 
-                // System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan
+                // System_String__Concat_4ReadOnlySpans
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
                 0,                                                                                                          // Arity
@@ -4890,9 +4890,9 @@ namespace Microsoft.CodeAnalysis
                 "Format",                                   // System_String__Format_IFormatProvider
                 "op_Implicit",                              // System_String__op_Implicit_ToReadOnlySpanOfChar
 
-                "Concat",                                   // System_String__Concat_ReadOnlySpanReadOnlySpan
-                "Concat",                                   // System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan
-                "Concat",                                   // System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan
+                "Concat",                                   // System_String__Concat_2ReadOnlySpans
+                "Concat",                                   // System_String__Concat_3ReadOnlySpans
+                "Concat",                                   // System_String__Concat_4ReadOnlySpans
 
                 "CreatePayload",                            // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile
                 "CreatePayload",                            // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles

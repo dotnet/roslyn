@@ -963,9 +963,9 @@ namespace System
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
                     case WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int:
                     case WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar:
-                    case WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan:
-                    case WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan:
-                    case WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan:
+                    case WellKnownMember.System_String__Concat_2ReadOnlySpans:
+                    case WellKnownMember.System_String__Concat_3ReadOnlySpans:
+                    case WellKnownMember.System_String__Concat_4ReadOnlySpans:
                     case WellKnownMember.System_Index__ctor:
                     case WellKnownMember.System_Index__GetOffset:
                     case WellKnownMember.System_Range__ctor:

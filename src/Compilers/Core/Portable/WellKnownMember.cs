@@ -433,9 +433,9 @@ namespace Microsoft.CodeAnalysis
         System_String__Format_IFormatProvider,
         System_String__op_Implicit_ToReadOnlySpanOfChar,
 
-        System_String__Concat_ReadOnlySpanReadOnlySpan,
-        System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan,
-        System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan,
+        System_String__Concat_2ReadOnlySpans,
+        System_String__Concat_3ReadOnlySpans,
+        System_String__Concat_4ReadOnlySpans,
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,

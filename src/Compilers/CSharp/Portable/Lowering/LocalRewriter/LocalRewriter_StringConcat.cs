@@ -194,9 +194,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        if ((object)method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan) ||
-                            (object)method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan) ||
-                            (object)method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan))
+                        if ((object)method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_2ReadOnlySpans) ||
+                            (object)method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_3ReadOnlySpans) ||
+                            (object)method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_4ReadOnlySpans))
                         {
                             // Faced a span-based string.Concat call. Since we can produce such call on the previous iterations ourselves, we need to unwrap it.
                             // The key thing is that we need not to only extract arguments, but also unwrap them from being spans and for chars also wrap them into `ToString` calls.
@@ -489,9 +489,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 preparedArgs.Add(arg);
 
                 if (arg is BoundCall spanConcatCall &&
-                    ((object)spanConcatCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan) ||
-                    (object)spanConcatCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan) ||
-                    (object)spanConcatCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan)))
+                    ((object)spanConcatCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_2ReadOnlySpans) ||
+                    (object)spanConcatCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_3ReadOnlySpans) ||
+                    (object)spanConcatCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_4ReadOnlySpans)))
                 {
                     preparedArgsIfUnwrapUserStringConcat.AddRange(spanConcatCall.Arguments);
                     continue;
@@ -651,9 +651,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static WellKnownMember? GetSpanConcatMemberByArgumentsCount(int argumentCount) => argumentCount switch
         {
-            2 => WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan,
-            3 => WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan,
-            4 => WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan,
+            2 => WellKnownMember.System_String__Concat_2ReadOnlySpans,
+            3 => WellKnownMember.System_String__Concat_3ReadOnlySpans,
+            4 => WellKnownMember.System_String__Concat_4ReadOnlySpans,
             _ => null,
         };
 
