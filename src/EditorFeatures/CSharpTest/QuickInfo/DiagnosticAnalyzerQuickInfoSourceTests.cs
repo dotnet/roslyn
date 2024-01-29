@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     [Trait(Traits.Feature, Traits.Features.QuickInfo)]
     public class DiagnosticAnalyzerQuickInfoSourceTests
     {
-        [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
         public async Task ErrorTitleIsShownOnDisablePragma()
         {
             await TestInMethodAsync(
@@ -41,8 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 """, GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
         public async Task ErrorTitleIsShownOnRestorePragma()
         {
             await TestInMethodAsync(
@@ -53,8 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 """, GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
         public async Task DisabledWarningNotExistingInCodeIsDisplayedByTitleWithoutCodeDetails()
         {
             await TestInMethodAsync(
@@ -118,8 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 ", GetFormattedErrorTitle((ErrorCode)errorCode));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
         public async Task ErrorTitleIsShwonInSupressMessageAttribute()
         {
             await TestAsync(

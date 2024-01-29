@@ -762,8 +762,7 @@ newFileFolderContainers: ImmutableArray<string>.Empty,
 newFileName: "Test2.cs");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -802,8 +801,7 @@ newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 newFileName: "Test2.cs");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateType_UsingsNeeded_InNewFile_InFolder()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -845,8 +843,7 @@ newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 newFileName: "Test2.cs");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_NotSimpleName()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -882,8 +879,7 @@ newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 newFileName: "Test2.cs");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateType_UsingsNeeded_InNewFile_InFolder_DefaultNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -926,8 +922,7 @@ newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 newFileName: "Test2.cs");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_DefaultNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -974,8 +969,7 @@ newFileFolderContainers: ImmutableArray.Create("outer"),
 newFileName: "Test2.cs");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_DefaultNamespace_NotSimpleName()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1024,8 +1018,7 @@ newFileFolderContainers: ImmutableArray.Create("outer"),
 newFileName: "Test2.cs");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898452")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898452")]
         public async Task GenerateType_InValidFolderNameNotMadeNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1273,8 +1266,7 @@ newFileFolderContainers: ImmutableArray<string>.Empty,
 projectName: "Assembly2");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1319,8 +1311,7 @@ newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1359,8 +1350,7 @@ newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings_DefaultNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1406,8 +1396,7 @@ newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName_DefaultNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1486,8 +1475,7 @@ newFileFolderContainers: ImmutableArray<string>.Empty,
 projectName: "Assembly2");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_Usings()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1531,8 +1519,7 @@ newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1570,8 +1557,7 @@ newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_Usings_RootNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1616,8 +1602,7 @@ newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName_RootNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1656,8 +1641,7 @@ newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
         public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName_RootNamespace_ProjectReference()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1702,8 +1686,7 @@ newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858826")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858826")]
         public async Task GenerateTypeIntoDifferentLanguageNewFileAdjustFileExtension()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1920,8 +1903,7 @@ projectName: "Assembly2");
         }
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869593")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869593")]
         public async Task GenerateModuleFromCSharpToVisualBasicInTypeContext()
         {
             await TestWithMockedGenerateTypeDialog(

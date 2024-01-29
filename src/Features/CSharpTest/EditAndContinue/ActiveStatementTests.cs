@@ -1624,8 +1624,7 @@ class C
             edits.VerifySemanticDiagnostics(active);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
         public void Constructor_Instance_ImplicitInitializer_ParameterChange()
         {
             var src1 = "class C { <AS:0>C(int P)</AS:0>  {} }";
@@ -2523,8 +2522,7 @@ class C
             edits.VerifySemanticDiagnostics(active);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/69249")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69249")]
         public void InstanceFieldInitializer_Internal_Delete2()
         {
             var src1 = @"

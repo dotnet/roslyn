@@ -99,8 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.Equal(0, previewWorkspace.CurrentSolution.Projects.First().DocumentIds.Count);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923121")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923121")]
         public void TestPreviewOpenCloseFile()
         {
             using var previewWorkspace = new PreviewWorkspace();
@@ -229,8 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.Equal(0, rightSpans.Count);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28639")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28639")]
         public void TestPreviewWorkspaceDoesNotLeakSolution()
         {
             // Verify that analyzer execution doesn't leak solution instances from the preview workspace.
@@ -253,8 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             solutionObjectReference.AssertReleased();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/pull/67142")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/67142")]
         public void TestPreviewWorkspaceDoesNotLeakItself()
         {
             var composition = EditorTestCompositions.EditorFeatures;

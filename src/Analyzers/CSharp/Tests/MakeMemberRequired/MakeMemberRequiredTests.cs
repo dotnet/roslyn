@@ -120,8 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MakeMemberRequired
             yield return new[] { "internal", "private protected" };
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68478")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68478")]
         public async Task SimpleSetPropertyMissingRequiredAttribute()
         {
             var code =
