@@ -134,8 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.IsType<NoOpPersistentStorage>(storage);
         }
 
-
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28639")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28639")]
         public void TestPreviewWorkspaceDoesNotLeakSolution()
         {
             // Verify that analyzer execution doesn't leak solution instances from the preview workspace.
