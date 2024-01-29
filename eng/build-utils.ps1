@@ -169,7 +169,7 @@ function Exec-Console([string]$command, [string]$commandArgs) {
 # arguments.  Prefer this over & sourcing a script as it will both use a clean
 # environment and do proper error checking
 function Exec-Script([string]$script, [string]$scriptArgs = "") {
-  Exec-Command "powershell" "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs"
+  Exec-Command "pwsh" "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs"
 }
 
 # Ensure the proper .NET Core SDK is available. Returns the location to the dotnet.exe.

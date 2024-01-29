@@ -11,42 +11,37 @@ using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpReversedForLoopSnippetProvider() : AbstractCSharpForLoopSnippetProvider
 {
-    [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpReversedForLoopSnippetProvider : AbstractCSharpForLoopSnippetProvider
+    public override string Identifier => "forr";
+
+    public override string Description => CSharpFeaturesResources.reversed_for_loop;
+
+    protected override SyntaxKind ConditionKind => SyntaxKind.GreaterThanOrEqualExpression;
+
+    protected override SyntaxKind IncrementorKind => SyntaxKind.PostDecrementExpression;
+
+    protected override ExpressionSyntax GenerateInitializerValue(SyntaxGenerator generator, SyntaxNode? inlineExpression)
     {
-        public override string Identifier => "forr";
+        var subtractFrom = inlineExpression?.WithoutLeadingTrivia() ?? generator.IdentifierName("length");
+        return (ExpressionSyntax)generator.SubtractExpression(subtractFrom, generator.LiteralExpression(1));
+    }
 
-        public override string Description => CSharpFeaturesResources.reversed_for_loop;
+    protected override ExpressionSyntax GenerateRightSideOfCondition(SyntaxGenerator generator, SyntaxNode? inlineExpression)
+        => (ExpressionSyntax)generator.LiteralExpression(0);
 
-        protected override SyntaxKind ConditionKind => SyntaxKind.GreaterThanOrEqualExpression;
-
-        protected override SyntaxKind IncrementorKind => SyntaxKind.PostDecrementExpression;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpReversedForLoopSnippetProvider()
+    protected override void AddSpecificPlaceholders(MultiDictionary<string, int> placeholderBuilder, ExpressionSyntax initializer, ExpressionSyntax rightOfCondition)
+    {
+        if (!ConstructedFromInlineExpression)
         {
-        }
-
-        protected override ExpressionSyntax GenerateInitializerValue(SyntaxGenerator generator, SyntaxNode? inlineExpression)
-        {
-            var subtractFrom = inlineExpression?.WithoutLeadingTrivia() ?? generator.IdentifierName("length");
-            return (ExpressionSyntax)generator.SubtractExpression(subtractFrom, generator.LiteralExpression(1));
-        }
-
-        protected override ExpressionSyntax GenerateRightSideOfCondition(SyntaxGenerator generator, SyntaxNode? inlineExpression)
-            => (ExpressionSyntax)generator.LiteralExpression(0);
-
-        protected override void AddSpecificPlaceholders(MultiDictionary<string, int> placeholderBuilder, ExpressionSyntax initializer, ExpressionSyntax rightOfCondition)
-        {
-            if (!ConstructedFromInlineExpression)
-            {
-                var binaryInitializer = (BinaryExpressionSyntax)initializer;
-                var left = binaryInitializer.Left;
-                placeholderBuilder.Add(left.ToString(), left.SpanStart);
-            }
+            var binaryInitializer = (BinaryExpressionSyntax)initializer;
+            var left = binaryInitializer.Left;
+            placeholderBuilder.Add(left.ToString(), left.SpanStart);
         }
     }
 }

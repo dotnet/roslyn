@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             Project = project;
             Action = action;
-            Diagnostics = ImmutableArray.Create(diagnostic);
+            Diagnostics = [diagnostic];
         }
 
         internal CodeFix(Project project, CodeAction action, ImmutableArray<Diagnostic> diagnostics)

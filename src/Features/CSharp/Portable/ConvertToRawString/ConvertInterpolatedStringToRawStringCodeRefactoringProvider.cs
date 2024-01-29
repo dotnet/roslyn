@@ -448,7 +448,7 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
             }
         }
 
-        return List(contents);
+        return [.. contents];
 
         static InterpolationFormatClauseSyntax? RewriteFormatClause(InterpolationFormatClauseSyntax? formatClause)
         {

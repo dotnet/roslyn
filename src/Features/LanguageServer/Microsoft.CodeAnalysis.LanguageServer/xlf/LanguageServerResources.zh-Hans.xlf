@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Aborted">
         <source>Aborted!</source>
-        <target state="new">Aborted!</target>
+        <target state="translated">已中止!</target>
         <note />
       </trans-unit>
       <trans-unit id="Attaching_debugger_to_process_0">
@@ -14,37 +14,37 @@
       </trans-unit>
       <trans-unit id="Building_project">
         <source>Building project...</source>
-        <target state="new">Building project...</target>
+        <target state="translated">正在生成项目...</target>
         <note />
       </trans-unit>
       <trans-unit id="Canceled">
         <source>Canceled!</source>
-        <target state="new">Canceled!</target>
+        <target state="translated">已取消!</target>
         <note />
       </trans-unit>
       <trans-unit id="Client_failed_to_attach_the_debugger">
         <source>Client failed to attach the debugger</source>
-        <target state="translated">客户端未能附加调试器</target>
+        <target state="translated">客户端无法附加调试器</target>
         <note />
       </trans-unit>
       <trans-unit id="Completed_reload_of_all_projects_in_0">
         <source>Completed (re)load of all projects in {0}</source>
-        <target state="translated">已完成 (重新)加载 {0} 中的所有项目</target>
+        <target state="translated">已完成加载(重新加载) {0} 中的所有项目</target>
         <note>The placeholder is a time duration like 00:15</note>
       </trans-unit>
       <trans-unit id="Debugger_attached">
         <source>Debugger attached</source>
-        <target state="translated">已附加调试程序</target>
+        <target state="translated">已附加调试器</target>
         <note />
       </trans-unit>
       <trans-unit id="Debugging_tests">
         <source>Debugging tests...</source>
-        <target state="new">Debugging tests...</target>
+        <target state="translated">正在调试测试...</target>
         <note />
       </trans-unit>
       <trans-unit id="Discovering_tests">
         <source>Discovering tests...</source>
-        <target state="new">Discovering tests...</target>
+        <target state="translated">正在发现测试...</target>
         <note />
       </trans-unit>
       <trans-unit id="Exception_thrown_while_loading_0">
@@ -54,12 +54,12 @@
       </trans-unit>
       <trans-unit id="Failed">
         <source>Failed!</source>
-        <target state="new">Failed!</target>
+        <target state="translated">失败!</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_0_Passed_1_Skipped_2_Total_3_Duration_4">
         <source>Failed:    {0}, Passed:    {1}, Skipped:    {2}, Total:    {3}, Duration: {4}</source>
-        <target state="new">Failed:    {0}, Passed:    {1}, Skipped:    {2}, Total:    {3}, Duration: {4}</target>
+        <target state="translated">失败: {0} 个，通过: {1} 个，已跳过: {2} 个，总计: {3} 个，持续时间: {4}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_read_runsettings_file_at_0:1">
@@ -74,12 +74,12 @@
       </trans-unit>
       <trans-unit id="Found_0_tests_in_1">
         <source>Found {0} tests in {1}</source>
-        <target state="translated">在 {1} 中找到 {0} 个测试</target>
+        <target state="translated">在 {1} 中找到了 {0} 个测试</target>
         <note />
       </trans-unit>
       <trans-unit id="Loading_0">
         <source>Loading {0}...</source>
-        <target state="new">Loading {0}...</target>
+        <target state="translated">正在加载 {0}...</target>
         <note>The placeholder is a name of a file</note>
       </trans-unit>
       <trans-unit id="Message">
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="Nothing_found_to_restore">
         <source>Nothing found to restore</source>
-        <target state="translated">找不到要还原的任何内容</target>
+        <target state="translated">找不到要还原的内容</target>
         <note />
       </trans-unit>
       <trans-unit id="Passed">
         <source>Passed!</source>
-        <target state="new">Passed!</target>
+        <target state="translated">已通过!</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_0_has_unresolved_dependencies">
@@ -114,12 +114,12 @@
       </trans-unit>
       <trans-unit id="Projects_failed_to_load_because_MSBuild_could_not_be_found">
         <source>Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</source>
-        <target state="translated">未能加载项目，因为找不到.NET Framework生成工具。请尝试安装Visual Studio或Visual Studio 生成工具包，或检查日志以获取详细信息。</target>
+        <target state="translated">无法加载项目，因为找不到 .NET Framework 生成工具。请尝试安装 Visual Studio 或 Visual Studio 生成工具包，或查看日志以了解详细信息。</target>
         <note />
       </trans-unit>
       <trans-unit id="Projects_failed_to_load_because_Mono_could_not_be_found">
         <source>Projects failed to load because the Mono could not be found. Ensure that Mono and MSBuild are installed, and check the logs for details.</source>
-        <target state="translated">未能加载项目，因为找不到 Mono。请确保安装了 Mono 和 MSBuild，并检查日志以获取详细信息。</target>
+        <target state="translated">无法加载项目，因为找不到 Mono。确保已安装 Mono 和 MSBuild，并检查日志以了解详细信息。</target>
         <note />
       </trans-unit>
       <trans-unit id="Restore">
@@ -129,27 +129,27 @@
       </trans-unit>
       <trans-unit id="Restore_complete">
         <source>Restore complete</source>
-        <target state="new">Restore complete</target>
+        <target state="translated">还原完成</target>
         <note />
       </trans-unit>
       <trans-unit id="Restore_started">
         <source>Restore started</source>
-        <target state="new">Restore started</target>
+        <target state="translated">已开始还原</target>
         <note />
       </trans-unit>
       <trans-unit id="Restoring_0">
         <source>Restoring {0}</source>
-        <target state="new">Restoring {0}</target>
+        <target state="translated">正在还原 {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_dotnet_restore_on_0">
         <source>Running dotnet restore on {0}</source>
-        <target state="new">Running dotnet restore on {0}</target>
+        <target state="translated">正在 {0} 上运行 dotnet restore...</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_tests">
         <source>Running tests...</source>
-        <target state="new">Running tests...</target>
+        <target state="translated">正在运行测试...</target>
         <note />
       </trans-unit>
       <trans-unit id="Runsettings_file_does_not_exist_at_0">
@@ -169,7 +169,7 @@
       </trans-unit>
       <trans-unit id="Starting_test_discovery">
         <source>Starting test discovery</source>
-        <target state="new">Starting test discovery</target>
+        <target state="translated">正在启动测试发现</target>
         <note />
       </trans-unit>
       <trans-unit id="Starting_test_run">
@@ -189,12 +189,12 @@
       </trans-unit>
       <trans-unit id="Test_discovery_aborted">
         <source>Test discovery aborted</source>
-        <target state="translated">测试发现已中止</target>
+        <target state="translated">已中止测试发现</target>
         <note />
       </trans-unit>
       <trans-unit id="Test_run_error">
         <source>Test run error: {0}</source>
-        <target state="new">Test run error: {0}</target>
+        <target state="translated">测试运行错误: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="There_were_problems_loading_project_0_See_log_for_details">

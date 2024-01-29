@@ -878,6 +878,15 @@ namespace Microsoft.CodeAnalysis
             return sum;
         }
 
+        public static int Sum<T>(this ImmutableArray<T> items, Func<T, int, int> selector)
+        {
+            var sum = 0;
+            for (var i = 0; i < items.Length; i++)
+                sum += selector(items[i], i);
+
+            return sum;
+        }
+
         internal static void AddToMultiValueDictionaryBuilder<K, T>(Dictionary<K, object> accumulator, K key, T item)
             where K : notnull
             where T : notnull

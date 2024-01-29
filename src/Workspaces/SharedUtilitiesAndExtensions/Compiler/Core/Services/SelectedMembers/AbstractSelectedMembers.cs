@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                                    .Where(m => m.Parent is TTypeDeclarationSyntax)
                                    .FirstOrDefault();
             if (firstMember == null)
-                return ImmutableArray<SyntaxNode>.Empty;
+                return [];
 
             return GetMembersInSpan(root, text, textSpan, firstMember, allowPartialSelection, membersToKeep);
         }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
             var members = GetMembers(containingType);
             var fieldIndex = members.IndexOf(firstMember);
             if (fieldIndex < 0)
-                return ImmutableArray<SyntaxNode>.Empty;
+                return [];
 
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var selectedMembers);
             for (var i = fieldIndex; i < members.Count; i++)

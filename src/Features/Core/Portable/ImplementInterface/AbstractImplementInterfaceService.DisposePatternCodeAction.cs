@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         // Parts of the name `disposedValue`.  Used so we can generate a field correctly with 
         // the naming style that the user has specified.
         private static readonly ImmutableArray<string> s_disposedValueNameParts =
-            ImmutableArray.Create("disposed", "value");
+            ["disposed", "value"];
 
         // C#: `Dispose(bool disposed)`.  VB: `Dispose(disposed As Boolean)`
         private static readonly SymbolDisplayFormat s_format = new(
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     unimplementedMembers.WhereAsArray(m => !m.type.Equals(disposeMethod.ContainingType)),
                     classType,
                     classDecl,
-                    extraMembers: ImmutableArray.Create<ISymbol>(disposedValueField),
+                    extraMembers: [disposedValueField],
                     cancellationToken).ConfigureAwait(false);
 
                 // Next, add the Dispose pattern methods at the end of the type (we want to keep all
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // {
                 //     // TODO: dispose managed state...
                 // }
-                var ifDisposingStatement = g.IfStatement(g.IdentifierName(DisposingName), Array.Empty<SyntaxNode>());
+                var ifDisposingStatement = g.IfStatement(g.IdentifierName(DisposingName), []);
                 ifDisposingStatement = Service.AddCommentInsideIfStatement(
                     ifDisposingStatement,
                     CreateCommentTrivia(g, FeaturesResources.TODO_colon_dispose_managed_state_managed_objects))
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var ifStatement = g.IfStatement(
                     g.LogicalNotExpression(g.IdentifierName(disposedValueField.Name)),
-                    new[] { ifDisposingStatement, disposedValueEqualsTrueStatement });
+                    [ifDisposingStatement, disposedValueEqualsTrueStatement]);
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     disposeMethod,
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                         CodeGenerationSymbolFactory.CreateParameterSymbol(
                             compilation.GetSpecialType(SpecialType.System_Boolean),
                             DisposingName)),
-                    statements: ImmutableArray.Create(ifStatement));
+                    statements: [ifStatement]);
             }
 
             private IMethodSymbol CreateDisposeInterfaceMethod(

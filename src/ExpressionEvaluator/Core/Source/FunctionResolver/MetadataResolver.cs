@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             var methodDef = _reader.GetMethodDefinition(primaryAccessorHandle);
-            return MatchesParameters(methodDef, allTypeParameters, containingArity, ImmutableArray<string>.Empty, propertyParameters);
+            return MatchesParameters(methodDef, allTypeParameters, containingArity, [], propertyParameters);
         }
 
         private bool MatchesMethodName(in MethodDefinition methodDef, in TypeDefinition declaringTypeDef, string name)
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 case NameKind.QualifiedName:
                     {
                         qualifiedName = (QualifiedName)name;
-                        typeParameters = ImmutableArray<string>.Empty;
+                        typeParameters = [];
                     }
                     break;
                 default:

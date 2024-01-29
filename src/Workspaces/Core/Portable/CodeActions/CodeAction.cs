@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </para>
         /// </summary>
         internal const string RequiresNonDocumentChange = nameof(RequiresNonDocumentChange);
-        private protected static ImmutableArray<string> RequiresNonDocumentChangeTags = ImmutableArray.Create(RequiresNonDocumentChange);
+        private protected static ImmutableArray<string> RequiresNonDocumentChangeTags = [RequiresNonDocumentChange];
 
         /// <summary>
         /// A short title describing the action that may appear in a menu.
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// Descriptive tags from <see cref="WellKnownTags"/>.
         /// These tags may influence how the item is displayed.
         /// </summary>
-        public virtual ImmutableArray<string> Tags => ImmutableArray<string>.Empty;
+        public virtual ImmutableArray<string> Tags => [];
 
         /// <summary>
         /// Child actions contained within this <see cref="CodeAction"/>.  Can be presented in a host to provide more
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// actions, use <see cref="Create(string, ImmutableArray{CodeAction}, bool)"/>.
         /// </summary>
         public virtual ImmutableArray<CodeAction> NestedActions
-            => ImmutableArray<CodeAction>.Empty;
+            => [];
 
         /// <summary>
         /// Bridge method for sdk. https://github.com/dotnet/roslyn-sdk/issues/1136 tracks removing this.
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// Gets custom tags for the CodeAction.
         /// </summary>
-        internal ImmutableArray<string> CustomTags { get; set; } = ImmutableArray<string>.Empty;
+        internal ImmutableArray<string> CustomTags { get; set; } = [];
 
         /// <summary>
         /// Lazily set provider type that registered this code action.
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 return await this.PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
             }
 
-            return ImmutableArray<CodeActionOperation>.Empty;
+            return [];
         }
 
         /// <summary>
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 return await this.PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
             }
 
-            return ImmutableArray<CodeActionOperation>.Empty;
+            return [];
         }
 
         /// <summary>
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             var changedSolution = await GetChangedSolutionAsync(CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
             return changedSolution == null
-                ? Array.Empty<CodeActionOperation>()
+                ? []
                 : SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(changedSolution));
         }
 
@@ -303,8 +303,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
             {
                 var changedSolution = await GetChangedSolutionAsync(progress, cancellationToken).ConfigureAwait(false);
                 return changedSolution == null
-                    ? ImmutableArray<CodeActionOperation>.Empty
-                    : ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(changedSolution));
+                    ? []
+                    : [new ApplyChangesOperation(changedSolution)];
             }
         }
 

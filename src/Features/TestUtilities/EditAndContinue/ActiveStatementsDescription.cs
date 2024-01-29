@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private ActiveStatementsDescription()
         {
-            OldStatements = ImmutableArray<UnmappedActiveStatement>.Empty;
-            NewMappedSpans = ImmutableArray<SourceFileSpan>.Empty;
+            OldStatements = [];
+            NewMappedSpans = [];
             OldStatementsMap = ActiveStatementsMap.Empty;
-            NewMappedRegions = ImmutableArray<ImmutableArray<SourceFileSpan>>.Empty;
-            OldUnmappedTrackingSpans = ImmutableArray<LinePositionSpan>.Empty;
+            NewMappedRegions = [];
+            OldUnmappedTrackingSpans = [];
         }
 
         public ActiveStatementsDescription(string oldMarkedSource, string newMarkedSource, Func<string, SyntaxTree> syntaxTreeFactory, ActiveStatementFlags[]? flags)
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 if (oldStatement.Statement != null)
                 {
                     newMappedSpans[oldStatement.Statement.Ordinal] = new SourceFileSpan(oldStatement.Statement.FilePath, default);
-                    newMappedRegions[oldStatement.Statement.Ordinal] = ImmutableArray<SourceFileSpan>.Empty;
+                    newMappedRegions[oldStatement.Statement.Ordinal] = [];
                 }
             }
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 newMappedSpans[ordinal] = newTree.GetMappedLineSpan(unmappedSpan);
                 newMappedRegions[ordinal] = (ordinal < newExceptionRegionMarkers.Length)
                     ? newExceptionRegionMarkers[ordinal].SelectAsArray(span => (SourceFileSpan)newTree.GetMappedLineSpan(span))
-                    : ImmutableArray<SourceFileSpan>.Empty;
+                    : [];
             }
 
             NewMappedSpans = newMappedSpans.ToImmutable();
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                     var exceptionRegions = (ordinal < exceptionRegionMarkers.Length)
                         ? exceptionRegionMarkers[ordinal].SelectAsArray(unmappedRegionSpan => (SourceFileSpan)tree.GetMappedLineSpan(unmappedRegionSpan))
-                        : ImmutableArray<SourceFileSpan>.Empty;
+                        : [];
 
                     var unmappedActiveStatement = new UnmappedActiveStatement(
                         unmappedSpan,

@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRefLangVersion">
         <source>Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</source>
-        <target state="translated">不能在语言版本 {1} 中使用 “ref” 关键字 (keyword)传递参数 {0}。若要将 “ref” 参数传递给 “in” 参数，请升级到 {2} 或更高版本的语言版本。</target>
+        <target state="translated">不能在语言版本 {1} 中使用 “ref” 关键字传递参数 {0}。要将 “ref” 参数传递给 “in” 参数，请升级到语言版本 {2} 或更高版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
@@ -414,17 +414,17 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
         <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="new">Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</target>
+        <target state="translated">找不到具有预期签名的可访问“{0}”方法: 具有类型为“ReadOnlySpan&lt;{1}&gt;”且返回类型为“{2}”的单个参数的静态方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">
         <source>'{0}' has a CollectionBuilderAttribute but no element type.</source>
-        <target state="translated">'{0}' 具有 CollectionBuilderAttribute，但没有元素类型。</target>
+        <target state="translated">“{0}”具有 CollectionBuilderAttribute，但没有元素类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionEscape">
         <source>A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</source>
-        <target state="new">A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</target>
+        <target state="translated">无法在此上下文中使用类型为“{0}”的集合表达式，因为它可能在当前范围之外公开。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
@@ -432,9 +432,19 @@
         <target state="translated">“{0}”的此版本无法与集合表达式一起使用。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingAdd">
+        <source>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</source>
+        <target state="new">Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingConstructor">
+        <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
+        <target state="new">Collection expression type must have an applicable constructor that can be called with no arguments.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
         <source>There is no target type for the collection expression.</source>
-        <target state="new">There is no target type for the collection expression.</target>
+        <target state="translated">集合表达式没有目标类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetNoElementType">
@@ -444,7 +454,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
-        <target state="new">Cannot initialize type '{0}' with a collection expression because the type is not constructible.</target>
+        <target state="translated">无法使用集合表达式初始化类型“{0}”，因为该类型不可构造。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -634,7 +644,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsCollectionExpression">
         <source>An expression tree may not contain a collection expression.</source>
-        <target state="new">An expression tree may not contain a collection expression.</target>
+        <target state="translated">表达式树不能包含集合表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -709,7 +719,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion12">
         <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</target>
+        <target state="translated">功能“{0}”在 C# 12.0 中不可用。请使用语言版本 {1} 或更高版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -929,7 +939,7 @@
       </trans-unit>
       <trans-unit id="ERR_InlineArrayForEachNotSupported">
         <source>foreach statement on an inline array of type '{0}' is not supported</source>
-        <target state="translated">不支持类型为 '{0}' 的内联数组上的 foreach 语句</target>
+        <target state="translated">不支持类型为“{0}”的内联数组上的 foreach 语句</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayIndexOutOfRange">
@@ -939,7 +949,7 @@
       </trans-unit>
       <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
         <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
-        <target state="translated">内联数组元素字段不能声明为必需、只读、易失或为固定大小缓冲区。</target>
+        <target state="translated">不能将内联数组元素字段声明为必需、只读、可变或固定大小缓冲区。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -954,7 +964,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorArityNotCompatible">
         <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
-        <target state="translated">方法 '{0}' 必须为非泛型或具有 arity {1} 才能匹配 '{2}'。</target>
+        <target state="translated">方法“{0}”必须是非泛型方法，或者具有匹配“{2}”的参数数量 {1}。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
@@ -979,7 +989,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorContainingTypeCannotBeGeneric">
         <source>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</source>
-        <target state="new">Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</target>
+        <target state="translated">方法“{0}”不能用作侦听器，因为其包含类型具有类型参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
@@ -1124,7 +1134,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
-        <target state="new">The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</target>
+        <target state="translated">“Experimental” 属性的 diagnosticId 参数必须是有效的标识符</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -1474,7 +1484,7 @@
       </trans-unit>
       <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
         <source>A ref readonly parameter cannot have the Out attribute.</source>
-        <target state="translated">ref 只读参数不能具有 Out 特性。</target>
+        <target state="translated">ref readonly 参数不能具有 Out 属性。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
@@ -1864,7 +1874,7 @@
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
         <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
-        <target state="new">Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</target>
+        <target state="translated">由于“{0}”不包含“{1}”的公共实例或扩展定义，因此展开运算符 “...” 不能作用于“{0}”类型的变量</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
@@ -2129,7 +2139,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
         <source>collection expressions</source>
-        <target state="new">collection expressions</target>
+        <target state="translated">集合表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
@@ -2259,7 +2269,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRefReadonlyParameters">
         <source>ref readonly parameters</source>
-        <target state="translated">ref 只读参数</target>
+        <target state="translated">ref readonly 参数</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -2354,7 +2364,7 @@
       </trans-unit>
       <trans-unit id="IDS_StringEscapeCharacter">
         <source>string escape character</source>
-        <target state="translated">字符串转义符</target>
+        <target state="translated">字符串转义字符</target>
         <note />
       </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
@@ -2394,22 +2404,22 @@
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
         <source>Argument {0} should be passed with the 'in' keyword</source>
-        <target state="new">Argument {0} should be passed with the 'in' keyword</target>
+        <target state="translated">应使用 “in” 关键字传递参数 {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn_Title">
         <source>Argument should be passed with the 'in' keyword</source>
-        <target state="new">Argument should be passed with the 'in' keyword</target>
+        <target state="translated">应使用 “in” 关键字传递参数</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedRefOrIn">
         <source>Argument {0} should be passed with 'ref' or 'in' keyword</source>
-        <target state="translated">应使用 “ref” 或 “in” 传递参数 {0} 关键字 (keyword)</target>
+        <target state="translated">应使用 “ref” 或 “in” 关键字传递参数 {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
         <source>Argument should be passed with 'ref' or 'in' keyword</source>
-        <target state="translated">应使用 “ref” 或 “in” 关键字 (keyword)传递参数</target>
+        <target state="translated">应使用 “ref” 或 “in” 关键字传递参数</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed">
@@ -2434,12 +2444,12 @@
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
-        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
+        <target state="translated">必须指定属性参数 “SizeConst”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired_Title">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
-        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
+        <target state="translated">必须指定属性参数 “SizeConst”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallArgMixing">
@@ -2534,22 +2544,22 @@
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate">
         <source>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
-        <target state="translated">类型 '{0}' 的集合表达式可能会产生意外的堆分配。请考虑显式创建数组，然后转换为 '{0}' 以使分配显式。</target>
+        <target state="translated">类型为“{0}”的集合表达式可能会产生意外的堆分配。请考虑显式创建数组，然后转换为“{0}”以显式分配。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate_Title">
         <source>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
-        <target state="translated">集合表达式可能会产生意外的堆分配。请考虑显式创建数组，然后转换为最终类型以使分配显式。</target>
+        <target state="translated">集合表达式可能会产生意外的堆分配。请考虑显式创建数组，然后转换为最终类型以显式分配。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate">
         <source>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
-        <target state="translated">'{0}' 类型的集合表达式可能会由于使用 “..” 传播而产生意外的堆分配。请考虑显式创建数组，然后转换为 '{0}' 以使分配显式。</target>
+        <target state="translated">类型为“{0}”的集合表达式可能会由于使用 “..” 展开而产生意外的堆分配。请考虑显式创建数组，然后转换为“{0}”以显式分配。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title">
         <source>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
-        <target state="translated">集合表达式可能会因使用“..”分布而产生意外的堆分配。请考虑显式创建数组，然后转换为最终类型以使分配显式。</target>
+        <target state="translated">集合表达式可能会由于使用 “..” 展开而产生意外的堆分配。请考虑显式创建数组，然后转换为最终类型以显式分配。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
@@ -2624,47 +2634,47 @@
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
         <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
-        <target state="translated">内联数组转换运算符将不用于从声明类型的表达式进行转换。</target>
+        <target state="translated">内联数组转换运算符将不会用于从声明类型的表达式进行转换。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed_Title">
         <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
-        <target state="translated">内联数组转换运算符将不用于从声明类型的表达式进行转换。</target>
+        <target state="translated">内联数组转换运算符将不会用于从声明类型的表达式进行转换。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayIndexerNotUsed">
         <source>Inline array indexer will not be used for element access expression.</source>
-        <target state="translated">内联数组索引器将不用于元素访问表达式。</target>
+        <target state="translated">内联数组索引器将不会用于元素访问表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayIndexerNotUsed_Title">
         <source>Inline array indexer will not be used for element access expression.</source>
-        <target state="translated">内联数组索引器将不用于元素访问表达式。</target>
+        <target state="translated">内联数组索引器将不会用于元素访问表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
         <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
-        <target state="new">'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</target>
+        <target state="translated">作为类型参数无效，或具有作为类型参数无效的元素类型的内联数组类型不支持“内联数组”语言功能。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
         <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
-        <target state="new">'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</target>
+        <target state="translated">作为类型参数无效，或具有作为类型参数无效的元素类型的内联数组类型不支持“内联数组”语言功能。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">
         <source>Inline array 'Slice' method will not be used for element access expression.</source>
-        <target state="translated">内联数组 “Slice” 方法将不用于元素访问表达式。</target>
+        <target state="translated">内联数组 “Slice” 方法将不会用于元素访问表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed_Title">
         <source>Inline array 'Slice' method will not be used for element access expression.</source>
-        <target state="translated">内联数组 “Slice” 方法将不用于元素访问表达式。</target>
+        <target state="translated">内联数组 “Slice” 方法将不会用于元素访问表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_HidingDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</source>
-        <target state="translated">参数 '{0}' 的引用类型修饰符与隐藏成员中对应的参数 '{1}' 不匹配。</target>
+        <target state="translated">参数“{0}”的引用类型修饰符与隐藏成员中的相应参数“{1}”不匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_HidingDifferentRefness_Title">
@@ -2774,12 +2784,12 @@
       </trans-unit>
       <trans-unit id="WRN_OverridingDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</source>
-        <target state="translated">参数 '{0}' 的引用类型修饰符与重写或实现成员中的对应参数 '{1}' 不匹配。</target>
+        <target state="translated">参数“{0}”的引用类型修饰符与已替代或实现的成员中的相应参数“{1}”不匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_OverridingDifferentRefness_Title">
         <source>Reference kind modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</source>
-        <target state="translated">参数的引用类型修饰符与被重写或实现的成员中的对应参数不匹配。</target>
+        <target state="translated">参数的引用类型修饰符与已替代或实现的成员中的相应参数不匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -2814,12 +2824,12 @@
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
         <source>Primary constructor parameter '{0}' is shadowed by a member from base.</source>
-        <target state="translated">主构造函数参数 '{0}' 由基中的成员隐藏。</target>
+        <target state="translated">主要构造函数参数“{0}”由基成员隐藏。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase_Title">
         <source>Primary constructor parameter is shadowed by a member from base</source>
-        <target state="translated">主构造函数参数由基中的成员隐藏</target>
+        <target state="translated">主构造函数参数由基成员隐藏</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2889,22 +2899,22 @@
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyNotVariable">
         <source>Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</source>
-        <target state="translated">参数 {0} 应为变量，因为它被传递到 “ref readonly” 参数</target>
+        <target state="translated">参数 {0} 应为变量，因为它会传递给 “ref readonly” 参数</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyNotVariable_Title">
         <source>Argument should be a variable because it is passed to a 'ref readonly' parameter</source>
-        <target state="translated">参数应为变量，因为它被传递到 “ref readonly” 参数</target>
+        <target state="translated">参数应为变量，因为它会传递给 “ref readonly” 参数</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyParameterDefaultValue">
         <source>A default value is specified for 'ref readonly' parameter '{0}', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</source>
-        <target state="translated">为 “ref readonly” 参数指定的默认值 '{0}'，但 “ref readonly” 只应用于引用。请考虑将参数声明为 “in”。</target>
+        <target state="translated">为 “ref readonly” 参数“{0}”指定了默认值，但 “ref readonly” 应仅用于引用。请考虑将参数声明为 “in”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyParameterDefaultValue_Title">
         <source>A default value is specified for 'ref readonly' parameter, but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</source>
-        <target state="translated">为 “ref readonly” 参数指定了默认值，但 “ref readonly” 只应用于引用。请考虑将参数声明为 “in”。</target>
+        <target state="translated">为 “ref readonly” 参数指定了默认值，但 “ref readonly” 应仅用于引用。请考虑将参数声明为 “in”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
@@ -4790,12 +4800,12 @@
       </trans-unit>
       <trans-unit id="WRN_TargetDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in target.</source>
-        <target state="translated">参数 '{0}' 的引用类型修饰符与目标中的对应参数 '{1}' 不匹配。</target>
+        <target state="translated">参数“{0}”的引用类型修饰符与目标中的相应参数“{1}”不匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TargetDifferentRefness_Title">
         <source>Reference kind modifier of parameter doesn't match the corresponding parameter in target.</source>
-        <target state="translated">参数的引用类型修饰符与目标中的对应参数不匹配。</target>
+        <target state="translated">参数的引用类型修饰符与目标中的相应参数不匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -5065,12 +5075,12 @@
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationRefField">
         <source>Ref field '{0}' should be ref-assigned before use.</source>
-        <target state="translated">引用字段 '{0}' 在使用前应重新分配。</target>
+        <target state="translated">应在使用前 Ref 分配 Ref 字段“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationRefField_Title">
         <source>Ref field should be ref-assigned before use.</source>
-        <target state="translated">Ref 字段在使用前应重新分配。</target>
+        <target state="translated">应在使用前 Ref 分配 Ref 字段。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationThisSupportedVersion">

@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     b.Append("NaN");
                 string more = this._numbers.ToString()!;
                 if (b.Length > 1 && more.Length > 1)
-                    b.Append(",");
+                    b.Append(',');
                 b.Append(more);
                 return b.ToString();
             }

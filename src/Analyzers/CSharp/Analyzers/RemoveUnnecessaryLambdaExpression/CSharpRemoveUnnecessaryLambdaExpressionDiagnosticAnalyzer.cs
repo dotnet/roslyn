@@ -232,10 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 Descriptor,
                 syntaxTree.GetLocation(startReportSpan),
                 preference.Notification,
-                additionalLocations: ImmutableArray.Create(anonymousFunction.GetLocation()),
-                additionalUnnecessaryLocations: ImmutableArray.Create(
-                    syntaxTree.GetLocation(startReportSpan),
-                    syntaxTree.GetLocation(endReportSpan))));
+                additionalLocations: [anonymousFunction.GetLocation()],
+                additionalUnnecessaryLocations: [syntaxTree.GetLocation(startReportSpan), syntaxTree.GetLocation(endReportSpan)]));
         }
 
         private static bool OverloadsChanged(
@@ -293,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             => expression switch
             {
                 AnonymousMethodExpressionSyntax anonymousMethod => anonymousMethod.ParameterList?.Parameters ?? default,
-                SimpleLambdaExpressionSyntax simpleLambda => SyntaxFactory.SingletonSeparatedList(simpleLambda.Parameter),
+                SimpleLambdaExpressionSyntax simpleLambda => [simpleLambda.Parameter],
                 ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ParameterList.Parameters,
                 _ => throw ExceptionUtilities.UnexpectedValue(expression.Kind()),
             };

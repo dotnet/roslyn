@@ -87,10 +87,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     {
                         // Wrap the generate type actions into a single top level suggestion
                         // so as to not clutter the list.
-                        return ImmutableArray.Create(CodeAction.Create(
+                        return [CodeAction.Create(
                             string.Format(FeaturesResources.Generate_type_0, state.Name),
                             actions.AsImmutable(),
-                            isInlinable: true));
+                            isInlinable: true)];
                     }
                     else
                     {
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
                 }
 
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
             }
         }
 

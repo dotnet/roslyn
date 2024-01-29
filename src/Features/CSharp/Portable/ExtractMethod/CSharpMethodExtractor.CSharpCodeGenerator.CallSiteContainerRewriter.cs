@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         // trivia to the statement
 
                         // TODO : think about a way to move the trivia to next token.
-                        return SyntaxFactory.EmptyStatement(SyntaxFactory.Token(SyntaxFactory.TriviaList(triviaList), SyntaxKind.SemicolonToken, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker)));
+                        return SyntaxFactory.EmptyStatement(SyntaxFactory.Token([.. triviaList], SyntaxKind.SemicolonToken, [SyntaxFactory.ElasticMarker]));
                     }
 
                     if (list.Count == node.Declaration.Variables.Count)
@@ -117,10 +117,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return
                         SyntaxFactory.LocalDeclarationStatement(
                             node.Modifiers,
-                                SyntaxFactory.VariableDeclaration(
-                                    node.Declaration.Type,
-                                    SyntaxFactory.SeparatedList(list)),
-                                    node.SemicolonToken.WithPrependedLeadingTrivia(triviaList));
+                            SyntaxFactory.VariableDeclaration(
+                                node.Declaration.Type,
+                                [.. list]),
+                            node.SemicolonToken.WithPrependedLeadingTrivia(triviaList));
                 }
 
                 // for every kind of extract methods
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         return base.VisitBlock(node);
                     }
 
-                    return node.WithStatements(VisitList(ReplaceStatements(node.Statements)).ToSyntaxList());
+                    return node.WithStatements([.. VisitList(ReplaceStatements(node.Statements))]);
                 }
 
                 public override SyntaxNode VisitSwitchSection(SwitchSectionSyntax node)
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         return base.VisitSwitchSection(node);
                     }
 
-                    return node.WithStatements(VisitList(ReplaceStatements(node.Statements)).ToSyntaxList());
+                    return node.WithStatements([.. VisitList(ReplaceStatements(node.Statements))]);
                 }
 
                 // only for single statement or expression
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     // replace one statement with multiple statements (see bug # 6310)
                     var statements = _statementsOrMemberOrAccessorToInsert.CastArray<StatementSyntax>();
-                    return SyntaxFactory.Block(SyntaxFactory.List(statements));
+                    return SyntaxFactory.Block(statements);
                 }
 
                 private SyntaxList<TSyntax> ReplaceList<TSyntax>(SyntaxList<TSyntax> list)
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // add new statements to replace
                     newList.InsertRange(firstIndex, _statementsOrMemberOrAccessorToInsert.Cast<TSyntax>());
 
-                    return newList.ToSyntaxList();
+                    return [.. newList];
                 }
 
                 private SyntaxList<StatementSyntax> ReplaceStatements(SyntaxList<StatementSyntax> statements)
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     newMembers.InsertRange(firstMemberIndex,
                         _statementsOrMemberOrAccessorToInsert.Select(s => global ? SyntaxFactory.GlobalStatement((StatementSyntax)s) : (MemberDeclarationSyntax)s));
 
-                    return newMembers.ToSyntaxList();
+                    return [.. newMembers];
                 }
 
                 public override SyntaxNode VisitGlobalStatement(GlobalStatementSyntax node)

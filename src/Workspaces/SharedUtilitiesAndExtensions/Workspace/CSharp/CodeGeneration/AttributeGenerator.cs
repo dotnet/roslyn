@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                               .WhereNotNull().ToList();
                 return attributeNodes.Count == 0
                     ? default
-                    : SyntaxFactory.SingletonList(SyntaxFactory.AttributeList(
+                    : [SyntaxFactory.AttributeList(
                         target.HasValue ? SyntaxFactory.AttributeTargetSpecifier(target.Value) : null,
-                        SyntaxFactory.SeparatedList(attributeNodes)));
+                        [.. attributeNodes])];
             }
             else
             {
@@ -40,9 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     attributes.OrderBy(a => a.AttributeClass?.Name)
                               .Select(a => TryGenerateAttributeDeclaration(a, target, info))
                               .WhereNotNull().ToList();
-                return attributeDeclarations.Count == 0
-                    ? default
-                    : SyntaxFactory.List<AttributeListSyntax>(attributeDeclarations);
+                return [.. attributeDeclarations];
             }
         }
 
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     target.HasValue
                         ? SyntaxFactory.AttributeTargetSpecifier(target.Value)
                         : null,
-                    SyntaxFactory.SingletonSeparatedList(attributeSyntax));
+                    [attributeSyntax]);
         }
 
         private static AttributeSyntax? TryGenerateAttribute(AttributeData attribute, CSharpCodeGenerationContextInfo info)
@@ -96,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(kvp.Key)), null,
                     ExpressionGenerator.GenerateExpression(generator, kvp.Value))));
 
-            return SyntaxFactory.AttributeArgumentList(SyntaxFactory.SeparatedList(arguments));
+            return SyntaxFactory.AttributeArgumentList([.. arguments]);
         }
     }
 }

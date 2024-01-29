@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Structure
             where TType : SyntaxNode
             where TOutliner : AbstractSyntaxStructureProvider, new()
         {
-            builder.Add(typeof(TType), ImmutableArray.Create<AbstractSyntaxStructureProvider>(new TOutliner()));
+            builder.Add(typeof(TType), [new TOutliner()]);
         }
     }
 }

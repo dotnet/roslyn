@@ -3500,6 +3500,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node)
+        {
+            // This method is only involved in method inference with unbound lambdas.
+            var result = base.VisitUnconvertedCollectionExpression(node);
+            SetResultType(node, TypeWithState.Create(null, NullableFlowState.NotNull));
+            return result;
+        }
+
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
             // When the collection is target-typed, we can initially only visit the elements and update the state.
@@ -12173,7 +12181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var pooledBuilder = PooledStringBuilder.GetInstance();
                 var builder = pooledBuilder.Builder;
-                builder.Append(" ");
+                builder.Append(' ');
                 int n = Math.Min(Capacity, 8);
                 for (int i = n - 1; i >= 0; i--)
                 {

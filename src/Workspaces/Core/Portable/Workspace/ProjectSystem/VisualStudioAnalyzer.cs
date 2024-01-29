@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         // these 2 are mutable states that must be guarded under the _gate.
         private readonly object _gate = new();
         private AnalyzerReference? _analyzerReference;
-        private ImmutableArray<DiagnosticData> _analyzerLoadErrors = ImmutableArray<DiagnosticData>.Empty;
+        private ImmutableArray<DiagnosticData> _analyzerLoadErrors = [];
 
         public string FullPath { get; } = fullPath;
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                 loadErrors = _analyzerLoadErrors;
                 reference = _analyzerReference;
 
-                _analyzerLoadErrors = ImmutableArray<DiagnosticData>.Empty;
+                _analyzerLoadErrors = [];
                 _analyzerReference = null;
             }
         }

@@ -48,21 +48,19 @@ namespace Microsoft.CodeAnalysis.AddPackage
             // in this solution.  We'll offer to add those specific versions to this project,
             // followed by an option to "Find and install latest version."
             var installedVersions = installerService.GetInstalledVersions(packageName);
-            var codeActions = ArrayBuilder<CodeAction>.GetInstance();
-
-            // First add the actions to install a specific version.
-            codeActions.AddRange(installedVersions.Select(v => CreateCodeAction(
-                installerService, source, packageName, document,
-                versionOpt: v, includePrerelease: includePrerelease, isLocal: true)));
-
-            // Now add the action to install the specific version.
-            codeActions.Add(CreateCodeAction(
-                installerService, source, packageName, document,
-                versionOpt: null, includePrerelease: includePrerelease, isLocal: false));
-
-            // And finally the action to show the package manager dialog.
-            codeActions.Add(new InstallWithPackageManagerCodeAction(installerService, packageName));
-            return codeActions.ToImmutableAndFree();
+            return
+            [
+                // First add the actions to install a specific version.
+                .. installedVersions.Select(v => CreateCodeAction(
+                    installerService, source, packageName, document,
+                    versionOpt: v, includePrerelease: includePrerelease, isLocal: true)),
+                // Now add the action to install the specific version.
+                CreateCodeAction(
+                    installerService, source, packageName, document,
+                    versionOpt: null, includePrerelease: includePrerelease, isLocal: false),
+                // And finally the action to show the package manager dialog.
+                new InstallWithPackageManagerCodeAction(installerService, packageName),
+            ];
         }
 
         private static CodeAction CreateCodeAction(

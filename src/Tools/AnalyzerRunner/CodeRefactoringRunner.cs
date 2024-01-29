@@ -246,7 +246,7 @@ namespace AnalyzerRunner
                 Languages = languages switch
                 {
                     IEnumerable<string> values => values,
-                    string value => new[] { value },
+                    string value => [value],
                     _ => Array.Empty<string>(),
                 };
             }

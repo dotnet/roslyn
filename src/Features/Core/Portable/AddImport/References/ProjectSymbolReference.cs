@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             protected override ImmutableArray<string> GetTags(Document document)
             {
                 return document.Project.Id == _project.Id
-                    ? ImmutableArray<string>.Empty
+                    ? []
                     : _project.Language == LanguageNames.CSharp
                         ? WellKnownTagArrays.CSharpProject
                         : _project.Language == LanguageNames.VisualBasic

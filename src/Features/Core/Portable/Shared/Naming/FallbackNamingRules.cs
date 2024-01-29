@@ -17,49 +17,44 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
         /// <summary>
         /// Standard symbol names if the user doesn't have any existing naming rules.
         /// </summary>
-        public static readonly ImmutableArray<NamingRule> Default = ImmutableArray.Create(
-            // Symbols that should be camel cased.
+        public static readonly ImmutableArray<NamingRule> Default =
+        [
             new NamingRule(
                 new SymbolSpecification(
                     Guid.NewGuid(),
                     nameof(Capitalization.CamelCase),
-                    ImmutableArray.Create(
+                    [
                         new SymbolKindOrTypeKind(SymbolKind.Field),
                         new SymbolKindOrTypeKind(SymbolKind.Local),
                         new SymbolKindOrTypeKind(SymbolKind.Parameter),
-                        new SymbolKindOrTypeKind(SymbolKind.RangeVariable))),
+                        new SymbolKindOrTypeKind(SymbolKind.RangeVariable),
+                    ]),
                 new NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.CamelCase),
                 enforcementLevel: ReportDiagnostic.Hidden),
-            // Include an entry for _ prefixed fields (.Net style).  That way features that are looking to see if
-            // there's a potential matching field for a particular name will find these as well.
             new NamingRule(
                 new SymbolSpecification(
                     Guid.NewGuid(),
                     "CamelCaseWithUnderscore",
-                    ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field))),
+                    [new SymbolKindOrTypeKind(SymbolKind.Field)]),
                 new NamingStyle(Guid.NewGuid(), prefix: "_", capitalizationScheme: Capitalization.CamelCase),
                 enforcementLevel: ReportDiagnostic.Hidden),
-            // Everything else should be pascal cased.
             new NamingRule(
                 CreateDefaultSymbolSpecification(),
                 new NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.PascalCase),
-                enforcementLevel: ReportDiagnostic.Hidden));
+                enforcementLevel: ReportDiagnostic.Hidden),
+        ];
 
         /// <summary>
         /// Standard name rules for name suggestion/completion utilities. These are fallback rules that run if a user
         /// hasn't provided any other naming rule matching the scenario.
         /// </summary>
-        internal static readonly ImmutableArray<NamingRule> CompletionFallbackRules = ImmutableArray.Create(
-            CreateCamelCaseFieldsAndParametersRule());
+        internal static readonly ImmutableArray<NamingRule> CompletionFallbackRules = [CreateCamelCaseFieldsAndParametersRule()];
 
         /// <summary>
         /// Standard name rules for name suggestion/completion utilities. These are supplementary rules that run in
         /// addition to any other rules defined by the user in order to provide additional valid suggestions.
         /// </summary>
-        internal static readonly ImmutableArray<NamingRule> CompletionSupplementaryRules = ImmutableArray.Create(
-            CreateEndWithAsyncRule(),
-            CreateGetAsyncRule(),
-            CreateMethodStartsWithGetRule());
+        internal static readonly ImmutableArray<NamingRule> CompletionSupplementaryRules = [CreateEndWithAsyncRule(), CreateGetAsyncRule(), CreateMethodStartsWithGetRule()];
 
         private static NamingRule CreateGetAsyncRule()
         {

@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Remote;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     internal abstract partial class AbstractFindUsagesService
     {
         public async Task FindImplementationsAsync(
-            IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
+            IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
         {
             // If this is a symbol from a metadata-as-source project, then map that symbol back to a symbol in the primary workspace.
             var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
@@ -34,11 +35,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             var symbolAndProject = symbolAndProjectOpt.Value;
             await FindImplementationsAsync(
-                context, symbolAndProject.symbol, symbolAndProject.project, cancellationToken).ConfigureAwait(false);
+                context, symbolAndProject.symbol, symbolAndProject.project, classificationOptions, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task FindImplementationsAsync(
-            IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
+            IFindUsagesContext context, ISymbol symbol, Project project, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 // Create a callback that we can pass to the server process to hear about the 
                 // results as it finds them.  When we hear about results we'll forward them to
                 // the 'progress' parameter which will then update the UI.
-                var serverCallback = new FindUsagesServerCallback(solution, context);
+                var serverCallback = new FindUsagesServerCallback(solution, context, classificationOptions);
                 var symbolAndProjectId = SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken);
 
                 await client.TryInvokeAsync<IRemoteFindUsagesService>(
@@ -60,12 +61,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
             {
                 // Couldn't effectively search in OOP. Perform the search in-process.
                 await FindImplementationsInCurrentProcessAsync(
-                    symbol, project, context, cancellationToken).ConfigureAwait(false);
+                    symbol, project, context, classificationOptions, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private static async Task FindImplementationsInCurrentProcessAsync(
-            ISymbol symbol, Project project, IFindUsagesContext context, CancellationToken cancellationToken)
+            ISymbol symbol, Project project, IFindUsagesContext context, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
         {
             await context.SetSearchTitleAsync(
                 string.Format(FeaturesResources._0_implementations,
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             foreach (var implementation in implementations)
             {
                 var definitionItem = await implementation.ToClassifiedDefinitionItemAsync(
-                    context, solution, FindReferencesSearchOptions.Default, isPrimary: true, includeHiddenLocations: false, cancellationToken).ConfigureAwait(false);
+                    classificationOptions, solution, FindReferencesSearchOptions.Default, isPrimary: true, includeHiddenLocations: false, cancellationToken).ConfigureAwait(false);
 
                 await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
             }
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             else
             {
                 // This is something boring like a regular method or type, so we'll just go there directly
-                return ImmutableArray.Create(symbol);
+                return [symbol];
             }
         }
     }

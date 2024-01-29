@@ -1679,7 +1679,7 @@ class C
         public async Task DoIncludeSymbolsFromMultipleSourceGeneratedFiles()
         {
             using var workspace = EditorTestWorkspace.CreateCSharp(
-                files: Array.Empty<string>(),
+                files: [],
                 sourceGeneratedFiles: new[]
                 {
                     """

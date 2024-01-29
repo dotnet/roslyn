@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (string.IsNullOrWhiteSpace(name))
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
             }
 
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 if (!result.HasValue)
                 {
-                    return ImmutableArray<ISymbol>.Empty;
+                    return [];
                 }
 
                 return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (string.IsNullOrWhiteSpace(name))
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
             }
 
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 if (!result.HasValue)
                 {
-                    return ImmutableArray<ISymbol>.Empty;
+                    return [];
                 }
 
                 return await RehydrateAsync(project.Solution, result.Value, cancellationToken).ConfigureAwait(false);
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 if (!result.HasValue)
                 {
-                    return ImmutableArray<ISymbol>.Empty;
+                    return [];
                 }
 
                 return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 if (!result.HasValue)
                 {
-                    return ImmutableArray<ISymbol>.Empty;
+                    return [];
                 }
 
                 return await RehydrateAsync(project.Solution, result.Value, cancellationToken).ConfigureAwait(false);

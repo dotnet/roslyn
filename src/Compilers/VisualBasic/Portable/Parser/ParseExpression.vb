@@ -532,7 +532,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Dim expression = simpleArgument.Expression
 
                     If simpleArgument.NameColonEquals IsNot Nothing Then
-                        expression = expression.AddLeadingSyntax(SyntaxList.List(simpleArgument.NameColonEquals.Name, simpleArgument.NameColonEquals.ColonEqualsToken), ERRID.ERR_IllegalOperandInIIFName)
+                        expression = expression.AddLeadingSyntax(
+                            CodeAnalysis.Syntax.InternalSyntax.SyntaxList.List(simpleArgument.NameColonEquals.Name, simpleArgument.NameColonEquals.ColonEqualsToken), ERRID.ERR_IllegalOperandInIIFName)
                     End If
 
                     Return expression
@@ -614,7 +615,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             GetArgumentAsExpression(Args(1)),
                             DirectCast(withSeparators(3), PunctuationSyntax),
                             GetArgumentAsExpression(Args(2)),
-                            Arguments.CloseParenToken.AddLeadingSyntax(SyntaxList.List(ArrayElement(Of GreenNode).MakeElementArray(leading)), ERRID.ERR_IllegalOperandInIIFCount))
+                            Arguments.CloseParenToken.AddLeadingSyntax(
+                                CodeAnalysis.Syntax.InternalSyntax.SyntaxList.List(ArrayElement(Of GreenNode).MakeElementArray(leading)), ERRID.ERR_IllegalOperandInIIFCount))
                 End Select
 
             Else

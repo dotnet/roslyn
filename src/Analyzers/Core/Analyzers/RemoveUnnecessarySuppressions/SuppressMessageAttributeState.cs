@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var operation = (model.GetOperation(attributeSyntax, cancellationToken) as IAttributeOperation)?.Operation;
             if (operation is not IObjectCreationOperation { Initializer: { } initializerOperation })
             {
-                namedAttributeArguments = ImmutableArray<(string name, IOperation value)>.Empty;
+                namedAttributeArguments = [];
                 return false;
             }
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             targetHasDocCommentIdFormat = false;
             targetSymbolString = null;
             targetValueOperation = null;
-            resolvedSymbols = ImmutableArray<ISymbol>.Empty;
+            resolvedSymbols = [];
 
             if (targetScope == TargetScope.Resource)
             {

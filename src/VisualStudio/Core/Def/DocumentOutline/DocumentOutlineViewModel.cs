@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 currentSnapshot,
                 searchText: "",
                 ImmutableArray<DocumentSymbolDataViewModel>.Empty,
-                IntervalTree<DocumentSymbolDataViewModel>.Empty);
+                []);
 
         private void OnEventSourceChanged(object sender, TaggerEventArgs e)
             => _workQueue.AddWork(cancelExistingWork: true);

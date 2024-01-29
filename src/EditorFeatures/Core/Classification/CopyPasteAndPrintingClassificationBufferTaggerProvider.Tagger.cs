@@ -96,14 +96,14 @@ namespace Microsoft.CodeAnalysis.Classification
                 _owner._threadingContext.ThrowIfNotOnUIThread();
 
                 // we never return any tags for GetTags.  This tagger is only for 'Accurate' scenarios.
-                return Array.Empty<ITagSpan<IClassificationTag>>();
+                return [];
             }
 
             public IEnumerable<ITagSpan<IClassificationTag>> GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
             {
                 _owner._threadingContext.ThrowIfNotOnUIThread();
                 if (spans.Count == 0)
-                    return Array.Empty<ITagSpan<IClassificationTag>>();
+                    return [];
 
                 var firstSpan = spans.First();
                 var snapshot = firstSpan.Snapshot;
@@ -111,11 +111,11 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document == null)
-                    return Array.Empty<ITagSpan<IClassificationTag>>();
+                    return [];
 
                 var classificationService = document.GetLanguageService<IClassificationService>();
                 if (classificationService == null)
-                    return Array.Empty<ITagSpan<IClassificationTag>>();
+                    return [];
 
                 // We want to classify from the start of the first requested span to the end of the 
                 // last requested span.
