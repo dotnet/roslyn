@@ -12181,7 +12181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var pooledBuilder = PooledStringBuilder.GetInstance();
                 var builder = pooledBuilder.Builder;
-                builder.Append(" ");
+                builder.Append(' ');
                 int n = Math.Min(Capacity, 8);
                 for (int i = n - 1; i >= 0; i--)
                 {

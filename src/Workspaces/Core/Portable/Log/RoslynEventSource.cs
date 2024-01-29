@@ -126,9 +126,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                             select ((PerfGoalAttribute)attr).InteractionClass).DefaultIfEmpty(InteractionClass.Undefined).First();
 
                 output.Append(value);
-                output.Append(" ");
+                output.Append(' ');
                 output.Append(name);
-                output.Append(" ");
+                output.Append(' ');
                 output.AppendLine(goal.ToString());
             }
 
