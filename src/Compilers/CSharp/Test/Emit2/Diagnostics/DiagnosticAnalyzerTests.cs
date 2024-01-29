@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable EXPERIMENT1 // Internal usage of experimental API
 #nullable disable
 
 using System;
@@ -3960,9 +3961,9 @@ public class C
         {
             private readonly ConcurrentDictionary<SyntaxTree, SemanticModel> _cache = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
 
-            public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false, bool disableNullableAnalysis = false)
+            public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, SemanticModelOptions options)
             {
-                return _cache.GetOrAdd(tree, compilation.CreateSemanticModel(tree, ignoreAccessibility, disableNullableAnalysis));
+                return _cache.GetOrAdd(tree, compilation.CreateSemanticModel(tree, options));
             }
 
             public void VerifyCachedModel(SyntaxTree tree, SemanticModel model)

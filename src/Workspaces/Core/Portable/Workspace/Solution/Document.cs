@@ -335,7 +335,9 @@ namespace Microsoft.CodeAnalysis
                 var syntaxTree = await this.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = await this.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                var result = compilation.GetSemanticModel(syntaxTree, disableNullableAnalysis: disableNullableAnalysis);
+#pragma warning disable EXPERIMENT1 // sym-shipped usage of experimental API
+                var result = compilation.GetSemanticModel(syntaxTree, disableNullableAnalysis ? SemanticModelOptions.DisableNullableAnalysis : SemanticModelOptions.None);
+#pragma warning restore EXPERIMENT1
                 Contract.ThrowIfNull(result);
                 WeakReference<SemanticModel>? original = null;
 

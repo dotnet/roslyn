@@ -2403,7 +2403,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets a new SyntaxTreeSemanticModel for the specified syntax tree.
         /// </summary>
-        public new SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility, bool disableNullableAnalysis)
+        [Experimental("EXPERIMENT1")]
+        public new SemanticModel GetSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options)
         {
             if (syntaxTree == null)
             {
@@ -2418,15 +2419,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             SemanticModel? model = null;
             if (SemanticModelProvider != null)
             {
-                model = SemanticModelProvider.GetSemanticModel(syntaxTree, this, ignoreAccessibility, disableNullableAnalysis);
+                model = SemanticModelProvider.GetSemanticModel(syntaxTree, this, options);
                 Debug.Assert(model != null);
             }
 
-            return model ?? CreateSemanticModel(syntaxTree, ignoreAccessibility, disableNullableAnalysis);
+            return model ?? CreateSemanticModel(syntaxTree, options);
         }
 
-        internal override SemanticModel CreateSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility, bool disableNullableAnalysis)
-            => new SyntaxTreeSemanticModel(this, syntaxTree, ignoreAccessibility, disableNullableAnalysis);
+#pragma warning disable EXPERIMENT1 // Internal usage of experimental API
+        internal override SemanticModel CreateSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options)
+            => new SyntaxTreeSemanticModel(this, syntaxTree, options);
+#pragma warning restore EXPERIMENT1
 
         // When building symbols from the declaration table (lazily), or inside a type, or when
         // compiling a method body, we may not have a BinderContext in hand for the enclosing
@@ -3816,9 +3819,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _options; }
         }
 
-        protected override SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility, bool disableNullableAnalysis)
+        [Experimental("EXPERIMENT1")]
+        protected override SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options)
         {
-            return this.GetSemanticModel(syntaxTree, ignoreAccessibility, disableNullableAnalysis);
+            return this.GetSemanticModel(syntaxTree, options);
         }
 
         protected internal override ImmutableArray<SyntaxTree> CommonSyntaxTrees

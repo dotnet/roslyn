@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable EXPERIMENT1 // Internal usage of experimental API
 #nullable disable
 
 using System;
@@ -5184,13 +5185,13 @@ class C
                 //             x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13));
 
-            test(disableNullableAnalysis: false, expectedAnnotation: PublicNullableAnnotation.Annotated);
-            test(disableNullableAnalysis: true, expectedAnnotation: PublicNullableAnnotation.None);
+            test(SemanticModelOptions.None, expectedAnnotation: PublicNullableAnnotation.Annotated);
+            test(SemanticModelOptions.DisableNullableAnalysis, expectedAnnotation: PublicNullableAnnotation.None);
 
-            void test(bool disableNullableAnalysis, PublicNullableAnnotation expectedAnnotation)
+            void test(SemanticModelOptions options, PublicNullableAnnotation expectedAnnotation)
             {
                 var tree = comp.SyntaxTrees.Single();
-                var model = comp.GetSemanticModel(tree, disableNullableAnalysis: disableNullableAnalysis);
+                var model = comp.GetSemanticModel(tree, options);
                 var xUsage = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single().Expression;
                 var typeInfo = model.GetTypeInfo(xUsage);
                 Assert.NotNull(typeInfo.Type);
