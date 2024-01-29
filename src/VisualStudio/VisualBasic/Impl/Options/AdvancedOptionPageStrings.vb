@@ -92,10 +92,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ServicesVSResources.Color_hints
 
         Public ReadOnly Property Option_Inline_Hints As String =
-            ServicesVSResources.Inline_Hints
+            ServicesVSResources.Inlay_Hints
 
         Public ReadOnly Property Option_Display_inline_parameter_name_hints As String =
-            ServicesVSResources.Display_inline_parameter_name_hints
+            ServicesVSResources.Display_inlay_parameter_name_hints
 
         Public ReadOnly Property Option_Show_hints_for_literals As String =
             ServicesVSResources.Show_hints_for_literals
