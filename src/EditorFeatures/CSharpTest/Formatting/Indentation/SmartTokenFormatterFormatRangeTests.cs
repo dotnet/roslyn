@@ -2000,8 +2000,7 @@ class Class
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537555")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537555")]
         public async Task SingleLine()
         {
             var code = @"class C { void M() { C.M(    );$$ } }";

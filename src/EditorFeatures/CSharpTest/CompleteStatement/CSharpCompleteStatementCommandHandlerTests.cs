@@ -1261,8 +1261,7 @@ class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WpfFact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32250")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/32250")]
         public void ForLoopInitializers()
         {
             var code =
@@ -1290,8 +1289,7 @@ class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WpfFact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32250")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/32250")]
         public void ForLoopInitializers2()
         {
             var code =
@@ -4979,8 +4977,7 @@ public class Bar
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WpfFact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/70224")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/70224")]
         public void TestNotBeforeKeywordInSwitchExpression()
         {
             var code = @"

@@ -1380,8 +1380,7 @@ namespace NS
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
         public void RawString4()
         {
             var code = @"class Program
@@ -1400,8 +1399,7 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
         public void RawString5()
         {
             var code = @"class Program
@@ -1536,8 +1534,7 @@ namespace NS
                 expectedIndentation: 12);
         }
 
-        [WpfFact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
         public void InterpolatedRawString4()
         {
             var code = @"class Program
@@ -1556,8 +1553,7 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
         public void InterpolatedRawString5()
         {
             var code = @"class Program
@@ -1595,8 +1591,7 @@ namespace NS
                 expectedIndentation: 0);
         }
 
-        [WpfFact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
         public void InterpolatedRawString7()
         {
             var code = @"class Program
@@ -1621,8 +1616,7 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [WpfFact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
         public void InterpolatedRawString8()
         {
             var code = @"class Program
