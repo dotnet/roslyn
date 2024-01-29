@@ -139,6 +139,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     // It did change, fetch the current state of it so we can actually sync the changes over.
                     var newProjectStateChecksums = await _assetProvider.GetAssetAsync<ProjectStateChecksums>(
                         assetHint: projectId, newProjectChecksum, cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfTrue(newProjectStateChecksums.Checksum != newProjectChecksum);
 
                     changedProjects.Add((projectId, oldProjectStateChecksums, newProjectStateChecksums));
                 }
