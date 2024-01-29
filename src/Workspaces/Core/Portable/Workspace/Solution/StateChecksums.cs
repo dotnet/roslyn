@@ -55,7 +55,7 @@ internal sealed class SolutionCompilationStateChecksums(
         return result;
     }
 
-    public async Task FindAsync(
+    public async ValueTask FindAsync(
         SolutionCompilationState compilationState,
         AssetHint assetHint,
         HashSet<Checksum> searchingChecksumsLeft,
@@ -304,7 +304,7 @@ internal sealed class ProjectStateChecksums(
         return result;
     }
 
-    public async Task FindAsync(
+    public async ValueTask FindAsync(
         ProjectState state,
         DocumentId? hintDocument,
         HashSet<Checksum> searchingChecksumsLeft,
@@ -384,7 +384,7 @@ internal sealed class DocumentStateChecksums(
             textChecksum: Checksum.ReadFrom(reader));
     }
 
-    public async Task FindAsync(
+    public async ValueTask FindAsync(
         TextDocumentState state,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
