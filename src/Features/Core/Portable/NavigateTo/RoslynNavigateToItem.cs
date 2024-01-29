@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     [DataContract]
     internal readonly struct RoslynNavigateToItem(
         bool isStale,
-        DocumentId documentId,
+        DocumentKey documentKey,
         ImmutableArray<ProjectId> additionalMatchingProjects,
         DeclaredSymbolInfo declaredSymbolInfo,
         string kind,
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         public readonly bool IsStale = isStale;
 
         [DataMember(Order = 1)]
-        public readonly DocumentId DocumentId = documentId;
+        public readonly DocumentKey DocumentKey = documentKey;
 
         [DataMember(Order = 2)]
         public readonly ImmutableArray<ProjectId> AdditionalMatchingProjects = additionalMatchingProjects;
@@ -64,6 +65,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         [DataMember(Order = 8)]
         public readonly ImmutableArray<PatternMatch> Matches = matches;
 
+        public DocumentId DocumentId => this.DocumentKey.Id;
+
         public async Task<INavigateToSearchResult?> TryCreateSearchResultAsync(
             Solution solution, Document? activeDocument, CancellationToken cancellationToken)
         {
@@ -86,7 +89,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         private class NavigateToSearchResult : INavigateToSearchResult, INavigableItem
         {
-            private static readonly char[] s_dotArray = { '.' };
+            private static readonly char[] s_dotArray = ['.'];
 
             private readonly RoslynNavigateToItem _item;
 
@@ -330,8 +333,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             ImmutableArray<TaggedText> INavigableItem.DisplayTaggedParts
-                => ImmutableArray.Create(new TaggedText(
-                    TextTags.Text, _item.DeclaredSymbolInfo.Name + _item.DeclaredSymbolInfo.NameSuffix));
+                => [new TaggedText(
+                    TextTags.Text, _item.DeclaredSymbolInfo.Name + _item.DeclaredSymbolInfo.NameSuffix)];
 
             bool INavigableItem.DisplayFileLocation => false;
 
@@ -347,7 +350,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             bool INavigableItem.IsStale => _item.IsStale;
 
-            ImmutableArray<INavigableItem> INavigableItem.ChildItems => ImmutableArray<INavigableItem>.Empty;
+            ImmutableArray<INavigableItem> INavigableItem.ChildItems => [];
 
             #endregion
         }

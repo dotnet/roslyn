@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// <remarks>This method is optional and only should be implemented by languages that support
         /// syntax.  If the language does not support syntax, callers should use
         /// <see cref="AddSyntacticClassificationsAsync"/> instead.</remarks>
-        void AddSyntacticClassifications(SolutionServices services, SyntaxNode root, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
+        void AddSyntacticClassifications(SolutionServices services, SyntaxNode? root, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Produce the classifications for the span of text specified.  The syntax of the document 
@@ -39,7 +39,11 @@ namespace Microsoft.CodeAnalysis.Classification
         /// be used to determine if a piece of text that looks like a keyword should actually be
         /// considered an identifier in its current context.
         /// </summary>
-        Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
+        /// <param name="document">the current document.</param>
+        /// <param name="textSpans">The non-intersecting portions of the document to add classified spans for.</param>
+        /// <param name="result">The list to add the spans to.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        Task AddSyntacticClassificationsAsync(Document document, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Produce the classifications for the span of text specified.  Semantics of the language can be used to
@@ -47,17 +51,27 @@ namespace Microsoft.CodeAnalysis.Classification
         /// can be used to determine if an identifier should be classified as a type, structure, or something else
         /// entirely.
         /// </summary>
+        /// <param name="document">the current document.</param>
+        /// <param name="textSpans">The non-intersecting portions of the document to add classified spans for.</param>
+        /// <param name="options">The options to use when adding spans.</param>
+        /// <param name="result">The list to add the spans to.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
         /// <remarks>
         /// This will not include classifications for embedded language constructs in string literals.  For that use
         /// <see cref="AddEmbeddedLanguageClassificationsAsync"/>.
         /// </remarks>
-        Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
+        Task AddSemanticClassificationsAsync(Document document, ImmutableArray<TextSpan> textSpans, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Produce the classifications for embedded language string literals (e.g. Regex/Json strings) in the span of
         /// text specified.
         /// </summary>
-        Task AddEmbeddedLanguageClassificationsAsync(Document document, TextSpan textSpan, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
+        /// <param name="document">the current document.</param>
+        /// <param name="textSpans">The non-intersecting portions of the document to add classified spans for.</param>
+        /// <param name="options">The options to use when adding spans.</param>
+        /// <param name="result">The list to add the spans to.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        Task AddEmbeddedLanguageClassificationsAsync(Document document, ImmutableArray<TextSpan> textSpans, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Adjust a classification from a previous version of text accordingly based on the current

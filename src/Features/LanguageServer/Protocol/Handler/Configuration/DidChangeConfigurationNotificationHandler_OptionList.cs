@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -18,24 +19,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
     internal partial class DidChangeConfigurationNotificationHandler
     {
-        public static readonly ImmutableArray<IOption2> SupportedOptions = ImmutableArray.Create<IOption2>(
-            // Code Action
+        public static readonly ImmutableArray<IOption2> SupportedOptions =
+        [
             SymbolSearchOptionsStorage.SearchReferenceAssemblies,
-            // Implement Type
             ImplementTypeOptionsStorage.InsertionBehavior,
             ImplementTypeOptionsStorage.PropertyGenerationBehavior,
-            // Completion
             CompletionOptionsStorage.ShowNameSuggestions,
-            CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             CompletionOptionsStorage.ProvideRegexCompletions,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             QuickInfoOptionsStorage.ShowRemarksInQuickInfo,
-            // Go to definition
             MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
-            // Document highlighting
             HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor,
             HighlightingOptionsStorage.HighlightRelatedRegexComponentsUnderCursor,
-            // Inline hints
             InlineHintsOptionsStorage.EnabledForParameters,
             InlineHintsOptionsStorage.ForLiteralParameters,
             InlineHintsOptionsStorage.ForIndexerParameters,
@@ -48,14 +43,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             InlineHintsOptionsStorage.ForImplicitVariableTypes,
             InlineHintsOptionsStorage.ForLambdaParameterTypes,
             InlineHintsOptionsStorage.ForImplicitObjectCreation,
-            // EditorConfig
             FormattingOptions2.TabSize,
             FormattingOptions2.IndentationSize,
             FormattingOptions2.UseTabs,
             FormattingOptions2.NewLine,
             FormattingOptions2.InsertFinalNewLine,
-            // Background analysis
             SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
-            SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption);
+            SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
+            LspOptionsStorage.LspEnableReferencesCodeLens,
+            LspOptionsStorage.LspEnableTestsCodeLens,
+            LanguageServerProjectSystemOptionsStorage.BinaryLogPath,
+            LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore,
+        ];
     }
 }

@@ -539,7 +539,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     foreach (var node in currentNode.DescendantNodes())
                     {
                         var current = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-                        if (current != null && current.Name == symbol.Name && (current.Kind == SymbolKind.Local || current.Kind == SymbolKind.RangeVariable))
+                        if (current is { Kind: SymbolKind.Local or SymbolKind.RangeVariable } && current.Name == symbol.Name)
                         {
                             if (!current.Equals(symbol))
                             {

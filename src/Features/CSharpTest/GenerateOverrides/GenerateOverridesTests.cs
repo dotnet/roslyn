@@ -15,9 +15,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateOverrides
 {
-    public class GenerateOverridesTests : AbstractCSharpCodeActionTest
+    public class GenerateOverridesTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new GenerateOverridesCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateOverrides
                         return base.ToString();
                     }
                 }
-                """, new[] { "Equals", "GetHashCode", "ToString" });
+                """, ["Equals", "GetHashCode", "ToString"]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateOverrides
                     }
                 }
 
-                """, new[] { "Equals", "GetHashCode", "ToString" });
+                """, ["Equals", "GetHashCode", "ToString"]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateOverrides
                     }
                 }
 
-                """, new[] { "GetHashCode", "ToString" });
+                """, ["GetHashCode", "ToString"]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateOverrides
                         return ref base.X();
                     }
                 }
-                """, new[] { "X", "Y", "this[]" });
+                """, ["X", "Y", "this[]"]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateOverrides
                 {
                     public override int Property { init => base.Property = value; }
                 }
-                """, new[] { "Property" });
+                """, ["Property"]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateOverrides
                 {
                     public override int this[int i] { init => base[i] = value; }
                 }
-                """, new[] { "this[]" });
+                """, ["this[]"]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateOverrides
                         base.M(a, b, c, d);
                     }
                 }
-                """, new[] { "M" });
+                """, ["M"]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateOverrides
                 {
                     public override required int Property { get => base.Property; set => base.Property = value; }
                 }
-                """, new[] { "Property" });
+                """, ["Property"]);
         }
     }
 }

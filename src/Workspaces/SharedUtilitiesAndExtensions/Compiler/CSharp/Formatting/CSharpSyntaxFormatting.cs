@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         public static readonly CSharpSyntaxFormatting Instance = new();
 
-        private readonly ImmutableArray<AbstractFormattingRule> _rules = ImmutableArray.Create<AbstractFormattingRule>(
+        private readonly ImmutableArray<AbstractFormattingRule> _rules =
+        [
             new WrappingFormattingRule(),
             new SpacingFormattingRule(),
             new NewLineUserSettingFormattingRule(),
@@ -31,7 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             new AnchorIndentationFormattingRule(),
             new QueryExpressionFormattingRule(),
             new TokenBasedFormattingRule(),
-            DefaultOperationProvider.Instance);
+            DefaultOperationProvider.Instance,
+        ];
 
         public override ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules()
             => _rules;
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public override SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options, SyntaxFormattingOptions? fallbackOptions)
             => new CSharpSyntaxFormattingOptions(options, (CSharpSyntaxFormattingOptions?)fallbackOptions);
 
-        protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? formattingSpans = null)
+        protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanIntervalTree? formattingSpans = null)
             => new AggregatedFormattingResult(node, results, formattingSpans);
 
         protected override AbstractFormattingResult Format(SyntaxNode node, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)

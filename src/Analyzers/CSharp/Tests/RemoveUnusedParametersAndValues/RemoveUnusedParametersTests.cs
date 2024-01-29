@@ -21,7 +21,7 @@ using static Roslyn.Test.Utilities.TestHelpers;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
-    public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public RemoveUnusedParametersTests(ITestOutputHelper logger)
           : base(logger)
@@ -1894,6 +1894,20 @@ class C(int [|a100|]) : Object()
 {
     int M1() => a100;
 }");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70276")]
+        public async Task TestMethodWithNameOf()
+        {
+            await TestDiagnosticsAsync("""
+                class C
+                {
+                    void M(int [|x|])
+                    {
+                        const string y = nameof(C);
+                    }
+                }
+                """, Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
     }
 }

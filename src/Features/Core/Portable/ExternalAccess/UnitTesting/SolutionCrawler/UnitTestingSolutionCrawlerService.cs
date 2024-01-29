@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             {
             }
 
-            public void Reanalyze(string? workspaceKind, SolutionServices services, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
+            public void Reanalyze(string? workspaceKind, SolutionServices services, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null)
             {
                 // if solution crawler doesn't exist for the given workspace. don't do anything
                 if (services.GetService<IUnitTestingSolutionCrawlerRegistrationService>() is UnitTestingSolutionCrawlerRegistrationService registration)
                 {
-                    registration.Reanalyze(workspaceKind, services, analyzer, projectIds, documentIds, highPriority);
+                    registration.Reanalyze(workspaceKind, services, analyzer, projectIds, documentIds);
                 }
             }
 

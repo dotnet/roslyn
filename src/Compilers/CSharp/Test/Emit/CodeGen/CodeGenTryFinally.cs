@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -3757,6 +3758,564 @@ public class Program
   IL_0019:  ret
 }
 ");
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
+        public void WhenWithAlwaysThrowingExpression_01()
+        {
+            var source = """
+class C
+{
+    static bool _throw;
+
+    static void Main()
+    {
+        M();
+
+        _throw = true;
+
+        try 
+        {
+            M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Catch");
+        }
+    }
+
+    static void M()
+    {
+        try
+        {
+            M1();
+        }
+        catch when (true ? throw M2() : true)
+        {
+            M3();
+        }
+
+        M4();
+    }
+
+    static void M1()
+    {
+        System.Console.Write("M1");
+        if (_throw) throw null;
+    }
+
+    static System.Exception M2()
+    {
+        System.Console.Write("M2");
+        return new System.NotSupportedException();
+    }
+
+    static void M3()
+    {
+        System.Console.Write("M3");
+    }
+
+    static void M4()
+    {
+        System.Console.Write("M4");
+    }
+}
+""";
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "M1M4M1M2Catch",
+                // False PEVerify failure:
+                verify: Verification.FailsPEVerify with
+                {
+                    PEVerifyMessage = "[ : C::M][offset 0x0000000E] Stack not empty when leaving an exception filter."
+                }).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .try
+  {
+    IL_0000:  call       "void C.M1()"
+    IL_0005:  leave.s    IL_0018
+  }
+  filter
+  {
+    IL_0007:  pop
+    IL_0008:  call       "System.Exception C.M2()"
+    IL_000d:  throw
+    IL_000e:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0010:  pop
+    IL_0011:  call       "void C.M3()"
+    IL_0016:  leave.s    IL_0018
+  }
+  IL_0018:  call       "void C.M4()"
+  IL_001d:  ret
+}
+""");
+
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "M1M4M1M2Catch",
+                // False PEVerify failure:
+                verify: Verification.FailsPEVerify with
+                {
+                    PEVerifyMessage = "[ : C::M][offset 0x00000012] Stack not empty when leaving an exception filter."
+                }).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  nop
+  .try
+  {
+    IL_0001:  nop
+    IL_0002:  call       "void C.M1()"
+    IL_0007:  nop
+    IL_0008:  nop
+    IL_0009:  leave.s    IL_001f
+  }
+  filter
+  {
+    IL_000b:  pop
+    IL_000c:  call       "System.Exception C.M2()"
+    IL_0011:  throw
+    IL_0012:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0014:  pop
+    IL_0015:  nop
+    IL_0016:  call       "void C.M3()"
+    IL_001b:  nop
+    IL_001c:  nop
+    IL_001d:  leave.s    IL_001f
+  }
+  IL_001f:  call       "void C.M4()"
+  IL_0024:  nop
+  IL_0025:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
+        public void WhenWithAlwaysThrowingExpression_02()
+        {
+            var source = """
+class C
+{
+    static void M()
+    {
+        try
+        {
+            M1();
+        }
+        catch (System.ArgumentException) when (true ? throw null : true)
+        {
+            M2();
+        }
+    }
+
+    static void M1(){}
+    static void M2(){}
+}
+""";
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  .try
+  {
+    IL_0000:  call       "void C.M1()"
+    IL_0005:  leave.s    IL_0020
+  }
+  filter
+  {
+    IL_0007:  isinst     "System.ArgumentException"
+    IL_000c:  dup
+    IL_000d:  brtrue.s   IL_0013
+    IL_000f:  pop
+    IL_0010:  ldc.i4.0
+    IL_0011:  br.s       IL_0016
+    IL_0013:  pop
+    IL_0014:  ldnull
+    IL_0015:  throw
+    IL_0016:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0018:  pop
+    IL_0019:  call       "void C.M2()"
+    IL_001e:  leave.s    IL_0020
+  }
+  IL_0020:  ret
+}
+""");
+
+            verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  nop
+  .try
+  {
+    IL_0001:  nop
+    IL_0002:  call       "void C.M1()"
+    IL_0007:  nop
+    IL_0008:  nop
+    IL_0009:  leave.s    IL_0027
+  }
+  filter
+  {
+    IL_000b:  isinst     "System.ArgumentException"
+    IL_0010:  dup
+    IL_0011:  brtrue.s   IL_0017
+    IL_0013:  pop
+    IL_0014:  ldc.i4.0
+    IL_0015:  br.s       IL_001a
+    IL_0017:  pop
+    IL_0018:  ldnull
+    IL_0019:  throw
+    IL_001a:  endfilter
+  }  // end filter
+  {  // handler
+    IL_001c:  pop
+    IL_001d:  nop
+    IL_001e:  call       "void C.M2()"
+    IL_0023:  nop
+    IL_0024:  nop
+    IL_0025:  leave.s    IL_0027
+  }
+  IL_0027:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
+        public void WhenWithAlwaysThrowingExpression_03()
+        {
+            var source = """
+class C
+{
+    static void M()
+    {
+        try
+        {
+            M1();
+        }
+        catch when (throw null)
+        {
+            M2();
+        }
+    }
+
+    static void M1(){}
+    static void M2(){}
+}
+""";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (9,21): error CS8115: A throw expression is not allowed in this context.
+                //         catch when (throw null)
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(9, 21)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
+        public void WhenWithAlwaysThrowingExpression_04()
+        {
+            var source = """
+class C
+{
+    static void M()
+    {
+        try
+        {
+            M1();
+        }
+        catch (System.ArgumentException) when (throw null)
+        {
+            M2();
+        }
+    }
+
+    static void M1(){}
+    static void M2(){}
+}
+""";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (9,48): error CS8115: A throw expression is not allowed in this context.
+                //         catch (System.ArgumentException) when (throw null)
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(9, 48)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
+        public void UnreachableCatch_01()
+        {
+            var source = """
+class C
+{
+    static void M()
+    {
+        try
+        {
+            M1();
+        }
+        catch when (false)
+        {
+            M2();
+        }
+    }
+
+    static void M1(){}
+    static void M2(){}
+}
+""";
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (9,21): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+                //         catch when (false)
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(9, 21),
+                // (11,13): warning CS0162: Unreachable code detected
+                //             M2();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
+                );
+
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       "void C.M1()"
+  IL_0005:  ret
+}
+""");
+
+            verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(
+                // (9,21): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+                //         catch when (false)
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(9, 21),
+                // (11,13): warning CS0162: Unreachable code detected
+                //             M2();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
+                );
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       10 (0xa)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  call       "void C.M1()"
+  IL_0007:  nop
+  IL_0008:  nop
+  IL_0009:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
+        public void UnreachableCatch_02()
+        {
+            var source = """
+class C
+{
+    static void M()
+    {
+        try
+        {
+            M1();
+        }
+        catch (System.ArgumentException) when (false)
+        {
+            M2();
+        }
+    }
+
+    static void M1(){}
+    static void M2(){}
+}
+""";
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (9,48): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+                //         catch (System.ArgumentException) when (false)
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(9, 48),
+                // (11,13): warning CS0162: Unreachable code detected
+                //             M2();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
+                );
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       "void C.M1()"
+  IL_0005:  ret
+}
+""");
+
+            verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(
+                // (9,48): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+                //         catch (System.ArgumentException) when (false)
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(9, 48),
+                // (11,13): warning CS0162: Unreachable code detected
+                //             M2();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
+                );
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       10 (0xa)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  call       "void C.M1()"
+  IL_0007:  nop
+  IL_0008:  nop
+  IL_0009:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
+        public void UnreachableCatch_03()
+        {
+            var source = """
+class C
+{
+    static void M()
+    {
+        try
+        {
+            M1();
+        }
+        catch when (true ? false : true)
+        {
+            M2();
+        }
+    }
+
+    static void M1(){}
+    static void M2(){}
+}
+""";
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (9,21): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+                //         catch when (true ? false : true)
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "true ? false : true").WithLocation(9, 21),
+                // (11,13): warning CS0162: Unreachable code detected
+                //             M2();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
+                );
+
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       "void C.M1()"
+  IL_0005:  ret
+}
+""");
+
+            verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(
+                // (9,21): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+                //         catch when (true ? false : true)
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "true ? false : true").WithLocation(9, 21),
+                // (11,13): warning CS0162: Unreachable code detected
+                //             M2();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
+                );
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       10 (0xa)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  call       "void C.M1()"
+  IL_0007:  nop
+  IL_0008:  nop
+  IL_0009:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70200")]
+        public void Repro70200()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    async Task M()
+    {
+        return;
+
+        try
+        {
+            Console.WriteLine(string.Empty);
+        }
+        catch (Exception e1) when (e1.InnerException is Exception { InnerException: { } e2 })
+        {
+            Console.WriteLine(e2.Message);
+        }
+    }
+}
+""";
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async Task M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(6, 16),
+                // (10,9): warning CS0162: Unreachable code detected
+                //         try
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "try").WithLocation(10, 9)
+            };
+
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70200")]
+        public void Repro70200_WithoutReturn()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    async Task M()
+    {
+        try
+        {
+            Console.WriteLine(string.Empty);
+        }
+        catch (Exception e1) when (e1.InnerException is Exception { InnerException: { } e2 })
+        {
+            Console.WriteLine(e2.Message);
+        }
+    }
+}
+""";
+
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async Task M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(6, 16)
+                );
         }
     }
 }

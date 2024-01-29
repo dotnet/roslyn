@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GeneratedLabelSymbol continueLabel,
             bool hasErrors)
         {
-            Debug.Assert(original.Kind is BoundKind.ForStatement or BoundKind.ForEachStatement or BoundKind.CollectionLiteralSpreadElement);
+            Debug.Assert(original.Kind is BoundKind.ForStatement or BoundKind.ForEachStatement or BoundKind.CollectionExpressionSpreadElement);
             Debug.Assert(rewrittenBody != null);
 
             // The sequence point behavior exhibited here is different from that of the native compiler.  In the native
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.ForStatement:
                         branchBack = Instrumenter.InstrumentForStatementConditionalGotoStartOrBreak((BoundForStatement)original, branchBack);
                         break;
-                    case BoundKind.CollectionLiteralSpreadElement:
+                    case BoundKind.CollectionExpressionSpreadElement:
                         // No instrumentation needed since the loop for the spread expression
                         // was generated in lowering, and not explicit in the source.
                         break;

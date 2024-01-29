@@ -28,9 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         [Fact]
         public void InactiveRegion()
         {
-            VerifyFalse(@"#if false 
-$$
-#endif");
+            VerifyFalse("""
+                #if false 
+                $$
+                #endif
+                """);
         }
 
         [Fact]
@@ -40,9 +42,11 @@ $$
         [Fact]
         public void SingleLineComment2()
         {
-            VerifyTrue(@"class C { 
-//
-$$");
+            VerifyTrue("""
+                class C { 
+                //
+                $$
+                """);
         }
 
         [Fact]
@@ -76,8 +80,10 @@ $$");
         [Fact]
         public void TypeAttribute()
         {
-            VerifyTrue(@"[$$]
-class CL {}");
+            VerifyTrue("""
+                [$$]
+                class CL {}
+                """);
         }
 
         [Fact]
@@ -87,26 +93,32 @@ class CL {}");
         [Fact]
         public void MethodAttribute()
         {
-            VerifyTrue(@"class CL {
-    [$$]
-    void Method() {}
-}");
+            VerifyTrue("""
+                class CL {
+                    [$$]
+                    void Method() {}
+                }
+                """);
         }
 
         [Fact]
         public void MethodTypeParamAttribute()
         {
-            VerifyTrue(@"class CL{
-    void Method<[A$$]T> () {}
-}");
+            VerifyTrue("""
+                class CL{
+                    void Method<[A$$]T> () {}
+                }
+                """);
         }
 
         [Fact]
         public void MethodParamAttribute()
         {
-            VerifyTrue(@"class CL{
-    void Method ([$$]int i) {}
-}");
+            VerifyTrue("""
+                class CL{
+                    void Method ([$$]int i) {}
+                }
+                """);
         }
 
         [Fact]
@@ -120,9 +132,11 @@ class CL {}");
         [Fact]
         public void OutsideOfType()
         {
-            VerifyFalse(@"namespace NS {
-class CL {}
-$$");
+            VerifyFalse("""
+                namespace NS {
+                class CL {}
+                $$
+                """);
         }
 
         [Fact]
@@ -140,17 +154,19 @@ $$");
         [Fact]
         public void IncompleteMember()
         {
-            VerifyTrue(@"class CL {
-    $$
-");
+            VerifyTrue("""
+                class CL {
+                    $$
+                """);
         }
 
         [Fact]
         public void IncompleteMemberAccessibility()
         {
-            VerifyTrue(@"class CL {
-    public $$
-");
+            VerifyTrue("""
+                class CL {
+                    public $$
+                """);
         }
 
         [Fact]
@@ -212,99 +228,127 @@ $$");
         [Fact]
         public void FieldDeclaration()
         {
-            VerifyTrue(@"class CL {
-    $$ i");
+            VerifyTrue("""
+                class CL {
+                    $$ i
+                """);
         }
 
         [Fact]
         public void EventFieldDeclaration()
         {
-            VerifyTrue(@"class CL {
-    event $$");
+            VerifyTrue("""
+                class CL {
+                    event $$
+                """);
         }
 
         [Fact]
         public void ConversionOperatorDeclaration()
         {
-            VerifyTrue(@"class CL {
-    explicit operator $$");
+            VerifyTrue("""
+                class CL {
+                    explicit operator $$
+                """);
         }
 
         [Fact]
         public void ConversionOperatorDeclarationNoToken()
         {
-            VerifyFalse(@"class CL {
-    explicit $$");
+            VerifyFalse("""
+                class CL {
+                    explicit $$
+                """);
         }
 
         [Fact]
         public void PropertyDeclaration()
         {
-            VerifyTrue(@"class CL {
-    $$ Prop {");
+            VerifyTrue("""
+                class CL {
+                    $$ Prop {
+                """);
         }
 
         [Fact]
         public void EventDeclaration()
         {
-            VerifyTrue(@"class CL {
-    event $$ Event {");
+            VerifyTrue("""
+                class CL {
+                    event $$ Event {
+                """);
         }
 
         [Fact]
         public void IndexerDeclaration()
         {
-            VerifyTrue(@"class CL {
-    $$ this");
+            VerifyTrue("""
+                class CL {
+                    $$ this
+                """);
         }
 
         [Fact]
         public void Parameter()
         {
-            VerifyTrue(@"class CL {
-    void Method($$");
+            VerifyTrue("""
+                class CL {
+                    void Method($$
+                """);
         }
 
         [Fact]
         public void ArrayType()
         {
-            VerifyTrue(@"class CL {
-    $$ [");
+            VerifyTrue("""
+                class CL {
+                    $$ [
+                """);
         }
 
         [Fact]
         public void PointerType()
         {
-            VerifyTrue(@"class CL {
-    $$ *");
+            VerifyTrue("""
+                class CL {
+                    $$ *
+                """);
         }
 
         [Fact]
         public void NullableType()
         {
-            VerifyTrue(@"class CL {
-    $$ ?");
+            VerifyTrue("""
+                class CL {
+                    $$ ?
+                """);
         }
 
         [Fact]
         public void DelegateDeclaration()
         {
-            VerifyTrue(@"class CL {
-    delegate $$");
+            VerifyTrue("""
+                class CL {
+                    delegate $$
+                """);
         }
 
         [Fact]
         public void MethodDeclaration()
         {
-            VerifyTrue(@"class CL {
-    $$ M(");
+            VerifyTrue("""
+                class CL {
+                    $$ M(
+                """);
         }
 
         [Fact]
         public void OperatorDeclaration()
         {
-            VerifyTrue(@"class CL {
-    $$ operator");
+            VerifyTrue("""
+                class CL {
+                    $$ operator
+                """);
         }
 
         [Fact]
@@ -470,9 +514,11 @@ $$");
         [Fact]
         public void SwitchLabelCase()
         {
-            VerifyTrue(AddInsideMethod(@"switch(i)
-    {
-        case $$"));
+            VerifyTrue(AddInsideMethod("""
+                switch(i)
+                    {
+                        case $$
+                """));
         }
 
         [Fact]

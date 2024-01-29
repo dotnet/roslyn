@@ -5,14 +5,15 @@
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.IntroduceUsingStatement
 
     <Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceUsingStatement)>
     Public NotInheritable Class IntroduceUsingStatementTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(ByVal workspace As Workspace, ByVal parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicIntroduceUsingStatementCodeRefactoringProvider
         End Function
 

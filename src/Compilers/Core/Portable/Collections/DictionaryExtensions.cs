@@ -3,6 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -48,5 +52,29 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 #endif
+
+        public static void AddPooled<K, V>(this IDictionary<K, ArrayBuilder<V>> dictionary, K key, V value)
+            where K : notnull
+        {
+            if (!dictionary.TryGetValue(key, out var values))
+            {
+                values = ArrayBuilder<V>.GetInstance();
+                dictionary[key] = values;
+            }
+
+            values.Add(value);
+        }
+
+        public static ImmutableSegmentedDictionary<K, ImmutableArray<V>> ToImmutableSegmentedDictionaryAndFree<K, V>(this IReadOnlyDictionary<K, ArrayBuilder<V>> builder)
+            where K : notnull
+        {
+            var result = ImmutableSegmentedDictionary.CreateBuilder<K, ImmutableArray<V>>();
+            foreach (var (key, values) in builder)
+            {
+                result.Add(key, values.ToImmutableAndFree());
+            }
+
+            return result.ToImmutable();
+        }
     }
 }

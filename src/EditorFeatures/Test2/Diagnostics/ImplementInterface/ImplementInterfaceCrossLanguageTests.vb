@@ -251,7 +251,7 @@ End Class
 Class C
     Implements IA
 
-    Public Sub Goo(a1 As Integer, a2 As Integer) Implements IA.Goo
+    Public Sub Goo(a1 As Integer, A2 As Integer) Implements IA.Goo
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -287,7 +287,7 @@ End Class
 Class C
     Implements IA
 
-    Default Public ReadOnly Property Item(a1 As Integer, a2 As Integer) As Integer Implements IA.Item
+    Default Public ReadOnly Property Item(a1 As Integer, A2 As Integer) As Integer Implements IA.Item
         Get
             Throw New NotImplementedException()
         End Get

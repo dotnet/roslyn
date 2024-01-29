@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return completionProvider.TriggerCharacters;
             }
 
-            return ImmutableHashSet<char>.Empty;
+            return [];
         }
 
         private static bool IsEmbeddedLanguageProvider(Lazy<ILanguageService, LanguageServiceMetadata> lazyLanguageService, string languageName, string? embeddedLanguageServiceType)
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (_languageProviders.IsDefault)
             {
                 var languagesProvider = languageServices?.GetService<IEmbeddedLanguagesProvider>();
-                ImmutableInterlocked.InterlockedInitialize(ref _languageProviders, languagesProvider?.Languages ?? ImmutableArray<IEmbeddedLanguage>.Empty);
+                ImmutableInterlocked.InterlockedInitialize(ref _languageProviders, languagesProvider?.Languages ?? []);
             }
 
             return _languageProviders;
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (_languageProviders.IsDefault)
                 throw ExceptionUtilities.Unreachable();
 
-            return _languageProviders.Single(lang => lang.CompletionProvider?.Name == item.Properties[EmbeddedProviderName]);
+            return _languageProviders.Single(lang => lang.CompletionProvider?.Name == item.GetProperty(EmbeddedProviderName));
         }
     }
 }

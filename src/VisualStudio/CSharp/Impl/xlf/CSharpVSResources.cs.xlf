@@ -57,6 +57,11 @@
         <target state="translated">C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_Interactive">
+        <source>C# Interactive</source>
+        <target state="new">C# Interactive</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
         <source>Collapse usings on file open</source>
         <target state="translated">Při otevření souboru sbalit usings</target>

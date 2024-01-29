@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Outlining;
 using InternalUtilities = Microsoft.Internal.VisualStudio.PlatformUI.Utilities;
 using IOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
 using OLECMD = Microsoft.VisualStudio.OLE.Interop.OLECMD;
@@ -34,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IGlobalOptionService _globalOptionService;
+        private readonly IOutliningManagerService _outliningManagerService;
         private readonly VsCodeWindowViewTracker _viewTracker;
         private readonly DocumentOutlineViewModel _viewModel;
         private readonly IVsToolbarTrayHost _toolbarTrayHost;
@@ -44,11 +46,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             IVsWindowSearchHostFactory windowSearchHostFactory,
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptionService,
+            IOutliningManagerService outliningManagerService,
             VsCodeWindowViewTracker viewTracker,
             DocumentOutlineViewModel viewModel)
         {
             _threadingContext = threadingContext;
             _globalOptionService = globalOptionService;
+            _outliningManagerService = outliningManagerService;
             _viewTracker = viewTracker;
             _viewModel = viewModel;
 
@@ -233,20 +237,22 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         private static ImmutableArray<SortDescription> NameSortDescriptions { get; } =
-            ImmutableArray.Create(new SortDescription(
+            [new SortDescription(
                 $"{nameof(DocumentSymbolDataViewModel.Data)}.{nameof(DocumentSymbolDataViewModel.Data.Name)}",
-                ListSortDirection.Ascending));
+                ListSortDirection.Ascending)];
         private static ImmutableArray<SortDescription> LocationSortDescriptions { get; } =
-            ImmutableArray.Create(new SortDescription(
+            [new SortDescription(
                 $"{nameof(DocumentSymbolDataViewModel.Data)}.{nameof(DocumentSymbolDataViewModel.Data.RangeSpan)}.{nameof(DocumentSymbolDataViewModel.Data.RangeSpan.Start)}.{nameof(DocumentSymbolDataViewModel.Data.RangeSpan.Start.Position)}",
-                ListSortDirection.Ascending));
-        private static ImmutableArray<SortDescription> TypeSortDescriptions { get; } = ImmutableArray.Create(
+                ListSortDirection.Ascending)];
+        private static ImmutableArray<SortDescription> TypeSortDescriptions { get; } =
+        [
             new SortDescription(
-                $"{nameof(DocumentSymbolDataViewModel.Data)}.{nameof(DocumentSymbolDataViewModel.Data.SymbolKind)}",
-                ListSortDirection.Ascending),
+                    $"{nameof(DocumentSymbolDataViewModel.Data)}.{nameof(DocumentSymbolDataViewModel.Data.SymbolKind)}",
+                    ListSortDirection.Ascending),
             new SortDescription(
                 $"{nameof(DocumentSymbolDataViewModel.Data)}.{nameof(DocumentSymbolDataViewModel.Data.Name)}",
-                ListSortDirection.Ascending));
+                ListSortDirection.Ascending),
+        ];
 
         public static void UpdateSortDescription(SortDescriptionCollection sortDescriptions, SortOption sortOption)
         {
@@ -268,11 +274,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// When a symbol node in the window is selected via the keyboard, move the caret to its position in the latest active text view.
         /// </summary>
-        private void SymbolTreeItem_SourceUpdated(object sender, DataTransferEventArgs e)
+        private void SymbolTree_SourceUpdated(object sender, DataTransferEventArgs e)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            if (!_viewModel.IsNavigating && e.OriginalSource is TreeViewItem { DataContext: DocumentSymbolDataViewModel symbolModel })
+            // 🐉 In practice, this event was firing in cases where the user did not manually select an item in the
+            // tree view, resulting in sporadic/unexpected navigation while editing. To filter out these cases, we
+            // include a final check that keyboard focus in currently within the selected tree view item, which implies
+            // that the keyboard focus is _not_ within the editor (and thus, we will not be interfering with a user who
+            // is editing source code). See https://github.com/dotnet/roslyn/issues/69292.
+            if (!_viewModel.IsNavigating
+                && e.OriginalSource is TreeViewItem { DataContext: DocumentSymbolDataViewModel symbolModel } item
+                && FocusHelper.IsKeyboardFocusWithin(item))
             {
                 // This is a user-initiated navigation, and we need to prevent reentrancy.  Specifically: when a user
                 // does click on an item, we do navigate, and that does move the caret. This part happens synchronously.
@@ -282,7 +295,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 {
                     var textView = _viewTracker.GetActiveView();
                     textView.TryMoveCaretToAndEnsureVisible(
-                        symbolModel.Data.SelectionRangeSpan.TranslateTo(textView.TextSnapshot, SpanTrackingMode.EdgeInclusive).Start);
+                        symbolModel.Data.SelectionRangeSpan.TranslateTo(textView.TextSnapshot, SpanTrackingMode.EdgeInclusive).Start,
+                        _outliningManagerService);
                 }
                 finally
                 {

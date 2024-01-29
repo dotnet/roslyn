@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -22,10 +18,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task ConstructorSnippetMissingInNamespace()
         {
             var markupBeforeCommit =
-@"namespace Namespace
-{
-    $$
-}";
+                """
+                namespace Namespace
+                {
+                    $$
+                }
+                """;
 
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
@@ -34,9 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task ConstructorSnippetMissingInFilescopedNamespace()
         {
             var markupBeforeCommit =
-@"namespace Namespace;
+                """
+                namespace Namespace;
 
-$$";
+                $$
+                """;
 
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
@@ -45,8 +45,10 @@ $$";
         public async Task ConstructorSnippetMissingInTopLevelContext()
         {
             var markupBeforeCommit =
-@"System.Console.WriteLine();
-$$";
+                """
+                System.Console.WriteLine();
+                $$
+                """;
 
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
@@ -55,19 +57,23 @@ $$";
         public async Task InsertConstructorSnippetInClassTest()
         {
             var markupBeforeCommit =
-@"class MyClass
-{
-    $$
-}";
+                """
+                class MyClass
+                {
+                    $$
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"class MyClass
-{
-    public MyClass()
-    {
-        $$
-    }
-}";
+                """
+                class MyClass
+                {
+                    public MyClass()
+                    {
+                        $$
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -75,19 +81,85 @@ $$";
         public async Task InsertConstructorSnippetInAbstractClassTest()
         {
             var markupBeforeCommit =
-@"abstract class MyClass
-{
-    $$
-}";
+                """
+                abstract class MyClass
+                {
+                    $$
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"abstract class MyClass
-{
-    public MyClass()
-    {
-        $$
-    }
-}";
+                """
+                abstract class MyClass
+                {
+                    protected MyClass()
+                    {
+                        $$
+                    }
+                }
+                """;
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConstructorSnippetInAbstractClassTest_AbstractModifierInOtherPartialDeclaration()
+        {
+            var markupBeforeCommit =
+                """
+                partial class MyClass
+                {
+                    $$
+                }
+
+                abstract partial class MyClass
+                {
+                }
+                """;
+
+            var expectedCodeAfterCommit =
+                """
+                partial class MyClass
+                {
+                    protected MyClass()
+                    {
+                        $$
+                    }
+                }
+                
+                abstract partial class MyClass
+                {
+                }
+                """;
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConstructorSnippetInNestedAbstractClassTest()
+        {
+            var markupBeforeCommit =
+                """
+                class MyClass
+                {
+                    abstract class NestedClass
+                    {
+                        $$
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit =
+                """
+                class MyClass
+                {
+                    abstract class NestedClass
+                    {
+                        protected NestedClass()
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -95,19 +167,23 @@ $$";
         public async Task InsertConstructorSnippetInStructTest()
         {
             var markupBeforeCommit =
-@"struct MyStruct
-{
-    $$
-}";
+                """
+                struct MyStruct
+                {
+                    $$
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"struct MyStruct
-{
-    public MyStruct()
-    {
-        $$
-    }
-}";
+                """
+                struct MyStruct
+                {
+                    public MyStruct()
+                    {
+                        $$
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -115,19 +191,23 @@ $$";
         public async Task InsertConstructorSnippetInRecordTest()
         {
             var markupBeforeCommit =
-@"record MyRecord
-{
-    $$
-}";
+                """
+                record MyRecord
+                {
+                    $$
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"record MyRecord
-{
-    public MyRecord()
-    {
-        $$
-    }
-}";
+                """
+                record MyRecord
+                {
+                    public MyRecord()
+                    {
+                        $$
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
@@ -135,10 +215,12 @@ $$";
         public async Task ConstructorSnippetMissingInInterface()
         {
             var markupBeforeCommit =
-@"interface MyInterface
-{
-    $$
-}";
+                """
+                interface MyInterface
+                {
+                    $$
+                }
+                """;
 
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
@@ -147,25 +229,29 @@ $$";
         public async Task InsertConstructorSnippetInNestedClassTest()
         {
             var markupBeforeCommit =
-@"class MyClass
-{
-    class MyClass1
-    {
-        $$
-    }
-}";
+                """
+                class MyClass
+                {
+                    class MyClass1
+                    {
+                        $$
+                    }
+                }
+                """;
 
             var expectedCodeAfterCommit =
-@"class MyClass
-{
-    class MyClass1
-    {
-        public MyClass1()
-        {
-            $$
-        }
-    }
-}";
+                """
+                class MyClass
+                {
+                    class MyClass1
+                    {
+                        public MyClass1()
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
     }

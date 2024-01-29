@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                 await AddUnwrapCodeActionAsync(actions).ConfigureAwait(false);
                 await AddWrapLongCodeActionAsync(actions).ConfigureAwait(false);
 
-                return ImmutableArray.Create(new WrappingGroup(isInlinable: true, actions.ToImmutable()));
+                return [new WrappingGroup(isInlinable: true, actions.ToImmutable())];
             }
 
             // Pass 0 as the wrapping column as we effectively always want to wrap each chunk
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
 
                 // Flatten all the chunks into one long list.  Then delete all the spaces
                 // between each piece in that full list.
-                var flattened = _chunks.SelectMany(c => c).ToImmutableArray();
+                var flattened = _chunks.SelectManyAsArray(c => c);
                 DeleteAllSpacesInChunk(result, flattened);
 
                 return result.ToImmutable();

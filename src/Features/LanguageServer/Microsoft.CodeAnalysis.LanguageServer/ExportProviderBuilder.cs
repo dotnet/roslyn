@@ -7,14 +7,17 @@ using System.Reflection;
 using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExportProviderBuilder
 {
-    public static async Task<ExportProvider> CreateExportProviderAsync(IEnumerable<string> extensionAssemblyPaths, string? sharedDependenciesPath, ILoggerFactory loggerFactory)
+    public static async Task<ExportProvider> CreateExportProviderAsync(IEnumerable<string> extensionAssemblyPaths, string? devKitDependencyPath, ILoggerFactory loggerFactory)
     {
         var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
 
@@ -46,9 +49,16 @@ internal sealed class ExportProviderBuilder
             typeof(ExportProviderBuilder).Assembly
         };
 
+        if (devKitDependencyPath != null)
+        {
+            // Load devkit dependencies before other extensions to ensure dependencies
+            // like VS Telemetry are available from the host.
+            assemblies.AddRange(LoadDevKitAssemblies(devKitDependencyPath, logger));
+        }
+
         foreach (var extensionAssemblyPath in extensionAssemblyPaths)
         {
-            if (AssemblyLoadContextWrapper.TryLoadExtension(extensionAssemblyPath, sharedDependenciesPath, logger, out var extensionAssembly))
+            if (AssemblyLoadContextWrapper.TryLoadExtension(extensionAssemblyPath, logger, out var extensionAssembly))
             {
                 assemblies.Add(extensionAssembly);
             }
@@ -77,6 +87,25 @@ internal sealed class ExportProviderBuilder
         exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
 
         return exportProvider;
+    }
+
+    private static ImmutableArray<Assembly> LoadDevKitAssemblies(string devKitDependencyPath, ILogger logger)
+    {
+        var directoryName = Path.GetDirectoryName(devKitDependencyPath);
+        Contract.ThrowIfNull(directoryName);
+        logger.LogTrace("Loading DevKit assemblies from {directory}", directoryName);
+
+        var directory = new DirectoryInfo(directoryName);
+        using var _ = ArrayBuilder<Assembly>.GetInstance(out var builder);
+        foreach (var file in directory.GetFiles("*.dll"))
+        {
+            logger.LogTrace("Loading {assemblyName}", file.Name);
+            // DevKit assemblies are loaded into the default load context. This allows extensions
+            // to share the host's instance of these assemblies as long as they do not ship their own copy.
+            builder.Add(AssemblyLoadContext.Default.LoadFromAssemblyPath(file.FullName));
+        }
+
+        return builder.ToImmutable();
     }
 
     private static void ThrowOnUnexpectedErrors(CompositionConfiguration configuration, ILogger logger)

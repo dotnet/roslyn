@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -26,15 +25,6 @@ namespace IdeBenchmarks.InheritanceMargin
         public InheritanceMarginServiceBenchmarks()
         {
             _solution = null!;
-        }
-
-        [GlobalSetup]
-        public void Setup()
-        {
-            // QueryVisualStudioInstances returns Visual Studio installations on .NET Framework, and .NET Core SDK
-            // installations on .NET Core. We use the one with the most recent version.
-            var msBuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).First();
-            MSBuildLocator.RegisterInstance(msBuildInstance);
         }
 
         [IterationSetup]

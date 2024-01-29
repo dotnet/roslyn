@@ -312,6 +312,16 @@
         <target state="translated">_Datei des Symbols umbenennen</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
       </trans-unit>
+      <trans-unit id="Roslyn_Test_Code">
+        <source>Roslyn Test Code</source>
+        <target state="translated">Roslyn-Testcode</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Roslyn_Test_Code_Markup">
+        <source>Roslyn Test Code Markup</source>
+        <target state="translated">Roslyn-Testcodemarkup</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
         <target state="translated">Kommentar teilen</target>

@@ -23,9 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression
             => CSharpSyntaxFacts.Instance;
 
         protected override bool IsTargetTyped(SemanticModel semanticModel, ConditionalExpressionSyntax conditional, CancellationToken cancellationToken)
-        {
-            var conversion = semanticModel.GetConversion(conditional, cancellationToken);
-            return conversion.IsConditionalExpression;
-        }
+            => UseCoalesceExpressionHelpers.IsTargetTyped(semanticModel, conditional, cancellationToken);
     }
 }

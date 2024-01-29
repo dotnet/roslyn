@@ -241,11 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 var parameterToRemove = AllParameters[_selectedIndex!.Value];
 
-                if (_parametersWithoutDefaultValues.Contains(parameterToRemove))
-                {
-                    _parametersWithoutDefaultValues.Remove(parameterToRemove);
-                }
-                else
+                if (!_parametersWithoutDefaultValues.Remove(parameterToRemove))
                 {
                     _parametersWithDefaultValues.Remove(parameterToRemove);
                 }

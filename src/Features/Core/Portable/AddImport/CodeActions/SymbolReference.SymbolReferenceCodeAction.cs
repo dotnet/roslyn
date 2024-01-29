@@ -35,21 +35,22 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var operation = await GetChangeSolutionOperationAsync(isPreview: true, cancellationToken).ConfigureAwait(false);
                 if (operation is null)
                 {
-                    return Array.Empty<CodeActionOperation>();
+                    return [];
                 }
 
                 return SpecializedCollections.SingletonEnumerable(operation);
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var operation = await GetChangeSolutionOperationAsync(isPreview: false, cancellationToken).ConfigureAwait(false);
                 if (operation is null)
                 {
-                    return Array.Empty<CodeActionOperation>();
+                    return [];
                 }
 
-                return SpecializedCollections.SingletonEnumerable(operation);
+                return [operation];
             }
 
             private async Task<CodeActionOperation?> GetChangeSolutionOperationAsync(bool isPreview, CancellationToken cancellationToken)

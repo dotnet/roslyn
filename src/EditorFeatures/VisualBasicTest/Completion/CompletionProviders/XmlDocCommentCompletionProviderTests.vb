@@ -150,6 +150,28 @@ End Class
         End Function
 
         <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69293")>
+        Public Async Function TestRepeatableNestedParamRefAndTypeParamRefTagsOnDelegate() As Task
+            Dim text = "
+Class Outer(Of TOuter)
+    Class Inner(Of TInner)
+        ''' <summary>
+        ''' $$
+        ''' </summary>
+        Delegate Sub Goo(Of TMethod)(i as Integer)
+    End Class
+End Class
+"
+
+            Await VerifyItemsExistAsync(
+                text,
+                "paramref name=""i""",
+                "typeparamref name=""TOuter""",
+                "typeparamref name=""TInner""",
+                "typeparamref name=""TMethod""")
+        End Function
+
+        <Fact>
         Public Async Function TestRepeatableTopLevelOnlyTags1() As Task
             Dim text = "
 Class C

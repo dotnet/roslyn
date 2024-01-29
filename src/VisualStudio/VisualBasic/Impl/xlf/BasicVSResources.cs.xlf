@@ -62,9 +62,9 @@
         <target state="translated">Upřednostňovat zjednodušené vytváření objektů</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_Imports">
-        <source>Remove unnecessary Imports</source>
-        <target state="translated">Odebrat nepotřebné direktivy Import</target>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
+        <target state="new">Remove unnecessary imports</target>
         <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">

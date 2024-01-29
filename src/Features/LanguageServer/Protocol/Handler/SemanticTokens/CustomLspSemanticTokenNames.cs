@@ -2,12 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
@@ -83,6 +79,8 @@ internal class CustomLspSemanticTokenNames
     public const string JsonPropertyName = "jsonPropertyName";
     public const string JsonConstructorName = "jsonConstructorName";
 
+    public const string TestCodeMarkdown = "testCodeMarkdown";
+
     public static ImmutableDictionary<string, string> ClassificationTypeNameToCustomTokenName = new Dictionary<string, string>
     {
         [ClassificationTypeNames.ExcludedCode] = ExcludedCode,
@@ -146,5 +144,7 @@ internal class CustomLspSemanticTokenNames
         [ClassificationTypeNames.JsonObject] = JsonObject,
         [ClassificationTypeNames.JsonPropertyName] = JsonPropertyName,
         [ClassificationTypeNames.JsonConstructorName] = JsonConstructorName,
+
+        [ClassificationTypeNames.TestCodeMarkdown] = TestCodeMarkdown,
     }.ToImmutableDictionary();
 }

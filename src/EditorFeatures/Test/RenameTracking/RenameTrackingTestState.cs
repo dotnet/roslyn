@@ -17,11 +17,10 @@ using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -38,13 +37,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
     internal sealed class RenameTrackingTestState : IDisposable
     {
         private readonly ITagger<RenameTrackingTag> _tagger;
-        public readonly TestWorkspace Workspace;
+        public readonly EditorTestWorkspace Workspace;
         private readonly IWpfTextView _view;
         private readonly ITextUndoHistoryRegistry _historyRegistry;
         private string _notificationMessage = null;
 
-        private readonly TestHostDocument _hostDocument;
-        public TestHostDocument HostDocument { get { return _hostDocument; } }
+        private readonly EditorTestHostDocument _hostDocument;
+        public EditorTestHostDocument HostDocument { get { return _hostDocument; } }
 
         private readonly IEditorOperations _editorOperations;
         public IEditorOperations EditorOperations { get { return _editorOperations; } }
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         }
 
         public RenameTrackingTestState(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             string languageName,
             bool onBeforeGlobalSymbolRenamedReturnValue = true,
             bool onAfterGlobalSymbolRenamedReturnValue = true)
@@ -121,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             }
         }
 
-        private static TestWorkspace CreateTestWorkspace(string code, string languageName)
+        private static EditorTestWorkspace CreateTestWorkspace(string code, string languageName)
         {
             return CreateTestWorkspace(string.Format(@"
 <Workspace>
@@ -131,9 +130,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 </Workspace>", languageName, code));
         }
 
-        private static TestWorkspace CreateTestWorkspace(string xml)
+        private static EditorTestWorkspace CreateTestWorkspace(string xml)
         {
-            return TestWorkspace.Create(xml, composition: EditorTestCompositions.EditorFeaturesWpf);
+            return EditorTestWorkspace.Create(xml, composition: EditorTestCompositions.EditorFeaturesWpf);
         }
 
         public void SendEscape()
@@ -201,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
                 var operations = (await codeAction.GetOperationsAsync(CancellationToken.None)).ToArray();
                 Assert.Equal(1, operations.Length);
 
-                await operations[0].TryApplyAsync(this.Workspace, this.Workspace.CurrentSolution, new ProgressTracker(), CancellationToken.None);
+                await operations[0].TryApplyAsync(this.Workspace, this.Workspace.CurrentSolution, CodeAnalysisProgress.None, CancellationToken.None);
             }
         }
 

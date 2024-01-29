@@ -4,14 +4,14 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
     internal partial class DidChangeConfigurationNotificationHandler
     {
-        public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
             if (clientCapabilities?.Workspace?.DidChangeConfiguration?.DynamicRegistration is true)
             {
@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                     methodName: Methods.ClientRegisterCapabilityName,
                     @params: new RegistrationParams()
                     {
-                        Registrations = new[]
-                        {
+                        Registrations =
+                        [
                             new Registration { Id = _registrationId.ToString(), Method = Methods.WorkspaceDidChangeConfigurationName, RegisterOptions = null }
-                        }
+                        ]
                     },
                     cancellationToken).ConfigureAwait(false);
             }

@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (diagnostic.AdditionalLocations.Count == 0)
             {
-                return ImmutableArray<DiagnosticDataLocation>.Empty;
+                return [];
             }
 
             using var _ = ArrayBuilder<DiagnosticDataLocation>.GetInstance(diagnostic.AdditionalLocations.Count, out var builder);

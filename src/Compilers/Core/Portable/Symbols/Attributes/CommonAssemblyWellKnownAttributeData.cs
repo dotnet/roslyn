@@ -8,6 +8,7 @@ using System;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -439,6 +440,82 @@ namespace Microsoft.CodeAnalysis
             {
                 VerifySealed(expected: false);
                 _forwardedTypes = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
+        #region ExperimentalAttribute
+        private ObsoleteAttributeData _experimentalAttributeData = ObsoleteAttributeData.Uninitialized;
+        public ObsoleteAttributeData ExperimentalAttributeData
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _experimentalAttributeData.IsUninitialized ? null : _experimentalAttributeData;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                Debug.Assert(value != null);
+                Debug.Assert(!value.IsUninitialized);
+                Debug.Assert(value.Kind == ObsoleteAttributeKind.Experimental);
+
+                _experimentalAttributeData = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
+        #region GuidAttribute
+        private string _guidAttribute;
+        public string GuidAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _guidAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _guidAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
+        #region ImportedFromTypeLibAttribute
+        private bool _hasImportedFromTypeLibAttribute;
+        public bool HasImportedFromTypeLibAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasImportedFromTypeLibAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasImportedFromTypeLibAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
+        #region PrimaryInteropAssemblyAttribute
+        private bool _hasPrimaryInteropAssemblyAttribute;
+        public bool HasPrimaryInteropAssemblyAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasPrimaryInteropAssemblyAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasPrimaryInteropAssemblyAttribute = value;
                 SetDataStored();
             }
         }

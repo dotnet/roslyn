@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CSharpParseOptions Default { get; } = new CSharpParseOptions();
 
         private ImmutableDictionary<string, string> _features;
+        private ImmutableArray<ImmutableArray<string>> _interceptorsPreviewNamespaces;
 
         /// <summary>
         /// Gets the effective language version, which the compiler uses to select the
@@ -172,6 +173,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return _features;
+            }
+        }
+
+        internal ImmutableArray<ImmutableArray<string>> InterceptorsPreviewNamespaces
+        {
+            get
+            {
+                if (!_interceptorsPreviewNamespaces.IsDefault)
+                {
+                    return _interceptorsPreviewNamespaces;
+                }
+
+                // e.g. [["System", "Threading"], ["System", "Collections"]]
+                ImmutableArray<ImmutableArray<string>> previewNamespaces;
+                if (Features.TryGetValue("InterceptorsPreviewNamespaces", out var namespaces))
+                {
+                    previewNamespaces = namespaces
+                        .Split(';')
+                        .SelectAsArray(segment => segment.Split('.').ToImmutableArray());
+                }
+                else
+                {
+                    previewNamespaces = ImmutableArray<ImmutableArray<string>>.Empty;
+                }
+                ImmutableInterlocked.InterlockedInitialize(ref _interceptorsPreviewNamespaces, previewNamespaces);
+                return previewNamespaces;
             }
         }
 

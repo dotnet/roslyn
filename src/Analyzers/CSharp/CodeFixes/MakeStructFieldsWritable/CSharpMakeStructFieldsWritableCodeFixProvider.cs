@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.MakeStructFieldsWritable);
+            => [IDEDiagnosticIds.MakeStructFieldsWritable];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         CompilerDiagnosticsScope.None => false,
 
                         // Compiler diagnostics are enabled for visible documents and open documents which had errors/warnings in prior snapshot.
-                        CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics => isVisibleDocument || (isOpenDocument && !previousData.Items.IsEmpty),
+                        CompilerDiagnosticsScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics => IsVisibleDocumentOrOpenDocumentWithPriorReportedVisibleDiagnostics(isVisibleDocument, isOpenDocument, previousData),
 
                         // Compiler diagnostics are enabled for all open documents.
                         CompilerDiagnosticsScope.OpenFiles => isOpenDocument,
@@ -111,8 +111,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // Analyzers are disabled for all documents.
                         BackgroundAnalysisScope.None => false,
 
-                        // Analyzers are enabled for active document.
-                        BackgroundAnalysisScope.ActiveFile => isActiveDocument,
+                        // Analyzers are enabled for visible documents and open documents which had errors/warnings in prior snapshot.
+                        BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics => IsVisibleDocumentOrOpenDocumentWithPriorReportedVisibleDiagnostics(isVisibleDocument, isOpenDocument, previousData),
 
                         // Analyzers are enabled for all open documents.
                         BackgroundAnalysisScope.OpenFiles => isOpenDocument,
@@ -123,6 +123,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         _ => throw ExceptionUtilities.UnexpectedValue(analysisScope)
                     };
                 }
+            }
+
+            static bool IsVisibleDocumentOrOpenDocumentWithPriorReportedVisibleDiagnostics(
+                bool isVisibleDocument,
+                bool isOpenDocument,
+                DocumentAnalysisData previousData)
+            {
+                if (isVisibleDocument)
+                    return true;
+
+                return isOpenDocument
+                    && previousData.Items.Any(static d => d.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning or DiagnosticSeverity.Info);
             }
         }
 
@@ -286,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return result;
             }
 
-            var compilerAnalyzer = project.Solution.State.Analyzers.GetCompilerDiagnosticAnalyzer(project.Language);
+            var compilerAnalyzer = project.Solution.SolutionState.Analyzers.GetCompilerDiagnosticAnalyzer(project.Language);
             if (compilerAnalyzer == null)
             {
                 // this language doesn't support compiler analyzer
@@ -512,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (loadDiagnostic != null)
                 {
                     lazyLoadDiagnostics ??= ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<DiagnosticData>>();
-                    lazyLoadDiagnostics.Add(document.Id, ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document)));
+                    lazyLoadDiagnostics.Add(document.Id, [DiagnosticData.Create(loadDiagnostic, document)]);
 
                     failedDocuments ??= ImmutableHashSet.CreateBuilder<Document>();
                     failedDocuments.Add(document);
@@ -527,10 +539,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     syntaxLocalMap: lazyLoadDiagnostics?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                     semanticLocalMap: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                     nonLocalMap: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                    others: ImmutableArray<DiagnosticData>.Empty,
+                    others: [],
                     documentIds: null));
 
-            var generatorDiagnostics = await project.GetSourceGeneratorDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+            var generatorDiagnostics = await InProcOrRemoteHostAnalyzerRunner.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
             var diagnosticResultBuilder = new DiagnosticAnalysisResultBuilder(project, version);
             foreach (var generatorDiagnostic in generatorDiagnostics)
             {

@@ -11,6 +11,11 @@ namespace Roslyn.Utilities
 {
     internal static class ImmutableArrayExtensions
     {
+        public static ImmutableArray<T> ToImmutableArray<T>(this HashSet<T> set)
+        {
+            return [.. set];
+        }
+
         public static bool Contains<T>(this ImmutableArray<T> items, T item, IEqualityComparer<T>? equalityComparer)
             => items.IndexOf(item, 0, equalityComparer) >= 0;
 
@@ -18,7 +23,7 @@ namespace Roslyn.Utilities
         {
             if (items == null)
             {
-                return ImmutableArray.Create<T>();
+                return [];
             }
 
             return ImmutableArray.Create<T>(items);

@@ -163,27 +163,32 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
         }
 
         public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
-            Document priorDocument, TextSpan priorSelection, Document currentDocument, IntentDataProvider intentDataProvider, CancellationToken cancellationToken)
+            Document priorDocument,
+            TextSpan priorSelection,
+            Document currentDocument,
+            IntentDataProvider intentDataProvider,
+            CancellationToken cancellationToken)
         {
             var addConstructorParametersResult = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, intentDataProvider.FallbackOptions, cancellationToken).ConfigureAwait(false);
             if (addConstructorParametersResult == null)
             {
-                return ImmutableArray<IntentProcessorResult>.Empty;
+                return [];
             }
 
             var actions = addConstructorParametersResult.Value.RequiredParameterActions.Concat(addConstructorParametersResult.Value.OptionalParameterActions);
             if (actions.IsEmpty)
             {
-                return ImmutableArray<IntentProcessorResult>.Empty;
+                return [];
             }
 
             using var _ = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
             foreach (var action in actions)
             {
+                // Intents currently have no way to report progress.
                 var changedSolution = await action.GetChangedSolutionInternalAsync(
-                    priorDocument.Project.Solution, postProcessChanges: true, cancellationToken).ConfigureAwait(false);
+                    priorDocument.Project.Solution, CodeAnalysisProgress.None, postProcessChanges: true, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(changedSolution);
-                var intent = new IntentProcessorResult(changedSolution, ImmutableArray.Create(priorDocument.Id), action.Title, action.ActionName);
+                var intent = new IntentProcessorResult(changedSolution, [priorDocument.Id], action.Title, action.ActionName);
                 results.Add(intent);
             }
 

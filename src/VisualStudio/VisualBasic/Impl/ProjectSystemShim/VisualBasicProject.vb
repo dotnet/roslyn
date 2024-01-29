@@ -338,9 +338,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                     ' To keep things simple, we'll just remove everything and add everything back in
                     For Each oldRuntimeLibrary In oldRuntimeLibraries
                         ' If this one was added explicitly in addition to our computation, we don't have to remove it 
-                        If _explicitlyAddedRuntimeLibraries.Contains(oldRuntimeLibrary) Then
-                            _explicitlyAddedRuntimeLibraries.Remove(oldRuntimeLibrary)
-                        Else
+                        If Not _explicitlyAddedRuntimeLibraries.Remove(oldRuntimeLibrary) Then
                             ProjectSystemProject.RemoveMetadataReference(oldRuntimeLibrary, MetadataReferenceProperties.Assembly)
                         End If
                     Next

@@ -95,13 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         }
 
         private static bool IsScopeBlock(SyntaxNode node)
-        {
-            var parent = node.Parent;
-            return node.IsKind(SyntaxKind.Block)
-                && (parent.IsKind(SyntaxKind.Block)
-                    || parent.IsKind(SyntaxKind.SwitchSection)
-                    || parent.IsKind(SyntaxKind.GlobalStatement));
-        }
+            => node.IsKind(SyntaxKind.Block)
+                && node.Parent?.Kind() is SyntaxKind.Block or SyntaxKind.SwitchSection or SyntaxKind.GlobalStatement;
 
         private static void MarkInterestedSpanNearbyScopeBlock(SyntaxNode block, SyntaxToken openBrace, ref int spanStart, ref int spanEnd)
         {
@@ -132,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 {
                     nearbyTrivia = trivia;
                 }
-                else if (!trivia.IsKind(SyntaxKind.WhitespaceTrivia) && !trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+                else if (trivia.Kind() is not SyntaxKind.WhitespaceTrivia and not SyntaxKind.EndOfLineTrivia)
                 {
                     break;
                 }
@@ -149,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 {
                     var regionStart = directiveTrivia.GetMatchingDirective(cancellationToken);
                     if (regionStart is not null)
-                        return QuickInfoItem.Create(token.Span, relatedSpans: ImmutableArray.Create(regionStart.Span));
+                        return QuickInfoItem.Create(token.Span, relatedSpans: [regionStart.Span]);
                 }
                 else if (directiveTrivia is ElifDirectiveTriviaSyntax or ElseDirectiveTriviaSyntax or EndIfDirectiveTriviaSyntax)
                 {

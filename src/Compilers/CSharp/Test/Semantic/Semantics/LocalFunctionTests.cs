@@ -2366,7 +2366,7 @@ class C
             })();
     }
 }";
-            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", "never"));
+            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12.WithFeature("run-nullable-analysis", "never"));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -10277,6 +10277,27 @@ public class C
                 //         Console.WriteLine(a);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(11, 27)
                 );
+        }
+
+        [Fact]
+        public void TestLocalFunctionDeclaration()
+        {
+            var compilation = CreateCompilation("""
+                                                class Test
+                                                {
+                                                  void M()
+                                                  {
+                                                      int LocalFunc(string s) {}
+                                                  }
+                                                }
+                                                """);
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+            var localFunction = root.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            IMethodSymbol methodSymbol = semanticModel.GetDeclaredSymbol(localFunction);
+
+            Assert.Equal("System.Int32 LocalFunc(System.String s)", methodSymbol.ToTestDisplayString());
         }
     }
 }

@@ -2198,25 +2198,30 @@ int         nextLine            =           30          ;$$
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537779")]
         public async Task DisappearedTokens2()
         {
-            var code = @"class Class1
-{
-    void Goo()
-    {
-        Object o=new Object);$$
-    }
-}";
+            var code = """
+                class Class1
+                {
+                    void Goo()
+                    {
+                        Object o=new Object);$$
+                    }
+                }
+                """;
 
-            var expected = @"class Class1
-{
-    void Goo()
-    {
-        Object o=new Object);
-    }
-}";
+            var expected = """
+                class Class1
+                {
+                    void Goo()
+                    {
+                        Object o = new Object);
+                    }
+                }
+                """;
+
             await AutoFormatOnSemicolonAsync(
                 code,
                 expected,
-                SyntaxKind.SemicolonToken);
+                SyntaxKind.OpenBraceToken);
         }
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537793")]
@@ -3373,7 +3378,7 @@ class Program{
                 expected = expected.Replace("    ", "\t");
             }
 
-            using var workspace = TestWorkspace.CreateCSharp(markup);
+            using var workspace = EditorTestWorkspace.CreateCSharp(markup);
 
             var subjectDocument = workspace.Documents.Single();
             var textBuffer = subjectDocument.GetTextBuffer();
@@ -3407,7 +3412,7 @@ class Program{
 
         private static async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, bool useTabs, SyntaxKind tokenKind, SyntaxKind startTokenKind)
         {
-            using var workspace = TestWorkspace.CreateCSharp(initialMarkup);
+            using var workspace = EditorTestWorkspace.CreateCSharp(initialMarkup);
 
             var testDocument = workspace.Documents.Single();
             var buffer = testDocument.GetTextBuffer();

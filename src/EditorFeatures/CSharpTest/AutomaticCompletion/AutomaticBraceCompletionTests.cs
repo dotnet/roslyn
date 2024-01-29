@@ -564,7 +564,7 @@ class C
     }
 }";
 
-            using var session = CreateSession(TestWorkspace.CreateCSharp(code), '(', ')');
+            using var session = CreateSession(EditorTestWorkspace.CreateCSharp(code), '(', ')');
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -591,7 +591,7 @@ class C
     }
 }";
 
-            using var session = CreateSession(TestWorkspace.CreateCSharp(code), '(', ')');
+            using var session = CreateSession(EditorTestWorkspace.CreateCSharp(code), '(', ')');
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1694,7 +1694,7 @@ $$";
         internal static Holder CreateSession(string code, OptionsCollection? globalOptions = null)
         {
             return CreateSession(
-                TestWorkspace.CreateCSharp(code),
+                EditorTestWorkspace.CreateCSharp(code),
                 CurlyBrace.OpenCharacter, CurlyBrace.CloseCharacter, globalOptions);
         }
     }

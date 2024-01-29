@@ -9,25 +9,23 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
     internal class DiscardSyntaxClassifier : AbstractSyntaxClassifier
     {
-        public override ImmutableArray<Type> SyntaxNodeTypes { get; } = ImmutableArray.Create(
-            typeof(DiscardDesignationSyntax),
-            typeof(DiscardPatternSyntax),
-            typeof(ParameterSyntax),
-            typeof(IdentifierNameSyntax));
+        public override ImmutableArray<Type> SyntaxNodeTypes { get; } = [typeof(DiscardDesignationSyntax), typeof(DiscardPatternSyntax), typeof(ParameterSyntax), typeof(IdentifierNameSyntax)];
 
         public override void AddClassifications(
            SyntaxNode syntax,
+           TextSpan textSpan,
            SemanticModel semanticModel,
            ClassificationOptions options,
            SegmentedList<ClassifiedSpan> result,
            CancellationToken cancellationToken)
         {
-            if (syntax.IsKind(SyntaxKind.DiscardDesignation) || syntax.IsKind(SyntaxKind.DiscardPattern))
+            if (syntax.Kind() is SyntaxKind.DiscardDesignation or SyntaxKind.DiscardPattern)
             {
                 result.Add(new ClassifiedSpan(syntax.Span, ClassificationTypeNames.Keyword));
                 return;

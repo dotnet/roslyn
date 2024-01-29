@@ -1166,9 +1166,9 @@ cref_parameter_list
   ;
 
 cref_parameter
-  : 'in'? type
-  | 'out'? type
-  | 'ref'? type
+  : 'in'? 'readonly'? type
+  | 'out'? 'readonly'? type
+  | 'ref'? 'readonly'? type
   ;
 
 indexer_member_cref

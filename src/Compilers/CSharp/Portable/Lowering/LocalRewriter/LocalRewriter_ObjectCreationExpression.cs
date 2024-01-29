@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node != null);
 
             // Rewrite the arguments.
-            // NOTE: We may need additional argument rewriting such as generating a params array,
+            // NOTE: We may need additional argument rewriting such as
             //       re-ordering arguments based on argsToParamsOpt map, etc.
             // NOTE: This is done later by MakeArguments, for now we just lower each argument.
             BoundExpression? receiverDiscard = null;
@@ -53,9 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiverDiscard is null);
 
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
-            // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, etc.
+            // such as re-ordering arguments based on argsToParamsOpt map, etc.
             rewrittenArguments = MakeArguments(
-                node.Syntax,
                 rewrittenArguments,
                 node.Constructor,
                 node.Expanded,
@@ -335,10 +334,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var createInstanceCall = new BoundCall(
                 syntax,
-                null,
+                receiverOpt: null,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method,
                 ImmutableArray<BoundExpression>.Empty,
-                default(ImmutableArray<string>),
+                default(ImmutableArray<string?>),
                 default(ImmutableArray<RefKind>),
                 isDelegateCall: false,
                 expanded: false,

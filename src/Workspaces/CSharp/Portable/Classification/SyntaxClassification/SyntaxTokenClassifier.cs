@@ -13,18 +13,20 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
     internal class SyntaxTokenClassifier : AbstractSyntaxClassifier
     {
-        public override ImmutableArray<int> SyntaxTokenKinds { get; } = ImmutableArray.Create((int)SyntaxKind.LessThanToken);
+        public override ImmutableArray<int> SyntaxTokenKinds { get; } = [(int)SyntaxKind.LessThanToken];
 
         private static readonly Func<ITypeSymbol, bool> s_shouldInclude = t => t.TypeKind != TypeKind.Error && t.GetArity() > 0;
 
         public override void AddClassifications(
             SyntaxToken lessThanToken,
+            TextSpan textSpan,
             SemanticModel semanticModel,
             ClassificationOptions options,
             SegmentedList<ClassifiedSpan> result,

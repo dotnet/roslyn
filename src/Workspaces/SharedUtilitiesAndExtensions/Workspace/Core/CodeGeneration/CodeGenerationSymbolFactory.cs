@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             return CreateTypeParameter(
                 attributes: default, varianceKind: VarianceKind.None,
-                name: name, constraintTypes: ImmutableArray.Create<ITypeSymbol>(),
+                name: name, constraintTypes: [],
                 hasConstructorConstraint: false, hasReferenceConstraint: false, hasValueConstraint: false,
                 hasUnmanagedConstraint: false, hasNotNullConstraint: false, ordinal: ordinal);
         }
@@ -493,8 +493,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 baseType: null,
                 interfaces: default,
                 specialType: SpecialType.None,
-                members: ImmutableArray.Create<ISymbol>(invokeMethod),
-                typeMembers: ImmutableArray<CodeGenerationAbstractNamedTypeSymbol>.Empty,
+                members: [invokeMethod],
+                typeMembers: [],
                 nullableAnnotation: nullableAnnotation,
                 enumUnderlyingType: null);
         }

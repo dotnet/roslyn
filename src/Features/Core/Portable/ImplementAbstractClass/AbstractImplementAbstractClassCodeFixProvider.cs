@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             => WellKnownFixAllProviders.BatchFixer;
 
         protected AbstractImplementAbstractClassCodeFixProvider(string diagnosticId)
-            => FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
+            => FixableDiagnosticIds = [diagnosticId];
 
         protected abstract SyntaxToken GetClassIdentifier(TClassNode classNode);
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     id),
                 context.Diagnostics);
 
-            foreach (var (through, canDelegateAllMembers) in data.GetDelegatableMembers())
+            foreach (var (through, canDelegateAllMembers) in data.GetDelegatableMembers(cancellationToken))
             {
                 id = GetCodeActionId(
                     abstractClassType.ContainingAssembly.Name,

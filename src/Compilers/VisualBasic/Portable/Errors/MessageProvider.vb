@@ -10,25 +10,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class MessageProvider
         Inherits CommonMessageProvider
-        Implements IObjectWritable
 
         Public Shared ReadOnly Instance As MessageProvider = New MessageProvider()
 
-        Shared Sub New()
-            ObjectBinder.RegisterTypeReader(GetType(MessageProvider), Function(r) Instance)
-        End Sub
-
         Private Sub New()
-        End Sub
-
-        Private ReadOnly Property IObjectWritable_ShouldReuseInSerialization As Boolean Implements IObjectWritable.ShouldReuseInSerialization
-            Get
-                Return True
-            End Get
-        End Property
-
-        Private Sub WriteTo(writer As ObjectWriter) Implements IObjectWritable.WriteTo
-            ' don't write anything since we always return the shared 'Instance' when read.
         End Sub
 
         Public Overrides ReadOnly Property CodePrefix As String
@@ -134,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    True,
                                                                    diagnosticInfo.MessageIdentifier,
                                                                    Location.None,
-                                                                   diagnosticInfo.Category,
+                                                                   diagnosticInfo.CustomTags,
                                                                    options.GeneralDiagnosticOption,
                                                                    options.SpecificDiagnosticOptions,
                                                                    options.SyntaxTreeOptionsProvider,
@@ -619,6 +604,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property WRN_GeneratorFailedDuringGeneration As Integer
             Get
                 Return ERRID.WRN_GeneratorFailedDuringGeneration
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property WRN_ByValArraySizeConstRequired As Integer?
+            Get
+                Return Nothing
             End Get
         End Property
 

@@ -7,10 +7,6 @@ namespace Microsoft.CodeAnalysis.Symbols
     /// <summary>
     /// Synthesized symbol that implements a method body feature (iterator, async, lambda, etc.)
     /// </summary>
-    /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
-    /// </remarks>
     internal interface ISynthesizedMethodBodyImplementationSymbol : ISymbolInternal
     {
         /// <summary>

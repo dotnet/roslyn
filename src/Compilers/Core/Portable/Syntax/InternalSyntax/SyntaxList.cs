@@ -19,11 +19,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
         }
 
-        internal SyntaxList(ObjectReader reader)
-            : base(reader)
-        {
-        }
-
         internal static GreenNode List(GreenNode child)
         {
             return child;
@@ -167,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             throw ExceptionUtilities.Unreachable();
         }
 
-        public sealed override SyntaxToken CreateSeparator<TNode>(SyntaxNode element)
+        public sealed override SyntaxToken CreateSeparator(SyntaxNode element)
         {
             throw ExceptionUtilities.Unreachable();
         }

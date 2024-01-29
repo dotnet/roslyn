@@ -8655,7 +8655,7 @@ class C
 }
 ";
 
-            await TestExactActionSetOfferedAsync(source, new[] { CodeFixesResources.Remove_redundant_assignment });
+            await TestExactActionSetOfferedAsync(source, [CodeFixesResources.Remove_redundant_assignment]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38507")]
@@ -8669,7 +8669,7 @@ class C
     C M2() => new C();
 }
 ";
-            await TestExactActionSetOfferedAsync(source, new[] { CodeFixesResources.Remove_redundant_assignment });
+            await TestExactActionSetOfferedAsync(source, [CodeFixesResources.Remove_redundant_assignment]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38507")]
@@ -8690,7 +8690,7 @@ class C
 }
 ";
 
-            await TestExactActionSetOfferedAsync(source, new[] { CodeFixesResources.Remove_redundant_assignment });
+            await TestExactActionSetOfferedAsync(source, [CodeFixesResources.Remove_redundant_assignment]);
         }
 
         [Fact, WorkItem(38507, "https://github.com/dotnet/roslyn/issues/46251")]
@@ -9200,6 +9200,30 @@ class C
                 },
                 LanguageVersion = LanguageVersion.CSharp11,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69643")]
+        public async Task TestPrimaryConstructorParameterAssignment()
+        {
+            var source = """
+                class C(string str) {
+                	public void Reset() {
+                		str = string.Empty;
+                	}
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp12,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             }.RunAsync();
         }
     }

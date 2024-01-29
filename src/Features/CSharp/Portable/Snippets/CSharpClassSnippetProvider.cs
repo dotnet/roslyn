@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
     internal sealed class CSharpClassSnippetProvider : AbstractCSharpTypeSnippetProvider
     {
+        private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            SyntaxKind.NewKeyword,
+            SyntaxKind.PublicKeyword,
+            SyntaxKind.ProtectedKeyword,
+            SyntaxKind.InternalKeyword,
+            SyntaxKind.PrivateKeyword,
+            SyntaxKind.AbstractKeyword,
+            SyntaxKind.SealedKeyword,
+            SyntaxKind.StaticKeyword,
+            SyntaxKind.UnsafeKeyword,
+            SyntaxKind.FileKeyword,
+        };
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpClassSnippetProvider()
@@ -29,17 +44,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         public override string Description => FeaturesResources.class_;
 
-        protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, bool useAccessibility, CancellationToken cancellationToken)
+        protected override ISet<SyntaxKind> ValidModifiers => s_validModifiers;
+
+        protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var name = NameGenerator.GenerateUniqueName("MyClass", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
-            var classDeclaration = useAccessibility is true
-                ? generator.ClassDeclaration(name, accessibility: Accessibility.Public)
-                : generator.ClassDeclaration(name);
-
-            return classDeclaration;
+            return generator.ClassDeclaration(name);
         }
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)

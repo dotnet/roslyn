@@ -134,9 +134,9 @@ namespace Microsoft.CodeAnalysis
         private static ProjectInfo ClearAllDocumentsFromProjectInfo(ProjectInfo projectInfo)
         {
             return projectInfo
-                .WithDocuments(ImmutableArray<DocumentInfo>.Empty)
-                .WithAdditionalDocuments(ImmutableArray<DocumentInfo>.Empty)
-                .WithAnalyzerConfigDocuments(ImmutableArray<DocumentInfo>.Empty);
+                .WithDocuments([])
+                .WithAdditionalDocuments([])
+                .WithAnalyzerConfigDocuments([]);
         }
 
         private ProjectInfo FixProjectInfo(ProjectInfo projectInfo)

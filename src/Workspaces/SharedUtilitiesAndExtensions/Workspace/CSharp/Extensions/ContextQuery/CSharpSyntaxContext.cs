@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
 
                 if (SyntaxTree.IsMemberDeclarationContext(
-                    token.SpanStart, context: null, validModifiers: null, validTypeDeclarations: validTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+                        token.SpanStart, context: null, validModifiers: null, validTypeDeclarations: validTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
                 {
                     return true;
                 }
@@ -472,10 +472,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 foreach (var node in leftToken.GetAncestors<SyntaxNode>())
                 {
-                    if (node.IsAnyLambdaOrAnonymousMethod())
-                    {
+                    if (node is AnonymousFunctionExpressionSyntax)
                         return true;
-                    }
 
                     if (node.IsKind(SyntaxKind.QueryExpression))
                     {

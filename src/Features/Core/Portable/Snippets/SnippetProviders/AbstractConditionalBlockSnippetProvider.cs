@@ -15,18 +15,18 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
     {
         protected abstract SyntaxNode GetCondition(SyntaxNode node);
 
-        protected override bool IsValidAccessingType(ITypeSymbol type)
+        protected override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
             => type.SpecialType == SpecialType.System_Boolean;
 
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             if (ConstructedFromInlineExpression)
-                return ImmutableArray<SnippetPlaceholder>.Empty;
+                return [];
 
             var condition = GetCondition(node);
             var placeholder = new SnippetPlaceholder(condition.ToString(), condition.SpanStart);
 
-            return ImmutableArray.Create(placeholder);
+            return [placeholder];
         }
     }
 }

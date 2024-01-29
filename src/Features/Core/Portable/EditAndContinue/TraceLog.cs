@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public static implicit operator Arg(bool value) => new(value ? "true" : "false");
             public static implicit operator Arg(ProjectId value) => new(value.DebugName);
             public static implicit operator Arg(DocumentId value) => new(value.DebugName);
-            public static implicit operator Arg(Diagnostic value) => new(value);
+            public static implicit operator Arg(Diagnostic value) => new(value.ToString());
             public static implicit operator Arg(ProjectAnalysisSummary value) => new((int)value, s_ProjectAnalysisSummary);
             public static implicit operator Arg(RudeEditKind value) => new((int)value, s_RudeEditKind);
             public static implicit operator Arg(ModuleUpdateStatus value) => new((int)value, s_ModuleUpdateStatus);
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public readonly Arg[]? Args = args;
 
             internal string GetDebuggerDisplay()
-                => (MessageFormat == null) ? "" : string.Format(MessageFormat, Args?.Select(a => a.GetDebuggerDisplay()).ToArray() ?? Array.Empty<object>());
+                => (MessageFormat == null) ? "" : string.Format(MessageFormat, Args?.Select(a => a.GetDebuggerDisplay()).ToArray() ?? []);
         }
 
         internal sealed class FileLogger(string logDirectory, TraceLog traceLog)
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 try
                 {
                     path = Path.Combine(_logDirectory, _traceLog._fileName);
-                    File.AppendAllLines(path, new[] { entry.GetDebuggerDisplay() });
+                    File.AppendAllLines(path, [entry.GetDebuggerDisplay()]);
                 }
                 catch (Exception e)
                 {
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private void AppendFileLoggingErrorInMemory(string? path, Exception e)
-            => AppendInMemory(new Entry("Error writing log file '{0}': {1}", new[] { new Arg(path), new Arg(e.Message) }));
+            => AppendInMemory(new Entry("Error writing log file '{0}': {1}", [new Arg(path), new Arg(e.Message)]));
 
         private void Append(Entry entry)
         {

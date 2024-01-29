@@ -3,15 +3,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>$(NetVS)</TargetFramework>
     <TargetArch>arm64</TargetArch>
-
-    <MicrosoftNETCoreAppRuntimewinarm64Version>$(MicrosoftNetCoreAppRuntimePackagesVersion)</MicrosoftNETCoreAppRuntimewinarm64Version>
-    <MicrosoftWindowsDesktopAppRuntimewinarm64Version>$(MicrosoftWindowsDesktopAppRuntimePackagesVersion)</MicrosoftWindowsDesktopAppRuntimewinarm64Version>
+    <!-- This impacts alpine assets for SQLitePCLRaw.lib.e_sqlite3 which don't impact .NET Framework projects -->
+    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NETCore.App.Runtime.win-arm64" Version="$(MicrosoftNETCoreAppRuntimewinarm64Version)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="Microsoft.WindowsDesktop.App.Runtime.win-arm64" Version="$(MicrosoftWindowsDesktopAppRuntimewinarm64Version)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.NETCore.App.Runtime.win-arm64" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.WindowsDesktop.App.Runtime.win-arm64" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
   <PropertyGroup>
     <_RuntimeLibrariesPath>$(PkgMicrosoft_NETCore_App_Runtime_win-arm64)\runtimes\win-arm64\</_RuntimeLibrariesPath>

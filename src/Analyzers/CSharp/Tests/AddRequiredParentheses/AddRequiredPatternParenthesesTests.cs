@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-    public partial class AddRequiredPatternParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class AddRequiredPatternParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public AddRequiredPatternParenthesesTests(ITestOutputHelper logger)
           : base(logger)

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     /// Future work for this workspace includes supporting basic metadata references (mscorlib, System dlls, etc),
     /// but that is dependent on having a x-plat mechanism for retrieving those references from the framework / sdk.
     /// </summary>
-    internal class LspMiscellaneousFilesWorkspace : Workspace, ILspService, ILspWorkspace
+    internal sealed class LspMiscellaneousFilesWorkspace : Workspace, ILspService, ILspWorkspace
     {
         private static readonly LanguageInformation s_csharpLanguageInformation = new(LanguageNames.CSharp, ".csx");
         private static readonly LanguageInformation s_vbLanguageInformation = new(LanguageNames.VisualBasic, ".vbx");
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var sourceTextLoader = new SourceTextLoader(documentText, documentFilePath);
 
             var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-                this, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, ImmutableArray<MetadataReference>.Empty);
+                this, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, []);
             OnProjectAdded(projectInfo);
 
             var id = projectInfo.Documents.Single().Id;

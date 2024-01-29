@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         inspectionContext,
                         proxyTypeAndInfo.ClrType,
                         proxyTypeAndInfo.Info,
-                        new[] { childFullNamePrefix });
+                        [childFullNamePrefix]);
                 }
                 _proxyItem = new EvalResult(
                     ExpansionKind.Default,

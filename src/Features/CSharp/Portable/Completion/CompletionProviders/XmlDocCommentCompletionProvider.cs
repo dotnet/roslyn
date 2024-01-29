@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             => text[characterPosition] is ('<' or '"') ||
                CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
 
-        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('<', '"', ' ');
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ['<', '"', ' '];
 
         protected override async Task<IEnumerable<CompletionItem>?> GetItemsWorkerAsync(
             Document document, int position,
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var items = new List<CompletionItem>();
 
-                if (token.Parent.IsKind(SyntaxKind.XmlEmptyElement) || token.Parent.IsKind(SyntaxKind.XmlText) ||
+                if (token.Parent?.Kind() is SyntaxKind.XmlEmptyElement or SyntaxKind.XmlText ||
                     (token.Parent.IsKind(SyntaxKind.XmlElementEndTag) && token.IsKind(SyntaxKind.GreaterThanToken)) ||
                     (token.Parent.IsKind(SyntaxKind.XmlName) && token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement)))
                 {
@@ -369,10 +369,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override ImmutableArray<IParameterSymbol> GetParameters(ISymbol declarationSymbol)
         {
             var declaredParameters = declarationSymbol.GetParameters();
-            if (declarationSymbol is INamedTypeSymbol namedTypeSymbol &&
-                namedTypeSymbol.TryGetPrimaryConstructor(out var primaryConstructor))
+            if (declarationSymbol is INamedTypeSymbol namedTypeSymbol)
             {
-                declaredParameters = primaryConstructor.Parameters;
+                if (namedTypeSymbol.TryGetPrimaryConstructor(out var primaryConstructor))
+                {
+                    declaredParameters = primaryConstructor.Parameters;
+                }
+                else if (namedTypeSymbol is { DelegateInvokeMethod.Parameters: var delegateInvokeParameters })
+                {
+                    declaredParameters = delegateInvokeParameters;
+                }
             }
 
             return declaredParameters;
@@ -381,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
                 filterCharacterRules: FilterRules,
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '>', '\t')),
+                commitCharacterRules: [CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '>', '\t')],
                 enterKeyRule: EnterKeyRule.Never);
     }
 }

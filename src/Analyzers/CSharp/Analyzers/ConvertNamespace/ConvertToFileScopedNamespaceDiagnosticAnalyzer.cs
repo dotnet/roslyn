@@ -37,27 +37,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             var cancellationToken = context.CancellationToken;
             var root = (CompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken);
 
-            var diagnostic = AnalyzeNamespace(context.GetCSharpAnalyzerOptions().NamespaceDeclarations, root, namespaceDeclaration);
+            var diagnostic = AnalyzeNamespace(context, root, namespaceDeclaration);
             if (diagnostic != null)
                 context.ReportDiagnostic(diagnostic);
         }
 
-        private Diagnostic? AnalyzeNamespace(CodeStyleOption2<NamespaceDeclarationPreference> option, CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax declaration)
+        private Diagnostic? AnalyzeNamespace(SyntaxNodeAnalysisContext context, CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax declaration)
         {
-            if (!ConvertNamespaceAnalysis.CanOfferUseFileScoped(option, root, declaration, forAnalyzer: true))
+            var option = context.GetCSharpAnalyzerOptions().NamespaceDeclarations;
+            if (ShouldSkipAnalysis(context, option.Notification)
+                || !ConvertNamespaceAnalysis.CanOfferUseFileScoped(option, root, declaration, forAnalyzer: true))
+            {
                 return null;
+            }
 
             // if the diagnostic is hidden, show it anywhere from the `namespace` keyword through the name.
             // otherwise, if it's not hidden, just squiggle the name.
-            var severity = option.Notification.Severity;
-            var diagnosticLocation = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) != ReportDiagnostic.Hidden
+            var diagnosticLocation = option.Notification.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) != ReportDiagnostic.Hidden
                 ? declaration.Name.GetLocation()
                 : declaration.SyntaxTree.GetLocation(TextSpan.FromBounds(declaration.SpanStart, declaration.Name.Span.End));
 
             return DiagnosticHelper.Create(
                 this.Descriptor,
                 diagnosticLocation,
-                severity,
+                option.Notification,
                 ImmutableArray.Create(declaration.GetLocation()),
                 ImmutableDictionary<string, string?>.Empty);
         }

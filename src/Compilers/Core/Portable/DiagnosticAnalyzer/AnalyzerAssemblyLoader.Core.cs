@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -11,20 +11,53 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 
 namespace Microsoft.CodeAnalysis
 {
+    internal enum AnalyzerLoadOption
+    {
+        /// <summary>
+        /// Once the assembly path is chosen, load it directly from disk at that location
+        /// </summary>
+        LoadFromDisk,
+
+        /// <summary>
+        /// Once the assembly path is chosen, read the contents of disk and load from memory
+        /// </summary>
+        /// <remarks>
+        /// While Windows supports this option it comes with a significant performance penalty due
+        /// to anti virus scans. It can have a load time of 300-500ms while loading from disk 
+        /// is generally 1-2ms. Use this with caution on Windows.
+        /// </remarks>
+        LoadFromStream
+    }
+
     internal partial class AnalyzerAssemblyLoader
     {
         private readonly AssemblyLoadContext _compilerLoadContext;
         private readonly Dictionary<string, DirectoryLoadContext> _loadContextByDirectory = new Dictionary<string, DirectoryLoadContext>(StringComparer.Ordinal);
+        private readonly AnalyzerLoadOption _loadOption;
 
         internal AssemblyLoadContext CompilerLoadContext => _compilerLoadContext;
+        internal AnalyzerLoadOption AnalyzerLoadOption => _loadOption;
 
-        internal AnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext = null)
+        internal AnalyzerAssemblyLoader()
+            : this(null, AnalyzerLoadOption.LoadFromDisk)
         {
+        }
+
+        internal AnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, AnalyzerLoadOption loadOption)
+        {
+            _loadOption = loadOption;
             _compilerLoadContext = compilerLoadContext ?? AssemblyLoadContext.GetLoadContext(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
+        }
+
+        public bool IsHostAssembly(Assembly assembly)
+        {
+            var alc = AssemblyLoadContext.GetLoadContext(assembly);
+            return alc == _compilerLoadContext || alc == AssemblyLoadContext.Default;
         }
 
         private partial Assembly Load(AssemblyName assemblyName, string assemblyOriginalPath)
@@ -104,8 +137,29 @@ namespace Microsoft.CodeAnalysis
                 var assemblyPath = Path.Combine(Directory, simpleName + ".dll");
                 if (_loader.IsAnalyzerDependencyPath(assemblyPath))
                 {
-                    (_, var loadPath) = _loader.GetAssemblyInfoForPath(assemblyPath);
-                    return LoadFromAssemblyPath(loadPath);
+                    (_, var loadPath, _) = _loader.GetAssemblyInfoForPath(assemblyPath);
+                    return loadCore(loadPath);
+                }
+
+                // Next if this is a resource assembly for a known assembly then load it from the 
+                // appropriate sub directory if it exists
+                //
+                // Note: when loading from disk the .NET runtime has a fallback step that will handle
+                // satellite assembly loading if the call to Load(satelliteAssemblyName) fails. This
+                // loader has a mode where it loads from Stream though and the runtime will not handle
+                // that automatically. Rather than bifurate our loading behavior between Disk and
+                // Stream both modes just handle satellite loading directly
+                if (!string.IsNullOrEmpty(assemblyName.CultureName) && simpleName.EndsWith(".resources", StringComparison.Ordinal))
+                {
+                    var analyzerFileName = Path.ChangeExtension(simpleName, ".dll");
+                    var analyzerFilePath = Path.Combine(Directory, analyzerFileName);
+                    var satelliteLoadPath = _loader.GetSatelliteInfoForPath(analyzerFilePath, assemblyName.CultureName);
+                    if (satelliteLoadPath is not null)
+                    {
+                        return loadCore(satelliteLoadPath);
+                    }
+
+                    return null;
                 }
 
                 // Next prefer registered dependencies from other directories. Ideally this would not
@@ -114,11 +168,24 @@ namespace Microsoft.CodeAnalysis
                 // https://github.com/dotnet/roslyn/issues/56442
                 if (_loader.GetBestPath(assemblyName) is string bestRealPath)
                 {
-                    return LoadFromAssemblyPath(bestRealPath);
+                    return loadCore(bestRealPath);
                 }
 
                 // No analyzer registered this dependency. Time to fail
                 return null;
+
+                Assembly loadCore(string assemblyPath)
+                {
+                    if (_loader.AnalyzerLoadOption == AnalyzerLoadOption.LoadFromDisk)
+                    {
+                        return LoadFromAssemblyPath(assemblyPath);
+                    }
+                    else
+                    {
+                        using var stream = File.Open(assemblyPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                        return LoadFromStream(stream);
+                    }
+                }
             }
 
             protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
@@ -126,7 +193,7 @@ namespace Microsoft.CodeAnalysis
                 var assemblyPath = Path.Combine(Directory, unmanagedDllName + ".dll");
                 if (_loader.IsAnalyzerDependencyPath(assemblyPath))
                 {
-                    (_, var loadPath) = _loader.GetAssemblyInfoForPath(assemblyPath);
+                    (_, var loadPath, _) = _loader.GetAssemblyInfoForPath(assemblyPath);
                     return LoadUnmanagedDllFromPath(loadPath);
                 }
 

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         where TCompilationUnitSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
     {
-        private class MoveFileCodeAction(State state, ImmutableArray<string> newFolders) : CodeAction
+        private sealed class MoveFileCodeAction(State state, ImmutableArray<string> newFolders) : CodeAction
         {
             private readonly State _state = state;
             private readonly ImmutableArray<string> _newfolders = newFolders;
@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 ? string.Format(FeaturesResources.Move_file_to_0, string.Join(PathUtilities.DirectorySeparatorStr, _newfolders))
                 : FeaturesResources.Move_file_to_project_root_folder;
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var document = _state.Document;
                 var solution = _state.Document.Project.Solution;
@@ -44,9 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 solution = solution.AddDocument(newDocumentId, document.Name, text, folders: _newfolders);
 
-                return ImmutableArray.Create<CodeActionOperation>(
-                    new ApplyChangesOperation(solution),
-                    new OpenDocumentOperation(newDocumentId, activateIfAlreadyOpen: true));
+                return [new ApplyChangesOperation(solution), new OpenDocumentOperation(newDocumentId, activateIfAlreadyOpen: true)];
             }
 
             public static ImmutableArray<MoveFileCodeAction> Create(State state)
@@ -58,15 +57,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // In case the relative namespace is "", the file should be moved to project root,
                 // set `parts` to empty to indicate that.
                 var parts = state.RelativeDeclaredNamespace.Length == 0
-                    ? ImmutableArray<string>.Empty
-                    : state.RelativeDeclaredNamespace.Split(new[] { '.' }).ToImmutableArray();
+                    ? []
+                    : state.RelativeDeclaredNamespace.Split(['.']).ToImmutableArray();
 
                 // Invalid char can only appear in namespace name when there's error,
                 // which we have checked before creating any code actions.
                 Debug.Assert(parts.IsEmpty || parts.Any(static s => s.IndexOfAny(Path.GetInvalidPathChars()) < 0));
 
                 var projectRootFolder = FolderInfo.CreateFolderHierarchyForProject(document.Project);
-                var candidateFolders = FindCandidateFolders(projectRootFolder, parts, ImmutableArray<string>.Empty);
+                var candidateFolders = FindCandidateFolders(projectRootFolder, parts, []);
                 return candidateFolders.SelectAsArray(folders => new MoveFileCodeAction(state, folders));
             }
 
@@ -82,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             {
                 if (parts.IsEmpty)
                 {
-                    return ImmutableArray.Create(currentFolder);
+                    return [currentFolder];
                 }
 
                 // Try to figure out all possible folder names that can match the target namespace.
@@ -101,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     if (subFolders.TryGetValue(folderName, out var matchingFolderInfo))
                     {
                         var newParts = index >= parts.Length
-                            ? ImmutableArray<string>.Empty
+                            ? []
                             : ImmutableArray.Create(parts, index, parts.Length - index);
                         var newCurrentFolder = currentFolder.Add(matchingFolderInfo.Name);
                         builder.AddRange(FindCandidateFolders(matchingFolderInfo, newParts, newCurrentFolder));

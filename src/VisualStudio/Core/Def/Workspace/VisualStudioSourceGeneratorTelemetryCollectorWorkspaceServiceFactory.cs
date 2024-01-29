@@ -25,16 +25,19 @@ namespace Microsoft.VisualStudio.LanguageServices
     internal class VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory : IWorkspaceServiceFactory, IVsSolutionEvents
     {
         /// <summary>
-        /// The collector that's used to collect all the telemetry for operations within <see cref="VisualStudioWorkspace"/>. We'll report this
-        /// when the solution is closed, so the telemetry is linked to that.
+        /// The collector that's used to collect all the telemetry for operations within <see
+        /// cref="VisualStudioWorkspace"/>. We'll report this when the solution is closed, so the telemetry is linked to
+        /// that.
         /// </summary>
-        private readonly SourceGeneratorTelemetryCollectorWorkspaceService _visualStudioWorkspaceInstance = new SourceGeneratorTelemetryCollectorWorkspaceService();
+        private readonly SourceGeneratorTelemetryCollectorWorkspaceService _visualStudioWorkspaceInstance = new();
 
         /// <summary>
-        /// The collector used to collect telemetry for any other workspaces that might be created; we'll report this at the end of the session since nothing here is necessarily
-        /// linked to a specific solution. The expectation is this may be empty for many/most sessions, but we don't want a hole in our reporting and discover that the hard way.
+        /// The collector used to collect telemetry for any other workspaces that might be created; we'll report this at
+        /// the end of the session since nothing here is necessarily linked to a specific solution. The expectation is
+        /// this may be empty for many/most sessions, but we don't want a hole in our reporting and discover that the
+        /// hard way.
         /// </summary>
-        private readonly SourceGeneratorTelemetryCollectorWorkspaceService _otherWorkspacesInstance = new SourceGeneratorTelemetryCollectorWorkspaceService();
+        private readonly SourceGeneratorTelemetryCollectorWorkspaceService _otherWorkspacesInstance = new();
 
         private readonly IThreadingContext _threadingContext;
         private readonly IAsyncServiceProvider _serviceProvider;

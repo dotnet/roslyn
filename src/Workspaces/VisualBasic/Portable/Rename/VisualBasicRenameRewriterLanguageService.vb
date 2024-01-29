@@ -1036,7 +1036,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             Dim isInNamespaceOrTypeContext = SyntaxFacts.IsInNamespaceOrTypeContext(TryCast(syntax, ExpressionSyntax))
             Dim position = nodeToSpeculate.SpanStart
-            Return SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(nodeToSpeculate, DirectCast(originalSemanticModel, SemanticModel), position, isInNamespaceOrTypeContext)
+            Return SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(nodeToSpeculate, originalSemanticModel, position, isInNamespaceOrTypeContext)
         End Function
 
 #End Region

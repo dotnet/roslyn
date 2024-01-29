@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => BackgroundAnalysisScope.None;
 
         public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Active_File_Tag
-            => BackgroundAnalysisScope.ActiveFile;
+            => BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics;
 
         public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Open_Files_Tag
             => BackgroundAnalysisScope.OpenFiles;
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => CompilerDiagnosticsScope.None;
 
         public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Visible_Files_Tag
-            => CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics;
+            => CompilerDiagnosticsScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics;
 
         public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Open_Files_Tag
             => CompilerDiagnosticsScope.OpenFiles;
@@ -75,8 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Always_use_default_symbol_servers_for_navigation
             => ServicesVSResources.Always_use_default_symbol_servers_for_navigation;
 
-        public static string Option_Enable_pull_diagnostics_experimental_requires_restart
-            => ServicesVSResources.Enable_pull_diagnostics_experimental_requires_restart;
+        public static string Option_Enable_pull_diagnostics_requires_restart
+            => ServicesVSResources.Enable_pull_diagnostics_requires_restart;
 
         public static string Option_Enable_Razor_pull_diagnostics_experimental_requires_restart
             => ServicesVSResources.Enable_Razor_pull_diagnostics_experimental_requires_restart;
@@ -254,6 +254,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Collapse_regions_when_collapsing_to_definitions
             => ServicesVSResources.Collapse_regions_when_collapsing_to_definitions;
+
+        public static string Option_Collapse_local_functions_when_collapsing_to_definitions
+            => ServicesVSResources.Collapse_local_functions_when_collapsing_to_definitions;
 
         public static string Option_Block_Structure_Guides
             => ServicesVSResources.Block_Structure_Guides;

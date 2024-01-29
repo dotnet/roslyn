@@ -7,9 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.RemoveUnusedMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -1139,6 +1137,30 @@ class MyClass
         }
 
         [Fact]
+        public async Task InstanceConstructorIsUsed_RecordCopyConstructor()
+        {
+            var code = """
+                       var a = new A();
+                       
+                       sealed record A()
+                       {
+                           private A(A other) => throw new System.NotImplementedException();
+                       }
+                       """;
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task PropertyIsRead()
         {
             var code = """
@@ -1737,7 +1759,7 @@ class MyClass
                 }
                 """;
 
-            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
+            await VerifyCS.VerifyAnalyzerAsync(code, []);
         }
 
         [Fact]
@@ -1797,7 +1819,7 @@ class MyClass
                 }
                 """;
 
-            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
+            await VerifyCS.VerifyAnalyzerAsync(code, []);
         }
 
         [Fact]
@@ -1913,7 +1935,7 @@ class MyClass
                 }
                 """;
 
-            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
+            await VerifyCS.VerifyAnalyzerAsync(code, []);
         }
 
         [Fact]
@@ -1973,7 +1995,7 @@ class MyClass
                 }
                 """;
 
-            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
+            await VerifyCS.VerifyAnalyzerAsync(code, []);
         }
 
         [Fact]
@@ -3097,12 +3119,13 @@ class MyClass
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32842")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66975")]
         public async Task FieldIsNotRead_NullCoalesceAssignment()
         {
             var code = """
                 public class MyClass
                 {
-                    private MyClass {|IDE0052:_field|};
+                    private MyClass _field;
                     public void M() => _field ??= new MyClass();
                 }
                 """;

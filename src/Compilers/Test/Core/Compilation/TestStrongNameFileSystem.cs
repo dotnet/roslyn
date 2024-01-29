@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.IO;
 
@@ -14,7 +12,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal Func<string, byte[]> ReadAllBytesFunc { get; set; }
         internal Func<string, FileMode, FileAccess, FileShare, FileStream> CreateFileStreamFunc { get; set; }
 
-        internal TestStrongNameFileSystem()
+        internal TestStrongNameFileSystem(string? signingTempPath)
+            : base(signingTempPath)
         {
             ReadAllBytesFunc = base.ReadAllBytes;
             CreateFileStreamFunc = base.CreateFileStream;

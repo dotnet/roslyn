@@ -175,6 +175,12 @@
             <Color Name="xml literal - text">
                 <Foreground Type="CT_RAW" Source="FF555555" />
             </Color>
+            <Color Name="roslyn test code">
+                <Background Type="CT_RAW" Source="FFE5E5E5" />
+            </Color>
+            <Color Name="roslyn test code markdown">
+                <Foreground Type="CT_RAW" Source="FFFF01C1" />
+            </Color>
         </Category>
     </Theme>
     <Theme Name="Blue" GUID="{a4d6a176-b948-4b29-8c66-53c97a1ed7d0}">
@@ -346,6 +352,12 @@
             </Color>
             <Color Name="xml literal - text">
                 <Foreground Type="CT_RAW" Source="FF555555" />
+            </Color>
+            <Color Name="roslyn test code">
+                <Background Type="CT_RAW" Source="FFE5E5E5" />
+            </Color>
+            <Color Name="roslyn test code markdown">
+                <Foreground Type="CT_RAW" Source="FFFF01C1" />
             </Color>
         </Category>
     </Theme>
@@ -519,6 +531,9 @@
             <Color Name="xml literal - text">
                 <Foreground Type="CT_RAW" Source="FF3F3F3F" />
             </Color>
+            <Color Name="roslyn test code">
+                <Background Type="CT_RAW" Source="FFE5E5E5" />
+            </Color>
        </Category>
     </Theme>
     <Theme Name="Dark" GUID="{1ded0138-47ce-435e-84ef-9ec1f439b749}">
@@ -691,6 +706,12 @@
             <Color Name="xml literal - text">
                 <Foreground Type="CT_RAW" Source="FFC8C8C8" />
             </Color>
+            <Color Name="roslyn test code">
+                <Background Type="CT_RAW" Source="FF505050" />
+            </Color>
+            <Color Name="roslyn test code markdown">
+                <Foreground Type="CT_RAW" Source="FFFF01C1" />
+            </Color>
         </Category>
     </Theme>
     <!-- IMPORTANT: The HighContrast Theme settings should be the same across Scheme files. -->
@@ -859,6 +880,12 @@
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
             <Color Name="xml literal - text">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="roslyn test code">
+                <Background Type="CT_SYSCOLOR" Source="00000005" />
+            </Color>
+            <Color Name="roslyn test code markdown">
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
         </Category>

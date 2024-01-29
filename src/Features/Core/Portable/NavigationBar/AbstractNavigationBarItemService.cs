@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.NavigationBar
 
                 return result.HasValue
                     ? result.Value.SelectAsArray(v => v.Rehydrate())
-                    : ImmutableArray<RoslynNavigationBarItem>.Empty;
+                    : [];
             }
 
             var items = await GetItemsInCurrentProcessAsync(document, supportsCodeGeneration, cancellationToken).ConfigureAwait(false);

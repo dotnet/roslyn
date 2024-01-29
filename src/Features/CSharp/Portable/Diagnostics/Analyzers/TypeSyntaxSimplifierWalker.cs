@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private readonly CSharpSimplifyTypeNamesDiagnosticAnalyzer _analyzer;
         private readonly SemanticModel _semanticModel;
         private readonly CSharpSimplifierOptions _options;
-        private readonly SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? _ignoredSpans;
+        private readonly TextSpanIntervalTree? _ignoredSpans;
         private readonly CancellationToken _cancellationToken;
 
         private ImmutableArray<Diagnostic>.Builder? _diagnostics;
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public bool HasDiagnostics => _diagnostics?.Count > 0;
 
-        public ImmutableArray<Diagnostic> Diagnostics => _diagnostics?.ToImmutable() ?? ImmutableArray<Diagnostic>.Empty;
+        public ImmutableArray<Diagnostic> Diagnostics => _diagnostics?.ToImmutable() ?? [];
 
         public ImmutableArray<Diagnostic>.Builder DiagnosticsBuilder
         {
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
         }
 
-        public TypeSyntaxSimplifierWalker(CSharpSimplifyTypeNamesDiagnosticAnalyzer analyzer, SemanticModel semanticModel, CSharpSimplifierOptions options, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? ignoredSpans, CancellationToken cancellationToken)
+        public TypeSyntaxSimplifierWalker(CSharpSimplifyTypeNamesDiagnosticAnalyzer analyzer, SemanticModel semanticModel, CSharpSimplifierOptions options, TextSpanIntervalTree? ignoredSpans, CancellationToken cancellationToken)
             : base(SyntaxWalkerDepth.StructuredTrivia)
         {
             _analyzer = analyzer;
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return;
             }
 
-            if (node.IsKind(SyntaxKind.GenericName) && TrySimplify(node))
+            if (TrySimplify(node))
             {
                 // found a match. report it and stop processing.
                 return;

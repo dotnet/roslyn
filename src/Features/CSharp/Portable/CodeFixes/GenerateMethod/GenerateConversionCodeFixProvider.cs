@@ -33,15 +33,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
 
         public override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(CS0029, CS0030); }
+            get { return [CS0029, CS0030]; }
         }
 
         protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
         {
-            return node.IsKind(SyntaxKind.IdentifierName) ||
-                   node.IsKind(SyntaxKind.MethodDeclaration) ||
-                   node.IsKind(SyntaxKind.InvocationExpression) ||
-                   node.IsKind(SyntaxKind.CastExpression) ||
+            return node.Kind()
+                    is SyntaxKind.IdentifierName
+                    or SyntaxKind.MethodDeclaration
+                    or SyntaxKind.InvocationExpression
+                    or SyntaxKind.CastExpression ||
                    node is LiteralExpressionSyntax ||
                    node is SimpleNameSyntax ||
                    node is ExpressionSyntax;

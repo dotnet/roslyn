@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected override ImmutableArray<AbstractFormattingRule> GetBraceFormattingIndentationRulesAfterReturn(IndentationOptions options)
         {
-            return ImmutableArray.Create(BracketCompletionFormattingRule.Instance);
+            return [BracketCompletionFormattingRule.Instance];
         }
 
         private sealed class BracketCompletionFormattingRule : BaseFormattingRule
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 base.AddAlignTokensOperations(list, node, in nextOperation);
 
                 var bracketPair = node.GetBracketPair();
-                if (bracketPair.IsValidBracketOrBracePair() && node is ListPatternSyntax)
+                if (bracketPair.IsValidBracketOrBracePair() && node is ListPatternSyntax or CollectionExpressionSyntax)
                 {
                     // For list patterns we format brackets as though they are a block, so ensure the close bracket
                     // is aligned with the open bracket

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -65,22 +64,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         public async Task ErrorTagGeneratedForWarningAsError()
         {
             var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <CompilationOptions ReportDiagnostic = ""Error"" />
-            <Document FilePath = ""Test.cs"" >
-                class Program
-                {
-                    void Test()
-                    {
-                        int a = 5;
-                    }
-                }
-        </Document>
-    </Project>
-</Workspace>";
+                """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <CompilationOptions ReportDiagnostic = "Error" />
+                            <Document FilePath = "Test.cs" >
+                                class Program
+                                {
+                                    void Test()
+                                    {
+                                        int a = 5;
+                                    }
+                                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
-            using var workspace = TestWorkspace.Create(workspaceXml);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml);
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             var spans = (await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
 
@@ -92,28 +96,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         public async Task CustomizableTagsForUnnecessaryCode()
         {
             var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document FilePath = ""Test.cs"" >
-// System is used - rest are unused.
-using System.Collections;
-using System;
-using System.Diagnostics;
-using System.Collections.Generic;
+                """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath = "Test.cs" >
+                // System is used - rest are unused.
+                using System.Collections;
+                using System;
+                using System.Diagnostics;
+                using System.Collections.Generic;
 
-class Program
-{
-    void Test()
-    {
-        Int32 x = 2; // Int32 can be simplified.
-        x += 1;
-    }
-}
-        </Document>
-    </Project>
-</Workspace>";
+                class Program
+                {
+                    void Test()
+                    {
+                        Int32 x = 2; // Int32 can be simplified.
+                        x += 1;
+                    }
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
-            using var workspace = TestWorkspace.Create(workspaceXml, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             var language = workspace.Projects.Single().Language;
 
             workspace.GlobalOptions.SetGlobalOption(
@@ -211,7 +221,10 @@ class Program
         [WpfFact]
         public async Task SemanticErrorReported()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class C : Bar { }", composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+            using var workspace = EditorTestWorkspace.CreateCSharp("class C : Bar { }", composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace);
 
@@ -236,7 +249,11 @@ class Program
         [WpfFact]
         public async Task TestNoErrorsAfterDocumentRemoved()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class");
+            using var workspace = EditorTestWorkspace.CreateCSharp("class");
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
             var firstDocument = workspace.Documents.First();
@@ -264,7 +281,11 @@ class Program
         [WpfFact]
         public async Task TestNoErrorsAfterProjectRemoved()
         {
-            using var workspace = TestWorkspace.CreateCSharp("class");
+            using var workspace = EditorTestWorkspace.CreateCSharp("class");
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
             var firstDocument = workspace.Documents.First();
@@ -298,17 +319,22 @@ class Program
         public async Task BuildErrorZeroLengthSpan()
         {
             var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document FilePath = ""Test.cs"" >
-            class Test
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath = "Test.cs" >
+                            class Test
+                {
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
-            using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml, composition: s_mockComposition);
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             var document = workspace.Documents.First();
 
@@ -320,7 +346,7 @@ class Program
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetErrorsFromUpdateSource(workspace, updateArgs, DiagnosticKind.CompilerSyntax);
 
-            Assert.Equal(2, spans.Count());
+            Assert.Equal(2, spans.Count);
             var first = spans.First();
             var second = spans.Last();
 
@@ -332,17 +358,22 @@ class Program
         public async Task LiveErrorZeroLengthSpan()
         {
             var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document FilePath = ""Test.cs"" >
-            class Test
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath = "Test.cs" >
+                            class Test
+                {
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
-            using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml, composition: s_mockComposition);
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             var document = workspace.Documents.First();
 
@@ -354,7 +385,7 @@ class Program
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetErrorsFromUpdateSource(workspace, updateArgs, DiagnosticKind.CompilerSyntax);
 
-            Assert.Equal(2, spans.Count());
+            Assert.Equal(2, spans.Count);
             var first = spans.First();
             var second = spans.Last();
 
@@ -371,20 +402,28 @@ class Program
 
         private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(string content)
         {
-            using var workspace = TestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+            using var workspace = EditorTestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             return await GetTagSpansAsync(workspace);
         }
 
         private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansInSourceGeneratedDocumentAsync(string content)
         {
-            using var workspace = TestWorkspace.CreateCSharp(
-                files: Array.Empty<string>(),
+            using var workspace = EditorTestWorkspace.CreateCSharp(
+                files: [],
                 sourceGeneratedFiles: new[] { content },
                 composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             return await GetTagSpansAsync(workspace);
         }
 
-        private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(TestWorkspace workspace)
+        private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(EditorTestWorkspace workspace)
         {
             return (await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
         }

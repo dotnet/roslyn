@@ -11,7 +11,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ConsoleApplication62</RootNamespace>
     <AssemblyName>ConsoleApplication62</AssemblyName>
-   <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <DiscoverEditorConfigFiles>true</DiscoverEditorConfigFiles>
   </PropertyGroup>

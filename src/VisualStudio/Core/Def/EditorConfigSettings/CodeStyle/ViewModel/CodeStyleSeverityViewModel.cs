@@ -10,13 +10,18 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
 {
     internal class CodeStyleSeverityViewModel
     {
-        private static readonly string[] s_severities = new[]
-        {
-            ServicesVSResources.Disabled,
+        // NOTE: 'ServicesVSResources.Disabled' severity is not supported for code style settings.
+        //       Code styles can instead be disabled by setting the option value that turns off the style.
+        //       Theoretically, we can support the 'Disabled' severity, which translates to 'none' value in
+        //       editorconfig. However, adding this support would require us to update all our IDE code style
+        //       analyzers to turn themselves off when 'option.Notification.Severity is ReportDiagnostic.Suppress'
+        private static readonly string[] s_severities =
+        [
+            ServicesVSResources.Refactoring_Only,
             ServicesVSResources.Suggestion,
             ServicesVSResources.Warning,
             ServicesVSResources.Error
-        };
+        ];
 
         private readonly int _selectedSeverityIndex;
 
@@ -45,10 +50,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
         {
             _selectedSeverityIndex = setting.GetSeverity() switch
             {
-                DiagnosticSeverity.Hidden => 0,
-                DiagnosticSeverity.Info => 1,
-                DiagnosticSeverity.Warning => 2,
-                DiagnosticSeverity.Error => 3,
+                ReportDiagnostic.Hidden => 0,
+                ReportDiagnostic.Info => 1,
+                ReportDiagnostic.Warn => 2,
+                ReportDiagnostic.Error => 3,
                 _ => throw new InvalidOperationException(),
             };
 
@@ -59,10 +64,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
         {
             var severity = selectedIndex switch
             {
-                0 => DiagnosticSeverity.Hidden,
-                1 => DiagnosticSeverity.Info,
-                2 => DiagnosticSeverity.Warning,
-                3 => DiagnosticSeverity.Error,
+                0 => ReportDiagnostic.Hidden,
+                1 => ReportDiagnostic.Info,
+                2 => ReportDiagnostic.Warn,
+                3 => ReportDiagnostic.Error,
                 _ => throw new InvalidOperationException(),
             };
 

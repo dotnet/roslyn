@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UpgradeProject;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -21,7 +18,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpgradeProject
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
-    public partial class UpgradeProjectTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class UpgradeProjectTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public UpgradeProjectTests(ITestOutputHelper logger)
            : base(logger)
@@ -509,10 +506,10 @@ class Program
                     </Project>
                 </Workspace>
                 """,
-                new[] {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
                     string.Format(CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
-                });
+                ]);
         }
 
         [Fact]
@@ -539,11 +536,10 @@ class Program
                     </Project>
                 </Workspace>
                 """,
-                new[]
-                {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0"),
                     string.Format(CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0, "8.0")
-                }
+                ]
     );
         }
 
@@ -569,9 +565,9 @@ class Program
                     </Project>
                 </Workspace>
                 """,
-                new[] {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0")
-                    });
+                    ]);
         }
 
         [Fact]
@@ -598,9 +594,9 @@ class Program
                     </Project>
                 </Workspace>
                 """,
-                new[] {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0")
-                    });
+                    ]);
         }
 
         [Fact]
@@ -626,17 +622,16 @@ class C
     <Project Language=""Visual Basic"">
     </Project>
 </Workspace>",
-                new[] {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, defaultVersion),
                     string.Format(CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0, defaultVersion)
-                    });
+                    ]);
         }
 
         [Fact]
         public async Task OnlyOfferFixAllProjectsToCSharp8WhenApplicable()
         {
             await TestExactActionSetOfferedAsync(
-
                 """
                 <Workspace>
                     <Project Language="C#" LanguageVersion="6" CommonReferences="true">
@@ -653,9 +648,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-            new[] {
-                string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0"),
-                });
+                [string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0")]);
         }
 
         [Fact]
@@ -681,10 +674,10 @@ class C
     <Project Language=""Visual Basic"">
     </Project>
 </Workspace>",
-                new[] {
+                [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, defaultEffectiveVersion),
                     string.Format(CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0, defaultEffectiveVersion)
-                    });
+                    ]);
         }
 
         [Fact]
@@ -731,7 +724,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-                expectedActionSet: Enumerable.Empty<string>());
+                expectedActionSet: []);
         }
 
         [Fact]
@@ -765,7 +758,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-                expectedActionSet: Enumerable.Empty<string>());
+                expectedActionSet: []);
         }
 
         [Fact]
@@ -791,7 +784,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-                expectedActionSet: Enumerable.Empty<string>());
+                expectedActionSet: []);
         }
 
         [Fact]
@@ -831,7 +824,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-                expectedActionSet: Enumerable.Empty<string>());
+                expectedActionSet: []);
         }
 
         [Fact]
@@ -947,7 +940,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-                expectedActionSet: Enumerable.Empty<string>());
+                expectedActionSet: []);
         }
 
         [Fact]
@@ -981,7 +974,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-                expectedActionSet: Enumerable.Empty<string>());
+                expectedActionSet: []);
         }
 
         [Fact]
@@ -1007,7 +1000,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-                expectedActionSet: Enumerable.Empty<string>());
+                expectedActionSet: []);
         }
 
         [Fact]
@@ -1047,7 +1040,7 @@ class C
                     </Project>
                 </Workspace>
                 """,
-                expectedActionSet: Enumerable.Empty<string>());
+                expectedActionSet: []);
         }
 
         [Fact]
@@ -1096,7 +1089,7 @@ class C
             await TestLanguageVersionUpgradedAsync(
 @"
 class Program[|()|];",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1106,7 +1099,7 @@ class Program[|()|];",
             await TestLanguageVersionUpgradedAsync(
 @"
 struct Program[|()|];",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1116,7 +1109,7 @@ struct Program[|()|];",
             await TestLanguageVersionUpgradedAsync(
 @"
 class Program[|;|]",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1126,7 +1119,7 @@ class Program[|;|]",
             await TestLanguageVersionUpgradedAsync(
 @"
 struct Program[|;|]",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1136,7 +1129,7 @@ struct Program[|;|]",
             await TestLanguageVersionUpgradedAsync(
 @"
 interface Program[|;|]",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1146,7 +1139,7 @@ interface Program[|;|]",
             await TestLanguageVersionUpgradedAsync(
 @"
 enum Program[|;|]",
-                LanguageVersion.Preview,
+                LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
 
@@ -1266,6 +1259,23 @@ enum Program[|;|]",
                 """,
                 expected: LanguageVersion.CSharp11,
                 new CSharpParseOptions(LanguageVersion.CSharp10));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForRefInMismatch()
+        {
+            await TestLanguageVersionUpgradedAsync("""
+                class C
+                {
+                    void M1(in int x) { }
+                    void M2(ref int y)
+                    {
+                        M1(ref [|y|]);
+                    }
+                }
+                """,
+                expected: LanguageVersion.CSharp12,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
         }
     }
 }

@@ -16,12 +16,14 @@ namespace Microsoft.CodeAnalysis
         public static class Keywords
         {
             public const EventKeywords Performance = (EventKeywords)1;
+            public const EventKeywords Correctness = (EventKeywords)2;
         }
 
         public static class Tasks
         {
             public const EventTask GeneratorDriverRunTime = (EventTask)1;
             public const EventTask SingleGeneratorRunTime = (EventTask)2;
+            public const EventTask BuildStateTable = (EventTask)3;
         }
 
         private CodeAnalysisEventSource() { }
@@ -37,5 +39,11 @@ namespace Microsoft.CodeAnalysis
 
         [Event(4, Message = "Generator {0} ran for {2} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.SingleGeneratorRunTime)]
         internal void StopSingleGeneratorRunTime(string generatorName, string assemblyPath, long elapsedTicks, string id) => WriteEvent(4, generatorName, assemblyPath, elapsedTicks, id);
+
+        [Event(5, Message = "Generator '{0}' failed with exception: {1}", Level = EventLevel.Error)]
+        internal void GeneratorException(string generatorName, string exception) => WriteEvent(5, generatorName, exception);
+
+        [Event(6, Message = "Node {0} transformed", Keywords = Keywords.Correctness, Level = EventLevel.Verbose, Task = Tasks.BuildStateTable)]
+        internal void NodeTransform(int nodeHashCode, string name, string tableType, int previousTable, string previousTableContent, int newTable, string newTableContent, int input1, int input2) => WriteEvent(6, nodeHashCode, name, tableType, previousTable, previousTableContent, newTable, newTableContent, input1, input2);
     }
 }

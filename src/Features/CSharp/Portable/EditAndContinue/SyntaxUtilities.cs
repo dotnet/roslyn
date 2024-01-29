@@ -18,27 +18,36 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         public static LambdaBody CreateLambdaBody(SyntaxNode node)
             => new CSharpLambdaBody(node);
 
-        public static MemberBody? TryGetDeclarationBody(SyntaxNode node)
+        public static MemberBody? TryGetDeclarationBody(SyntaxNode node, ISymbol? symbol)
             => node switch
             {
                 MethodDeclarationSyntax methodDeclaration => CreateSimpleBody(BlockOrExpression(methodDeclaration.Body, methodDeclaration.ExpressionBody)),
                 ConversionOperatorDeclarationSyntax conversionDeclaration => CreateSimpleBody(BlockOrExpression(conversionDeclaration.Body, conversionDeclaration.ExpressionBody)),
                 OperatorDeclarationSyntax operatorDeclaration => CreateSimpleBody(BlockOrExpression(operatorDeclaration.Body, operatorDeclaration.ExpressionBody)),
-                AccessorDeclarationSyntax accessorDeclaration => CreateSimpleBody(BlockOrExpression(accessorDeclaration.Body, accessorDeclaration.ExpressionBody)),
                 DestructorDeclarationSyntax destructorDeclaration => CreateSimpleBody(BlockOrExpression(destructorDeclaration.Body, destructorDeclaration.ExpressionBody)),
+
+                AccessorDeclarationSyntax accessorDeclaration
+                    => BlockOrExpression(accessorDeclaration.Body, accessorDeclaration.ExpressionBody) != null
+                       ? new PropertyOrIndexerAccessorWithExplicitBodyDeclarationBody(accessorDeclaration)
+                       : new ExplicitAutoPropertyAccessorDeclarationBody(accessorDeclaration),
 
                 // We associate the body of expression-bodied property/indexer with the ArrowExpressionClause
                 // since that's the syntax node associated with the getter symbol.
+                // This approach makes it possible to change the expression body to an explicit getter and vice versa (both are method symbols).
+                // 
                 // The property/indexer itself is considered to not have a body unless the property has an initializer.
-                ArrowExpressionClauseSyntax { Parent: (kind: SyntaxKind.PropertyDeclaration) or (kind: SyntaxKind.IndexerDeclaration) } arrowClause => CreateSimpleBody(arrowClause.Expression),
-                PropertyDeclarationSyntax propertyDeclaration => CreateSimpleBody(propertyDeclaration.Initializer?.Value),
+                ArrowExpressionClauseSyntax { Parent: (kind: SyntaxKind.PropertyDeclaration) or (kind: SyntaxKind.IndexerDeclaration) } arrowExpression
+                    => new PropertyOrIndexerWithExplicitBodyDeclarationBody((BasePropertyDeclarationSyntax)arrowExpression.Parent!),
+
+                PropertyDeclarationSyntax { Initializer: { } propertyInitializer }
+                    => CreateSimpleBody(propertyInitializer.Value),
 
                 ConstructorDeclarationSyntax constructorDeclaration when constructorDeclaration.Body != null || constructorDeclaration.ExpressionBody != null
                     => constructorDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword)
                        ? CreateSimpleBody(BlockOrExpression(constructorDeclaration.Body, constructorDeclaration.ExpressionBody))
                        : (constructorDeclaration.Initializer != null)
-                       ? new InstanceConstructorWithExplicitInitializerDeclarationBody(constructorDeclaration)
-                       : new InstanceConstructorWithImplicitInitializerDeclarationBody(constructorDeclaration),
+                       ? new OrdinaryInstanceConstructorWithExplicitInitializerDeclarationBody(constructorDeclaration)
+                       : new OrdinaryInstanceConstructorWithImplicitInitializerDeclarationBody(constructorDeclaration),
 
                 CompilationUnitSyntax unit when unit.ContainsGlobalStatements()
                     => new TopLevelCodeDeclarationBody(unit),
@@ -46,6 +55,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 VariableDeclaratorSyntax { Parent.Parent: BaseFieldDeclarationSyntax fieldDeclaration, Initializer: { } } variableDeclarator
                     when !fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword)
                     => new FieldWithInitializerDeclarationBody(variableDeclarator),
+
+                ParameterListSyntax { Parent: TypeDeclarationSyntax typeDeclaration }
+                    => typeDeclaration is { BaseList.Types: [PrimaryConstructorBaseTypeSyntax { }, ..] }
+                        ? new PrimaryConstructorWithExplicitInitializerDeclarationBody(typeDeclaration)
+                        : new PrimaryConstructorWithImplicitInitializerDeclarationBody(typeDeclaration),
+
+                // Record type itself does not have a body, create body only when the declaration represents copy constructor:
+                RecordDeclarationSyntax recordDeclarationSyntax when symbol is not INamedTypeSymbol
+                    => new CopyConstructorDeclarationBody(recordDeclarationSyntax),
+
+                // Parameters themselves do not have a body, the synthesized property accessors do:
+                ParameterSyntax { Parent.Parent: RecordDeclarationSyntax } parameterSyntax when symbol is not IParameterSymbol
+                    => new RecordParameterDeclarationBody(parameterSyntax),
 
                 _ => null
             };

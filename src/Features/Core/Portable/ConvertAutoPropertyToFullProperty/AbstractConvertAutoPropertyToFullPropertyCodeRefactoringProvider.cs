@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
     {
         protected abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken);
         protected abstract (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
-            TCodeGenerationContextInfo info, SyntaxNode property, string fieldName, SyntaxGenerator generator);
+            TCodeGenerationContextInfo info, SyntaxNode property, string fieldName, SyntaxGenerator generator, CancellationToken cancellationToken);
         protected abstract SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property);
         protected abstract SyntaxNode GetInitializerValue(SyntaxNode property);
         protected abstract SyntaxNode ConvertPropertyToExpressionBodyIfDesired(TCodeGenerationContextInfo info, SyntaxNode fullProperty);
@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-
             Contract.ThrowIfNull(document.DocumentState.ParseOptions);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Services);
@@ -88,13 +87,13 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             // Create full property. If the auto property had an initial value
             // we need to remove it and later add it to the backing field
             var fieldName = await GetFieldNameAsync(document, propertySymbol, fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var (newGetAccessor, newSetAccessor) = GetNewAccessors(info, property, fieldName, generator);
+            var (newGetAccessor, newSetAccessor) = GetNewAccessors(info, property, fieldName, generator, cancellationToken);
             var fullProperty = generator
                 .WithAccessorDeclarations(
                     GetPropertyWithoutInitializer(property),
                     newSetAccessor == null
-                        ? new SyntaxNode[] { newGetAccessor }
-                        : new SyntaxNode[] { newGetAccessor, newSetAccessor })
+                        ? [newGetAccessor]
+                        : [newGetAccessor, newSetAccessor])
                 .WithLeadingTrivia(property.GetLeadingTrivia());
             fullProperty = ConvertPropertyToExpressionBodyIfDesired(info, fullProperty);
 

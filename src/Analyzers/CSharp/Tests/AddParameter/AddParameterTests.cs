@@ -20,7 +20,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-    public class AddParameterTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class AddParameterTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public AddParameterTests(ITestOutputHelper logger)
            : base(logger)
@@ -2938,7 +2938,7 @@ var b = ""B"";
 var r = new R(1, b);
 
 class R(int A, string b);
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54408")]
@@ -2980,7 +2980,7 @@ var b = ""B"";
 var r = new R(1, b);
 
 struct R(int A, string b);
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56952")]

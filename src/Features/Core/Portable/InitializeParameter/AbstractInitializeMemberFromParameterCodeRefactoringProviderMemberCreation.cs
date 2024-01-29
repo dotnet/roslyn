@@ -27,6 +27,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
+    using static InitializeParameterHelpersCore;
+
     internal abstract partial class AbstractInitializeMemberFromParameterCodeRefactoringProvider<
         TTypeDeclarationSyntax,
         TParameterSyntax,
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract SyntaxNode RemoveThrowNotImplemented(SyntaxNode propertySyntax);
         protected abstract bool TryUpdateTupleAssignment(IBlockOperation? blockStatement, IParameterSymbol parameter, ISymbol fieldOrProperty, SyntaxEditor editor);
 
-        protected override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
+        protected sealed override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
             ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan,
             CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return SpecializedTasks.EmptyImmutableArray<CodeAction>();
         }
 
-        protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
+        protected sealed override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
             Document document,
             TParameterSyntax parameterSyntax,
             IParameterSymbol parameter,
@@ -68,17 +70,17 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         {
             // Only supported for constructor parameters.
             if (method.MethodKind != MethodKind.Constructor)
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
 
             var typeDeclaration = constructorDeclaration.GetAncestor<TTypeDeclarationSyntax>();
             if (typeDeclaration == null)
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
 
             // See if we're already assigning this parameter to a field/property in this type. If so, there's nothing
             // more for us to do.
             var assignmentStatement = TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement);
             if (assignmentStatement != null)
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
 
             // Haven't initialized any fields/properties with this parameter.  Offer to assign
             // to an existing matching field/prop if we can find one, or add a new field/prop
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
             if (parameterNameParts.BaseName == "")
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
 
             var (fieldOrProperty, isThrowNotImplementedProperty) = await TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
                 document, parameter, blockStatement, rules, parameterNameParts.BaseNameParts, cancellationToken).ConfigureAwait(false);
@@ -258,11 +260,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             var title = string.Format(resource, fieldOrProperty.Name);
 
-            return ImmutableArray.Create(CodeAction.Create(
+            return [CodeAction.Create(
                 title,
                 c => AddSingleSymbolInitializationAsync(
                     document, functionDeclaration, blockStatement, parameter, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions, c),
-                title));
+                title)];
         }
 
         private static ISymbol? TryFindSiblingFieldOrProperty(
@@ -312,19 +314,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // We place a special rule in s_builtInRules that matches all fields.  So we should 
             // always find a matching rule.
             throw ExceptionUtilities.Unreachable();
-        }
-
-        private static string GenerateUniqueName(IParameterSymbol parameter, ImmutableArray<string> parameterNameParts, NamingRule rule)
-        {
-            // Determine an appropriate name to call the new field.
-            var containingType = parameter.ContainingType;
-            var baseName = rule.NamingStyle.CreateName(parameterNameParts);
-
-            // Ensure that the name is unique in the containing type so we
-            // don't stomp on an existing member.
-            var uniqueName = NameGenerator.GenerateUniqueName(
-                baseName, n => containingType.GetMembers(n).IsEmpty);
-            return uniqueName;
         }
 
         private IPropertySymbol CreateProperty(
@@ -594,28 +583,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return CodeGenerationContext.Default;
         }
 
-        protected static ImmutableArray<(IParameterSymbol parameter, bool before)> GetSiblingParameters(IParameterSymbol parameter)
-        {
-            using var _ = ArrayBuilder<(IParameterSymbol, bool before)>.GetInstance(out var siblings);
-
-            if (parameter.ContainingSymbol is IMethodSymbol method)
-            {
-                var parameterIndex = method.Parameters.IndexOf(parameter);
-
-                // look for an existing assignment for a parameter that comes before us.
-                // If we find one, we'll add ourselves after that parameter check.
-                for (var i = parameterIndex - 1; i >= 0; i--)
-                    siblings.Add((method.Parameters[i], before: true));
-
-                // look for an existing check for a parameter that comes before us.
-                // If we find one, we'll add ourselves after that parameter check.
-                for (var i = parameterIndex + 1; i < method.Parameters.Length; i++)
-                    siblings.Add((method.Parameters[i], before: false));
-            }
-
-            return siblings.ToImmutable();
-        }
-
         private SyntaxNode? TryGetStatementToAddInitializationAfter(
             IParameterSymbol parameter, IBlockOperation? blockStatement)
         {
@@ -633,7 +600,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     else
                     {
                         var statementIndex = blockStatement!.Operations.IndexOf(statement);
-                        return statementIndex > 0 ? blockStatement.Operations[statementIndex - 1].Syntax : null;
+                        return statementIndex > 0 && blockStatement.Operations[statementIndex - 1] is { IsImplicit: false, Syntax: var priorSyntax }
+                            ? priorSyntax
+                            : null;
                     }
                 }
             }
@@ -709,25 +678,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private static bool IsParameterReferenceOrCoalesceOfParameterReference(
-           IAssignmentOperation assignmentExpression, IParameterSymbol parameter)
-        {
-            if (IsParameterReference(assignmentExpression.Value, parameter))
-            {
-                // We already have a member initialized with this parameter like:
-                //      this.field = parameter
-                return true;
-            }
-
-            if (assignmentExpression.Value.UnwrapImplicitConversion() is ICoalesceOperation coalesceExpression &&
-                IsParameterReference(coalesceExpression.Value, parameter))
-            {
-                // We already have a member initialized with this parameter like:
-                //      this.field = parameter ?? ...
-                return true;
-            }
-
-            return false;
-        }
+            IAssignmentOperation assignmentExpression, IParameterSymbol parameter)
+            => InitializeParameterHelpersCore.IsParameterReferenceOrCoalesceOfParameterReference(assignmentExpression.Value, parameter);
 
         private async Task<(ISymbol?, bool isThrowNotImplementedProperty)> TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
             Document document, IParameterSymbol parameter, IBlockOperation? blockStatement, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterWords, CancellationToken cancellationToken)

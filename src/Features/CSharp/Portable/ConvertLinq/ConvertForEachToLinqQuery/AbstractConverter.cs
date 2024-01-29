@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             IEnumerable<SyntaxToken> leadingTokensForSelect,
             IEnumerable<SyntaxToken> trailingTokensForSelect)
             => SyntaxFactory.QueryExpression(
-                CreateFromClause(ForEachInfo.ForEachStatement, ForEachInfo.LeadingTokens.GetTrivia(), Enumerable.Empty<SyntaxTrivia>()),
+                CreateFromClause(ForEachInfo.ForEachStatement, ForEachInfo.LeadingTokens.GetTrivia(), []),
                 SyntaxFactory.QueryBody(
-                    SyntaxFactory.List(ForEachInfo.ConvertingExtendedNodes.Select(node => CreateQueryClause(node))),
+                    [.. ForEachInfo.ConvertingExtendedNodes.Select(node => CreateQueryClause(node))],
                     SyntaxFactory.SelectClause(selectExpression)
                         .WithCommentsFrom(leadingTokensForSelect, ForEachInfo.TrailingTokens.Concat(trailingTokensForSelect)),
                     continuation: null)) // The current coverage of foreach statements to support does not need to use query continuations.                                                                                                           
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                 receiverForInvocation: foreachStatement.Expression,
                 selectExpression: selectExpression,
                 leadingCommentsTrivia: ForEachInfo.LeadingTokens.GetTrivia(),
-                trailingCommentsTrivia: Enumerable.Empty<SyntaxTrivia>(),
+                trailingCommentsTrivia: [],
                 currentExtendedNodeIndex: ref currentExtendedNodeIndex)
                 .WithAdditionalAnnotations(Formatter.Annotation);
         }
@@ -206,8 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     SyntaxKind.SimpleMemberAccessExpression,
                     receiverForInvocation.Parenthesize(),
                     SyntaxFactory.IdentifierName(invokedMethodName)),
-                SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Argument(lambda))));
+                SyntaxFactory.ArgumentList([SyntaxFactory.Argument(lambda)]));
         }
 
         /// <summary>
@@ -282,8 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                             SyntaxKind.SimpleMemberAccessExpression,
                             receiver.Parenthesize(),
                             SyntaxFactory.IdentifierName(nameof(Enumerable.Where))),
-                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Argument(lambda))));
+                        SyntaxFactory.ArgumentList([SyntaxFactory.Argument(lambda)]));
 
                     ++extendedNodeIndex;
                     return CreateLinqInvocationForExtendedNode(selectExpression, ref extendedNodeIndex, ref receiver, ref hasForEachChild);

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         public bool IsMissing => VirtualChars.IsEmpty;
 
         public EmbeddedSyntaxToken<TSyntaxKind> AddDiagnosticIfNone(EmbeddedDiagnostic diagnostic)
-            => Diagnostics.Length > 0 ? this : WithDiagnostics(ImmutableArray.Create(diagnostic));
+            => Diagnostics.Length > 0 ? this : WithDiagnostics([diagnostic]);
 
         public EmbeddedSyntaxToken<TSyntaxKind> WithDiagnostics(ImmutableArray<EmbeddedDiagnostic> diagnostics)
             => With(diagnostics: diagnostics);

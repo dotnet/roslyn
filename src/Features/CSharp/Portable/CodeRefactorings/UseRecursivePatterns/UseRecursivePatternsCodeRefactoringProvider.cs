@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             => node switch
             {
                 BinaryExpressionSyntax(LogicalAndExpression) => true,
-                CasePatternSwitchLabelSyntax { WhenClause: { } whenClause } => true,
-                SwitchExpressionArmSyntax { WhenClause: { } whenClause } => true,
+                CasePatternSwitchLabelSyntax { WhenClause: { } } => true,
+                SwitchExpressionArmSyntax { WhenClause: { } } => true,
                 WhenClauseSyntax { Parent: CasePatternSwitchLabelSyntax } => true,
                 WhenClauseSyntax { Parent: SwitchExpressionArmSyntax } => true,
                 _ => false
@@ -383,10 +383,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             => SyntaxFactory.Subpattern(NameColon(name), pattern);
 
         private static RecursivePatternSyntax RecursivePattern(params SubpatternSyntax[] subpatterns)
-            => SyntaxFactory.RecursivePattern(type: null, positionalPatternClause: null, PropertyPatternClause(SeparatedList(subpatterns)), designation: null);
+            => SyntaxFactory.RecursivePattern(type: null, positionalPatternClause: null, PropertyPatternClause([.. subpatterns]), designation: null);
 
         private static RecursivePatternSyntax RecursivePattern(TypeSyntax? type, SubpatternSyntax subpattern, VariableDesignationSyntax? designation)
-            => SyntaxFactory.RecursivePattern(type, positionalPatternClause: null, PropertyPatternClause(SingletonSeparatedList(subpattern)), designation);
+            => SyntaxFactory.RecursivePattern(type, positionalPatternClause: null, PropertyPatternClause([subpattern]), designation);
 
         private static RecursivePatternSyntax RecursivePattern(SubpatternSyntax subpattern)
             => RecursivePattern(type: null, subpattern, designation: null);

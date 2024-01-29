@@ -500,9 +500,9 @@ namespace Microsoft.CodeAnalysis.LanguageService
             return argumentList is null ? default : syntaxFacts.GetArgumentsOfArgumentList(argumentList);
         }
 
-        public static SyntaxNode? GetArgumentListOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        public static SyntaxNode? GetArgumentListOfBaseObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
-            syntaxFacts.GetPartsOfObjectCreationExpression(node, out _, out var argumentList, out _);
+            syntaxFacts.GetPartsOfBaseObjectCreationExpression(node, out var argumentList, out _);
             return argumentList;
         }
 

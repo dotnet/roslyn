@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Completion
             ISymbol symbol,
             SymbolDescriptionOptions options)
         {
-            return CreateDescriptionFactory(workspaceServices, semanticModel, position, options, new[] { symbol });
+            return CreateDescriptionFactory(workspaceServices, semanticModel, position, options, [symbol]);
         }
 
         public static Func<CancellationToken, Task<CompletionDescription>> CreateDescriptionFactory(
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var formatter = workspaceServices.GetRequiredLanguageService<IDocumentationCommentFormattingService>(semanticModel.Language);
 
             // TODO(cyrusn): Figure out a way to cancel this.
-            var sections = await symbolDisplayService.ToDescriptionGroupsAsync(semanticModel, position, ImmutableArray.Create(symbol), options, cancellationToken).ConfigureAwait(false);
+            var sections = await symbolDisplayService.ToDescriptionGroupsAsync(semanticModel, position, [symbol], options, cancellationToken).ConfigureAwait(false);
 
             if (!sections.TryGetValue(SymbolDescriptionGroups.MainDescription, out var mainDescriptionTexts))
             {
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return lspProvider.TriggerCharacters;
             }
 
-            return ImmutableHashSet<char>.Empty;
+            return [];
         }
     }
 }

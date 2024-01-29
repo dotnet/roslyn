@@ -127,6 +127,11 @@
         <target state="translated">Sélection automatique désactivée en raison d'une déclaration de variable de modèle éventuelle.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
+        <source>Cannot determine valid range of statements to extract</source>
+        <target state="new">Cannot determine valid range of statements to extract</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">Changer en expression 'as'</target>
@@ -150,6 +155,11 @@
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">Convertir en chaîne brute</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_regular_constructor">
+        <source>Convert to regular constructor</source>
+        <target state="new">Convert to regular constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -312,11 +322,6 @@
         <target state="translated">Supprimer la qualification 'this'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
-        <source>Can't determine valid range of statements to extract</source>
-        <target state="translated">Impossible de déterminer la plage valide d'instructions à extraire</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
         <target state="translated">Tous les chemins du code n'ont pas été retournés</target>
@@ -434,12 +439,12 @@
       </trans-unit>
       <trans-unit id="top_level_code">
         <source>top-level code</source>
-        <target state="new">top-level code</target>
+        <target state="translated">code de niveau supérieur</target>
         <note />
       </trans-unit>
       <trans-unit id="top_level_statement">
         <source>top-level statement</source>
-        <target state="new">top-level statement</target>
+        <target state="translated">instruction de niveau supérieur</target>
         <note />
       </trans-unit>
       <trans-unit id="try_block">

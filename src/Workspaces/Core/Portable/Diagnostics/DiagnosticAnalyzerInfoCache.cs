@@ -112,6 +112,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Returns <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>
+        /// that are compilation end descriptors.
+        /// </summary>
+        public ImmutableArray<DiagnosticDescriptor> GetCompilationEndDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
+        {
+            var descriptorInfo = GetOrCreateDescriptorsInfo(analyzer);
+            return descriptorInfo.HasCompilationEndDescriptor
+                ? descriptorInfo.SupportedDescriptors.WhereAsArray(d => d.IsCompilationEnd())
+                : [];
+        }
+
+        /// <summary>
         /// Returns true if given <paramref name="analyzer"/> has a compilation end descriptor
         /// that is reported in the Compilation end action.
         /// </summary>
@@ -142,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // No need to report the exception to the user.
                 // Eventually, when the analyzer runs the compiler analyzer driver will report a diagnostic.
-                descriptors = ImmutableArray<DiagnosticDescriptor>.Empty;
+                descriptors = [];
             }
 
             PopulateIdToDescriptorMap(descriptors);
@@ -165,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // No need to report the exception to the user.
                 // Eventually, when the suppressor runs the compiler analyzer driver will report a diagnostic.
-                suppressions = ImmutableArray<SuppressionDescriptor>.Empty;
+                suppressions = [];
             }
 
             return new SuppressionDescriptorsInfo(suppressions);

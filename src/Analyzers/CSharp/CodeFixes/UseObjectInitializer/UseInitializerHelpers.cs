@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -15,8 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             BaseObjectCreationExpressionSyntax baseObjectCreation,
             SeparatedSyntaxList<ExpressionSyntax> expressions)
         {
-            if (baseObjectCreation is ObjectCreationExpressionSyntax objectCreation &&
-                objectCreation.ArgumentList?.Arguments.Count == 0)
+            if (baseObjectCreation is ObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0 } objectCreation)
             {
                 baseObjectCreation = objectCreation
                     .WithType(objectCreation.Type.WithTrailingTrivia(objectCreation.ArgumentList.GetTrailingTrivia()))
@@ -31,14 +31,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             return baseObjectCreation.WithInitializer(InitializerExpression(initializerKind, expressions));
         }
 
-        public static void AddExistingItems(BaseObjectCreationExpressionSyntax objectCreation, ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens)
+        public static void AddExistingItems<TMatch, TElementSyntax>(
+            BaseObjectCreationExpressionSyntax objectCreation,
+            ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens,
+            bool addTrailingComma,
+            Func<TMatch?, ExpressionSyntax, TElementSyntax> createElement)
+            where TMatch : struct
+            where TElementSyntax : SyntaxNode
         {
             if (objectCreation.Initializer != null)
-                nodesAndTokens.AddRange(objectCreation.Initializer.Expressions.GetWithSeparators());
+            {
+                foreach (var nodeOrToken in objectCreation.Initializer.Expressions.GetWithSeparators())
+                {
+                    if (nodeOrToken.IsToken)
+                        nodesAndTokens.Add(nodeOrToken.AsToken());
+                    else
+                        nodesAndTokens.Add(createElement(null, (ExpressionSyntax)nodeOrToken.AsNode()!));
+                }
+            }
 
             // If we have an odd number of elements already, add a comma at the end so that we can add the rest of the
             // items afterwards without a syntax issue.
-            if (nodesAndTokens.Count % 2 == 1)
+            if (addTrailingComma && nodesAndTokens.Count % 2 == 1)
             {
                 var last = nodesAndTokens.Last();
                 nodesAndTokens.RemoveLast();

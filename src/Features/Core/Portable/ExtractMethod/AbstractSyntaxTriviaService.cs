@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return tokens;
         }
 
-        private static Tuple<List<SyntaxTrivia>, List<SyntaxTrivia>> SplitTrivia(
+        private static (List<SyntaxTrivia>, List<SyntaxTrivia>) SplitTrivia(
             SyntaxToken token1,
             SyntaxToken token2,
             Func<SyntaxTrivia, bool> conditionToLeftAtCallSite)
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            return Tuple.Create(triviaLeftAtCallSite, triviaMovedToDefinition);
+            return (triviaLeftAtCallSite, triviaMovedToDefinition);
         }
     }
 }

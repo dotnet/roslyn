@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal static SyntaxTrivia Comment(string text)
         {
-            if (text.StartsWith("/*", StringComparison.Ordinal))
+            if (text is ['/' or '@', '*', ..])
             {
                 return SyntaxTrivia.Create(SyntaxKind.MultiLineCommentTrivia, text);
             }

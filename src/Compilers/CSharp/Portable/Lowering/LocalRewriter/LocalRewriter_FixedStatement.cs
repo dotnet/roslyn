@@ -329,15 +329,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression callReceiver;
             int currentConditionalAccessID = 0;
 
-            bool needNullCheck = !initializerType.IsValueType;
+            bool needNullCheck = !initializerType.IsValueType || initializerType.IsNullableType();
+            BoundAssignmentOperator? nullableTempAssignment = null;
+            BoundLocal? nullableBoundTemp = null;
 
             if (needNullCheck)
             {
-                currentConditionalAccessID = ++_currentConditionalAccessID;
-                callReceiver = new BoundConditionalReceiver(
-                    initializerSyntax,
-                    currentConditionalAccessID,
-                    initializerType);
+                if (initializerType.IsNullableType())
+                {
+                    nullableBoundTemp = factory.StoreToTemp(initializerExpr, out nullableTempAssignment);
+                    callReceiver = nullableBoundTemp;
+                }
+                else
+                {
+                    currentConditionalAccessID = ++_currentConditionalAccessID;
+                    callReceiver = new BoundConditionalReceiver(
+                        initializerSyntax,
+                        currentConditionalAccessID,
+                        initializerType);
+                }
             }
             else
             {
@@ -372,16 +382,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (needNullCheck)
             {
-                // initializer?.{temp =ref .GetPinnable(), (int*)&pinnedTemp} ?? default;
-                pinAndGetPtr = new BoundLoweredConditionalAccess(
-                    initializerSyntax,
-                    initializerExpr,
-                    hasValueMethodOpt: null,
-                    whenNotNull: pinAndGetPtr,
-                    whenNullOpt: null, // just return default(T*)
-                    currentConditionalAccessID,
-                    forceCopyOfNullableValueType: false,
-                    localType);
+                if (initializerType.IsNullableType())
+                {
+                    Debug.Assert(nullableBoundTemp is not null);
+                    Debug.Assert(nullableTempAssignment is not null);
+
+                    // (nullableTemp = initializer).HasValue ? {temp =ref nullableTemp.GetPinnable(), (int*)&pinnedTemp} : default;
+                    pinAndGetPtr = RewriteConditionalOperator(
+                        initializerSyntax,
+                        rewrittenCondition: factory.MakeNullableHasValue(initializerSyntax, nullableBoundTemp),
+                        rewrittenConsequence: pinAndGetPtr,
+                        rewrittenAlternative: _factory.Default(localType),
+                        constantValueOpt: null,
+                        localType,
+                        isRef: false);
+
+                    pinAndGetPtr = factory.Sequence(
+                        locals: ImmutableArray.Create(nullableBoundTemp.LocalSymbol),
+                        sideEffects: ImmutableArray.Create<BoundExpression>(nullableTempAssignment),
+                        result: pinAndGetPtr);
+                }
+                else
+                {
+                    // initializer?.{temp =ref .GetPinnable(), (int*)&pinnedTemp} ?? default;
+                    pinAndGetPtr = new BoundLoweredConditionalAccess(
+                        initializerSyntax,
+                        initializerExpr,
+                        hasValueMethodOpt: null,
+                        whenNotNull: pinAndGetPtr,
+                        whenNullOpt: null, // just return default(T*)
+                        currentConditionalAccessID,
+                        forceCopyOfNullableValueType: false,
+                        localType);
+                }
             }
 
             // ptr = initializer?.{temp =ref .GetPinnable(), (int*)&pinnedTemp} ?? default;

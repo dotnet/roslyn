@@ -17,8 +17,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// <summary>
         /// Compiler warnings and errors are computed for visible documents
         /// and open documents which had errors/warnings in the prior solution snapshot.
+        /// We want to analyze such non-visible, open documents to ensure that these
+        /// prior reported errors/warnings get cleared out from the error list if they are
+        /// no longer valid in the latest solution snapshot, hence ensuring error list has
+        /// no stale entries.
         /// </summary>
-        VisibleFilesAndFilesWithPreviouslyReportedDiagnostics = 1,
+        VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics = 1,
 
         /// <summary>
         /// Compiler warnings and errors are computed for all open documents.

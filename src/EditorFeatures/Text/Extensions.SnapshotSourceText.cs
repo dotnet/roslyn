@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                     if (oldText != _baseText)
                     {
-                        return new[] { new TextChangeRange(new TextSpan(0, oldText.Length), this.Length) };
+                        return [new TextChangeRange(new TextSpan(0, oldText.Length), this.Length)];
                     }
 
                     return GetChangeRanges(_baseSnapshot, _baseSnapshot.Length, this.TextImage);
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Text
                             // Oops - more than one "textual" change between these snapshots, bail and try to find smallest changes span
                             Logger.Log(FunctionId.Workspace_SourceText_GetChangeRanges, s_textLog, snapshot1.Version.VersionNumber, snapshot2.Version.VersionNumber);
 
-                            return new[] { GetChangeRanges(oldSnapshot.Version, newSnapshot.Version, forward) };
+                            return [GetChangeRanges(oldSnapshot.Version, newSnapshot.Version, forward)];
                         }
                         else
                         {

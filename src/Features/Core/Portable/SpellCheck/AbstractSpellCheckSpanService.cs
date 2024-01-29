@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -155,7 +154,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 while (currentCharIndex < virtualChars.Length)
                 {
                     var currentChar = virtualChars[currentCharIndex];
-                    if (!currentChar.IsLetter)
+                    if (!IsWordPart(currentChar))
                     {
                         currentCharIndex++;
                         continue;
@@ -165,19 +164,47 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                     var spanEnd = currentChar.Span.End;
 
                     var seenEscape = false;
-                    while (
-                        currentCharIndex < virtualChars.Length &&
-                        virtualChars[currentCharIndex] is { IsLetter: true } endChar)
+                    while (currentCharIndex < virtualChars.Length)
                     {
-                        // we know if we've seen a letter that is an escape character if it takes more than two actual
-                        // characters in the source.
-                        seenEscape = seenEscape || endChar.Span.Length > 1;
-                        spanEnd = endChar.Span.End;
-                        currentCharIndex++;
+                        var endChar = virtualChars[currentCharIndex];
+                        if (IsWordPart(endChar))
+                        {
+                            // we know if we've seen a letter that is an escape character if it takes more than two actual
+                            // characters in the source.
+                            seenEscape = seenEscape || endChar.Span.Length > 1;
+                            spanEnd = endChar.Span.End;
+                            currentCharIndex++;
+                        }
+                        else if (endChar == ' ' && endChar.Span.Length == 1)
+                        {
+                            // Consume a regular space (common between words) to keep the number of spans we report low.
+                            spanEnd = endChar.Span.End;
+                            currentCharIndex++;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
 
                     if (!seenEscape)
                         AddSpan(new SpellCheckSpan(TextSpan.FromBounds(spanStart, spanEnd), SpellCheckKind.String));
+                }
+
+                return;
+
+                static bool IsWordPart(VirtualChar ch)
+                {
+                    if (ch.IsLetter)
+                        return true;
+
+                    // Add more cases here as necessary.
+                    return ch.Value switch
+                    {
+                        // Apostrophe is a totally reasonable word character (for example, in an abbreviation).
+                        '\'' => true,
+                        _ => false,
+                    };
                 }
             }
 

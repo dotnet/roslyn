@@ -41,10 +41,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
 
             content = setting.Severity switch
             {
-                CodeAnalysis.DiagnosticSeverity.Hidden => ServicesVSResources.Disabled,
-                CodeAnalysis.DiagnosticSeverity.Info => ServicesVSResources.Suggestion,
-                CodeAnalysis.DiagnosticSeverity.Warning => ServicesVSResources.Warning,
-                CodeAnalysis.DiagnosticSeverity.Error => ServicesVSResources.Error,
+                CodeAnalysis.ReportDiagnostic.Suppress => ServicesVSResources.Disabled,
+                CodeAnalysis.ReportDiagnostic.Hidden => ServicesVSResources.Refactoring_Only,
+                CodeAnalysis.ReportDiagnostic.Info => ServicesVSResources.Suggestion,
+                CodeAnalysis.ReportDiagnostic.Warn => ServicesVSResources.Warning,
+                CodeAnalysis.ReportDiagnostic.Error => ServicesVSResources.Error,
                 _ => string.Empty,
             };
             return true;

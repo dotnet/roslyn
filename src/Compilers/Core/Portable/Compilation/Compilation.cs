@@ -9,14 +9,12 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
-using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -26,6 +24,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
@@ -3220,10 +3219,10 @@ namespace Microsoft.CodeAnalysis
                 var signKind = IsRealSigned
                     ? (SignUsingBuilder ? EmitStreamSignKind.SignedWithBuilder : EmitStreamSignKind.SignedWithFile)
                     : EmitStreamSignKind.None;
-                emitPeStream = new EmitStream(peStreamProvider, signKind, Options.StrongNameProvider);
+                emitPeStream = new EmitStream(peStreamProvider, signKind, StrongNameKeys, Options.StrongNameProvider);
                 emitMetadataStream = metadataPEStreamProvider == null
                     ? null
-                    : new EmitStream(metadataPEStreamProvider, signKind, Options.StrongNameProvider);
+                    : new EmitStream(metadataPEStreamProvider, signKind, StrongNameKeys, Options.StrongNameProvider);
                 metadataDiagnostics = DiagnosticBag.GetInstance();
 
                 if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Pdb && pdbStreamProvider != null)
@@ -3248,8 +3247,8 @@ namespace Microsoft.CodeAnalysis
                         moduleBeingBuilt,
                         metadataDiagnostics,
                         MessageProvider,
-                        emitPeStream.GetCreateStreamFunc(metadataDiagnostics),
-                        emitMetadataStream?.GetCreateStreamFunc(metadataDiagnostics),
+                        emitPeStream.GetCreateStreamFunc(MessageProvider, metadataDiagnostics),
+                        emitMetadataStream?.GetCreateStreamFunc(MessageProvider, metadataDiagnostics),
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
@@ -3301,8 +3300,8 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return
-                    emitPeStream.Complete(StrongNameKeys, MessageProvider, diagnostics) &&
-                    (emitMetadataStream?.Complete(StrongNameKeys, MessageProvider, diagnostics) ?? true);
+                    emitPeStream.Complete(MessageProvider, diagnostics) &&
+                    (emitMetadataStream?.Complete(MessageProvider, diagnostics) ?? true);
             }
             finally
             {
@@ -3465,6 +3464,16 @@ namespace Microsoft.CodeAnalysis
             string? v;
             return _features.TryGetValue(p, out v) ? v : null;
         }
+
+        #endregion
+
+        #region Features
+
+        /// <summary>
+        /// False when the "debug-analyzers" feature flag is set.
+        /// When that flag is set, the compiler will not catch exceptions from analyzer execution to allow creating dumps.
+        /// </summary>
+        internal bool CatchAnalyzerExceptions => Feature("debug-analyzers") == null;
 
         #endregion
 
@@ -3723,8 +3732,7 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<AssemblyIdentity>.Empty;
             }
 
-            var builder = ArrayBuilder<AssemblyIdentity>.GetInstance();
-
+            using var builder = TemporaryArray<AssemblyIdentity>.Empty;
             foreach (var argument in diagnostic.Arguments)
             {
                 if (argument is AssemblyIdentity id)
@@ -3733,7 +3741,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutableAndClear();
         }
 
         internal abstract bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code);

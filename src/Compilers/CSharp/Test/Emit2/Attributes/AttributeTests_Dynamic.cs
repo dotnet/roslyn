@@ -942,9 +942,6 @@ Gen<dynamic> x = null;";
                 + "X x = null;";
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (1,11): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // using X = dynamic[];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "dynamic[]").WithArguments("using type alias").WithLocation(1, 11),
                 // (20,1): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // X x = null;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(20, 1));

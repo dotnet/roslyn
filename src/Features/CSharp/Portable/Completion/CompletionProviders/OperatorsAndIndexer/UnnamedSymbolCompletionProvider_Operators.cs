@@ -32,14 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private readonly int OperatorSortingGroupIndex = 2;
 
         private readonly string OperatorName = nameof(OperatorName);
-        private readonly ImmutableDictionary<string, string> OperatorProperties =
-            ImmutableDictionary<string, string>.Empty.Add(KindName, OperatorKindName);
+        private readonly ImmutableArray<KeyValuePair<string, string>> OperatorProperties =
+            [new KeyValuePair<string, string>(KindName, OperatorKindName)];
 
         /// <summary>
         /// Ordered in the order we want to display operators in the completion list.
         /// </summary>
         private static readonly ImmutableArray<(string name, OperatorPosition position)> s_operatorInfo =
-            ImmutableArray.Create(
+            [
                 (WellKnownMemberNames.EqualityOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.InequalityOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.GreaterThanOperatorName, OperatorPosition.Infix),
@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (WellKnownMemberNames.LeftShiftOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.RightShiftOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.UnsignedRightShiftOperatorName, OperatorPosition.Infix),
-                (WellKnownMemberNames.OnesComplementOperatorName, OperatorPosition.Prefix));
+                (WellKnownMemberNames.OnesComplementOperatorName, OperatorPosition.Prefix),
+            ];
 
         /// <summary>
         /// Mapping from operator name to info about it.
@@ -103,7 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
 
             var displayText = GetOperatorText(opName);
-
             context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 displayTextSuffix: null,
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbols: operators.ToImmutableArray(),
                 rules: s_operatorRules,
                 contextPosition: context.Position,
-                properties: OperatorProperties.Add(OperatorName, opName),
+                properties: [.. OperatorProperties, new KeyValuePair<string, string>(OperatorName, opName)],
                 isComplexTextEdit: true));
         }
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private async Task<CompletionChange> GetOperatorChangeAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            var opName = item.Properties[OperatorName];
+            var opName = item.GetProperty(OperatorName);
             var opPosition = GetOperatorPosition(opName);
 
             if (opPosition.HasFlag(OperatorPosition.Infix))

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.TestMetadata;
 
@@ -211,19 +212,18 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (7,16): error CS1661: Cannot convert anonymous method to delegate type 'boo' because the parameter types do not match the delegate parameter types
+                // (7,16): error CS1661: Cannot convert anonymous method to type 'boo' because the parameter types do not match the delegate parameter types
                 //         goo += delegate (string x) { System.Console.WriteLine(x); };// Invalid
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate (string x) { System.Console.WriteLine(x); }").WithArguments("anonymous method", "boo"),
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate").WithArguments("anonymous method", "boo").WithLocation(7, 16),
                 // (7,33): error CS1678: Parameter 1 is declared as type 'string' but should be 'int'
                 //         goo += delegate (string x) { System.Console.WriteLine(x); };// Invalid
-                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int"),
-                // (8,16): error CS1661: Cannot convert anonymous method to delegate type 'boo' because the parameter types do not match the delegate parameter types
+                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int").WithLocation(7, 33),
+                // (8,16): error CS1661: Cannot convert anonymous method to type 'boo' because the parameter types do not match the delegate parameter types
                 //         goo -= delegate (string x) { System.Console.WriteLine(x); };// Invalid
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate (string x) { System.Console.WriteLine(x); }").WithArguments("anonymous method", "boo"),
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate").WithArguments("anonymous method", "boo").WithLocation(8, 16),
                 // (8,33): error CS1678: Parameter 1 is declared as type 'string' but should be 'int'
                 //         goo -= delegate (string x) { System.Console.WriteLine(x); };// Invalid
-                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int")
-                );
+                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int").WithLocation(8, 33));
         }
 
         // Lambda expression to removal or concatenation
@@ -244,19 +244,18 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (7,16): error CS1661: Cannot convert lambda expression to delegate type 'boo' because the parameter types do not match the delegate parameter types
+                // (7,27): error CS1661: Cannot convert lambda expression to type 'boo' because the parameter types do not match the delegate parameter types
                 //         goo += (string x) => { };// Invalid
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(string x) => { }").WithArguments("lambda expression", "boo"),
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "boo").WithLocation(7, 27),
                 // (7,24): error CS1678: Parameter 1 is declared as type 'string' but should be 'int'
                 //         goo += (string x) => { };// Invalid
-                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int"),
-                // (8,16): error CS1661: Cannot convert lambda expression to delegate type 'boo' because the parameter types do not match the delegate parameter types
+                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int").WithLocation(7, 24),
+                // (8,27): error CS1661: Cannot convert lambda expression to type 'boo' because the parameter types do not match the delegate parameter types
                 //         goo -= (string x) => { };// Invalid
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(string x) => { }").WithArguments("lambda expression", "boo"),
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "boo").WithLocation(8, 27),
                 // (8,24): error CS1678: Parameter 1 is declared as type 'string' but should be 'int'
                 //         goo -= (string x) => { };// Invalid
-                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int")
-                );
+                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int").WithLocation(8, 24));
         }
 
         // Successive operator for addition and subtraction assignment
@@ -387,41 +386,40 @@ class C
             CreateCompilation(text).VerifyDiagnostics(
                 // (12,18): error CS0123: No overload for 'bar1' matches delegate 'boo<int>'
                 //         goo += p.bar1;// Invalid
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "bar1").WithArguments("bar1", "boo<int>"),
-                // (14,16): error CS1661: Cannot convert lambda expression to delegate type 'boo<int>' because the parameter types do not match the delegate parameter types
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "bar1").WithArguments("bar1", "boo<int>").WithLocation(12, 18),
+                // (14,27): error CS1661: Cannot convert lambda expression to type 'boo<int>' because the parameter types do not match the delegate parameter types
                 //         goo += (string x) => { System.Console.WriteLine("Lambda:{0}", x); };// Invalid
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, @"(string x) => { System.Console.WriteLine(""Lambda:{0}"", x); }").WithArguments("lambda expression", "boo<int>"),
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "boo<int>").WithLocation(14, 27),
                 // (14,24): error CS1678: Parameter 1 is declared as type 'string' but should be 'int'
                 //         goo += (string x) => { System.Console.WriteLine("Lambda:{0}", x); };// Invalid
-                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int"),
-                // (16,16): error CS1661: Cannot convert anonymous method to delegate type 'boo<int>' because the parameter types do not match the delegate parameter types
+                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int").WithLocation(14, 24),
+                // (16,16): error CS1661: Cannot convert anonymous method to type 'boo<int>' because the parameter types do not match the delegate parameter types
                 //         goo += delegate (string x) { System.Console.WriteLine("Anonymous:{0}", x); };// Invalid
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, @"delegate (string x) { System.Console.WriteLine(""Anonymous:{0}"", x); }").WithArguments("anonymous method", "boo<int>"),
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate").WithArguments("anonymous method", "boo<int>").WithLocation(16, 16),
                 // (16,33): error CS1678: Parameter 1 is declared as type 'string' but should be 'int'
                 //         goo += delegate (string x) { System.Console.WriteLine("Anonymous:{0}", x); };// Invalid
-                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int"),
+                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "string", "", "int").WithLocation(16, 33),
                 // (19,19): error CS0123: No overload for 'bar' matches delegate 'boo<string>'
                 //         goo1 += p.bar;// Invalid
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "bar").WithArguments("bar", "boo<string>"),
-                // (22,17): error CS1661: Cannot convert lambda expression to delegate type 'boo<string>' because the parameter types do not match the delegate parameter types
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "bar").WithArguments("bar", "boo<string>").WithLocation(19, 19),
+                // (22,25): error CS1661: Cannot convert lambda expression to type 'boo<string>' because the parameter types do not match the delegate parameter types
                 //         goo1 += (int x) => { System.Console.WriteLine("Lambda:{0}", x); };// Invalid
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, @"(int x) => { System.Console.WriteLine(""Lambda:{0}"", x); }").WithArguments("lambda expression", "boo<string>"),
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "boo<string>").WithLocation(22, 25),
                 // (22,22): error CS1678: Parameter 1 is declared as type 'int' but should be 'string'
                 //         goo1 += (int x) => { System.Console.WriteLine("Lambda:{0}", x); };// Invalid
-                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "int", "", "string"),
-                // (23,17): error CS1661: Cannot convert anonymous method to delegate type 'boo<string>' because the parameter types do not match the delegate parameter types
+                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "int", "", "string").WithLocation(22, 22),
+                // (23,17): error CS1661: Cannot convert anonymous method to type 'boo<string>' because the parameter types do not match the delegate parameter types
                 //         goo1 += delegate (int x) { System.Console.WriteLine("Anonymous:{0}", x); };// Invalid
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, @"delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); }").WithArguments("anonymous method", "boo<string>"),
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate").WithArguments("anonymous method", "boo<string>").WithLocation(23, 17),
                 // (23,31): error CS1678: Parameter 1 is declared as type 'int' but should be 'string'
                 //         goo1 += delegate (int x) { System.Console.WriteLine("Anonymous:{0}", x); };// Invalid
-                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "int", "", "string"),
+                Diagnostic(ErrorCode.ERR_BadParamType, "x").WithArguments("1", "", "int", "", "string").WithLocation(23, 31),
                 // (25,16): error CS0029: Cannot implicitly convert type 'boo<string>' to 'boo<int>'
                 //         goo += goo1;// Invalid
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goo1").WithArguments("boo<string>", "boo<int>"),
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goo1").WithArguments("boo<string>", "boo<int>").WithLocation(25, 16),
                 // (26,17): error CS0029: Cannot implicitly convert type 'boo<int>' to 'boo<string>'
                 //         goo1 += goo;// Invalid
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goo").WithArguments("boo<int>", "boo<string>")
-                );
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goo").WithArguments("boo<int>", "boo<string>").WithLocation(26, 17));
         }
 
         // generic-delegate (goo<t>(...)) += generic-methodgroup(bar<t>(...))
@@ -7110,7 +7108,7 @@ struct S
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      ""dynamic S.value""
-  IL_0007:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_0007:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
   IL_000c:  brtrue.s   IL_004d
   IL_000e:  ldc.i4     0x102
   IL_0013:  ldstr      ""Add""
@@ -7132,14 +7130,14 @@ struct S
   IL_0038:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
   IL_003d:  stelem.ref
   IL_003e:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0043:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0048:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
-  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
-  IL_0052:  ldfld      ""<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Target""
-  IL_0057:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_0043:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0048:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_0052:  ldfld      ""<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Target""
+  IL_0057:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
   IL_005c:  ldarg.0
   IL_005d:  ldarg.1
-  IL_005e:  callvirt   ""void <>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, dynamic)""
+  IL_005e:  callvirt   ""void <>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, dynamic)""
   IL_0063:  newobj     ""System.NotImplementedException..ctor()""
   IL_0068:  throw
 }");
@@ -7181,7 +7179,7 @@ struct S
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  stfld      ""dynamic S.value""
-  IL_0007:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_0007:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
   IL_000c:  brtrue.s   IL_004d
   IL_000e:  ldc.i4     0x100
   IL_0013:  ldstr      ""Add""
@@ -7203,14 +7201,14 @@ struct S
   IL_0038:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
   IL_003d:  stelem.ref
   IL_003e:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0043:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0048:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
-  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
-  IL_0052:  ldfld      ""<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Target""
-  IL_0057:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_0043:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0048:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_0052:  ldfld      ""<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Target""
+  IL_0057:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
   IL_005c:  ldarg.0
   IL_005d:  ldarg.1
-  IL_005e:  callvirt   ""void <>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, dynamic)""
+  IL_005e:  callvirt   ""void <>A{00000008}<System.Runtime.CompilerServices.CallSite, S, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, dynamic)""
   IL_0063:  newobj     ""System.NotImplementedException..ctor()""
   IL_0068:  throw
 }");
@@ -12575,7 +12573,7 @@ public class Myclass
 }
 ";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new[] { LinqAssemblyRef },
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_ExpressionTreeMustHaveDelegate, Line = 8, Column = 29 } });
+                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_ExpressionTreeMustHaveDelegate, Line = 8, Column = 31 } });
         }
 
         [Fact]
@@ -16248,16 +16246,15 @@ class Errors
 ";
             var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
-                // (7,13): error CS1661: Cannot convert anonymous method to delegate type 'E' because the parameter types do not match the delegate parameter types
+                // (7,13): error CS1661: Cannot convert anonymous method to type 'E' because the parameter types do not match the delegate parameter types
                 //       E e = delegate(out int i) { };   // CS1676
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate(out int i) { }").WithArguments("anonymous method", "E"),
-                // (7,22): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate").WithArguments("anonymous method", "E").WithLocation(7, 13),
+                // (7,30): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //       E e = delegate(out int i) { };   // CS1676
-                Diagnostic(ErrorCode.ERR_BadParamRef, "i").WithArguments("1", "ref"),
+                Diagnostic(ErrorCode.ERR_BadParamRef, "i").WithArguments("1", "ref").WithLocation(7, 30),
                 // (7,13): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
                 //       E e = delegate(out int i) { };   // CS1676
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "delegate(out int i) { }").WithArguments("i")
-                );
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "delegate(out int i) { }").WithArguments("i").WithLocation(7, 13));
         }
 
         [Fact]
@@ -16276,25 +16273,24 @@ class Errors
 ";
             var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
-                // (7,15): error CS1661: Cannot convert anonymous method to delegate type 'D' because the parameter types do not match the delegate parameter types
+                // (7,15): error CS1661: Cannot convert anonymous method to type 'D' because the parameter types do not match the delegate parameter types
                 //         D d = delegate(out int i) { };   // CS1677
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate(out int i) { }").WithArguments("anonymous method", "D"),
-                // (7,24): error CS1677: Parameter 1 should not be declared with the 'out' keyword
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate").WithArguments("anonymous method", "D").WithLocation(7, 15),
+                // (7,32): error CS1677: Parameter 1 should not be declared with the 'out' keyword
                 //         D d = delegate(out int i) { };   // CS1677
-                Diagnostic(ErrorCode.ERR_BadParamExtraRef, "i").WithArguments("1", "out"),
-                // (8,15): error CS1661: Cannot convert anonymous method to delegate type 'D' because the parameter types do not match the delegate parameter types
+                Diagnostic(ErrorCode.ERR_BadParamExtraRef, "i").WithArguments("1", "out").WithLocation(7, 32),
+                // (8,11): error CS0128: A local variable or function named 'd' is already defined in this scope
                 //         D d = delegate(ref int j) { }; // CS1677
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate(ref int j) { }").WithArguments("anonymous method", "D"),
-                // (8,24): error CS1677: Parameter 1 should not be declared with the 'ref' keyword
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "d").WithArguments("d").WithLocation(8, 11),
+                // (8,15): error CS1661: Cannot convert anonymous method to type 'D' because the parameter types do not match the delegate parameter types
                 //         D d = delegate(ref int j) { }; // CS1677
-                Diagnostic(ErrorCode.ERR_BadParamExtraRef, "j").WithArguments("1", "ref"),
-                // (8,11): error CS0128: A local variable named 'd' is already defined in this scope
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate").WithArguments("anonymous method", "D").WithLocation(8, 15),
+                // (8,32): error CS1677: Parameter 1 should not be declared with the 'ref' keyword
                 //         D d = delegate(ref int j) { }; // CS1677
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "d").WithArguments("d"),
+                Diagnostic(ErrorCode.ERR_BadParamExtraRef, "j").WithArguments("1", "ref").WithLocation(8, 32),
                 // (7,15): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
                 //         D d = delegate(out int i) { };   // CS1677
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "delegate(out int i) { }").WithArguments("i")
-                );
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "delegate(out int i) { }").WithArguments("i").WithLocation(7, 15));
         }
 
         [Fact]
@@ -16457,11 +16453,7 @@ class ErrorCS1676
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 34),
                 // (9,13): error CS1688: Cannot convert anonymous method block without a parameter list to delegate type 'OutParam' because it has one or more out parameters
                 //         o = delegate  // CS1688
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, @"delegate  // CS1688
-        {
-            Console.WriteLine("");
-        }").WithArguments("OutParam").WithLocation(9, 13)
-                );
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate").WithArguments("OutParam").WithLocation(9, 13));
         }
 
         [Fact]
@@ -17467,8 +17459,7 @@ class Test
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (10,30): error CS1946: An anonymous method expression cannot be converted to an expression tree
                 //         Expression<D> tree = delegate() { }; //CS1946
-                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate() { }")
-                );
+                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate").WithLocation(10, 30));
         }
 
         [Fact]
@@ -24570,10 +24561,10 @@ class B : System.Attribute {
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (2,2): error CS8358: Cannot use attribute constructor 'A.A(in int)' because it has 'in' parameters.
+                // (2,2): error CS8358: Cannot use attribute constructor 'A.A(in int)' because it has 'in' or 'ref readonly'' parameters.
                 // [A(1)]
                 Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(in int)").WithLocation(2, 2),
-                // (7,2): error CS8358: Cannot use attribute constructor 'B.B(in int)' because it has 'in' parameters.
+                // (7,2): error CS8358: Cannot use attribute constructor 'B.B(in int)' because it has 'in' or 'ref readonly'' parameters.
                 // [B()]
                 Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "B()").WithArguments("B.B(in int)").WithLocation(7, 2)
                 );
@@ -24668,6 +24659,432 @@ unsafe class C<T, U, V, X, Y, Z> where T : byte*
                     // (1,22): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                     // class A<T> where T : object[] {}
                     Diagnostic(ErrorCode.ERR_BadConstraintType, "object[]").WithLocation(1, 22));
+        }
+
+        [Fact]
+        public void BestType_NestedError_ArrayCreation()
+        {
+            var source = """
+                public class C {
+                    public void M0() {
+                        M1(new[] { ERROR, 1 });
+                        M2(new[] { (ERROR, 1), (1, 2) });
+                    }
+
+                    public void M1(int[] arr) { }
+                    public void M2((int, int)[] arr) { }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,20): error CS0103: The name 'ERROR' does not exist in the current context
+                //         M1(new[] { ERROR, 1 });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(3, 20),
+                // (4,21): error CS0103: The name 'ERROR' does not exist in the current context
+                //         M2(new[] { (ERROR, 1), (1, 2) });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(4, 21));
+        }
+
+        [Fact]
+        public void BestType_NestedError_StackallocArrayCreation()
+        {
+            var source = """
+                using System;
+
+                public class C {
+                    public void M0() {
+                        M1(stackalloc int[] { ERROR, 1 });
+                        M2(stackalloc (int, int)[] { (ERROR, 1), (1, 2) });
+                    }
+
+                    public void M1(Span<int> arr) { }
+                    public void M2(Span<(int, int)> arr) { }
+                }
+                """;
+            var comp = CreateCompilationWithSpan(source);
+            comp.VerifyDiagnostics(
+                // (5,31): error CS0103: The name 'ERROR' does not exist in the current context
+                //         M1(stackalloc int[] { ERROR, 1 });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 31),
+                // (6,39): error CS0103: The name 'ERROR' does not exist in the current context
+                //         M2(stackalloc (int, int)[] { (ERROR, 1), (1, 2) });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(6, 39));
+        }
+
+        [Fact]
+        public void BestType_NestedError_SwitchExpr()
+        {
+            var source = """
+                public class C {
+                    public int M0() {
+                        return 1 switch
+                        {
+                            1 => ERROR,
+                            _ => 1
+                        };
+                    }
+
+                    public (int, int) M1() {
+                        return 1 switch
+                        {
+                            1 => (ERROR, 1),
+                            _ => (1, 2)
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,18): error CS0103: The name 'ERROR' does not exist in the current context
+                //             1 => ERROR,
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 18),
+                // (13,19): error CS0103: The name 'ERROR' does not exist in the current context
+                //             1 => (ERROR, 1),
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(13, 19));
+        }
+
+        [Fact]
+        public void BestType_NestedError_ConditionalExpr()
+        {
+            var source = """
+                public class C {
+                    public int M0() {
+                        return 1 == 1 ? ERROR : 1;
+                    }
+
+                    public (int, int) M1() {
+                        return 1 == 1 ? (ERROR, 1) : (1, 2);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,25): error CS0103: The name 'ERROR' does not exist in the current context
+                //         return 1 == 1 ? ERROR : 1;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(3, 25),
+                // (7,26): error CS0103: The name 'ERROR' does not exist in the current context
+                //         return 1 == 1 ? (ERROR, 1) : (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(7, 26));
+        }
+
+        [Fact]
+        public void BestType_NestedError_LambdaReturns()
+        {
+            var source = """
+                using System;
+
+                public class C {
+                    public void M0() {
+                        Func<bool, int> fn1 = flag =>
+                        {
+                            if (flag) return ERROR;
+                            return 1;
+                        };
+
+                        Func<bool, (int, int)> fn2 = flag =>
+                        {
+                            if (flag) return (ERROR, 1);
+                            return (1, 2);
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,30): error CS0103: The name 'ERROR' does not exist in the current context
+                //             if (flag) return ERROR;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(7, 30),
+                // (13,31): error CS0103: The name 'ERROR' does not exist in the current context
+                //             if (flag) return (ERROR, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(13, 31));
+        }
+
+        [Fact]
+        public void BestType_NestedError_LambdaReturns_NoTargetType()
+        {
+            var source = """
+                public class C {
+                    public void M0(bool flag) {
+                        var fn1 = () =>
+                        {
+                            if (flag) return ERROR;
+                            return 1;
+                        };
+
+                        var fn2 = () =>
+                        {
+                            if (flag) return (ERROR, 1);
+                            return (1, 2);
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,30): error CS0103: The name 'ERROR' does not exist in the current context
+                //             if (flag) return ERROR;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 30),
+                // (6,20): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //             return 1;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "1").WithArguments("lambda expression").WithLocation(6, 20),
+                // (11,31): error CS0103: The name 'ERROR' does not exist in the current context
+                //             if (flag) return (ERROR, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(11, 31),
+                // (12,20): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //             return (1, 2);
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "(1, 2)").WithArguments("lambda expression").WithLocation(12, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68110")]
+        public void DefaultSyntaxValueReentrancy_01()
+        {
+            var source =
+                """
+                #nullable enable
+
+                [A(3, X = 6)]
+                public interface A
+                {
+                    public int X { get; set; }
+
+                    public void M(int x, A a = new A()) { }
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            var a = compilation.GlobalNamespace.GetTypeMember("A").GetMember<MethodSymbol>("M");
+
+            Assert.Null(a.Parameters[1].ExplicitDefaultValue);
+            Assert.True(a.Parameters[1].HasExplicitDefaultValue);
+
+            compilation.VerifyDiagnostics(
+                // (3,2): error CS0653: Cannot apply attribute class 'A' because it is abstract
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_AbstractAttributeClass, "A").WithArguments("A").WithLocation(3, 2),
+                // (8,32): error CS0144: Cannot create an instance of the abstract type or interface 'A'
+                //     public void M(int x, A a = new A()) { }
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new A()").WithArguments("A").WithLocation(8, 32));
+        }
+
+        [Fact]
+        public void GetDiagnosticsWithFilter_TypeLevelFilter()
+        {
+            var source = """
+                class A<TA>
+                {
+                    public void MA<TMA>()
+                    {
+                    }
+                }
+
+                class B<TB>
+                {
+                    [Unbound]
+                    public void MB<TMB>([Unbound] int i)
+                    {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true,
+                symbolFilter: symbol => symbol switch
+                {
+                    NamedTypeSymbol { Name: not "A" } => false,
+                    // Parameters cannot be filtered out. If a method is completed, so are its parameters
+                    ParameterSymbol or TypeParameterSymbol => throw ExceptionUtilities.Unreachable(),
+                    _ => true
+                }, CancellationToken.None)
+                .Verify();
+
+            Assert.False(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
+            Assert.True(comp.SourceModule.GlobalNamespace.GetMembersUnordered().Single(m => m.Name == "A").HasComplete(CompletionPart.All));
+            var bSymbol = (SourceNamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembersUnordered().Single(m => m.Name == "B");
+            Assert.False(bSymbol.HasComplete(CompletionPart.MembersCompleted));
+
+            comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true, symbolFilter: null, CancellationToken.None)
+                .Verify(
+                    // (10,6): error CS0246: The type or namespace name 'UnboundAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("UnboundAttribute").WithLocation(10, 6),
+                    // (10,6): error CS0246: The type or namespace name 'Unbound' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("Unbound").WithLocation(10, 6),
+                    // (11,26): error CS0246: The type or namespace name 'UnboundAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     public void MB<TMB>([Unbound] int i)
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("UnboundAttribute").WithLocation(11, 26),
+                    // (11,26): error CS0246: The type or namespace name 'Unbound' could not be found (are you missing a using directive or an assembly reference?)
+                    //     public void MB<TMB>([Unbound] int i)
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("Unbound").WithLocation(11, 26));
+
+            Assert.True(bSymbol.HasComplete(CompletionPart.All));
+            Assert.True(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
+        }
+
+        [Fact]
+        public void GetDiagnosticsWithFilter_MemberLevelFilter()
+        {
+            var source = """
+                class A<TA>
+                {
+                    [Unbound1]
+                    public void M<TM>([Unbound2] int i)
+                    {
+                    }
+
+                    [Unbound3]
+                    public int Prop { get { } set { } }
+
+                    [Unbound4]
+                    public event System.Action E;
+
+                    [Unbound5]
+                    public int F;
+                }
+
+                enum E
+                {
+                    [Unbound6] E1,
+                    [Unbound7] E2 = Unbound8,
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true,
+                symbolFilter: symbol => symbol switch
+                {
+                    NamedTypeSymbol => true,
+                    MethodSymbol => false,
+                    PropertySymbol => false,
+                    SourceEnumConstantSymbol => false,
+                    EventSymbol => false,
+                    FieldSymbol => false,
+                    // Parameters cannot be filtered out. If a method is completed, so are its parameters
+                    ParameterSymbol or TypeParameterSymbol => throw ExceptionUtilities.Unreachable(),
+                    _ => true
+                }, CancellationToken.None)
+                .Verify();
+
+            var aSymbol = (SourceNamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembersUnordered().Single(m => m.Name == "A");
+            Assert.False(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
+            Assert.False(aSymbol.HasComplete(CompletionPart.MembersCompleted));
+
+            var eSymbol = (SourceNamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembersUnordered().Single(m => m.Name == "E");
+            Assert.False(eSymbol.HasComplete(CompletionPart.MembersCompleted));
+
+            comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true, symbolFilter: null, CancellationToken.None)
+                .Verify(
+                    // (3,6): error CS0246: The type or namespace name 'Unbound1Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound1]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound1").WithArguments("Unbound1Attribute").WithLocation(3, 6),
+                    // (3,6): error CS0246: The type or namespace name 'Unbound1' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound1]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound1").WithArguments("Unbound1").WithLocation(3, 6),
+                    // (4,24): error CS0246: The type or namespace name 'Unbound2Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     public void M<TM>([Unbound2] int i)
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound2").WithArguments("Unbound2Attribute").WithLocation(4, 24),
+                    // (4,24): error CS0246: The type or namespace name 'Unbound2' could not be found (are you missing a using directive or an assembly reference?)
+                    //     public void M<TM>([Unbound2] int i)
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound2").WithArguments("Unbound2").WithLocation(4, 24),
+                    // (8,6): error CS0246: The type or namespace name 'Unbound3Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound3]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound3").WithArguments("Unbound3Attribute").WithLocation(8, 6),
+                    // (8,6): error CS0246: The type or namespace name 'Unbound3' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound3]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound3").WithArguments("Unbound3").WithLocation(8, 6),
+                    // (11,6): error CS0246: The type or namespace name 'Unbound4Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound4]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound4").WithArguments("Unbound4Attribute").WithLocation(11, 6),
+                    // (11,6): error CS0246: The type or namespace name 'Unbound4' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound4]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound4").WithArguments("Unbound4").WithLocation(11, 6),
+                    // (14,6): error CS0246: The type or namespace name 'Unbound5Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound5]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound5").WithArguments("Unbound5Attribute").WithLocation(14, 6),
+                    // (14,6): error CS0246: The type or namespace name 'Unbound5' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound5]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound5").WithArguments("Unbound5").WithLocation(14, 6),
+                    // (20,6): error CS0246: The type or namespace name 'Unbound6Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound6] E1,
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound6").WithArguments("Unbound6Attribute").WithLocation(20, 6),
+                    // (20,6): error CS0246: The type or namespace name 'Unbound6' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound6] E1,
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound6").WithArguments("Unbound6").WithLocation(20, 6),
+                    // (21,6): error CS0246: The type or namespace name 'Unbound7Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound7] E2 = Unbound8,
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound7").WithArguments("Unbound7Attribute").WithLocation(21, 6),
+                    // (21,6): error CS0246: The type or namespace name 'Unbound7' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound7] E2 = Unbound8,
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound7").WithArguments("Unbound7").WithLocation(21, 6),
+                    // (21,21): error CS0103: The name 'Unbound8' does not exist in the current context
+                    //     [Unbound7] E2 = Unbound8,
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound8").WithArguments("Unbound8").WithLocation(21, 21));
+
+            Assert.True(aSymbol.HasComplete(CompletionPart.All));
+            Assert.True(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
+        }
+
+        [Fact]
+        public void GetDiagnosticsWithFilter_NamespaceLevelFilter()
+        {
+            var source = """
+                namespace A
+                {
+                    [UnboundA]
+                    class CA
+                    {
+                    }
+                }
+
+                namespace B
+                {
+                    [UnboundB]
+                    class CB
+                    {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true,
+                symbolFilter: symbol => symbol switch
+                {
+                    NamespaceSymbol { Name: "B" } => false,
+                    _ => true
+                }, CancellationToken.None)
+                .Verify(
+                    // (3,6): error CS0246: The type or namespace name 'UnboundAAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [UnboundA]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnboundA").WithArguments("UnboundAAttribute").WithLocation(3, 6),
+                    // (3,6): error CS0246: The type or namespace name 'UnboundA' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [UnboundA]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnboundA").WithArguments("UnboundA").WithLocation(3, 6));
+
+            Assert.False(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
+            Assert.True(comp.SourceModule.GlobalNamespace.GetMembersUnordered().Single(m => m.Name == "A").HasComplete(CompletionPart.All));
+            var bSymbol = (SourceNamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMembersUnordered().Single(m => m.Name == "B");
+            Assert.False(bSymbol.HasComplete(CompletionPart.MembersCompleted));
+
+            comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true, symbolFilter: null, CancellationToken.None)
+                .Verify(
+                    // (3,6): error CS0246: The type or namespace name 'UnboundAAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [UnboundA]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnboundA").WithArguments("UnboundAAttribute").WithLocation(3, 6),
+                    // (3,6): error CS0246: The type or namespace name 'UnboundA' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [UnboundA]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnboundA").WithArguments("UnboundA").WithLocation(3, 6),
+                    // (11,6): error CS0246: The type or namespace name 'UnboundBAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [UnboundB]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnboundB").WithArguments("UnboundBAttribute").WithLocation(11, 6),
+                    // (11,6): error CS0246: The type or namespace name 'UnboundB' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [UnboundB]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnboundB").WithArguments("UnboundB").WithLocation(11, 6));
+
+            Assert.True(bSymbol.HasComplete(CompletionPart.All));
+            Assert.True(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
         }
     }
 }

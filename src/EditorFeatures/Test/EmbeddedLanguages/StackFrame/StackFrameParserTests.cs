@@ -21,6 +21,32 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                     argumentList: EmptyParams)
                 );
 
+        [Fact]
+        public void TestCtor()
+            => Verify(
+                @"at ConsoleApp4.MyClass..ctor()",
+                methodDeclaration: MethodDeclaration(
+                    QualifiedName(
+                        QualifiedName(
+                            Identifier("ConsoleApp4", leadingTrivia: AtTrivia),
+                            Identifier("MyClass")),
+                        Constructor),
+                    argumentList: EmptyParams)
+                );
+
+        [Fact]
+        public void TestStaticCtor()
+            => Verify(
+                @"at ConsoleApp4.MyClass..cctor()",
+                methodDeclaration: MethodDeclaration(
+                    QualifiedName(
+                        QualifiedName(
+                            Identifier("ConsoleApp4", leadingTrivia: AtTrivia),
+                            Identifier("MyClass")),
+                        StaticConstructor),
+                    argumentList: EmptyParams)
+                );
+
         [Theory]
         [InlineData("C", 1)]
         [InlineData("C", 100)]
@@ -423,6 +449,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         [InlineData("M.N(\r\n)")]
         [InlineData("M.N(\r)")]
         [InlineData("M.N(\n)")]
+        [InlineData("at M..ctor.N()")] // Constructor on lhs of qualified name
         public void TestInvalidInputs(string input)
             => Verify(input, expectFailure: true);
 

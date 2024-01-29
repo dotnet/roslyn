@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             Contract.ThrowIfNull(query.Name);
             if (string.IsNullOrWhiteSpace(query.Name))
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 if (!result.HasValue)
                 {
-                    return ImmutableArray<ISymbol>.Empty;
+                    return [];
                 }
 
                 return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);

@@ -295,7 +295,7 @@ namespace BoundTreeGenerator
                 case TargetLanguage.CSharp:
                     {
                         string abstr = "";
-                        if (node is AbstractNode)
+                        if (node is AbstractNode and not Node)
                             abstr = "abstract ";
                         else if (CanBeSealed(node))
                             abstr = "sealed ";
@@ -307,7 +307,7 @@ namespace BoundTreeGenerator
                 case TargetLanguage.VB:
                     {
                         string abstr = "";
-                        if (node is AbstractNode)
+                        if (node is AbstractNode and not Node)
                             abstr = "MustInherit ";
                         else if (CanBeSealed(node))
                             abstr = "NotInheritable ";
@@ -420,7 +420,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "public" : "protected", node.Name);
-                        IEnumerable<string> fields = isPublic ? new[] { "SyntaxNode syntax" } : new[] { "BoundKind kind", "SyntaxNode syntax" };
+                        IEnumerable<string> fields = isPublic ? ["SyntaxNode syntax"] : ["BoundKind kind", "SyntaxNode syntax"];
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                let mostSpecific = GetField(node, field.Name)
                                                select mostSpecific.Type + " " + ToCamelCase(field.Name));
@@ -489,7 +489,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "Public" : "Protected", "Sub New");
-                        IEnumerable<string> fields = isPublic ? new[] { "syntax As SyntaxNode" } : new[] { "kind As BoundKind", "syntax as SyntaxNode" };
+                        IEnumerable<string> fields = isPublic ? ["syntax As SyntaxNode"] : ["kind As BoundKind", "syntax as SyntaxNode"];
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                select ToCamelCase(field.Name) + " As " + field.Type);
 
@@ -566,7 +566,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "public" : "protected", node.Name);
-                        IEnumerable<string> fields = isPublic ? new[] { "SyntaxNode syntax" } : new[] { "BoundKind kind", "SyntaxNode syntax" };
+                        IEnumerable<string> fields = isPublic ? ["SyntaxNode syntax"] : ["BoundKind kind", "SyntaxNode syntax"];
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                let mostSpecific = GetField(node, field.Name)
                                                select mostSpecific.Type + " " + ToCamelCase(field.Name));
@@ -609,7 +609,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "Public" : "Protected", "Sub New");
-                        IEnumerable<string> fields = isPublic ? new[] { "syntax As SyntaxNode" } : new[] { "kind As BoundKind", "syntax as SyntaxNode" };
+                        IEnumerable<string> fields = isPublic ? ["syntax As SyntaxNode"] : ["kind As BoundKind", "syntax as SyntaxNode"];
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                select ToCamelCase(field.Name) + " As " + field.Type);
                         ParenList(fields, x => x);
@@ -692,19 +692,15 @@ namespace BoundTreeGenerator
 
         private static IEnumerable<Field> Fields(TreeType node)
         {
-            if (node is Node)
-                return from n in ((Node)node).Fields where !n.Override select n;
-            if (node is AbstractNode)
-                return from n in ((AbstractNode)node).Fields where !n.Override select n;
+            if (node is AbstractNode aNode)
+                return from n in aNode.Fields where !n.Override select n;
             return Enumerable.Empty<Field>();
         }
 
         private static IEnumerable<Field> FieldsIncludingOverrides(TreeType node)
         {
-            if (node is Node)
-                return ((Node)node).Fields;
-            if (node is AbstractNode)
-                return ((AbstractNode)node).Fields;
+            if (node is AbstractNode aNode)
+                return aNode.Fields;
             return Enumerable.Empty<Field>();
         }
 
@@ -897,12 +893,12 @@ namespace BoundTreeGenerator
 
         private void WriteType(TreeType node)
         {
-            if (node is not AbstractNode and not Node)
+            if (node is not AbstractNode)
                 return;
             WriteClassHeader(node);
 
             bool unsealed = !CanBeSealed(node);
-            bool concrete = node is not AbstractNode;
+            bool concrete = node is Node;
             bool hasChildNodes = AllNodeOrNodeListFields(node).Any();
 
             if (unsealed)
@@ -932,7 +928,7 @@ namespace BoundTreeGenerator
         {
             if (!AllFields(node).Any())
                 return;
-            bool emitNew = (!Fields(node).Any()) && !(BaseType(node) is AbstractNode);
+            bool emitNew = (!Fields(node).Any()) && BaseType(node) is Node;
 
             switch (_targetLang)
             {

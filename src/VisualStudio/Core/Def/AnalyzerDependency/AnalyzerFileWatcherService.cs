@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
@@ -56,17 +57,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _updateSource = hostDiagnosticUpdateSource;
             _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
         }
-        internal void RemoveAnalyzerAlreadyLoadedDiagnostics(ProjectId projectId, string analyzerPath)
-            => _updateSource.ClearDiagnosticsForProject(projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath));
 
-        private void RaiseAnalyzerChangedWarning(ProjectId projectId, string analyzerPath)
+        private void AddAnalyzerChangedWarningArgs(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId, string analyzerPath)
         {
             var messageArguments = new string[] { analyzerPath };
 
             var project = _workspace.CurrentSolution.GetProject(projectId);
             if (project != null && DiagnosticData.TryCreate(_analyzerChangedRule, messageArguments, project, out var diagnostic))
             {
-                _updateSource.UpdateDiagnosticsForProject(projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath), SpecializedCollections.SingletonEnumerable(diagnostic));
+                _updateSource.UpdateAndAddDiagnosticsArgsForProject(ref builder, projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath), SpecializedCollections.SingletonEnumerable(diagnostic));
             }
         }
 
@@ -110,7 +109,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     {
                         if (currentFileUpdateTime != assemblyUpdatedTime)
                         {
-                            RaiseAnalyzerChangedWarning(projectId, filePath);
+                            using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
+                            AddAnalyzerChangedWarningArgs(ref argsBuilder.AsRef(), projectId, filePath);
+                            _updateSource.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
                         }
 
                         // If the the tracker is in place, at this point we can stop checking any further for this assembly
@@ -154,15 +155,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // Traverse the chain of requesting assemblies to get back to the original analyzer
             // assembly.
+            using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
             foreach (var project in _workspace.CurrentSolution.Projects)
             {
                 var analyzerFileReferences = project.AnalyzerReferences.OfType<AnalyzerFileReference>();
 
                 if (analyzerFileReferences.Any(a => a.FullPath.Equals(filePath, StringComparison.OrdinalIgnoreCase)))
                 {
-                    RaiseAnalyzerChangedWarning(project.Id, filePath);
+                    AddAnalyzerChangedWarningArgs(ref argsBuilder.AsRef(), project.Id, filePath);
                 }
             }
+
+            _updateSource.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
         }
     }
 }

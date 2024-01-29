@@ -170,10 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         {
             this.AssertIsForeground();
 
-            if (_deadKeySet.Contains(key))
-            {
-                _deadKeySet.Remove(key);
-            }
+            _deadKeySet.Remove(key);
 
             if (_table.TryGetValue(key, out var handle))
             {

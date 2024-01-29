@@ -32,13 +32,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Envelope As ActiveStatementEnvelope
+        Public Overrides ReadOnly Property Envelope As TextSpan
             Get
-                Return New ActiveStatementEnvelope(
-                        Span:=TextSpan.FromBounds(_modifedIdentifier.Span.Start, OtherActiveStatementContainer.Span.End),
-                        Hole:=TextSpan.FromBounds(_modifedIdentifier.Span.End, OtherActiveStatementContainer.Span.Start))
+                Return TextSpan.FromBounds(_modifedIdentifier.Span.Start, OtherActiveStatementContainer.Span.End)
             End Get
         End Property
+
+        Public Overrides Function IsExcludedActiveStatementSpanWithinEnvelope(span As TextSpan) As Boolean
+            ' exclude spans in between the identifier and AsNew clause
+            Return TextSpan.FromBounds(_modifedIdentifier.Span.End, OtherActiveStatementContainer.Span.Start).Contains(span)
+        End Function
 
         Public Overrides ReadOnly Property EncompassingAncestor As SyntaxNode
             Get

@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             private static bool IsConstant(IOperation operation)
             {
                 // Constants do not propagate to conversions
-                return operation is IConversionOperation op
+                return operation is IConversionOperation { Conversion.IsUserDefined: false } op
                     ? IsConstant(op.Operand)
                     : operation.ConstantValue.HasValue;
             }

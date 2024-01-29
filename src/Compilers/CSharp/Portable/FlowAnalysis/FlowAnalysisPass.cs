@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Inline arrays of length > 1 must be initialized completely, simply initializing the element field is not sufficient.
             // For arrays of length == 1, initializing the element field is sufficient.
-            if (containingType.HasInlineArrayAttribute(out int length) && length > 1 && containingType.TryGetInlineArrayElementField() is FieldSymbol elementField)
+            if (containingType.HasInlineArrayAttribute(out int length) && length > 1 && containingType.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
             {
                 Debug.Assert(elementField == implicitlyInitializedFields.Single());
 

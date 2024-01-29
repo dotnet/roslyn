@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (indexers.Any())
                     {
                         return indexers.SelectMany(i =>
-                            InferTypeInArgument(index, ImmutableArray.Create(i.Parameters), argumentOpt));
+                            InferTypeInArgument(index, [i.Parameters], argumentOpt));
                     }
                 }
 
@@ -2285,7 +2285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return ImmutableArray<TypeInferenceInfo>.Empty;
+                return [];
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInVariableComponentAssignment(ExpressionSyntax left)

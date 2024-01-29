@@ -17,10 +17,5 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
     {
         bool ShouldReportChanges(SolutionServices services);
         ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken);
-
-#if false // Not used in unit testing crawling
-        ValueTask OnTextDocumentOpenedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken);
-        ValueTask OnTextDocumentClosedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken);
-#endif
     }
 }

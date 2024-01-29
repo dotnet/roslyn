@@ -30,6 +30,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements IGenericTypeInstanceReference
         Implements ISpecializedNestedTypeReference
 
+        Private ReadOnly Property IDefinition_IsEncDeleted As Boolean Implements Cci.IDefinition.IsEncDeleted
+            Get
+                Return False
+            End Get
+        End Property
+
         Private ReadOnly Property ITypeReferenceIsEnum As Boolean Implements ITypeReference.IsEnum
             Get
                 Debug.Assert(Not AdaptedNamedTypeSymbol.IsAnonymousType)
@@ -788,7 +794,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 'Debug.Assert(((ITypeReference)this).AsNamespaceTypeDefinition != null);
                 CheckDefinitionInvariant()
-                Return PEModuleBuilder.MemberVisibility(AdaptedNamedTypeSymbol) = Cci.TypeMemberVisibility.Public
+                Return AdaptedNamedTypeSymbol.MetadataVisibility = Cci.TypeMemberVisibility.Public
             End Get
         End Property
 
@@ -818,7 +824,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Debug.Assert(AdaptedNamedTypeSymbol.ContainingType IsNot Nothing)
                 CheckDefinitionInvariant()
 
-                Return PEModuleBuilder.MemberVisibility(AdaptedNamedTypeSymbol)
+                Return AdaptedNamedTypeSymbol.MetadataVisibility
             End Get
         End Property
 

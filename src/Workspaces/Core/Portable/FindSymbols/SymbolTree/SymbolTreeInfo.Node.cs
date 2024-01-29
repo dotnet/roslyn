@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -63,11 +62,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 => Name + ", " + ParentIndex;
         }
 
-        private readonly struct ParameterTypeInfo(string name, bool isComplex, bool isArray)
+        private readonly record struct ParameterTypeInfo(string name, bool isComplex, bool isArray)
         {
             /// <summary>
             /// This is the type name of the parameter when <see cref="IsComplexType"/> is false. 
-            /// For array types, this is just the elemtent type name.
+            /// For array types, this is just the element type name.
             /// e.g. `int` for `int[][,]` 
             /// </summary>
             public readonly string Name = name;
@@ -96,11 +95,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public readonly bool IsComplexType = isComplex;
         }
 
-        public readonly struct ExtensionMethodInfo(string fullyQualifiedContainerName, string name)
+        public readonly record struct ExtensionMethodInfo(string fullyQualifiedContainerName, string name)
         {
             /// <summary>
             /// Name of the extension method. 
-            /// This can be used to retrive corresponding symbols via <see cref="INamespaceOrTypeSymbol.GetMembers(string)"/>
+            /// This can be used to retrieve corresponding symbols via <see cref="INamespaceOrTypeSymbol.GetMembers(string)"/>
             /// </summary>
             public readonly string Name = name;
 

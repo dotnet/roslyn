@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorAnalysisResult best = this.BinaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
             if (!best.HasValue)
             {
-                ReportAssignmentOperatorError(node, diagnostics, left, right, resultKind);
+                ReportAssignmentOperatorError(node, kind, diagnostics, left, right, resultKind);
                 left = BindToTypeForErrorRecovery(left);
                 right = BindToTypeForErrorRecovery(right);
                 return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(left.Kind != BoundKind.EventAccess || hasError);
 
             var leftPlaceholder = new BoundValuePlaceholder(left.Syntax, leftType).MakeCompilerGenerated();
-            var leftConversion = CreateConversion(node, leftPlaceholder, best.LeftConversion, isCast: false, conversionGroupOpt: null, best.Signature.LeftType, diagnostics);
+            var leftConversion = CreateConversion(node.Left, leftPlaceholder, best.LeftConversion, isCast: false, conversionGroupOpt: null, best.Signature.LeftType, diagnostics);
 
             return new BoundCompoundAssignmentOperator(node, bestSignature, left, rightConverted,
                 leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperators, leftType, hasError);
@@ -779,9 +779,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, errorCode, node, operatorName, operand.Display);
         }
 
-        private void ReportAssignmentOperatorError(AssignmentExpressionSyntax node, BindingDiagnosticBag diagnostics, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
+        private void ReportAssignmentOperatorError(AssignmentExpressionSyntax node, BinaryOperatorKind kind, BindingDiagnosticBag diagnostics, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
-            if (((SyntaxKind)node.OperatorToken.RawKind == SyntaxKind.PlusEqualsToken || (SyntaxKind)node.OperatorToken.RawKind == SyntaxKind.MinusEqualsToken) &&
+            if (IsTypelessExpressionAllowedInBinaryOperator(kind, left, right) &&
+                node.OperatorToken.RawKind is (int)SyntaxKind.PlusEqualsToken or (int)SyntaxKind.MinusEqualsToken &&
                 (object)left.Type != null && left.Type.TypeKind == TypeKind.Delegate)
             {
                 // Special diagnostic for delegate += and -= about wrong right-hand-side
@@ -2583,6 +2584,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             expr = receiver;
                             continue;
+                        }
+                    case BoundKind.InlineArrayAccess:
+                        {
+                            var elementAccess = (BoundInlineArrayAccess)expr;
+
+                            if (elementAccess.GetItemOrSliceHelper is WellKnownMember.System_Span_T__get_Item or WellKnownMember.System_ReadOnlySpan_T__get_Item)
+                            {
+                                expr = elementAccess.Expression;
+                                continue;
+                            }
+
+                            goto default;
                         }
                     case BoundKind.RangeVariable:
                         {

@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 => this.Equals(x, y, null);
 
             public bool Equals(ITypeSymbol? x, ITypeSymbol? y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
-                => symbolEquivalenceComparer.GetEquivalenceVisitor(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true).AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
+                => symbolEquivalenceComparer.GetEquivalenceVisitor(compareMethodTypeParametersByIndex: true, symbolEquivalenceComparer._objectAndDynamicCompareEqually).AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
 
             public int GetHashCode(ITypeSymbol? x)
-                => symbolEquivalenceComparer.GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true).GetHashCode(x, currentHash: 0);
+                => symbolEquivalenceComparer.GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: true, symbolEquivalenceComparer._objectAndDynamicCompareEqually).GetHashCode(x, currentHash: 0);
         }
     }
 }

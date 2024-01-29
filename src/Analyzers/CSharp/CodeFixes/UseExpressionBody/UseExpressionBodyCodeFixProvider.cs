@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var declaration = declarationLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
             var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
 
-            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody)
+            var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody, cancellationToken)
                                            .WithAdditionalAnnotations(Formatter.Annotation);
 
             editor.ReplaceNode(declaration, updatedDeclaration);

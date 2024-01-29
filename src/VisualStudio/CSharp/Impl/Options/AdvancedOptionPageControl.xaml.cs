@@ -88,7 +88,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Enable_navigation_to_sourcelink_and_embedded_sources, MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources);
             BindToOption(Enable_navigation_to_decompiled_sources, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
             BindToOption(Always_use_default_symbol_servers_for_navigation, MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers);
-            BindToOption(Navigate_asynchronously_exerimental, FeatureOnOffOptions.NavigateAsynchronously);
 
             // Rename
             BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.RenameAsynchronously);
@@ -116,6 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Show_outlining_for_code_level_constructs, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs, LanguageNames.CSharp);
             BindToOption(Show_outlining_for_comments_and_preprocessor_regions, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions, LanguageNames.CSharp);
             BindToOption(Collapse_regions_when_collapsing_to_definitions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp);
+            BindToOption(Collapse_local_functions_when_collapsing_to_definitions, BlockStructureOptionsStorage.CollapseLocalFunctionsWhenCollapsingToDefinitions, LanguageNames.CSharp);
 
             // Fading
             BindToOption(Fade_out_unused_usings, FadingOptions.FadeOutUnusedImports, LanguageNames.CSharp);
@@ -225,8 +225,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private void UpdatePullDiagnosticsOptions()
         {
             var normalPullDiagnosticsOption = OptionStore.GetOption(InternalDiagnosticsOptionsStorage.NormalDiagnosticMode);
-            Enable_pull_diagnostics_experimental_requires_restart.IsChecked = GetCheckboxValueForDiagnosticMode(normalPullDiagnosticsOption);
-            AddSearchHandler(Enable_pull_diagnostics_experimental_requires_restart);
+            Enable_pull_diagnostics_requires_restart.IsChecked = GetCheckboxValueForDiagnosticMode(normalPullDiagnosticsOption);
+            AddSearchHandler(Enable_pull_diagnostics_requires_restart);
 
             static bool? GetCheckboxValueForDiagnosticMode(DiagnosticMode mode)
             {
@@ -240,17 +240,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
         }
 
-        private void Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged(object sender, RoutedEventArgs e)
+        private void Enable_pull_diagnostics_requires_restart_CheckedChanged(object sender, RoutedEventArgs e)
         {
             // Three state is only valid for the initial option state (default).  If changed we only
             // allow the checkbox to be on or off.
-            Enable_pull_diagnostics_experimental_requires_restart.IsThreeState = false;
-            var checkboxValue = Enable_pull_diagnostics_experimental_requires_restart.IsChecked;
+            Enable_pull_diagnostics_requires_restart.IsThreeState = false;
+            var checkboxValue = Enable_pull_diagnostics_requires_restart.IsChecked;
             var newDiagnosticMode = GetDiagnosticModeForCheckboxValue(checkboxValue);
             if (checkboxValue != null)
             {
                 // Update the actual value of the feature flag to ensure CPS is informed of the new feature flag value.
-                this.OptionStore.SetOption(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag, checkboxValue.Value);
+                this.OptionStore.SetOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, checkboxValue.Value);
             }
 
             // Update the workspace option.
@@ -269,7 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
         }
 
-        private void Enable_pull_diagnostics_experimental_requires_restart_Indeterminate(object sender, RoutedEventArgs e)
+        private void Enable_pull_diagnostics_requires_restart_Indeterminate(object sender, RoutedEventArgs e)
         {
             this.OptionStore.SetOption(InternalDiagnosticsOptionsStorage.NormalDiagnosticMode, DiagnosticMode.Default);
             UpdatePullDiagnosticsOptions();

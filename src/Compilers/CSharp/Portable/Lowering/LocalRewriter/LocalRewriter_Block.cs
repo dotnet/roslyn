@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,26 +19,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
-            VisitStatementSubList(builder, node.Statements);
-
-            var additionalLocals = TemporaryArray<LocalSymbol>.Empty;
-
-            BoundBlockInstrumentation? instrumentation = null;
-            if (Instrument)
+            // If _additionalLocals is null, this must be the outermost block of the current function.
+            // If so, create a collection where child statements can insert inline array temporaries,
+            // and add those temporaries to the generated block.
+            var previousLocals = _additionalLocals;
+            if (previousLocals is null)
             {
-                Instrumenter.InstrumentBlock(node, this, ref additionalLocals, out var prologue, out var epilogue, out instrumentation);
-                if (prologue != null)
-                {
-                    builder.Insert(0, prologue);
-                }
-
-                if (epilogue != null)
-                {
-                    builder.Add(epilogue);
-                }
+                _additionalLocals = ArrayBuilder<LocalSymbol>.GetInstance();
             }
 
-            return new BoundBlock(node.Syntax, node.Locals.AddRange(additionalLocals), node.LocalFunctions, node.HasUnsafeModifier, instrumentation, builder.ToImmutableAndFree(), node.HasErrors);
+            try
+            {
+                VisitStatementSubList(builder, node.Statements);
+
+                var additionalLocals = TemporaryArray<LocalSymbol>.Empty;
+
+                BoundBlockInstrumentation? instrumentation = null;
+                if (Instrument)
+                {
+                    Instrumenter.InstrumentBlock(node, this, ref additionalLocals, out var prologue, out var epilogue, out instrumentation);
+                    if (prologue != null)
+                    {
+                        builder.Insert(0, prologue);
+                    }
+
+                    if (epilogue != null)
+                    {
+                        builder.Add(epilogue);
+                    }
+                }
+
+                var locals = node.Locals;
+                if (previousLocals is null)
+                {
+                    locals = locals.AddRange(_additionalLocals!);
+                }
+                locals = locals.AddRange(additionalLocals);
+                return new BoundBlock(node.Syntax, locals, node.LocalFunctions, node.HasUnsafeModifier, instrumentation, builder.ToImmutableAndFree(), node.HasErrors);
+            }
+            finally
+            {
+                if (previousLocals is null)
+                {
+                    _additionalLocals!.Free();
+                    _additionalLocals = previousLocals;
+                }
+            }
         }
 
         /// <summary>

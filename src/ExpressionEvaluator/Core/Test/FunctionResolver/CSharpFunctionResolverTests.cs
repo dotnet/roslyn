@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             // ... resolver enabled.
             var moduleA = new Module(bytesA, name: "A.dll");
             var moduleB = new Module(bytesB, name: "B.dll");
-            using (var process = new Process(shouldEnable: true, modules: new[] { moduleA, moduleB }))
+            using (var process = new Process(shouldEnable: true, modules: [moduleA, moduleB]))
             {
                 var requestF = new Request(null, MemberSignatureParser.Parse("F"));
                 var requestG = new Request(null, MemberSignatureParser.Parse("G"));
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             // ... resolver disabled.
             moduleA = new Module(bytesA, name: "A.dll");
             moduleB = new Module(bytesB, name: "B.dll");
-            using (var process = new Process(shouldEnable: false, modules: new[] { moduleA, moduleB }))
+            using (var process = new Process(shouldEnable: false, modules: [moduleA, moduleB]))
             {
                 var requestF = new Request(null, MemberSignatureParser.Parse("F"));
                 var requestG = new Request(null, MemberSignatureParser.Parse("G"));
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             // ... resolver enabled.
             moduleA = new Module(bytesA, name: "A.dll");
             moduleB = new Module(bytesB, name: "B.dll");
-            using (var process = new Process(shouldEnable: true, modules: new[] { moduleA, moduleB }))
+            using (var process = new Process(shouldEnable: true, modules: [moduleA, moduleB]))
             {
                 var requestF = new Request("B.dll", MemberSignatureParser.Parse("F"));
                 var requestG = new Request("B.dll", MemberSignatureParser.Parse("G"));
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             // ... resolver disabled.
             moduleA = new Module(bytesA, name: "A.dll");
             moduleB = new Module(bytesB, name: "B.dll");
-            using (var process = new Process(shouldEnable: false, modules: new[] { moduleA, moduleB }))
+            using (var process = new Process(shouldEnable: false, modules: [moduleA, moduleB]))
             {
                 var requestF = new Request("B.dll", MemberSignatureParser.Parse("F"));
                 var requestG = new Request("B.dll", MemberSignatureParser.Parse("G"));

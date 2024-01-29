@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     [DataContract]
-    public sealed class SolutionId : IEquatable<SolutionId>, IObjectWritable
+    public sealed class SolutionId : IEquatable<SolutionId>
     {
         /// <summary>
         /// The unique id of the solution.
@@ -77,9 +77,7 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
             => this.Id.GetHashCode();
 
-        bool IObjectWritable.ShouldReuseInSerialization => true;
-
-        void IObjectWritable.WriteTo(ObjectWriter writer)
+        internal void WriteTo(ObjectWriter writer)
         {
             writer.WriteGuid(Id);
             writer.WriteString(DebugName);

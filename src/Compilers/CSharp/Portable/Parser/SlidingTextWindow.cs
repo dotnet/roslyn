@@ -263,6 +263,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
+        /// Advances the text window if it currently pointing at the <paramref name="c"/> character.  Returns <see
+        /// langword="true"/> if it did advance, <see langword="false"/> otherwise.
+        /// </summary>
+        public bool TryAdvance(char c)
+        {
+            if (PeekChar() != c)
+                return false;
+
+            AdvanceChar();
+            return true;
+        }
+
+        /// <summary>
         /// Advance the current position by n. No guarantee that this position
         /// is valid.
         /// </summary>

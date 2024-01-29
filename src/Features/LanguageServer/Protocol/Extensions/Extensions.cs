@@ -11,10 +11,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
@@ -25,8 +27,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             Contract.ThrowIfNull(document.FilePath);
             return document is SourceGeneratedDocument
-                ? ProtocolConversions.GetUriFromPartialFilePath(document.FilePath)
-                : ProtocolConversions.GetUriFromFilePath(document.FilePath);
+                ? ProtocolConversions.CreateUriFromSourceGeneratedFilePath(document.FilePath)
+                : ProtocolConversions.CreateAbsoluteUri(document.FilePath);
         }
 
         /// <summary>
@@ -42,59 +44,49 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             Contract.ThrowIfNull(directoryName);
             var path = Path.Combine(directoryName, document.Name);
-            return ProtocolConversions.GetUriFromFilePath(path);
+            return ProtocolConversions.CreateAbsoluteUri(path);
         }
 
-        /// <summary>
-        /// Generate the Uri of a document based on the name and the project path of the document.
-        /// </summary>
-        public static Uri GetUriFromProjectPath(this TextDocument document)
+        public static Uri CreateUriForDocumentWithoutFilePath(this TextDocument document)
         {
             Contract.ThrowIfNull(document.Name);
             Contract.ThrowIfNull(document.Project.FilePath);
-            var directoryName = Path.GetDirectoryName(document.Project.FilePath);
-            Contract.ThrowIfNull(directoryName);
 
-            var path = Path.Combine(directoryName, document.Name);
-            return ProtocolConversions.GetUriFromFilePath(path);
+            var projectDirectoryName = Path.GetDirectoryName(document.Project.FilePath);
+            Contract.ThrowIfNull(projectDirectoryName);
+            var path = Path.Combine([projectDirectoryName, .. document.Folders, document.Name]);
+            return ProtocolConversions.CreateAbsoluteUri(path);
         }
 
-        public static Uri? TryGetURI(this TextDocument document, RequestContext? context = null)
-            => ProtocolConversions.TryGetUriFromFilePath(document.FilePath, context);
-
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
+            => GetDocuments(solution, ProtocolConversions.GetDocumentFilePathFromUri(documentUri));
+
+        public static ImmutableArray<Document> GetDocuments(this Solution solution, string documentPath)
         {
-            var documentIds = GetDocumentIds(solution, documentUri);
+            var documentIds = solution.GetDocumentIdsWithFilePath(documentPath);
 
             // We don't call GetRequiredDocument here as the id could be referring to an additional document.
             var documents = documentIds.Select(solution.GetDocument).WhereNotNull().ToImmutableArray();
             return documents;
         }
 
-        public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
+        /// <summary>
+        /// Get all regular and additional <see cref="TextDocument"/>s for the given <paramref name="documentUri"/>.
+        /// </summary>
+        public static ImmutableArray<TextDocument> GetTextDocuments(this Solution solution, Uri documentUri)
         {
-            // This logic needs to be cleaned up when we support URIs as a first class concept.
-            // For now we do our best to handle as many cases as we can.
-            // Tracking issue - https://github.com/dotnet/roslyn/issues/68083
+            var documentIds = GetDocumentIds(solution, documentUri);
 
-            // If the uri is a file then use the simplified absolute or local path.
-            // In other cases (e.g. git files) use the full uri string. This ensures documents
-            // with the same local path (e.g. git://someFilePath and file://someFilePath) are differentiated.
-            if (documentUri.IsFile)
-            {
-                var fileDocumentIds = solution.GetDocumentIdsWithFilePath(documentUri.AbsolutePath);
-                if (fileDocumentIds.Any())
-                    return fileDocumentIds;
-
-                fileDocumentIds = solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
-                return fileDocumentIds;
-            }
-            else
-            {
-                var documentIds = solution.GetDocumentIdsWithFilePath(documentUri.OriginalString);
-                return documentIds;
-            }
+            var documents = documentIds
+                .Select(solution.GetDocument)
+                .Concat(documentIds.Select(solution.GetAdditionalDocument))
+                .WhereNotNull()
+                .ToImmutableArray();
+            return documents;
         }
+
+        public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
+            => solution.GetDocumentIdsWithFilePath(ProtocolConversions.GetDocumentFilePathFromUri(documentUri));
 
         public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
         {

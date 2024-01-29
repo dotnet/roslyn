@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net7.0;net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <RootNamespace></RootNamespace>
 
     <!-- Disabling on assumption -->
@@ -19,11 +19,11 @@
     <ProjectReference Include="..\..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Test.Utilities.vbproj" />
     <ProjectReference Include="..\..\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
-    <PackageReference Include="Basic.Reference.Assemblies.Net50" Version="$(BasicReferenceAssembliesNet50Version)" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net50" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
-    <PackageReference Include="Microsoft.VisualBasic" Version="$(MicrosoftVisualBasicVersion)" Condition="'$(TargetFramework)' == 'net472'" />
+    <PackageReference Include="Microsoft.DiaSymReader" />
+    <PackageReference Include="Microsoft.VisualBasic" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="CodeGen\ConversionsILGenTestBaseline.txt" />

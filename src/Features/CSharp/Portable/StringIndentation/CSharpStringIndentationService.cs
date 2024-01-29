@@ -73,11 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.StringIndentation
                     }
                     else if (child.IsToken)
                     {
-                        if (child.IsKind(SyntaxKind.MultiLineRawStringLiteralToken) ||
-                            child.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken))
-                        {
+                        if (child.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.Utf8MultiLineRawStringLiteralToken)
                             ProcessMultiLineRawStringLiteralToken(text, child.AsToken(), result, cancellationToken);
-                        }
                     }
                 }
             }

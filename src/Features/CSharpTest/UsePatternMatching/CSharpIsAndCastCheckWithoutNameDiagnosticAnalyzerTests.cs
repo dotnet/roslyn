@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-    public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITestOutputHelper logger)
              : base(logger)

@@ -15,6 +15,7 @@ $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
 $bootstrapDir = if (Test-Path variable:bootstrapDir) { $bootstrapDir } else { "" }
 $bootstrapConfiguration = if (Test-Path variable:bootstrapConfiguration) { $bootstrapConfiguration } else { "Release" }
 $properties = if (Test-Path variable:properties) { $properties } else { @() }
+$originalTemp = $env:TEMP;
 
 function GetProjectOutputBinary([string]$fileName, [string]$projectName = "", [string]$configuration = $script:configuration, [string]$tfm = "net472", [string]$rid = "", [bool]$published = $false) {
   $projectName = if ($projectName -ne "") { $projectName } else { [System.IO.Path]::GetFileNameWithoutExtension($fileName) }
@@ -168,7 +169,7 @@ function Exec-Console([string]$command, [string]$commandArgs) {
 # arguments.  Prefer this over & sourcing a script as it will both use a clean
 # environment and do proper error checking
 function Exec-Script([string]$script, [string]$scriptArgs = "") {
-  Exec-Command "powershell" "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs"
+  Exec-Command "pwsh" "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs"
 }
 
 # Ensure the proper .NET Core SDK is available. Returns the location to the dotnet.exe.
@@ -298,10 +299,6 @@ function Make-BootstrapBuild([string]$bootstrapToolset = "") {
 
     if ($ci) {
       $args += " /p:ContinuousIntegrationBuild=true"
-      # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
-      # in our CI builds
-      # https://github.com/NuGet/Home/issues/12373
-      $args += " /p:RestoreUseStaticGraphEvaluation=false"
     }
 
     if ($bootstrapDir -ne "") {
@@ -362,5 +359,9 @@ function Subst-TempDir() {
 function Unsubst-TempDir() {
   if ($ci) {
     Exec-Command "subst" "T: /d"
+
+    # Restore the original temp directory
+    $env:TEMP=$originalTemp
+    $env:TMP=$originalTemp
   }
 }

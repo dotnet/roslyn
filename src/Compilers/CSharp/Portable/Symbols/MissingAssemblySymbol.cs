@@ -84,6 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool HasImportedFromTypeLibAttribute => false;
+
+        internal override bool HasPrimaryInteropAssemblyAttribute => false;
+
         public override int GetHashCode()
         {
             return identity.GetHashCode();
@@ -203,11 +207,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override TypeConversions TypeConversions => CorLibrary.TypeConversions;
+
         public override AssemblyMetadata GetMetadata() => null;
 
         internal sealed override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
         {
             return SpecializedCollections.EmptyEnumerable<NamedTypeSymbol>();
+        }
+
+#nullable enable
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData => null;
+
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
         }
     }
 }

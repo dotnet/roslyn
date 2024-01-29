@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private void EnqueueWork(bool highPriority)
                 => _eventChangeQueue.AddWork(highPriority, _dataSource.CancelOnNewWork);
 
-            private async ValueTask ProcessEventChangeAsync(ImmutableSegmentedList<bool> changes, CancellationToken cancellationToken)
+            private async ValueTask<VoidResult> ProcessEventChangeAsync(ImmutableSegmentedList<bool> changes, CancellationToken cancellationToken)
             {
                 // If any of the requests was high priority, then compute at that speed.
                 var highPriority = changes.Contains(true);
@@ -181,21 +181,28 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // buffer/view to tag, so this helps reduce that from N messages on the UI thread for N taggers to just 1.
                 await _dataSource.PerformUIWorkAsync(
                     RecomputeTagsOnUIThreadAsync, highPriority, cancellationToken).ConfigureAwait(false);
+                return default;
             }
 
             /// <summary>
-            /// Called on the foreground thread.  Passed a boolean to say if we're computing the
+            /// Passed a boolean to say if we're computing the
             /// initial set of tags or not.  If we're computing the initial set of tags, we lower
             /// all our delays so that we can get results to the screen as quickly as possible.
-            /// <para/> This gives a good experience when a document is opened as the document appears complete almost
-            /// immediately.  Once open though, our normal delays come into play so as to not cause a flashy experience.
+            /// <para>This gives a good experience when a document is opened as the document appears complete almost
+            /// immediately.  Once open though, our normal delays come into play so as to not cause a flashy experience.</para>
             /// </summary>
+            /// <remarks>
+            /// In the event of a cancellation request, this method may <em>either</em> return at the next availability
+            /// or throw a cancellation exception.
+            /// </remarks>
             /// <param name="highPriority">
             /// If this tagging request should be processed as quickly as possible with no extra delays added for it.
             /// </param>
-            private async Task RecomputeTagsOnUIThreadAsync(bool highPriority, CancellationToken cancellationToken)
+            private async Task<VoidResult> RecomputeTagsOnUIThreadAsync(bool highPriority, CancellationToken cancellationToken)
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+                if (cancellationToken.IsCancellationRequested)
+                    return default;
 
                 // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
                 // consuming machine resources on work the user isn't likely to see.  ConfigureAwait(true) so that if
@@ -211,12 +218,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         _dataSource.ThreadingContext, _dataSource.AsyncListener, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitable(captureContext: true);
 
                     if (cancellationToken.IsCancellationRequested)
-                        return;
+                        return default;
                 }
 
                 // See if we got disposed in the interim period.
                 if (cancellationToken.IsCancellationRequested)
-                    return;
+                    return default;
 
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, cancellationToken))
                 {
@@ -229,19 +236,21 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var oldState = this.State;
 
                     var textChangeRange = this.AccumulatedTextChanges;
-                    this.AccumulatedTextChanges = null;
+                    var subjectBufferVersion = _subjectBuffer.CurrentSnapshot.Version.VersionNumber;
 
                     // Move to the bg to do the potentially very expensive work of computing tags.
                     await TaskScheduler.Default;
 
-                    cancellationToken.ThrowIfCancellationRequested();
+                    if (cancellationToken.IsCancellationRequested)
+                        return default;
 
                     // Create a context to store pass the information along and collect the results.
                     var context = new TaggerContext<TTag>(
                         oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees);
                     await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
 
-                    cancellationToken.ThrowIfCancellationRequested();
+                    if (cancellationToken.IsCancellationRequested)
+                        return default;
 
                     // Process the result to determine what changed.
                     var newTagTrees = ComputeNewTagTrees(oldTagTrees, context);
@@ -251,8 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // Try to coordinate this UI work with any other UI work that is going on with any other tagger so as to 
                     // not oversaturate the UI thread.
                     await _dataSource.PerformUIWorkAsync(UpdateStateOnUIThread, cancellationToken).ConfigureAwait(false);
-
-                    return;
+                    return default;
 
                     void UpdateStateOnUIThread(CancellationToken cancellationToken)
                     {
@@ -262,6 +270,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                         this.CachedTagTrees = newTagTrees;
                         this.State = context.State;
+                        if (this._subjectBuffer.CurrentSnapshot.Version.VersionNumber == subjectBufferVersion)
+                        {
+                            // Only clear the accumulated text changes if the subject buffer didn't change during the
+                            // tagging operation. Otherwise, it is impossible to know which changes occurred prior to the
+                            // request to tag, and which ones occurred during the tagging itself. Since
+                            // AccumulatedTextChanges is a conservative representation of the work that needs to be done, in
+                            // the event this value is not cleared the only potential impact will be slightly more work
+                            // being done during the next classification pass.
+                            this.AccumulatedTextChanges = null;
+                        }
 
                         // Once we assign our state, we're uncancellable.  We must report the changed information
                         // to the editor.  The only case where it's ok not to is if the tagger itself is disposed.
@@ -389,7 +407,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private IEnumerable<ITagSpan<TTag>> GetNonIntersectingTagSpans(IEnumerable<SnapshotSpan> spansToInvalidate, TagSpanIntervalTree<TTag> oldTagTree)
             {
-                var snapshot = spansToInvalidate.First().Snapshot;
+                var firstSpanToInvalidate = spansToInvalidate.First();
+                var snapshot = firstSpanToInvalidate.Snapshot;
+
+                // Performance: No need to fully realize spansToInvalidate or do any of the calculations below if the
+                //   full snapshot is being invalidated.
+                if (firstSpanToInvalidate.Length == snapshot.Length)
+                    return [];
 
                 return oldTagTree.GetSpans(snapshot).Except(
                     spansToInvalidate.SelectMany(oldTagTree.GetIntersectingSpans),
@@ -561,7 +585,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 return tags;
             }
 
-            public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
+            public void AddTags(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<ITagSpan<TTag>> tags)
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -570,14 +594,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ResumeIfVisible();
 
                 if (requestedSpans.Count == 0)
-                    return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
+                    return;
 
                 var buffer = requestedSpans.First().Snapshot.TextBuffer;
-                var tags = this.TryGetTagIntervalTreeForBuffer(buffer);
+                var tagIntervalTree = this.TryGetTagIntervalTreeForBuffer(buffer);
 
-                return tags == null
-                    ? SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>()
-                    : tags.GetIntersectingTagSpans(requestedSpans);
+                tagIntervalTree?.AddIntersectingTagSpans(requestedSpans, tags);
             }
         }
     }

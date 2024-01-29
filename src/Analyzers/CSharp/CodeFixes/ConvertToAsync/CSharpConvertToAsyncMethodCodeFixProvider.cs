@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConvertToAsync
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS4008);
+        public override ImmutableArray<string> FixableDiagnosticIds => [CS4008];
 
         protected override async Task<string> GetDescriptionAsync(
             Diagnostic diagnostic,
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConvertToAsync
                 return null;
             }
 
-            if (!methodDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.AsyncKeyword)))
+            if (!methodDeclaration.Modifiers.Any(SyntaxKind.AsyncKeyword))
             {
                 return null;
             }

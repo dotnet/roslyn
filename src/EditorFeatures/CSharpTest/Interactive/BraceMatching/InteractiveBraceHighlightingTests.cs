@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceMatching;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             => array;
 
         private static async Task<IEnumerable<ITagSpan<BraceHighlightTag>>> ProduceTagsAsync(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             ITextBuffer buffer,
             int position)
         {
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         public async Task TestCurlies()
         {
             var code = "public class C {\r\n}";
-            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: Options.Script);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions: TestOptions.Script);
             var buffer = workspace.Documents.First().GetTextBuffer();
 
             // Before open curly
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         public async Task TestTouchingItems()
         {
             var code = "public class C {\r\n  public void Goo(){}\r\n}";
-            using var workspace = TestWorkspace.CreateCSharp(code, Options.Script);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, TestOptions.Script);
             var buffer = workspace.Documents.First().GetTextBuffer();
 
             // Before open curly
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         public async Task TestAngles()
         {
             var code = "/// <summary>Goo</summary>\r\npublic class C<T> {\r\n  void Goo() {\r\n    bool a = b < c;\r\n    bool d = e > f;\r\n  }\r\n} ";
-            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: Options.Script);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions: TestOptions.Script);
             var buffer = workspace.Documents.First().GetTextBuffer();
 
             // Before open angle of generic
@@ -168,7 +169,7 @@ class C
         }
     }
 } ";
-            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: Options.Script);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions: TestOptions.Script);
             var buffer = workspace.Documents.First().GetTextBuffer();
 
             // At switch open paren

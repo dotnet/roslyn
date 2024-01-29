@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpdateProjectToAllowUnsafe
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
-    public class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public UpdateProjectToAllowUnsafeTests(ITestOutputHelper logger)
            : base(logger)

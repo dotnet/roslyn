@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
         : AbstractRemoveUnnecessaryCastDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax>
     {
         protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest { get; } =
-            ImmutableArray.Create(SyntaxKind.CastExpression, SyntaxKind.AsExpression);
+            [SyntaxKind.CastExpression, SyntaxKind.AsExpression];
 
         protected override bool IsUnnecessaryCast(SemanticModel model, ExpressionSyntax cast, CancellationToken cancellationToken)
             => CastSimplifier.IsUnnecessaryCast(cast, model, cancellationToken);

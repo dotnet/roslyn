@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GeneratedLabelSymbol continueLabel,
             bool hasErrors)
         {
-            Debug.Assert(loop.Kind is BoundKind.WhileStatement or BoundKind.ForEachStatement or BoundKind.CollectionLiteralSpreadElement);
+            Debug.Assert(loop.Kind is BoundKind.WhileStatement or BoundKind.ForEachStatement or BoundKind.CollectionExpressionSpreadElement);
 
             // while (condition) 
             //   body;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ifConditionGotoStart = Instrumenter.InstrumentForEachStatementConditionalGotoStart((BoundForEachStatement)loop, ifConditionGotoStart);
                         break;
 
-                    case BoundKind.CollectionLiteralSpreadElement:
+                    case BoundKind.CollectionExpressionSpreadElement:
                         // No instrumentation needed since the loop for the spread expression
                         // was generated in lowering, and not explicit in the source.
                         break;

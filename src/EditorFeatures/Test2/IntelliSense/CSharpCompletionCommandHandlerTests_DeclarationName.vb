@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.CSharp.Formatting
+Imports Microsoft.CodeAnalysis.CSharp.[Shared].Extensions
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -39,7 +40,7 @@ public class C
     void M(CancellationToken$$
 }
                 </Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
 
                 state.SendTypeChars(" ")
                 Await state.AssertSelectedCompletionItem(displayText:="myTok", isHardSelected:=False)

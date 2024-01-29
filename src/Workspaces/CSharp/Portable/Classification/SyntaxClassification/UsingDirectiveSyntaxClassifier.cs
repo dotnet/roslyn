@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
     {
         public override void AddClassifications(
             SyntaxNode syntax,
+            TextSpan textSpan,
             SemanticModel semanticModel,
             ClassificationOptions options,
             SegmentedList<ClassifiedSpan> result,
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             }
         }
 
-        public override ImmutableArray<Type> SyntaxNodeTypes { get; } = ImmutableArray.Create(typeof(UsingDirectiveSyntax));
+        public override ImmutableArray<Type> SyntaxNodeTypes { get; } = [typeof(UsingDirectiveSyntax)];
 
         private static void ClassifyUsingDirectiveSyntax(
             UsingDirectiveSyntax usingDirective,

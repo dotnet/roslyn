@@ -9,8 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ReassignedVariable
     Public Class VisualBasicReassignedVariableTests
         Inherits AbstractReassignedVariableTests
 
-        Protected Overrides Function CreateWorkspace(markup As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(markup)
+        Protected Overrides Function CreateWorkspace(markup As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(markup)
         End Function
 
         <Fact>

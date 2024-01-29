@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -191,11 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             foreach (var expression in rankSpecifier.Sizes)
                             {
-                                if (expression.Kind() != SyntaxKind.OmittedArraySizeExpression)
-                                {
-                                    ExpressionVariableFinder.FindExpressionVariables(args.localScopeBinder, args.locals, expression, args.localDeclarationBinder);
-                                }
+                                findExpressionVariablesInRankSpecifier(expression, args);
                             }
+
                         }, (localScopeBinder: this, locals: locals, localDeclarationBinder: localDeclarationBinder));
 
                         LocalDeclarationKind kind;
@@ -223,6 +222,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case SyntaxKind.LocalFunctionStatement:
+                    {
+                        Binder localFunctionDeclarationBinder = enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder;
+                        var decl = (LocalFunctionStatementSyntax)innerStatement;
+
+                        foreach (var parameter in decl.ParameterList.Parameters)
+                        {
+                            parameter.Type?.VisitRankSpecifiers((rankSpecifier, args) =>
+                            {
+                                foreach (var expression in rankSpecifier.Sizes)
+                                {
+                                    findExpressionVariablesInRankSpecifier(expression, args);
+                                }
+                            }, (localScopeBinder: this, locals: locals, localDeclarationBinder: localFunctionDeclarationBinder));
+                        }
+
+                        foreach (var constraintClause in decl.ConstraintClauses)
+                        {
+                            foreach (var constraint in constraintClause.Constraints)
+                            {
+                                if (constraint is TypeConstraintSyntax typeConstraint)
+                                {
+                                    typeConstraint.Type.VisitRankSpecifiers((rankSpecifier, args) =>
+                                    {
+                                        foreach (var expression in rankSpecifier.Sizes)
+                                        {
+                                            findExpressionVariablesInRankSpecifier(expression, args);
+                                        }
+                                    }, (localScopeBinder: this, locals: locals, localDeclarationBinder: localFunctionDeclarationBinder));
+                                }
+                            }
+                        }
+                    }
+                    break;
+
                 case SyntaxKind.ExpressionStatement:
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:
@@ -246,6 +280,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     // no other statement introduces local variables into the enclosing scope
                     break;
+            }
+
+            return;
+
+            static void findExpressionVariablesInRankSpecifier(ExpressionSyntax expression, (LocalScopeBinder localScopeBinder, ArrayBuilder<LocalSymbol> locals, Binder localDeclarationBinder) args)
+            {
+                if (expression.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                {
+                    ExpressionVariableFinder.FindExpressionVariables(args.localScopeBinder, args.locals, expression, args.localDeclarationBinder);
+                }
             }
         }
 
