@@ -35,6 +35,7 @@
       <trans-unit id="306">
         <source>Underline reassigned variables;
 Display inline hints;
+Display inlay hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -94,7 +95,7 @@ Detect and offer editor features for JSON strings;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="translated">Souligner les variables réaffectées ;
+        <target state="needs-review-translation">Souligner les variables réaffectées ;
 Afficher les indications en ligne ;
 Afficher les diagnostics pour les fichiers fermés ;
 Coloriser les expressions régulières ;

@@ -18,7 +18,7 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+        <source>Underline reassigned variables;Display inline hints;Display inlay hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
 Regex;
 regular expressions;
 related components under cursor;
@@ -33,7 +33,7 @@ Collapse #regions on file open;
 Collapse Imports on file open;
 Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">Sottolinea le variabili riassegnate;Visualizza hint inline; Inserimento automatico di costrutti finali; Modifica le impostazioni dell'elenco; Modifica la modalità di struttura; Inserimento automatico dei membri Interface e MustOverride; Mostra o nascondi i separatori di riga della procedura; Attiva o disattiva i suggerimenti per la correzione degli errori; Attiva o disattiva l'evidenziazione di riferimenti e parole chiave; 
+        <target state="needs-review-translation">Sottolinea le variabili riassegnate;Visualizza hint inline; Inserimento automatico di costrutti finali; Modifica le impostazioni dell'elenco; Modifica la modalità di struttura; Inserimento automatico dei membri Interface e MustOverride; Mostra o nascondi i separatori di riga della procedura; Attiva o disattiva i suggerimenti per la correzione degli errori; Attiva o disattiva l'evidenziazione di riferimenti e parole chiave; 
 Regex;
 espressioni regolari;
 componenti correlati sotto il cursore;

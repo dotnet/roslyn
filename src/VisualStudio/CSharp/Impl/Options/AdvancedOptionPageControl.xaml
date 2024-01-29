@@ -318,7 +318,7 @@
             </GroupBox>
 
             <GroupBox x:Uid="InlineHintsGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Hints}">
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Inlay_Hints}">
                 <StackPanel>
                     <CheckBox x:Name="DisplayAllHintsWhilePressingAltF1"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_all_hints_while_pressing_Alt_F1}" />
@@ -327,7 +327,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_hints}" />
 
                     <CheckBox x:Name="DisplayInlineParameterNameHints"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_parameter_name_hints}"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inlay_parameter_name_hints}"
                               Checked="DisplayInlineParameterNameHints_Checked"
                               Unchecked="DisplayInlineParameterNameHints_Unchecked"/>
 
@@ -362,7 +362,7 @@
                     </StackPanel>
                     
                     <CheckBox x:Name="DisplayInlineTypeHints"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_type_hints}"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inlay_type_hints}"
                               Checked="DisplayInlineTypeHints_Checked"
                               Unchecked="DisplayInlineTypeHints_Unchecked"/>
                     <StackPanel Margin="15, 0, 0, 0">

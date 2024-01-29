@@ -357,14 +357,14 @@
         <target state="translated">Exibir diagnósticos em linha (experimental)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Display_inline_parameter_name_hints">
-        <source>Disp_lay inline parameter name hints</source>
-        <target state="translated">Exi_bir as dicas embutidas de nome de parâmetro</target>
+      <trans-unit id="Display_inlay_parameter_name_hints">
+        <source>Disp_lay inlay parameter name hints</source>
+        <target state="new">Disp_lay inlay parameter name hints</target>
         <note />
       </trans-unit>
-      <trans-unit id="Display_inline_type_hints">
-        <source>Display inline type hints</source>
-        <target state="translated">Exibir as dicas embutidas de tipo</target>
+      <trans-unit id="Display_inlay_type_hints">
+        <source>Display inlay type hints</source>
+        <target state="new">Display inlay type hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_Outline">
@@ -577,9 +577,9 @@
         <target state="translated">Interfaces herdadas</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Hints">
-        <source>Inline Hints</source>
-        <target state="translated">Dicas Embutidas</target>
+      <trans-unit id="Inlay_Hints">
+        <source>Inlay Hints</source>
+        <target state="new">Inlay Hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">

@@ -1373,8 +1373,8 @@ Additional information: {1}</value>
   <data name="Warning_colon_type_does_not_bind" xml:space="preserve">
     <value>Warning: type does not bind</value>
   </data>
-  <data name="Display_inline_parameter_name_hints" xml:space="preserve">
-    <value>Disp_lay inline parameter name hints</value>
+  <data name="Display_inlay_parameter_name_hints" xml:space="preserve">
+    <value>Disp_lay inlay parameter name hints</value>
   </data>
   <data name="Current_parameter" xml:space="preserve">
     <value>Current parameter</value>
@@ -1407,8 +1407,8 @@ Additional information: {1}</value>
   <data name="Comments" xml:space="preserve">
     <value>Comments</value>
   </data>
-  <data name="Inline_Hints" xml:space="preserve">
-    <value>Inline Hints</value>
+  <data name="Inlay_Hints" xml:space="preserve">
+    <value>Inlay Hints</value>
   </data>
   <data name="Show_hints_for_everything_else" xml:space="preserve">
     <value>Show hints for everything else</value>
@@ -1422,8 +1422,8 @@ Additional information: {1}</value>
   <data name="Suppress_hints_when_parameter_names_differ_only_by_suffix" xml:space="preserve">
     <value>Suppress hints when parameter names differ only by suffix</value>
   </data>
-  <data name="Display_inline_type_hints" xml:space="preserve">
-    <value>Display inline type hints</value>
+  <data name="Display_inlay_type_hints" xml:space="preserve">
+    <value>Display inlay type hints</value>
   </data>
   <data name="Show_hints_for_lambda_parameter_types" xml:space="preserve">
     <value>Show hints for lambda parameter types</value>
