@@ -229,8 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.Equal(0, rightSpans.Count);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28639")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28639")]
         public void TestPreviewWorkspaceDoesNotLeakSolution()
         {
             // Verify that analyzer execution doesn't leak solution instances from the preview workspace.
