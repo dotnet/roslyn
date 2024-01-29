@@ -468,6 +468,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             // Create PreviewWorkspaces around the buffers to be displayed on the left and right
             // so that all IDE services (colorizer, squiggles etc.) light up in these buffers.
+            //
+            // Performance: Replace related documents to oldBuffer and newBuffer in these workspaces with the 
+            // relating SourceText. This prevents cascading forks as taggers call to
+            // GetOpenTextDocumentInCurrentContextWithChanges would eventually wind up
+            // calling Solution.WithDocumentText using the related ids.
             var leftSolution = oldDocument.Project.Solution;
             var allLeftIds = leftSolution.GetRelatedDocumentIds(oldDocument.Id);
             leftSolution = leftSolution.WithDocumentText(allLeftIds, oldBuffer.AsTextContainer().CurrentText, PreservationMode.PreserveIdentity);
