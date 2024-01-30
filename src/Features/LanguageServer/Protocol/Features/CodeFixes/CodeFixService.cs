@@ -163,20 +163,56 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        public async IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(
+        public async Task<ImmutableArray<Diagnostic>> GetDiagnosticsWithNoFixAsync(
+            TextDocument document, TextSpan range, ICodeActionRequestPriorityProvider priorityProvider, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        {
+            var (liveDiagnostics, buildOnlyDiagnostics) = await GetDiagnosticsAsync(
+                document, range, priorityProvider, fallbackOptions, addOperationScope: static _ => null,
+                includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
+
+            using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var nonFixableDiagnostics);
+
+            // Build-only diagnostics do not support code fixes, so are always added.
+            var convertedBuildOnlyDiagnostics = await buildOnlyDiagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            nonFixableDiagnostics.AddRange(convertedBuildOnlyDiagnostics.Where(d => d.Location.IsInSource && range.IntersectsWith(d.Location.SourceSpan)));
+
+            if (liveDiagnostics.IsEmpty)
+            {
+                return nonFixableDiagnostics.ToImmutable();
+            }
+
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var spanToDiagnostics = ConvertToMap(text, liveDiagnostics);
+
+            using var _2 = PooledHashSet<Diagnostic>.GetInstance(out var fixableDiagnostics);
+            await foreach (var fix in StreamFixesAsync(document, spanToDiagnostics, fixAllForInSpan: false, priorityProvider, fallbackOptions, _ => null, cancellationToken))
+            {
+                foreach (var codeFix in fix.Fixes)
+                {
+                    foreach (var diagnostic in codeFix.Diagnostics)
+                        fixableDiagnostics.Add(diagnostic);
+                }
+            }
+
+            var convertedLiveDiagnostics = await liveDiagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            foreach (var diagnostic in convertedLiveDiagnostics)
+            {
+                if (!fixableDiagnostics.Contains(diagnostic))
+                    nonFixableDiagnostics.Add(diagnostic);
+            }
+
+            return nonFixableDiagnostics.ToImmutable();
+        }
+
+        private async Task<(ImmutableArray<DiagnosticData> LiveDiagnostics, ImmutableArray<DiagnosticData> BuildOnlyDiagnostics)> GetDiagnosticsAsync(
             TextDocument document,
             TextSpan range,
             ICodeActionRequestPriorityProvider priorityProvider,
             CodeActionOptionsProvider fallbackOptions,
             Func<string, IDisposable?> addOperationScope,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            bool includeSuppressedDiagnostics,
+            CancellationToken cancellationToken)
         {
-            using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}");
-
-            // We only need to compute suppression/configuration fixes when request priority is
-            // 'CodeActionPriorityRequest.Lowest' or no priority was provided at all (so all providers should run).
-            var includeSuppressionFixes = priorityProvider.Priority is null or CodeActionRequestPriority.Lowest;
-
             // REVIEW: this is the first and simplest design. basically, when ctrl+. is pressed, it asks diagnostic
             // service to give back current diagnostics for the given span, and it will use that to get fixes.
             // internally diagnostic service will either return cached information (if it is up-to-date) or
@@ -193,12 +229,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                     document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                    includeCompilerDiagnostics: true, includeSuppressedDiagnostics: includeSuppressionFixes, priorityProvider,
+                    includeCompilerDiagnostics: true, includeSuppressedDiagnostics, priorityProvider,
                     addOperationScope, DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
             }
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
             var buildOnlyDiagnostics = buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id);
+            return (diagnostics, buildOnlyDiagnostics);
+        }
+
+        public async IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(
+            TextDocument document,
+            TextSpan range,
+            ICodeActionRequestPriorityProvider priorityProvider,
+            CodeActionOptionsProvider fallbackOptions,
+            Func<string, IDisposable?> addOperationScope,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}");
+
+            // We only need to compute suppression/configuration fixes when request priority is
+            // 'CodeActionPriorityRequest.Lowest' or no priority was provided at all (so all providers should run).
+            var includeSuppressionFixes = priorityProvider.Priority is null or CodeActionRequestPriority.Lowest;
+
+            var (diagnostics, buildOnlyDiagnostics) = await GetDiagnosticsAsync(
+                document, range, priorityProvider, fallbackOptions, addOperationScope,
+                includeSuppressedDiagnostics: includeSuppressionFixes, cancellationToken).ConfigureAwait(false);
 
             if (diagnostics.IsEmpty && buildOnlyDiagnostics.IsEmpty)
                 yield break;
