@@ -609,12 +609,6 @@ namespace Roslyn.Utilities
             }
         }
 
-        private async ValueTask WriteArrayValuesAsync(Array array)
-        {
-            for (var i = 0; i < array.Length; i++)
-                await WriteValueAsync(array.GetValue(i)).ConfigureAwait(false);
-        }
-
         private async ValueTask WritePrimitiveTypeArrayElementsAsync(Type type, TypeCode kind, Array instance)
         {
             Debug.Assert(s_typeMap[type] == kind);
