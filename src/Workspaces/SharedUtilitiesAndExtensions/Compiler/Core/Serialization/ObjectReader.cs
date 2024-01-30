@@ -221,6 +221,12 @@ internal sealed partial class ObjectReader : IDisposable
     public async ValueTask<ulong> ReadUInt64Async()
         => unchecked((ulong)await ReadInt64Async().ConfigureAwait(false));
 
+    public async ValueTask<double> ReadDoubleAsync()
+        => BitConverter.Int64BitsToDouble(await ReadInt64Async().ConfigureAwait(false));
+
+    public async ValueTask<float> ReadSingleAsync()
+        => BitConverter.Int32BitsToSingle(await ReadInt32Async().ConfigureAwait(false));
+
     // read as ushort because BinaryWriter fails on chars that are unicode surrogates
     public async ValueTask<char> ReadCharAsync()
         => (char)await ReadUInt16Async().ConfigureAwait(false);
@@ -235,8 +241,6 @@ internal sealed partial class ObjectReader : IDisposable
             hi: await ReadInt32Async().ConfigureAwait(false));
     }
 
-    public double ReadDouble() => _reader.ReadDouble();
-    public float ReadSingle() => _reader.ReadSingle();
     public short ReadInt16() => _reader.ReadInt16();
     public ushort ReadUInt16() => _reader.ReadUInt16();
     public string ReadString() => ReadStringValue();

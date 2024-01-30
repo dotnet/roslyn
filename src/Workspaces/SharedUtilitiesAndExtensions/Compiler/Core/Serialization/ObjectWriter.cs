@@ -153,7 +153,7 @@ namespace Roslyn.Utilities
         {
             const int size = 4;
             var span = _writer.GetSpan(size);
-            var bits = BitConverter.DoubleToInt64Bits(value);
+            var bits = BitConverter.SingleToInt32Bits(value);
             MemoryMarshal.Write(span, ref bits);
             _writer.Advance(size);
         }
