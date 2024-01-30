@@ -9,6 +9,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -185,10 +186,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             writer.WriteUInt32(_flags);
             writer.WriteInt32(Span.Start);
             writer.WriteInt32(Span.Length);
-            writer.WriteInt32(InheritanceNames.Length);
-
-            foreach (var name in InheritanceNames)
-                writer.WriteString(name);
+            writer.WriteArray(InheritanceNames, static (w, n) => w.WriteString(n));
         }
 
         internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(StringTable stringTable, ObjectReader reader)
@@ -201,10 +199,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var spanStart = reader.ReadInt32();
             var spanLength = reader.ReadInt32();
 
-            var inheritanceNamesLength = reader.ReadInt32();
-            using var _ = ArrayBuilder<string>.GetInstance(inheritanceNamesLength, out var inheritanceNames);
-            for (var i = 0; i < inheritanceNamesLength; i++)
-                inheritanceNames.Add(reader.ReadString());
+            var inheritanceNames = reader.ReadArray(static r => r.ReadString());
 
             var span = new TextSpan(spanStart, spanLength);
             return Create(
@@ -218,7 +213,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 GetKind(flags),
                 GetAccessibility(flags),
                 span,
-                inheritanceNames.ToImmutableAndClear(),
+                inheritanceNames,
                 GetIsNestedType(flags),
                 GetParameterCount(flags),
                 GetTypeParameterCount(flags));
