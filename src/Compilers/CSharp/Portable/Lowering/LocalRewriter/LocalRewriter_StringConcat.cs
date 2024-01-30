@@ -649,13 +649,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static WellKnownMember? GetSpanConcatMemberByArgumentsCount(int argumentCount) => argumentCount switch
+        private static WellKnownMember? GetSpanConcatMemberByArgumentsCount(int argumentCount)
         {
-            2 => WellKnownMember.System_String__Concat_2ReadOnlySpans,
-            3 => WellKnownMember.System_String__Concat_3ReadOnlySpans,
-            4 => WellKnownMember.System_String__Concat_4ReadOnlySpans,
-            _ => null,
-        };
+            return argumentCount switch
+            {
+                2 => WellKnownMember.System_String__Concat_2ReadOnlySpans,
+                3 => WellKnownMember.System_String__Concat_3ReadOnlySpans,
+                4 => WellKnownMember.System_String__Concat_4ReadOnlySpans,
+                _ => null,
+            };
+        }
 
         /// <summary>
         /// Most of the above optimizations are not applicable in expression trees as the operator
