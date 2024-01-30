@@ -6,6 +6,7 @@
 // and updated to have the scope of the attributes be internal.
 namespace System.Diagnostics.CodeAnalysis
 {
+#if !NET8_0_OR_GREATER
     /// <summary>
     ///  Indicates that an API is experimental and it may change in the future.
     /// </summary>
@@ -55,4 +56,5 @@ namespace System.Diagnostics.CodeAnalysis
         /// <remarks>An example format string is <c>https://contoso.com/obsoletion-warnings/{0}</c>.</remarks>
         public string? UrlFormat { get; set; }
     }
+#endif
 }
