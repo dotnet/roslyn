@@ -357,7 +357,7 @@ internal sealed partial class ObjectReader : IDisposable
         string value;
         if (kind == TypeCode.StringUtf8)
         {
-            value = ReadString();
+            value = _reader.ReadString();
         }
         else
         {
