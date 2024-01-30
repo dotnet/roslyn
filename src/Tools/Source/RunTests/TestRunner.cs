@@ -194,6 +194,8 @@ namespace RunTests
                 // figure out solutions for issues such as creating file paths in the correct format for the target machine.
                 var isUnix = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
                 var isMac = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+                Console.WriteLine($"Running on Unix: {isUnix}");
+                Console.WriteLine($"Running on Mac: {isMac}");
 
                 var setEnvironmentVariable = isUnix ? "export" : "set";
 
@@ -297,6 +299,9 @@ namespace RunTests
                     command.AppendLine("echo %vstestConsolePath%");
                     command.AppendLine($"dotnet exec \"%vstestConsolePath%\" @{rspFileName}");
                 }
+
+                Console.WriteLine("Command text");
+                Console.WriteLine(command.ToString());
 
                 // The command string contains characters like % which are not valid XML to pass into the helix csproj.
                 var escapedCommand = SecurityElement.Escape(command.ToString());
