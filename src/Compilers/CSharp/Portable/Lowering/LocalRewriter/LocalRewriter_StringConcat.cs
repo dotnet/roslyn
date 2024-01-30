@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var left = leftFlattened[0];
                     var right = leftFlattened[1];
 
-                    if (!TryRewriteStringConcatenationWithSpanBasedConcat(syntax, leftFlattened.ToImmutable(), out result))
+                    if (!TryRewriteStringConcatenationWithSpanBasedConcat(syntax, leftFlattened, out result))
                     {
                         result = RewriteStringConcatenationTwoExprs(syntax, left, right);
                     }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var second = leftFlattened[1];
                         var third = leftFlattened[2];
 
-                        if (!TryRewriteStringConcatenationWithSpanBasedConcat(syntax, leftFlattened.ToImmutable(), out result))
+                        if (!TryRewriteStringConcatenationWithSpanBasedConcat(syntax, leftFlattened, out result))
                         {
                             result = RewriteStringConcatenationThreeExprs(syntax, first, second, third);
                         }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var third = leftFlattened[2];
                         var fourth = leftFlattened[3];
 
-                        if (!TryRewriteStringConcatenationWithSpanBasedConcat(syntax, leftFlattened.ToImmutable(), out result))
+                        if (!TryRewriteStringConcatenationWithSpanBasedConcat(syntax, leftFlattened, out result))
                         {
                             result = RewriteStringConcatenationFourExprs(syntax, first, second, third, fourth);
                         }
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, array);
         }
 
-        private bool TryRewriteStringConcatenationWithSpanBasedConcat(SyntaxNode syntax, ImmutableArray<BoundExpression> args, [NotNullWhen(true)] out BoundExpression? result)
+        private bool TryRewriteStringConcatenationWithSpanBasedConcat(SyntaxNode syntax, ArrayBuilder<BoundExpression> args, [NotNullWhen(true)] out BoundExpression? result)
         {
             // As we scan arguments we might face span-based string.Concat. If it got to this stage it must be a user-provided one (since we weren't able to unwrap it back to strings previously)
             // We try our best to merge it with another argument to minimize amount of intermediate string allocations,
@@ -461,8 +461,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // instead of `string.Concat(string.Concat(span1, span2), string3)`. We do that by separately tracking arguments as is
             // and arguments if we unwrap all user-defined `string.Concat`s. If at the end amount of arguments with unwrapped user-defined `string.Concat`s
             // is < 5 and we have respective span-based concat member, we emit it, otherwise treat user-provided `string.Concat`s as ordinary arguments
-            var preparedArgs = ArrayBuilder<BoundExpression>.GetInstance(capacity: args.Length);
-            var preparedArgsIfUnwrapUserStringConcat = ArrayBuilder<BoundExpression>.GetInstance(capacity: args.Length);
+            var preparedArgs = ArrayBuilder<BoundExpression>.GetInstance(capacity: args.Count);
+            var preparedArgsIfUnwrapUserStringConcat = ArrayBuilder<BoundExpression>.GetInstance(capacity: args.Count);
 
             var needsSpanRefParamConstructor = false;
             var needsImplicitConversionFromStringToSpan = false;
