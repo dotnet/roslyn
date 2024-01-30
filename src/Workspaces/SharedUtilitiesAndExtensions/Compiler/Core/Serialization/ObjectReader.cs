@@ -167,14 +167,32 @@ internal sealed partial class ObjectReader : IDisposable
         _stringReferenceMap.Dispose();
     }
 
-    public bool ReadBoolean() => _reader.ReadBoolean();
-    public byte ReadByte() => _reader.ReadByte();
+    public bool ReadBoolean()
+        => ReadByte() != 0;
+
+    public async byte ReadByte()
+    {
+        const int byteCount = 1;
+        var readResult = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
+        var result = readResult.Buffer.FirstSpan[0];
+        _reader.AdvanceTo(readResult.Buffer.GetPosition(byteCount));
+        return result;
+    }
+
+    public int ReadInt32()
+    {
+        const int byteCount = 4;
+        var readResult = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
+        var result = readResult.Buffer.FirstSpan[0];
+        _reader.AdvanceTo(readResult.Buffer.GetPosition(byteCount));
+        return result;
+    }
+
     // read as ushort because BinaryWriter fails on chars that are unicode surrogates
     public char ReadChar() => (char)_reader.ReadUInt16();
     public decimal ReadDecimal() => _reader.ReadDecimal();
     public double ReadDouble() => _reader.ReadDouble();
     public float ReadSingle() => _reader.ReadSingle();
-    public int ReadInt32() => _reader.ReadInt32();
     public long ReadInt64() => _reader.ReadInt64();
     public sbyte ReadSByte() => _reader.ReadSByte();
     public short ReadInt16() => _reader.ReadInt16();

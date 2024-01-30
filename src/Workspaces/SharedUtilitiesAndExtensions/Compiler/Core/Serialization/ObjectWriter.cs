@@ -34,7 +34,7 @@ namespace Roslyn.Utilities
     /// <summary>
     /// An <see cref="ObjectWriter"/> that serializes objects to a byte stream.
     /// </summary>
-    internal sealed partial class ObjectWriter : IDisposable
+    internal sealed partial class ObjectWriter : IAsyncDisposable
     {
         private readonly PipeWriter _writer;
         private readonly bool _leaveOpen;
@@ -82,10 +82,12 @@ namespace Roslyn.Utilities
             WriteVersion();
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
+            await _writer.FlushAsync(_cancellationToken).ConfigureAwait(false);
             if (!_leaveOpen)
                 _writer.Complete();
+
             _stringReferenceMap.Dispose();
         }
 
