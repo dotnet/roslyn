@@ -20,7 +20,7 @@ internal sealed class CSharpExtension : Extension
 
     [VisualStudioContribution]
     public static CommandGroupConfiguration ProjectCommandGroupWithPlacement
-        => new(GroupPlacement.VsctParent(new Guid(VSConstants.CMDSETID.ShellMainMenu_string), VsMenus.IDM_VS_CTXT_PROJNODE, 0x0400))
+        => new(GroupPlacement.VsctParent(new Guid(VSConstants.CMDSETID.ShellMainMenu_string), VsMenus.IDM_VS_CTXT_PROJNODE, priority: 0x0400))
         {
             Children = new[]
             {
