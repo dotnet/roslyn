@@ -103,6 +103,8 @@ internal sealed partial class ObjectReader : IDisposable
 #else
             ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
 #endif
+
+            return null;
         }
 
         ObjectReader CreateReaderFromResult(ReadResult result)
@@ -128,7 +130,7 @@ internal sealed partial class ObjectReader : IDisposable
     /// Should only be used to read data written by the same version of Roslyn.
     /// </summary>
     public static ObjectReader GetReader(
-        Stream stream,
+        PipeReader reader,
         bool leaveOpen,
         CancellationToken cancellationToken)
     {
@@ -159,6 +161,9 @@ internal sealed partial class ObjectReader : IDisposable
 
     public void Dispose()
     {
+        if (!_leaveOpen)
+            _reader.Complete();
+
         _stringReferenceMap.Dispose();
     }
 
