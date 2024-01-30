@@ -58,8 +58,8 @@ internal sealed partial class ObjectReader : IDisposable
     /// <summary>
     /// Creates a new instance of a <see cref="ObjectReader"/>.
     /// </summary>
-    /// <param name="stream">The stream to read objects from.</param>
-    /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
+    /// <param name="reader">The stream to read objects from.</param>
+    /// <param name="leaveOpen">True to leave the <paramref name="reader"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
     /// <param name="cancellationToken"></param>
     private ObjectReader(
         PipeReader reader,
@@ -78,9 +78,8 @@ internal sealed partial class ObjectReader : IDisposable
     }
 
     /// <summary>
-    /// Attempts to create a <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
-    /// If the <paramref name="stream"/> does not start with a valid header, then <see langword="null"/> will
-    /// be returned.
+    /// Attempts to create a <see cref="ObjectReader"/> from the provided <paramref name="reader"/>. If the <paramref
+    /// name="reader"/> does not start with a valid header, then <see langword="null"/> will be returned.
     /// </summary>
     public static async ValueTask<ObjectReader> TryGetReaderAsync(
         PipeReader reader,
@@ -127,39 +126,26 @@ internal sealed partial class ObjectReader : IDisposable
     }
 
     /// <summary>
-    /// Creates an <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
-    /// Unlike <see cref="TryGetReader(Stream, bool, CancellationToken)"/>, it requires the version
-    /// of the data in the stream to exactly match the current format version.
-    /// Should only be used to read data written by the same version of Roslyn.
+    /// Creates an <see cref="ObjectReader"/> from the provided <paramref name="reader"/>. Unlike <see
+    /// cref="TryGetReaderAsync"/>, it requires the version of the data in the stream to exactly match the current
+    /// format version. Should only be used to read data written by the same version of Roslyn.
     /// </summary>
-    public static ObjectReader GetReader(
+    public static async ValueTask<ObjectReader> GetReaderAsync(
         PipeReader reader,
         bool leaveOpen,
         CancellationToken cancellationToken)
     {
-        var b = stream.ReadByte();
-        if (b == -1)
-        {
-            throw new EndOfStreamException();
-        }
+        var objectReader = new ObjectReader(reader, leaveOpen, cancellationToken);
 
+        var b = await objectReader.ReadByteAsync().ConfigureAwait(false);
         if (b != VersionByte1)
-        {
             throw ExceptionUtilities.UnexpectedValue(b);
-        }
 
-        b = stream.ReadByte();
-        if (b == -1)
-        {
-            throw new EndOfStreamException();
-        }
-
+        b = await objectReader.ReadByteAsync().ConfigureAwait(false);
         if (b != VersionByte2)
-        {
             throw ExceptionUtilities.UnexpectedValue(b);
-        }
 
-        return new ObjectReader(stream, leaveOpen, cancellationToken);
+        return objectReader;
     }
 
     public void Dispose()
