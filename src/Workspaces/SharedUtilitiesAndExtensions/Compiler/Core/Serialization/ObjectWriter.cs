@@ -189,7 +189,7 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
-                    _stringReferenceMap.Add(value, isReusable: true);
+                    _stringReferenceMap.Add(value);
 
                     if (value.IsValidUnicodeString())
                     {
@@ -319,47 +319,27 @@ namespace Roslyn.Utilities
                 else if (value.GetType() == typeof(short))
                 {
                     WriteByte((byte)TypeCode.Int16);
-<<<<<<< HEAD
-                    _writer.Write((short)value);
-=======
                     WriteInt16((short)value);
->>>>>>> uniformity
                 }
                 else if (value.GetType() == typeof(long))
                 {
                     WriteByte((byte)TypeCode.Int64);
-<<<<<<< HEAD
-                    _writer.Write((long)value);
-=======
                     WriteInt64((long)value);
->>>>>>> uniformity
                 }
                 else if (value.GetType() == typeof(sbyte))
                 {
                     WriteByte((byte)TypeCode.Int8);
-<<<<<<< HEAD
-                    _writer.Write((sbyte)value);
-=======
                     WriteSByte((sbyte)value);
->>>>>>> uniformity
                 }
                 else if (value.GetType() == typeof(float))
                 {
                     WriteByte((byte)TypeCode.Float4);
-<<<<<<< HEAD
-                    _writer.Write((float)value);
-=======
                     WriteSingle((float)value);
->>>>>>> uniformity
                 }
                 else if (value.GetType() == typeof(ushort))
                 {
                     WriteByte((byte)TypeCode.UInt16);
-<<<<<<< HEAD
-                    _writer.Write((ushort)value);
-=======
                     WriteUInt16((ushort)value);
->>>>>>> uniformity
                 }
                 else if (value.GetType() == typeof(uint))
                 {
@@ -377,23 +357,15 @@ namespace Roslyn.Utilities
             }
             else if (value.GetType() == typeof(decimal))
             {
-                WriteByte((byte)TypeCode.Decimal);
-<<<<<<< HEAD
-                _writer.Write((decimal)value);
+                throw new NotImplementedException();
+                //_writer.Write((byte)TypeCode.DateTime);
+                //_writer.Write(((DateTime)value).ToBinary());
             }
             else if (value.GetType() == typeof(DateTime))
             {
                 throw new NotImplementedException();
-                //_writer.Write((byte)TypeCode.DateTime);
+                //WriteByte((byte)TypeCode.DateTime);
                 //_writer.Write(((DateTime)value).ToBinary());
-=======
-                WriteDecimal((decimal)value);
-            }
-            else if (value.GetType() == typeof(DateTime))
-            {
-                WriteByte((byte)TypeCode.DateTime);
-                _writer.Write(((DateTime)value).ToBinary());
->>>>>>> uniformity
             }
             else if (value.GetType() == typeof(string))
             {
