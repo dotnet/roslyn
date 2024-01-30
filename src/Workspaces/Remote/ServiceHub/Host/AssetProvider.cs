@@ -59,7 +59,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         // this will be fast since we actually synchronized the checksums above.
         using var _ = ArrayBuilder<ValueTuple<Checksum, T>>.GetInstance(checksums.Count, out var list);
         foreach (var checksum in checksums)
-            list.Add(ValueTuple.Create(checksum, GetRequiredAsset<T>(checksum)));
+            list.Add((checksum, GetRequiredAsset<T>(checksum)));
 
         return list.ToImmutableAndClear();
     }
