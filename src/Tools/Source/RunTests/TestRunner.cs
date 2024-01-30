@@ -222,7 +222,7 @@ namespace RunTests
                 // OSX produces extremely large dump files that commonly exceed the limits of Helix 
                 // uploads. These settings limit the dump file size + produce a .json detailing crash 
                 // reasons that work better with Helix size limitations.
-                if (isMac)
+                if (isUnix)
                 {
                     command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgEnableMiniDump=1");
                     command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgMiniDumpType=1");
