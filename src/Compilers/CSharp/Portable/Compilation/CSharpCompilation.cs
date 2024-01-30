@@ -1057,10 +1057,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> computeMappedPathToSyntaxTree()
             {
                 var builder = ImmutableSegmentedDictionary.CreateBuilder<string, OneOrMany<SyntaxTree>>();
-                var resolver = Options.SourceReferenceResolver;
+                var resolver = Options.SourceReferenceResolver ?? SourceFileResolver.Default;
                 foreach (var tree in SyntaxTrees)
                 {
-                    var path = resolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
+                    var path = resolver.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
                     builder[path] = builder.ContainsKey(path) ? builder[path].Add(tree) : OneOrMany.Create(tree);
                 }
                 return builder.ToImmutable();

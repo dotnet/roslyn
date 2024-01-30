@@ -223,7 +223,7 @@ namespace Roslyn.Utilities
                 return null;
             }
 
-            string? normalizedPath = TryNormalizeAbsolutePath(resolvedPath);
+            string? normalizedPath = PathUtilities.IsAbsolute(resolvedPath) ? TryNormalizeAbsolutePath(resolvedPath) : null;
             if (normalizedPath == null)
             {
                 return null;

@@ -8,8 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1000,29 +1002,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var syntaxTrees = DeclaringCompilation.SyntaxTrees;
+            var referenceResolver = DeclaringCompilation.Options.SourceReferenceResolver ?? SourceFileResolver.Default;
+
+            // First, the attributeFilePath might be a mapped path of one of the trees in the compilation.
+            // In this case, it's not intended to be resolved relative to anything, and we won't know if this is the case until we look it up.
             var matchingTrees = DeclaringCompilation.GetSyntaxTreesByMappedPath(attributeFilePath);
+            if (matchingTrees.Count == 0
+                && referenceResolver.NormalizePath(attributeFilePath, baseFilePath: SyntaxTree.FilePath) is { } normalizedFilePath)
+            {
+                // Try again but normalize the given file path relative to the containing file of the attribute application
+                matchingTrees = DeclaringCompilation.GetSyntaxTreesByMappedPath(normalizedFilePath);
+
+                // Use the normalized path in the following diagnostic messages so the user has a hint of where we are searching.
+                // Relative paths are the happy path so we want them to know how the compiler has resolved the path they gave us.
+                attributeFilePath = normalizedFilePath;
+            }
+
             if (matchingTrees.Count == 0)
             {
-                var referenceResolver = DeclaringCompilation.Options.SourceReferenceResolver;
                 // if we expect '/_/Program.cs':
-
-                // we might get: 'C:\Project\Program.cs' <-- path not mapped
-                var unmappedMatch = syntaxTrees.FirstOrDefault(static (tree, filePath) => tree.FilePath == filePath, attributeFilePath);
-                if (unmappedMatch != null)
-                {
-                    diagnostics.Add(
-                        ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate,
-                        attributeData.GetAttributeArgumentLocation(filePathParameterIndex),
-                        attributeFilePath,
-                        mapPath(referenceResolver, unmappedMatch));
-                    return;
-                }
 
                 // we might get: '\_\Program.cs' <-- slashes not normalized
                 // we might get: '\_/Program.cs' <-- slashes don't match
                 // we might get: 'Program.cs' <-- suffix match
                 // Force normalization of all '\' to '/', but when we recommend a path in the diagnostic message, ensure it will match what we expect if the user decides to use it.
+                var syntaxTrees = DeclaringCompilation.SyntaxTrees;
                 var suffixMatch = syntaxTrees.FirstOrDefault(static (tree, pair)
                     => mapPath(pair.referenceResolver, tree)
                         .Replace('\\', '/')

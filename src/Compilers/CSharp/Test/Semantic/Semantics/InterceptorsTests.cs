@@ -4556,8 +4556,8 @@ partial struct CustomHandler
     [Fact]
     public void PathMapping_02()
     {
-        // Attribute uses a physical path, but we expected a mapped path.
-        // Diagnostic can suggest using the mapped path instead.
+        // Attribute contains an unmapped path even though compilation uses a pathmap.
+        // Because normalizing to the path of the containing file also effectively applies the pathmap, we accept the given path
         var pathPrefix = PlatformInformation.IsWindows ? @"C:\My\Machine\Specific\Path\" : "/My/Machine/Specific/Path/";
         var path = pathPrefix + "Program.cs";
         var source = $$"""
@@ -4577,16 +4577,13 @@ partial struct CustomHandler
             """;
         var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>(pathPrefix, "/_/"));
 
-        var comp = CreateCompilation(
+        var verifier = CompileAndVerify(
             new[] { (source, path), s_attributesSource },
             parseOptions: RegularWithInterceptors,
             options: TestOptions.DebugExe.WithSourceReferenceResolver(
-                new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)));
-        comp.VerifyEmitDiagnostics(
-                // C:\My\Machine\Specific\Path\Program.cs(11,25): error CS9145: Cannot intercept: Path 'C:\My\Machine\Specific\Path\Program.cs' is unmapped. Expected mapped path '/_/Program.cs'.
-                //     [InterceptsLocation(@"C:\My\Machine\Specific\Path\Program.cs", 5, 3)]
-                Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate, $@"@""{path}""").WithArguments(path, "/_/Program.cs").WithLocation(11, 25)
-            );
+                new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)),
+            expectedOutput: "1");
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]
@@ -4617,9 +4614,9 @@ partial struct CustomHandler
             options: TestOptions.DebugExe.WithSourceReferenceResolver(
                 new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)));
         comp.VerifyEmitDiagnostics(
-            // C:\My\Machine\Specific\Path\Program.cs(11,25): error CS9140: Cannot intercept: compilation does not contain a file with path '\_\Program.cs'. Did you mean to use path '/_/Program.cs'?
+            // C:\My\Machine\Specific\Path\Program.cs(11,25): error CS9139: Cannot intercept: compilation does not contain a file with path 'C:\_\Program.cs'.
             //     [InterceptsLocation(@"\_\Program.cs", 5, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, @"@""\_\Program.cs""").WithArguments(@"\_\Program.cs", "/_/Program.cs").WithLocation(11, 25));
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"@""\_\Program.cs""").WithArguments(PlatformInformation.IsWindows ? @"C:\_\Program.cs" : "/_/Program.cs").WithLocation(11, 25));
     }
 
     [Fact]
@@ -4746,9 +4743,9 @@ partial struct CustomHandler
             options: TestOptions.DebugExe.WithSourceReferenceResolver(
                 new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)));
         comp.VerifyEmitDiagnostics(
-            // C:\My\Machine\Specific\Path\Program.cs(11,25): error CS9140: Cannot intercept: compilation does not contain a file with path '/_/Program.cs'. Did you mean to use path '\_/Program.cs'?
+            // C:\My\Machine\Specific\Path\Program.cs(11,25): error CS9139: Cannot intercept: compilation does not contain a file with path 'C:\_\Program.cs'.
             //     [InterceptsLocation(@"/_/Program.cs", 5, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, @"@""/_/Program.cs""").WithArguments("/_/Program.cs", @"\_/Program.cs").WithLocation(11, 25));
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"@""/_/Program.cs""").WithArguments(PlatformInformation.IsWindows ? @"C:\_\Program.cs" : "/_/Program.cs").WithLocation(11, 25));
     }
 
     [Fact]
@@ -4876,8 +4873,6 @@ partial struct CustomHandler
     [Fact]
     public void PathNormalization_04()
     {
-        // Absolute paths do not have slashes normalized when no pathmap is present
-        // Note that any such normalization step would be specific to Windows
         var source = """
             using System.Runtime.CompilerServices;
             using System;
@@ -4892,16 +4887,287 @@ partial struct CustomHandler
 
                 public void M() => throw null!;
 
-                [InterceptsLocation("C:/src/Program.cs", 9, 11)] // 1
+                [InterceptsLocation("C:/src/Program.cs", 9, 11)]
                 public void Interceptor() => Console.Write(1);
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, @"C:\src\Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        var verifier = CompileAndVerify(new[] { (source, @"C:\src\Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RelativePaths_01()
+    {
+        var source = """
+            class C
+            {
+                public static void Main()
+                {
+                    C c = new C();
+                    c.M();
+                }
+
+                public void M() => throw null!;
+            }
+            """;
+
+        var source2 = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            static class Interceptors
+            {
+                [InterceptsLocation("../src/Program.cs", 6, 11)]
+                internal static void Interceptor(this C c) => Console.Write(1);
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { (source, @"C:\src\Program.cs"), (source2, @"C:\obj\Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RelativePaths_02()
+    {
+        var source = """
+            class C
+            {
+                public static void Main()
+                {
+                    C c = new C();
+                    c.M();
+                }
+
+                public void M() => throw null!;
+            }
+            """;
+
+        // interceptor containing file does not have absolute path
+        // Therefore we don't resolve the relative path
+        var source2 = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            static class Interceptors
+            {
+                [InterceptsLocation("../src/Program.cs", 6, 11)]
+                internal static void Interceptor(this C c) => Console.Write(1);
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, @"C:\src\Program.cs"), (source2, @"Generator\Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
-            // C:\src\Program.cs(14,25): error CS9140: Cannot intercept: compilation does not contain a file with path 'C:/src/Program.cs'. Did you mean to use path 'C:\src\Program.cs'?
-            //     [InterceptsLocation("C:/src/Program.cs", 9, 11)] // 1
-            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, @"""C:/src/Program.cs""").WithArguments("C:/src/Program.cs", @"C:\src\Program.cs").WithLocation(14, 25));
+            // Generator\Generated.cs(6,25): error CS9139: Cannot intercept: compilation does not contain a file with path '../src/Program.cs'.
+            //     [InterceptsLocation("../src/Program.cs", 6, 11)]
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""../src/Program.cs""").WithArguments("../src/Program.cs").WithLocation(6, 25));
+    }
+
+    [Fact]
+    public void RelativePaths_03()
+    {
+        // intercepted file does not have absolute path
+        var source = """
+            class C
+            {
+                public static void Main()
+                {
+                    C c = new C();
+                    c.M();
+                }
+
+                public void M() => throw null!;
+            }
+            """;
+
+        var source2 = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            static class Interceptors
+            {
+                [InterceptsLocation("../src/Program.cs", 6, 11)]
+                internal static void Interceptor(this C c) => Console.Write(1);
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, @"src\Program.cs"), (source2, @"C:\obj\Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // C:\obj\Generated.cs(6,25): error CS9139: Cannot intercept: compilation does not contain a file with path 'C:\src\Program.cs'.
+            //     [InterceptsLocation("../src/Program.cs", 6, 11)]
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""../src/Program.cs""").WithArguments(@"C:\src\Program.cs").WithLocation(6, 25)
+            );
+    }
+
+    [Fact]
+    public void RelativePaths_04()
+    {
+        var source = """
+            class C
+            {
+                public static void Main()
+                {
+                    C c = new C();
+                    c.M();
+                }
+
+                public void M() => throw null!;
+            }
+            """;
+
+        // parent directory of the drive root is just the drive root
+        var source2 = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            static class Interceptors
+            {
+                [InterceptsLocation("../../src/Program.cs", 6, 11)]
+                internal static void Interceptor(this C c) => Console.Write(1);
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, @"C:\src\Program.cs"), (source2, @"C:\obj\Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void RelativePaths_05()
+    {
+        var source = """
+            class C
+            {
+                public static void Main()
+                {
+                    C c = new C();
+                    c.M();
+                }
+
+                public void M() => throw null!;
+            }
+            """;
+
+        var source2 = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            static class Interceptors
+            {
+                [InterceptsLocation("../src/./Program.cs", 6, 11)]
+                internal static void Interceptor(this C c) => Console.Write(1);
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, @"C:\src\Program.cs"), (source2, @"C:\obj\Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void RelativePaths_06()
+    {
+        var source = """
+            class C
+            {
+                public static void Main()
+                {
+                    C c = new C();
+                    c.M();
+                }
+
+                public void M() => throw null!;
+            }
+            """;
+
+        var source2 = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            static class Interceptors
+            {
+                [InterceptsLocation("../src/Program.cs/.", 6, 11)]
+                internal static void Interceptor(this C c) => Console.Write(1);
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, @"C:\src\Program.cs"), (source2, @"C:\obj\Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void RelativePaths_07()
+    {
+        var source = """
+            C c = new C();
+            c.M();
+
+            class C
+            {
+                public void M() => throw null!;
+            }
+            """;
+
+        var source2 = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            static class Interceptors
+            {
+                [InterceptsLocation("../src/Program.cs", 2, 3)]
+                public static void Interceptor(this C c) => Console.Write(1);
+            }
+            """;
+        var pathPrefix = PlatformInformation.IsWindows ? """C:\My\Machine\Specific\Path\""" : "/My/Machine/Specific/Path/";
+        var path = pathPrefix + "src/Program.cs";
+        var path2 = pathPrefix + "obj/Generated.cs";
+        var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>(pathPrefix, "/_/"));
+
+        var verifier = CompileAndVerify(
+            new[] { (source, path), (source2, path2), s_attributesSource },
+            parseOptions: RegularWithInterceptors,
+            options: TestOptions.DebugExe.WithSourceReferenceResolver(
+                new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)),
+            expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RelativePaths_08()
+    {
+        // Unmapped file paths are not absolute. Relative path resolution is not performed.
+        var source = """
+            C c = new C();
+            c.M();
+
+            class C
+            {
+                public void M() => throw null!;
+            }
+            """;
+
+        var source2 = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            static class Interceptors
+            {
+                [InterceptsLocation("../src/Program.cs", 2, 3)]
+                public static void Interceptor(this C c) => Console.Write(1);
+            }
+            """;
+        var pathPrefix = PlatformInformation.IsWindows ? """My\Machine\Specific\Path\""" : "My/Machine/Specific/Path/";
+        var path = pathPrefix + "src/Program.cs";
+        var path2 = pathPrefix + "obj/Generated.cs";
+        var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>(pathPrefix, "/_/"));
+
+        var comp = CreateCompilation(
+            new[] { (source, path), (source2, path2), s_attributesSource },
+            parseOptions: RegularWithInterceptors,
+            options: TestOptions.DebugExe.WithSourceReferenceResolver(
+                new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)));
+        comp.VerifyEmitDiagnostics(
+            // My\Machine\Specific\Path\obj/Generated.cs(6,25): error CS9139: Cannot intercept: compilation does not contain a file with path '../src/Program.cs'.
+            //     [InterceptsLocation("../src/Program.cs", 2, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""../src/Program.cs""").WithArguments("../src/Program.cs").WithLocation(6, 25));
     }
 
     [Fact]
