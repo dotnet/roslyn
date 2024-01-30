@@ -176,7 +176,7 @@ internal sealed partial class ObjectReader : IDisposable
 
     public object ReadValue()
     {
-        var code = (TypeCode)_reader.ReadByte();
+        var code = (TypeCode)ReadByte();
         switch (code)
         {
             case TypeCode.Null: return null;
