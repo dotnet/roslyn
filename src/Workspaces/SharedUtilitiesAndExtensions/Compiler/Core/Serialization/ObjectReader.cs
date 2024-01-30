@@ -7,6 +7,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipelines;
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
@@ -39,7 +40,9 @@ internal sealed partial class ObjectReader : IDisposable
     internal const byte VersionByte1 = 0b10101010;
     internal const byte VersionByte2 = 0b00001100;
 
-    private readonly BinaryReader _reader;
+    private readonly bool _leaveOpen;
+    private readonly PipeReader _reader;
+
     private readonly CancellationToken _cancellationToken;
 
     /// <summary>
@@ -54,7 +57,7 @@ internal sealed partial class ObjectReader : IDisposable
     /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
     /// <param name="cancellationToken"></param>
     private ObjectReader(
-        Stream stream,
+        PipeReader reader,
         bool leaveOpen,
         CancellationToken cancellationToken)
     {
@@ -62,7 +65,8 @@ internal sealed partial class ObjectReader : IDisposable
         // It can be adjusted for BigEndian if needed.
         Debug.Assert(BitConverter.IsLittleEndian);
 
-        _reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen);
+        _reader = reader;
+        _leaveOpen = leaveOpen;
         _stringReferenceMap = ReaderReferenceMap<string>.Create();
 
         _cancellationToken = cancellationToken;
@@ -74,14 +78,12 @@ internal sealed partial class ObjectReader : IDisposable
     /// be returned.
     /// </summary>
     public static ObjectReader TryGetReader(
-        Stream stream,
+        PipeReader reader,
         bool leaveOpen = false,
         CancellationToken cancellationToken = default)
     {
-        if (stream == null)
-        {
+        if (reader == null)
             return null;
-        }
 
         try
         {
@@ -103,7 +105,7 @@ internal sealed partial class ObjectReader : IDisposable
 #endif
         }
 
-        return new ObjectReader(stream, leaveOpen, cancellationToken);
+        return new ObjectReader(reader, leaveOpen, cancellationToken);
     }
 
     /// <summary>
