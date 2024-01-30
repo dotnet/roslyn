@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task ConstructorSnippetMissingInFilescopedNamespace()
+        public async Task ConstructorSnippetMissingInFileScopedNamespace()
         {
             var markupBeforeCommit =
                 """
@@ -253,6 +253,75 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("public")]
+        [InlineData("private")]
+        [InlineData("protected")]
+        [InlineData("internal")]
+        [InlineData("private protected")]
+        [InlineData("protected internal")]
+        [InlineData("static")]
+        public async Task InsertConstructorSnippetAfterValidModifiersTest(string modifiers)
+        {
+            var markupBeforeCommit = $$"""
+                class MyClass
+                {
+                    {{modifiers}} $$
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                class MyClass
+                {
+                    {{modifiers}} MyClass()
+                    {
+                        $$
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("abstract")]
+        [InlineData("sealed")]
+        [InlineData("virtual")]
+        [InlineData("override")]
+        [InlineData("readonly")]
+        [InlineData("new")]
+        [InlineData("file")]
+        public async Task ConstructorSnippetMissingAfterInvalidModifierTest(string modifier)
+        {
+            var markupBeforeCommit = $$"""
+                class MyClass
+                {
+                    {{modifier}} $$
+                }
+                """;
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("public")]
+        [InlineData("private")]
+        [InlineData("protected")]
+        [InlineData("internal")]
+        [InlineData("private protected")]
+        [InlineData("protected internal")]
+        public async Task ConstructorSnippetMissingAfterBothAccessibilityModifierAndStaticKeywordTest(string accessibilityModifier)
+        {
+            var markupBeforeCommit = $$"""
+                class MyClass
+                {
+                    {{accessibilityModifier}} static $$
+                }
+                """;
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
     }
 }
