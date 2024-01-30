@@ -521,14 +521,6 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void WriteArrayValues(Array array)
-        {
-            for (var i = 0; i < array.Length; i++)
-            {
-                this.WriteValue(array.GetValue(i));
-            }
-        }
-
         private void WritePrimitiveTypeArrayElements(Type type, TypeCode kind, Array instance)
         {
             Debug.Assert(s_typeMap[type] == kind);
@@ -704,12 +696,6 @@ namespace Roslyn.Utilities
             _writer.Write((byte)kind);
         }
 
-        public void WriteType(Type type)
-        {
-            _writer.Write((byte)TypeCode.Type);
-            this.WriteString(type.AssemblyQualifiedName);
-        }
-
         public void WriteEncoding(Encoding? encoding)
         {
             if (encoding == null)
@@ -798,11 +784,6 @@ namespace Roslyn.Utilities
             /// The null value
             /// </summary>
             Null,
-
-            /// <summary>
-            /// A type
-            /// </summary>
-            Type,
 
             /// <summary>
             /// A string encoded as UTF-8 (using BinaryWriter.Write(string))
