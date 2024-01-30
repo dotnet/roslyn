@@ -231,9 +231,11 @@ namespace RunTests
                     // Find the eng directory
                     var startPath = Path.GetDirectoryName(typeof(TestRunner).Assembly.Location)!;
                     var path = Path.GetDirectoryName(startPath)!;
-                    var gcPath = Path.Combine(path, "eng", "libclrgc.dylib");
+                    string gcPath;
                     do
                     {
+                        gcPath = Path.Combine(path, "eng", "libclrgc.dylib");
+                        Console.WriteLine($"Considering {gcPath}");
                         if (File.Exists(gcPath))
                         {
                             break;
@@ -242,7 +244,7 @@ namespace RunTests
                         path = Path.GetDirectoryName(path)!;
                         if (string.IsNullOrEmpty(path))
                         {
-                            throw new FileNotFoundException($"Could not find libclrgc.dynlib from {startPath}");
+                            throw new FileNotFoundException($"Could not find libclrgc.dylib from {startPath}");
                         }
                     } while (true);
 
