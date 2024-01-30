@@ -352,12 +352,12 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
         <source>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</source>
-        <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
+        <target state="translated">Zachytávání parametru primárního konstruktoru {0}, který se předtím nezachytával, vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
         <source>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</source>
-        <target state="translated">Dokončení zachytávání parametru primárního konstruktoru '{0}' '{1}' vyžaduje restartování aplikace.</target>
+        <target state="translated">Dokončení zachytávání parametru primárního konstruktoru{0} z {1} vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
@@ -412,7 +412,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Changing_attribute_0_requires_restarting_the_application">
         <source>Changing attribute '{0}' requires restarting the application.</source>
-        <target state="new">Changing attribute '{0}' requires restarting the application.</target>
+        <target state="translated">Změna atributu {0} vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
@@ -607,12 +607,12 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Debug_All_Tests">
         <source>Debug All Tests</source>
-        <target state="new">Debug All Tests</target>
+        <target state="translated">Ladit všechny testy</target>
         <note />
       </trans-unit>
       <trans-unit id="Debug_Test">
         <source>Debug Test</source>
-        <target state="new">Debug Test</target>
+        <target state="translated">Ladit test</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompilation_log">
@@ -757,7 +757,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Fix_All_0">
         <source>Fix All: {0}</source>
-        <target state="new">Fix All: {0}</target>
+        <target state="translated">Opravit vše: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -2517,7 +2517,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="Remove_unnecessary_imports_or_usings">
         <source>Remove unnecessary imports or usings</source>
-        <target state="new">Remove unnecessary imports or usings</target>
+        <target state="translated">Odebrat nepotřebné importy nebo použití</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameters">
@@ -2597,12 +2597,12 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="Run_All_Tests">
         <source>Run All Tests</source>
-        <target state="new">Run All Tests</target>
+        <target state="translated">Spustit všechny testy</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_Test">
         <source>Run Test</source>
-        <target state="new">Run Test</target>
+        <target state="translated">Spustit test</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
@@ -2842,7 +2842,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="Unwrap_collection">
         <source>Unwrap collection</source>
-        <target state="translated">Zrušit zalomení kolekce</target>
+        <target state="translated">Zrušit zalomení dlouhé kolekce</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -3017,7 +3017,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="Wrap_collection">
         <source>Wrap collection</source>
-        <target state="translated">Zalamovat kolekci</target>
+        <target state="translated">Zalomit kolekci</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -3458,7 +3458,7 @@ Pokud se specifikátor formátu H použije bez dalších specifikátorů vlastn�
       </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
         <source>class with explicit or sequential layout</source>
-        <target state="new">class with explicit or sequential layout</target>
+        <target state="translated">třída s explicitním nebo sekvenčním rozložením</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
