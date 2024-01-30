@@ -17,6 +17,7 @@
     <NetVS>net8.0</NetVS>
     <NetVSCode>net7.0</NetVSCode>
     <NetVSShared>net7.0;net8.0</NetVSShared>
+    <NetRoslynBuildHostNetCoreVersion>net6.0</NetRoslynBuildHostNetCoreVersion>
   </PropertyGroup>
 
   <!-- 
@@ -38,6 +39,7 @@
         <NetRoslynToolset>$(NetPrevious)</NetRoslynToolset>
         <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
         <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
+        <NetRoslynBuildHostNetCoreVersion>$(NetPrevious)</NetRoslynBuildHostNetCoreVersion>
       </PropertyGroup>
     </When>
 
@@ -49,6 +51,7 @@
         <NetRoslynToolset>$(NetCurrent)</NetRoslynToolset>
         <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
         <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
+        <NetRoslynBuildHostNetCoreVersion>$(NetCurrent)</NetRoslynBuildHostNetCoreVersion>
       </PropertyGroup>
     </When>
 
