@@ -835,8 +835,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 Assert.Equal(2, project2SyncedSolution.Projects.Count());
                 var csharpProject = project2SyncedSolution.Projects.Single(p => p.Language == LanguageNames.CSharp);
                 var vbProject = project2SyncedSolution.Projects.Single(p => p.Language == LanguageNames.VisualBasic);
-                Assert.True(csharpProject.DocumentIds.Count == 1);
-                Assert.True(vbProject.DocumentIds.Count == 1);
+                Assert.Single(csharpProject.DocumentIds);
+                Assert.Single(vbProject.DocumentIds);
             }
         }
 
@@ -881,8 +881,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var project2Synced = project1SyncedSolution.GetRequiredProject(project2.Id);
 
                 Assert.True(project1Synced.DocumentIds.Count == 2);
-                Assert.True(project2Synced.DocumentIds.Count == 1);
-                Assert.True(project1Synced.ProjectReferences.Count() == 1);
+                Assert.Single(project2Synced.DocumentIds);
+                Assert.Single(project1Synced.ProjectReferences);
             }
         }
 
