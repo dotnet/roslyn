@@ -487,15 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics
             => _unbound ? null : Map.SubstituteType(OriginalDefinition.ExtendedTypeNoUseSiteDiagnostics).Type;
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
-            => _unbound ? ImmutableArray<NamedTypeSymbol>.Empty : Map.SubstituteNamedTypes(OriginalDefinition.BaseExtensionsNoUseSiteDiagnostics);
-        internal sealed override ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics
-            => _unbound ? ImmutableArray<NamedTypeSymbol>.Empty : Map.SubstituteNamedTypes(OriginalDefinition.AllBaseExtensionsNoUseSiteDiagnostics);
-
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
-            => throw new InvalidOperationException("PROTOTYPE"); // PROTOTYPE
-
-        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions(ConsList<TypeSymbol>? basesBeingResolved)
             => throw new InvalidOperationException("PROTOTYPE"); // PROTOTYPE
 
         internal sealed override bool HasInlineArrayAttribute(out int length)

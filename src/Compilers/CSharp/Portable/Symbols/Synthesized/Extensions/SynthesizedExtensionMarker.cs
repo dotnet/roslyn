@@ -19,10 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// It encodes:
     /// - whether the extension type is implicit or explicit (PROTOTYPE)
     /// - the underlying type (first parameter type)
-    /// - the base extensions (subsequent parameter types)
     ///
-    /// For example: 'implicit extension R for UnderlyingType : BaseExtension1, BaseExtension2' yield
-    /// 'private static void &lt;Extension>$(UnderlyingType, BaseExtension1, BaseExtension2, ...)'. // PROTOTYPE
+    /// For example: 'implicit extension R for UnderlyingType' yield
+    /// 'private static void &lt;Extension>$(UnderlyingType)'. // PROTOTYPE
     /// </summary>
     internal sealed class SynthesizedExtensionMarker : SynthesizedMethodSymbol
     {
@@ -30,20 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeSymbol _returnType;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
 
-        internal SynthesizedExtensionMarker(SourceExtensionTypeSymbol extensionType,
-            TypeSymbol underlyingType, ImmutableArray<NamedTypeSymbol> baseExtensionTypes, BindingDiagnosticBag diagnostics)
+        internal SynthesizedExtensionMarker(SourceExtensionTypeSymbol extensionType, TypeSymbol underlyingType, BindingDiagnosticBag diagnostics)
         {
             _extensionType = extensionType;
             _returnType = Binder.GetSpecialType(DeclaringCompilation, SpecialType.System_Void, extensionType.GetFirstLocation(), diagnostics);
-
-            var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(baseExtensionTypes.Length);
-            parameters.Add(makeParameter(0, underlyingType));
-            for (int i = 0; i < baseExtensionTypes.Length; i++)
-            {
-                parameters.Add(makeParameter(i + 1, baseExtensionTypes[i]));
-            }
-
-            _parameters = parameters.ToImmutableAndFree();
+            _parameters = [makeParameter(0, underlyingType)];
 
             return;
 

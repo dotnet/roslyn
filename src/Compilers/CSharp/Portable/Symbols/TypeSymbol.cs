@@ -229,18 +229,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal ImmutableArray<NamedTypeSymbol> AllBaseExtensionsWithDefinitionUseSiteDiagnostics(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            var baseExtensions = AllBaseExtensionsNoUseSiteDiagnostics;
-
-            foreach (var baseExtension in baseExtensions)
-            {
-                baseExtension.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
-            }
-
-            return baseExtensions;
-        }
-
         /// <summary>
         /// If this is a type parameter returns its effective base class, otherwise returns this type.
         /// </summary>
@@ -2503,8 +2491,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract TypeSymbol? ExtendedTypeNoUseSiteDiagnostics { get; }
 
-        internal abstract ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics { get; }
+        // PROTOTYPE restore base extension logic
+        internal ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics => [];
 
+        // PROTOTYPE restore base extension logic
         /// <summary>
         /// For extension types, returns the list of all base extensions 
         /// (this excludes this type itself).
@@ -2512,7 +2502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// relationship: if extension type A inherits extension type B, then A precedes B in the
         /// list.
         /// </summary>
-        internal abstract ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics { get; }
+        internal ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics => [];
 
         internal abstract bool HasInlineArrayAttribute(out int length);
 

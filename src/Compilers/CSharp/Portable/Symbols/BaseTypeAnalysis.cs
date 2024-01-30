@@ -50,11 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else if (namedType.IsExtension)
                     {
                         TypeDependsClosure(namedType.GetDeclaredExtensionUnderlyingType(), currentCompilation, partialClosure);
-
-                        foreach (var bt in namedType.GetDeclaredBaseExtensions(basesBeingResolved: null))
-                        {
-                            TypeDependsClosure(bt, currentCompilation, partialClosure);
-                        }
                     }
                     else
                     {

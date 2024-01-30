@@ -1570,6 +1570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 forType = ParseType();
             }
 
+            // PROTOTYPE decide whether to keep parsing base extensions or not
             var baseList = this.ParseBaseList();
             _termState = saveTerm;
 

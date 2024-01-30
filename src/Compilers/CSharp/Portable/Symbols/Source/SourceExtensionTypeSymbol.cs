@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ExtensionInfo _lazyDeclaredExtensionInfo = ExtensionInfo.Sentinel;
         // PROTOTYPE consider renaming ExtensionUnderlyingType->ExtendedType (here and elsewhere)
         private TypeSymbol? _lazyExtensionUnderlyingType = ErrorTypeSymbol.UnknownResultType;
-        private ImmutableArray<NamedTypeSymbol> _lazyBaseExtensions;
-        private ImmutableArray<NamedTypeSymbol> _lazyAllBaseExtensions;
 
         internal SourceExtensionTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
             : base(containingSymbol, declaration, diagnostics)
@@ -26,18 +24,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(declaration.Kind == DeclarationKind.Extension);
         }
 
+        // PROTOTYPE restore base extensions or remove this wrapper type
         private class ExtensionInfo
         {
             public readonly TypeSymbol? UnderlyingType;
-            public readonly ImmutableArray<NamedTypeSymbol> BaseExtensions;
 
             internal static readonly ExtensionInfo Sentinel =
-                new ExtensionInfo(underlyingType: null, baseExtensions: default);
+                new ExtensionInfo(underlyingType: null);
 
-            public ExtensionInfo(TypeSymbol? underlyingType, ImmutableArray<NamedTypeSymbol> baseExtensions)
+            public ExtensionInfo(TypeSymbol? underlyingType)
             {
                 UnderlyingType = underlyingType;
-                BaseExtensions = baseExtensions;
             }
         }
 
@@ -92,75 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Validation in this method should be in sync with:
-        /// - <see cref="Metadata.PE.PENamedTypeSymbol.EnsureExtensionTypeDecoded"/>
-        /// - <see cref="Retargeting.RetargetingNamedTypeSymbol.GetDeclaredBaseExtensions"/>
-        /// </summary>
-        protected override void CheckBaseExtensions(BindingDiagnosticBag diagnostics)
-        {
-            // Check all base extensions. This is necessary
-            // since references to all extensions will be emitted to metadata
-            // and it's possible to define derived extensions with weaker
-            // constraints than the base extensions, at least in metadata.
-            var allBaseExtensions = mapAllBaseExtensionsDuplicates();
-            if (allBaseExtensions.IsEmpty)
-                return;
-
-            var singleDeclaration = this.FirstDeclarationWithExplicitBases();
-            Debug.Assert(singleDeclaration != null);
-
-            var corLibrary = this.ContainingAssembly.CorLibrary;
-            var conversions = new TypeConversions(corLibrary);
-            var location = singleDeclaration.NameLocation;
-            var underlyingType = this.ExtendedTypeNoUseSiteDiagnostics;
-
-            foreach (var pair in allBaseExtensions)
-            {
-                NamedTypeSymbol referenceBaseExtension = pair.Key;
-                MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>.ValueSet allBaseExtensionPerCLRSignature = pair.Value;
-
-                foreach (var baseExtension in allBaseExtensionPerCLRSignature)
-                {
-                    baseExtension.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
-
-                    // PROTOTYPE confirm what we allow in terms of variation between various underlying types
-                    var baseUnderlyingType = baseExtension.ExtendedTypeNoUseSiteDiagnostics;
-                    if (AreExtendedTypesIncompatible(underlyingType, baseUnderlyingType))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_UnderlyingTypesMismatch, location, this, underlyingType, baseExtension, baseUnderlyingType);
-                    }
-
-                    if (!ReferenceEquals(referenceBaseExtension, baseExtension))
-                    {
-                        Debug.Assert(!referenceBaseExtension.Equals(baseExtension, TypeCompareKind.ConsiderEverything));
-                        Debug.Assert(referenceBaseExtension.Equals(baseExtension, TypeCompareKind.CLRSignatureCompareOptions));
-
-                        ReportDuplicate(referenceBaseExtension, baseExtension, location, diagnostics, forBaseExtension: true);
-                    }
-                }
-            }
-
-            MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> mapAllBaseExtensionsDuplicates()
-            {
-                var baseExtensions = this.AllBaseExtensionsNoUseSiteDiagnostics;
-                var resultBuilder = new MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>(baseExtensions.Length,
-                    SymbolEqualityComparer.CLRSignature, SymbolEqualityComparer.ConsiderEverything);
-
-                foreach (var baseExtension in baseExtensions)
-                {
-                    resultBuilder.Add(baseExtension, baseExtension);
-                }
-
-                return resultBuilder;
-            }
-        }
-
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
             => GetDeclaredExtensionInfo(basesBeingResolved: null).UnderlyingType;
-
-        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions(ConsList<TypeSymbol>? basesBeingResolved)
-            => GetDeclaredExtensionInfo(basesBeingResolved).BaseExtensions;
 
         internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics
         {
@@ -267,74 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return syntax.ForUnderlyingType?.UnderlyingType;
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
-        {
-            get
-            {
-                if (_lazyBaseExtensions.IsDefault)
-                {
-                    var diagnostics = BindingDiagnosticBag.GetInstance();
-                    var acyclicBaseExtensions = makeAcyclicBaseExtensions(diagnostics);
-
-                    if (ImmutableInterlocked.InterlockedInitialize(ref _lazyBaseExtensions, acyclicBaseExtensions))
-                    {
-                        AddDeclarationDiagnostics(diagnostics);
-                    }
-                    diagnostics.Free();
-                }
-
-                return _lazyBaseExtensions;
-
-                ImmutableArray<NamedTypeSymbol> makeAcyclicBaseExtensions(BindingDiagnosticBag diagnostics)
-                {
-                    ImmutableArray<NamedTypeSymbol> declaredBaseExtensions = GetDeclaredExtensionInfo(basesBeingResolved: null).BaseExtensions;
-
-                    var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                    foreach (var declaredBaseExtension in declaredBaseExtensions)
-                    {
-                        if (BaseTypeAnalysis.TypeDependsOn(depends: declaredBaseExtension, on: this))
-                        {
-                            result.Add(new ExtendedErrorTypeSymbol(declaredBaseExtension, LookupResultKind.NotReferencable,
-                                diagnostics.Add(ErrorCode.ERR_CycleInBaseExtensions, Locations[0], this, declaredBaseExtension)));
-                            continue;
-                        }
-
-                        result.Add(declaredBaseExtension);
-
-                        if (declaredBaseExtension.ContainingModule != this.ContainingModule)
-                        {
-                            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
-                            declaredBaseExtension.AddUseSiteInfo(ref useSiteInfo);
-
-                            foreach (var extension in declaredBaseExtension.AllBaseExtensionsNoUseSiteDiagnostics)
-                            {
-                                if (extension.ContainingModule != this.ContainingModule)
-                                {
-                                    extension.AddUseSiteInfo(ref useSiteInfo);
-                                }
-                            }
-                            diagnostics.Add(Locations[0], useSiteInfo);
-                        }
-                    }
-
-                    return result.ToImmutableAndFree();
-                }
-            }
-        }
-
-        internal override ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics
-        {
-            get
-            {
-                if (_lazyAllBaseExtensions.IsDefault)
-                {
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyAllBaseExtensions, MakeAllBaseExtensions());
-                }
-
-                return _lazyAllBaseExtensions;
-            }
-        }
-
         private ExtensionInfo GetDeclaredExtensionInfo(ConsList<TypeSymbol>? basesBeingResolved)
         {
             if (ReferenceEquals(_lazyDeclaredExtensionInfo, ExtensionInfo.Sentinel))
@@ -356,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyDeclaredExtensionInfo;
         }
 
-        /// <summary> Bind the base extensions for all parts of an extension.</summary>
+        /// <summary> Bind the underlying type for all parts of an extension.</summary>
         private ExtensionInfo MakeDeclaredExtensionInfo(ConsList<TypeSymbol>? basesBeingResolved, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(this.IsExtension);
@@ -370,8 +232,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(basesBeingResolved == null || !basesBeingResolved.ContainsReference(this.OriginalDefinition));
             var newBasesBeingResolved = basesBeingResolved.Prepend(this.OriginalDefinition);
-            var baseExtensionsBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var baseExtensionLocations = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<NamedTypeSymbol, SourceLocation>();
 
             for (int i = 0; i < this.declaration.Declarations.Length; i++)
             {
@@ -428,15 +288,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
                 }
-
-                foreach (NamedTypeSymbol partBaseExtension in one.BaseExtensions)
-                {
-                    if (!baseExtensionLocations.ContainsKey(partBaseExtension))
-                    {
-                        baseExtensionsBuilder.Add(partBaseExtension);
-                        baseExtensionLocations.Add(partBaseExtension, declaration.NameLocation);
-                    }
-                }
             }
 
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
@@ -460,25 +311,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            var baseExtensions = baseExtensionsBuilder.ToImmutableAndFree();
-            foreach (var baseExtension in baseExtensions)
-            {
-                if (!baseExtension.IsAtLeastAsVisibleAs(this, ref useSiteInfo))
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadVisBaseExtension, baseExtensionLocations[baseExtension], this, baseExtension);
-                }
-
-                if (baseExtension.HasFileLocalTypes() && !this.IsFileLocal)
-                {
-                    diagnostics.Add(ErrorCode.ERR_FileTypeBase, baseExtensionLocations[baseExtension], baseExtension, this);
-                }
-            }
-
-            baseExtensionLocations.Free();
-
             diagnostics.Add(GetFirstLocationOrNone(), useSiteInfo);
 
-            return new ExtensionInfo(underlyingType, baseExtensions);
+            return new ExtensionInfo(underlyingType);
         }
 
         /// <summary>
@@ -486,7 +321,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Validation in this method should be in sync with:
         /// - <see cref="Metadata.PE.PENamedTypeSymbol.EnsureExtensionTypeDecoded"/>
         /// - <see cref="Retargeting.RetargetingNamedTypeSymbol.GetDeclaredExtensionUnderlyingType"/>
-        /// - <see cref="Retargeting.RetargetingNamedTypeSymbol.GetDeclaredBaseExtensions"/>
         /// </summary>
         private ExtensionInfo MakeOneDeclaredExtensionInfo(ConsList<TypeSymbol> basesBeingResolved, SingleTypeDeclaration decl, BindingDiagnosticBag diagnostics,
             out bool sawUnderlyingType, out bool isExplicit)
@@ -522,49 +356,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 sawUnderlyingType = false;
             }
 
-            var bases = syntax.BaseList;
-            var partBaseExtensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            if (bases != null)
-            {
-                Binder baseBinder = this.DeclaringCompilation.GetBinder(bases);
-                baseBinder = adjustBinder(syntax, baseBinder);
-
-                foreach (var baseTypeSyntax in bases.Types)
-                {
-                    TypeSyntax typeSyntax = baseTypeSyntax.Type;
-                    var location = new SourceLocation(typeSyntax);
-
-                    TypeWithAnnotations baseTypeWithAnnotations = baseBinder.BindType(typeSyntax, diagnostics, basesBeingResolved);
-                    TypeSymbol baseType = baseTypeWithAnnotations.Type;
-
-                    switch (baseType.TypeKind)
-                    {
-                        case TypeKind.Extension:
-                            if (baseTypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_OnlyBaseExtensionAllowed, location);
-                            }
-
-                            foreach (var baseExtension in partBaseExtensions)
-                            {
-                                ReportDuplicateLocally(baseExtension, baseType, location, diagnostics, forBaseExtension: true);
-                            }
-                            partBaseExtensions.Add((NamedTypeSymbol)baseType);
-                            break;
-
-                        case TypeKind.Error:
-                            partBaseExtensions.Add((NamedTypeSymbol)baseType);
-                            break;
-
-                        default:
-                            diagnostics.Add(ErrorCode.ERR_OnlyBaseExtensionAllowed, location);
-                            break;
-                    }
-                }
-            }
-
             isExplicit = syntax.ImplicitOrExplicitKeyword.IsKind(SyntaxKind.ExplicitKeyword);
-            return new ExtensionInfo(partUnderlyingType, partBaseExtensions.ToImmutableAndFree());
+            return new ExtensionInfo(partUnderlyingType);
 
             Binder adjustBinder(ExtensionDeclarationSyntax syntax, Binder baseBinder)
             {
@@ -581,12 +374,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool AreStaticIncompatible(TypeSymbol extendedType, NamedTypeSymbol extensionType)
         {
             return extendedType.IsStatic && !extensionType.IsStatic;
-        }
-
-        internal static bool AreExtendedTypesIncompatible([NotNullWhen(true)] TypeSymbol? extendedType, [NotNullWhen(true)] TypeSymbol? baseExtendedType)
-        {
-            return extendedType is not null &&
-                baseExtendedType?.Equals(extendedType, TypeCompareKind.ConsiderEverything) == false;
         }
 
         internal static bool IsRestrictedExtensionUnderlyingType(TypeSymbol type)

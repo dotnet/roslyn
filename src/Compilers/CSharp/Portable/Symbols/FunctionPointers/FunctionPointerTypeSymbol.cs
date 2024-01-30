@@ -221,10 +221,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsExplicitExtension => false;
 
         internal sealed override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics => null;
-        internal sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
-            => ImmutableArray<NamedTypeSymbol>.Empty;
-        internal sealed override ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics
-            => ImmutableArray<NamedTypeSymbol>.Empty;
 
         internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
         {

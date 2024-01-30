@@ -771,8 +771,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         internal abstract TypeSymbol? GetDeclaredExtensionUnderlyingType();
-
-        internal abstract ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions(ConsList<TypeSymbol>? basesBeingResolved);
 #nullable disable
 
         public override int GetHashCode()
@@ -1712,47 +1710,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         INamedTypeSymbolInternal INamedTypeSymbolInternal.EnumUnderlyingType
             => EnumUnderlyingType;
-
-        /// <summary>
-        /// Produce all inherited base extensions in topologically sorted order. We use
-        /// TypeSymbol.BaseExtensionsNoUseSiteDiagnostics as the source of edge data,
-        /// which has had cycles and infinitely long dependency cycles removed.
-        /// Consequently, it is possible (and we do) use the simplest version
-        /// of Tarjan's topological sorting algorithm.
-        /// </summary>
-        protected ImmutableArray<NamedTypeSymbol> MakeAllBaseExtensions()
-        {
-            if (!IsExtension)
-            {
-                return ImmutableArray<NamedTypeSymbol>.Empty;
-            }
-
-            var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var visited = new HashSet<NamedTypeSymbol>(SymbolEqualityComparer.ConsiderEverything);
-
-            var baseExtensions = this.BaseExtensionsNoUseSiteDiagnostics;
-            for (int i = baseExtensions.Length - 1; i >= 0; i--)
-            {
-                addAllBaseExtensions(baseExtensions[i], visited, result);
-            }
-
-            result.ReverseContents();
-            return result.ToImmutableAndFree();
-
-            static void addAllBaseExtensions(NamedTypeSymbol baseExtension, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result)
-            {
-                if (visited.Add(baseExtension))
-                {
-                    ImmutableArray<NamedTypeSymbol> baseExtensions = baseExtension.BaseExtensionsNoUseSiteDiagnostics;
-                    for (int i = baseExtensions.Length - 1; i >= 0; i--)
-                    {
-                        addAllBaseExtensions(baseExtensions[i], visited, result);
-                    }
-
-                    result.Add(baseExtension);
-                }
-            }
-        }
 
         ImmutableArray<ISymbolInternal> INamedTypeSymbolInternal.GetMembers()
             => GetMembers().CastArray<ISymbolInternal>();

@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics populates the set with interfaces that match by CLR signature.
                             Debug.Assert(!other.Equals(@interface, TypeCompareKind.ConsiderEverything));
                             Debug.Assert(other.Equals(@interface, TypeCompareKind.CLRSignatureCompareOptions));
-                            ReportDuplicate(other, @interface, location, diagnostics, forBaseExtension: false);
+                            ReportDuplicate(other, @interface, location, diagnostics);
                         }
                     }
                 }
@@ -188,56 +188,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected void ReportDuplicate(NamedTypeSymbol other, NamedTypeSymbol @interface,
-            SourceLocation location, BindingDiagnosticBag diagnostics, bool forBaseExtension)
+            SourceLocation location, BindingDiagnosticBag diagnostics)
         {
             if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 if (!other.Equals(@interface, TypeCompareKind.ObliviousNullableModifierMatchesAny))
                 {
-                    var code = forBaseExtension
-                        ? ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList
-                        : ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList;
-
-                    diagnostics.Add(code, location, @interface, this);
+                    diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, @interface, this);
                 }
             }
             else if (other.Equals(@interface, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
-                var code = forBaseExtension
-                    ? ErrorCode.ERR_DuplicateExtensionWithTupleNamesInBaseList
-                    : ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList;
-
-                diagnostics.Add(code, location, @interface, other, this);
+                diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, other, this);
             }
             else
             {
-                var code = forBaseExtension
-                    ? ErrorCode.ERR_DuplicateExtensionWithDifferencesInBaseList
-                    : ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList;
-
-                diagnostics.Add(code, location, @interface, other, this);
+                diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, location, @interface, other, this);
             }
         }
 
         protected void ReportDuplicateLocally(NamedTypeSymbol type, TypeSymbol referenceType,
-            SourceLocation location, BindingDiagnosticBag diagnostics, bool forBaseExtension)
+            SourceLocation location, BindingDiagnosticBag diagnostics)
         {
             if (type.Equals(referenceType, TypeCompareKind.ConsiderEverything))
             {
-                var code = forBaseExtension
-                    ? ErrorCode.ERR_DuplicateExtensionInBaseList
-                    : ErrorCode.ERR_DuplicateInterfaceInBaseList;
-
-                diagnostics.Add(code, location, referenceType);
+                diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceInBaseList, location, referenceType);
             }
             else if (type.Equals(referenceType, TypeCompareKind.ObliviousNullableModifierMatchesAny))
             {
                 // duplicates with ?/! differences are reported later, we report local differences between oblivious and ?/! here
-                var code = forBaseExtension
-                    ? ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList
-                    : ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList;
-
-                diagnostics.Add(code, location, referenceType, this);
+                diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, referenceType, this);
             }
         }
 
@@ -589,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Interface:
                         foreach (var t in localInterfaces)
                         {
-                            ReportDuplicateLocally(t, baseType, location, diagnostics, forBaseExtension: false);
+                            ReportDuplicateLocally(t, baseType, location, diagnostics);
                         }
 
                         if (this.IsStatic)
