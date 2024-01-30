@@ -841,12 +841,6 @@ namespace Roslyn.Utilities
             _writer.Write((byte)kind);
         }
 
-        public void WriteType(Type type)
-        {
-            _writer.Write((byte)TypeCode.Type);
-            this.WriteString(type.AssemblyQualifiedName);
-        }
-
         public void WriteEncoding(Encoding? encoding)
         {
             if (encoding == null)
@@ -935,11 +929,6 @@ namespace Roslyn.Utilities
             /// The null value
             /// </summary>
             Null,
-
-            /// <summary>
-            /// A type
-            /// </summary>
-            Type,
 
             /// <summary>
             /// A string encoded as UTF-8 (using BinaryWriter.Write(string))
