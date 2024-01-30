@@ -183,6 +183,25 @@ internal sealed partial class ObjectReader : IDisposable
     public async ValueTask<sbyte> ReadSByteAsync()
         => unchecked((sbyte)await ReadByteAsync().ConfigureAwait(false));
 
+    public async ValueTask<short> ReadInt16Async()
+    {
+        const int byteCount = 2;
+        var readResult = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
+        var result = ReadValue(readResult);
+        _reader.AdvanceTo(readResult.Buffer.GetPosition(byteCount));
+        return result;
+
+        static short ReadValue(ReadResult result)
+        {
+            Span<byte> dest = stackalloc byte[byteCount];
+            result.Buffer.Slice(0, byteCount).CopyTo(dest);
+            return BinaryPrimitives.ReadInt16LittleEndian(dest);
+        }
+    }
+
+    public async ValueTask<ushort> ReadUInt16Async()
+        => unchecked((ushort)await ReadInt16Async().ConfigureAwait(false));
+
     public async ValueTask<int> ReadInt32Async()
     {
         const int byteCount = 4;
@@ -241,8 +260,6 @@ internal sealed partial class ObjectReader : IDisposable
             hi: await ReadInt32Async().ConfigureAwait(false));
     }
 
-    public short ReadInt16() => _reader.ReadInt16();
-    public ushort ReadUInt16() => _reader.ReadUInt16();
     public string ReadString() => ReadStringValue();
 
     public async ValueTask<Guid> ReadGuidAsync()
