@@ -180,15 +180,18 @@ internal sealed partial class ObjectReader : IDisposable
         return result;
     }
 
+    public async ValueTask<sbyte> ReadSByteAsync()
+        => unchecked((sbyte)await ReadByteAsync().ConfigureAwait(false));
+
     public async ValueTask<int> ReadInt32Async()
     {
         const int byteCount = 4;
         var readResult = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
-        var result = ReadInt32(readResult);
+        var result = ReadValue(readResult);
         _reader.AdvanceTo(readResult.Buffer.GetPosition(byteCount));
         return result;
 
-        static int ReadInt32(ReadResult result)
+        static int ReadValue(ReadResult result)
         {
             Span<byte> dest = stackalloc byte[byteCount];
             result.Buffer.CopyTo(dest);
@@ -196,16 +199,45 @@ internal sealed partial class ObjectReader : IDisposable
         }
     }
 
+    public async ValueTask<uint> ReadUInt32Async()
+        => unchecked((uint)await ReadInt32Async().ConfigureAwait(false));
+
+    public async ValueTask<long> ReadInt64Async()
+    {
+        const int byteCount = 8;
+        var readResult = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
+        var result = ReadValue(readResult);
+        _reader.AdvanceTo(readResult.Buffer.GetPosition(byteCount));
+        return result;
+
+        static long ReadValue(ReadResult result)
+        {
+            Span<byte> dest = stackalloc byte[byteCount];
+            result.Buffer.CopyTo(dest);
+            return BinaryPrimitives.ReadInt64LittleEndian(dest);
+        }
+    }
+
+    public async ValueTask<ulong> ReadUInt64Async()
+        => unchecked((ulong)await ReadInt64Async().ConfigureAwait(false));
+
     // read as ushort because BinaryWriter fails on chars that are unicode surrogates
-    public char ReadChar() => (char)_reader.ReadUInt16();
-    public decimal ReadDecimal() => _reader.ReadDecimal();
+    public async ValueTask<char> ReadCharAsync()
+        => (char)await ReadUInt16Async().ConfigureAwait(false);
+
+    public async ValueTask<decimal> ReadDecimalAsync()
+    {
+        return new decimal(
+            isNegative: await ReadBooleanAsync().ConfigureAwait(false),
+            scale: await ReadByteAsync().ConfigureAwait(false),
+            lo: await ReadInt32Async().ConfigureAwait(false),
+            mid: await ReadInt32Async().ConfigureAwait(false),
+            hi: await ReadInt32Async().ConfigureAwait(false));
+    }
+
     public double ReadDouble() => _reader.ReadDouble();
     public float ReadSingle() => _reader.ReadSingle();
-    public long ReadInt64() => _reader.ReadInt64();
-    public sbyte ReadSByte() => _reader.ReadSByte();
     public short ReadInt16() => _reader.ReadInt16();
-    public uint ReadUInt32() => _reader.ReadUInt32();
-    public ulong ReadUInt64() => _reader.ReadUInt64();
     public ushort ReadUInt16() => _reader.ReadUInt16();
     public string ReadString() => ReadStringValue();
 
