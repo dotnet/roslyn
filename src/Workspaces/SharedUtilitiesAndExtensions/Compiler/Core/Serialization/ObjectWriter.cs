@@ -163,9 +163,9 @@ namespace Roslyn.Utilities
                 // We can use the UTF-8 encoding of the binary writer.
 
                 Write((byte)ObjectWriter.TypeCode.StringUtf8);
-                var byteCount = UTF8Encoding.UTF8.GetByteCount(value);
+                var byteCount = Encoding.UTF8.GetByteCount(value);
                 Write(byteCount);
-                var writtenBytes = UTF8Encoding.UTF8.GetBytes(value, _writer);
+                var writtenBytes = Encoding.UTF8.GetBytes(value, _writer);
                 Contract.ThrowIfTrue(byteCount != writtenBytes);
 
                 // don't need to Advance.  GetBytes already does that.
