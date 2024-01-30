@@ -824,12 +824,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (exprType.IsValueType && !exprType.IsTypeParameter())
             {
-                var namedType = (NamedTypeSymbol)exprType;
-                var typeToStringMembers = namedType.GetMembers(objectToStringMethod.Name);
+                var type = (NamedTypeSymbol)exprType;
+                var typeToStringMembers = type.GetMembers(objectToStringMethod.Name);
                 foreach (var member in typeToStringMembers)
                 {
                     if (member is MethodSymbol toStringMethod &&
-                        toStringMethod.GetLeastOverriddenMethod(namedType) == (object)objectToStringMethod)
+                        toStringMethod.GetLeastOverriddenMethod(type) == (object)objectToStringMethod)
                     {
                         return toStringMethod;
                     }
