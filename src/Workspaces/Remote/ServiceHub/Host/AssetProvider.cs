@@ -49,7 +49,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         return GetRequiredAsset<T>(checksum);
     }
 
-    public async ValueTask<ImmutableArray<ValueTuple<Checksum, T>>> GetAssetsAsync<T>(
+    public async ValueTask<ImmutableArray<(Checksum checksum, T asset)>> GetAssetsAsync<T>(
         AssetHint assetHint, HashSet<Checksum> checksums, CancellationToken cancellationToken)
     {
         // bulk synchronize checksums first

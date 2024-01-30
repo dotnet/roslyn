@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 newProjectIds.Object.AddRange(newSolutionChecksums.Projects.Ids);
 
                 // First, collect information about which projects changed.  Do this before we start mutating anything.
-                using var _ = ArrayBuilder<(ProjectId projectId, ProjectStateChecksums oldProjectStateChecksums, ProjectStateChecksums newProjectStateChecksums)>.GetInstance(out var changedProjects);
+                using var _1 = PooledHashSet<Checksum>.GetInstance(out var changedProjectChecksums);
                 foreach (var (newProjectChecksum, projectId) in newSolutionChecksums.Projects)
                 {
                     // If it's not a project in the local solution, then it's definitely not getting changed.
@@ -136,10 +136,29 @@ namespace Microsoft.CodeAnalysis.Remote
                     if (oldProjectStateChecksums.Checksum == newProjectChecksum)
                         continue;
 
-                    // It did change, fetch the current state of it so we can actually sync the changes over.
-                    var newProjectStateChecksums = await _assetProvider.GetAssetAsync<ProjectStateChecksums>(
-                        assetHint: projectId, newProjectChecksum, cancellationToken).ConfigureAwait(false);
-                    Contract.ThrowIfTrue(newProjectStateChecksums.Checksum != newProjectChecksum);
+                    changedProjectChecksums.Add(newProjectChecksum);
+                }
+
+                // Fetch all the changed projects at once.
+                var changedProjectStateChecksums = await _assetProvider.GetAssetsAsync<ProjectStateChecksums>(
+                    assetHint: default, changedProjectChecksums, cancellationToken).ConfigureAwait(false);
+
+                using var _2 = ArrayBuilder<(ProjectId projectId, ProjectStateChecksums oldProjectStateChecksums, ProjectStateChecksums newProjectStateChecksums)>.GetInstance(out var changedProjects);
+                foreach (var (changedChecksum, newProjectStateChecksums) in changedProjectStateChecksums)
+                {
+                    Contract.ThrowIfTrue(changedChecksum != newProjectStateChecksums.Checksum);
+                    var projectId = newProjectStateChecksums.ProjectId;
+
+                    // As this is a changed project, the old solution must know about it.
+                    Contract.ThrowIfTrue(!oldProjectIds.Object.Contains(projectId));
+
+                    // This call will be cheap, since we already performed it in the top loop.
+                    var oldProjectStateChecksums = await solution.SolutionState
+                        .GetRequiredProjectState(projectId)
+                        .GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+
+                    // These must be different since the first loop stated that the project changed.
+                    Contract.ThrowIfTrue(oldProjectStateChecksums.Checksum == changedChecksum);
 
                     changedProjects.Add((projectId, oldProjectStateChecksums, newProjectStateChecksums));
                 }
