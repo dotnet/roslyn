@@ -23,7 +23,6 @@ namespace Roslyn.Utilities
     using System.Buffers.Binary;
     using System.Collections.Immutable;
     using System.Threading.Tasks;
-    using Humanizer.Bytes;
 #if COMPILERCORE
     using Resources = CodeAnalysisResources;
 #elif CODE_STYLE
