@@ -824,7 +824,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var csharpProject = project1SyncedSolution.Projects.Single(p => p.Language == LanguageNames.CSharp);
                 var vbProject = project1SyncedSolution.Projects.Single(p => p.Language == LanguageNames.VisualBasic);
                 Assert.True(csharpProject.DocumentIds.Count == 2);
-                Assert.True(vbProject.DocumentIds.Count == 0);
+                Assert.Empty(vbProject.DocumentIds);
             }
 
             // Similarly, if we sync just project2's cone over:
