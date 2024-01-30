@@ -194,7 +194,7 @@ internal sealed partial class ObjectReader : IDisposable
         static int ReadValue(ReadResult result)
         {
             Span<byte> dest = stackalloc byte[byteCount];
-            result.Buffer.CopyTo(dest);
+            result.Buffer.Slice(0, byteCount).CopyTo(dest);
             return BinaryPrimitives.ReadInt32LittleEndian(dest);
         }
     }
@@ -213,7 +213,7 @@ internal sealed partial class ObjectReader : IDisposable
         static long ReadValue(ReadResult result)
         {
             Span<byte> dest = stackalloc byte[byteCount];
-            result.Buffer.CopyTo(dest);
+            result.Buffer.Slice(0, byteCount).CopyTo(dest);
             return BinaryPrimitives.ReadInt64LittleEndian(dest);
         }
     }
