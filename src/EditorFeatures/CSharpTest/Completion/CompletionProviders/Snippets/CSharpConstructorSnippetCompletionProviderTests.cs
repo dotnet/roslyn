@@ -323,5 +323,63 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/68176")]
+        public async Task InsertCorrectConstructorSnippetInNestedTypeTest_CtorBeforeNestedType()
+        {
+            var markupBeforeCommit = """
+                class Outer
+                {
+                    $$
+                    class Inner
+                    {
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = """
+                class Outer
+                {
+                    public Outer()
+                    {
+                        $$
+                    }
+                    class Inner
+                    {
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/68176")]
+        public async Task InsertCorrectConstructorSnippetInNestedTypeTest_CtorAfterNestedType()
+        {
+            var markupBeforeCommit = """
+                class Outer
+                {
+                    class Inner
+                    {
+                    }
+                    $$
+                }
+                """;
+
+            var expectedCodeAfterCommit = """
+                class Outer
+                {
+                    class Inner
+                    {
+                    }
+                    public Outer()
+                    {
+                        $$
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
     }
 }
