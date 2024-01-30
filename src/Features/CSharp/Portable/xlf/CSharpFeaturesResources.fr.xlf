@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
         <source>Cannot determine valid range of statements to extract</source>
-        <target state="new">Cannot determine valid range of statements to extract</target>
+        <target state="translated">Impossible de déterminer la plage valide des instructions à extraire</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_as_expression">
@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_regular_constructor">
         <source>Convert to regular constructor</source>
-        <target state="new">Convert to regular constructor</target>
+        <target state="translated">Convertir en constructeur classique</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -439,12 +439,12 @@
       </trans-unit>
       <trans-unit id="top_level_code">
         <source>top-level code</source>
-        <target state="translated">code de niveau supérieur</target>
+        <target state="translated">Code de premier niveau</target>
         <note />
       </trans-unit>
       <trans-unit id="top_level_statement">
         <source>top-level statement</source>
-        <target state="translated">instruction de niveau supérieur</target>
+        <target state="translated">Instructions de premier niveau</target>
         <note />
       </trans-unit>
       <trans-unit id="try_block">

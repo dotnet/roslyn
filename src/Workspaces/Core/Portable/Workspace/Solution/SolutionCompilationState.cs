@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -59,9 +58,10 @@ internal sealed partial class SolutionCompilationState
     private NonReentrantLock? _stateLockBackingField;
     private NonReentrantLock StateLock => LazyInitializer.EnsureInitialized(ref _stateLockBackingField, NonReentrantLock.Factory);
 
-    private WeakReference<SolutionCompilationState>? _latestSolutionWithPartialCompilation;
-    private DateTime _timeOfLatestSolutionWithPartialCompilation;
-    private DocumentId? _documentIdOfLatestSolutionWithPartialCompilation;
+    /// <summary>
+    /// Mapping of DocumentId to the frozen compilation state we produced for it the last time we were queried.
+    /// </summary>
+    private readonly Dictionary<DocumentId, SolutionCompilationState> _cachedFrozenDocumentState = new();
 
     private SolutionCompilationState(
         SolutionState solution,
@@ -1032,8 +1032,12 @@ internal sealed partial class SolutionCompilationState
         // technically inaccurate, but we can accept that as the primary purpose of 'frozen partial' is to get a
         // snapshot *fast* that is allowed to be *inaccurate*.
         //
-        // We currently do not have any features that both use frozen-partial semantics *and* which would deeply
-        // care about examining sibling files and having them be parsed perfectly.
+        // Note: this does mean that some *potentially* desirable feature behaviors may not be possible.  For example,
+        // because of this unification, all targets will see the user in the same parsed #if region.  That means, if the
+        // user is in a conditionally-disabled region in the primary target, they will also be in such a region in all
+        // other targets.  This would prevent such a feature from using the information from other targets (perhaps
+        // where it is not conditionally-disabled) to drive a richer experience here.  We consider that acceptable given
+        // the perf benefit.  But we could consider relaxing this in the future.
         //
         // Note: this is very different from the logic we have in the workspace to 'UnifyLinkedDocumentContents'. In
         // that case, we only share trees when completely safe and accurate to do so (for example, where no
@@ -1064,7 +1068,7 @@ internal sealed partial class SolutionCompilationState
             try
             {
                 var allDocumentIds = @this.SolutionState.GetRelatedDocumentIds(documentId);
-                using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(allDocumentIds.Length, out var builder);
+                using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(allDocumentIds.Length, out var statesAndTrees);
 
                 // We grab all the contents of linked files as well to ensure that our snapshot is correct wrt to the set of
                 // linked document ids our state says are in it.  Note: all of these trees should share the same green
@@ -1072,58 +1076,54 @@ internal sealed partial class SolutionCompilationState
                 // ensure that the cost here is low for files with lots of linked siblings.
                 foreach (var currentDocumentId in allDocumentIds)
                 {
-                    var document = @this.SolutionState.GetRequiredDocumentState(currentDocumentId);
-                    builder.Add((document, document.GetSyntaxTree(cancellationToken)));
+                    var documentState = @this.SolutionState.GetRequiredDocumentState(currentDocumentId);
+                    statesAndTrees.Add((documentState, documentState.GetSyntaxTree(cancellationToken)));
                 }
 
                 using (@this.StateLock.DisposableWait(cancellationToken))
                 {
-                    SolutionCompilationState? currentPartialSolution = null;
-                    @this._latestSolutionWithPartialCompilation?.TryGetTarget(out currentPartialSolution);
-
-                    var reuseExistingPartialSolution =
-                        (DateTime.UtcNow - @this._timeOfLatestSolutionWithPartialCompilation).TotalSeconds < 0.1 &&
-                        @this._documentIdOfLatestSolutionWithPartialCompilation == documentId;
-
-                    if (reuseExistingPartialSolution && currentPartialSolution != null)
+                    if (!@this._cachedFrozenDocumentState.TryGetValue(documentId, out var compilationState))
                     {
-                        SolutionLogger.UseExistingPartialSolution();
-                        return currentPartialSolution;
+                        compilationState = ComputeFrozenPartialState(@this, statesAndTrees, cancellationToken);
+                        @this._cachedFrozenDocumentState.Add(documentId, compilationState);
                     }
 
-                    var newIdToProjectStateMap = @this.SolutionState.ProjectStates;
-                    var newIdToTrackerMap = @this._projectIdToTrackerMap;
-
-                    foreach (var (doc, tree) in builder)
-                    {
-                        // if we don't have one or it is stale, create a new partial solution
-                        var tracker = @this.GetCompilationTracker(doc.Id.ProjectId);
-                        var newTracker = tracker.FreezePartialStateWithTree(@this, doc, tree, cancellationToken);
-
-                        Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(doc.Id.ProjectId));
-                        newIdToProjectStateMap = newIdToProjectStateMap.SetItem(doc.Id.ProjectId, newTracker.ProjectState);
-                        newIdToTrackerMap = newIdToTrackerMap.SetItem(doc.Id.ProjectId, newTracker);
-                    }
-
-                    var newState = @this.SolutionState.Branch(
-                        idToProjectStateMap: newIdToProjectStateMap,
-                        dependencyGraph: SolutionState.CreateDependencyGraph(@this.SolutionState.ProjectIds, newIdToProjectStateMap));
-                    var newCompilationState = @this.Branch(
-                        newState,
-                        newIdToTrackerMap);
-
-                    @this._latestSolutionWithPartialCompilation = new WeakReference<SolutionCompilationState>(newCompilationState);
-                    @this._timeOfLatestSolutionWithPartialCompilation = DateTime.UtcNow;
-                    @this._documentIdOfLatestSolutionWithPartialCompilation = documentId;
-
-                    SolutionLogger.CreatePartialSolution();
-                    return newCompilationState;
+                    return compilationState;
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
                 throw ExceptionUtilities.Unreachable();
             }
+        }
+
+        static SolutionCompilationState ComputeFrozenPartialState(
+            SolutionCompilationState @this,
+            ArrayBuilder<(DocumentState, SyntaxTree)> statesAndTrees,
+            CancellationToken cancellationToken)
+        {
+            var newIdToProjectStateMap = @this.SolutionState.ProjectStates;
+            var newIdToTrackerMap = @this._projectIdToTrackerMap;
+
+            foreach (var (docState, tree) in statesAndTrees)
+            {
+                // if we don't have one or it is stale, create a new partial solution
+                var tracker = @this.GetCompilationTracker(docState.Id.ProjectId);
+                var newTracker = tracker.FreezePartialStateWithTree(@this, docState, tree, cancellationToken);
+
+                Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(docState.Id.ProjectId));
+                newIdToProjectStateMap = newIdToProjectStateMap.SetItem(docState.Id.ProjectId, newTracker.ProjectState);
+                newIdToTrackerMap = newIdToTrackerMap.SetItem(docState.Id.ProjectId, newTracker);
+            }
+
+            var newState = @this.SolutionState.Branch(
+                idToProjectStateMap: newIdToProjectStateMap,
+                dependencyGraph: SolutionState.CreateDependencyGraph(@this.SolutionState.ProjectIds, newIdToProjectStateMap));
+            var newCompilationState = @this.Branch(
+                newState,
+                newIdToTrackerMap);
+
+            return newCompilationState;
         }
     }
 
