@@ -351,11 +351,11 @@ internal sealed partial class ObjectReader : IDisposable
         }
     }
 
-    public (char[] array, int length) ReadCharArray(Func<int, char[]> getArray)
+    public async ValueTask<(char[] array, int length)> ReadCharArray(Func<int, char[]> getArray)
     {
-        var kind = (TypeCode)ReadByte();
+        var kind = (TypeCode)await ReadByteAsync().ConfigureAwait(false);
 
-        (var length, _) = ReadArrayLengthAndElementKind(kind);
+        (var length, _) = await ReadArrayLengthAndElementKindAsync(kind).ConfigureAwait(false);
         var array = getArray(length);
 
         var charsRead = _reader.Read(array, 0, length);
