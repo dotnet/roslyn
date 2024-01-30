@@ -245,31 +245,31 @@ internal sealed partial class ObjectReader : IDisposable
     public ushort ReadUInt16() => _reader.ReadUInt16();
     public string ReadString() => ReadStringValue();
 
-    public Guid ReadGuid()
+    public async ValueTask<Guid> ReadGuidAsync()
     {
         var accessor = new ObjectWriter.GuidAccessor
         {
-            Low64 = ReadInt64(),
-            High64 = ReadInt64()
+            Low64 = await ReadInt64Async().ConfigureAwait(false),
+            High64 = await ReadInt64Async().ConfigureAwait(false),
         };
 
         return accessor.Guid;
     }
 
-    public object ReadValue()
+    public async ValueTask<object> ReadValueAsync()
     {
-        var code = (TypeCode)ReadByte();
+        var code = (TypeCode)await ReadByteAsync().ConfigureAwait(false);
         switch (code)
         {
             case TypeCode.Null: return null;
             case TypeCode.Boolean_True: return true;
             case TypeCode.Boolean_False: return false;
-            case TypeCode.Int8: return ReadSByte();
-            case TypeCode.UInt8: return ReadByte();
+            case TypeCode.Int8: return await ReadSByteAsync().ConfigureAwait(false);
+            case TypeCode.UInt8: return await ReadByteAsync().ConfigureAwait(false);
             case TypeCode.Int16: return ReadInt16();
             case TypeCode.UInt16: return ReadUInt16();
-            case TypeCode.Int32: return ReadInt32();
-            case TypeCode.Int32_1Byte: return (int)ReadByte();
+            case TypeCode.Int32: return await ReadInt32Async().ConfigureAwait(false);
+            case TypeCode.Int32_1Byte: return (int)await ReadByteAsync().ConfigureAwait(false);
             case TypeCode.Int32_2Bytes: return (int)ReadUInt16();
             case TypeCode.Int32_0:
             case TypeCode.Int32_1:
@@ -283,8 +283,8 @@ internal sealed partial class ObjectReader : IDisposable
             case TypeCode.Int32_9:
             case TypeCode.Int32_10:
                 return (int)code - (int)TypeCode.Int32_0;
-            case TypeCode.UInt32: return ReadUInt32();
-            case TypeCode.UInt32_1Byte: return (uint)ReadByte();
+            case TypeCode.UInt32: return await ReadUInt32Async().ConfigureAwait(false);
+            case TypeCode.UInt32_1Byte: return (uint)await ReadByteAsync().ConfigureAwait(false);
             case TypeCode.UInt32_2Bytes: return (uint)ReadUInt16();
             case TypeCode.UInt32_0:
             case TypeCode.UInt32_1:
