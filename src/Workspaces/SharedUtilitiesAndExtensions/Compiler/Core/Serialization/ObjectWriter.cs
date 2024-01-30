@@ -361,15 +361,18 @@ namespace Roslyn.Utilities
             }
             else if (value.GetType() == typeof(decimal))
             {
-                throw new NotImplementedException();
-                //_writer.Write((byte)TypeCode.DateTime);
-                //_writer.Write(((DateTime)value).ToBinary());
+                WriteByte((byte)TypeCode.DateTime);
+                ((decimal)value).GetBits(out var isNegative, out var scale, out var low, out var mid, out var high);
+                WriteBoolean(isNegative);
+                WriteByte(scale);
+                WriteUInt32(low);
+                WriteUInt32(mid);
+                WriteUInt32(high);
             }
             else if (value.GetType() == typeof(DateTime))
             {
-                throw new NotImplementedException();
-                //WriteByte((byte)TypeCode.DateTime);
-                //_writer.Write(((DateTime)value).ToBinary());
+                WriteByte((byte)TypeCode.DateTime);
+                WriteInt64(((DateTime)value).ToBinary());
             }
             else if (value.GetType() == typeof(string))
             {
