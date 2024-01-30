@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
@@ -97,19 +98,8 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
     }
 
     public void WriteTo(ObjectWriter writer)
-    {
-        writer.WriteInt32(this.Count);
-        foreach (var obj in this.Children)
-            obj.WriteTo(writer);
-    }
+        => writer.WriteArray(this.Children, static (w, c) => c.WriteTo(w));
 
     public static ChecksumCollection ReadFrom(ObjectReader reader)
-    {
-        var count = reader.ReadInt32();
-        using var _ = ArrayBuilder<Checksum>.GetInstance(count, out var result);
-        for (var i = 0; i < count; i++)
-            result.Add(Checksum.ReadFrom(reader));
-
-        return new(result.ToImmutableAndClear());
-    }
+        => new(reader.ReadArray(Checksum.ReadFrom));
 }
