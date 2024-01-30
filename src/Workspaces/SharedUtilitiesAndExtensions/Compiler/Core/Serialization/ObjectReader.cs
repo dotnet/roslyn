@@ -182,13 +182,13 @@ internal sealed partial class ObjectReader : IDisposable
             case TypeCode.Null: return null;
             case TypeCode.Boolean_True: return true;
             case TypeCode.Boolean_False: return false;
-            case TypeCode.Int8: return _reader.ReadSByte();
-            case TypeCode.UInt8: return _reader.ReadByte();
-            case TypeCode.Int16: return _reader.ReadInt16();
-            case TypeCode.UInt16: return _reader.ReadUInt16();
-            case TypeCode.Int32: return _reader.ReadInt32();
-            case TypeCode.Int32_1Byte: return (int)_reader.ReadByte();
-            case TypeCode.Int32_2Bytes: return (int)_reader.ReadUInt16();
+            case TypeCode.Int8: return ReadSByte();
+            case TypeCode.UInt8: return ReadByte();
+            case TypeCode.Int16: return ReadInt16();
+            case TypeCode.UInt16: return ReadUInt16();
+            case TypeCode.Int32: return ReadInt32();
+            case TypeCode.Int32_1Byte: return (int)ReadByte();
+            case TypeCode.Int32_2Bytes: return (int)ReadUInt16();
             case TypeCode.Int32_0:
             case TypeCode.Int32_1:
             case TypeCode.Int32_2:
@@ -201,9 +201,9 @@ internal sealed partial class ObjectReader : IDisposable
             case TypeCode.Int32_9:
             case TypeCode.Int32_10:
                 return (int)code - (int)TypeCode.Int32_0;
-            case TypeCode.UInt32: return _reader.ReadUInt32();
-            case TypeCode.UInt32_1Byte: return (uint)_reader.ReadByte();
-            case TypeCode.UInt32_2Bytes: return (uint)_reader.ReadUInt16();
+            case TypeCode.UInt32: return ReadUInt32();
+            case TypeCode.UInt32_1Byte: return (uint)ReadByte();
+            case TypeCode.UInt32_2Bytes: return (uint)ReadUInt16();
             case TypeCode.UInt32_0:
             case TypeCode.UInt32_1:
             case TypeCode.UInt32_2:
@@ -216,14 +216,14 @@ internal sealed partial class ObjectReader : IDisposable
             case TypeCode.UInt32_9:
             case TypeCode.UInt32_10:
                 return (uint)((int)code - (int)TypeCode.UInt32_0);
-            case TypeCode.Int64: return _reader.ReadInt64();
-            case TypeCode.UInt64: return _reader.ReadUInt64();
-            case TypeCode.Float4: return _reader.ReadSingle();
-            case TypeCode.Float8: return _reader.ReadDouble();
-            case TypeCode.Decimal: return _reader.ReadDecimal();
+            case TypeCode.Int64: return ReadInt64();
+            case TypeCode.UInt64: return ReadUInt64();
+            case TypeCode.Float4: return ReadSingle();
+            case TypeCode.Float8: return ReadDouble();
+            case TypeCode.Decimal: return ReadDecimal();
             case TypeCode.Char:
                 // read as ushort because BinaryWriter fails on chars that are unicode surrogates
-                return (char)_reader.ReadUInt16();
+                return (char)ReadUInt16();
             case TypeCode.StringUtf8:
             case TypeCode.StringUtf16:
             case TypeCode.StringRef_4Bytes:
@@ -231,7 +231,7 @@ internal sealed partial class ObjectReader : IDisposable
             case TypeCode.StringRef_2Bytes:
                 return ReadStringValue(code);
             case TypeCode.DateTime:
-                return DateTime.FromBinary(_reader.ReadInt64());
+                return DateTime.FromBinary(ReadInt64());
             case TypeCode.Array:
             case TypeCode.Array_0:
             case TypeCode.Array_1:
@@ -255,7 +255,7 @@ internal sealed partial class ObjectReader : IDisposable
 
     public (char[] array, int length) ReadCharArray(Func<int, char[]> getArray)
     {
-        var kind = (TypeCode)_reader.ReadByte();
+        var kind = (TypeCode)ReadByte();
 
         (var length, _) = ReadArrayLengthAndElementKind(kind);
         var array = getArray(length);
@@ -307,7 +307,7 @@ internal sealed partial class ObjectReader : IDisposable
 
     internal uint ReadCompressedUInt()
     {
-        var info = _reader.ReadByte();
+        var info = ReadByte();
         var marker = (byte)(info & ObjectWriter.ByteMarkerMask);
         var byte0 = (byte)(info & ~ObjectWriter.ByteMarkerMask);
 
@@ -318,15 +318,15 @@ internal sealed partial class ObjectReader : IDisposable
 
         if (marker == ObjectWriter.Byte2Marker)
         {
-            var byte1 = _reader.ReadByte();
+            var byte1 = ReadByte();
             return (((uint)byte0) << 8) | byte1;
         }
 
         if (marker == ObjectWriter.Byte4Marker)
         {
-            var byte1 = _reader.ReadByte();
-            var byte2 = _reader.ReadByte();
-            var byte3 = _reader.ReadByte();
+            var byte1 = ReadByte();
+            var byte2 = ReadByte();
+            var byte3 = ReadByte();
 
             return (((uint)byte0) << 24) | (((uint)byte1) << 16) | (((uint)byte2) << 8) | byte3;
         }
@@ -336,7 +336,7 @@ internal sealed partial class ObjectReader : IDisposable
 
     private string ReadStringValue()
     {
-        var kind = (TypeCode)_reader.ReadByte();
+        var kind = (TypeCode)ReadByte();
         return kind == TypeCode.Null ? null : ReadStringValue(kind);
     }
 
@@ -344,9 +344,9 @@ internal sealed partial class ObjectReader : IDisposable
     {
         return kind switch
         {
-            TypeCode.StringRef_1Byte => _stringReferenceMap.GetValue(_reader.ReadByte()),
-            TypeCode.StringRef_2Bytes => _stringReferenceMap.GetValue(_reader.ReadUInt16()),
-            TypeCode.StringRef_4Bytes => _stringReferenceMap.GetValue(_reader.ReadInt32()),
+            TypeCode.StringRef_1Byte => _stringReferenceMap.GetValue(ReadByte()),
+            TypeCode.StringRef_2Bytes => _stringReferenceMap.GetValue(ReadUInt16()),
+            TypeCode.StringRef_4Bytes => _stringReferenceMap.GetValue(ReadInt32()),
             TypeCode.StringUtf16 or TypeCode.StringUtf8 => ReadStringLiteral(kind),
             _ => throw ExceptionUtilities.UnexpectedValue(kind),
         };
@@ -357,7 +357,7 @@ internal sealed partial class ObjectReader : IDisposable
         string value;
         if (kind == TypeCode.StringUtf8)
         {
-            value = _reader.ReadString();
+            value = ReadString();
         }
         else
         {
@@ -401,7 +401,7 @@ internal sealed partial class ObjectReader : IDisposable
         };
 
         // SUBTLE: If it was a primitive array, only the EncodingKind byte of the element type was written, instead of encoding as a type.
-        var elementKind = (TypeCode)_reader.ReadByte();
+        var elementKind = (TypeCode)ReadByte();
 
         return (length, elementKind);
     }
@@ -450,7 +450,7 @@ internal sealed partial class ObjectReader : IDisposable
         var count = 0;
         for (var i = 0; i < wordLength; i++)
         {
-            var word = _reader.ReadUInt64();
+            var word = ReadUInt64();
 
             for (var p = 0; p < BitVector.BitsPerWord; p++)
             {
@@ -482,9 +482,7 @@ internal sealed partial class ObjectReader : IDisposable
     private string[] ReadStringArrayElements(string[] array)
     {
         for (var i = 0; i < array.Length; i++)
-        {
             array[i] = this.ReadStringValue();
-        }
 
         return array;
     }
@@ -492,9 +490,7 @@ internal sealed partial class ObjectReader : IDisposable
     private sbyte[] ReadInt8ArrayElements(sbyte[] array)
     {
         for (var i = 0; i < array.Length; i++)
-        {
-            array[i] = _reader.ReadSByte();
-        }
+            array[i] = ReadSByte();
 
         return array;
     }
@@ -502,9 +498,7 @@ internal sealed partial class ObjectReader : IDisposable
     private short[] ReadInt16ArrayElements(short[] array)
     {
         for (var i = 0; i < array.Length; i++)
-        {
-            array[i] = _reader.ReadInt16();
-        }
+            array[i] = ReadInt16();
 
         return array;
     }
@@ -512,9 +506,7 @@ internal sealed partial class ObjectReader : IDisposable
     private int[] ReadInt32ArrayElements(int[] array)
     {
         for (var i = 0; i < array.Length; i++)
-        {
-            array[i] = _reader.ReadInt32();
-        }
+            array[i] = ReadInt32();
 
         return array;
     }
@@ -522,9 +514,7 @@ internal sealed partial class ObjectReader : IDisposable
     private long[] ReadInt64ArrayElements(long[] array)
     {
         for (var i = 0; i < array.Length; i++)
-        {
-            array[i] = _reader.ReadInt64();
-        }
+            array[i] = ReadInt64();
 
         return array;
     }
@@ -532,9 +522,7 @@ internal sealed partial class ObjectReader : IDisposable
     private ushort[] ReadUInt16ArrayElements(ushort[] array)
     {
         for (var i = 0; i < array.Length; i++)
-        {
-            array[i] = _reader.ReadUInt16();
-        }
+            array[i] = ReadUInt16();
 
         return array;
     }
@@ -542,9 +530,7 @@ internal sealed partial class ObjectReader : IDisposable
     private uint[] ReadUInt32ArrayElements(uint[] array)
     {
         for (var i = 0; i < array.Length; i++)
-        {
-            array[i] = _reader.ReadUInt32();
-        }
+            array[i] = ReadUInt32();
 
         return array;
     }
@@ -552,9 +538,7 @@ internal sealed partial class ObjectReader : IDisposable
     private ulong[] ReadUInt64ArrayElements(ulong[] array)
     {
         for (var i = 0; i < array.Length; i++)
-        {
-            array[i] = _reader.ReadUInt64();
-        }
+            array[i] = ReadUInt64();
 
         return array;
     }
@@ -562,9 +546,7 @@ internal sealed partial class ObjectReader : IDisposable
     private decimal[] ReadDecimalArrayElements(decimal[] array)
     {
         for (var i = 0; i < array.Length; i++)
-        {
-            array[i] = _reader.ReadDecimal();
-        }
+            array[i] = ReadDecimal();
 
         return array;
     }
@@ -572,9 +554,7 @@ internal sealed partial class ObjectReader : IDisposable
     private float[] ReadFloat4ArrayElements(float[] array)
     {
         for (var i = 0; i < array.Length; i++)
-        {
-            array[i] = _reader.ReadSingle();
-        }
+            array[i] = ReadSingle();
 
         return array;
     }
@@ -582,16 +562,14 @@ internal sealed partial class ObjectReader : IDisposable
     private double[] ReadFloat8ArrayElements(double[] array)
     {
         for (var i = 0; i < array.Length; i++)
-        {
-            array[i] = _reader.ReadDouble();
-        }
+            array[i] = ReadDouble();
 
         return array;
     }
 
     public Type ReadType()
     {
-        _reader.ReadByte();
+        ReadByte();
         return Type.GetType(ReadString());
     }
 
