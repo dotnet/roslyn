@@ -38,6 +38,7 @@ namespace Roslyn.Utilities
     internal sealed partial class ObjectWriter : IDisposable
     {
         private readonly PipeWriter _writer;
+        private readonly bool _leaveOpen;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -67,6 +68,7 @@ namespace Roslyn.Utilities
         /// <param name="cancellationToken">Cancellation token.</param>
         public ObjectWriter(
             PipeWriter writer,
+            bool leaveOpen,
             CancellationToken cancellationToken)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
@@ -74,6 +76,7 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _writer = writer;
+            _leaveOpen = leaveOpen;
             _stringReferenceMap = new WriterReferenceMap();
             _cancellationToken = cancellationToken;
 
@@ -82,7 +85,8 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
-            _writer.Complete();
+            if (!_leaveOpen)
+                _writer.Complete();
             _stringReferenceMap.Dispose();
         }
 
@@ -213,7 +217,7 @@ namespace Roslyn.Utilities
 
                 WriteByte((byte)TypeCode.StringUtf8);
                 var byteCount = Encoding.UTF8.GetByteCount(value);
-                WriteInt32(byteCount);
+                WriteCompressedUInt(unchecked((uint)byteCount));
 
 #if NETSTANDARD
                 var bytes = System.Buffers.ArrayPool<byte>.Shared.Rent(byteCount);
@@ -236,7 +240,7 @@ namespace Roslyn.Utilities
                 var bytes = MemoryMarshal.AsBytes(span);
 
                 WriteByte((byte)TypeCode.StringUtf16);
-                WriteInt32(bytes.Length);
+                WriteCompressedUInt(unchecked((uint)bytes.Length));
                 _writer.Write(bytes);
 
                 // don't need to Advance.  _writer.Write already does that.
@@ -268,7 +272,7 @@ namespace Roslyn.Utilities
             WriteInt64(accessor.High64);
         }
 
-        public void WriteValue(object? value)
+        public async ValueTask WriteValueAsync(object? value)
         {
             Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
 
@@ -369,7 +373,7 @@ namespace Roslyn.Utilities
             }
             else if (value.GetType() == typeof(string))
             {
-                WriteStringValue((string)value);
+                await WriteStringAsync((string)value).ConfigureAwait(false);
             }
             else if (type.IsArray)
             {
@@ -380,11 +384,11 @@ namespace Roslyn.Utilities
                     throw new InvalidOperationException(Resources.Arrays_with_more_than_one_dimension_cannot_be_serialized);
                 }
 
-                WriteArray(instance);
+                await WriteArrayAsync(instance).ConfigureAwait(false);
             }
             else if (value is Encoding encoding)
             {
-                WriteEncoding(encoding);
+                await WriteEncodingAsync(encoding).ConfigureAwait(false);
             }
             else
             {
@@ -490,7 +494,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// An object reference to reference-id map, that can share base data efficiently.
         /// </summary>
-        internal struct WriterReferenceMap
+        private struct WriterReferenceMap
         {
             // PERF: Use segmented collection to avoid Large Object Heap allocations during serialization.
             // https://github.com/dotnet/roslyn/issues/43401
@@ -565,64 +569,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private unsafe void WriteStringValue(string? value)
-        {
-            if (value == null)
-            {
-                WriteByte((byte)TypeCode.Null);
-            }
-            else
-            {
-                if (_stringReferenceMap.TryGetReferenceId(value, out var id))
-                {
-                    Debug.Assert(id >= 0);
-                    if (id <= byte.MaxValue)
-                    {
-                        WriteByte((byte)TypeCode.StringRef_1Byte);
-                        WriteByte((byte)id);
-                    }
-                    else if (id <= ushort.MaxValue)
-                    {
-                        WriteByte((byte)TypeCode.StringRef_2Bytes);
-                        WriteUInt16((ushort)id);
-                    }
-                    else
-                    {
-                        WriteByte((byte)TypeCode.StringRef_4Bytes);
-                        WriteInt32(id);
-                    }
-                }
-                else
-                {
-                    _stringReferenceMap.Add(value);
-
-                    if (value.IsValidUnicodeString())
-                    {
-                        // Usual case - the string can be encoded as UTF-8:
-                        // We can use the UTF-8 encoding of the binary writer.
-
-                        WriteByte((byte)TypeCode.StringUtf8);
-                        _writer.Write(value);
-                    }
-                    else
-                    {
-                        WriteByte((byte)TypeCode.StringUtf16);
-
-                        // This is rare, just allocate UTF16 bytes for simplicity.
-                        var bytes = new byte[(uint)value.Length * sizeof(char)];
-                        fixed (char* valuePtr = value)
-                        {
-                            Marshal.Copy((IntPtr)valuePtr, bytes, 0, bytes.Length);
-                        }
-
-                        WriteCompressedUInt((uint)value.Length);
-                        _writer.Write(bytes);
-                    }
-                }
-            }
-        }
-
-        private void WriteArray(Array array)
+        private async ValueTask WriteArrayAsync(Array array)
         {
             var length = array.GetLength(0);
 
@@ -651,7 +598,7 @@ namespace Roslyn.Utilities
             if (s_typeMap.TryGetValue(elementType, out var elementKind))
             {
                 WritePrimitiveType(elementType, elementKind);
-                WritePrimitiveTypeArrayElements(elementType, elementKind, array);
+                await WritePrimitiveTypeArrayElementsAsync(elementType, elementKind, array).ConfigureAwait(false);
             }
             else
             {
@@ -659,13 +606,13 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void WriteArrayValues(Array array)
+        private async ValueTask WriteArrayValuesAsync(Array array)
         {
             for (var i = 0; i < array.Length; i++)
-                WriteValue(array.GetValue(i));
+                await WriteValueAsync(array.GetValue(i)).ConfigureAwait(false);
         }
 
-        private void WritePrimitiveTypeArrayElements(Type type, TypeCode kind, Array instance)
+        private async ValueTask WritePrimitiveTypeArrayElementsAsync(Type type, TypeCode kind, Array instance)
         {
             Debug.Assert(s_typeMap[type] == kind);
 
@@ -676,13 +623,13 @@ namespace Roslyn.Utilities
             }
             else if (type == typeof(char))
             {
-                _writer.Write((char[])instance);
+                _writer.Write(MemoryMarshal.AsBytes(((char[])instance).AsSpan()));
             }
             else if (type == typeof(string))
             {
                 // optimization for string which object writer has
                 // its own optimization to reduce repeated string
-                WriteStringArrayElements((string[])instance);
+                await WriteStringArrayElementsAsync((string[])instance).ConfigureAwait(false);
             }
             else if (type == typeof(bool))
             {
@@ -741,15 +688,13 @@ namespace Roslyn.Utilities
 
             // send over bit array
             foreach (var word in bits.Words())
-            {
-                _writer.Write(word);
-            }
+                WriteUInt64(word);
         }
 
-        private void WriteStringArrayElements(string[] array)
+        private async ValueTask WriteStringArrayElementsAsync(string[] array)
         {
             for (var i = 0; i < array.Length; i++)
-                WriteStringValue(array[i]);
+                await WriteStringAsync(array[i]).ConfigureAwait(false);
         }
 
         private void WriteInt8ArrayElements(sbyte[] array)
@@ -818,7 +763,7 @@ namespace Roslyn.Utilities
             WriteByte((byte)kind);
         }
 
-        public void WriteEncoding(Encoding? encoding)
+        public async ValueTask WriteEncodingAsync(Encoding? encoding)
         {
             if (encoding == null)
             {
@@ -836,7 +781,7 @@ namespace Roslyn.Utilities
             else
             {
                 WriteByte((byte)TypeCode.EncodingName);
-                WriteString(encoding.WebName);
+                await WriteStringAsync(encoding.WebName).ConfigureAwait(false);
             }
         }
 
