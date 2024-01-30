@@ -178,7 +178,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 var originatingAssembly = _originatingSemanticModel.Compilation.Assembly;
                 var filter = CreateAggregatedFilter(cacheEntry);
-                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = project == _originatingDocument.Project
+                    ? _originatingSemanticModel.Compilation
+                    : await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var assembly = compilation.Assembly;
                 var internalsVisible = originatingAssembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
 

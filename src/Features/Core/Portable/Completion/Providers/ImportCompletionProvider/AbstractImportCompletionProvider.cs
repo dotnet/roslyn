@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var cancellationToken = completionContext.CancellationToken;
             var document = completionContext.Document;
 
-            var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
+            var syntaxContext = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
 
             if (!ShouldProvideCompletion(completionContext, syntaxContext))
             {
@@ -64,14 +64,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // which will be used to filter so the provider only returns out-of-scope types.
             var namespacesInScope = GetNamespacesInScope(syntaxContext, cancellationToken);
             await AddCompletionItemsAsync(completionContext, syntaxContext, namespacesInScope, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            // Need regular semantic model because we will use it to get imported namespace symbols. Otherwise we will try to 
-            // reach outside of the span and ended up with "node not within syntax tree" error from the speculative model.
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
         }
 
         private static HashSet<string> GetNamespacesInScope(SyntaxContext syntaxContext, CancellationToken cancellationToken)
