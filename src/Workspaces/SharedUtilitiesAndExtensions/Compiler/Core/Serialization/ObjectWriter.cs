@@ -80,8 +80,8 @@ namespace Roslyn.Utilities
 
         private void WriteVersion()
         {
-            _writer.Write(ObjectReader.VersionByte1);
-            _writer.Write(ObjectReader.VersionByte2);
+            WriteByte(ObjectReader.VersionByte1);
+            WriteByte(ObjectReader.VersionByte2);
         }
 
         public void Dispose()
@@ -603,9 +603,7 @@ namespace Roslyn.Utilities
 
             // send over bit array
             foreach (var word in bits.Words())
-            {
-                _writer.Write(word);
-            }
+                WriteUInt64(word);
         }
 
         private void WriteStringArrayElements(string[] array)
