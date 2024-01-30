@@ -519,23 +519,23 @@ internal sealed partial class ObjectReader : IDisposable
         // optimizations for string where object reader/writer has its own mechanism to
         // reduce duplicated strings
         if (type == typeof(string))
-            return ReadStringArrayElements(CreateArray<string>(length));
+            return await ReadStringArrayElementsAsync(CreateArray<string>(length)).ConfigureAwait(false);
         if (type == typeof(bool))
             return await ReadBooleanArrayElementsAsync(CreateArray<bool>(length)).ConfigureAwait(false);
 
         // otherwise, read elements directly from underlying binary writer
         return kind switch
         {
-            TypeCode.Int8 => ReadInt8ArrayElements(CreateArray<sbyte>(length)),
-            TypeCode.Int16 => ReadInt16ArrayElements(CreateArray<short>(length)),
-            TypeCode.Int32 => ReadInt32ArrayElements(CreateArray<int>(length)),
-            TypeCode.Int64 => ReadInt64ArrayElements(CreateArray<long>(length)),
-            TypeCode.UInt16 => ReadUInt16ArrayElements(CreateArray<ushort>(length)),
-            TypeCode.UInt32 => ReadUInt32ArrayElements(CreateArray<uint>(length)),
-            TypeCode.UInt64 => ReadUInt64ArrayElements(CreateArray<ulong>(length)),
-            TypeCode.Float4 => ReadFloat4ArrayElements(CreateArray<float>(length)),
-            TypeCode.Float8 => ReadFloat8ArrayElements(CreateArray<double>(length)),
-            TypeCode.Decimal => ReadDecimalArrayElements(CreateArray<decimal>(length)),
+            TypeCode.Int8 => await ReadInt8ArrayElementsAsync(CreateArray<sbyte>(length)).ConfigureAwait(false),
+            TypeCode.Int16 => await ReadInt16ArrayElementsAsync(CreateArray<short>(length)).ConfigureAwait(false),
+            TypeCode.Int32 => await ReadInt32ArrayElementsAsync(CreateArray<int>(length)).ConfigureAwait(false),
+            TypeCode.Int64 => await ReadInt64ArrayElementsAsync(CreateArray<long>(length)).ConfigureAwait(false),
+            TypeCode.UInt16 => await ReadUInt16ArrayElementsAsync(CreateArray<ushort>(length)).ConfigureAwait(false),
+            TypeCode.UInt32 => await ReadUInt32ArrayElementsAsync(CreateArray<uint>(length)).ConfigureAwait(false),
+            TypeCode.UInt64 => await ReadUInt64ArrayElementsAsync(CreateArray<ulong>(length)).ConfigureAwait(false),
+            TypeCode.Float4 => await ReadFloat4ArrayElementsAsync(CreateArray<float>(length)).ConfigureAwait(false),
+            TypeCode.Float8 => await ReadFloat8ArrayElementsAsync(CreateArray<double>(length)).ConfigureAwait(false),
+            TypeCode.Decimal => await ReadDecimalArrayElementsAsync(CreateArray<decimal>(length)).ConfigureAwait(false),
             _ => throw ExceptionUtilities.UnexpectedValue(kind),
         };
     }
@@ -635,7 +635,7 @@ internal sealed partial class ObjectReader : IDisposable
         return array;
     }
 
-    private async ValueTask<ulong[]> ReadUInt64ArrayElements(ulong[] array)
+    private async ValueTask<ulong[]> ReadUInt64ArrayElementsAsync(ulong[] array)
     {
         for (var i = 0; i < array.Length; i++)
             array[i] = await ReadUInt64Async().ConfigureAwait(false);
@@ -651,7 +651,7 @@ internal sealed partial class ObjectReader : IDisposable
         return array;
     }
 
-    private async ValueTask<float[]> ReadFloat4ArrayElements(float[] array)
+    private async ValueTask<float[]> ReadFloat4ArrayElementsAsync(float[] array)
     {
         for (var i = 0; i < array.Length; i++)
             array[i] = await ReadSingleAsync().ConfigureAwait(false);
