@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.Runtime.Loader;
+using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 
@@ -20,5 +23,16 @@ internal sealed class LanguageServerTestComposition
         => Path.Combine(AppContext.BaseDirectory, DevKitExtensionSubdirectory, DevKitAssemblyFileName);
 
     public static Task<ExportProvider> CreateExportProviderAsync(ILoggerFactory loggerFactory, bool includeDevKitComponents)
-        => ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyPaths: [], devKitDependencyPath: includeDevKitComponents ? GetDevKitExtensionPath() : null, loggerFactory: loggerFactory);
+    {
+        var serverConfiguration = new ServerConfiguration(LaunchDebugger: false,
+            MinimumLogLevel: LogLevel.Trace,
+            StarredCompletionsPath: null,
+            TelemetryLevel: null,
+            SessionId: null,
+            ExtensionAssemblyPaths: [],
+            DevKitDependencyPath: includeDevKitComponents ? GetDevKitExtensionPath() : null,
+            ExtensionLogDirectory: string.Empty);
+        var extensionAssemblyManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
+        return ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyManager, loggerFactory: loggerFactory);
+    }
 }

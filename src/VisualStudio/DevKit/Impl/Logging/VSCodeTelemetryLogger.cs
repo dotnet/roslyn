@@ -54,7 +54,7 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
         session.Start();
         session.RegisterForReliabilityEvent();
 
-        _logger.LogInformation("Telemetry session started with sessionID: {sessionId}", sessionId);
+        _logger.LogTrace("Telemetry session started with sessionID: {sessionId}", sessionId);
 
         _telemetrySession = session;
 

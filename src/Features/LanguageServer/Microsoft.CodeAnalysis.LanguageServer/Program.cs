@@ -77,17 +77,9 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     logger.LogTrace($".NET Runtime Version: {RuntimeInformation.FrameworkDescription}");
 
-    var extensionAssemblyPaths = serverConfiguration.ExtensionAssemblyPaths.ToImmutableArray();
-    if (serverConfiguration.StarredCompletionsPath != null)
-    {
-        // TODO - the starred completion component should be passed as a regular extension.
-        // Currently we get passed the path to the directory, but ideally we should get passed the path to the dll as part of the --extension argument.
-        extensionAssemblyPaths = extensionAssemblyPaths.Add(StarredCompletionAssemblyHelper.GetStarredCompletionAssemblyPath(serverConfiguration.StarredCompletionsPath));
-    }
+    var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
 
-    var extensionManager = ExtensionAssemblyManager.Create(extensionAssemblyPaths, serverConfiguration.DevKitDependencyPath, loggerFactory);
-
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(serverConfiguration.ExtensionAssemblyPaths, serverConfiguration.DevKitDependencyPath, extensionManager, loggerFactory);
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, loggerFactory);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
     Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
@@ -108,7 +100,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         .ToImmutableArray();
 
     // Include analyzers from extension assemblies.
-    analyzerPaths = analyzerPaths.AddRange(serverConfiguration.ExtensionAssemblyPaths);
+    analyzerPaths = analyzerPaths.AddRange(extensionManager.ExtensionAssemblyPaths);
 
     await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths, extensionManager);
 

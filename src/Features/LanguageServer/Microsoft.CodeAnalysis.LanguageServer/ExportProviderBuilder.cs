@@ -4,10 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Reflection;
-using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExportProviderBuilder
 {
-    public static async Task<ExportProvider> CreateExportProviderAsync(IEnumerable<string> extensionAssemblyPaths, string? devKitDependencyPath, ExtensionAssemblyManager extensionAssemblyManager, ILoggerFactory loggerFactory)
+    public static async Task<ExportProvider> CreateExportProviderAsync(ExtensionAssemblyManager extensionAssemblyManager, ILoggerFactory loggerFactory)
     {
         var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
         var baseDirectory = AppContext.BaseDirectory;
@@ -36,18 +34,23 @@ internal sealed class ExportProviderBuilder
             Assembly.LoadFrom(path);
         }
 
-        // Add the DevKit assembly to the MEF catalog
-        if (devKitDependencyPath != null)
+        // DevKit assemblies are not shipped in the main language server folder
+        // and not included in ExtensionAssemblyPaths (they get loaded into the default ALC).
+        // So manually add them to the MEF catalog here.
+        if (extensionAssemblyManager.DevKitDependencyPath != null)
         {
-            logger.LogTrace("loading roslyn devkit deps for MEF");
-            assemblyPaths = assemblyPaths.Concat(devKitDependencyPath);
+            assemblyPaths = assemblyPaths.Concat(extensionAssemblyManager.DevKitDependencyPath);
         }
 
-        // Add the extension assemblies to the MEF catalog
-        assemblyPaths = assemblyPaths.Concat(extensionAssemblyPaths);
+        // Add the extension assemblies to the MEF catalog.
+        assemblyPaths = assemblyPaths.Concat(extensionAssemblyManager.ExtensionAssemblyPaths);
+
+        ValidateNoDuplicateAssemblies(assemblyPaths, logger);
+
+        logger.LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", assemblyPaths)}.");
 
         // Create a MEF resolver that can resolve assemblies in the extension contexts.
-        var resolver = new Resolver(new CustomExportAssemblyLoader(extensionAssemblyManager));
+        var resolver = new Resolver(new CustomExportAssemblyLoader(extensionAssemblyManager, loggerFactory));
 
         var discovery = PartDiscovery.Combine(
             resolver,
@@ -102,6 +105,24 @@ internal sealed class ExportProviderBuilder
                 logger.LogError($"Encountered errors in the MEF composition:{Environment.NewLine}{ex.ErrorsAsString}");
                 throw;
             }
+        }
+    }
+
+    private static void ValidateNoDuplicateAssemblies(IEnumerable<string> assemblyPaths, ILogger logger)
+    {
+        // MEF relies on type full names (*without* their assembly names) to identify parts.
+        // If an assembly is added to the catalog twice then we will almost certainly get duplicate MEF parts
+        // which breaks consumers who are only expecting one part.
+        //
+        // We validate this constraint here by checking for duplicate assembly full names in the MEF composition.
+        var duplicateAssemblyNames = assemblyPaths
+            .Select(p => AssemblyName.GetAssemblyName(p).FullName)
+            .GroupBy(n => n)
+            .Where(key => key.Count() > 1);
+        if (duplicateAssemblyNames.Any())
+        {
+            logger.LogError("Found duplicate assemblies in the MEF composition:{line}:{assemblies}", Environment.NewLine, string.Join($"    {Environment.NewLine}", duplicateAssemblyNames.Select(g => g.Key)));
+            throw new InvalidOperationException("Found duplicate assemblies in the MEF composition");
         }
     }
 }

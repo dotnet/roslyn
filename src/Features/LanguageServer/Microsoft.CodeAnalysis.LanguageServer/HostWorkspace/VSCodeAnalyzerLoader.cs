@@ -45,7 +45,6 @@ internal class VSCodeAnalyzerLoader
     /// <summary>
     /// Analyzer loader that will re-use already loaded assemblies from the extension load context.
     /// </summary>
-    /// <param name="extensionAssemblyManager"></param>
     private class VSCodeExtensionAssemblyAnalyzerLoader(ExtensionAssemblyManager extensionAssemblyManager, ILogger logger) : IAnalyzerAssemblyLoader
     {
         private readonly DefaultAnalyzerAssemblyLoader _defaultLoader = new();
