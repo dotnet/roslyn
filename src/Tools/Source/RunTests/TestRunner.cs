@@ -224,31 +224,20 @@ namespace RunTests
                 // reasons that work better with Helix size limitations.
                 if (isUnix)
                 {
+                    command.AppendLine("""
+                        echo HELIX_WORKITEM_PAYLOAD
+                        echo $HELIX_WORKITEM_PAYLOAD
+                        ls $HELIX_WORKITEM_PAYLOAD
+
+                        echo HELIX_WORKITEM_ROOT
+                        echo $HELIX_WORKITEM_ROOT
+                        ls $HELIX_WORKITEM_ROOT
+                        """);
+
                     command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgEnableMiniDump=1");
                     command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgMiniDumpType=1");
                     command.AppendLine($"{setEnvironmentVariable} DOTNET_EnableCrashReport=1");
-
-                    // Find the eng directory
-                    var startPath = Path.GetDirectoryName(typeof(TestRunner).Assembly.Location)!;
-                    var path = Path.GetDirectoryName(startPath)!;
-                    string gcPath;
-                    do
-                    {
-                        gcPath = Path.Combine(path, "eng", "libclrgc.dylib");
-                        Console.WriteLine($"Considering {gcPath}");
-                        if (File.Exists(gcPath))
-                        {
-                            break;
-                        }
-
-                        path = Path.GetDirectoryName(path)!;
-                        if (string.IsNullOrEmpty(path))
-                        {
-                            throw new FileNotFoundException($"Could not find libclrgc.dylib from {startPath}");
-                        }
-                    } while (true);
-
-                    command.AppendLine($"{setEnvironmentVariable} DOTNET_GCName={gcPath}");
+                    command.AppendLine($"{setEnvironmentVariable} DOTNET_GCName=$HELIX_WORKITEM_ROOT/eng/libclrgc.dylib");
                 }
 
                 // Set the dump folder so that dotnet writes all dump files to this location automatically. 
