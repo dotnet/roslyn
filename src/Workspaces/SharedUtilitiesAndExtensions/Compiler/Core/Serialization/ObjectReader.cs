@@ -5,12 +5,14 @@
 #nullable disable
 
 using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -77,21 +79,19 @@ internal sealed partial class ObjectReader : IDisposable
     /// If the <paramref name="stream"/> does not start with a valid header, then <see langword="null"/> will
     /// be returned.
     /// </summary>
-    public static ObjectReader TryGetReader(
+    public static async ValueTask<ObjectReader> TryGetReaderAsync(
         PipeReader reader,
         bool leaveOpen = false,
         CancellationToken cancellationToken = default)
     {
+        const int preambleSize = 2;
         if (reader == null)
             return null;
 
         try
         {
-            if (stream.ReadByte() != VersionByte1 ||
-                stream.ReadByte() != VersionByte2)
-            {
-                return null;
-            }
+            var readResult = await reader.ReadAtLeastAsync(preambleSize, cancellationToken).ConfigureAwait(false);
+            return CreateReaderFromResult(readResult);
         }
         catch (AggregateException ex) when (ex.InnerException is not null)
         {
@@ -105,7 +105,20 @@ internal sealed partial class ObjectReader : IDisposable
 #endif
         }
 
-        return new ObjectReader(reader, leaveOpen, cancellationToken);
+        ObjectReader CreateReaderFromResult(ReadResult result)
+        {
+            Span<byte> preamble = stackalloc byte[preambleSize];
+            result.Buffer.Slice(0, preambleSize).CopyTo(preamble);
+
+            if (preamble[0] != VersionByte1 ||
+                preamble[1] != VersionByte2)
+            {
+                return null;
+            }
+
+            reader.AdvanceTo(result.Buffer.GetPosition(preambleSize));
+            return new ObjectReader(reader, leaveOpen, cancellationToken);
+        }
     }
 
     /// <summary>
