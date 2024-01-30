@@ -14,9 +14,12 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using EncodingExtensions = Microsoft.CodeAnalysis.EncodingExtensions;
+using System.IO.Pipelines;
 
 namespace Roslyn.Utilities
 {
+    using System.Buffers;
+    using System.Buffers.Binary;
     using System.Collections.Immutable;
     using System.Threading.Tasks;
 #if COMPILERCORE
@@ -26,6 +29,161 @@ namespace Roslyn.Utilities
 #else
     using Resources = WorkspacesResources;
 #endif
+
+
+    internal sealed partial class PipeObjectWriter : IDisposable
+    {
+        private readonly CancellationToken _cancellationToken;
+
+        /// <summary>
+        /// Map of serialized string reference ids.  The string-reference-map uses value-equality for greater cache hits
+        /// and reuse.
+        ///
+        /// This is a mutable struct, and as such is not readonly.
+        ///
+        /// When we write out strings we give each successive, unique, item a monotonically increasing integral ID
+        /// starting at 0.  I.e. the first string gets ID-0, the next gets ID-1 and so on and so forth.  We do *not*
+        /// include these IDs with the object when it is written out.  We only include the ID if we hit the object
+        /// *again* while writing.
+        ///
+        /// During reading, the reader knows to give each string it reads the same monotonically increasing integral
+        /// value.  i.e. the first string it reads is put into an array at position 0, the next at position 1, and so
+        /// on.  Then, when the reader reads in a string-reference it can just retrieved it directly from that array.
+        ///
+        /// In other words, writing and reading take advantage of the fact that they know they will write and read
+        /// strings in the exact same order.  So they only need the IDs for references and not the strings themselves
+        /// because the ID is inferred from the order the object is written or read in.
+        /// </summary>
+        private ObjectWriter.WriterReferenceMap _stringReferenceMap;
+
+        private readonly PipeWriter _writer;
+
+        /// <summary>
+        /// Creates a new instance of a <see cref="ObjectWriter"/>.
+        /// </summary>
+        /// <param name="stream">The stream to write to.</param>
+        /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        private PipeObjectWriter(
+            PipeWriter writer,
+            CancellationToken cancellationToken)
+        {
+            // String serialization assumes both reader and writer to be of the same endianness.
+            // It can be adjusted for BigEndian if needed.
+            Debug.Assert(BitConverter.IsLittleEndian);
+
+            _writer = writer;
+            // _stringReferenceMap = new WriterReferenceMap();
+            _cancellationToken = cancellationToken;
+        }
+
+        public static PipeObjectWriter Create(
+            PipeWriter writer,
+            CancellationToken cancellationToken)
+        {
+            var pipeWriter = new PipeObjectWriter(writer, cancellationToken);
+            pipeWriter.WriteVersion();
+            return pipeWriter;
+        }
+
+        public void Dispose()
+        {
+            _writer.Complete();
+        }
+
+        private void WriteVersion()
+        {
+            Write(ObjectReader.VersionByte1);
+            Write(ObjectReader.VersionByte2);
+        }
+
+        public void Write(byte value)
+        {
+            var memory = _writer.GetMemory(1);
+            memory.Span[0] = value;
+            _writer.Advance(1);
+        }
+
+        public void Write(int value)
+        {
+            var memory = _writer.GetMemory(4);
+            BinaryPrimitives.WriteInt32LittleEndian(memory.Span, value);
+            _writer.Advance(4);
+        }
+
+        public async ValueTask WriteStringAsync(string value)
+        {
+            if (value == null)
+            {
+                Write((byte)ObjectWriter.TypeCode.Null);
+            }
+            else
+            {
+                if (_stringReferenceMap.TryGetReferenceId(value, out var id))
+                {
+                    Debug.Assert(id >= 0);
+                    if (id <= byte.MaxValue)
+                    {
+                        Write((byte)ObjectWriter.TypeCode.StringRef_1Byte);
+                        Write((byte)id);
+                    }
+                    else if (id <= ushort.MaxValue)
+                    {
+                        Write((byte)ObjectWriter.TypeCode.StringRef_2Bytes);
+                        Write((ushort)id);
+                    }
+                    else
+                    {
+                        Write((byte)ObjectWriter.TypeCode.StringRef_4Bytes);
+                        Write(id);
+                    }
+                }
+                else
+                {
+                    _stringReferenceMap.Add(value, isReusable: true);
+
+                    if (value.IsValidUnicodeString())
+                    {
+                        WriteUtf8String();
+                    }
+                    else
+                    {
+                        WriteUtf16String();
+                    }
+
+                    await _writer.FlushAsync(_cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return;
+
+            void WriteUtf8String()
+            {
+                // Usual case - the string can be encoded as UTF-8:
+                // We can use the UTF-8 encoding of the binary writer.
+
+                Write((byte)ObjectWriter.TypeCode.StringUtf8);
+                var byteCount = UTF8Encoding.UTF8.GetByteCount(value);
+                Write(byteCount);
+                var writtenBytes = UTF8Encoding.UTF8.GetBytes(value, _writer);
+                Contract.ThrowIfTrue(byteCount != writtenBytes);
+
+                // don't need to Advance.  GetBytes already does that.
+            }
+
+            void WriteUtf16String()
+            {
+                ReadOnlySpan<char> span = value;
+                var bytes = MemoryMarshal.AsBytes(span);
+
+                Write((byte)ObjectWriter.TypeCode.StringUtf16);
+                Write(bytes.Length);
+                _writer.Write(bytes);
+
+                // don't need to Advance.  _writer.Write already does that.
+            }
+        }
+    }
 
     /// <summary>
     /// An <see cref="ObjectWriter"/> that serializes objects to a byte stream.
@@ -348,7 +506,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// An object reference to reference-id map, that can share base data efficiently.
         /// </summary>
-        private struct WriterReferenceMap
+        internal struct WriterReferenceMap
         {
             // PERF: Use segmented collection to avoid Large Object Heap allocations during serialization.
             // https://github.com/dotnet/roslyn/issues/43401
