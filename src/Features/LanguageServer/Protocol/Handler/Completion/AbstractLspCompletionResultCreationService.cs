@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 {
     internal abstract class AbstractLspCompletionResultCreationService : ILspCompletionResultCreationService
     {
-        protected abstract Task<LSP.CompletionItem> CreateItemAndPopulateTextEditAsync(Document document, SourceText documentText, bool snippetsSupported, bool itemDefaultsSupported, TextSpan defaultSpan, string typedText, CompletionItem item, CompletionService completionService, CancellationToken cancellationToken);
+        protected abstract Task<LSP.CompletionItem> CreateItemAndPopulateTextEditAsync(Document document, SourceText documentText, bool snippetsSupported, bool itemDefaultsSupported, TextSpan defaultSpan, string typedText, CompletionItem item, LSP.CompletionItemKind kind, CompletionService completionService, CancellationToken cancellationToken);
         public abstract Task<LSP.CompletionItem> ResolveAsync(LSP.CompletionItem lspItem, CompletionItem roslynItem, LSP.TextDocumentIdentifier textDocumentIdentifier, Document document, CompletionCapabilityHelper capabilityHelper, CompletionService completionService, CompletionOptions completionOptions, SymbolDescriptionOptions symbolDescriptionOptions, CancellationToken cancellationToken);
 
         public static string[] DefaultCommitCharactersArray { get; } = CreateCommitCharacterArrayFromRules(CompletionItemRules.Default);
@@ -103,10 +103,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 
             async Task<LSP.CompletionItem> CreateLSPCompletionItemAsync(CompletionItem item, string typedText)
             {
+                var kind = GetCompletionKind(item.Tags, capabilityHelper.SupportedItemKinds);
+
                 // Defer to host to create the actual completion item (including potential subclasses), and add any
                 // custom information.
                 var lspItem = await CreateItemAndPopulateTextEditAsync(
-                    document, documentText, capabilityHelper.SupportSnippets, defaultEditRangeSupported, defaultSpan, typedText, item, completionService, cancellationToken).ConfigureAwait(false);
+                    document, documentText, capabilityHelper.SupportSnippets, defaultEditRangeSupported, defaultSpan, typedText, item, kind, completionService, cancellationToken).ConfigureAwait(false);
 
                 if (!item.InlineDescription.IsEmpty())
                     lspItem.LabelDetails = new() { Description = item.InlineDescription };
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 if (!lspItem.Label.Equals(item.FilterText, StringComparison.Ordinal))
                     lspItem.FilterText = item.FilterText;
 
-                lspItem.Kind = GetCompletionKind(item.Tags, capabilityHelper.SupportedItemKinds);
+                lspItem.Kind = kind;
                 lspItem.Preselect = item.Rules.MatchPriority == MatchPriority.Preselect;
 
                 if (lspVSClientCapability)

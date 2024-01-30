@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Core.Imaging;
+using Microsoft.VisualStudio.Imaging;
 using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -37,14 +39,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             TextSpan defaultSpan,
             string typedText,
             CompletionItem item,
+            LSP.CompletionItemKind kind,
             CompletionService completionService,
             CancellationToken cancellationToken)
         {
             var lspItem = new LSP.VSInternalCompletionItem
             {
                 Label = item.GetEntireDisplayText(),
-                Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId().ToLSPImageId()),
             };
+
+            var imageId = item.Tags.GetFirstGlyph().GetImageId();
+            if (imageId != GetCompletionImageId(kind))
+            {
+                // Only populate the icon if it differs from the default for the kind. The icon information
+                // is quite verbose in the serialized json.
+                lspItem.Icon = new ImageElement(imageId.ToLSPImageId());
+            }
 
             // Complex text edits (e.g. override and partial method completions) are always populated in the
             // resolve handler, so we leave both TextEdit and InsertText unpopulated in these cases.
@@ -117,6 +127,53 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
 
             return lspItem;
+        }
+
+        private static ImageId GetCompletionImageId(LSP.CompletionItemKind kind)
+        {
+            var id = kind switch
+            {
+                LSP.CompletionItemKind.Text => KnownImageIds.TextElement,
+                LSP.CompletionItemKind.Method => KnownImageIds.MethodPublic,
+                LSP.CompletionItemKind.Function => KnownImageIds.MethodPublic,
+                LSP.CompletionItemKind.Constructor => KnownImageIds.ClassPublic,
+                LSP.CompletionItemKind.Field => KnownImageIds.FieldPrivate,
+                LSP.CompletionItemKind.Variable => KnownImageIds.LocalVariable,
+                LSP.CompletionItemKind.Class => KnownImageIds.ClassPublic,
+                LSP.CompletionItemKind.Interface => KnownImageIds.InterfacePublic,
+                LSP.CompletionItemKind.Module => KnownImageIds.ModulePublic,
+                LSP.CompletionItemKind.Property => KnownImageIds.PropertyPublic,
+                LSP.CompletionItemKind.Unit => KnownImageIds.Numeric,
+                LSP.CompletionItemKind.Value => KnownImageIds.ValueType,
+                LSP.CompletionItemKind.Enum => KnownImageIds.EnumerationPublic,
+                LSP.CompletionItemKind.Keyword => KnownImageIds.IntellisenseKeyword,
+                LSP.CompletionItemKind.Snippet => KnownImageIds.Snippet,
+                LSP.CompletionItemKind.Color => KnownImageIds.ColorPalette,
+                LSP.CompletionItemKind.File => KnownImageIds.TextFile,
+                LSP.CompletionItemKind.Reference => KnownImageIds.Reference,
+                LSP.CompletionItemKind.Folder => KnownImageIds.FolderClosed,
+                LSP.CompletionItemKind.EnumMember => KnownImageIds.EnumerationItemPublic,
+                LSP.CompletionItemKind.Constant => KnownImageIds.ConstantPublic,
+                LSP.CompletionItemKind.Struct => KnownImageIds.ValueTypePublic, // We're using ValueTypePublic instead of StructurePublic because that's what language partners have been using for structs
+                LSP.CompletionItemKind.Event => KnownImageIds.EventPublic,
+                LSP.CompletionItemKind.Operator => KnownImageIds.Operator,
+                LSP.CompletionItemKind.TypeParameter => KnownImageIds.Type,
+                LSP.CompletionItemKind.Macro => KnownImageIds.MacroPublic,
+                LSP.CompletionItemKind.Namespace => KnownImageIds.Namespace,
+                LSP.CompletionItemKind.Template => KnownImageIds.Template,
+                LSP.CompletionItemKind.TypeDefinition => KnownImageIds.TypeDefinition,
+                LSP.CompletionItemKind.Union => KnownImageIds.Union,
+                LSP.CompletionItemKind.Delegate => KnownImageIds.Delegate,
+                LSP.CompletionItemKind.TagHelper => KnownImageIds.XMLAttribute,
+                LSP.CompletionItemKind.ExtensionMethod => KnownImageIds.ExtensionMethod,
+                LSP.CompletionItemKind.Element => KnownImageIds.MarkupTag,
+                LSP.CompletionItemKind.LocalResource => KnownImageIds.LocalResources,
+                LSP.CompletionItemKind.SystemResource => KnownImageIds.SystemResources,
+                LSP.CompletionItemKind.CloseElement => KnownImageIds.HTMLEndTag,
+                _ => KnownImageIds.TextElement, // Gracefully handle missing and unknown kinds
+            };
+
+            return new ImageId(KnownImageIds.ImageCatalogGuid, id);
         }
     }
 }
