@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using EncodingExtensions = Microsoft.CodeAnalysis.EncodingExtensions;
 using System.IO.Pipelines;
+using System.Buffers;
 
 namespace Roslyn.Utilities
 {
@@ -22,6 +23,7 @@ namespace Roslyn.Utilities
     using System.Buffers.Binary;
     using System.Collections.Immutable;
     using System.Threading.Tasks;
+    using Humanizer.Bytes;
 #if COMPILERCORE
     using Resources = CodeAnalysisResources;
 #elif CODE_STYLE
@@ -99,15 +101,15 @@ namespace Roslyn.Utilities
 
         public void Write(byte value)
         {
-            var memory = _writer.GetMemory(1);
-            memory.Span[0] = value;
+            var span = _writer.GetSpan(1);
+            span[0] = value;
             _writer.Advance(1);
         }
 
         public void Write(int value)
         {
-            var memory = _writer.GetMemory(4);
-            BinaryPrimitives.WriteInt32LittleEndian(memory.Span, value);
+            var span = _writer.GetSpan(4);
+            BinaryPrimitives.WriteInt32LittleEndian(span, value);
             _writer.Advance(4);
         }
 
@@ -165,15 +167,25 @@ namespace Roslyn.Utilities
                 Write((byte)ObjectWriter.TypeCode.StringUtf8);
                 var byteCount = Encoding.UTF8.GetByteCount(value);
                 Write(byteCount);
+
+#if NETSTANDARD
+                var bytes = System.Buffers.ArrayPool<byte>.Shared.Rent(byteCount);
+                var encodedCount = Encoding.UTF8.GetBytes(value, 0, value.Length, bytes, 0);
+                Contract.ThrowIfTrue(byteCount != encodedCount);
+                var writerSpan = _writer.GetSpan(byteCount);
+                bytes.AsSpan().Slice(0, byteCount).CopyTo(writerSpan);
+                _writer.Advance(byteCount);
+                System.Buffers.ArrayPool<byte>.Shared.Return(bytes);
+#else
                 var writtenBytes = Encoding.UTF8.GetBytes(value, _writer);
                 Contract.ThrowIfTrue(byteCount != writtenBytes);
-
                 // don't need to Advance.  GetBytes already does that.
+#endif
             }
 
             void WriteUtf16String()
             {
-                ReadOnlySpan<char> span = value;
+                var span = value.AsSpan();
                 var bytes = MemoryMarshal.AsBytes(span);
 
                 Write((byte)ObjectWriter.TypeCode.StringUtf16);
