@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             var properties = GetProperties(definition, isPrimary);
 
-            if (sourceLocations.IsDefault)
+            if (sourceLocations.IsDefault || definition.IsTupleType())
             {
                 return DefinitionItem.CreateMetadataDefinition(
                     tags, displayParts, nameDisplayParts, solution,
