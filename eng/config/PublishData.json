@@ -193,6 +193,15 @@
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.9]"
     },
+    "release/dev17.10": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.10 P1]"
+    },
     "main": {
       "nugetKind": [
         "Shipping",
@@ -200,8 +209,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.10]"
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.10 P2]"
     },
     "dev/jorobich/fix-pr-val": {
       "nugetKind": [
