@@ -521,14 +521,6 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void WriteArrayValues(Array array)
-        {
-            for (var i = 0; i < array.Length; i++)
-            {
-                this.WriteValue(array.GetValue(i));
-            }
-        }
-
         private void WritePrimitiveTypeArrayElements(Type type, TypeCode kind, Array instance)
         {
             Debug.Assert(s_typeMap[type] == kind);
