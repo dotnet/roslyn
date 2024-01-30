@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SQLite.Interop;
 
 namespace Roslyn.Utilities;
 
@@ -351,16 +352,17 @@ internal sealed partial class ObjectReader : IDisposable
         }
     }
 
-    public async ValueTask<(char[] array, int length)> ReadCharArray(Func<int, char[]> getArray)
+    public async ValueTask<(char[] array, int length)> ReadCharArrayAsync(Func<int, char[]> getArray)
     {
         var kind = (TypeCode)await ReadByteAsync().ConfigureAwait(false);
 
         (var length, _) = await ReadArrayLengthAndElementKindAsync(kind).ConfigureAwait(false);
         var array = getArray(length);
 
-        var charsRead = _reader.Read(array, 0, length);
-
-        return (array, charsRead);
+        var byteCount = length * 2;
+        var readResult = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
+        readResult.Buffer.Slice(byteCount).CopyTo(MemoryMarshal.AsBytes(array.AsSpan()));
+        return (array, length);
     }
 
     /// <summary>
@@ -539,9 +541,20 @@ internal sealed partial class ObjectReader : IDisposable
 
         // optimizations for supported array type by binary reader
         if (type == typeof(byte))
-            return _reader.ReadBytes(length);
+        {
+            var result = new byte[length];
+            var readResult = await _reader.ReadAtLeastAsync(length, _cancellationToken).ConfigureAwait(false);
+            readResult.Buffer.Slice(length).CopyTo(result);
+            return result;
+        }
         if (type == typeof(char))
-            return _reader.ReadChars(length);
+        {
+            var result = new char[length];
+            var byteCount = length * 2;
+            var readResult = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
+            readResult.Buffer.Slice(byteCount).CopyTo(MemoryMarshal.AsBytes(result.AsSpan()));
+            return result;
+        }
 
         // optimizations for string where object reader/writer has its own mechanism to
         // reduce duplicated strings
