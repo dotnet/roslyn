@@ -260,8 +260,6 @@ internal sealed partial class ObjectReader : IDisposable
             hi: await ReadInt32Async().ConfigureAwait(false));
     }
 
-    public string ReadString() => ReadStringValue();
-
     public async ValueTask<Guid> ReadGuidAsync()
     {
         var accessor = new ObjectWriter.GuidAccessor
@@ -283,11 +281,11 @@ internal sealed partial class ObjectReader : IDisposable
             case TypeCode.Boolean_False: return false;
             case TypeCode.Int8: return await ReadSByteAsync().ConfigureAwait(false);
             case TypeCode.UInt8: return await ReadByteAsync().ConfigureAwait(false);
-            case TypeCode.Int16: return ReadInt16();
-            case TypeCode.UInt16: return ReadUInt16();
+            case TypeCode.Int16: return await ReadInt16Async().ConfigureAwait(false);
+            case TypeCode.UInt16: return await ReadUInt16Async().ConfigureAwait(false);
             case TypeCode.Int32: return await ReadInt32Async().ConfigureAwait(false);
             case TypeCode.Int32_1Byte: return (int)await ReadByteAsync().ConfigureAwait(false);
-            case TypeCode.Int32_2Bytes: return (int)ReadUInt16();
+            case TypeCode.Int32_2Bytes: return (int)await ReadUInt16Async().ConfigureAwait(false);
             case TypeCode.Int32_0:
             case TypeCode.Int32_1:
             case TypeCode.Int32_2:
@@ -302,7 +300,7 @@ internal sealed partial class ObjectReader : IDisposable
                 return (int)code - (int)TypeCode.Int32_0;
             case TypeCode.UInt32: return await ReadUInt32Async().ConfigureAwait(false);
             case TypeCode.UInt32_1Byte: return (uint)await ReadByteAsync().ConfigureAwait(false);
-            case TypeCode.UInt32_2Bytes: return (uint)ReadUInt16();
+            case TypeCode.UInt32_2Bytes: return (uint)await ReadUInt16Async().ConfigureAwait(false);
             case TypeCode.UInt32_0:
             case TypeCode.UInt32_1:
             case TypeCode.UInt32_2:
@@ -315,14 +313,14 @@ internal sealed partial class ObjectReader : IDisposable
             case TypeCode.UInt32_9:
             case TypeCode.UInt32_10:
                 return (uint)((int)code - (int)TypeCode.UInt32_0);
-            case TypeCode.Int64: return ReadInt64();
-            case TypeCode.UInt64: return ReadUInt64();
-            case TypeCode.Float4: return ReadSingle();
-            case TypeCode.Float8: return ReadDouble();
-            case TypeCode.Decimal: return ReadDecimal();
+            case TypeCode.Int64: return await ReadInt64Async().ConfigureAwait(false);
+            case TypeCode.UInt64: return await ReadUInt64Async().ConfigureAwait(false);
+            case TypeCode.Float4: return await ReadSingleAsync().ConfigureAwait(false);
+            case TypeCode.Float8: return await ReadDoubleAsync().ConfigureAwait(false);
+            case TypeCode.Decimal: return await ReadDecimalAsync().ConfigureAwait(false);
             case TypeCode.Char:
                 // read as ushort because BinaryWriter fails on chars that are unicode surrogates
-                return (char)ReadUInt16();
+                return (char)await ReadUInt16Async().ConfigureAwait(false);
             case TypeCode.StringUtf8:
             case TypeCode.StringUtf16:
             case TypeCode.StringRef_4Bytes:
@@ -330,7 +328,7 @@ internal sealed partial class ObjectReader : IDisposable
             case TypeCode.StringRef_2Bytes:
                 return ReadStringValue(code);
             case TypeCode.DateTime:
-                return DateTime.FromBinary(ReadInt64());
+                return DateTime.FromBinary(await ReadInt64Async().ConfigureAwait(false));
             case TypeCode.Array:
             case TypeCode.Array_0:
             case TypeCode.Array_1:
@@ -339,13 +337,13 @@ internal sealed partial class ObjectReader : IDisposable
                 return ReadArray(code);
 
             case TypeCode.EncodingName:
-                return Encoding.GetEncoding(ReadString());
+                return Encoding.GetEncoding(await ReadStringAsync().ConfigureAwait(false));
 
             case >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding:
                 return ObjectWriter.ToEncodingKind(code).GetEncoding();
 
             case TypeCode.EncodingCodePage:
-                return Encoding.GetEncoding(ReadInt32());
+                return Encoding.GetEncoding(await ReadInt32Async().ConfigureAwait(false));
 
             default:
                 throw ExceptionUtilities.UnexpectedValue(code);
@@ -404,9 +402,9 @@ internal sealed partial class ObjectReader : IDisposable
             => _values[referenceId];
     }
 
-    internal uint ReadCompressedUInt()
+    internal async ValueTask<uint> ReadCompressedUIntAsync()
     {
-        var info = ReadByte();
+        var info = await ReadByteAsync().ConfigureAwait(false);
         var marker = (byte)(info & ObjectWriter.ByteMarkerMask);
         var byte0 = (byte)(info & ~ObjectWriter.ByteMarkerMask);
 
@@ -417,15 +415,15 @@ internal sealed partial class ObjectReader : IDisposable
 
         if (marker == ObjectWriter.Byte2Marker)
         {
-            var byte1 = ReadByte();
+            var byte1 = await ReadByteAsync().ConfigureAwait(false);
             return (((uint)byte0) << 8) | byte1;
         }
 
         if (marker == ObjectWriter.Byte4Marker)
         {
-            var byte1 = ReadByte();
-            var byte2 = ReadByte();
-            var byte3 = ReadByte();
+            var byte1 = await ReadByteAsync().ConfigureAwait(false);
+            var byte2 = await ReadByteAsync().ConfigureAwait(false);
+            var byte3 = await ReadByteAsync().ConfigureAwait(false);
 
             return (((uint)byte0) << 24) | (((uint)byte1) << 16) | (((uint)byte2) << 8) | byte3;
         }
@@ -433,19 +431,17 @@ internal sealed partial class ObjectReader : IDisposable
         throw ExceptionUtilities.UnexpectedValue(marker);
     }
 
-    private string ReadStringValue()
+    private async ValueTask<string> ReadStringValue()
     {
-        var kind = (TypeCode)ReadByte();
-        return kind == TypeCode.Null ? null : ReadStringValue(kind);
-    }
+        var kind = (TypeCode)await ReadByteAsync().ConfigureAwait(false);
+        if (kind == TypeCode.Null)
+            return null;
 
-    private string ReadStringValue(TypeCode kind)
-    {
         return kind switch
         {
-            TypeCode.StringRef_1Byte => _stringReferenceMap.GetValue(ReadByte()),
-            TypeCode.StringRef_2Bytes => _stringReferenceMap.GetValue(ReadUInt16()),
-            TypeCode.StringRef_4Bytes => _stringReferenceMap.GetValue(ReadInt32()),
+            TypeCode.StringRef_1Byte => _stringReferenceMap.GetValue(await ReadByteAsync().ConfigureAwait(false)),
+            TypeCode.StringRef_2Bytes => _stringReferenceMap.GetValue(await ReadUInt16Async().ConfigureAwait(false)),
+            TypeCode.StringRef_4Bytes => _stringReferenceMap.GetValue(await ReadInt32Async().ConfigureAwait(false)),
             TypeCode.StringUtf16 or TypeCode.StringUtf8 => ReadStringLiteral(kind),
             _ => throw ExceptionUtilities.UnexpectedValue(kind),
         };
@@ -473,9 +469,9 @@ internal sealed partial class ObjectReader : IDisposable
         return value;
     }
 
-    private Array ReadArray(TypeCode kind)
+    private async ValueTask<Array> ReadArrayAsync(TypeCode kind)
     {
-        var (length, elementKind) = ReadArrayLengthAndElementKind(kind);
+        var (length, elementKind) = await ReadArrayLengthAndElementKindAsync(kind).ConfigureAwait(false);
 
         var elementType = ObjectWriter.s_reverseTypeMap[(int)elementKind];
         if (elementType != null)
@@ -488,7 +484,7 @@ internal sealed partial class ObjectReader : IDisposable
         }
     }
 
-    private (int length, TypeCode elementKind) ReadArrayLengthAndElementKind(TypeCode kind)
+    private async ValueTask<(int length, TypeCode elementKind)> ReadArrayLengthAndElementKindAsync(TypeCode kind)
     {
         var length = kind switch
         {
@@ -496,16 +492,16 @@ internal sealed partial class ObjectReader : IDisposable
             TypeCode.Array_1 => 1,
             TypeCode.Array_2 => 2,
             TypeCode.Array_3 => 3,
-            _ => (int)this.ReadCompressedUInt(),
+            _ => (int)await this.ReadCompressedUIntAsync().ConfigureAwait(false),
         };
 
         // SUBTLE: If it was a primitive array, only the EncodingKind byte of the element type was written, instead of encoding as a type.
-        var elementKind = (TypeCode)ReadByte();
+        var elementKind = (TypeCode)await ReadByteAsync().ConfigureAwait(false);
 
         return (length, elementKind);
     }
 
-    private Array ReadPrimitiveTypeArrayElements(Type type, TypeCode kind, int length)
+    private async ValueTask<Array> ReadPrimitiveTypeArrayElementsAsync(Type type, TypeCode kind, int length)
     {
         Debug.Assert(ObjectWriter.s_reverseTypeMap[(int)kind] == type);
 
@@ -520,7 +516,7 @@ internal sealed partial class ObjectReader : IDisposable
         if (type == typeof(string))
             return ReadStringArrayElements(CreateArray<string>(length));
         if (type == typeof(bool))
-            return ReadBooleanArrayElements(CreateArray<bool>(length));
+            return await ReadBooleanArrayElementsAsync(CreateArray<bool>(length)).ConfigureAwait(false);
 
         // otherwise, read elements directly from underlying binary writer
         return kind switch
@@ -539,7 +535,7 @@ internal sealed partial class ObjectReader : IDisposable
         };
     }
 
-    private bool[] ReadBooleanArrayElements(bool[] array)
+    private async ValueTask<bool[]> ReadBooleanArrayElementsAsync(bool[] array)
     {
         // Confirm the type to be read below is ulong
         Debug.Assert(BitVector.BitsPerWord == 64);
@@ -549,7 +545,7 @@ internal sealed partial class ObjectReader : IDisposable
         var count = 0;
         for (var i = 0; i < wordLength; i++)
         {
-            var word = ReadUInt64();
+            var word = await ReadUInt64Async().ConfigureAwait(false);
 
             for (var p = 0; p < BitVector.BitsPerWord; p++)
             {
