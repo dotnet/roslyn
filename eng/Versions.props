@@ -37,10 +37,10 @@
     <MicrosoftNetCompilersToolsetVersion>4.10.0-1.24061.4</MicrosoftNetCompilersToolsetVersion>
     <MicrosoftVSSDKBuildToolsVersion>17.9.3137-preview3</MicrosoftVSSDKBuildToolsVersion>
     <vswhereVersion>2.4.1</vswhereVersion>
-
-   <!-- Versions defined in eng/InternalTools.props. The file is an extensibility port from eng/common/internal/Tools.csproj (managed by Arcade)
-   So it's not affect by our central package management
-   -->
+    <!--
+      Versions defined in eng/InternalTools.props. The file is an extensibility port from eng/common/internal/Tools.csproj (managed by Arcade)
+      So it's not affect by our central package management
+    -->
     <MicrosoftDevDivOptimizationDataPowerShellVersion>1.0.803</MicrosoftDevDivOptimizationDataPowerShellVersion>
     <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
   </PropertyGroup>
