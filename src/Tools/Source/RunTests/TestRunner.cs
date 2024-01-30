@@ -229,7 +229,7 @@ namespace RunTests
                     // Find the eng directory
                     var startPath = Path.GetDirectoryName(typeof(TestRunner).Assembly.Location)!;
                     var path = Path.GetDirectoryName(startPath)!;
-                    var gcPath = Path.Combine(path, "eng", "libclrgc.dynlib");
+                    var gcPath = Path.Combine(path, "eng", "libclrgc.dylib");
                     do
                     {
                         if (File.Exists(gcPath))
