@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
             => _lazyChecksum.Initialize(static @this => Checksum.Create(@this,
                 static (@this, writer) =>
                 {
-                    // Combine "ProjectId" string and guid.  That way in the off change that something in the stack uses
+                    // Combine "ProjectId" string and guid.  That way in the off chance that something in the stack uses
                     // the same Guid for something like a Solution or Document, that we'll still consider the checksums
                     // different.
                     writer.WriteString(nameof(ProjectId));
