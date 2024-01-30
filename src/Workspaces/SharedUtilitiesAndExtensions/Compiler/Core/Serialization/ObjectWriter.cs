@@ -319,27 +319,47 @@ namespace Roslyn.Utilities
                 else if (value.GetType() == typeof(short))
                 {
                     WriteByte((byte)TypeCode.Int16);
+<<<<<<< HEAD
                     _writer.Write((short)value);
+=======
+                    WriteInt16((short)value);
+>>>>>>> uniformity
                 }
                 else if (value.GetType() == typeof(long))
                 {
                     WriteByte((byte)TypeCode.Int64);
+<<<<<<< HEAD
                     _writer.Write((long)value);
+=======
+                    WriteInt64((long)value);
+>>>>>>> uniformity
                 }
                 else if (value.GetType() == typeof(sbyte))
                 {
                     WriteByte((byte)TypeCode.Int8);
+<<<<<<< HEAD
                     _writer.Write((sbyte)value);
+=======
+                    WriteSByte((sbyte)value);
+>>>>>>> uniformity
                 }
                 else if (value.GetType() == typeof(float))
                 {
                     WriteByte((byte)TypeCode.Float4);
+<<<<<<< HEAD
                     _writer.Write((float)value);
+=======
+                    WriteSingle((float)value);
+>>>>>>> uniformity
                 }
                 else if (value.GetType() == typeof(ushort))
                 {
                     WriteByte((byte)TypeCode.UInt16);
+<<<<<<< HEAD
                     _writer.Write((ushort)value);
+=======
+                    WriteUInt16((ushort)value);
+>>>>>>> uniformity
                 }
                 else if (value.GetType() == typeof(uint))
                 {
@@ -347,8 +367,8 @@ namespace Roslyn.Utilities
                 }
                 else if (value.GetType() == typeof(ulong))
                 {
-                    _writer.Write((byte)TypeCode.UInt64);
-                    _writer.Write((ulong)value);
+                    WriteByte((byte)TypeCode.UInt64);
+                    WriteUInt64((ulong)value);
                 }
                 else
                 {
@@ -358,6 +378,7 @@ namespace Roslyn.Utilities
             else if (value.GetType() == typeof(decimal))
             {
                 WriteByte((byte)TypeCode.Decimal);
+<<<<<<< HEAD
                 _writer.Write((decimal)value);
             }
             else if (value.GetType() == typeof(DateTime))
@@ -365,6 +386,14 @@ namespace Roslyn.Utilities
                 throw new NotImplementedException();
                 //_writer.Write((byte)TypeCode.DateTime);
                 //_writer.Write(((DateTime)value).ToBinary());
+=======
+                WriteDecimal((decimal)value);
+            }
+            else if (value.GetType() == typeof(DateTime))
+            {
+                WriteByte((byte)TypeCode.DateTime);
+                _writer.Write(((DateTime)value).ToBinary());
+>>>>>>> uniformity
             }
             else if (value.GetType() == typeof(string))
             {
@@ -534,7 +563,7 @@ namespace Roslyn.Utilities
         {
             if (value <= (byte.MaxValue >> 2))
             {
-                _writer.Write((byte)value);
+                WriteByte((byte)value);
             }
             else if (value <= (ushort.MaxValue >> 2))
             {
@@ -542,8 +571,8 @@ namespace Roslyn.Utilities
                 var byte1 = (byte)(value & 0xFFu);
 
                 // high-bytes to low-bytes
-                _writer.Write(byte0);
-                _writer.Write(byte1);
+                WriteByte(byte0);
+                WriteByte(byte1);
             }
             else if (value <= (uint.MaxValue >> 2))
             {
@@ -553,10 +582,10 @@ namespace Roslyn.Utilities
                 var byte3 = (byte)(value & 0xFFu);
 
                 // high-bytes to low-bytes
-                _writer.Write(byte0);
-                _writer.Write(byte1);
-                _writer.Write(byte2);
-                _writer.Write(byte3);
+                WriteByte(byte0);
+                WriteByte(byte1);
+                WriteByte(byte2);
+                WriteByte(byte3);
             }
             else
             {
@@ -568,7 +597,7 @@ namespace Roslyn.Utilities
         {
             if (value == null)
             {
-                _writer.Write((byte)TypeCode.Null);
+                WriteByte((byte)TypeCode.Null);
             }
             else
             {
@@ -577,18 +606,18 @@ namespace Roslyn.Utilities
                     Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
                     {
-                        _writer.Write((byte)TypeCode.StringRef_1Byte);
-                        _writer.Write((byte)id);
+                        WriteByte((byte)TypeCode.StringRef_1Byte);
+                        WriteByte((byte)id);
                     }
                     else if (id <= ushort.MaxValue)
                     {
-                        _writer.Write((byte)TypeCode.StringRef_2Bytes);
-                        _writer.Write((ushort)id);
+                        WriteByte((byte)TypeCode.StringRef_2Bytes);
+                        WriteUInt16((ushort)id);
                     }
                     else
                     {
-                        _writer.Write((byte)TypeCode.StringRef_4Bytes);
-                        _writer.Write(id);
+                        WriteByte((byte)TypeCode.StringRef_4Bytes);
+                        WriteInt32(id);
                     }
                 }
                 else
@@ -600,12 +629,12 @@ namespace Roslyn.Utilities
                         // Usual case - the string can be encoded as UTF-8:
                         // We can use the UTF-8 encoding of the binary writer.
 
-                        _writer.Write((byte)TypeCode.StringUtf8);
+                        WriteByte((byte)TypeCode.StringUtf8);
                         _writer.Write(value);
                     }
                     else
                     {
-                        _writer.Write((byte)TypeCode.StringUtf16);
+                        WriteByte((byte)TypeCode.StringUtf16);
 
                         // This is rare, just allocate UTF16 bytes for simplicity.
                         var bytes = new byte[(uint)value.Length * sizeof(char)];
@@ -628,20 +657,20 @@ namespace Roslyn.Utilities
             switch (length)
             {
                 case 0:
-                    _writer.Write((byte)TypeCode.Array_0);
+                    WriteByte((byte)TypeCode.Array_0);
                     break;
                 case 1:
-                    _writer.Write((byte)TypeCode.Array_1);
+                    WriteByte((byte)TypeCode.Array_1);
                     break;
                 case 2:
-                    _writer.Write((byte)TypeCode.Array_2);
+                    WriteByte((byte)TypeCode.Array_2);
                     break;
                 case 3:
-                    _writer.Write((byte)TypeCode.Array_3);
+                    WriteByte((byte)TypeCode.Array_3);
                     break;
                 default:
-                    _writer.Write((byte)TypeCode.Array);
-                    this.WriteCompressedUInt((uint)length);
+                    WriteByte((byte)TypeCode.Array);
+                    WriteCompressedUInt((uint)length);
                     break;
             }
 
@@ -649,8 +678,8 @@ namespace Roslyn.Utilities
 
             if (s_typeMap.TryGetValue(elementType, out var elementKind))
             {
-                this.WritePrimitiveType(elementType, elementKind);
-                this.WritePrimitiveTypeArrayElements(elementType, elementKind, array);
+                WritePrimitiveType(elementType, elementKind);
+                WritePrimitiveTypeArrayElements(elementType, elementKind, array);
             }
             else
             {
@@ -661,9 +690,7 @@ namespace Roslyn.Utilities
         private void WriteArrayValues(Array array)
         {
             for (var i = 0; i < array.Length; i++)
-            {
-                this.WriteValue(array.GetValue(i));
-            }
+                WriteValue(array.GetValue(i));
         }
 
         private void WritePrimitiveTypeArrayElements(Type type, TypeCode kind, Array instance)
@@ -750,95 +777,73 @@ namespace Roslyn.Utilities
         private void WriteStringArrayElements(string[] array)
         {
             for (var i = 0; i < array.Length; i++)
-            {
                 WriteStringValue(array[i]);
-            }
         }
 
         private void WriteInt8ArrayElements(sbyte[] array)
         {
             for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
+                WriteSByte(array[i]);
         }
 
         private void WriteInt16ArrayElements(short[] array)
         {
             for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
+                WriteInt16(array[i]);
         }
 
         private void WriteInt32ArrayElements(int[] array)
         {
             for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
+                WriteInt32(array[i]);
         }
 
         private void WriteInt64ArrayElements(long[] array)
         {
             for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
+                WriteInt64(array[i]);
         }
 
         private void WriteUInt16ArrayElements(ushort[] array)
         {
             for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
+                WriteUInt16(array[i]);
         }
 
         private void WriteUInt32ArrayElements(uint[] array)
         {
             for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
+                WriteUInt32(array[i]);
         }
 
         private void WriteUInt64ArrayElements(ulong[] array)
         {
             for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
+                WriteUInt64(array[i]);
         }
 
         private void WriteDecimalArrayElements(decimal[] array)
         {
             for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
+                WriteDecimal(array[i]);
         }
 
         private void WriteFloat4ArrayElements(float[] array)
         {
             for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
+                WriteSingle(array[i]);
         }
 
         private void WriteFloat8ArrayElements(double[] array)
         {
             for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
+                WriteDouble(array[i]);
         }
 
         private void WritePrimitiveType(Type type, TypeCode kind)
         {
             Debug.Assert(s_typeMap[type] == kind);
-            _writer.Write((byte)kind);
+            WriteByte((byte)kind);
         }
 
         public void WriteEncoding(Encoding? encoding)
