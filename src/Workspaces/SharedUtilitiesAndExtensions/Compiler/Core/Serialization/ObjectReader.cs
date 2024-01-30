@@ -326,7 +326,7 @@ internal sealed partial class ObjectReader : IDisposable
             case TypeCode.StringRef_4Bytes:
             case TypeCode.StringRef_1Byte:
             case TypeCode.StringRef_2Bytes:
-                return ReadStringValue(code);
+                return await ReadStringAsync(code).ConfigureAwait(false);
             case TypeCode.DateTime:
                 return DateTime.FromBinary(await ReadInt64Async().ConfigureAwait(false));
             case TypeCode.Array:
@@ -334,7 +334,7 @@ internal sealed partial class ObjectReader : IDisposable
             case TypeCode.Array_1:
             case TypeCode.Array_2:
             case TypeCode.Array_3:
-                return ReadArray(code);
+                return await ReadArrayAsync(code).ConfigureAwait(false);
 
             case TypeCode.EncodingName:
                 return Encoding.GetEncoding(await ReadStringAsync().ConfigureAwait(false));
@@ -431,12 +431,17 @@ internal sealed partial class ObjectReader : IDisposable
         throw ExceptionUtilities.UnexpectedValue(marker);
     }
 
-    private async ValueTask<string> ReadStringValue()
+    private async ValueTask<string> ReadStringAsync()
     {
         var kind = (TypeCode)await ReadByteAsync().ConfigureAwait(false);
         if (kind == TypeCode.Null)
             return null;
 
+        return await ReadStringAsync(kind).ConfigureAwait(false);
+    }
+
+    private async ValueTask<string> ReadStringAsync(TypeCode kind)
+    {
         return kind switch
         {
             TypeCode.StringRef_1Byte => _stringReferenceMap.GetValue(await ReadByteAsync().ConfigureAwait(false)),
@@ -476,7 +481,7 @@ internal sealed partial class ObjectReader : IDisposable
         var elementType = ObjectWriter.s_reverseTypeMap[(int)elementKind];
         if (elementType != null)
         {
-            return this.ReadPrimitiveTypeArrayElements(elementType, elementKind, length);
+            return await this.ReadPrimitiveTypeArrayElementsAsync(elementType, elementKind, length).ConfigureAwait(false);
         }
         else
         {
@@ -574,90 +579,90 @@ internal sealed partial class ObjectReader : IDisposable
         }
     }
 
-    private string[] ReadStringArrayElements(string[] array)
+    private async ValueTask<string[]> ReadStringArrayElementsAsync(string[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = this.ReadStringValue();
+            array[i] = await this.ReadStringAsync().ConfigureAwait(false);
 
         return array;
     }
 
-    private sbyte[] ReadInt8ArrayElements(sbyte[] array)
+    private async ValueTask<sbyte[]> ReadInt8ArrayElementsAsync(sbyte[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadSByte();
+            array[i] = await ReadSByteAsync().ConfigureAwait(false);
 
         return array;
     }
 
-    private short[] ReadInt16ArrayElements(short[] array)
+    private async ValueTask<short[]> ReadInt16ArrayElementsAsync(short[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadInt16();
+            array[i] = await ReadInt16Async().ConfigureAwait(false);
 
         return array;
     }
 
-    private int[] ReadInt32ArrayElements(int[] array)
+    private async ValueTask<int[]> ReadInt32ArrayElementsAsync(int[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadInt32();
+            array[i] = await ReadInt32Async().ConfigureAwait(false);
 
         return array;
     }
 
-    private long[] ReadInt64ArrayElements(long[] array)
+    private async ValueTask<long[]> ReadInt64ArrayElementsAsync(long[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadInt64();
+            array[i] = await ReadInt64Async().ConfigureAwait(false);
 
         return array;
     }
 
-    private ushort[] ReadUInt16ArrayElements(ushort[] array)
+    private async ValueTask<ushort[]> ReadUInt16ArrayElementsAsync(ushort[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadUInt16();
+            array[i] = await ReadUInt16Async().ConfigureAwait(false);
 
         return array;
     }
 
-    private uint[] ReadUInt32ArrayElements(uint[] array)
+    private async ValueTask<uint[]> ReadUInt32ArrayElementsAsync(uint[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadUInt32();
+            array[i] = await ReadUInt32Async().ConfigureAwait(false);
 
         return array;
     }
 
-    private ulong[] ReadUInt64ArrayElements(ulong[] array)
+    private async ValueTask<ulong[]> ReadUInt64ArrayElements(ulong[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadUInt64();
+            array[i] = await ReadUInt64Async().ConfigureAwait(false);
 
         return array;
     }
 
-    private decimal[] ReadDecimalArrayElements(decimal[] array)
+    private async ValueTask<decimal[]> ReadDecimalArrayElementsAsync(decimal[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadDecimal();
+            array[i] = await ReadDecimalAsync().ConfigureAwait(false);
 
         return array;
     }
 
-    private float[] ReadFloat4ArrayElements(float[] array)
+    private async ValueTask<float[]> ReadFloat4ArrayElements(float[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadSingle();
+            array[i] = await ReadSingleAsync().ConfigureAwait(false);
 
         return array;
     }
 
-    private double[] ReadFloat8ArrayElements(double[] array)
+    private async ValueTask<double[]> ReadFloat8ArrayElementsAsync(double[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadDouble();
+            array[i] = await ReadDoubleAsync().ConfigureAwait(false);
 
         return array;
     }
