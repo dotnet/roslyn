@@ -11,11 +11,8 @@ using Microsoft.VisualStudio.Extensibility;
 using Microsoft.VisualStudio.Extensibility.Commands;
 using Microsoft.VisualStudio.Extensibility.VSSdkCompatibility;
 using Microsoft.VisualStudio.LanguageServices.Interactive;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 
@@ -69,6 +66,7 @@ internal class ResetInteractiveWindowFromProjectCommand(
 
         var vsInteractiveWindow = interactiveWindowProvider.Open(instanceId: 0, focus: true);
 
+        // TODO: potential race condition (https://github.com/dotnet/roslyn/issues/71871):
         await resetInteractive.ExecuteAsync(vsInteractiveWindow.InteractiveWindow, CSharpVSResources.CSharp_Interactive).ConfigureAwait(true);
         resetInteractive.ExecutionCompleted += FocusWindow;
 

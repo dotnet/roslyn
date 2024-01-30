@@ -5,7 +5,6 @@
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 using InteractiveShell = Microsoft.VisualStudio.InteractiveWindow.Shell;
 
 namespace Roslyn.VisualStudio.IntegrationTests

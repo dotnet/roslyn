@@ -96,7 +96,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var commandService = await GetRequiredGlobalServiceAsync<SVsRemotableCommandInteropService, IVsRemotableCommandInteropService2>(cancellationToken);
-            Assumes.Present(commandService);
 
             ErrorHandler.ThrowOnFailure(commandService.GetControlDataSourceAsync(
                 (uint)__VSCOMMANDTYPES.cCommandTypeButton,
@@ -105,12 +104,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 out var dataSourceTask));
 
             Assumes.NotNull(dataSourceTask);
-            if (dataSourceTask.GetResult() is not IVsUIDataSource { } commandSource)
+            if (dataSourceTask.GetResult() is not IVsUIDataSource commandSource)
             {
                 throw new InvalidOperationException($"Error resolving command '{commandName}'.");
             }
 
-            ErrorHandler.ThrowOnFailure(commandSource.Invoke("Execute", null, out _));
+            ErrorHandler.ThrowOnFailure(commandSource.Invoke("Execute", pvaIn: null, out _));
         }
 
         public async Task<string> GetActiveDocumentFileNameAsync(CancellationToken cancellationToken)
