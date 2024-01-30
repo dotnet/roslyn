@@ -6,6 +6,7 @@
 
 using System;
 using System.Buffers;
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
@@ -167,10 +168,10 @@ internal sealed partial class ObjectReader : IDisposable
         _stringReferenceMap.Dispose();
     }
 
-    public bool ReadBoolean()
-        => ReadByte() != 0;
+    public async ValueTask<bool> ReadBooleanAsync()
+        => await ReadByteAsync().ConfigureAwait(false) != 0;
 
-    public async byte ReadByte()
+    public async ValueTask<byte> ReadByteAsync()
     {
         const int byteCount = 1;
         var readResult = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
@@ -179,13 +180,20 @@ internal sealed partial class ObjectReader : IDisposable
         return result;
     }
 
-    public int ReadInt32()
+    public async ValueTask<int> ReadInt32Async()
     {
         const int byteCount = 4;
         var readResult = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
-        var result = readResult.Buffer.FirstSpan[0];
+        var result = ReadInt32(readResult);
         _reader.AdvanceTo(readResult.Buffer.GetPosition(byteCount));
         return result;
+
+        static int ReadInt32(ReadResult result)
+        {
+            Span<byte> dest = stackalloc byte[byteCount];
+            result.Buffer.CopyTo(dest);
+            return BinaryPrimitives.ReadInt32LittleEndian(dest);
+        }
     }
 
     // read as ushort because BinaryWriter fails on chars that are unicode surrogates

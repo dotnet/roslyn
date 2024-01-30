@@ -166,7 +166,14 @@ namespace Roslyn.Utilities
             => WriteUInt16((ushort)ch);
 
         public void WriteDecimal(decimal value)
-            => throw new NotImplementedException();
+        {
+            value.GetBits(out var isNegative, out var scale, out var low, out var mid, out var high);
+            WriteBoolean(isNegative);
+            WriteByte(scale);
+            WriteUInt32(low);
+            WriteUInt32(mid);
+            WriteUInt32(high);
+        }
 
         /// <summary>
         /// Used so we can easily grab the low/high 64bits of a guid for serialization.
@@ -279,13 +286,8 @@ namespace Roslyn.Utilities
             }
             else if (value.GetType() == typeof(decimal))
             {
-                WriteByte((byte)TypeCode.DateTime);
-                ((decimal)value).GetBits(out var isNegative, out var scale, out var low, out var mid, out var high);
-                WriteBoolean(isNegative);
-                WriteByte(scale);
-                WriteUInt32(low);
-                WriteUInt32(mid);
-                WriteUInt32(high);
+                WriteByte((byte)TypeCode.Decimal);
+                WriteDecimal((decimal)value);
             }
             else if (value.GetType() == typeof(DateTime))
             {
