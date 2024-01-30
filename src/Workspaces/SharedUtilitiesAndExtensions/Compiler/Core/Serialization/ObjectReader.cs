@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -447,31 +448,57 @@ internal sealed partial class ObjectReader : IDisposable
             TypeCode.StringRef_1Byte => _stringReferenceMap.GetValue(await ReadByteAsync().ConfigureAwait(false)),
             TypeCode.StringRef_2Bytes => _stringReferenceMap.GetValue(await ReadUInt16Async().ConfigureAwait(false)),
             TypeCode.StringRef_4Bytes => _stringReferenceMap.GetValue(await ReadInt32Async().ConfigureAwait(false)),
-            TypeCode.StringUtf16 or TypeCode.StringUtf8 => ReadStringLiteral(kind),
+            TypeCode.StringUtf16 or TypeCode.StringUtf8 => await ReadStringContentsAsync(kind).ConfigureAwait(false),
             _ => throw ExceptionUtilities.UnexpectedValue(kind),
         };
-    }
 
-    private unsafe string ReadStringLiteral(TypeCode kind)
-    {
-        string value;
-        if (kind == TypeCode.StringUtf8)
+        async ValueTask<string> ReadStringContentsAsync(TypeCode kind)
         {
-            value = _reader.ReadString();
-        }
-        else
-        {
-            // This is rare, just allocate UTF-16 bytes for simplicity.
-            var characterCount = (int)ReadCompressedUInt();
-            var bytes = _reader.ReadBytes(characterCount * sizeof(char));
-            fixed (byte* bytesPtr = bytes)
-            {
-                value = new string((char*)bytesPtr, 0, characterCount);
-            }
+            var value = kind == TypeCode.StringUtf8
+                ? await ReadUtf8StringContentsAsync().ConfigureAwait(false)
+                : await ReadUtf16StringContentsAsync().ConfigureAwait(false);
+
+            _stringReferenceMap.AddValue(value);
+            return value;
         }
 
-        _stringReferenceMap.AddValue(value);
-        return value;
+        async ValueTask<string> ReadUtf8StringContentsAsync()
+        {
+            var byteCount = await ReadInt32Async().ConfigureAwait(false);
+            var result = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
+
+#if NETSTANDARD
+                var bytes = System.Buffers.ArrayPool<byte>.Shared.Rent(byteCount);
+                result.Buffer.Slice(0, byteCount).CopyTo(bytes);
+                value = Encoding.UTF8.GetString(bytes);
+                System.Buffers.ArrayPool<byte>.Shared.Return(bytes);
+#else
+            var value = Encoding.UTF8.GetString(result.Buffer);
+#endif
+            _reader.AdvanceTo(result.Buffer.GetPosition(byteCount));
+
+            return value;
+        }
+
+        async ValueTask<string> ReadUtf16StringContentsAsync()
+        {
+            var byteCount = await ReadInt32Async().ConfigureAwait(false);
+            Contract.ThrowIfTrue(byteCount % 2 == 1);
+
+            var result = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
+            return ReadUtf16StringContents(byteCount, result);
+        }
+
+        string ReadUtf16StringContents(int byteCount, ReadResult result)
+        {
+            var chars = new char[byteCount / 2];
+            var bytes = MemoryMarshal.AsBytes(chars.AsSpan());
+            result.Buffer.Slice(byteCount).CopyTo(bytes);
+
+            var value = new string(chars);
+            _reader.AdvanceTo(result.Buffer.GetPosition(byteCount));
+            return value;
+        }
     }
 
     private async ValueTask<Array> ReadArrayAsync(TypeCode kind)

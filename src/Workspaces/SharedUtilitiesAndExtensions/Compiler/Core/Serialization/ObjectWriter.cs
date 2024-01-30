@@ -544,8 +544,9 @@ namespace Roslyn.Utilities
                 // We can use the UTF-8 encoding of the binary writer.
 
                 WriteByte((byte)TypeCode.StringUtf8);
+
                 var byteCount = Encoding.UTF8.GetByteCount(value);
-                WriteCompressedUInt(unchecked((uint)byteCount));
+                WriteInt32(byteCount);
 
 #if NETSTANDARD
                 var bytes = System.Buffers.ArrayPool<byte>.Shared.Rent(byteCount);
@@ -564,13 +565,13 @@ namespace Roslyn.Utilities
 
             void WriteUtf16String()
             {
-                var span = value.AsSpan();
-                var bytes = MemoryMarshal.AsBytes(span);
-
                 WriteByte((byte)TypeCode.StringUtf16);
-                WriteCompressedUInt(unchecked((uint)bytes.Length));
-                _writer.Write(bytes);
 
+                var bytes = MemoryMarshal.AsBytes(value.AsSpan());
+                Contract.ThrowIfTrue(bytes.Length % 2 == 1);
+                WriteInt32(bytes.Length);
+
+                _writer.Write(bytes);
                 // don't need to Advance.  _writer.Write already does that.
             }
         }
@@ -605,6 +606,7 @@ namespace Roslyn.Utilities
             {
                 WritePrimitiveType(elementType, elementKind);
                 await WritePrimitiveTypeArrayElementsAsync(elementType, elementKind, array).ConfigureAwait(false);
+                await _writer.FlushAsync(_cancellationToken).ConfigureAwait(false);
             }
             else
             {
