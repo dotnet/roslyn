@@ -164,89 +164,6 @@ namespace Roslyn.Utilities
         public void WriteChar(char ch)
             => WriteUInt16((ushort)ch);
 
-        public async ValueTask WriteStringAsync(string? value)
-        {
-            if (value == null)
-            {
-                WriteByte((byte)TypeCode.Null);
-            }
-            else
-            {
-                if (_stringReferenceMap.TryGetReferenceId(value, out var id))
-                {
-                    Debug.Assert(id >= 0);
-                    if (id <= byte.MaxValue)
-                    {
-                        WriteByte((byte)TypeCode.StringRef_1Byte);
-                        WriteByte((byte)id);
-                    }
-                    else if (id <= ushort.MaxValue)
-                    {
-                        WriteByte((byte)TypeCode.StringRef_2Bytes);
-                        WriteUInt16((ushort)id);
-                    }
-                    else
-                    {
-                        WriteByte((byte)TypeCode.StringRef_4Bytes);
-                        WriteInt32(id);
-                    }
-                }
-                else
-                {
-                    _stringReferenceMap.Add(value);
-
-                    if (value.IsValidUnicodeString())
-                    {
-                        WriteUtf8String();
-                    }
-                    else
-                    {
-                        WriteUtf16String();
-                    }
-
-                    await _writer.FlushAsync(_cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            return;
-
-            void WriteUtf8String()
-            {
-                // Usual case - the string can be encoded as UTF-8:
-                // We can use the UTF-8 encoding of the binary writer.
-
-                WriteByte((byte)TypeCode.StringUtf8);
-                var byteCount = Encoding.UTF8.GetByteCount(value);
-                WriteCompressedUInt(unchecked((uint)byteCount));
-
-#if NETSTANDARD
-                var bytes = System.Buffers.ArrayPool<byte>.Shared.Rent(byteCount);
-                var encodedCount = Encoding.UTF8.GetBytes(value, 0, value.Length, bytes, 0);
-                Contract.ThrowIfTrue(byteCount != encodedCount);
-                var writerSpan = _writer.GetSpan(byteCount);
-                bytes.AsSpan().Slice(0, byteCount).CopyTo(writerSpan);
-                _writer.Advance(byteCount);
-                System.Buffers.ArrayPool<byte>.Shared.Return(bytes);
-#else
-                var writtenBytes = Encoding.UTF8.GetBytes(value, _writer);
-                Contract.ThrowIfTrue(byteCount != writtenBytes);
-                // don't need to Advance.  GetBytes already does that.
-#endif
-            }
-
-            void WriteUtf16String()
-            {
-                var span = value.AsSpan();
-                var bytes = MemoryMarshal.AsBytes(span);
-
-                WriteByte((byte)TypeCode.StringUtf16);
-                WriteCompressedUInt(unchecked((uint)bytes.Length));
-                _writer.Write(bytes);
-
-                // don't need to Advance.  _writer.Write already does that.
-            }
-        }
-
         public void WriteDecimal(decimal value)
             => throw new NotImplementedException();
 
@@ -569,6 +486,89 @@ namespace Roslyn.Utilities
             else
             {
                 throw new ArgumentException(Resources.Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer);
+            }
+        }
+
+        public async ValueTask WriteStringAsync(string? value)
+        {
+            if (value == null)
+            {
+                WriteByte((byte)TypeCode.Null);
+            }
+            else
+            {
+                if (_stringReferenceMap.TryGetReferenceId(value, out var id))
+                {
+                    Debug.Assert(id >= 0);
+                    if (id <= byte.MaxValue)
+                    {
+                        WriteByte((byte)TypeCode.StringRef_1Byte);
+                        WriteByte((byte)id);
+                    }
+                    else if (id <= ushort.MaxValue)
+                    {
+                        WriteByte((byte)TypeCode.StringRef_2Bytes);
+                        WriteUInt16((ushort)id);
+                    }
+                    else
+                    {
+                        WriteByte((byte)TypeCode.StringRef_4Bytes);
+                        WriteInt32(id);
+                    }
+                }
+                else
+                {
+                    _stringReferenceMap.Add(value);
+
+                    if (value.IsValidUnicodeString())
+                    {
+                        WriteUtf8String();
+                    }
+                    else
+                    {
+                        WriteUtf16String();
+                    }
+
+                    await _writer.FlushAsync(_cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return;
+
+            void WriteUtf8String()
+            {
+                // Usual case - the string can be encoded as UTF-8:
+                // We can use the UTF-8 encoding of the binary writer.
+
+                WriteByte((byte)TypeCode.StringUtf8);
+                var byteCount = Encoding.UTF8.GetByteCount(value);
+                WriteCompressedUInt(unchecked((uint)byteCount));
+
+#if NETSTANDARD
+                var bytes = System.Buffers.ArrayPool<byte>.Shared.Rent(byteCount);
+                var encodedCount = Encoding.UTF8.GetBytes(value, 0, value.Length, bytes, 0);
+                Contract.ThrowIfTrue(byteCount != encodedCount);
+                var writerSpan = _writer.GetSpan(byteCount);
+                bytes.AsSpan().Slice(0, byteCount).CopyTo(writerSpan);
+                _writer.Advance(byteCount);
+                System.Buffers.ArrayPool<byte>.Shared.Return(bytes);
+#else
+                var writtenBytes = Encoding.UTF8.GetBytes(value, _writer);
+                Contract.ThrowIfTrue(byteCount != writtenBytes);
+                // don't need to Advance.  GetBytes already does that.
+#endif
+            }
+
+            void WriteUtf16String()
+            {
+                var span = value.AsSpan();
+                var bytes = MemoryMarshal.AsBytes(span);
+
+                WriteByte((byte)TypeCode.StringUtf16);
+                WriteCompressedUInt(unchecked((uint)bytes.Length));
+                _writer.Write(bytes);
+
+                // don't need to Advance.  _writer.Write already does that.
             }
         }
 
