@@ -146,6 +146,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
+        public static async ValueTask<TextDocument?> GetTextDocumentAsync(this Solution solution, TextDocumentIdentifier documentIdentifier, CancellationToken cancellationToken)
+        {
+            // If it's the URI scheme for source generated files, delegate to our other helper, otherwise we can handle anything else here.
+            if (documentIdentifier.Uri.Scheme == ProtocolConversions.SourceGeneratedFileScheme)
+            {
+                return await solution.GetDocumentAsync(documentIdentifier, cancellationToken).ConfigureAwait(false);
+            }
+
+            var documents = solution.GetTextDocuments(documentIdentifier.Uri);
+            return documents.Length == 0
+                ? null
+                : documents.FindDocumentInProjectContext(documentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
+        }
+
         private static T FindItemInProjectContext<T>(
             ImmutableArray<T> items,
             TextDocumentIdentifier itemIdentifier,

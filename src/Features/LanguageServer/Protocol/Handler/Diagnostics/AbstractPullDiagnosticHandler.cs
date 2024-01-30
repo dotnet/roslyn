@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             static async ValueTask<ProjectOrDocumentId?> GetIdForPreviousResultAsync(TextDocumentIdentifier textDocumentIdentifier, Solution solution, CancellationToken cancellationToken)
             {
-                var document = await solution.GetDocumentAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
+                var document = await solution.GetTextDocumentAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
                 if (document != null)
                 {
                     return new ProjectOrDocumentId(document.Id);
@@ -252,12 +252,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 if (project != null)
                 {
                     return new ProjectOrDocumentId(project.Id);
-                }
-
-                var additionalDocument = solution.GetAdditionalDocument(textDocumentIdentifier);
-                if (additionalDocument != null)
-                {
-                    return new ProjectOrDocumentId(additionalDocument.Id);
                 }
 
                 return null;
