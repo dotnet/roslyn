@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     {
         protected override string ItemToCommit => "ctor";
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task ConstructorSnippetMissingInNamespace()
         {
             var markupBeforeCommit =
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task ConstructorSnippetMissingInFileScopedNamespace()
         {
             var markupBeforeCommit =
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task ConstructorSnippetMissingInTopLevelContext()
         {
             var markupBeforeCommit =
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertConstructorSnippetInClassTest()
         {
             var markupBeforeCommit =
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertConstructorSnippetInAbstractClassTest()
         {
             var markupBeforeCommit =
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertConstructorSnippetInAbstractClassTest_AbstractModifierInOtherPartialDeclaration()
         {
             var markupBeforeCommit =
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertConstructorSnippetInNestedAbstractClassTest()
         {
             var markupBeforeCommit =
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertConstructorSnippetInStructTest()
         {
             var markupBeforeCommit =
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertConstructorSnippetInRecordTest()
         {
             var markupBeforeCommit =
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task ConstructorSnippetMissingInInterface()
         {
             var markupBeforeCommit =
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact]
         public async Task InsertConstructorSnippetInNestedClassTest()
         {
             var markupBeforeCommit =
