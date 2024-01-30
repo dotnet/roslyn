@@ -693,6 +693,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // If expression is of form `constantChar.ToString()` then unwrap it from a `ToString()` call so we can lower it to a constant later
+            // NOTE: We get `object.ToString()` from a compilation because we just need to compare symbols and don't need all error recovery of `TryGetSpecialTypeMethod`
+            if (expr is BoundCall { Type.SpecialType: SpecialType.System_String, Method: { Name: "ToString" } method, ReceiverOpt: { Type: NamedTypeSymbol { SpecialType: SpecialType.System_Char } charType, ConstantValueOpt.IsChar: true } } call &&
+                method.GetLeastOverriddenMember(charType) == _compilation.GetSpecialTypeMember(SpecialMember.System_Object__ToString))
+            {
+                expr = call.ReceiverOpt;
+            }
+
             // Is the expression a constant char?  If so, we can
             // simply make it a literal string instead and avoid any 
             // allocations for converting the char to a string at run time.
@@ -707,19 +715,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return expr;
                 }
-            }
-
-            // If expression is of form `constantChar.ToString()` then rewrite it here to a string literal so we can choose better options for lowering later (e.g. fold it with another constant instead of performing concatenation)
-            // NOTE: We request `object.ToString()` as an optional member here to avoid reporting "missing member" diagnostic earlier than we should.
-            // Because if in the end it turns out that we have a simple concatenation of n strings there is no need to report missing `object.ToString()` member
-            if (TryGetSpecialTypeMethod(expr.Syntax, SpecialMember.System_Object__ToString, out MethodSymbol? optionalObjectToString, isOptional: true) &&
-                expr is BoundCall { ReceiverOpt: { Type: NamedTypeSymbol { SpecialType: SpecialType.System_Char } charType, ConstantValueOpt: { IsChar: true } charConstant } } call &&
-                call.Method.GetLeastOverriddenMember(charType) == optionalObjectToString)
-            {
-                var oldSyntax = _factory.Syntax;
-                _factory.Syntax = expr.Syntax;
-                expr = _factory.Literal(charConstant.CharValue.ToString());
-                _factory.Syntax = oldSyntax;
             }
 
             Debug.Assert(expr.Type is not null);
