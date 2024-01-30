@@ -571,9 +571,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, out MethodSymbol, bool)"/> instead!
         /// If used, a unit-test with a missing member is absolutely a must have.
         /// </summary>
-        private MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, bool isOptional = false)
+        private MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember)
         {
-            return UnsafeGetSpecialTypeMethod(syntax, specialMember, _compilation, _diagnostics, isOptional);
+            return UnsafeGetSpecialTypeMethod(syntax, specialMember, _compilation, _diagnostics);
         }
 
         /// <summary>
@@ -581,10 +581,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, CSharpCompilation, BindingDiagnosticBag, out MethodSymbol, bool)"/> instead!
         /// If used, a unit-test with a missing member is absolutely a must have.
         /// </summary>
-        private static MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, BindingDiagnosticBag diagnostics, bool isOptional = false)
+        private static MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             MethodSymbol method;
-            if (TryGetSpecialTypeMethod(syntax, specialMember, compilation, diagnostics, out method, isOptional))
+            if (TryGetSpecialTypeMethod(syntax, specialMember, compilation, diagnostics, out method))
             {
                 return method;
             }

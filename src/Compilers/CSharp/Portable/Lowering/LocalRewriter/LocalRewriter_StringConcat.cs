@@ -467,9 +467,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var needsSpanRefParamConstructor = false;
             var needsImplicitConversionFromStringToSpan = false;
 
-            // When we get here we either 100% already queried for object.ToString in `ConvertConcatExprToString` (if at least 1 operand is not a string) or don't need it (if all operands are strings).
-            // Thus we can pass `isOptional` flag to avoid duplicate or unintentional "missing member" diagnostic in case we are actually missing `object.ToString()`
-            var objectToStringMethod = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString, isOptional: true);
             NamedTypeSymbol? charType = null;
 
             foreach (var arg in args)
@@ -477,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(arg.HasAnyErrors || arg.Type?.IsStringType() == true);
 
                 if (arg is BoundCall { ReceiverOpt: { Type: NamedTypeSymbol { SpecialType: SpecialType.System_Char } receiverCharType } receiver } potentialToStringCall &&
-                    (object)potentialToStringCall.Method.GetLeastOverriddenMethod(charType) == objectToStringMethod)
+                    (object)potentialToStringCall.Method.GetLeastOverriddenMethod(charType) == _compilation.GetSpecialTypeMember(SpecialMember.System_Object__ToString))
                 {
                     needsSpanRefParamConstructor = true;
                     charType = receiverCharType;
