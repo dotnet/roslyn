@@ -17,15 +17,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos { get; } = declaredSymbolInfos;
 
-            public void WriteTo(ObjectWriter writer)
-                => writer.WriteArray(DeclaredSymbolInfos, static (w, d) => d.WriteTo(w));
+            public ValueTask WriteToAsync(ObjectWriter writer)
+                => writer.WriteArrayAsync(DeclaredSymbolInfos, static (w, d) => d.WriteToAsync(w));
 
             public static async ValueTask<DeclarationInfo?> TryReadFromAsync(StringTable stringTable, ObjectReader reader)
             {
                 try
                 {
                     var infos = await reader.ReadArrayAsync(
-                        static (r, stringTable) => DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, r), stringTable).ConfigureAwait(false);
+                        static (r, stringTable) => DeclaredSymbolInfo.ReadFrom_ThrowsOnFailureAsync(stringTable, r), stringTable).ConfigureAwait(false);
                     return new DeclarationInfo(infos);
                 }
                 catch (Exception)

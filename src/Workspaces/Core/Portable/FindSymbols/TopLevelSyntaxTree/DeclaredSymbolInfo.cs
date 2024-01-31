@@ -190,17 +190,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             await writer.WriteArrayAsync(InheritanceNames, static (w, n) => w.WriteStringAsync(n)).ConfigureAwait(false);
         }
 
-        internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(StringTable stringTable, ObjectReader reader)
+        internal static async ValueTask<DeclaredSymbolInfo> ReadFrom_ThrowsOnFailureAsync(StringTable stringTable, ObjectReader reader)
         {
-            var name = reader.ReadString();
-            var nameSuffix = reader.ReadString();
-            var containerDisplayName = reader.ReadString();
-            var fullyQualifiedContainerName = reader.ReadString();
-            var flags = reader.ReadUInt32();
-            var spanStart = reader.ReadInt32();
-            var spanLength = reader.ReadInt32();
+            var name = await reader.ReadStringAsync().ConfigureAwait(false);
+            var nameSuffix = await reader.ReadStringAsync().ConfigureAwait(false);
+            var containerDisplayName = await reader.ReadStringAsync().ConfigureAwait(false);
+            var fullyQualifiedContainerName = await reader.ReadStringAsync().ConfigureAwait(false);
+            var flags = await reader.ReadUInt32Async().ConfigureAwait(false);
+            var spanStart = await reader.ReadInt32Async().ConfigureAwait(false);
+            var spanLength = await reader.ReadInt32Async().ConfigureAwait(false);
 
-            var inheritanceNames = reader.ReadArray(static r => r.ReadString());
+            var inheritanceNames = await reader.ReadArrayAsync(static r => r.ReadStringAsync()).ConfigureAwait(false);
 
             var span = new TextSpan(spanStart, spanLength);
             return Create(

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -25,14 +26,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public bool ProbablyContainsInt64Value(long value)
                 => _literalsFilter.ProbablyContains(value);
 
-            public void WriteTo(ObjectWriter writer)
-                => _literalsFilter.WriteTo(writer);
+            public ValueTask WriteToAsync(ObjectWriter writer)
+                => _literalsFilter.WriteToAsync(writer);
 
-            public static LiteralInfo? TryReadFrom(ObjectReader reader)
+            public static async ValueTask<LiteralInfo?> TryReadFromAsync(ObjectReader reader)
             {
                 try
                 {
-                    var literalsFilter = BloomFilter.ReadFrom(reader);
+                    var literalsFilter = await BloomFilter.ReadFromAsync(reader).ConfigureAwait(false);
 
                     return new LiteralInfo(literalsFilter);
                 }

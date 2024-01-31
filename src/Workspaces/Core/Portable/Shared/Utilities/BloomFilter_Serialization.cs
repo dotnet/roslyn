@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        public static async ValueTask<BloomFilter> ReadFrom(ObjectReader reader)
+        public static async ValueTask<BloomFilter> ReadFromAsync(ObjectReader reader)
         {
             var version = await reader.ReadStringAsync().ConfigureAwait(false);
             if (!string.Equals(version, SerializationFormat, StringComparison.Ordinal))
