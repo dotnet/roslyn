@@ -12,6 +12,7 @@ using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
@@ -453,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             return metadata;
         }
 
-        private void GetTemporaryStorage(
+        private async ValueTask GetTemporaryStorageAsync(
             ObjectReader reader, SerializationKinds kind, out ITemporaryStreamStorageInternal storage, out long length, CancellationToken cancellationToken)
         {
             if (kind == SerializationKinds.Bits)
@@ -520,12 +521,12 @@ namespace Microsoft.CodeAnalysis.Serialization
             lifeTimeObject = pinnedObject;
         }
 
-        private static void CopyByteArrayToStream(ObjectReader reader, Stream stream, CancellationToken cancellationToken)
+        private static async ValueTask CopyByteArrayToStreamAsync(ObjectReader reader, Stream stream, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             // TODO: make reader be able to read byte[] chunk
-            var content = reader.ReadArray<byte>();
+            var content = await reader.ReadArrayAsync<byte>().ConfigureAwait(false);
             stream.Write(content, 0, content.Length);
         }
 
@@ -543,10 +544,10 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteValue(new ReadOnlySpan<byte>(reader.MetadataPointer, reader.MetadataLength));
         }
 
-        private static void WriteUnresolvedAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer)
+        private static async ValueTask WriteUnresolvedAnalyzerReferenceToAsync(AnalyzerReference reference, ObjectWriter writer)
         {
-            writer.WriteString(nameof(UnresolvedAnalyzerReference));
-            writer.WriteString(reference.FullPath);
+            await writer.WriteStringAsync(nameof(UnresolvedAnalyzerReference)).ConfigureAwait(false);
+            await writer.WriteStringAsync(reference.FullPath).ConfigureAwait(false);
         }
 
         private static Metadata? TryGetMetadata(PortableExecutableReference reference)
