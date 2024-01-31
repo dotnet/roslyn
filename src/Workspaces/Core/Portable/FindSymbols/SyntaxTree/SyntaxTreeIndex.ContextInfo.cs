@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
 
@@ -164,13 +165,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 writer.WriteInt32((int)_containingNodes);
             }
 
-            public static ContextInfo? TryReadFrom(ObjectReader reader)
+            public static async ValueTask<ContextInfo?> TryReadFromAsync(ObjectReader reader)
             {
                 try
                 {
-                    var predefinedTypes = reader.ReadInt32();
-                    var predefinedOperators = reader.ReadInt32();
-                    var containingNodes = (ContainingNodes)reader.ReadInt32();
+                    var predefinedTypes = await reader.ReadInt32Async().ConfigureAwait(false);
+                    var predefinedOperators = await reader.ReadInt32Async().ConfigureAwait(false);
+                    var containingNodes = (ContainingNodes)await reader.ReadInt32Async().ConfigureAwait(false);
 
                     return new ContextInfo(predefinedTypes, predefinedOperators, containingNodes);
                 }

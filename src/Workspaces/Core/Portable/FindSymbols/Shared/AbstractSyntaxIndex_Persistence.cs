@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (stream != null)
                 {
                     using var gzipStream = new GZipStream(stream, CompressionMode.Decompress, leaveOpen: true);
-                    using var reader = ObjectReader.TryGetReader(gzipStream, cancellationToken: cancellationToken);
+                    using var reader = await ObjectReader.TryGetReaderAsync(gzipStream, cancellationToken: cancellationToken);
                     if (reader != null)
                         return read(stringTable, reader, checksum);
                 }

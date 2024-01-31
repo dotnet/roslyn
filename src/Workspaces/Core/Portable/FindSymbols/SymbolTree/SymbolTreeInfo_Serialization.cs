@@ -106,17 +106,13 @@ internal partial class SymbolTreeInfo
         return TryReadSymbolTreeInfo(reader, checksum);
     }
 
-    public void WriteTo(ObjectWriter writer)
+    public async ValueTask WriteToAsync(ObjectWriter writer)
     {
         writer.WriteInt32(_nodes.Length);
         foreach (var group in GroupByName(_nodes.AsMemory()))
         {
-            writer.WriteString(group.Span[0].Name);
-            writer.WriteInt32(group.Length);
-            foreach (var item in group.Span)
-            {
-                writer.WriteInt32(item.ParentIndex);
-            }
+            await writer.WriteStringAsync(group.Span[0].Name).ConfigureAwait(false);
+            WriteGroup(writer, group);
         }
 
         writer.WriteInt32(_inheritanceMap.Keys.Count);
@@ -140,15 +136,15 @@ internal partial class SymbolTreeInfo
             writer.WriteInt32(_receiverTypeNameToExtensionMethodMap.Count);
             foreach (var key in _receiverTypeNameToExtensionMethodMap.Keys)
             {
-                writer.WriteString(key);
+                await writer.WriteStringAsync(key).ConfigureAwait(false);
 
                 var values = _receiverTypeNameToExtensionMethodMap[key];
                 writer.WriteInt32(values.Count);
 
                 foreach (var value in values)
                 {
-                    writer.WriteString(value.FullyQualifiedContainerName);
-                    writer.WriteString(value.Name);
+                    await writer.WriteStringAsync(value.FullyQualifiedContainerName).ConfigureAwait(false);
+                    await writer.WriteStringAsync(value.Name).ConfigureAwait(false);
                 }
             }
         }
@@ -162,10 +158,17 @@ internal partial class SymbolTreeInfo
         else
         {
             writer.WriteBoolean(true);
-            spellChecker.WriteTo(writer);
+            await spellChecker.WriteToAsync(writer).ConfigureAwait(false);
         }
 
         return;
+
+        static void WriteGroup(ObjectWriter writer, ReadOnlyMemory<Node> group)
+        {
+            writer.WriteInt32(group.Length);
+            foreach (var item in group.Span)
+                writer.WriteInt32(item.ParentIndex);
+        }
 
         // sortedNodes is an array of Node instances which is often sorted by Node.Name by the caller. This method
         // produces a sequence of spans within sortedNodes for Node instances that all have the same Name, allowing
@@ -191,7 +194,7 @@ internal partial class SymbolTreeInfo
         }
     }
 
-    private static SymbolTreeInfo? TryReadSymbolTreeInfo(
+    private static async ValueTask<SymbolTreeInfo?> TryReadSymbolTreeInfoAsync(
         ObjectReader reader, Checksum checksum)
     {
         if (reader == null)
@@ -199,37 +202,37 @@ internal partial class SymbolTreeInfo
 
         try
         {
-            var nodeCount = reader.ReadInt32();
+            var nodeCount = await reader.ReadInt32Async().ConfigureAwait(false);
             using var _ = ArrayBuilder<Node>.GetInstance(nodeCount, out var nodes);
 
             for (var i = 0; i < nodeCount; i++)
             {
-                var name = reader.ReadString();
-                var groupCount = reader.ReadInt32();
+                var name = await reader.ReadStringAsync().ConfigureAwait(false);
+                var groupCount = await reader.ReadInt32Async().ConfigureAwait(false);
                 for (var j = 0; j < groupCount; j++)
                 {
-                    var parentIndex = reader.ReadInt32();
+                    var parentIndex = await reader.ReadInt32Async().ConfigureAwait(false);
                     nodes.Add(new Node(name, parentIndex));
                 }
             }
 
             var inheritanceMap = new OrderPreservingMultiDictionary<int, int>();
-            var inheritanceMapKeyCount = reader.ReadInt32();
+            var inheritanceMapKeyCount = await reader.ReadInt32Async().ConfigureAwait(false);
             for (var i = 0; i < inheritanceMapKeyCount; i++)
             {
-                var key = reader.ReadInt32();
-                var valueCount = reader.ReadInt32();
+                var key = await reader.ReadInt32Async().ConfigureAwait(false);
+                var valueCount = await reader.ReadInt32Async().ConfigureAwait(false);
 
                 for (var j = 0; j < valueCount; j++)
                 {
-                    var value = reader.ReadInt32();
+                    var value = await reader.ReadInt32Async().ConfigureAwait(false);
                     inheritanceMap.Add(key, value);
                 }
             }
 
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap;
 
-            var keyCount = reader.ReadInt32();
+            var keyCount = await reader.ReadInt32Async().ConfigureAwait(false);
             if (keyCount == 0)
             {
                 receiverTypeNameToExtensionMethodMap = null;
@@ -240,13 +243,13 @@ internal partial class SymbolTreeInfo
 
                 for (var i = 0; i < keyCount; i++)
                 {
-                    var typeName = reader.ReadString();
-                    var valueCount = reader.ReadInt32();
+                    var typeName = await reader.ReadStringAsync().ConfigureAwait(false);
+                    var valueCount = await reader.ReadInt32Async().ConfigureAwait(false);
 
                     for (var j = 0; j < valueCount; j++)
                     {
-                        var containerName = reader.ReadString();
-                        var name = reader.ReadString();
+                        var containerName = await reader.ReadStringAsync().ConfigureAwait(false);
+                        var name = await reader.ReadStringAsync().ConfigureAwait(false);
 
                         receiverTypeNameToExtensionMethodMap.Add(typeName, new ExtensionMethodInfo(containerName, name));
                     }
@@ -256,9 +259,9 @@ internal partial class SymbolTreeInfo
             // if we can't read in the spell checker, that's ok.  This should never happen in practice (it would
             // mean someone tweaked the data in the database), and we can just regenerate it from the information
             // stored in 'nodes' anyways.
-            var spellCheckerPersisted = reader.ReadBoolean();
+            var spellCheckerPersisted = await reader.ReadBooleanAsync().ConfigureAwait(false);
             var spellChecker = spellCheckerPersisted
-                ? SpellChecker.TryReadFrom(reader)
+                ? await SpellChecker.TryReadFromAsync(reader).ConfigureAwait(false)
                 : null;
 
             return new SymbolTreeInfo(
@@ -274,7 +277,7 @@ internal partial class SymbolTreeInfo
 
     internal readonly partial struct TestAccessor
     {
-        public static SymbolTreeInfo? ReadSymbolTreeInfo(ObjectReader reader, Checksum checksum)
-            => TryReadSymbolTreeInfo(reader, checksum);
+        public static ValueTask<SymbolTreeInfo?> ReadSymbolTreeInfoAsync(ObjectReader reader, Checksum checksum)
+            => TryReadSymbolTreeInfoAsync(reader, checksum);
     }
 }
