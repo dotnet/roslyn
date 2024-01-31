@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public override async ValueTask WriteToAsync(ObjectWriter writer)
         {
-            _literalInfo.WriteTo(writer);
-            _identifierInfo.WriteTo(writer);
+            await _literalInfo.WriteToAsync(writer).ConfigureAwait(false);
+            await _identifierInfo.WriteToAsync(writer).ConfigureAwait(false);
             _contextInfo.WriteTo(writer);
 
             if (_globalAliasInfo == null)
@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async ValueTask<SyntaxTreeIndex?> ReadIndexAsync(
             StringTable stringTable, ObjectReader reader, Checksum? checksum)
         {
-            var literalInfo = LiteralInfo.TryReadFrom(reader);
-            var identifierInfo = IdentifierInfo.TryReadFrom(reader);
-            var contextInfo = ContextInfo.TryReadFrom(reader);
+            var literalInfo = await LiteralInfo.TryReadFromAsync(reader).ConfigureAwait(false);
+            var identifierInfo = await IdentifierInfo.TryReadFromAsync(reader).ConfigureAwait(false);
+            var contextInfo = await ContextInfo.TryReadFromAsync(reader).ConfigureAwait(false);
 
             if (literalInfo == null || identifierInfo == null || contextInfo == null)
                 return null;
