@@ -100,6 +100,6 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
     public void WriteTo(ObjectWriter writer)
         => writer.WriteArray(this.Children, static (w, c) => c.WriteTo(w));
 
-    public static ChecksumCollection ReadFrom(ObjectReader reader)
-        => new(reader.ReadArray(Checksum.ReadFrom));
+    public static async ValueTask<ChecksumCollection> ReadFromAsync(ObjectReader reader)
+        => new(await reader.ReadArrayAsync(Checksum.ReadFromAsync).ConfigureAwait(false));
 }
