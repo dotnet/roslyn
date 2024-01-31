@@ -263,24 +263,21 @@ internal static partial class SourceTextExtensions
             var numberOfChunks = reader.ReadInt32();
 
             // read as chunks
-            using var _ = ArrayBuilder<char[]>.GetInstance(numberOfChunks, out var builder);
+            using var _ = ArrayBuilder<char[]>.GetInstance(numberOfChunks, out var chunks);
 
             var offset = 0;
             for (var i = 0; i < numberOfChunks; i++)
             {
-                var (currentChunk, currentChunkLength) = reader.ReadCharArray(static length =>
-                {
-                    // Shared pool array will be freed in the Dispose method below.
-                    return length == CharArrayLength ? s_charArrayPool.Allocate() : (new char[length]);
-                });
+                // Shared pool array will be freed in the Dispose method below.
+                var (currentChunk, currentChunkLength) = reader.ReadCharArray(
+                    static length => length == CharArrayLength ? s_charArrayPool.Allocate() : new char[length]);
 
-                builder.Add(currentChunk);
-
+                chunks.Add(currentChunk);
                 offset += currentChunkLength;
             }
 
             Contract.ThrowIfFalse(offset == length);
-            return new ObjectReaderTextReader(builder.ToImmutableAndClear(), chunkSize, length);
+            return new ObjectReaderTextReader(chunks.ToImmutableAndClear(), chunkSize, length);
         }
 
         private ObjectReaderTextReader(ImmutableArray<char[]> chunks, int chunkSize, int length)
