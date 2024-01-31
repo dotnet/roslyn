@@ -60,7 +60,7 @@ extends:
         variables:
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
           BuildConfiguration: Release
-          NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
+          NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
           SignTypeSelection: ${{ parameters.SignTypeSelection }}
           Packaging.EnableSBOMSigning: false
           Codeql.Enabled: true
@@ -92,7 +92,7 @@ extends:
         variables:
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
           BuildConfiguration: Release
-          NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
+          NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
           SignTypeSelection: ${{ parameters.SignTypeSelection }}
           Packaging.EnableSBOMSigning: false
           Codeql.Enabled: true

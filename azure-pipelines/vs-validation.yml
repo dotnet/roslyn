@@ -22,7 +22,7 @@ extends:
     - stage: Build
       variables:
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-        NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
+        NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
         SignTypeSelection: Real
         BuildConfiguration: Release
         ValidationBuild: true
