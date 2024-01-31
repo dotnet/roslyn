@@ -17,6 +17,7 @@ internal static class WorkspaceConfigurationOptionsStorage
                                                globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
             DisableRecoverableText: globalOptions.GetOption(DisableRecoverableText),
             ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates),
+            DisableNullableAnalysisInClassification: globalOptions.GetOption(DisableNullableAnalysisInClassification),
             RunSourceGeneratorsInSameProcessOnly: globalOptions.GetOption(RunSourceGeneratorsInSameProcessOnly));
 
     public static readonly Option2<StorageDatabase> Database = new(
@@ -43,4 +44,7 @@ internal static class WorkspaceConfigurationOptionsStorage
 
     public static readonly Option2<bool> EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag = new(
         "dotnet_enable_opening_source_generated_files_in_workspace_feature_flag", WorkspaceConfigurationOptions.Default.EnableOpeningSourceGeneratedFiles);
+
+    public static readonly Option2<bool> DisableNullableAnalysisInClassification = new(
+        "dotnet_disable_nullable_analysis_in_classification", WorkspaceConfigurationOptions.Default.DisableNullableAnalysisInClassification);
 }
