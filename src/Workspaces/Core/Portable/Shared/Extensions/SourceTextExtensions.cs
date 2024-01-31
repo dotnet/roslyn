@@ -297,11 +297,10 @@ internal static partial class SourceTextExtensions
             if (!_disposed)
             {
                 _disposed = true;
+
+                // Constructor already validated that all chunks are the right size to go back into the pool.
                 foreach (var chunk in _chunks)
-                {
-                    if (chunk.Length == CharArrayLength)
-                        s_charArrayPool.Free(chunk);
-                }
+                    s_charArrayPool.Free(chunk);
             }
 
             base.Dispose(disposing);
