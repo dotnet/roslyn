@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
@@ -14,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         private const string SerializationFormat = "2";
 
-        public void WriteTo(ObjectWriter writer)
+        public async ValueTask WriteToAsync(ObjectWriter writer)
         {
-            writer.WriteString(SerializationFormat);
+            await writer.WriteStringAsync(SerializationFormat).ConfigureAwait(false);
             writer.WriteBoolean(_isCaseSensitive);
             writer.WriteInt32(_hashFunctionCount);
             WriteBitArray(writer, _bitArray);
@@ -52,30 +53,28 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        public static BloomFilter ReadFrom(ObjectReader reader)
+        public static async ValueTask<BloomFilter> ReadFrom(ObjectReader reader)
         {
-            var version = reader.ReadString();
+            var version = await reader.ReadStringAsync().ConfigureAwait(false);
             if (!string.Equals(version, SerializationFormat, StringComparison.Ordinal))
             {
                 return null;
             }
 
-            var isCaseSensitive = reader.ReadBoolean();
-            var hashFunctionCount = reader.ReadInt32();
+            var isCaseSensitive = await reader.ReadBooleanAsync().ConfigureAwait(false);
+            var hashFunctionCount = await reader.ReadInt32Async().ConfigureAwait(false);
             var bitArray = ReadBitArray(reader);
             return new BloomFilter(bitArray, hashFunctionCount, isCaseSensitive);
         }
 
-        private static BitArray ReadBitArray(ObjectReader reader)
+        private static async ValueTask<BitArray> ReadBitArrayAsync(ObjectReader reader)
         {
             // TODO: find a way to use pool
-            var length = reader.ReadInt32();
+            var length = await reader.ReadInt32Async().ConfigureAwait(false);
             var bytes = new byte[length];
 
             for (var i = 0; i < bytes.Length; i++)
-            {
-                bytes[i] = reader.ReadByte();
-            }
+                bytes[i] = await reader.ReadByteAsync().ConfigureAwait(false);
 
             return new BitArray(bytes);
         }
