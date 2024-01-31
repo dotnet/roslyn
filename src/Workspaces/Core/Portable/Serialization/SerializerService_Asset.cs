@@ -4,6 +4,7 @@
 
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -28,66 +29,66 @@ internal partial class SerializerService
         return serializableSourceText.GetText(cancellationToken);
     }
 
-    private void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+    private async ValueTask SerializeCompilationOptionsAsync(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var language = options.Language;
 
         // TODO: once compiler team adds ability to serialize compilation options to ObjectWriter directly, we won't need this.
-        writer.WriteString(language);
+        await writer.WriteStringAsync(language).ConfigureAwait(false);
 
         var service = GetOptionsSerializationService(language);
         service.WriteTo(options, writer, cancellationToken);
     }
 
-    private CompilationOptions DeserializeCompilationOptions(ObjectReader reader, CancellationToken cancellationToken)
+    private async ValueTask<CompilationOptions> DeserializeCompilationOptionsAsync(ObjectReader reader, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var language = reader.ReadString();
+        var language = await reader.ReadStringAsync().ConfigureAwait(false);
 
         var service = GetOptionsSerializationService(language);
         return service.ReadCompilationOptionsFrom(reader, cancellationToken);
     }
 
-    public void SerializeParseOptions(ParseOptions options, ObjectWriter writer)
+    public async ValueTask SerializeParseOptionsAsync(ParseOptions options, ObjectWriter writer)
     {
         var language = options.Language;
 
         // TODO: once compiler team adds ability to serialize parse options to ObjectWriter directly, we won't need this.
-        writer.WriteString(language);
+        await writer.WriteStringAsync(language).ConfigureAwait(false);
 
         var service = GetOptionsSerializationService(language);
         service.WriteTo(options, writer);
     }
 
-    private ParseOptions DeserializeParseOptions(ObjectReader reader, CancellationToken cancellationToken)
+    private async ValueTask<ParseOptions> DeserializeParseOptionsAsync(ObjectReader reader, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var language = reader.ReadString();
+        var language = await reader.ReadStringAsync().ConfigureAwait(false);
 
         var service = GetOptionsSerializationService(language);
         return service.ReadParseOptionsFrom(reader, cancellationToken);
     }
 
-    private static void SerializeProjectReference(ProjectReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    private static async ValueTask SerializeProjectReferenceAsync(ProjectReference reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         reference.ProjectId.WriteTo(writer);
-        writer.WriteValue(reference.Aliases.ToArray());
+        await writer.WriteValueAsync(reference.Aliases.ToArray()).ConfigureAwait(false);
         writer.WriteBoolean(reference.EmbedInteropTypes);
     }
 
-    private static ProjectReference DeserializeProjectReference(ObjectReader reader, CancellationToken cancellationToken)
+    private static async ValueTask<ProjectReference> DeserializeProjectReferenceAsync(ObjectReader reader, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var projectId = ProjectId.ReadFrom(reader);
         var aliases = reader.ReadArray<string>();
-        var embedInteropTypes = reader.ReadBoolean();
+        var embedInteropTypes = await reader.ReadBooleanAsync().ConfigureAwait(false);
 
         return new ProjectReference(projectId, aliases.ToImmutableArrayOrEmpty(), embedInteropTypes);
     }
