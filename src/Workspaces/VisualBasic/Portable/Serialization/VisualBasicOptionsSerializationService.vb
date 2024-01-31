@@ -55,31 +55,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Serialization
         End Sub
 
         Public Overrides Function ReadCompilationOptionsFrom(reader As ObjectReader, cancellationToken As CancellationToken) As CompilationOptions
-            Dim tuple = ReadCompilationOptionsFrom(reader, cancellationToken)
-            Dim outputKind = tuple.OutputKind
-            Dim reportSuppressedDiagnostics = tuple.ReportSuppressedDiagnostics
-            Dim moduleName = tuple.ModuleName
-            Dim mainTypeName = tuple.MainTypeName
-            Dim scriptClassName = tuple.ScriptClassName
-            Dim optimizationLevel = tuple.OptimizationLevel
-            Dim checkOverflow = tuple.CheckOverflow
-            Dim cryptoKeyContainer = tuple.CryptoKeyContainer
-            Dim cryptoKeyFile = tuple.CryptoKeyFile
-            Dim cryptoPublicKey = tuple.CryptoPublicKey
-            Dim delaySign = tuple.DelaySign
-            Dim platform = tuple.Platform
-            Dim generalDiagnosticOption = tuple.GeneralDiagnosticOption
-            Dim warningLevel = tuple.WarningLevel
-            Dim specificDiagnosticOptions = tuple.SpecificDiagnosticOptions
-            Dim concurrentBuild = tuple.ConcurrentBuild
-            Dim deterministic = tuple.Deterministic
-            Dim publicSign = tuple.PublicSign
-            Dim metadataImportOptions = tuple.MetadataImportOptions
-            Dim xmlReferenceResolver = tuple.XmlReferenceResolver
-            Dim sourceReferenceResolver = tuple.SourceReferenceResolver
-            Dim metadataReferenceResolver = tuple.MetadataReferenceResolver
-            Dim assemblyIdentityComparer = tuple.AssemblyIdentityComparer
-            Dim strongNameProvider = tuple.StrongNameProvider
+            Dim tuple = ReadCompilationOptionsPieces(reader, cancellationToken)
+            Dim outputKind = tuple.outputKind
+            Dim reportSuppressedDiagnostics = tuple.reportSuppressedDiagnostics
+            Dim moduleName = tuple.moduleName
+            Dim mainTypeName = tuple.mainTypeName
+            Dim scriptClassName = tuple.scriptClassName
+            Dim optimizationLevel = tuple.optimizationLevel
+            Dim checkOverflow = tuple.checkOverflow
+            Dim cryptoKeyContainer = tuple.cryptoKeyContainer
+            Dim cryptoKeyFile = tuple.cryptoKeyFile
+            Dim cryptoPublicKey = tuple.cryptoPublicKey
+            Dim delaySign = tuple.delaySign
+            Dim platform = tuple.platform
+            Dim generalDiagnosticOption = tuple.generalDiagnosticOption
+            Dim warningLevel = tuple.warningLevel
+            Dim specificDiagnosticOptions = tuple.specificDiagnosticOptions
+            Dim concurrentBuild = tuple.concurrentBuild
+            Dim deterministic = tuple.deterministic
+            Dim publicSign = tuple.publicSign
+            Dim metadataImportOptions = tuple.metadataImportOptions
+            Dim xmlReferenceResolver = tuple.xmlReferenceResolver
+            Dim sourceReferenceResolver = tuple.sourceReferenceResolver
+            Dim metadataReferenceResolver = tuple.metadataReferenceResolver
+            Dim assemblyIdentityComparer = tuple.assemblyIdentityComparer
+            Dim strongNameProvider = tuple.strongNameProvider
 
             Dim globalImports = GlobalImport.Parse(reader.ReadArray(Of String)())
             Dim rootNamespace = reader.ReadString()
