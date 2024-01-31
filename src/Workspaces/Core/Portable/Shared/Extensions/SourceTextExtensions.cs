@@ -18,8 +18,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 internal static partial class SourceTextExtensions
 {
     // char pooled memory : 8K * 256 = 2MB
-    private const int CharBufferSize = 4 * 1024;
-    private static readonly ObjectPool<char[]> CharArrayPool = new(() => new char[CharBufferSize], 256);
+    private const int CharArrayLength = 4 * 1024;
+
+    /// <summary>
+    /// Note: there is a strong invariant that you only get arrays back from this that are exactly <see
+    /// cref="CharArrayLength"/> long.  Putting arrays back into this of the wrong length will result in broken
+    /// behavior.  Do not expose this pool outside of this class.
+    /// </summary>
+    private static readonly ObjectPool<char[]> s_charArrayPool = new(() => new char[CharArrayLength], 256);
 
     public static void GetLineAndOffset(this SourceText text, int position, out int lineNumber, out int offset)
     {
@@ -186,8 +192,8 @@ internal static partial class SourceTextExtensions
     private static void WriteChunksTo(SourceText sourceText, ObjectWriter writer, int length, CancellationToken cancellationToken)
     {
         // chunk size
-        var buffer = CharArrayPool.Allocate();
-        Contract.ThrowIfTrue(buffer.Length != CharBufferSize);
+        var buffer = s_charArrayPool.Allocate();
+        Contract.ThrowIfTrue(buffer.Length != CharArrayLength);
         writer.WriteInt32(buffer.Length);
 
         // number of chunks
@@ -225,7 +231,7 @@ internal static partial class SourceTextExtensions
         }
         finally
         {
-            CharArrayPool.Free(buffer);
+            s_charArrayPool.Free(buffer);
         }
     }
 
@@ -265,7 +271,7 @@ internal static partial class SourceTextExtensions
                 var (currentChunk, currentChunkLength) = reader.ReadCharArray(static length =>
                 {
                     // Shared pool array will be freed in the Dispose method below.
-                    return length == CharBufferSize ? CharArrayPool.Allocate() : (new char[length]);
+                    return length == CharArrayLength ? s_charArrayPool.Allocate() : (new char[length]);
                 });
 
                 builder.Add(currentChunk);
@@ -292,8 +298,8 @@ internal static partial class SourceTextExtensions
                 _disposed = true;
                 foreach (var chunk in _chunks)
                 {
-                    if (chunk.Length == CharBufferSize)
-                        CharArrayPool.Free(chunk);
+                    if (chunk.Length == CharArrayLength)
+                        s_charArrayPool.Free(chunk);
                 }
             }
 
