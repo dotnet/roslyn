@@ -234,6 +234,7 @@ namespace RunTests
                         ls $HELIX_WORKITEM_ROOT
                         ls eng
                         pwd
+                        ls $HELIX_CORRELATION_PAYLOAD
                         """);
 
                     command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgEnableMiniDump=1");
