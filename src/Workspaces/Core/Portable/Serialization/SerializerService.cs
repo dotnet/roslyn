@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -97,7 +98,7 @@ internal partial class SerializerService : ISerializerService
         }
     }
 
-    public void Serialize(object value, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+    public async ValueTask SerializeAsync(object value, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
     {
         var kind = value.GetWellKnownSynchronizationKind();
 
@@ -112,7 +113,7 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.ProjectAttributes:
-                    ((ProjectInfo.ProjectAttributes)value).WriteTo(writer);
+                    await ((ProjectInfo.ProjectAttributes)value).WriteToAsync(writer).ConfigureAwait(false);
                     return;
 
                 case WellKnownSynchronizationKind.DocumentAttributes:
@@ -124,16 +125,15 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.CompilationOptions:
-                    SerializeCompilationOptions((CompilationOptions)value, writer, cancellationToken);
+                    await SerializeCompilationOptionsAsync((CompilationOptions)value, writer, cancellationToken).ConfigureAwait(false);
                     return;
 
                 case WellKnownSynchronizationKind.ParseOptions:
-                    cancellationToken.ThrowIfCancellationRequested();
-                    SerializeParseOptions((ParseOptions)value, writer);
+                    await SerializeParseOptionsAsync((ParseOptions)value, writer).ConfigureAwait(false);
                     return;
 
                 case WellKnownSynchronizationKind.ProjectReference:
-                    SerializeProjectReference((ProjectReference)value, writer, cancellationToken);
+                    await SerializeProjectReferenceAsync((ProjectReference)value, writer, cancellationToken).ConfigureAwait(false);
                     return;
 
                 case WellKnownSynchronizationKind.MetadataReference:
@@ -180,7 +180,7 @@ internal partial class SerializerService : ISerializerService
         }
     }
 
-    public T Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
+    public async ValueTask<T> DeserializeAsync<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Serializer_Deserialize, s_logKind, kind, cancellationToken))
         {
@@ -212,11 +212,11 @@ internal partial class SerializerService : ISerializerService
                 case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
                     return (T)(object)SourceGeneratedDocumentIdentity.ReadFrom(reader);
                 case WellKnownSynchronizationKind.CompilationOptions:
-                    return (T)(object)DeserializeCompilationOptions(reader, cancellationToken);
+                    return (T)(object)await DeserializeCompilationOptionsAsync(reader, cancellationToken).ConfigureAwait(false);
                 case WellKnownSynchronizationKind.ParseOptions:
-                    return (T)(object)DeserializeParseOptions(reader, cancellationToken);
+                    return (T)(object)await DeserializeParseOptionsAsync(reader, cancellationToken).ConfigureAwait(false);
                 case WellKnownSynchronizationKind.ProjectReference:
-                    return (T)(object)DeserializeProjectReference(reader, cancellationToken);
+                    return (T)(object)await DeserializeProjectReferenceAsync(reader, cancellationToken).ConfigureAwait(false);
                 case WellKnownSynchronizationKind.MetadataReference:
                     return (T)(object)DeserializeMetadataReference(reader, cancellationToken);
                 case WellKnownSynchronizationKind.AnalyzerReference:
