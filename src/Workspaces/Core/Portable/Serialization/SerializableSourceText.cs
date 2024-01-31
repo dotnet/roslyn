@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 writer.WriteInt32((int)_text.ChecksumAlgorithm);
                 await writer.WriteEncodingAsync(_text.Encoding).ConfigureAwait(false);
                 writer.WriteInt32((int)SerializationKinds.Bits);
-                _text.WriteTo(writer, cancellationToken);
+                await _text.WriteToAsync(writer, cancellationToken).ConfigureAwait(false);
             }
         }
 

@@ -10,6 +10,7 @@ using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -232,7 +233,11 @@ internal sealed partial class ObjectReader : IDisposable
         => BitConverter.Int64BitsToDouble(await ReadInt64Async().ConfigureAwait(false));
 
     public async ValueTask<float> ReadSingleAsync()
+#if NETSTANDARD
+        => Unsafe.BitCast<int, float>(value);
+#else
         => BitConverter.Int32BitsToSingle(await ReadInt32Async().ConfigureAwait(false));
+#endif
 
     // read as ushort because BinaryWriter fails on chars that are unicode surrogates
     public async ValueTask<char> ReadCharAsync()
