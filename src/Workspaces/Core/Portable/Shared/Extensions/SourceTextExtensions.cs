@@ -231,7 +231,7 @@ internal static partial class SourceTextExtensions
         return textService.CreateText(textReader, encoding, checksumAlgorithm, cancellationToken);
     }
 
-    private class ObjectReaderTextReader : TextReaderWithLength
+    private sealed class ObjectReaderTextReader : TextReaderWithLength
     {
         private readonly ImmutableArray<char[]> _chunks;
         private readonly int _chunkSize;
@@ -248,17 +248,18 @@ internal static partial class SourceTextExtensions
                 return new StringReader(reader.ReadString());
             }
 
-            // read as chunks
-            using var _ = ArrayBuilder<char[]>.GetInstance(out var builder);
-
             var chunkSize = reader.ReadInt32();
             var numberOfChunks = reader.ReadInt32();
+
+            // read as chunks
+            using var _ = ArrayBuilder<char[]>.GetInstance(numberOfChunks, out var builder);
 
             var offset = 0;
             for (var i = 0; i < numberOfChunks; i++)
             {
                 var (currentChunk, currentChunkLength) = reader.ReadCharArray(static length =>
                 {
+                    // Will be freed in the Dispose method.
                     if (length <= SharedPools.CharBufferSize)
                         return SharedPools.CharArray.Allocate();
 
@@ -271,7 +272,7 @@ internal static partial class SourceTextExtensions
             }
 
             Contract.ThrowIfFalse(offset == length);
-            return new ObjectReaderTextReader(builder.ToImmutable(), chunkSize, length);
+            return new ObjectReaderTextReader(builder.ToImmutableAndClear(), chunkSize, length);
         }
 
         private ObjectReaderTextReader(ImmutableArray<char[]> chunks, int chunkSize, int length)
