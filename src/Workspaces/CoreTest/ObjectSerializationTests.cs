@@ -222,19 +222,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(ObjectWriter.TypeCode.UInt32_10, ObjectWriter.TypeCode.UInt32_0 + 10);
         }
 
-        private static void TestRoundTripType(Type type)
-        {
-            TestRoundTrip(type, (w, v) => w.WriteType(v), r => r.ReadType());
-        }
-
-        [Fact]
-        public void TestTypes()
-        {
-            TestRoundTripType(typeof(int));
-            TestRoundTripType(typeof(string));
-            TestRoundTripType(typeof(ObjectSerializationTests));
-        }
-
         private static void TestRoundTripCompressedUint(uint value)
         {
             TestRoundTrip(value, (w, v) => ((ObjectWriter)w).WriteCompressedUInt(v), r => ((ObjectReader)r).ReadCompressedUInt());
