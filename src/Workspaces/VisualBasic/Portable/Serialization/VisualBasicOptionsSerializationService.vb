@@ -55,36 +55,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Serialization
         End Sub
 
         Public Overrides Function ReadCompilationOptionsFrom(reader As ObjectReader, cancellationToken As CancellationToken) As CompilationOptions
-            Dim outputKind As OutputKind
-            Dim reportSuppressedDiagnostics As Boolean
-            Dim moduleName As String = Nothing
-            Dim mainTypeName As String = Nothing
-            Dim scriptClassName As String = Nothing
-            Dim optimizationLevel As OptimizationLevel
-            Dim checkOverflow As Boolean
-            Dim cryptoKeyContainer As String = Nothing
-            Dim cryptoKeyFile As String = Nothing
-            Dim cryptoPublicKey As ImmutableArray(Of Byte) = ImmutableArray(Of Byte).Empty
-            Dim delaySign As Boolean?
-            Dim platform As Platform
-            Dim generalDiagnosticOption As ReportDiagnostic
-            Dim warningLevel As Integer
-            Dim specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)) = Nothing
-            Dim concurrentBuild As Boolean
-            Dim deterministic As Boolean
-            Dim publicSign As Boolean
-            Dim metadataImportOptions As MetadataImportOptions = Nothing
-            Dim xmlReferenceResolver As XmlReferenceResolver = Nothing
-            Dim sourceReferenceResolver As SourceReferenceResolver = Nothing
-            Dim metadataReferenceResolver As MetadataReferenceResolver = Nothing
-            Dim assemblyIdentityComparer As AssemblyIdentityComparer = Nothing
-            Dim strongNameProvider As StrongNameProvider = Nothing
-
-            ReadCompilationOptionsFrom(reader, outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
-                optimizationLevel, checkOverflow, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
-                platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, concurrentBuild, deterministic,
-                publicSign, metadataImportOptions, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
-                assemblyIdentityComparer, strongNameProvider, cancellationToken)
+            Dim tuple = ReadCompilationOptionsFrom(reader, cancellationToken)
+            Dim outputKind = tuple.OutputKind
+            Dim reportSuppressedDiagnostics = tuple.ReportSuppressedDiagnostics
+            Dim moduleName = tuple.ModuleName
+            Dim mainTypeName = tuple.MainTypeName
+            Dim scriptClassName = tuple.ScriptClassName
+            Dim optimizationLevel = tuple.OptimizationLevel
+            Dim checkOverflow = tuple.CheckOverflow
+            Dim cryptoKeyContainer = tuple.CryptoKeyContainer
+            Dim cryptoKeyFile = tuple.CryptoKeyFile
+            Dim cryptoPublicKey = tuple.CryptoPublicKey
+            Dim delaySign = tuple.DelaySign
+            Dim platform = tuple.Platform
+            Dim generalDiagnosticOption = tuple.GeneralDiagnosticOption
+            Dim warningLevel = tuple.WarningLevel
+            Dim specificDiagnosticOptions = tuple.SpecificDiagnosticOptions
+            Dim concurrentBuild = tuple.ConcurrentBuild
+            Dim deterministic = tuple.Deterministic
+            Dim publicSign = tuple.PublicSign
+            Dim metadataImportOptions = tuple.MetadataImportOptions
+            Dim xmlReferenceResolver = tuple.XmlReferenceResolver
+            Dim sourceReferenceResolver = tuple.SourceReferenceResolver
+            Dim metadataReferenceResolver = tuple.MetadataReferenceResolver
+            Dim assemblyIdentityComparer = tuple.AssemblyIdentityComparer
+            Dim strongNameProvider = tuple.StrongNameProvider
 
             Dim globalImports = GlobalImport.Parse(reader.ReadArray(Of String)())
             Dim rootNamespace = reader.ReadString()
@@ -97,21 +92,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Serialization
             Dim hasParseOptions = reader.ReadBoolean()
             Dim parseOption = If(hasParseOptions, DirectCast(ReadParseOptionsFrom(reader, cancellationToken), VisualBasicParseOptions), Nothing)
 
-            Return New VisualBasicCompilationOptions(outputKind, moduleName, mainTypeName, scriptClassName,
+            Return New VisualBasicCompilationOptions(OutputKind, moduleName, mainTypeName, scriptClassName,
                                                      globalImports, rootNamespace, optionStrict, optionInfer, optionExplicit,
                                                      optionCompareText, parseOption,
-                                                     embedVbCoreRuntime, optimizationLevel, checkOverflow,
+                                                     embedVbCoreRuntime, OptimizationLevel, checkOverflow,
                                                      cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
-                                                     platform, generalDiagnosticOption, specificDiagnosticOptions, concurrentBuild, deterministic,
-                                                     xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer, strongNameProvider,
-                                                     publicSign, reportSuppressedDiagnostics, metadataImportOptions)
+                                                     Platform, generalDiagnosticOption, specificDiagnosticOptions, concurrentBuild, deterministic,
+                                                     XmlReferenceResolver, SourceReferenceResolver, MetadataReferenceResolver, AssemblyIdentityComparer, StrongNameProvider,
+                                                     publicSign, reportSuppressedDiagnostics, MetadataImportOptions)
         End Function
 
         Public Overrides Function ReadParseOptionsFrom(reader As ObjectReader, cancellationToken As CancellationToken) As ParseOptions
-            Dim kind As SourceCodeKind
-            Dim documentationMode As DocumentationMode
-            Dim features As IEnumerable(Of KeyValuePair(Of String, String)) = Nothing
-            ReadParseOptionsFrom(reader, kind, documentationMode, features, cancellationToken)
+            Dim tuple = ReadParseOptionsPieces(reader, cancellationToken)
+            Dim kind = tuple.kind
+            Dim documentationMode = tuple.documentationMode
+            Dim features = tuple.features
 
             Dim languageVersion = DirectCast(reader.ReadInt32(), LanguageVersion)
 
