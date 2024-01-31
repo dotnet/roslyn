@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
@@ -133,24 +134,24 @@ namespace Microsoft.CodeAnalysis
                 return new SolutionAttributes(Id, newVersion, newFilePath, newTelemetryId);
             }
 
-            public void WriteTo(ObjectWriter writer)
+            public async ValueTask WriteToAsync(ObjectWriter writer)
             {
-                Id.WriteTo(writer);
+                await Id.WriteToAsync(writer).ConfigureAwait(false);
 
                 // TODO: figure out a way to send version info over as well.
                 //       right now, version get updated automatically, so 2 can't be exactly match
                 // info.Version.WriteTo(writer);
 
-                writer.WriteString(FilePath);
+                await writer.WriteStringAsync(FilePath).ConfigureAwait(false);
                 writer.WriteGuid(TelemetryId);
             }
 
-            public static SolutionAttributes ReadFrom(ObjectReader reader)
+            public static async ValueTask<SolutionAttributes> ReadFromAsync(ObjectReader reader)
             {
-                var solutionId = SolutionId.ReadFrom(reader);
+                var solutionId = await SolutionId.ReadFromAsync(reader).ConfigureAwait(false);
                 // var version = VersionStamp.ReadFrom(reader);
-                var filePath = reader.ReadString();
-                var telemetryId = reader.ReadGuid();
+                var filePath = await reader.ReadStringAsync().ConfigureAwait(false);
+                var telemetryId = await reader.ReadGuidAsync().ConfigureAwait(false);
 
                 return new SolutionAttributes(solutionId, VersionStamp.Create(), filePath, telemetryId);
             }

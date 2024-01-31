@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -77,16 +78,16 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
             => this.Id.GetHashCode();
 
-        internal void WriteTo(ObjectWriter writer)
+        internal async ValueTask WriteToAsync(ObjectWriter writer)
         {
             writer.WriteGuid(Id);
-            writer.WriteString(DebugName);
+            await writer.WriteStringAsync(DebugName).ConfigureAwait(false);
         }
 
-        internal static SolutionId ReadFrom(ObjectReader reader)
+        internal static async ValueTask<SolutionId> ReadFromAsync(ObjectReader reader)
         {
-            var guid = reader.ReadGuid();
-            var debugName = reader.ReadString();
+            var guid = await reader.ReadGuidAsync().ConfigureAwait(false);
+            var debugName = await reader.ReadStringAsync().ConfigureAwait(false);
 
             return CreateFromSerialized(guid, debugName);
         }
