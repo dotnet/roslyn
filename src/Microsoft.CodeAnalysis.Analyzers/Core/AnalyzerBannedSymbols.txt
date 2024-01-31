@@ -2,8 +2,8 @@ T:System.Console; Analyzers should not be reading / writing to the console
 T:System.Diagnostics.Process; Analyzers should not inspect or create processes
 T:System.Diagnostics.ProcessStartInfo; Analyzers should not inspect or create processes
 T:System.Environment; Analyzers should not read their settings directly from environment variables
-P:System.Globalization.CultureInfo.CurrentCulture; Analyzers should use the locale given by the compiler command line arguments, not the CurrentCulture
-P:System.Globalization.CultureInfo.CurrentUICulture; Analyzers should use the locale given by the compiler command line arguments, not the CurrentUICulture
+P:System.Globalization.CultureInfo.CurrentCulture; Analyzers should use LocalizableResourceString for culture-dependent messages
+P:System.Globalization.CultureInfo.CurrentUICulture; Analyzers should use LocalizableResourceString for culture-dependent messages
 T:System.IO.File; Do not do file IO in analyzers
 T:System.IO.Directory; Do not do file IO in analyzers
 M:System.IO.Path.GetTempPath; Do not do file IO in analyzers
