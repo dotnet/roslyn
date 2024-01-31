@@ -42,7 +42,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.SourceGenerators.Testing" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Testing.Verifiers.MSTest" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Testing.Verifiers.NUnit" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Testing.Verifiers.XUnit" />
 
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Analyzer.Testing.UnitTests" />
   </ItemGroup>

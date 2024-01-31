@@ -8,13 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Analyzer.Testing\DefaultVerifier.cs" Link="DefaultVerifier.cs" />
     <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Analyzer.Testing\ExceptionUtilities.cs" Link="ExceptionUtilities.cs" />
     <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Analyzer.Testing\Extensions\IVerifierExtensions.cs" Link="IVerifierExtensions.cs" />
     <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Analyzer.Testing\IVerifier.cs" Link="IVerifier.cs" />
-    <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Testing.Verifiers.XUnit\EmptyWithMessageException.cs" Link="EmptyWithMessageException.cs" />
-    <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Testing.Verifiers.XUnit\EqualWithMessageException.cs" Link="EqualWithMessageException.cs" />
-    <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Testing.Verifiers.XUnit\NotEmptyWithMessageException.cs" Link="NotEmptyWithMessageException.cs" />
-    <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Testing.Verifiers.XUnit\XUnitVerifier.cs" Link="XUnitVerifier.cs" />
   </ItemGroup>
 
   <ItemGroup>

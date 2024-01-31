@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.VisualStudio.Shell.Interop;
 using Xunit;
 using Task = System.Threading.Tasks.Task;
@@ -12,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public class CreateProjectTests : AbstractIntegrationTest
     {
-        private static readonly XUnitVerifier s_verifier = new XUnitVerifier();
+        private static readonly DefaultVerifier s_verifier = new DefaultVerifier();
 
         [IdeFact]
         public async Task CreateFromTemplateAsync()

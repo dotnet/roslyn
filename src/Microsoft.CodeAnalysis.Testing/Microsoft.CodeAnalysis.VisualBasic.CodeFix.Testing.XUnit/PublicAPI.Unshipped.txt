@@ -1,2 +1,0 @@
-Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.CodeFixVerifier(Of TAnalyzer, TCodeFix)
-Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.CodeFixVerifier(Of TAnalyzer, TCodeFix).New() -> Void

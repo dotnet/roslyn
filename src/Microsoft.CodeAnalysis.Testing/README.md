@@ -46,15 +46,15 @@ To reference prerelease packages, add a **NuGet.Config** file to your solution d
 ### xUnit.net
 
 * C#
-  * Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit
-  * Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit
-  * Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.XUnit
-  * Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit
+  * Microsoft.CodeAnalysis.CSharp.Analyzer.Testing
+  * Microsoft.CodeAnalysis.CSharp.CodeFix.Testing
+  * Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing
+  * Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing
 * Visual Basic
-  * Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.XUnit
-  * Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit
-  * Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.XUnit
-  * Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.XUnit
+  * Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing
+  * Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing
+  * Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing
+  * Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing
 
 ## Verifier overview
 
@@ -82,7 +82,9 @@ This document is written on the assumption that users will alias a verifier or c
 the context of a test class.
 
 ```csharp
-using Verify = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<SomeAnalyzerType>;
+using Verify = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerVerifier<
+    SomeAnalyzerType,
+    Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
 ```
 
 Users writing tests involving compiler errors may also want to import the static members of the `DiagnosticResult` type,
@@ -169,7 +171,7 @@ Advanced use cases involve the instantiation of a test helper, setting the appro
 `RunAsync` to run the test. These steps can be combined using the object initializer syntax:
 
 ```csharp
-await new CSharpAnalyzerTest<SomeAnalyzerType, XUnitVerifier>
+await new CSharpAnalyzerTest<SomeAnalyzerType, DefaultVerifier>
 {
     // Configure test by setting property values here...
 }.RunAsync();
@@ -178,7 +180,7 @@ await new CSharpAnalyzerTest<SomeAnalyzerType, XUnitVerifier>
 #### Additional files
 
 ```csharp
-await new CSharpAnalyzerTest<SomeAnalyzerType, XUnitVerifier>
+await new CSharpAnalyzerTest<SomeAnalyzerType, DefaultVerifier>
 {
     TestState =
     {
@@ -205,7 +207,7 @@ public static class CSharpAnalyzerVerifier<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer, new()
 {
     public static DiagnosticResult Diagnostic(string diagnosticId = null)
-        => CSharpAnalyzerVerifier<TAnalyzer, XUnitVerifier>.Diagnostic(diagnosticId);
+        => CSharpAnalyzerVerifier<TAnalyzer, DefaultVerifier>.Diagnostic(diagnosticId);
 
     public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
         => new DiagnosticResult(descriptor);
@@ -219,7 +221,7 @@ public static class CSharpAnalyzerVerifier<TAnalyzer>
 
     // Code fix tests support both analyzer and code fix testing. This test class is derived from the code fix test
     // to avoid the need to maintain duplicate copies of the customization work.
-    public class Test : CSharpCodeFixTest<TAnalyzer, EmptyCodeFixProvider>
+    public class Test : CSharpCodeFixVerifier.Test<TAnalyzer, EmptyCodeFixProvider>
     {
     }
 }
@@ -229,7 +231,7 @@ public static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
     where TCodeFix : CodeFixProvider, new()
 {
     public static DiagnosticResult Diagnostic(string diagnosticId = null)
-        => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic(diagnosticId);
+        => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, DefaultVerifier>.Diagnostic(diagnosticId);
 
     public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
         => new DiagnosticResult(descriptor);
@@ -259,7 +261,7 @@ public static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         return test.RunAsync();
     }
 
-    public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
+    public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, DefaultVerifier>
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
