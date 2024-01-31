@@ -36,7 +36,9 @@ internal static class MinimizeUtil
             "src/Workspaces/MSBuildTest/Resources/NuGet.Config",
         };
 
-        File.Copy(Path.Combine(sourceDirectory, "eng", "libclrgc.dylib"), destinationDirectory);
+        File.Copy(
+            Path.Combine(sourceDirectory, "eng", "libclrgc.dylib"),
+            Path.Combine(destinationDirectory, "libclrgc.dylib"));
 
         foreach (var individualFile in individualFiles)
         {
