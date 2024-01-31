@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
+using ICSharpCode.Decompiler.Solution;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -176,35 +177,27 @@ namespace Microsoft.CodeAnalysis.Remote
                     oldProjectIdToStateChecksums.Add(projectId, oldProjectStateChecksums);
                 }
 
-                await PopulateNewProjectMapAsync(this).ConfigureAwait(false);
+                // sync over the *info* about all the added/changed projects.  We'll want the info so we can determine
+                // what actually changed.
+                using var _6 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
+                newChecksumsToSync.AddRange(newProjectIdToChecksum.Values);
 
-                // bulk sync assets
-                await SynchronizeAssetsAsync(oldProjectIdToStateChecksums, newProjectIdToStateChecksums, cancellationToken).ConfigureAwait(false);
+                var newProjectStateChecksums = await _assetProvider.GetAssetsAsync<ProjectStateChecksums>(
+                    assetHint: AssetHint.None, newChecksumsToSync, cancellationToken).ConfigureAwait(false);
 
-                solution = await UpdateProjectsAsync(solution, isConeSync, oldProjectIdToStateChecksums, newProjectIdToStateChecksums, cancellationToken).ConfigureAwait(false);
+                foreach (var (checksum, newProjectStateChecksum) in newProjectStateChecksums)
+                {
+                    Contract.ThrowIfTrue(checksum != newProjectStateChecksum.Checksum);
+                    var projectId = newProjectStateChecksum.ProjectId;
+                    newProjectIdToStateChecksums.Add(projectId, newProjectStateChecksum);
+                }
+
+                // Now that we've collected the old and new project state checksums, we can actually process them to
+                // determine what to remove, what to add, and what to change.
+                solution = await UpdateProjectsAsync(
+                    solution, isConeSync, oldProjectIdToStateChecksums, newProjectIdToStateChecksums, cancellationToken).ConfigureAwait(false);
 
                 return solution;
-
-                async ValueTask SynchronizeAssetsAsync(Dictionary<ProjectId, ProjectStateChecksums> oldMap, Dictionary<ProjectId, ProjectStateChecksums> newMap, CancellationToken cancellationToken)
-                {
-                    // added project
-                    foreach (var (projectId, projectStateChecksums) in newMap)
-                    {
-                        if (oldMap.ContainsKey(projectId))
-                            continue;
-
-                        await _assetProvider.SynchronizeProjectAssetsAsync(projectStateChecksums, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-
-                async Task PopulateNewProjectMapAsync(SolutionCreator @this)
-                {
-                    var projectStateChecksums = await @this._assetProvider.GetAssetsAsync<ProjectStateChecksums>(
-                        assetHint: AssetHint.None, news, cancellationToken).ConfigureAwait(false);
-
-                    foreach (var (_, projectStateChecksum) in projectStateChecksums)
-                        newMap.Add(projectStateChecksum.ProjectId, projectStateChecksum);
-                }
             }
 
             private async Task<Solution> UpdateProjectsAsync(
@@ -219,6 +212,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     if (!oldProjectIdToStateChecksums.ContainsKey(projectId))
                     {
+                        // bulk sync added project assets fully since we'll definitely need that data, and we won't want
+                        // to make tons of intermediary calls for it.
+
+                        await _assetProvider.SynchronizeProjectAssetsAsync(newProjectChecksums, cancellationToken).ConfigureAwait(false);
                         var projectInfo = await _assetProvider.CreateProjectInfoAsync(projectId, newProjectChecksums.Checksum, cancellationToken).ConfigureAwait(false);
                         solution = solution.AddProject(projectInfo);
                     }
@@ -583,13 +580,24 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
 #if DEBUG
-            private async Task ValidateChecksumAsync(Checksum checksumFromRequest, Solution incrementalSolutionBuilt, CancellationToken cancellationToken)
+            private async Task ValidateChecksumAsync(
+                Checksum checksumFromRequest,
+                Solution incrementalSolutionBuilt,
+                ProjectId? projectConeId,
+                CancellationToken cancellationToken)
             {
-                var currentSolutionChecksum = await incrementalSolutionBuilt.CompilationState.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false);
+                // In the case of a cone sync, we only want to compare the checksum of the cone sync'ed over to the
+                // current checksum of that same cone. What is outside of those cones is totally allowed to be
+                // different.
+                //
+                // Note: this is acceptable because that's the contract of a cone sync.  Features themselves are not
+                // allowed to cone-sync and then do anything that needs host/remote invariants outside of that cone.
+                var currentSolutionChecksum = projectConeId == null
+                    ? await incrementalSolutionBuilt.CompilationState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
+                    : await incrementalSolutionBuilt.CompilationState.GetChecksumAsync(projectConeId, cancellationToken).ConfigureAwait(false);
+
                 if (checksumFromRequest == currentSolutionChecksum)
-                {
                     return;
-                }
 
                 var solutionInfo = await _assetProvider.CreateSolutionInfoAsync(checksumFromRequest, cancellationToken).ConfigureAwait(false);
                 var workspace = new AdhocWorkspace(_hostServices);
