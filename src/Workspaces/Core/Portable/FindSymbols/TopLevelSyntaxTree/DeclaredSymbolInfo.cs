@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -177,16 +178,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static bool GetHasAttributes(uint flags)
             => ((flags >> 19) & 1) == 1;
 
-        internal void WriteTo(ObjectWriter writer)
+        internal async ValueTask WriteToAsync(ObjectWriter writer)
         {
-            writer.WriteString(Name);
-            writer.WriteString(NameSuffix);
-            writer.WriteString(ContainerDisplayName);
-            writer.WriteString(FullyQualifiedContainerName);
+            await writer.WriteStringAsync(Name).ConfigureAwait(false);
+            await writer.WriteStringAsync(NameSuffix).ConfigureAwait(false);
+            await writer.WriteStringAsync(ContainerDisplayName).ConfigureAwait(false);
+            await writer.WriteStringAsync(FullyQualifiedContainerName).ConfigureAwait(false);
             writer.WriteUInt32(_flags);
             writer.WriteInt32(Span.Start);
             writer.WriteInt32(Span.Length);
-            writer.WriteArray(InheritanceNames, static (w, n) => w.WriteString(n));
+            await writer.WriteArrayAsync(InheritanceNames, static (w, n) => w.WriteStringAsync(n)).ConfigureAwait(false);
         }
 
         internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(StringTable stringTable, ObjectReader reader)

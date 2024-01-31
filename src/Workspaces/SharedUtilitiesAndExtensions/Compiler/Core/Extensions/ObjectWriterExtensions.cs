@@ -18,6 +18,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             foreach (var val in values)
                 write(writer, val);
         }
+
+        public static async ValueTask WriteArrayAsync<T>(
+            this ObjectWriter writer, ImmutableArray<T> values, Func<ObjectWriter, T, ValueTask> write)
+        {
+            writer.WriteInt32(values.Length);
+            foreach (var val in values)
+                await write(writer, val).ConfigureAwait(false);
+        }
     }
 
     internal static class ObjectReaderExtensions
