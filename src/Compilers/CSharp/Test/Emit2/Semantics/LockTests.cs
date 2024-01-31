@@ -116,7 +116,7 @@ public class LockTests : CSharpTestBase
                 public class Lock { }
             }
             """;
-        CreateCompilation(source).VerifyEmitDiagnostics(
+        CreateCompilation(source).VerifyDiagnostics(
             // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
             // lock (l) { }
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
@@ -137,14 +137,14 @@ public class LockTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyEmitDiagnostics(
+        CreateCompilation(source).VerifyDiagnostics(
             // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
             // lock (l) { }
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
     }
 
     [Fact]
-    public void EnterLockScopeTakesArguments()
+    public void EnterLockScopeTakesParameters()
     {
         var source = """
             System.Threading.Lock l = new();
@@ -163,7 +163,59 @@ public class LockTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyEmitDiagnostics(
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // lock (l) { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+    }
+
+    [Fact]
+    public void EnterLockScopeTakesParameters_Optional()
+    {
+        var source = """
+            System.Threading.Lock l = new();
+            lock (l) { }
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public Scope EnterLockScope(int arg = 1) => new Scope();
+
+                    public ref struct Scope
+                    {
+                        public void Dispose() { }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // lock (l) { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+    }
+
+    [Fact]
+    public void EnterLockScopeTakesParameters_ParamsArray()
+    {
+        var source = """
+            System.Threading.Lock l = new();
+            lock (l) { }
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public Scope EnterLockScope(params int[] args) => new Scope();
+
+                    public ref struct Scope
+                    {
+                        public void Dispose() { }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
             // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
             // lock (l) { }
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
@@ -182,11 +234,11 @@ public class LockTests : CSharpTestBase
                 {
                     public Scope EnterLockScope() => new Scope();
 
-                    public struct Scope { }
+                    public ref struct Scope { }
                 }
             }
             """;
-        CreateCompilation(source).VerifyEmitDiagnostics(
+        CreateCompilation(source).VerifyDiagnostics(
             // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock+Scope.Dispose'
             // lock (l) { }
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock+Scope", "Dispose").WithLocation(2, 7));
@@ -212,14 +264,14 @@ public class LockTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyEmitDiagnostics(
+        CreateCompilation(source).VerifyDiagnostics(
             // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock+Scope.Dispose'
             // lock (l) { }
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock+Scope", "Dispose").WithLocation(2, 7));
     }
 
     [Fact]
-    public void ScopeDisposeTakesArguments()
+    public void ScopeDisposeTakesParameters()
     {
         var source = """
             System.Threading.Lock l = new();
@@ -238,10 +290,357 @@ public class LockTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyEmitDiagnostics(
+        CreateCompilation(source).VerifyDiagnostics(
             // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock+Scope.Dispose'
             // lock (l) { }
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock+Scope", "Dispose").WithLocation(2, 7));
+    }
+
+    [Fact]
+    public void ScopeDisposeTakesParameters_Optional()
+    {
+        var source = """
+            System.Threading.Lock l = new();
+            lock (l) { }
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public Scope EnterLockScope() => new Scope();
+
+                    public ref struct Scope
+                    {
+                        public void Dispose(int x = 1) { }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock+Scope.Dispose'
+            // lock (l) { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock+Scope", "Dispose").WithLocation(2, 7));
+    }
+
+    [Fact]
+    public void ScopeDisposeTakesParameters_ParamsArray()
+    {
+        var source = """
+            System.Threading.Lock l = new();
+            lock (l) { }
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public Scope EnterLockScope() => new Scope();
+
+                    public ref struct Scope
+                    {
+                        public void Dispose(params int[] xs) { }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock+Scope.Dispose'
+            // lock (l) { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock+Scope", "Dispose").WithLocation(2, 7));
+    }
+
+    [Fact]
+    public void InternalLock()
+    {
+        var source = """
+            static class Program
+            {
+                static void Main()
+                {
+                    System.Threading.Lock l = new();
+                    lock (l) { System.Console.Write("L"); }
+                }
+            }
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public Scope EnterLockScope()
+                    {
+                        Console.Write("E");
+                        return new Scope();
+                    }
+
+                    public ref struct Scope
+                    {
+                        public void Dispose()
+                        {
+                            Console.Write("D");
+                        }
+                    }
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: "ELD", verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InternalScope()
+    {
+        var source = """
+            System.Threading.Lock l = new();
+            lock (l) { }
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public Scope EnterLockScope() => new Scope();
+
+                    internal ref struct Scope
+                    {
+                        public void Dispose() { }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // lock (l) { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7),
+            // (8,22): error CS0050: Inconsistent accessibility: return type 'Lock.Scope' is less accessible than method 'Lock.EnterLockScope()'
+            //         public Scope EnterLockScope() => new Scope();
+            Diagnostic(ErrorCode.ERR_BadVisReturnType, "EnterLockScope").WithArguments("System.Threading.Lock.EnterLockScope()", "System.Threading.Lock.Scope").WithLocation(8, 22));
+    }
+
+    [Fact]
+    public void GenericLock()
+    {
+        var source = """
+            static class Program
+            {
+                static void Main()
+                {
+                    System.Threading.Lock<int> l = new();
+                    lock (l) { System.Console.Write("L"); }
+                }
+            }
+
+            namespace System.Threading
+            {
+                public class Lock<T>
+                {
+                    public Scope EnterLockScope()
+                    {
+                        Console.Write("E");
+                        return new Scope();
+                    }
+
+                    public ref struct Scope
+                    {
+                        public void Dispose()
+                        {
+                            Console.Write("D");
+                        }
+                    }
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: "ELD", verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void GenericEnterLockScope()
+    {
+        var source = """
+            System.Threading.Lock l = new();
+            lock (l) { }
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public Scope EnterLockScope<T>() => new Scope();
+
+                    public ref struct Scope
+                    {
+                        public void Dispose() { }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // lock (l) { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+    }
+
+    [Fact]
+    public void GenericScope()
+    {
+        var source = """
+            System.Threading.Lock l = new();
+            lock (l) { }
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public Scope<int> EnterLockScope() => new Scope<int>();
+
+                    public ref struct Scope<T>
+                    {
+                        public void Dispose() { }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // lock (l) { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+    }
+
+    [Fact]
+    public void LockStruct()
+    {
+        var source = """
+            System.Threading.Lock l = new();
+            lock (l) { }
+
+            namespace System.Threading
+            {
+                public struct Lock
+                {
+                    public Scope EnterLockScope() => new Scope();
+
+                    public ref struct Scope
+                    {
+                        public void Dispose() { }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,7): error CS0185: 'Lock' is not a reference type as required by the lock statement
+            // lock (l) { }
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "l").WithArguments("System.Threading.Lock").WithLocation(2, 7));
+    }
+
+    [Theory, CombinatorialData]
+    public void ScopeRegularStruct(bool implementsIDisposable)
+    {
+        var source = $$"""
+            static class Program
+            {
+                static void Main()
+                {
+                    System.Threading.Lock l = new();
+                    lock (l) { System.Console.Write("L"); }
+                }
+            }
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public Scope EnterLockScope()
+                    {
+                        Console.Write("E");
+                        return new Scope();
+                    }
+
+                    public struct Scope {{(implementsIDisposable ? ": IDisposable" : "")}}
+                    {
+                        public void Dispose()
+                        {
+                            Console.Write("D");
+                        }
+                    }
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "ELD").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ScopeMisnamed()
+    {
+        var source = """
+            System.Threading.Lock l = new();
+            lock (l) { }
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public MyScope EnterLockScope() => new MyScope();
+
+                    public ref struct MyScope
+                    {
+                        public void Dispose() { }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // lock (l) { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+    }
+
+    [Fact]
+    public void ScopeNotNested()
+    {
+        var source = """
+            System.Threading.Lock l = new();
+            lock (l) { }
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public Scope EnterLockScope() => new Scope();
+                }
+
+                public ref struct Scope
+                {
+                    public void Dispose() { }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // lock (l) { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+    }
+
+    [Fact]
+    public void ScopeClass()
+    {
+        var source = """
+            System.Threading.Lock l = new();
+            lock (l) { }
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public Scope EnterLockScope() => new Scope();
+
+                    public class Scope
+                    {
+                        public void Dispose() { }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // lock (l) { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
     }
 
     [Fact]
@@ -258,6 +657,98 @@ public class LockTests : CSharpTestBase
             lock (l) { Console.Write("L"); }
             """;
         var verifier = CompileAndVerify(source, [lib], expectedOutput: "ELD");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void MultipleLockTypes()
+    {
+        var source1 = """
+            public static class C1
+            {
+                public static readonly System.Threading.Lock L = new();
+            }
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public Scope EnterLockScope()
+                    {
+                        Console.Write("E1 ");
+                        return new Scope();
+                    }
+
+                    public ref struct Scope
+                    {
+                        public void Dispose()
+                        {
+                            Console.Write("D1 ");
+                        }
+                    }
+                }
+            }
+            """;
+        var lib1 = CreateCompilation(source1)
+            .VerifyDiagnostics()
+            .EmitToImageReference();
+
+        var source2 = """
+            public static class C2
+            {
+                public static readonly System.Threading.Lock L = new();
+            }
+
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public Scope EnterLockScope()
+                    {
+                        Console.Write("E2 ");
+                        return new Scope();
+                    }
+
+                    public ref struct Scope
+                    {
+                        public void Dispose()
+                        {
+                            Console.Write("D2 ");
+                        }
+                    }
+                }
+            }
+            """;
+        var lib2 = CreateCompilation(source2)
+            .VerifyDiagnostics()
+            .EmitToImageReference();
+
+        var source = """
+            using System;
+
+            static class Program
+            {
+                static void Main()
+                {
+                    M1();
+                    M2();
+                }
+
+                static void M1()
+                {
+                    var l1 = C1.L;
+                    lock (l1) { Console.Write("L1 "); }
+                }
+
+                static void M2()
+                {
+                    var l2 = C2.L;
+                    lock (l2) { Console.Write("L2 "); }
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, [lib1, lib2], expectedOutput: "E1 L1 D1 E2 L2 D2");
         verifier.VerifyDiagnostics();
     }
 
@@ -663,11 +1154,26 @@ public class LockTests : CSharpTestBase
             using System;
             using System.Threading;
 
-            ILock l1 = new Lock();
-            lock (l1) { Console.Write("1"); }
+            static class Program
+            {
+                static void Main()
+                {
+                    M1();
+                    M2();
+                }
 
-            ILock l2 = new Lock();
-            lock ((Lock)l2) { Console.Write("2"); }
+                static void M1()
+                {
+                    ILock l1 = new Lock();
+                    lock (l1) { Console.Write("1"); }
+                }
+
+                static void M2()
+                {
+                    ILock l2 = new Lock();
+                    lock ((Lock)l2) { Console.Write("2"); }
+                }
+            }
 
             namespace System.Threading
             {
@@ -694,12 +1200,43 @@ public class LockTests : CSharpTestBase
         var verifier = CompileAndVerify(source, verify: Verification.FailsILVerify,
            expectedOutput: "1E2D");
         verifier.VerifyDiagnostics(
-            // (4,12): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
-            // ILock l1 = new Lock();
-            Diagnostic(ErrorCode.WRN_ConvertingLock, "new Lock()").WithLocation(4, 12),
-            // (7,12): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
-            // ILock l2 = new Lock();
-            Diagnostic(ErrorCode.WRN_ConvertingLock, "new Lock()").WithLocation(7, 12));
+            // (14,20): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            //         ILock l1 = new Lock();
+            Diagnostic(ErrorCode.WRN_ConvertingLock, "new Lock()").WithLocation(14, 20),
+            // (20,20): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            //         ILock l2 = new Lock();
+            Diagnostic(ErrorCode.WRN_ConvertingLock, "new Lock()").WithLocation(20, 20));
+        // Should use Monitor locking.
+        verifier.VerifyIL("Program.M1", """
+            {
+              // Code size       39 (0x27)
+              .maxstack  2
+              .locals init (System.Threading.ILock V_0,
+                            bool V_1)
+              IL_0000:  newobj     "System.Threading.Lock..ctor()"
+              IL_0005:  stloc.0
+              IL_0006:  ldc.i4.0
+              IL_0007:  stloc.1
+              .try
+              {
+                IL_0008:  ldloc.0
+                IL_0009:  ldloca.s   V_1
+                IL_000b:  call       "void System.Threading.Monitor.Enter(object, ref bool)"
+                IL_0010:  ldstr      "1"
+                IL_0015:  call       "void System.Console.Write(string)"
+                IL_001a:  leave.s    IL_0026
+              }
+              finally
+              {
+                IL_001c:  ldloc.1
+                IL_001d:  brfalse.s  IL_0025
+                IL_001f:  ldloc.0
+                IL_0020:  call       "void System.Threading.Monitor.Exit(object)"
+                IL_0025:  endfinally
+              }
+              IL_0026:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -709,14 +1246,35 @@ public class LockTests : CSharpTestBase
             using System;
             using System.Threading;
 
-            DerivedLock l1 = new DerivedLock();
-            lock (l1) { Console.Write("1"); }
+            static class Program
+            {
+                static void Main()
+                {
+                    var l1 = M1();
+                    var l2 = M2(l1);
+                    M3(l2);
+                }
 
-            Lock l2 = l1;
-            lock (l2) { Console.Write("2"); }
+                static DerivedLock M1()
+                {
+                    DerivedLock l1 = new DerivedLock();
+                    lock (l1) { Console.Write("1"); }
+                    return l1;
+                }
 
-            DerivedLock l3 = (DerivedLock)l2;
-            lock (l3) { Console.Write("3"); }
+                static Lock M2(DerivedLock l1)
+                {
+                    Lock l2 = l1;
+                    lock (l2) { Console.Write("2"); }
+                    return l2;
+                }
+
+                static void M3(Lock l2)
+                {
+                    DerivedLock l3 = (DerivedLock)l2;
+                    lock (l3) { Console.Write("3"); }
+                }
+            }
 
             namespace System.Threading
             {
@@ -745,6 +1303,73 @@ public class LockTests : CSharpTestBase
         // Note: no warnings here as we don't expect `Lock` to be unsealed,
         // so this doesn't warrant a warning in spec and implementation.
         verifier.VerifyDiagnostics();
+        // Should use Monitor locking.
+        verifier.VerifyIL("Program.M1", """
+            {
+              // Code size       42 (0x2a)
+              .maxstack  2
+              .locals init (System.Threading.DerivedLock V_0, //l1
+                            System.Threading.DerivedLock V_1,
+                            bool V_2)
+              IL_0000:  newobj     "System.Threading.DerivedLock..ctor()"
+              IL_0005:  stloc.0
+              IL_0006:  ldloc.0
+              IL_0007:  stloc.1
+              IL_0008:  ldc.i4.0
+              IL_0009:  stloc.2
+              .try
+              {
+                IL_000a:  ldloc.1
+                IL_000b:  ldloca.s   V_2
+                IL_000d:  call       "void System.Threading.Monitor.Enter(object, ref bool)"
+                IL_0012:  ldstr      "1"
+                IL_0017:  call       "void System.Console.Write(string)"
+                IL_001c:  leave.s    IL_0028
+              }
+              finally
+              {
+                IL_001e:  ldloc.2
+                IL_001f:  brfalse.s  IL_0027
+                IL_0021:  ldloc.1
+                IL_0022:  call       "void System.Threading.Monitor.Exit(object)"
+                IL_0027:  endfinally
+              }
+              IL_0028:  ldloc.0
+              IL_0029:  ret
+            }
+            """);
+        // Should use Monitor locking.
+        verifier.VerifyIL("Program.M3", """
+            {
+              // Code size       40 (0x28)
+              .maxstack  2
+              .locals init (System.Threading.DerivedLock V_0,
+                            bool V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  castclass  "System.Threading.DerivedLock"
+              IL_0006:  stloc.0
+              IL_0007:  ldc.i4.0
+              IL_0008:  stloc.1
+              .try
+              {
+                IL_0009:  ldloc.0
+                IL_000a:  ldloca.s   V_1
+                IL_000c:  call       "void System.Threading.Monitor.Enter(object, ref bool)"
+                IL_0011:  ldstr      "3"
+                IL_0016:  call       "void System.Console.Write(string)"
+                IL_001b:  leave.s    IL_0027
+              }
+              finally
+              {
+                IL_001d:  ldloc.1
+                IL_001e:  brfalse.s  IL_0026
+                IL_0020:  ldloc.0
+                IL_0021:  call       "void System.Threading.Monitor.Exit(object)"
+                IL_0026:  endfinally
+              }
+              IL_0027:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -791,7 +1416,7 @@ public class LockTests : CSharpTestBase
             }
             """;
         // No warnings about converting `Lock` expected.
-        CreateCompilation([source, LockTypeDefinition]).VerifyEmitDiagnostics(
+        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
             // 0.cs(4,7): error CS0266: Cannot implicitly convert type 'System.Threading.Lock' to 'I'. An explicit conversion exists (are you missing a cast?)
             // I i = new Lock();
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new Lock()").WithArguments("System.Threading.Lock", "I").WithLocation(4, 7),
@@ -810,16 +1435,51 @@ public class LockTests : CSharpTestBase
             using System;
             using System.Threading;
 
-            M(new Lock());
+            C.M(new Lock());
 
-            static void M<T>(T t) {{constraint}}
+            static class C
             {
-                lock (t) { Console.Write("L"); }
+                public static void M<T>(T t) {{constraint}}
+                {
+                    lock (t) { Console.Write("L"); }
+                }
             }
             """;
         var verifier = CompileAndVerify([source, LockTypeDefinition], verify: Verification.FailsILVerify,
            expectedOutput: "L");
         verifier.VerifyDiagnostics();
+        // Should use Monitor locking.
+        verifier.VerifyIL("C.M<T>", """
+            {
+              // Code size       40 (0x28)
+              .maxstack  2
+              .locals init (object V_0,
+                            bool V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  box        "T"
+              IL_0006:  stloc.0
+              IL_0007:  ldc.i4.0
+              IL_0008:  stloc.1
+              .try
+              {
+                IL_0009:  ldloc.0
+                IL_000a:  ldloca.s   V_1
+                IL_000c:  call       "void System.Threading.Monitor.Enter(object, ref bool)"
+                IL_0011:  ldstr      "L"
+                IL_0016:  call       "void System.Console.Write(string)"
+                IL_001b:  leave.s    IL_0027
+              }
+              finally
+              {
+                IL_001d:  ldloc.1
+                IL_001e:  brfalse.s  IL_0026
+                IL_0020:  ldloc.0
+                IL_0021:  call       "void System.Threading.Monitor.Exit(object)"
+                IL_0026:  endfinally
+              }
+              IL_0027:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -829,19 +1489,54 @@ public class LockTests : CSharpTestBase
             using System;
             using System.Threading;
 
-            M<object>(new Lock());
+            C.M<object>(new Lock());
 
-            static void M<T>(T t)
+            static class C
             {
-                lock (t) { Console.Write("L"); }
+                public static void M<T>(T t)
+                {
+                    lock (t) { Console.Write("L"); }
+                }
             }
             """;
         var verifier = CompileAndVerify([source, LockTypeDefinition], verify: Verification.FailsILVerify,
            expectedOutput: "L");
         verifier.VerifyDiagnostics(
-            // 0.cs(4,11): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
-            // M<object>(new Lock());
-            Diagnostic(ErrorCode.WRN_ConvertingLock, "new Lock()").WithLocation(4, 11));
+            // (4,13): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            // C.M<object>(new Lock());
+            Diagnostic(ErrorCode.WRN_ConvertingLock, "new Lock()").WithLocation(4, 13));
+        // Should use Monitor locking.
+        verifier.VerifyIL("C.M<T>", """
+            {
+              // Code size       40 (0x28)
+              .maxstack  2
+              .locals init (object V_0,
+                            bool V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  box        "T"
+              IL_0006:  stloc.0
+              IL_0007:  ldc.i4.0
+              IL_0008:  stloc.1
+              .try
+              {
+                IL_0009:  ldloc.0
+                IL_000a:  ldloca.s   V_1
+                IL_000c:  call       "void System.Threading.Monitor.Enter(object, ref bool)"
+                IL_0011:  ldstr      "L"
+                IL_0016:  call       "void System.Console.Write(string)"
+                IL_001b:  leave.s    IL_0027
+              }
+              finally
+              {
+                IL_001d:  ldloc.1
+                IL_001e:  brfalse.s  IL_0026
+                IL_0020:  ldloc.0
+                IL_0021:  call       "void System.Threading.Monitor.Exit(object)"
+                IL_0026:  endfinally
+              }
+              IL_0027:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -923,7 +1618,7 @@ public class LockTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilationWithIL(source, ilSource).VerifyEmitDiagnostics(
+        CreateCompilationWithIL(source, ilSource).VerifyDiagnostics(
             // (5,15): error CS9041: 'Lock.EnterLockScope()' requires compiler feature 'Test', which is not supported by this version of the C# compiler.
             //         lock (l) { }
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "l").WithArguments("System.Threading.Lock.EnterLockScope()", "Test").WithLocation(5, 15));
@@ -1009,7 +1704,7 @@ public class LockTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilationWithIL(source, ilSource).VerifyEmitDiagnostics(
+        CreateCompilationWithIL(source, ilSource).VerifyDiagnostics(
             // (5,15): error CS9041: 'Lock.Scope' requires compiler feature 'Test', which is not supported by this version of the C# compiler.
             //         lock (l) { }
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "l").WithArguments("System.Threading.Lock.Scope", "Test").WithLocation(5, 15));
@@ -1094,7 +1789,7 @@ public class LockTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilationWithIL(source, ilSource).VerifyEmitDiagnostics(
+        CreateCompilationWithIL(source, ilSource).VerifyDiagnostics(
             // (5,15): error CS9041: 'Lock.Scope.Dispose()' requires compiler feature 'Test', which is not supported by this version of the C# compiler.
             //         lock (l) { }
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "l").WithArguments("System.Threading.Lock.Scope.Dispose()", "Test").WithLocation(5, 15));
