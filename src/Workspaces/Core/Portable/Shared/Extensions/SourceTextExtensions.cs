@@ -17,6 +17,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class SourceTextExtensions
 {
+    // char pooled memory : 8K * 256 = 2MB
+    private const int CharBufferSize = 4 * 1024;
+    private static readonly ObjectPool<char[]> CharArrayPool = new(() => new char[CharBufferSize], 256);
+
     public static void GetLineAndOffset(this SourceText text, int position, out int lineNumber, out int offset)
     {
         var line = text.Lines.GetLineFromPosition(position);
@@ -182,8 +186,8 @@ internal static partial class SourceTextExtensions
     private static void WriteChunksTo(SourceText sourceText, ObjectWriter writer, int length, CancellationToken cancellationToken)
     {
         // chunk size
-        var buffer = SharedPools.CharArray.Allocate();
-        Contract.ThrowIfTrue(buffer.Length != SharedPools.CharBufferSize);
+        var buffer = CharArrayPool.Allocate();
+        Contract.ThrowIfTrue(buffer.Length != CharBufferSize);
         writer.WriteInt32(buffer.Length);
 
         // number of chunks
@@ -221,7 +225,7 @@ internal static partial class SourceTextExtensions
         }
         finally
         {
-            SharedPools.CharArray.Free(buffer);
+            CharArrayPool.Free(buffer);
         }
     }
 
@@ -261,7 +265,7 @@ internal static partial class SourceTextExtensions
                 var (currentChunk, currentChunkLength) = reader.ReadCharArray(static length =>
                 {
                     // Shared pool array will be freed in the Dispose method below.
-                    return length == SharedPools.CharBufferSize ? SharedPools.CharArray.Allocate() : (new char[length]);
+                    return length == CharBufferSize ? CharArrayPool.Allocate() : (new char[length]);
                 });
 
                 builder.Add(currentChunk);
@@ -288,8 +292,8 @@ internal static partial class SourceTextExtensions
                 _disposed = true;
                 foreach (var chunk in _chunks)
                 {
-                    if (chunk.Length == SharedPools.CharBufferSize)
-                        SharedPools.CharArray.Free(chunk);
+                    if (chunk.Length == CharBufferSize)
+                        CharArrayPool.Free(chunk);
                 }
             }
 
