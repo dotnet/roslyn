@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Evaluate toString at the last possible moment, to avoid spurious diagnostics if it's missing.
             // All code paths below here use it.
-            var objectToStringMethod = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString);
+            var objectToStringMethod = UnsafeGetSpecialTypeMethod(expr.Syntax, SpecialMember.System_Object__ToString);
 
             // If it's a struct which has overridden ToString, find that method. Note that we might fail to
             // find it, e.g. if object.ToString is missing
