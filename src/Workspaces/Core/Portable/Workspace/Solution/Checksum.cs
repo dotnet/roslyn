@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -89,8 +90,8 @@ namespace Microsoft.CodeAnalysis
             Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(span), this);
         }
 
-        public static Checksum ReadFrom(ObjectReader reader)
-            => new(reader.ReadInt64(), reader.ReadInt64());
+        public static async ValueTask<Checksum> ReadFromAsync(ObjectReader reader)
+            => new(await reader.ReadInt64Async().ConfigureAwait(false), await reader.ReadInt64Async().ConfigureAwait(false));
 
         public static Func<Checksum, string> GetChecksumLogInfo { get; }
             = checksum => checksum.ToString();

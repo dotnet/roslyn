@@ -109,7 +109,7 @@ internal partial class SerializerService : ISerializerService
             switch (kind)
             {
                 case WellKnownSynchronizationKind.SolutionAttributes:
-                    ((SolutionInfo.SolutionAttributes)value).WriteTo(writer);
+                    await ((SolutionInfo.SolutionAttributes)value).WriteToAsync(writer).ConfigureAwait(false);
                     return;
 
                 case WellKnownSynchronizationKind.ProjectAttributes:
@@ -117,11 +117,11 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.DocumentAttributes:
-                    ((DocumentInfo.DocumentAttributes)value).WriteTo(writer);
+                    await ((DocumentInfo.DocumentAttributes)value).WriteToAsync(writer).ConfigureAwait(false);
                     return;
 
                 case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
-                    ((SourceGeneratedDocumentIdentity)value).WriteTo(writer);
+                    await ((SourceGeneratedDocumentIdentity)value).WriteToAsync(writer).ConfigureAwait(false);
                     return;
 
                 case WellKnownSynchronizationKind.CompilationOptions:
@@ -165,7 +165,7 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.DocumentState:
-                    ((DocumentStateChecksums)value).Serialize(writer);
+                    await ((DocumentStateChecksums)value).SerializeAsync(writer).ConfigureAwait(false);
                     return;
 
                 case WellKnownSynchronizationKind.ChecksumCollection:
@@ -198,19 +198,19 @@ internal partial class SerializerService : ISerializerService
                     return (T)(object)ProjectStateChecksums.Deserialize(reader);
 
                 case WellKnownSynchronizationKind.DocumentState:
-                    return (T)(object)DocumentStateChecksums.Deserialize(reader);
+                    return (T)(object)await DocumentStateChecksums.DeserializeAsync(reader).ConfigureAwait(false);
 
                 case WellKnownSynchronizationKind.ChecksumCollection:
                     return (T)(object)ChecksumCollection.ReadFrom(reader);
 
                 case WellKnownSynchronizationKind.SolutionAttributes:
-                    return (T)(object)SolutionInfo.SolutionAttributes.ReadFrom(reader);
+                    return (T)(object)await SolutionInfo.SolutionAttributes.ReadFromAsync(reader).ConfigureAwait(false);
                 case WellKnownSynchronizationKind.ProjectAttributes:
-                    return (T)(object)ProjectInfo.ProjectAttributes.ReadFrom(reader);
+                    return (T)(object)await ProjectInfo.ProjectAttributes.ReadFromAsync(reader).ConfigureAwait(false);
                 case WellKnownSynchronizationKind.DocumentAttributes:
-                    return (T)(object)DocumentInfo.DocumentAttributes.ReadFrom(reader);
+                    return (T)(object)await DocumentInfo.DocumentAttributes.ReadFromAsync(reader).ConfigureAwait(false);
                 case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
-                    return (T)(object)SourceGeneratedDocumentIdentity.ReadFrom(reader);
+                    return (T)(object)await SourceGeneratedDocumentIdentity.ReadFromAsync(reader).ConfigureAwait(false);
                 case WellKnownSynchronizationKind.CompilationOptions:
                     return (T)(object)await DeserializeCompilationOptionsAsync(reader, cancellationToken).ConfigureAwait(false);
                 case WellKnownSynchronizationKind.ParseOptions:
@@ -222,7 +222,7 @@ internal partial class SerializerService : ISerializerService
                 case WellKnownSynchronizationKind.AnalyzerReference:
                     return (T)(object)DeserializeAnalyzerReference(reader, cancellationToken);
                 case WellKnownSynchronizationKind.SerializableSourceText:
-                    return (T)(object)SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken);
+                    return (T)(object)await SerializableSourceText.DeserializeAsync(reader, _storageService, _textService, cancellationToken).ConfigureAwait(false);
                 case WellKnownSynchronizationKind.SourceText:
                     return (T)(object)DeserializeSourceText(reader, cancellationToken);
 
