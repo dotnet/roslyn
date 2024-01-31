@@ -18,6 +18,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class SourceTextExtensions
 {
+    // char pooled memory : 8K * 256 = 2MB
+    private const int CharArrayLength = 4 * 1024;
+
+    /// <summary>
+    /// Note: there is a strong invariant that you only get arrays back from this that are exactly <see
+    /// cref="CharArrayLength"/> long.  Putting arrays back into this of the wrong length will result in broken
+    /// behavior.  Do not expose this pool outside of this class.
+    /// </summary>
+    private static readonly ObjectPool<char[]> s_charArrayPool = new(() => new char[CharArrayLength], 256);
+
     public static void GetLineAndOffset(this SourceText text, int position, out int lineNumber, out int offset)
     {
         var line = text.Lines.GetLineFromPosition(position);
@@ -183,7 +193,8 @@ internal static partial class SourceTextExtensions
     private static async ValueTask WriteChunksToAsync(SourceText sourceText, ObjectWriter writer, int length, CancellationToken cancellationToken)
     {
         // chunk size
-        var buffer = SharedPools.CharArray.Allocate();
+        var buffer = s_charArrayPool.Allocate();
+        Contract.ThrowIfTrue(buffer.Length != CharArrayLength);
         writer.WriteInt32(buffer.Length);
 
         // number of chunks
@@ -221,7 +232,7 @@ internal static partial class SourceTextExtensions
         }
         finally
         {
-            SharedPools.CharArray.Free(buffer);
+            s_charArrayPool.Free(buffer);
         }
     }
 
@@ -232,7 +243,7 @@ internal static partial class SourceTextExtensions
         return textService.CreateText(textReader, encoding, checksumAlgorithm, cancellationToken);
     }
 
-    private class ObjectReaderTextReader : TextReaderWithLength
+    private sealed class ObjectReaderTextReader : TextReaderWithLength
     {
         private readonly ImmutableArray<char[]> _chunks;
         private readonly int _chunkSize;
@@ -249,30 +260,25 @@ internal static partial class SourceTextExtensions
                 return new StringReader(await reader.ReadStringAsync().ConfigureAwait(false));
             }
 
-            // read as chunks
-            using var _ = ArrayBuilder<char[]>.GetInstance(out var builder);
-
             var chunkSize = await reader.ReadInt32Async().ConfigureAwait(false);
             var numberOfChunks = await reader.ReadInt32Async().ConfigureAwait(false);
+
+            // read as chunks
+            using var _ = ArrayBuilder<char[]>.GetInstance(numberOfChunks, out var chunks);
 
             var offset = 0;
             for (var i = 0; i < numberOfChunks; i++)
             {
-                var (currentChunk, currentChunkLength) = await reader.ReadCharArrayAsync(static length =>
-                {
-                    if (length <= SharedPools.CharBufferSize)
-                        return SharedPools.CharArray.Allocate();
+                // Shared pool array will be freed in the Dispose method below.
+                var (currentChunk, currentChunkLength) = await reader.ReadCharArrayAsync(
+                    static length => length == CharArrayLength ? s_charArrayPool.Allocate() : new char[length]).ConfigureAwait(false);
 
-                    return new char[length];
-                }).ConfigureAwait(false);
-
-                builder.Add(currentChunk);
-
+                chunks.Add(currentChunk);
                 offset += currentChunkLength;
             }
 
             Contract.ThrowIfFalse(offset == length);
-            return new ObjectReaderTextReader(builder.ToImmutable(), chunkSize, length);
+            return new ObjectReaderTextReader(chunks.ToImmutableAndClear(), chunkSize, length);
         }
 
         private ObjectReaderTextReader(ImmutableArray<char[]> chunks, int chunkSize, int length)
@@ -290,8 +296,8 @@ internal static partial class SourceTextExtensions
                 _disposed = true;
                 foreach (var chunk in _chunks)
                 {
-                    if (chunk.Length <= SharedPools.CharBufferSize)
-                        SharedPools.CharArray.Free(chunk);
+                    if (chunk.Length == CharArrayLength)
+                        s_charArrayPool.Free(chunk);
                 }
             }
 
