@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -105,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // PROTOTYPE(ndsm): it feels strange to have both 'DisableNullableAnalysis' and 'IsNullableAnalysisEnabled' members. But maybe it's fine.
+        [Experimental("EXPERIMENT1")]
         public sealed override bool DisableNullableAnalysis
         {
             get
@@ -1909,7 +1911,9 @@ done:
         /// </summary>
         protected void EnsureNullabilityAnalysisPerformedIfNecessary()
         {
+#pragma warning disable EXPERIMENT1 // internal use of experimental API
             bool isNullableAnalysisEnabled = !DisableNullableAnalysis && IsNullableAnalysisEnabled();
+#pragma warning restore EXPERIMENT1
             if (!isNullableAnalysisEnabled && !Compilation.IsNullableAnalysisEnabledAlways)
             {
                 return;
@@ -2040,7 +2044,10 @@ done:
 
         protected abstract bool IsNullableAnalysisEnabledCore();
 
-        protected bool IsNullableAnalysisEnabled() => !DisableNullableAnalysis && IsNullableAnalysisEnabledCore();
+        protected bool IsNullableAnalysisEnabled()
+#pragma warning disable EXPERIMENT1 // internal use of experimental API
+            => !DisableNullableAnalysis && IsNullableAnalysisEnabledCore();
+#pragma warning restore EXPERIMENT1
 #nullable disable
 
         /// <summary>

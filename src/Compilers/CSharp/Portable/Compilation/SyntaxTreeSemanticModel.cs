@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable EXPERIMENT1 // Internal use of experimental API
 #nullable disable
 
 using System;
@@ -35,20 +36,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly BinderFactory _binderFactory;
         private Func<CSharpSyntaxNode, MemberSemanticModel> _createMemberModelFunction;
-        private readonly bool _ignoresAccessibility;
-        private readonly bool _disableNullableAnalysis;
+        private readonly SemanticModelOptions _options;
         private ScriptLocalScopeBinder.Labels _globalStatementLabels;
 
         private static readonly Func<CSharpSyntaxNode, bool> s_isMemberDeclarationFunction = IsMemberDeclaration;
 
-        internal SyntaxTreeSemanticModel(CSharpCompilation compilation, SyntaxTree syntaxTree, bool ignoreAccessibility = false, bool disableNullableAnalysis = false)
+        internal SyntaxTreeSemanticModel(CSharpCompilation compilation, SyntaxTree syntaxTree, SemanticModelOptions options)
         {
             _compilation = compilation;
             _syntaxTree = syntaxTree;
-            _ignoresAccessibility = ignoreAccessibility;
-            _disableNullableAnalysis = disableNullableAnalysis;
+            _options = options;
 
-            _binderFactory = compilation.GetBinderFactory(SyntaxTree, ignoreAccessibility);
+            _binderFactory = compilation.GetBinderFactory(SyntaxTree, (options & SemanticModelOptions.IgnoreAccessibility) != 0);
         }
 
         internal SyntaxTreeSemanticModel(CSharpCompilation parentCompilation, SyntaxTree parentSyntaxTree, SyntaxTree speculatedSyntaxTree, bool ignoreAccessibility)
@@ -56,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _compilation = parentCompilation;
             _syntaxTree = speculatedSyntaxTree;
             _binderFactory = _compilation.GetBinderFactory(parentSyntaxTree, ignoreAccessibility);
-            _ignoresAccessibility = ignoreAccessibility;
-            _disableNullableAnalysis = false; // PROTOTYPE(ndsm): allow speculation to disable nullable analysis?
+            // PROTOTYPE(ndsm): allow speculation to disable nullable analysis?
+            _options = ignoreAccessibility ? SemanticModelOptions.IgnoreAccessibility : SemanticModelOptions.None;
         }
 
         /// <summary>
@@ -98,10 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override bool IgnoresAccessibility
         {
-            get { return _ignoresAccessibility; }
+            get { return (_options & SemanticModelOptions.IgnoreAccessibility) != 0; }
         }
 
-        public override bool DisableNullableAnalysis => _disableNullableAnalysis;
+        public override bool DisableNullableAnalysis => (_options & SemanticModelOptions.DisableNullableAnalysis) != 0;
 
         private void VerifySpanForGetDiagnostics(TextSpan? span)
         {
