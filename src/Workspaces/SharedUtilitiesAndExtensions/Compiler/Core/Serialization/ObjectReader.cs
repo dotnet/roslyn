@@ -420,7 +420,7 @@ internal sealed partial class ObjectReader : IDisposable
         throw ExceptionUtilities.UnexpectedValue(marker);
     }
 
-    private async ValueTask<string> ReadStringAsync()
+    public async ValueTask<string> ReadStringAsync()
     {
         var kind = (TypeCode)await ReadByteAsync().ConfigureAwait(false);
         if (kind == TypeCode.Null)

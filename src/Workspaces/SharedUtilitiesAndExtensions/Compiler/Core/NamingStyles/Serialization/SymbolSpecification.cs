@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using System.Runtime.Serialization;
 using System.Diagnostics;
+using System.Threading.Tasks;
+
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
@@ -232,23 +234,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 CreateModifiersXElement());
         }
 
-        public void WriteTo(ObjectWriter writer)
+        public async ValueTask WriteTo(ObjectWriter writer)
         {
             writer.WriteGuid(ID);
-            writer.WriteString(Name);
+            await writer.WriteStringAsync(Name).ConfigureAwait(false);
             writer.WriteArray(ApplicableSymbolKindList, (w, v) => v.WriteTo(w));
             writer.WriteArray(ApplicableAccessibilityList, (w, v) => w.WriteInt32((int)v));
             writer.WriteArray(RequiredModifierList, (w, v) => v.WriteTo(w));
         }
 
-        public static SymbolSpecification ReadFrom(ObjectReader reader)
+        public static async ValueTask<SymbolSpecification> ReadFromAsync(ObjectReader reader)
         {
             return new SymbolSpecification(
-                reader.ReadGuid(),
-                reader.ReadString(),
-                reader.ReadArray(SymbolKindOrTypeKind.ReadFrom),
-                reader.ReadArray(r => (Accessibility)r.ReadInt32()),
-                reader.ReadArray(ModifierKind.ReadFrom));
+                await reader.ReadGuidAsync().ConfigureAwait(false),
+                await reader.ReadStringAsync().ConfigureAwait(false),
+                await reader.ReadArrayAsync(SymbolKindOrTypeKind.ReadFrom).ConfigureAwait(false),
+                await reader.ReadArrayAsync(async r => (Accessibility)await r.ReadInt32Async().ConfigureAwait(false)).ConfigureAwait(false),
+                await reader.ReadArrayAsync(ModifierKind.ReadFrom).ConfigureAwait(false));
         }
 
         private XElement CreateSymbolKindsXElement()
