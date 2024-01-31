@@ -62,6 +62,17 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         /// <summary>
+        /// Same as calling <see cref="SetHandlers"/>.  This is useful in
+        /// test code which needs to verify the handler is called in specific cases and will continually
+        /// overwrite this value.
+        /// </summary>
+        public static void OverwriteHandlers(ErrorReporterHandler? handler, ErrorReporterHandler? nonFatalHandler)
+        {
+            s_handler = handler;
+            s_nonFatalHandler = nonFatalHandler;
+        }
+
+        /// <summary>
         /// Copies the handler in this instance to the linked copy of this type in this other assembly.
         /// </summary>
         /// <remarks>

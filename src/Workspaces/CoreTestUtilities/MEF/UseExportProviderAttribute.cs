@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
@@ -53,6 +54,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static readonly TimeSpan CleanupTimeout = TimeSpan.FromMinutes(1);
 
         private MefHostServices? _hostServices;
+        private ImmutableList<Exception> _fatalErrors = ImmutableList<Exception>.Empty;
+        private ImmutableList<Exception> _nonFatalErrors = ImmutableList<Exception>.Empty;
+        private readonly FatalError.ErrorReporterHandler _fatalErrorHandler;
+        private readonly FatalError.ErrorReporterHandler _nonFatalErrorHandler;
 
         static UseExportProviderAttribute()
         {
@@ -62,8 +67,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             RuntimeHelpers.RunModuleConstructor(typeof(TestBase).Module.ModuleHandle);
         }
 
+        public UseExportProviderAttribute()
+        {
+            _fatalErrorHandler = (exception, severity, forceDump) => ImmutableInterlocked.Update(ref _fatalErrors, static (errors, exception) => errors.Add(exception), exception);
+            _nonFatalErrorHandler = (exception, severity, forceDump) => ImmutableInterlocked.Update(ref _nonFatalErrors, static (errors, exception) => errors.Add(exception), exception);
+        }
+
         public override void Before(MethodInfo? methodUnderTest)
         {
+            FatalError.OverwriteHandlers(_fatalErrorHandler, _nonFatalErrorHandler);
+
             // Need to clear cached MefHostServices between test runs.
             MefHostServices.TestAccessor.HookServiceCreation(CreateMefHostServices);
 
@@ -90,6 +103,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 DisposeExportProvider(ExportProviderCache.LocalExportProviderForCleanup);
                 DisposeExportProvider(ExportProviderCache.RemoteExportProviderForCleanup);
+                if (_fatalErrors.Count > 0)
+                {
+                    throw new AggregateException("Unexpected fatal errors reported during test.", _fatalErrors);
+                }
+
+                if (_nonFatalErrors.Count > 0)
+                {
+                    throw new AggregateException("Unexpected non-fatal errors reported during test.", _nonFatalErrors);
+                }
             }
             finally
             {
