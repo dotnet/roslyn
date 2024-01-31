@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
 
-        public static Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
+        public static ValueTask<Checksum> CreateChecksumAsync(MetadataReference reference, CancellationToken cancellationToken)
         {
             if (reference is PortableExecutableReference portable)
             {
-                return CreatePortableExecutableReferenceChecksum(portable, cancellationToken);
+                return CreatePortableExecutableReferenceChecksumAsync(portable, cancellationToken);
             }
 
             throw ExceptionUtilities.UnexpectedValue(reference.GetType());
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         private static bool IsAnalyzerReferenceWithShadowCopyLoader(AnalyzerFileReference reference)
             => reference.AssemblyLoader is ShadowCopyAnalyzerAssemblyLoader;
 
-        public static Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
+        public static async ValueTask<Checksum> CreateChecksumAsync(AnalyzerReference reference, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 switch (reference)
                 {
                     case AnalyzerFileReference file:
-                        writer.WriteString(file.FullPath);
+                        await writer.WriteStringAsync(file.FullPath).ConfigureAwait(false);
                         writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
                         break;
 
@@ -62,19 +62,20 @@ namespace Microsoft.CodeAnalysis.Serialization
             return Checksum.Create(stream);
         }
 
-        public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+        public virtual async ValueTask WriteMetadataReferenceToAsync(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
             if (reference is PortableExecutableReference portable)
             {
                 if (portable is ISupportTemporaryStorage supportTemporaryStorage)
                 {
-                    if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, context, cancellationToken))
+                    if (await TryWritePortableExecutableReferenceBackedByTemporaryStorageToAsync(
+                            supportTemporaryStorage, writer, context, cancellationToken).ConfigureAwait(false))
                     {
                         return;
                     }
                 }
 
-                WritePortableExecutableReferenceTo(portable, writer, cancellationToken);
+                await WritePortableExecutableReferenceToAsync(portable, writer, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             var type = await reader.ReadStringAsync().ConfigureAwait(false);
             if (type == nameof(PortableExecutableReference))
             {
-                return ReadPortableExecutableReferenceFrom(reader, cancellationToken);
+                return await ReadPortableExecutableReferenceFromAsync(reader, cancellationToken).ConfigureAwait(false);
             }
 
             throw ExceptionUtilities.UnexpectedValue(type);
@@ -135,17 +136,17 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private static async ValueTask WritePortableExecutableReferencePropertiesToAsync(PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
-            WriteTo(reference.Properties, writer, cancellationToken);
+            await WriteToAsync(reference.Properties, writer, cancellationToken).ConfigureAwait(false);
             await writer.WriteStringAsync(reference.FilePath).ConfigureAwait(false);
         }
 
-        private static Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference, CancellationToken cancellationToken)
+        private static async ValueTask<Checksum> CreatePortableExecutableReferenceChecksumAsync(PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
             using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
             {
-                WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
+                await WritePortableExecutableReferencePropertiesToAsync(reference, writer, cancellationToken).ConfigureAwait(false);
                 WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
             }
 
@@ -231,11 +232,11 @@ namespace Microsoft.CodeAnalysis.Serialization
             var kind = (SerializationKinds)await reader.ReadInt32Async().ConfigureAwait(false);
             if (kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile)
             {
-                var properties = ReadMetadataReferencePropertiesFrom(reader, cancellationToken);
+                var properties = await ReadMetadataReferencePropertiesFromAsync(reader, cancellationToken).ConfigureAwait(false);
 
                 var filePath = await reader.ReadStringAsync().ConfigureAwait(false);
 
-                var tuple = TryReadMetadataFrom(reader, kind, cancellationToken);
+                var tuple = await TryReadMetadataFromAsync(reader, kind, cancellationToken).ConfigureAwait(false);
                 if (tuple == null)
                 {
                     // TODO: deal with xml document provider properly
@@ -379,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                         Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
 #pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
-                        pooledMetadata.Object.Add(ReadModuleMetadataFrom(reader, kind));
+                        pooledMetadata.Object.Add(await ReadModuleMetadataFromAsync(reader, kind).ConfigureAwait(false));
 #pragma warning restore CA2016 
                     }
 
@@ -388,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
                 Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 #pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
-                return (ReadModuleMetadataFrom(reader, kind), storages: default);
+                return (await ReadModuleMetadataFromAsync(reader, kind).ConfigureAwait(false), storages: default);
 #pragma warning restore CA2016
             }
 
