@@ -11,12 +11,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    using LockTypeInfo = (MethodSymbol EnterLockScopeMethod, TypeSymbol ScopeType, MethodSymbol ScopeDisposeMethod);
+
     internal sealed class LockBinder : LockOrUsingBinder
     {
-        private const string LockTypeFullName = "System.Threading.Lock";
-        private const string EnterLockScopeMethodName = "EnterLockScope";
-        private const string LockScopeTypeName = "Scope";
-
         private readonly LockStatementSyntax _syntax;
 
         public LockBinder(Binder enclosing, LockStatementSyntax syntax)
@@ -82,8 +80,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static LockTypeInfo? TryFindLockTypeInfo(TypeSymbol lockType, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
+            const string LockTypeFullName = "System.Threading.Lock";
+            const string EnterLockScopeMethodName = "EnterLockScope";
+            const string LockScopeTypeName = "Scope";
+
             var enterLockScopeMethod = TryFindPublicVoidParameterlessMethod(lockType, EnterLockScopeMethodName);
-            if (!(enterLockScopeMethod is { ReturnsVoid: false, RefKind: RefKind.None }))
+            if (enterLockScopeMethod is not { ReturnsVoid: false, RefKind: RefKind.None })
             {
                 Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, LockTypeFullName, EnterLockScopeMethodName);
                 return null;
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var disposeMethod = TryFindPublicVoidParameterlessMethod(scopeType, WellKnownMemberNames.DisposeMethodName);
-            if (!(disposeMethod is { ReturnsVoid: true }))
+            if (disposeMethod is not { ReturnsVoid: true })
             {
                 Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, $"{LockTypeFullName}+{LockScopeTypeName}", WellKnownMemberNames.DisposeMethodName);
                 return null;
@@ -138,12 +140,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
         }
-    }
-
-    internal sealed class LockTypeInfo
-    {
-        public required MethodSymbol EnterLockScopeMethod { get; init; }
-        public required TypeSymbol ScopeType { get; init; }
-        public required MethodSymbol ScopeDisposeMethod { get; init; }
     }
 }
