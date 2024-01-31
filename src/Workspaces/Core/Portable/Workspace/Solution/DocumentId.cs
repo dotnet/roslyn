@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -87,20 +88,20 @@ namespace Microsoft.CodeAnalysis
         public static bool operator !=(DocumentId? left, DocumentId? right)
             => !(left == right);
 
-        internal void WriteTo(ObjectWriter writer)
+        internal async ValueTask WriteToAsync(ObjectWriter writer)
         {
             this.ProjectId.WriteTo(writer);
             writer.WriteGuid(Id);
             writer.WriteBoolean(IsSourceGenerated);
-            writer.WriteString(DebugName);
+            await writer.WriteStringAsync(DebugName).ConfigureAwait(false);
         }
 
-        internal static DocumentId ReadFrom(ObjectReader reader)
+        internal static async ValueTask<DocumentId> ReadFromAsync(ObjectReader reader)
         {
             var projectId = ProjectId.ReadFrom(reader);
-            var guid = reader.ReadGuid();
-            var isSourceGenerated = reader.ReadBoolean();
-            var debugName = reader.ReadString();
+            var guid = await reader.ReadGuidAsync().ConfigureAwait(false);
+            var isSourceGenerated = await reader.ReadBooleanAsync().ConfigureAwait(false);
+            var debugName = await reader.ReadStringAsync().ConfigureAwait(false);
 
             return CreateFromSerialized(projectId, guid, isSourceGenerated, debugName);
         }
