@@ -40,7 +40,7 @@ internal static class UseCollectionExpressionHelpers
         ExpressionSyntax expression,
         INamedTypeSymbol? expressionType,
         bool isSingletonInstance,
-        bool allowInterfaceConversion,
+        bool allowSemanticsChange,
         bool skipVerificationForReplacedNode,
         CancellationToken cancellationToken,
         out bool changesSemantics)
@@ -50,7 +50,7 @@ internal static class UseCollectionExpressionHelpers
         // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
         // types that could accept the collection expression).
         return CanReplaceWithCollectionExpression(
-            semanticModel, expression, s_emptyCollectionExpression, expressionType, isSingletonInstance, allowInterfaceConversion, skipVerificationForReplacedNode, cancellationToken, out changesSemantics);
+            semanticModel, expression, s_emptyCollectionExpression, expressionType, isSingletonInstance, allowSemanticsChange, skipVerificationForReplacedNode, cancellationToken, out changesSemantics);
     }
 
     public static bool CanReplaceWithCollectionExpression(
@@ -59,7 +59,7 @@ internal static class UseCollectionExpressionHelpers
         CollectionExpressionSyntax replacementExpression,
         INamedTypeSymbol? expressionType,
         bool isSingletonInstance,
-        bool allowInterfaceConversion,
+        bool allowSemanticsChange,
         bool skipVerificationForReplacedNode,
         CancellationToken cancellationToken,
         out bool changesSemantics)
@@ -254,7 +254,7 @@ internal static class UseCollectionExpressionHelpers
             if (s_tupleNamesCanDifferComparer.Equals(type, convertedType))
                 return true;
 
-            if (allowInterfaceConversion &&
+            if (allowSemanticsChange &&
                 IsWellKnownInterface(convertedType) &&
                 type.AllInterfaces.Contains(convertedType))
             {
@@ -754,7 +754,7 @@ internal static class UseCollectionExpressionHelpers
         TArrayCreationExpressionSyntax expression,
         INamedTypeSymbol? expressionType,
         bool isSingletonInstance,
-        bool allowInterfaceConversion,
+        bool allowSemanticsChange,
         Func<TArrayCreationExpressionSyntax, TypeSyntax> getType,
         Func<TArrayCreationExpressionSyntax, InitializerExpressionSyntax?> getInitializer,
         CancellationToken cancellationToken,
@@ -861,7 +861,7 @@ internal static class UseCollectionExpressionHelpers
         }
 
         if (!CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, isSingletonInstance, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
+                semanticModel, expression, expressionType, isSingletonInstance, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
         {
             return default;
         }

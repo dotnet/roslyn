@@ -337,8 +337,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31768")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31768")]
         public async Task AddMissingImports_AddMultipleImports_NoPreviousImports()
         {
             var code = """
