@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
@@ -36,9 +37,9 @@ namespace Roslyn.Utilities
             }
         }
 
-        public void WriteTo(ObjectWriter writer)
+        public async ValueTask WriteToAsync(ObjectWriter writer)
         {
-            writer.WriteString(SerializationFormat);
+            await writer.WriteStringAsync(SerializationFormat).ConfigureAwait(false);
             bKTree.WriteTo(writer);
         }
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -9,21 +10,21 @@ namespace Roslyn.Utilities;
 
 internal readonly partial struct BKTree
 {
-    internal void WriteTo(ObjectWriter writer)
+    internal async ValueTask WriteToAsync(ObjectWriter writer)
     {
-        writer.WriteValue(_concatenatedLowerCaseWords);
+        await writer.WriteValueAsync(_concatenatedLowerCaseWords).ConfigureAwait(false);
         writer.WriteArray(_nodes, static (w, n) => n.WriteTo(w));
         writer.WriteArray(_edges, static (w, n) => n.WriteTo(w));
     }
 
-    internal static BKTree? ReadFrom(ObjectReader reader)
+    internal static async ValueTask<BKTree?> ReadFromAsync(ObjectReader reader)
     {
         try
         {
             return new BKTree(
-                (char[])reader.ReadValue(),
-                reader.ReadArray(Node.ReadFrom),
-                reader.ReadArray(Edge.ReadFrom));
+                (char[])await reader.ReadValueAsync().ConfigureAwait(false),
+                await reader.ReadArrayAsync(Node.ReadFrom).ConfigureAwait(false),
+                await reader.ReadArrayAsync(Edge.ReadFrom).ConfigureAwait(false));
         }
         catch
         {
