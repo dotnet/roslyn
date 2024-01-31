@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
@@ -20,21 +21,21 @@ namespace Microsoft.CodeAnalysis.Serialization
         public abstract CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
         public abstract ParseOptions ReadParseOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
 
-        protected static void WriteCompilationOptionsTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+        protected static async ValueTask WriteCompilationOptionsToAsync(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             writer.WriteInt32((int)options.OutputKind);
             writer.WriteBoolean(options.ReportSuppressedDiagnostics);
-            writer.WriteString(options.ModuleName);
-            writer.WriteString(options.MainTypeName);
-            writer.WriteString(options.ScriptClassName);
+            await writer.WriteStringAsync(options.ModuleName).ConfigureAwait(false);
+            await writer.WriteStringAsync(options.MainTypeName).ConfigureAwait(false);
+            await writer.WriteStringAsync(options.ScriptClassName).ConfigureAwait(false);
             writer.WriteInt32((int)options.OptimizationLevel);
             writer.WriteBoolean(options.CheckOverflow);
 
             // REVIEW: is it okay this being not part of snapshot?
-            writer.WriteString(options.CryptoKeyContainer);
-            writer.WriteString(options.CryptoKeyFile);
+            await writer.WriteStringAsync(options.CryptoKeyContainer).ConfigureAwait(false);
+            await writer.WriteStringAsync(options.CryptoKeyFile).ConfigureAwait(false);
 
             writer.WriteValue(options.CryptoPublicKey.AsSpan());
             writer.WriteBoolean(options.DelaySign.HasValue);
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteInt32(options.SpecificDiagnosticOptions.Count);
             foreach (var kv in options.SpecificDiagnosticOptions.OrderBy(o => o.Key))
             {
-                writer.WriteString(kv.Key);
+                await writer.WriteStringAsync(kv.Key).ConfigureAwait(false);
                 writer.WriteInt32((int)kv.Value);
             }
 
