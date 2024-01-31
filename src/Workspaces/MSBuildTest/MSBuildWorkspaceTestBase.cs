@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             bool skipUnrecognizedProjects = false,
             (string key, string value)[] additionalProperties = null)
         {
-            additionalProperties ??= Array.Empty<(string key, string value)>();
+            additionalProperties ??= [];
             var workspace = MSBuildWorkspace.Create(CreateProperties(additionalProperties));
             if (throwOnWorkspaceFailed)
             {

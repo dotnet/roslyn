@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     solution,
                     new ManagedHotReloadServiceBridge(_debuggerService.Value),
                     _sourceTextProvider,
-                    captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                    captureMatchingDocuments: [],
                     captureAllMatchingDocuments: false,
                     reportDiagnostics: true,
                     cancellationToken).ConfigureAwait(false);
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             if (_disabled)
             {
-                return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
+                return new ManagedHotReloadUpdates([], []);
             }
 
             var workspace = WorkspaceProvider.Value.Workspace;

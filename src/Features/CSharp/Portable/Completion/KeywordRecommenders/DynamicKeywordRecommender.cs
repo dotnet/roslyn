@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         public ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return IsValidContext(position, context, cancellationToken)
-                ? ImmutableArray.Create(new RecommendedKeyword("dynamic"))
-                : ImmutableArray<RecommendedKeyword>.Empty;
+                ? [new RecommendedKeyword("dynamic")]
+                : [];
         }
 
         protected static bool IsDynamicTypeContext(

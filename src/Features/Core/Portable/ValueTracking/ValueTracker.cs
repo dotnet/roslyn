@@ -301,9 +301,9 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                 var declarators = operation switch
                 {
-                    IVariableDeclaratorOperation variableDeclarator => ImmutableArray.Create(variableDeclarator),
+                    IVariableDeclaratorOperation variableDeclarator => [variableDeclarator],
                     IVariableDeclarationOperation variableDeclaration => variableDeclaration.Declarators,
-                    _ => ImmutableArray<IVariableDeclaratorOperation>.Empty
+                    _ => []
                 };
 
                 foreach (var declarator in declarators)

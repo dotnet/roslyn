@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return new SymbolSpecification(
                 id: Guid.NewGuid(),
                 name: null,
-                symbolKindList: ImmutableArray.Create(
+                symbolKindList:
+                [
                     new SymbolKindOrTypeKind(SymbolKind.Namespace),
                     new SymbolKindOrTypeKind(TypeKind.Class),
                     new SymbolKindOrTypeKind(TypeKind.Struct),
@@ -77,16 +78,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     new SymbolKindOrTypeKind(SymbolKind.Event),
                     new SymbolKindOrTypeKind(SymbolKind.Parameter),
                     new SymbolKindOrTypeKind(TypeKind.TypeParameter),
-                    new SymbolKindOrTypeKind(SymbolKind.Local)),
-                accessibilityList: ImmutableArray.Create(
+                    new SymbolKindOrTypeKind(SymbolKind.Local),
+                ],
+                accessibilityList:
+                [
                     Accessibility.NotApplicable,
                     Accessibility.Public,
                     Accessibility.Internal,
                     Accessibility.Private,
                     Accessibility.Protected,
                     Accessibility.ProtectedAndInternal,
-                    Accessibility.ProtectedOrInternal),
-                modifiers: ImmutableArray<ModifierKind>.Empty);
+                    Accessibility.ProtectedOrInternal,
+                ],
+                modifiers: []);
         }
 
         public bool AppliesTo(ISymbol symbol)

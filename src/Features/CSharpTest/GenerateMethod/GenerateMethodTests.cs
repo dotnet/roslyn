@@ -8036,8 +8036,7 @@ new TestParameters(Options.Regular));
             """);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/643")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/14467")]
     public async Task TestGenerateMethodWithConfigureAwaitFalse()
     {
@@ -8077,8 +8076,7 @@ new TestParameters(Options.Regular));
             """);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/643")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/14467")]
     public async Task TestGenerateMethodWithMethodChaining()
     {
@@ -8118,8 +8116,7 @@ new TestParameters(Options.Regular));
             """);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/643")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/14467")]
     public async Task TestGenerateMethodWithMethodChaining2()
     {

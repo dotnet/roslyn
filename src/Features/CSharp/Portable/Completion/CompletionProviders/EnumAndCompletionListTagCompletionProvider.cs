@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal partial class EnumAndCompletionListTagCompletionProvider : LSPCompletionProvider
     {
         private static readonly CompletionItemRules s_enumTypeRules =
-            CompletionItemRules.Default.WithCommitCharacterRules(ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.')))
+            CompletionItemRules.Default.WithCommitCharacterRules([CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.')])
                                        .WithMatchPriority(MatchPriority.Preselect)
                                        .WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
 
-        private static readonly ImmutableHashSet<char> s_triggerCharacters = ImmutableHashSet.Create(' ', '[', '(', '~');
+        private static readonly ImmutableHashSet<char> s_triggerCharacters = [' ', '[', '(', '~'];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var infos = typeInferenceService.GetTypeInferenceInfo(semanticModel, position, cancellationToken);
 
                 if (infos.Length == 0)
-                    infos = ImmutableArray.Create(new TypeInferenceInfo(semanticModel.Compilation.ObjectType));
+                    infos = [new TypeInferenceInfo(semanticModel.Compilation.ObjectType)];
 
                 foreach (var (type, isParams) in infos)
                     await HandleSingleTypeAsync(context, semanticModel, token, type, isParams, cancellationToken).ConfigureAwait(false);

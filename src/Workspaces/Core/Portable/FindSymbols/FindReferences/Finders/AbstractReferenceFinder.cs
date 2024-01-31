@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (document.Project == project)
                     return scope.ToImmutableArray();
 
-                return ImmutableArray<Document>.Empty;
+                return [];
             }
 
             using var _ = ArrayBuilder<Document>.GetInstance(out var documents);
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             if (tokens.IsEmpty)
-                return ImmutableArray<FinderLocation>.Empty;
+                return [];
 
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
             foreach (var token in tokens)
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var aliasSymbols = GetLocalAliasSymbols(state, initialReferences, cancellationToken);
             return aliasSymbols.IsDefaultOrEmpty
-                ? ImmutableArray<FinderLocation>.Empty
+                ? []
                 : await FindReferencesThroughLocalAliasSymbolsAsync(symbol, state, aliasSymbols, cancellationToken).ConfigureAwait(false);
         }
 
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var aliasSymbols = GetLocalAliasSymbols(state, initialReferences, cancellationToken);
             return aliasSymbols.IsDefaultOrEmpty
-                ? ImmutableArray<FinderLocation>.Empty
+                ? []
                 : await FindReferencesThroughLocalAliasSymbolsAsync(state, aliasSymbols, cancellationToken).ConfigureAwait(false);
         }
 
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return locations.ToImmutable();
             }
 
-            return ImmutableArray<FinderLocation>.Empty;
+            return [];
         }
 
         protected Task<ImmutableArray<FinderLocation>> FindReferencesInForEachStatementsAsync(
@@ -859,7 +859,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return symbol is TSymbol typedSymbol && CanFind(typedSymbol)
                 ? FindReferencesInDocumentAsync(typedSymbol, state, options, cancellationToken)
-                : new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
+                : new ValueTask<ImmutableArray<FinderLocation>>([]);
         }
 
         public sealed override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
@@ -872,13 +872,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return DetermineCascadedSymbolsAsync(typedSymbol, solution, options, cancellationToken);
             }
 
-            return new(ImmutableArray<ISymbol>.Empty);
+            return new([]);
         }
 
         protected virtual ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             TSymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            return new(ImmutableArray<ISymbol>.Empty);
+            return new([]);
         }
 
         protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingSymbolNameAsync(

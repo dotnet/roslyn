@@ -57,22 +57,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             if (!ShouldFindReferencesInGlobalSuppressions(symbol, out var docCommentId))
-                return ImmutableArray<FinderLocation>.Empty;
+                return [];
 
             // Check if we have any relevant global attributes in this document.
             var info = await SyntaxTreeIndex.GetRequiredIndexAsync(state.Document, cancellationToken).ConfigureAwait(false);
             if (!info.ContainsGlobalSuppressMessageAttribute)
-                return ImmutableArray<FinderLocation>.Empty;
+                return [];
 
             var semanticModel = state.SemanticModel;
             var suppressMessageAttribute = semanticModel.Compilation.SuppressMessageAttributeType();
             if (suppressMessageAttribute == null)
-                return ImmutableArray<FinderLocation>.Empty;
+                return [];
 
             // Check if we have any instances of the symbol documentation comment ID string literals within global attributes.
             // These string literals represent references to the symbol.
             if (!TryGetExpectedDocumentationCommentId(docCommentId, out var expectedDocCommentId))
-                return ImmutableArray<FinderLocation>.Empty;
+                return [];
 
             var syntaxFacts = state.SyntaxFacts;
 

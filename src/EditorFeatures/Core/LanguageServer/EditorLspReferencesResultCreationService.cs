@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 DefinitionIcon = new ImageElement(imageId.ToLSPImageId()),
                 DisplayPath = location?.Uri.LocalPath,
                 Id = id,
-                Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : Array.Empty<VSInternalReferenceKind>(),
+                Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : [],
                 ResolutionStatus = VSInternalResolutionStatusKind.ConfirmedAsReference,
                 Text = text,
             };

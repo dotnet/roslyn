@@ -155,10 +155,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionRules WithSnippetsRule(SnippetsRule snippetsRule)
             => With(snippetsRule: snippetsRule);
 
-        private static readonly ImmutableArray<char> s_defaultCommitKeys = ImmutableArray.Create(
-                ' ', '{', '}', '[', ']', '(', ')', '.', ',', ':',
-                ';', '+', '-', '*', '/', '%', '&', '|', '^', '!',
-                '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\');
+        private static readonly ImmutableArray<char> s_defaultCommitKeys = [' ', '{', '}', '[', ']', '(', ')', '.', ',', ':', ';', '+', '-', '*', '/', '%', '&', '|', '^', '!', '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\'];
 
         /// <summary>
         /// The default <see cref="CompletionRules"/> if none is otherwise specified.

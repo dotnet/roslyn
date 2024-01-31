@@ -654,35 +654,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                if (targetType is NamedTypeSymbol namedType)
-                {
-                    var analyzedArguments = AnalyzedArguments.GetInstance();
-                    // https://github.com/dotnet/roslyn/issues/68785: Use ctor with `int capacity` when the size is known.
-                    collectionCreation = BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
-                    collectionCreation.WasCompilerGenerated = true;
-                    analyzedArguments.Free();
-                }
-                else if (targetType is TypeParameterSymbol typeParameter)
-                {
-                    var analyzedArguments = AnalyzedArguments.GetInstance();
-                    collectionCreation = BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
-                    collectionCreation.WasCompilerGenerated = true;
-                    analyzedArguments.Free();
-                }
-                else
-                {
-                    collectionCreation = new BoundBadExpression(syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, targetType);
-                }
+                collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, diagnostics);
 
                 var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
                 foreach (var element in elements)
                 {
-                    BoundNode convertedElement = BindCollectionExpressionElementAddMethod(
-                        element,
-                        collectionInitializerAddMethodBinder,
-                        implicitReceiver,
-                        diagnostics,
-                        out _);
+                    BoundNode convertedElement = element is BoundCollectionExpressionSpreadElement spreadElement ?
+                        (BoundNode)BindCollectionExpressionSpreadElementAddMethod(
+                            (SpreadElementSyntax)spreadElement.Syntax,
+                            spreadElement,
+                            collectionInitializerAddMethodBinder,
+                            implicitReceiver,
+                            diagnostics) :
+                        BindCollectionInitializerElementAddMethod(
+                            (ExpressionSyntax)element.Syntax,
+                            ImmutableArray.Create((BoundExpression)element),
+                            hasEnumerableInitializerType: true,
+                            collectionInitializerAddMethodBinder,
+                            diagnostics,
+                            implicitReceiver);
                     builder.Add(convertedElement);
                 }
             }
@@ -764,6 +754,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                     iteratorBody: new BoundExpressionStatement(syntax, convertElement) { WasCompilerGenerated = true },
                     lengthOrCount: element.LengthOrCount);
             }
+        }
+
+        internal BoundExpression BindCollectionExpressionConstructor(SyntaxNode syntax, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
+        {
+            BoundExpression collectionCreation;
+            var analyzedArguments = AnalyzedArguments.GetInstance();
+            if (targetType is NamedTypeSymbol namedType)
+            {
+                var binder = WithAdditionalFlags(BinderFlags.CollectionExpressionConversionValidation);
+                collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
+                collectionCreation.WasCompilerGenerated = true;
+            }
+            else if (targetType is TypeParameterSymbol typeParameter)
+            {
+                collectionCreation = BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
+                collectionCreation.WasCompilerGenerated = true;
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(targetType);
+            }
+            analyzedArguments.Free();
+            return collectionCreation;
+        }
+
+        internal bool HasCollectionExpressionApplicableConstructor(SyntaxNode syntax, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
+        {
+            var collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, diagnostics);
+            return !collectionCreation.HasErrors;
+        }
+
+        internal bool HasCollectionExpressionApplicableAddMethod(SyntaxNode syntax, TypeSymbol targetType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
+        {
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
+            var elementPlaceholder = new BoundValuePlaceholder(syntax, elementType) { WasCompilerGenerated = true };
+            var addMethodBinder = WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod | BinderFlags.CollectionExpressionConversionValidation);
+            var result = BindCollectionInitializerElementAddMethod(
+                syntax,
+                ImmutableArray.Create<BoundExpression>(elementPlaceholder),
+                hasEnumerableInitializerType: true,
+                addMethodBinder,
+                diagnostics,
+                implicitReceiver);
+            return !result.HasErrors;
         }
 
         /// <summary>
@@ -865,10 +899,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind != CollectionExpressionTypeKind.None)
             {
+                var elements = node.Elements;
                 var elementType = elementTypeWithAnnotations.Type;
                 Debug.Assert(elementType is { });
 
-                var elements = node.Elements;
+                if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+                {
+                    if (!HasCollectionExpressionApplicableConstructor(node.Syntax, targetType, diagnostics))
+                    {
+                        reportedErrors = true;
+                    }
+
+                    if (elements.Length > 0 &&
+                        !HasCollectionExpressionApplicableAddMethod(node.Syntax, targetType, elementType, diagnostics))
+                    {
+                        reportedErrors = true;
+                    }
+                }
+
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 foreach (var element in elements)
                 {

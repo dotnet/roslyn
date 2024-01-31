@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.InlineHints
         {
             var enabledForTypes = options.EnabledForTypes;
             if (!enabledForTypes && !displayAllOverride)
-                return ImmutableArray<InlineHint>.Empty;
+                return [];
 
             var forImplicitVariableTypes = enabledForTypes && options.ForImplicitVariableTypes;
             var forLambdaParameterTypes = enabledForTypes && options.ForLambdaParameterTypes;
             var forImplicitObjectCreation = enabledForTypes && options.ForImplicitObjectCreation;
             if (!forImplicitVariableTypes && !forLambdaParameterTypes && !forImplicitObjectCreation && !displayAllOverride)
-                return ImmutableArray<InlineHint>.Empty;
+                return [];
 
             var anonymousTypeService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

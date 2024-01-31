@@ -36,10 +36,11 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         protected abstract SyntaxNode AddSimplificationAnnotationTo(SyntaxNode node);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(
+            [
                 IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                 IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
-                IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
+                IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
+            ];
 
         private (SyntaxNode, string diagnosticId) GetNodeToSimplify(
             SyntaxNode root, SemanticModel model, TextSpan span,

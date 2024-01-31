@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // Defer to the language to add the actual import/using.
                 if (hasExistingImport)
                 {
-                    return ImmutableArray<TextChange>.Empty;
+                    return [];
                 }
 
                 (var newContextNode, var newDocument) = await ReplaceNameNodeAsync(

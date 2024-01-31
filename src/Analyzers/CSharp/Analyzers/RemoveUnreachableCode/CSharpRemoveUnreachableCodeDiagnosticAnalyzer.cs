@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 Descriptor,
                 firstStatementLocation,
                 NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
-                additionalLocations: ImmutableArray<Location>.Empty,
+                additionalLocations: [],
                 additionalUnnecessaryLocations: additionalLocations));
 
             var sections = RemoveUnreachableCodeHelpers.GetSubsequentUnreachableSections(firstUnreachableStatement);

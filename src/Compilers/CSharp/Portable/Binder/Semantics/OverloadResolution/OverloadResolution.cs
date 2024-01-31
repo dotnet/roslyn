@@ -2570,10 +2570,10 @@ outerDefault:
                 return true;
             }
 
-            // - T1 is System.ReadOnlySpan<E1> or System.Span<E1>, and T2 is an array_or_array_interface_or_string_type
+            // - T1 is System.ReadOnlySpan<E1> or System.Span<E1>, and T2 is an array_or_array_interface
             //    with iteration type E2, and an implicit conversion exists from E1 to E2
             if (kind1 is CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span &&
-                IsSZArrayOrArrayInterfaceOrString(t2, out elementType2) &&
+                IsSZArrayOrArrayInterface(t2, out elementType2) &&
                 hasImplicitConversion(elementType1, elementType2, ref useSiteInfo))
             {
                 return true;
@@ -2593,14 +2593,8 @@ outerDefault:
                 Conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteInfo).IsImplicit;
         }
 
-        private bool IsSZArrayOrArrayInterfaceOrString(TypeSymbol type, out TypeSymbol elementType)
+        private static bool IsSZArrayOrArrayInterface(TypeSymbol type, out TypeSymbol elementType)
         {
-            if (type.SpecialType == SpecialType.System_String)
-            {
-                elementType = Compilation.GetSpecialType(SpecialType.System_Char);
-                return true;
-            }
-
             if (type is ArrayTypeSymbol { IsSZArray: true } arrayType)
             {
                 elementType = arrayType.ElementType;

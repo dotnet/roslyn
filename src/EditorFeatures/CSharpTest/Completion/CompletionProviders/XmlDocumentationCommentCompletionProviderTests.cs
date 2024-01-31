@@ -1093,8 +1093,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/69293")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69293")]
         public async Task DelegateParamRef()
         {
             await VerifyItemsExistAsync("""

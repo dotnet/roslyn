@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddAnalyzerReference(analyzerReference);
 
             if (assertRightAway)
-                await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: Array.Empty<string>());
+                await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: []);
 
             project = project.AddAdditionalDocument("Test.txt", "Hello, world!").Project;
             var additionalDocumentId = project.AdditionalDocumentIds.Single();
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             project = project.RemoveAdditionalDocument(additionalDocumentId);
 
-            await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: Array.Empty<string>());
+            await AssertCompilationContainsGeneratedFilesAsync(project, expectedGeneratedContents: []);
 
             static async Task AssertCompilationContainsGeneratedFilesAsync(Project project, params string[] expectedGeneratedContents)
             {
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             foreach (var documentIdToTest in documentIdsToTest)
             {
                 var document = frozenSolution.GetRequiredDocument(documentIdToTest);
-                Assert.Equal(document.GetLinkedDocumentIds().Single(), documentIdsToTest.Except(new[] { documentIdToTest }).Single());
+                Assert.Equal(document.GetLinkedDocumentIds().Single(), documentIdsToTest.Except([documentIdToTest]).Single());
                 document = document.WithText(SourceText.From("// Something else"));
 
                 var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);

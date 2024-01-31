@@ -7050,8 +7050,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_01()
         {
             var source =
@@ -7112,8 +7111,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_02()
         {
             var source =
@@ -7173,8 +7171,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_03()
         {
             var source =
@@ -7237,8 +7234,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_04()
         {
             var source =
@@ -7299,8 +7295,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_05()
         {
             var source =
@@ -7358,8 +7353,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_06()
         {
             var source =
@@ -7417,8 +7411,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_07()
         {
             var source =
@@ -7475,8 +7468,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_11()
         {
             var source =
@@ -7530,8 +7522,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_12()
         {
             var source =
@@ -7584,8 +7575,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_13()
         {
             var source =
@@ -7641,8 +7631,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_14()
         {
             var source =
@@ -7697,8 +7686,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_15()
         {
             var source =
@@ -7755,8 +7743,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_16()
         {
             var source =
@@ -7813,8 +7800,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_17()
         {
             var source =
@@ -7871,8 +7857,7 @@ class Program
 }");
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         [WorkItem(67188, "https://github.com/dotnet/roslyn/issues/67188")]
         public void CapturingAndShadowing_18()
         {

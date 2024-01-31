@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedOperators,
-                   ImmutableArray.Create(SyntaxKind.OperatorDeclaration))
+                   [SyntaxKind.OperatorDeclaration])
         {
         }
 

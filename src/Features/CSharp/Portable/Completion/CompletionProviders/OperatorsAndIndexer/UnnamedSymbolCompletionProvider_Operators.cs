@@ -33,13 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private readonly string OperatorName = nameof(OperatorName);
         private readonly ImmutableArray<KeyValuePair<string, string>> OperatorProperties =
-            ImmutableArray.Create(new KeyValuePair<string, string>(KindName, OperatorKindName));
+            [new KeyValuePair<string, string>(KindName, OperatorKindName)];
 
         /// <summary>
         /// Ordered in the order we want to display operators in the completion list.
         /// </summary>
         private static readonly ImmutableArray<(string name, OperatorPosition position)> s_operatorInfo =
-            ImmutableArray.Create(
+            [
                 (WellKnownMemberNames.EqualityOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.InequalityOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.GreaterThanOperatorName, OperatorPosition.Infix),
@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (WellKnownMemberNames.LeftShiftOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.RightShiftOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.UnsignedRightShiftOperatorName, OperatorPosition.Infix),
-                (WellKnownMemberNames.OnesComplementOperatorName, OperatorPosition.Prefix));
+                (WellKnownMemberNames.OnesComplementOperatorName, OperatorPosition.Prefix),
+            ];
 
         /// <summary>
         /// Mapping from operator name to info about it.
@@ -103,12 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
 
             var displayText = GetOperatorText(opName);
-
-            using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(OperatorProperties.Length + 1, out var builder);
-
-            builder.AddRange(OperatorProperties);
-            builder.Add(new KeyValuePair<string, string>(OperatorName, opName));
-
             context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 displayTextSuffix: null,
@@ -118,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbols: operators.ToImmutableArray(),
                 rules: s_operatorRules,
                 contextPosition: context.Position,
-                properties: builder.ToImmutable(),
+                properties: [.. OperatorProperties, new KeyValuePair<string, string>(OperatorName, opName)],
                 isComplexTextEdit: true));
         }
 

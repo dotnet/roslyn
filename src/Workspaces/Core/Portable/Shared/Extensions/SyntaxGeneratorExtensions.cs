@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 parameters: parameters,
                 statements: statements,
                 thisConstructorArguments: ShouldGenerateThisConstructorCall(containingType, parameterToExistingMemberMap)
-                    ? ImmutableArray<SyntaxNode>.Empty
+                    ? []
                     : default);
 
             return newMembers.Concat(constructor);
@@ -136,9 +136,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
                         type: parameter.Type,
                         refKind: RefKind.None,
-                        explicitInterfaceImplementations: ImmutableArray<IPropertySymbol>.Empty,
+                        explicitInterfaceImplementations: [],
                         name: propertyName,
-                        parameters: ImmutableArray<IParameterSymbol>.Empty,
+                        parameters: [],
                         getMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
                             attributes: default,
                             accessibility: default,
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessorGet = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     overriddenProperty.GetMethod,
                     accessibility: getAccessibility,
-                    statements: getBody != null ? ImmutableArray.Create(getBody) : ImmutableArray<SyntaxNode>.Empty,
+                    statements: getBody != null ? [getBody] : [],
                     modifiers: modifiers);
             }
 
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessorSet = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     overriddenProperty.SetMethod,
                     accessibility: setAccessibility,
-                    statements: setBody != null ? ImmutableArray.Create(setBody) : ImmutableArray<SyntaxNode>.Empty,
+                    statements: setBody != null ? [setBody] : [],
                     modifiers: modifiers);
             }
 
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     overriddenMethod,
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
-                    statements: ImmutableArray.Create(statement));
+                    statements: [statement]);
             }
             else
             {
@@ -542,8 +542,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
                     statements: overriddenMethod.ReturnsVoid
-                        ? ImmutableArray.Create(codeFactory.ExpressionStatement(body))
-                        : ImmutableArray.Create(codeFactory.ReturnStatement(body)));
+                        ? [codeFactory.ExpressionStatement(body)]
+                        : [codeFactory.ReturnStatement(body)]);
             }
         }
 
@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     expression = generator.ElementAccessExpression(expression, arguments);
                 }
 
-                return ImmutableArray.Create(generator.ReturnStatement(expression));
+                return [generator.ReturnStatement(expression)];
             }
 
             return preferAutoProperties ? default : generator.CreateThrowNotImplementedStatementBlock(compilation);
@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 expression = generator.AssignmentStatement(expression, generator.IdentifierName("value"));
 
-                return ImmutableArray.Create(generator.ExpressionStatement(expression));
+                return [generator.ExpressionStatement(expression)];
             }
 
             return preferAutoProperties

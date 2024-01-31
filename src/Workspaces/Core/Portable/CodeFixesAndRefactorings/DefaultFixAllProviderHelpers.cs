@@ -46,13 +46,13 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             TFixAllContext fixAllContext,
             Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
             where TFixAllContext : IFixAllContext
-            => fixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext));
+            => fixAllContextsAsync(fixAllContext, [fixAllContext]);
 
         private static Task<Solution?> GetProjectFixesAsync<TFixAllContext>(
             TFixAllContext fixAllContext,
             Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
             where TFixAllContext : IFixAllContext
-            => fixAllContextsAsync(fixAllContext, ImmutableArray.Create((TFixAllContext)fixAllContext.With((document: null, fixAllContext.Project))));
+            => fixAllContextsAsync(fixAllContext, [(TFixAllContext)fixAllContext.With((document: null, fixAllContext.Project))]);
 
         private static Task<Solution?> GetSolutionFixesAsync<TFixAllContext>(
             TFixAllContext fixAllContext,

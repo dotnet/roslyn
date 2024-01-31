@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         {
             var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
             if (fields.IsDefaultOrEmpty)
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
 
             if (fields.Length == 1)
             {
@@ -75,29 +75,33 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         private ImmutableArray<CodeAction> EncapsulateAllFields(Document document, ImmutableArray<IFieldSymbol> fields, CleanCodeGenerationOptionsProvider fallbackOptions)
         {
-            return ImmutableArray.Create(
+            return
+            [
                 CodeAction.Create(
-                    FeaturesResources.Encapsulate_fields_and_use_property,
-                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c),
-                    nameof(FeaturesResources.Encapsulate_fields_and_use_property)),
+                        FeaturesResources.Encapsulate_fields_and_use_property,
+                        c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c),
+                        nameof(FeaturesResources.Encapsulate_fields_and_use_property)),
                 CodeAction.Create(
                     FeaturesResources.Encapsulate_fields_but_still_use_field,
                     c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, c),
-                    nameof(FeaturesResources.Encapsulate_fields_but_still_use_field)));
+                    nameof(FeaturesResources.Encapsulate_fields_but_still_use_field)),
+            ];
         }
 
         private ImmutableArray<CodeAction> EncapsulateOneField(Document document, IFieldSymbol field, CleanCodeGenerationOptionsProvider fallbackOptions)
         {
             var fields = ImmutableArray.Create(field);
-            return ImmutableArray.Create(
+            return
+            [
                 CodeAction.Create(
-                    string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, field.Name),
-                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c),
-                    nameof(FeaturesResources.Encapsulate_field_colon_0_and_use_property) + "_" + field.Name),
+                        string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, field.Name),
+                        c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c),
+                        nameof(FeaturesResources.Encapsulate_field_colon_0_and_use_property) + "_" + field.Name),
                 CodeAction.Create(
                     string.Format(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field, field.Name),
                     c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, c),
-                    nameof(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field) + "_" + field.Name));
+                    nameof(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field) + "_" + field.Name),
+            ];
         }
 
         public async Task<Solution> EncapsulateFieldsAsync(
@@ -375,14 +379,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var factory = document.GetLanguageService<SyntaxGenerator>();
 
             var propertySymbol = annotation.AddAnnotationToSymbol(CodeGenerationSymbolFactory.CreatePropertySymbol(containingType: containingSymbol,
-                attributes: ImmutableArray<AttributeData>.Empty,
+                attributes: [],
                 accessibility: ComputeAccessibility(accessibility, field.Type),
                 modifiers: new DeclarationModifiers(isStatic: field.IsStatic, isReadOnly: field.IsReadOnly, isUnsafe: field.RequiresUnsafeModifier()),
                 type: field.GetSymbolType(),
                 refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: propertyName,
-                parameters: ImmutableArray<IParameterSymbol>.Empty,
+                parameters: [],
                 getMethod: CreateGet(fieldName, field, factory),
                 setMethod: field.IsReadOnly || field.IsConst ? null : CreateSet(fieldName, field, factory)));
 
@@ -419,9 +423,9 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 factory.IdentifierName("value")));
 
             return CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                ImmutableArray<AttributeData>.Empty,
+                [],
                 Accessibility.NotApplicable,
-                ImmutableArray.Create(body));
+                [body]);
         }
 
         protected static IMethodSymbol CreateGet(string originalFieldName, IFieldSymbol field, SyntaxGenerator factory)
@@ -436,9 +440,9 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 value.WithAdditionalAnnotations(Simplifier.Annotation));
 
             return CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                ImmutableArray<AttributeData>.Empty,
+                [],
                 Accessibility.NotApplicable,
-                ImmutableArray.Create(body));
+                [body]);
         }
 
         private static readonly char[] s_underscoreCharArray = ['_'];

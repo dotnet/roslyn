@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             if (diagnostics.IsEmpty())
             {
-                return (ImmutableArray<Diagnostic>.Empty, ImmutableArray<CodeAction>.Empty, null);
+                return ([], [], null);
             }
 
             var scope = GetFixAllScope(annotation);
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     document, span, scope.Value, CancellationToken.None).ConfigureAwait(false);
                 if (documentsAndSpansToFix.IsEmpty)
                 {
-                    return (ImmutableArray<Diagnostic>.Empty, ImmutableArray<CodeAction>.Empty, null);
+                    return ([], [], null);
                 }
             }
 

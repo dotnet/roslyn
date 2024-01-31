@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return changes.ToImmutable();
             }
 
-            return ImmutableArray<TextChange>.Empty;
+            return [];
         }
 
         private LineColumn FormatTrivia<T>(Formatter<T> formatter, WhitespaceAppender<T> whitespaceAdder, ArrayBuilder<T> changes, CancellationToken cancellationToken)

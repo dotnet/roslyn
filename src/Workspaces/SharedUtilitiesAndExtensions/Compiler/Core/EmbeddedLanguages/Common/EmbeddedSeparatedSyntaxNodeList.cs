@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         public int SeparatorLength { get; }
 
         public static readonly EmbeddedSeparatedSyntaxNodeList<TSyntaxKind, TSyntaxNode, TDerivedNode> Empty
-            = new(ImmutableArray<EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>>.Empty);
+            = new([]);
 
         public EmbeddedSeparatedSyntaxNodeList(
             ImmutableArray<EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>> nodesAndTokens)

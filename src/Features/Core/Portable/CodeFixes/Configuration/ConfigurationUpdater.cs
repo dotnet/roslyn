@@ -279,12 +279,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 return solution;
             }
 
-            // Add the newly added analyzer config document as a solution item.
-            // The analyzer config document is not yet created, so we just mark the file
-            // path for tracking and add it as a solution item whenever the file gets created by the code fix application.
-            var service = _project.Solution.Services.GetService<IAddSolutionItemService>();
-            service?.TrackFilePathAndAddSolutionItemWhenFileCreated(editorConfigDocument.FilePath);
-
             return solution.WithAnalyzerConfigDocumentText(editorConfigDocument.Id, newText);
         }
 
@@ -340,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 name: ".editorconfig",
                 filePath: analyzerConfigPath);
 
-            var newSolution = project.Solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo));
+            var newSolution = project.Solution.AddAnalyzerConfigDocuments([documentInfo]);
             return newSolution.GetProject(project.Id)?.GetAnalyzerConfigDocument(id);
         }
 
@@ -374,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 }
             }
 
-            return ImmutableArray<(string optionName, string currentOptionValue, bool isPerLanguage)>.Empty;
+            return [];
         }
 
         internal static bool TryGetEditorConfigStringParts(string editorConfigString, out (string optionName, string optionValue) parts)
@@ -404,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                         select option).ToImmutableArray();
             }
 
-            return ImmutableArray<IOption2>.Empty;
+            return [];
         }
 
         private SourceText? GetNewAnalyzerConfigDocumentText(SourceText originalText, AnalyzerConfigDocument editorConfigDocument)

@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result.Append(name).Append(": ").Append(this.Dump(_labels[key]));
                 first = false;
             }
-            result.Append("}");
+            result.Append('}');
             return result.ToString();
         }
 #endif

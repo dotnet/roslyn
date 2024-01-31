@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => GetAllSymbolsWorker(info).Distinct();
 
         private static ImmutableArray<ISymbol> GetAllSymbolsWorker(this SymbolInfo info)
-            => info.Symbol == null ? info.CandidateSymbols : [info.Symbol, .. info.CandidateSymbols];
+            => info.Symbol == null ? info.CandidateSymbols : info.CandidateSymbols.Insert(0, info.Symbol);
 
         public static ISymbol? GetAnySymbol(this SymbolInfo info)
             => info.Symbol ?? info.CandidateSymbols.FirstOrDefault();
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ImmutableArray<ISymbol> GetBestOrAllSymbols(this SymbolInfo info)
         {
             if (info.Symbol != null)
-                return [info.Symbol];
+                return ImmutableArray.Create(info.Symbol);
 
             if (info.CandidateSymbols.Contains(null!))
             {

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
-            = ImmutableArray.Create(CS1717, CS1718);
+            = [CS1717, CS1718];
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

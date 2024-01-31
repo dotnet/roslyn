@@ -97,11 +97,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             return new DiagnosticAnalysisResult(
                 projectId,
                 version,
-                documentIds: ImmutableHashSet<DocumentId>.Empty,
+                documentIds: [],
                 syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                 semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                 nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                others: ImmutableArray<DiagnosticData>.Empty,
+                others: [],
                 fromBuild: false);
         }
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         public bool IsDefault => DocumentIds == null;
 
         // make sure we don't return null
-        public ImmutableHashSet<DocumentId> DocumentIdsOrEmpty => DocumentIds ?? ImmutableHashSet<DocumentId>.Empty;
+        public ImmutableHashSet<DocumentId> DocumentIdsOrEmpty => DocumentIds ?? [];
 
         private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? GetMap(AnalysisKind kind)
             => kind switch
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             // PERF: don't allocation anything if not needed
             if (IsAggregatedForm || IsEmpty)
             {
-                return ImmutableArray<DiagnosticData>.Empty;
+                return [];
             }
 
             Contract.ThrowIfNull(_syntaxLocals);
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         {
             if (IsAggregatedForm || IsEmpty)
             {
-                return ImmutableArray<DiagnosticData>.Empty;
+                return [];
             }
 
             var map = GetMap(kind);
@@ -262,11 +262,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 return diagnostics;
             }
 
-            return ImmutableArray<DiagnosticData>.Empty;
+            return [];
         }
 
         public ImmutableArray<DiagnosticData> GetOtherDiagnostics()
-            => (IsAggregatedForm || IsEmpty) ? ImmutableArray<DiagnosticData>.Empty : _others;
+            => (IsAggregatedForm || IsEmpty) ? [] : _others;
 
         public DiagnosticAnalysisResult ToAggregatedForm()
             => new(ProjectId, Version, DocumentIds, IsEmpty, FromBuild);
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                _syntaxLocals,
                semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-               others: ImmutableArray<DiagnosticData>.Empty,
+               others: [],
                documentIds: null,
                fromBuild: false);
         }
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             var allEmpty = syntaxLocals ?? semanticLocals ?? nonLocals;
             if (allEmpty == null)
             {
-                return ImmutableHashSet<DocumentId>.Empty;
+                return [];
             }
 
             var documents = SpecializedCollections.EmptyEnumerable<DocumentId>();

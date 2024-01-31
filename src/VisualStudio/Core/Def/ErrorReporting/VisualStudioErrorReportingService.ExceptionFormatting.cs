@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             else
             {
                 stringBuilder.Append(fullName);
-                stringBuilder.Append(".");
+                stringBuilder.Append('.');
                 return false;
             }
         }

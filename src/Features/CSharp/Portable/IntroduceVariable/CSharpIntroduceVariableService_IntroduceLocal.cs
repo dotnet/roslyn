@@ -44,10 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 modifiers,
                 SyntaxFactory.VariableDeclaration(
                     GetTypeSyntax(document, expression, cancellationToken),
-                    SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(
+                    [SyntaxFactory.VariableDeclarator(
                         newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
                         null,
-                        SyntaxFactory.EqualsValueClause(expression.WithoutTrivia())))));
+                        SyntaxFactory.EqualsValueClause(expression.WithoutTrivia()))]));
 
             // If we're inserting into a multi-line parent, then add a newline after the local-var
             // we're adding.  That way we don't end up having it and the starting statement be on
@@ -250,8 +250,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             switch (node)
             {
                 case BasePropertyDeclarationSyntax baseProperty:
-                    var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(
-                        SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, body)));
+                    var accessorList = SyntaxFactory.AccessorList(
+                        [SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, body)]);
                     return baseProperty
                         .TryWithExpressionBody(null)
                         .WithAccessorList(accessorList)
@@ -426,17 +426,17 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             if (precedingEndOfLine == default)
             {
                 return oldStatements.ReplaceRange(
-                    nextStatement, new[] { newStatement, nextStatement });
+                    nextStatement, [newStatement, nextStatement]);
             }
 
             var endOfLineIndex = nextStatementLeading.IndexOf(precedingEndOfLine) + 1;
 
             return oldStatements.ReplaceRange(
-                nextStatement, new[]
-                {
+                nextStatement,
+                [
                     newStatement.WithLeadingTrivia(nextStatementLeading.Take(endOfLineIndex)),
                     nextStatement.WithLeadingTrivia(nextStatementLeading.Skip(endOfLineIndex)),
-                });
+                ]);
         }
 
         private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax or SwitchSectionSyntax;
