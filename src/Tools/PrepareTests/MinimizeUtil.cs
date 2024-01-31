@@ -34,6 +34,7 @@ internal static class MinimizeUtil
             "src/Workspaces/MSBuildTest/Resources/Directory.Build.targets",
             "src/Workspaces/MSBuildTest/Resources/Directory.Build.rsp",
             "src/Workspaces/MSBuildTest/Resources/NuGet.Config",
+            "eng/libclrgc.dylib",
         };
 
         foreach (var individualFile in individualFiles)
