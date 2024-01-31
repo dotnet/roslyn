@@ -6,6 +6,7 @@
 
 using System;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Roslyn.Utilities;
 
@@ -58,13 +59,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             writer.WriteInt32((int)(EnforcementLevel.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
         }
 
-        public static SerializableNamingRule ReadFrom(ObjectReader reader)
+        public static async ValueTask<SerializableNamingRule> ReadFromAsync(ObjectReader reader)
         {
             return new SerializableNamingRule
             {
-                SymbolSpecificationID = reader.ReadGuid(),
-                NamingStyleID = reader.ReadGuid(),
-                EnforcementLevel = ((DiagnosticSeverity)reader.ReadInt32()).ToReportDiagnostic(),
+                SymbolSpecificationID = await reader.ReadGuidAsync().ConfigureAwait(false),
+                NamingStyleID = await reader.ReadGuidAsync().ConfigureAwait(false),
+                EnforcementLevel = ((DiagnosticSeverity)await reader.ReadInt32Async().ConfigureAwait(false)).ToReportDiagnostic(),
             };
         }
     }

@@ -40,17 +40,17 @@ namespace Roslyn.Utilities
         public async ValueTask WriteToAsync(ObjectWriter writer)
         {
             await writer.WriteStringAsync(SerializationFormat).ConfigureAwait(false);
-            bKTree.WriteTo(writer);
+            await bKTree.WriteToAsync(writer).ConfigureAwait(false);
         }
 
-        internal static SpellChecker? TryReadFrom(ObjectReader reader)
+        internal static async ValueTask<SpellChecker?> TryReadFromAsync(ObjectReader reader)
         {
             try
             {
-                var formatVersion = reader.ReadString();
+                var formatVersion = await reader.ReadStringAsync().ConfigureAwait(false);
                 if (string.Equals(formatVersion, SerializationFormat, StringComparison.Ordinal))
                 {
-                    var bkTree = BKTree.ReadFrom(reader);
+                    var bkTree = await BKTree.ReadFromAsync(reader).ConfigureAwait(false);
                     if (bkTree != null)
                         return new SpellChecker(bkTree.Value);
                 }
