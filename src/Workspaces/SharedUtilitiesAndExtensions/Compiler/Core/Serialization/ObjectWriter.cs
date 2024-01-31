@@ -382,14 +382,10 @@ namespace Roslyn.Utilities
             public bool TryGetReferenceId(object value, out int referenceId)
                 => _valueToIdMap.TryGetValue(value, out referenceId);
 
-            public void Add(object value, bool isReusable)
+            public void Add(object value)
             {
                 var id = _nextId++;
-
-                if (isReusable)
-                {
-                    _valueToIdMap.Add(value, id);
-                }
+                _valueToIdMap.Add(value, id);
             }
         }
 
@@ -456,7 +452,7 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
-                    _stringReferenceMap.Add(value, isReusable: true);
+                    _stringReferenceMap.Add(value);
 
                     if (value.IsValidUnicodeString())
                     {
@@ -519,12 +515,6 @@ namespace Roslyn.Utilities
             {
                 throw new InvalidOperationException($"Unsupported array element type: {elementType}");
             }
-        }
-
-        private void WriteArrayValues(Array array)
-        {
-            for (var i = 0; i < array.Length; i++)
-                WriteValue(array.GetValue(i));
         }
 
         private void WritePrimitiveTypeArrayElements(Type type, TypeCode kind, Array instance)
@@ -678,12 +668,6 @@ namespace Roslyn.Utilities
             WriteByte((byte)kind);
         }
 
-        public void WriteType(Type type)
-        {
-            WriteByte((byte)TypeCode.Type);
-            WriteString(type.AssemblyQualifiedName);
-        }
-
         public void WriteEncoding(Encoding? encoding)
         {
             if (encoding == null)
@@ -772,11 +756,6 @@ namespace Roslyn.Utilities
             /// The null value
             /// </summary>
             Null,
-
-            /// <summary>
-            /// A type
-            /// </summary>
-            Type,
 
             /// <summary>
             /// A string encoded as UTF-8 (using BinaryWriter.Write(string))
