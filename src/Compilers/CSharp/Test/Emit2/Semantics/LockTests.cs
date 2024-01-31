@@ -275,9 +275,9 @@ public class LockTests : CSharpTestBase
         CSharpTestSource sources = [source, LockTypeDefinition];
 
         CreateCompilation(sources, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (5,7): error CS8652: The feature 'native lock' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (5,7): error CS8652: The feature ''Lock' object' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // lock (l) { Console.Write("L"); }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "l").WithArguments("native lock").WithLocation(5, 7));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "l").WithArguments("'Lock' object").WithLocation(5, 7));
 
         var expectedOutput = "ELD";
 

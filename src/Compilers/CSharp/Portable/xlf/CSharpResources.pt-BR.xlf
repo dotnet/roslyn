@@ -2327,14 +2327,14 @@
         <target state="translated">inicializador de indexador implícito</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_LockObject">
+        <source>'Lock' object</source>
+        <target state="new">'Lock' object</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;ausente&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_NativeLock">
-        <source>native lock</source>
-        <target state="new">native lock</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
