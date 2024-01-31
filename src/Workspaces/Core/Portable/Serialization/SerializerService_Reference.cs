@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     metadataKind = (MetadataImageKind)await reader.ReadInt32Async().ConfigureAwait(false);
                     Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
-                    var (metadata, storage) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
+                    var (metadata, storage) = await ReadModuleMetadataFromAsync(reader, kind, cancellationToken).ConfigureAwait(false);
 
                     pooledMetadata.Object.Add(metadata);
                     pooledStorage.Object.Add(storage);
@@ -438,11 +438,11 @@ namespace Microsoft.CodeAnalysis.Serialization
             return (metadata, storage);
         }
 
-        private static ModuleMetadata ReadModuleMetadataFrom(ObjectReader reader, SerializationKinds kind)
+        private static async ValueTask<ModuleMetadata> ReadModuleMetadataFromAsync(ObjectReader reader, SerializationKinds kind)
         {
             Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
 
-            var array = reader.ReadArray<byte>();
+            var array = await reader.ReadArrayAsync<byte>().ConfigureAwait(false);
             var pinnedObject = new PinnedObject(array);
 
             var metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), array.Length);
@@ -476,9 +476,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             {
                 var service2 = (ITemporaryStorageService2)_storageService;
 
-                var name = reader.ReadString();
-                var offset = reader.ReadInt64();
-                var size = reader.ReadInt64();
+                var name = await reader.ReadStringAsync().ConfigureAwait(false);
+                var offset = await reader.ReadInt64Async().ConfigureAwait(false);
+                var size = await reader.ReadInt64Async().ConfigureAwait(false);
 
                 var storage = service2.AttachTemporaryStreamStorage(name, offset, size);
                 var length = size;
