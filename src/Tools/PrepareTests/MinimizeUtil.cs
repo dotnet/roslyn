@@ -25,6 +25,7 @@ internal static class MinimizeUtil
         // https://github.com/dotnet/roslyn/issues/49486
         // we should avoid copying the files under Resources.
         Directory.CreateDirectory(Path.Combine(destinationDirectory, "src/Workspaces/MSBuildTest/Resources"));
+        Directory.CreateDirectory(Path.Combine(destinationDirectory, "eng"));
         var individualFiles = new[]
         {
             "global.json",
