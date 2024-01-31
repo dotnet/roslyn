@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -18,20 +19,20 @@ internal readonly struct ChecksumsAndIds<TId>
     public readonly ChecksumCollection Checksums;
     public readonly ImmutableArray<TId> Ids;
 
-    private static readonly Func<ObjectReader, TId> s_readId;
-    private static readonly Action<ObjectWriter, TId> s_writeTo;
+    private static readonly Func<ObjectReader, ValueTask<TId>> s_readId;
+    private static readonly Func<ObjectWriter, TId, ValueTask> s_writeTo;
 
     static ChecksumsAndIds()
     {
         if (typeof(TId) == typeof(ProjectId))
         {
-            s_readId = reader => (TId)(object)ProjectId.ReadFrom(reader);
-            s_writeTo = (writer, id) => ((ProjectId)(object)id!).WriteTo(writer);
+            s_readId = async reader => (TId)(object)await ProjectId.ReadFromAsync(reader).ConfigureAwait(false);
+            s_writeTo = (writer, id) => ((ProjectId)(object)id!).WriteToAsync(writer);
         }
         else if (typeof(TId) == typeof(DocumentId))
         {
-            s_readId = reader => (TId)(object)DocumentId.ReadFrom(reader);
-            s_writeTo = (writer, id) => ((DocumentId)(object)id!).WriteTo(writer);
+            s_readId = async reader => (TId)(object)await DocumentId.ReadFromAsync(reader).ConfigureAwait(false);
+            s_writeTo = (writer, id) => ((DocumentId)(object)id!).WriteToAsync(writer);
         }
         else
         {
@@ -50,17 +51,17 @@ internal readonly struct ChecksumsAndIds<TId>
     public int Length => Ids.Length;
     public Checksum Checksum => Checksums.Checksum;
 
-    public void WriteTo(ObjectWriter writer)
+    public async ValueTask WriteToAsync(ObjectWriter writer)
     {
         this.Checksums.WriteTo(writer);
-        writer.WriteArray(this.Ids, s_writeTo);
+        await writer.WriteArrayAsync(this.Ids, s_writeTo).ConfigureAwait(false);
     }
 
-    public static ChecksumsAndIds<TId> ReadFrom(ObjectReader reader)
+    public static async ValueTask<ChecksumsAndIds<TId>> ReadFromAsync(ObjectReader reader)
     {
         return new(
-            ChecksumCollection.ReadFrom(reader),
-            reader.ReadArray(s_readId));
+            await ChecksumCollection.ReadFromAsync(reader).ConfigureAwait(false),
+            await reader.ReadArrayAsync(s_readId).ConfigureAwait(false));
     }
 
     public Enumerator GetEnumerator()
