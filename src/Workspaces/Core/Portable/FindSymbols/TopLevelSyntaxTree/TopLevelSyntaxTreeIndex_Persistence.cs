@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public override async ValueTask WriteToAsync(ObjectWriter writer)
         {
-            _declarationInfo.WriteTo(writer);
+            await _declarationInfo.WriteToAsync(writer).ConfigureAwait(false);
             await _extensionMethodInfo.WriteToAsync(writer).ConfigureAwait(false);
         }
 

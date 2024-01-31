@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             // StrongNameProvider strongNameProvider
         }
 
-        protected static (
+        protected static async ValueTask<(
             OutputKind outputKind,
             bool reportSuppressedDiagnostics,
             string moduleName,
@@ -98,39 +98,39 @@ namespace Microsoft.CodeAnalysis.Serialization
             SourceReferenceResolver sourceReferenceResolver,
             MetadataReferenceResolver metadataReferenceResolver,
             AssemblyIdentityComparer assemblyIdentityComparer,
-            StrongNameProvider strongNameProvider) ReadCompilationOptionsPieces(
+            StrongNameProvider strongNameProvider)> ReadCompilationOptionsPiecesAsync(
             ObjectReader reader,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var outputKind = (OutputKind)reader.ReadInt32();
-            var reportSuppressedDiagnostics = reader.ReadBoolean();
-            var moduleName = reader.ReadString();
-            var mainTypeName = reader.ReadString();
+            var outputKind = (OutputKind)await reader.ReadInt32Async().ConfigureAwait(false);
+            var reportSuppressedDiagnostics = await reader.ReadBooleanAsync().ConfigureAwait(false);
+            var moduleName = await reader.ReadStringAsync().ConfigureAwait(false);
+            var mainTypeName = await reader.ReadStringAsync().ConfigureAwait(false);
 
-            var scriptClassName = reader.ReadString();
-            var optimizationLevel = (OptimizationLevel)reader.ReadInt32();
-            var checkOverflow = reader.ReadBoolean();
+            var scriptClassName = await reader.ReadStringAsync().ConfigureAwait(false);
+            var optimizationLevel = (OptimizationLevel)await reader.ReadInt32Async().ConfigureAwait(false);
+            var checkOverflow = await reader.ReadBooleanAsync().ConfigureAwait(false);
 
             // REVIEW: is it okay this being not part of snapshot?
-            var cryptoKeyContainer = reader.ReadString();
-            var cryptoKeyFile = reader.ReadString();
+            var cryptoKeyContainer = await reader.ReadStringAsync().ConfigureAwait(false);
+            var cryptoKeyFile = await reader.ReadStringAsync().ConfigureAwait(false);
 
-            var cryptoPublicKey = reader.ReadArray<byte>().ToImmutableArrayOrEmpty();
+            var cryptoPublicKey = (await reader.ReadArrayAsync<byte>().ConfigureAwait(false)).ToImmutableArrayOrEmpty();
 
-            bool? delaySign = reader.ReadBoolean() ? reader.ReadBoolean() : null;
+            bool? delaySign = await reader.ReadBooleanAsync().ConfigureAwait(false) ? await reader.ReadBooleanAsync().ConfigureAwait(false) : null;
 
-            var platform = (Platform)reader.ReadInt32();
-            var generalDiagnosticOption = (ReportDiagnostic)reader.ReadInt32();
+            var platform = (Platform)await reader.ReadInt32Async().ConfigureAwait(false);
+            var generalDiagnosticOption = (ReportDiagnostic)await reader.ReadInt32Async().ConfigureAwait(false);
 
-            var warningLevel = reader.ReadInt32();
+            var warningLevel = await reader.ReadInt32Async().ConfigureAwait(false);
 
             // REVIEW: I don't think there is a guarantee on ordering of elements in the immutable dictionary.
             //         unfortunately, we need to sort them to make it deterministic
             //         not sure why CompilationOptions uses SequencialEqual to check options equality
             //         when ordering can change result of it even if contents are same.
-            var count = reader.ReadInt32();
+            var count = await reader.ReadInt32Async().ConfigureAwait(false);
             List<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptionsList = null;
 
             if (count > 0)
@@ -139,8 +139,8 @@ namespace Microsoft.CodeAnalysis.Serialization
 
                 for (var i = 0; i < count; i++)
                 {
-                    var key = reader.ReadString();
-                    var value = (ReportDiagnostic)reader.ReadInt32();
+                    var key = await reader.ReadStringAsync().ConfigureAwait(false);
+                    var value = (ReportDiagnostic)await reader.ReadInt32Async().ConfigureAwait(false);
 
                     specificDiagnosticOptionsList.Add(KeyValuePairUtil.Create(key, value));
                 }
@@ -148,11 +148,11 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             var specificDiagnosticOptions = specificDiagnosticOptionsList ?? SpecializedCollections.EmptyEnumerable<KeyValuePair<string, ReportDiagnostic>>();
 
-            var concurrentBuild = reader.ReadBoolean();
-            var deterministic = reader.ReadBoolean();
-            var publicSign = reader.ReadBoolean();
+            var concurrentBuild = await reader.ReadBooleanAsync().ConfigureAwait(false);
+            var deterministic = await reader.ReadBooleanAsync().ConfigureAwait(false);
+            var publicSign = await reader.ReadBooleanAsync().ConfigureAwait(false);
 
-            var metadataImportOptions = (MetadataImportOptions)reader.ReadByte();
+            var metadataImportOptions = (MetadataImportOptions)await reader.ReadByteAsync().ConfigureAwait(false);
 
             // REVIEW: What should I do with these. are these service required when compilation is built ourselves, not through
             //         compiler.
@@ -203,20 +203,23 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        protected static (SourceCodeKind kind, DocumentationMode documentationMode, IEnumerable<KeyValuePair<string, string>> features) ReadParseOptionsPieces(
+        protected static async ValueTask<(
+            SourceCodeKind kind,
+            DocumentationMode documentationMode,
+            IEnumerable<KeyValuePair<string, string>> features)> ReadParseOptionsPiecesAsync(
             ObjectReader reader,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var kind = (SourceCodeKind)reader.ReadInt32();
-            var documentationMode = (DocumentationMode)reader.ReadInt32();
+            var kind = (SourceCodeKind)await reader.ReadInt32Async().ConfigureAwait(false);
+            var documentationMode = (DocumentationMode)await reader.ReadInt32Async().ConfigureAwait(false);
 
             // REVIEW: I don't think there is a guarantee on ordering of elements in the immutable dictionary.
             //         unfortunately, we need to sort them to make it deterministic
             //         not sure why ParseOptions uses SequencialEqual to check options equality
             //         when ordering can change result of it even if contents are same.
-            var count = reader.ReadInt32();
+            var count = await reader.ReadInt32Async().ConfigureAwait(false);
             List<KeyValuePair<string, string>> featuresList = null;
 
             if (count > 0)
@@ -225,8 +228,8 @@ namespace Microsoft.CodeAnalysis.Serialization
 
                 for (var i = 0; i < count; i++)
                 {
-                    var key = reader.ReadString();
-                    var value = reader.ReadString();
+                    var key = await reader.ReadStringAsync().ConfigureAwait(false);
+                    var value = await reader.ReadStringAsync().ConfigureAwait(false);
 
                     featuresList.Add(KeyValuePairUtil.Create(key, value));
                 }

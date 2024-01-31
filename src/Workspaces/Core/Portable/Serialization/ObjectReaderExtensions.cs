@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     // TODO: move to ObjectReader (see https://github.com/dotnet/roslyn/issues/45837)
     internal static class ObjectReaderExtensions
     {
-        public static T[] ReadArray<T>(this ObjectReader reader)
-            => (T[])reader.ReadValue();
+        public static async ValueTask<T[]> ReadArrayAsync<T>(this ObjectReader reader)
+            => (T[])await reader.ReadValueAsync().ConfigureAwait(false);
     }
 }
