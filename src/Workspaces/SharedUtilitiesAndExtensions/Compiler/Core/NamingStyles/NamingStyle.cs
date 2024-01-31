@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -469,25 +470,25 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 wordSeparator: namingStyleElement.Attribute(nameof(WordSeparator)).Value,
                 capitalizationScheme: (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value));
 
-        public void WriteTo(ObjectWriter writer)
+        public async ValueTask WriteToAsync(ObjectWriter writer)
         {
             writer.WriteGuid(ID);
-            writer.WriteString(Name);
-            writer.WriteString(Prefix ?? string.Empty);
-            writer.WriteString(Suffix ?? string.Empty);
-            writer.WriteString(WordSeparator ?? string.Empty);
+            await writer.WriteStringAsync(Name).ConfigureAwait(false);
+            await writer.WriteStringAsync(Prefix ?? string.Empty).ConfigureAwait(false);
+            await writer.WriteStringAsync(Suffix ?? string.Empty).ConfigureAwait(false);
+            await writer.WriteStringAsync(WordSeparator ?? string.Empty).ConfigureAwait(false);
             writer.WriteInt32((int)CapitalizationScheme);
         }
 
-        public static NamingStyle ReadFrom(ObjectReader reader)
+        public static async ValueTask<NamingStyle> ReadFromAsync(ObjectReader reader)
         {
             return new NamingStyle(
-                reader.ReadGuid(),
-                reader.ReadString(),
-                reader.ReadString(),
-                reader.ReadString(),
-                reader.ReadString(),
-                (Capitalization)reader.ReadInt32());
+                await reader.ReadGuidAsync().ConfigureAwait(false),
+                await reader.ReadStringAsync().ConfigureAwait(false),
+                await reader.ReadStringAsync().ConfigureAwait(false),
+                await reader.ReadStringAsync().ConfigureAwait(false),
+                await reader.ReadStringAsync().ConfigureAwait(false),
+                (Capitalization)await reader.ReadInt32Async().ConfigureAwait(false));
         }
     }
 }

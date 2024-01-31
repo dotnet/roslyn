@@ -23,8 +23,8 @@ internal readonly partial struct BKTree
         {
             return new BKTree(
                 (char[])await reader.ReadValueAsync().ConfigureAwait(false),
-                await reader.ReadArrayAsync(Node.ReadFrom).ConfigureAwait(false),
-                await reader.ReadArrayAsync(Edge.ReadFrom).ConfigureAwait(false));
+                await reader.ReadArrayAsync(Node.ReadFromAsync).ConfigureAwait(false),
+                await reader.ReadArrayAsync(Edge.ReadFromAsync).ConfigureAwait(false));
         }
         catch
         {
