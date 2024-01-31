@@ -183,6 +183,7 @@ internal static partial class SourceTextExtensions
     {
         // chunk size
         var buffer = SharedPools.CharArray.Allocate();
+        Contract.ThrowIfTrue(buffer.Length != SharedPools.CharBufferSize);
         writer.WriteInt32(buffer.Length);
 
         // number of chunks
@@ -259,11 +260,8 @@ internal static partial class SourceTextExtensions
             {
                 var (currentChunk, currentChunkLength) = reader.ReadCharArray(static length =>
                 {
-                    // Will be freed in the Dispose method.
-                    if (length <= SharedPools.CharBufferSize)
-                        return SharedPools.CharArray.Allocate();
-
-                    return new char[length];
+                    // Shared pool array will be freed in the Dispose method below.
+                    return length == SharedPools.CharBufferSize ? SharedPools.CharArray.Allocate() : (new char[length]);
                 });
 
                 builder.Add(currentChunk);
@@ -290,7 +288,7 @@ internal static partial class SourceTextExtensions
                 _disposed = true;
                 foreach (var chunk in _chunks)
                 {
-                    if (chunk.Length <= SharedPools.CharBufferSize)
+                    if (chunk.Length == SharedPools.CharBufferSize)
                         SharedPools.CharArray.Free(chunk);
                 }
             }
