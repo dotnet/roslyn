@@ -44,13 +44,13 @@ internal sealed class SolutionCompilationStateChecksums(
         this.FrozenSourceGeneratedDocumentText.WriteTo(writer);
     }
 
-    public static SolutionCompilationStateChecksums Deserialize(ObjectReader reader)
+    public static async ValueTask<SolutionCompilationStateChecksums> DeserializeAsync(ObjectReader reader)
     {
-        var checksum = Checksum.ReadFrom(reader);
+        var checksum = await Checksum.ReadFromAsync(reader).ConfigureAwait(false);
         var result = new SolutionCompilationStateChecksums(
-            solutionState: Checksum.ReadFrom(reader),
-            frozenSourceGeneratedDocumentIdentity: Checksum.ReadFrom(reader),
-            frozenSourceGeneratedDocumentText: Checksum.ReadFrom(reader));
+            solutionState: await Checksum.ReadFromAsync(reader).ConfigureAwait(false),
+            frozenSourceGeneratedDocumentIdentity: await Checksum.ReadFromAsync(reader).ConfigureAwait(false),
+            frozenSourceGeneratedDocumentText: await Checksum.ReadFromAsync(reader).ConfigureAwait(false));
         Contract.ThrowIfFalse(result.Checksum == checksum);
         return result;
     }
@@ -119,22 +119,22 @@ internal sealed class SolutionStateChecksums(
         this.AnalyzerReferences.AddAllTo(checksums);
     }
 
-    public void Serialize(ObjectWriter writer)
+    public async ValueTask SerializeAsync(ObjectWriter writer)
     {
         // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
         this.Checksum.WriteTo(writer);
         this.Attributes.WriteTo(writer);
-        this.Projects.WriteTo(writer);
+        await this.Projects.WriteToAsync(writer).ConfigureAwait(false);
         this.AnalyzerReferences.WriteTo(writer);
     }
 
-    public static SolutionStateChecksums Deserialize(ObjectReader reader)
+    public static async ValueTask<SolutionStateChecksums> DeserializeAsync(ObjectReader reader)
     {
-        var checksum = Checksum.ReadFrom(reader);
+        var checksum = await Checksum.ReadFromAsync(reader).ConfigureAwait(false);
         var result = new SolutionStateChecksums(
-            attributes: Checksum.ReadFrom(reader),
-            projects: ChecksumsAndIds<ProjectId>.ReadFrom(reader),
-            analyzerReferences: ChecksumCollection.ReadFrom(reader));
+            attributes: await Checksum.ReadFromAsync(reader).ConfigureAwait(false),
+            projects: await ChecksumsAndIds<ProjectId>.ReadFromAsync(reader).ConfigureAwait(false),
+            analyzerReferences: await ChecksumCollection.ReadFromAsync(reader).ConfigureAwait(false));
         Contract.ThrowIfFalse(result.Checksum == checksum);
         return result;
     }
@@ -269,37 +269,37 @@ internal sealed class ProjectStateChecksums(
         this.AnalyzerConfigDocuments.Checksums.AddAllTo(checksums);
     }
 
-    public void Serialize(ObjectWriter writer)
+    public async ValueTask SerializeAsync(ObjectWriter writer)
     {
         // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
         this.Checksum.WriteTo(writer);
 
-        this.ProjectId.WriteTo(writer);
+        await this.ProjectId.WriteToAsync(writer).ConfigureAwait(false);
         this.Info.WriteTo(writer);
         this.CompilationOptions.WriteTo(writer);
         this.ParseOptions.WriteTo(writer);
         this.ProjectReferences.WriteTo(writer);
         this.MetadataReferences.WriteTo(writer);
         this.AnalyzerReferences.WriteTo(writer);
-        this.Documents.WriteTo(writer);
-        this.AdditionalDocuments.WriteTo(writer);
-        this.AnalyzerConfigDocuments.WriteTo(writer);
+        await this.Documents.WriteToAsync(writer).ConfigureAwait(false);
+        await this.AdditionalDocuments.WriteToAsync(writer).ConfigureAwait(false);
+        await this.AnalyzerConfigDocuments.WriteToAsync(writer).ConfigureAwait(false);
     }
 
     public static async ValueTask<ProjectStateChecksums> DeserializeAsync(ObjectReader reader)
     {
         var checksum = await Checksum.ReadFromAsync(reader).ConfigureAwait(false);
         var result = new ProjectStateChecksums(
-            projectId: ProjectId.ReadFrom(reader),
+            projectId: await ProjectId.ReadFromAsync(reader).ConfigureAwait(false),
             infoChecksum: await Checksum.ReadFromAsync(reader).ConfigureAwait(false),
             compilationOptionsChecksum: await Checksum.ReadFromAsync(reader).ConfigureAwait(false),
             parseOptionsChecksum: await Checksum.ReadFromAsync(reader).ConfigureAwait(false),
             projectReferenceChecksums: await ChecksumCollection.ReadFromAsync(reader).ConfigureAwait(false),
             metadataReferenceChecksums: await ChecksumCollection.ReadFromAsync(reader).ConfigureAwait(false),
             analyzerReferenceChecksums: await ChecksumCollection.ReadFromAsync(reader).ConfigureAwait(false),
-            documentChecksums: ChecksumsAndIds<DocumentId>.ReadFrom(reader),
-            additionalDocumentChecksums: ChecksumsAndIds<DocumentId>.ReadFrom(reader),
-            analyzerConfigDocumentChecksums: ChecksumsAndIds<DocumentId>.ReadFrom(reader));
+            documentChecksums: await ChecksumsAndIds<DocumentId>.ReadFromAsync(reader).ConfigureAwait(false),
+            additionalDocumentChecksums: await ChecksumsAndIds<DocumentId>.ReadFromAsync(reader).ConfigureAwait(false),
+            analyzerConfigDocumentChecksums: await ChecksumsAndIds<DocumentId>.ReadFromAsync(reader).ConfigureAwait(false));
         Contract.ThrowIfFalse(result.Checksum == checksum);
         return result;
     }
