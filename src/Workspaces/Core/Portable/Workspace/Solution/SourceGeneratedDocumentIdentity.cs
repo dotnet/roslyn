@@ -5,6 +5,7 @@
 using System;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -73,28 +74,28 @@ internal readonly record struct SourceGeneratedDocumentIdentity : IEquatable<Sou
         return new SourceGeneratedDocumentIdentity(documentId, hintName, generatorIdentity, filePath);
     }
 
-    public void WriteTo(ObjectWriter writer)
+    public async ValueTask WriteToAsync(ObjectWriter writer)
     {
         DocumentId.WriteTo(writer);
 
-        writer.WriteString(HintName);
-        writer.WriteString(Generator.AssemblyName);
-        writer.WriteString(Generator.AssemblyPath);
-        writer.WriteString(Generator.AssemblyVersion.ToString());
-        writer.WriteString(Generator.TypeName);
-        writer.WriteString(FilePath);
+        await writer.WriteStringAsync(HintName).ConfigureAwait(false);
+        await writer.WriteStringAsync(Generator.AssemblyName).ConfigureAwait(false);
+        await writer.WriteStringAsync(Generator.AssemblyPath).ConfigureAwait(false);
+        await writer.WriteStringAsync(Generator.AssemblyVersion.ToString()).ConfigureAwait(false);
+        await writer.WriteStringAsync(Generator.TypeName).ConfigureAwait(false);
+        await writer.WriteStringAsync(FilePath).ConfigureAwait(false);
     }
 
-    internal static SourceGeneratedDocumentIdentity ReadFrom(ObjectReader reader)
+    internal static async ValueTask<SourceGeneratedDocumentIdentity> ReadFromAsync(ObjectReader reader)
     {
         var documentId = DocumentId.ReadFrom(reader);
 
-        var hintName = reader.ReadString();
-        var generatorAssemblyName = reader.ReadString();
-        var generatorAssemblyPath = reader.ReadString();
-        var generatorAssemblyVersion = Version.Parse(reader.ReadString());
-        var generatorTypeName = reader.ReadString();
-        var filePath = reader.ReadString();
+        var hintName = await reader.ReadStringAsync().ConfigureAwait(false);
+        var generatorAssemblyName = await reader.ReadStringAsync().ConfigureAwait(false);
+        var generatorAssemblyPath = await reader.ReadStringAsync().ConfigureAwait(false);
+        var generatorAssemblyVersion = Version.Parse(await reader.ReadStringAsync().ConfigureAwait(false));
+        var generatorTypeName = await reader.ReadStringAsync().ConfigureAwait(false);
+        var filePath = await reader.ReadStringAsync().ConfigureAwait(false);
 
         return new SourceGeneratedDocumentIdentity(
             documentId,
