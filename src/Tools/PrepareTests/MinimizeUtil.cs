@@ -25,7 +25,6 @@ internal static class MinimizeUtil
         // https://github.com/dotnet/roslyn/issues/49486
         // we should avoid copying the files under Resources.
         Directory.CreateDirectory(Path.Combine(destinationDirectory, "src/Workspaces/MSBuildTest/Resources"));
-        Directory.CreateDirectory(Path.Combine(destinationDirectory, "eng"));
         var individualFiles = new[]
         {
             "global.json",
@@ -35,8 +34,9 @@ internal static class MinimizeUtil
             "src/Workspaces/MSBuildTest/Resources/Directory.Build.targets",
             "src/Workspaces/MSBuildTest/Resources/Directory.Build.rsp",
             "src/Workspaces/MSBuildTest/Resources/NuGet.Config",
-            "eng/libclrgc.dylib",
         };
+
+        File.Copy(Path.Combine(sourceDirectory, "eng", "libclrgc.dylib"), destinationDirectory);
 
         foreach (var individualFile in individualFiles)
         {

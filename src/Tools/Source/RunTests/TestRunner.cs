@@ -239,7 +239,7 @@ namespace RunTests
                     command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgEnableMiniDump=1");
                     command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgMiniDumpType=1");
                     command.AppendLine($"{setEnvironmentVariable} DOTNET_EnableCrashReport=1");
-                    command.AppendLine($"{setEnvironmentVariable} DOTNET_GCName=../../../../../../../../../../../..$HELIX_CORRELATION_PAYLOAD/.duplicate/eng/libclrgc.dylib");
+                    command.AppendLine($"{setEnvironmentVariable} DOTNET_GCName=../../../../../../../../../../../..$HELIX_CORRELATION_PAYLOAD/libclrgc.dylib");
                 }
 
                 // Set the dump folder so that dotnet writes all dump files to this location automatically. 
