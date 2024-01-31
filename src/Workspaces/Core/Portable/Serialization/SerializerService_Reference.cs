@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             WriteTo((ModuleMetadata)metadata, writer, cancellationToken);
         }
 
-        private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
+        private static async ValueTask<bool> TryWritePortableExecutableReferenceBackedByTemporaryStorageToAsync(
             ISupportTemporaryStorage reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
             var storages = reference.GetStorages();
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
             }
 
-            WritePortableExecutableReferenceHeaderTo((PortableExecutableReference)reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
+            await WritePortableExecutableReferenceHeaderToAsync((PortableExecutableReference)reference, SerializationKinds.MemoryMapFile, writer, cancellationToken).ConfigureAwait(false);
 
             writer.WriteInt32((int)MetadataImageKind.Assembly);
             writer.WriteInt32(pooled.Object.Count);
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             foreach (var (name, offset, size) in pooled.Object)
             {
                 writer.WriteInt32((int)MetadataImageKind.Module);
-                writer.WriteString(name);
+                await writer.WriteStringAsync(name).ConfigureAwait(false);
                 writer.WriteInt64(offset);
                 writer.WriteInt64(size);
             }
@@ -355,10 +355,10 @@ namespace Microsoft.CodeAnalysis.Serialization
             return true;
         }
 
-        private (Metadata metadata, ImmutableArray<ITemporaryStreamStorageInternal> storages)? TryReadMetadataFrom(
+        private async ValueTask<(Metadata metadata, ImmutableArray<ITemporaryStreamStorageInternal> storages)?> TryReadMetadataFromAsync(
             ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
         {
-            var imageKind = reader.ReadInt32();
+            var imageKind = await reader.ReadInt32Async().ConfigureAwait(false);
             if (imageKind == MetadataFailed)
             {
                 // error case
@@ -372,10 +372,10 @@ namespace Microsoft.CodeAnalysis.Serialization
                 {
                     using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
 
-                    var count = reader.ReadInt32();
+                    var count = await reader.ReadInt32Async().ConfigureAwait(false);
                     for (var i = 0; i < count; i++)
                     {
-                        metadataKind = (MetadataImageKind)reader.ReadInt32();
+                        metadataKind = (MetadataImageKind)await reader.ReadInt32Async().ConfigureAwait(false);
                         Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
 #pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
@@ -397,10 +397,10 @@ namespace Microsoft.CodeAnalysis.Serialization
                 using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
                 using var pooledStorage = Creator.CreateList<ITemporaryStreamStorageInternal>();
 
-                var count = reader.ReadInt32();
+                var count = await reader.ReadInt32Async().ConfigureAwait(false);
                 for (var i = 0; i < count; i++)
                 {
-                    metadataKind = (MetadataImageKind)reader.ReadInt32();
+                    metadataKind = (MetadataImageKind)await reader.ReadInt32Async().ConfigureAwait(false);
                     Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
                     var (metadata, storage) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
@@ -414,16 +414,16 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
-            var moduleInfo = ReadModuleMetadataFrom(reader, kind, cancellationToken);
+            var moduleInfo = await ReadModuleMetadataFromAsync(reader, kind, cancellationToken).ConfigureAwait(false);
             return (moduleInfo.metadata, ImmutableArray.Create(moduleInfo.storage));
         }
 
-        private (ModuleMetadata metadata, ITemporaryStreamStorageInternal storage) ReadModuleMetadataFrom(
+        private async ValueTask<(ModuleMetadata metadata, ITemporaryStreamStorageInternal storage)> ReadModuleMetadataFromAsync(
             ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var (storage, length) = GetTemporaryStorage(reader, kind, cancellationToken);
+            var (storage, length) = await GetTemporaryStorageAsync(reader, kind, cancellationToken).ConfigureAwait(false);
 
             var storageStream = storage.ReadStream(cancellationToken);
             Contract.ThrowIfFalse(length == storageStream.Length);
