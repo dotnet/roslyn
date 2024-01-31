@@ -257,12 +257,7 @@ namespace Roslyn.Utilities
         /// <param name="span">The array data.</param>
         public void WriteSpan(ReadOnlySpan<byte> span)
         {
-            WriteSpanPreamble(span);
-
-            var elementType = typeof(byte);
-            Debug.Assert(s_typeMap[elementType] == TypeCode.UInt8);
-
-            WritePrimitiveType(elementType, TypeCode.UInt8);
+            WriteSpanPreamble(span, TypeCode.UInt8);
 
 #if NETCOREAPP
             _writer.Write(span);
@@ -281,12 +276,7 @@ namespace Roslyn.Utilities
         /// <param name="span">The array data.</param>
         public void WriteSpan(ReadOnlySpan<char> span)
         {
-            WriteSpanPreamble(span);
-
-            var elementType = typeof(char);
-            Debug.Assert(s_typeMap[elementType] == TypeCode.Char);
-
-            WritePrimitiveType(elementType, TypeCode.Char);
+            WriteSpanPreamble(span, TypeCode.Char);
 
 #if NETCOREAPP
             _writer.Write(span);
@@ -298,7 +288,7 @@ namespace Roslyn.Utilities
 #endif
         }
 
-        private void WriteSpanPreamble<T>(ReadOnlySpan<T> span)
+        private void WriteSpanPreamble<T>(ReadOnlySpan<T> span, TypeCode expectedType)
         {
             var length = span.Length;
             switch (length)
@@ -320,6 +310,13 @@ namespace Roslyn.Utilities
                     WriteCompressedUInt((uint)length);
                     break;
             }
+
+            var elementType = typeof(T);
+            Contract.ThrowIfFalse(s_typeMap.ContainsKey(elementType));
+            var actualType = s_typeMap[elementType];
+            Contract.ThrowIfTrue(expectedType != actualType);
+
+            WritePrimitiveType(elementType, actualType);
         }
 
         private void WriteSpanPieces<T>(
