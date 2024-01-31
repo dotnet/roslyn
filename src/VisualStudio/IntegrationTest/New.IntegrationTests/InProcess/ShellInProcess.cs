@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 out var dataSourceTask));
 
             Assumes.NotNull(dataSourceTask);
-            if (dataSourceTask.GetResult() is not IVsUIDataSource commandSource)
+            if ((await dataSourceTask) is not IVsUIDataSource commandSource)
             {
                 throw new InvalidOperationException($"Error resolving command '{commandName}'.");
             }
