@@ -294,9 +294,9 @@ internal sealed class ProjectStateChecksums(
             infoChecksum: await Checksum.ReadFromAsync(reader).ConfigureAwait(false),
             compilationOptionsChecksum: await Checksum.ReadFromAsync(reader).ConfigureAwait(false),
             parseOptionsChecksum: await Checksum.ReadFromAsync(reader).ConfigureAwait(false),
-            projectReferenceChecksums: ChecksumCollection.ReadFrom(reader),
-            metadataReferenceChecksums: ChecksumCollection.ReadFrom(reader),
-            analyzerReferenceChecksums: ChecksumCollection.ReadFrom(reader),
+            projectReferenceChecksums: await ChecksumCollection.ReadFromAsync(reader).ConfigureAwait(false),
+            metadataReferenceChecksums: await ChecksumCollection.ReadFromAsync(reader).ConfigureAwait(false),
+            analyzerReferenceChecksums: await ChecksumCollection.ReadFromAsync(reader).ConfigureAwait(false),
             documentChecksums: ChecksumsAndIds<DocumentId>.ReadFrom(reader),
             additionalDocumentChecksums: ChecksumsAndIds<DocumentId>.ReadFrom(reader),
             analyzerConfigDocumentChecksums: ChecksumsAndIds<DocumentId>.ReadFrom(reader));
