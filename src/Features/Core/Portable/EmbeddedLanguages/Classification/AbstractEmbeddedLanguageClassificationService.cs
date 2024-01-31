@@ -38,8 +38,17 @@ namespace Microsoft.CodeAnalysis.Classification
         public async Task AddEmbeddedLanguageClassificationsAsync(
             Document document, ImmutableArray<TextSpan> textSpans, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var project = document.Project;
+            SemanticModel semanticModel;
+            if (document.Project.Solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options.DisableNullableAnalysisInClassification)
+            {
+                semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            }
+
             AddEmbeddedLanguageClassifications(
                 project.Solution.Services, project, semanticModel, textSpans, options, result, cancellationToken);
         }
