@@ -1,2 +1,0 @@
-Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.AnalyzerVerifier(Of TAnalyzer)
-Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.AnalyzerVerifier(Of TAnalyzer).New() -> Void
