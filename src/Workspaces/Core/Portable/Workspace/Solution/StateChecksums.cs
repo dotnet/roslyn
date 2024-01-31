@@ -286,14 +286,14 @@ internal sealed class ProjectStateChecksums(
         this.AnalyzerConfigDocuments.WriteTo(writer);
     }
 
-    public static ProjectStateChecksums Deserialize(ObjectReader reader)
+    public static async ValueTask<ProjectStateChecksums> DeserializeAsync(ObjectReader reader)
     {
-        var checksum = Checksum.ReadFrom(reader);
+        var checksum = await Checksum.ReadFromAsync(reader).ConfigureAwait(false);
         var result = new ProjectStateChecksums(
             projectId: ProjectId.ReadFrom(reader),
-            infoChecksum: Checksum.ReadFrom(reader),
-            compilationOptionsChecksum: Checksum.ReadFrom(reader),
-            parseOptionsChecksum: Checksum.ReadFrom(reader),
+            infoChecksum: await Checksum.ReadFromAsync(reader).ConfigureAwait(false),
+            compilationOptionsChecksum: await Checksum.ReadFromAsync(reader).ConfigureAwait(false),
+            parseOptionsChecksum: await Checksum.ReadFromAsync(reader).ConfigureAwait(false),
             projectReferenceChecksums: ChecksumCollection.ReadFrom(reader),
             metadataReferenceChecksums: ChecksumCollection.ReadFrom(reader),
             analyzerReferenceChecksums: ChecksumCollection.ReadFrom(reader),
@@ -380,8 +380,8 @@ internal sealed class DocumentStateChecksums(
     {
         return new DocumentStateChecksums(
             documentId: await DocumentId.ReadFromAsync(reader).ConfigureAwait(false),
-            infoChecksum: Checksum.ReadFrom(reader),
-            textChecksum: Checksum.ReadFrom(reader));
+            infoChecksum: await Checksum.ReadFromAsync(reader).ConfigureAwait(false),
+            textChecksum: await Checksum.ReadFromAsync(reader).ConfigureAwait(false));
     }
 
     public async Task FindAsync(
