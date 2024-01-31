@@ -604,24 +604,24 @@ namespace Microsoft.CodeAnalysis
                 //       serialization, we should include those here as well.
             }
 
-            public static ProjectAttributes ReadFrom(ObjectReader reader)
+            public static async ValueTask<ProjectAttributes> ReadFromAsync(ObjectReader reader)
             {
                 var projectId = ProjectId.ReadFrom(reader);
 
                 // var version = VersionStamp.ReadFrom(reader);
-                var name = reader.ReadString();
-                var assemblyName = reader.ReadString();
-                var language = reader.ReadString();
-                var filePath = reader.ReadString();
-                var outputFilePath = reader.ReadString();
-                var outputRefFilePath = reader.ReadString();
+                var name = await reader.ReadStringAsync().ConfigureAwait(false);
+                var assemblyName = await reader.ReadStringAsync().ConfigureAwait(false);
+                var language = await reader.ReadStringAsync().ConfigureAwait(false);
+                var filePath = await reader.ReadStringAsync().ConfigureAwait(false);
+                var outputFilePath = await reader.ReadStringAsync().ConfigureAwait(false);
+                var outputRefFilePath = await reader.ReadStringAsync().ConfigureAwait(false);
                 var compilationOutputFilePaths = CompilationOutputInfo.ReadFrom(reader);
-                var defaultNamespace = reader.ReadString();
-                var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadByte();
-                var isSubmission = reader.ReadBoolean();
-                var hasAllInformation = reader.ReadBoolean();
-                var runAnalyzers = reader.ReadBoolean();
-                var telemetryId = reader.ReadGuid();
+                var defaultNamespace = await reader.ReadStringAsync().ConfigureAwait(false);
+                var checksumAlgorithm = (SourceHashAlgorithm)await reader.ReadByteAsync().ConfigureAwait(false);
+                var isSubmission = await reader.ReadBooleanAsync().ConfigureAwait(false);
+                var hasAllInformation = await reader.ReadBooleanAsync().ConfigureAwait(false);
+                var runAnalyzers = await reader.ReadBooleanAsync().ConfigureAwait(false);
+                var telemetryId = await reader.ReadGuidAsync().ConfigureAwait(false);
 
                 return new ProjectAttributes(
                     projectId,
