@@ -157,11 +157,11 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.SolutionState:
-                    ((SolutionStateChecksums)value).Serialize(writer);
+                    await ((SolutionStateChecksums)value).SerializeAsync(writer).ConfigureAwait(false);
                     return;
 
                 case WellKnownSynchronizationKind.ProjectState:
-                    ((ProjectStateChecksums)value).Serialize(writer);
+                    await ((ProjectStateChecksums)value).SerializeAsync(writer).ConfigureAwait(false);
                     return;
 
                 case WellKnownSynchronizationKind.DocumentState:
@@ -189,19 +189,19 @@ internal partial class SerializerService : ISerializerService
             switch (kind)
             {
                 case WellKnownSynchronizationKind.SolutionCompilationState:
-                    return (T)(object)SolutionCompilationStateChecksums.Deserialize(reader);
+                    return (T)(object)await SolutionCompilationStateChecksums.DeserializeAsync(reader).ConfigureAwait(false);
 
                 case WellKnownSynchronizationKind.SolutionState:
-                    return (T)(object)SolutionStateChecksums.Deserialize(reader);
+                    return (T)(object)await SolutionStateChecksums.DeserializeAsync(reader).ConfigureAwait(false);
 
                 case WellKnownSynchronizationKind.ProjectState:
-                    return (T)(object)ProjectStateChecksums.Deserialize(reader);
+                    return (T)(object)await ProjectStateChecksums.DeserializeAsync(reader).ConfigureAwait(false);
 
                 case WellKnownSynchronizationKind.DocumentState:
                     return (T)(object)await DocumentStateChecksums.DeserializeAsync(reader).ConfigureAwait(false);
 
                 case WellKnownSynchronizationKind.ChecksumCollection:
-                    return (T)(object)ChecksumCollection.ReadFrom(reader);
+                    return (T)(object)await ChecksumCollection.ReadFromAsync(reader).ConfigureAwait(false);
 
                 case WellKnownSynchronizationKind.SolutionAttributes:
                     return (T)(object)await SolutionInfo.SolutionAttributes.ReadFromAsync(reader).ConfigureAwait(false);
