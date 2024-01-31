@@ -92,14 +92,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Serialization
             Dim hasParseOptions = reader.ReadBoolean()
             Dim parseOption = If(hasParseOptions, DirectCast(ReadParseOptionsFrom(reader, cancellationToken), VisualBasicParseOptions), Nothing)
 
-            Return New VisualBasicCompilationOptions(OutputKind, moduleName, mainTypeName, scriptClassName,
+            Return New VisualBasicCompilationOptions(outputKind, moduleName, mainTypeName, scriptClassName,
                                                      globalImports, rootNamespace, optionStrict, optionInfer, optionExplicit,
                                                      optionCompareText, parseOption,
-                                                     embedVbCoreRuntime, OptimizationLevel, checkOverflow,
+                                                     embedVbCoreRuntime, optimizationLevel, checkOverflow,
                                                      cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
-                                                     Platform, generalDiagnosticOption, specificDiagnosticOptions, concurrentBuild, deterministic,
-                                                     XmlReferenceResolver, SourceReferenceResolver, MetadataReferenceResolver, AssemblyIdentityComparer, StrongNameProvider,
-                                                     publicSign, reportSuppressedDiagnostics, MetadataImportOptions)
+                                                     platform, generalDiagnosticOption, specificDiagnosticOptions, concurrentBuild, deterministic,
+                                                     xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer, strongNameProvider,
+                                                     publicSign, reportSuppressedDiagnostics, metadataImportOptions)
         End Function
 
         Public Overrides Function ReadParseOptionsFrom(reader As ObjectReader, cancellationToken As CancellationToken) As ParseOptions
