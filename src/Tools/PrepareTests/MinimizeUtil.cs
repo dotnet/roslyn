@@ -38,7 +38,7 @@ internal static class MinimizeUtil
 
         File.Copy(
             Path.Combine(sourceDirectory, "eng", "libclrgc.dylib"),
-            Path.Combine(destinationDirectory, "libclrgc.dylib"));
+            Path.Combine(duplicateDirectory, "libclrgc.dylib"));
 
         foreach (var individualFile in individualFiles)
         {
