@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -578,21 +579,21 @@ namespace Microsoft.CodeAnalysis
                     newRunAnalyzers);
             }
 
-            public void WriteTo(ObjectWriter writer)
+            public async ValueTask WriteToAsync(ObjectWriter writer)
             {
                 Id.WriteTo(writer);
 
                 // TODO: figure out a way to send version info over as well
                 // info.Version.WriteTo(writer);
 
-                writer.WriteString(Name);
-                writer.WriteString(AssemblyName);
-                writer.WriteString(Language);
-                writer.WriteString(FilePath);
-                writer.WriteString(OutputFilePath);
-                writer.WriteString(OutputRefFilePath);
+                await writer.WriteStringAsync(Name).ConfigureAwait(false);
+                await writer.WriteStringAsync(AssemblyName).ConfigureAwait(false);
+                await writer.WriteStringAsync(Language).ConfigureAwait(false);
+                await writer.WriteStringAsync(FilePath).ConfigureAwait(false);
+                await writer.WriteStringAsync(OutputFilePath).ConfigureAwait(false);
+                await writer.WriteStringAsync(OutputRefFilePath).ConfigureAwait(false);
                 CompilationOutputInfo.WriteTo(writer);
-                writer.WriteString(DefaultNamespace);
+                await writer.WriteStringAsync(DefaultNamespace).ConfigureAwait(false);
                 writer.WriteByte(checked((byte)ChecksumAlgorithm));
                 writer.WriteBoolean(IsSubmission);
                 writer.WriteBoolean(HasAllInformation);

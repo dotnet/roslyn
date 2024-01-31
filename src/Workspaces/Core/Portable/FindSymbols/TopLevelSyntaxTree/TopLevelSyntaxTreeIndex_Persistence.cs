@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async ValueTask<TopLevelSyntaxTreeIndex?> ReadIndexAsync(
             StringTable stringTable, ObjectReader reader, Checksum? checksum)
         {
-            var declarationInfo = DeclarationInfo.TryReadFrom(stringTable, reader);
+            var declarationInfo = await DeclarationInfo.TryReadFromAsync(stringTable, reader).ConfigureAwait(false);
             var extensionMethodInfo = await ExtensionMethodInfo.TryReadFromAsync(reader).ConfigureAwait(false);
 
             if (declarationInfo == null || extensionMethodInfo == null)

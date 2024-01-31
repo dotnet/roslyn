@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -194,11 +195,11 @@ namespace Microsoft.CodeAnalysis
             writer.WriteInt32(_globalIncrement);
         }
 
-        internal static VersionStamp ReadFrom(ObjectReader reader)
+        internal static async ValueTask<VersionStamp> ReadFromAsync(ObjectReader reader)
         {
-            var raw = reader.ReadInt64();
-            var localIncrement = reader.ReadInt32();
-            var globalIncrement = reader.ReadInt32();
+            var raw = await reader.ReadInt64Async().ConfigureAwait(false);
+            var localIncrement = await reader.ReadInt32Async().ConfigureAwait(false);
+            var globalIncrement = await reader.ReadInt32Async().ConfigureAwait(false);
 
             return new VersionStamp(DateTime.FromBinary(raw), localIncrement, globalIncrement);
         }
