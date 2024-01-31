@@ -382,14 +382,10 @@ namespace Roslyn.Utilities
             public bool TryGetReferenceId(object value, out int referenceId)
                 => _valueToIdMap.TryGetValue(value, out referenceId);
 
-            public void Add(object value, bool isReusable)
+            public void Add(object value)
             {
                 var id = _nextId++;
-
-                if (isReusable)
-                {
-                    _valueToIdMap.Add(value, id);
-                }
+                _valueToIdMap.Add(value, id);
             }
         }
 
@@ -456,7 +452,7 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
-                    _stringReferenceMap.Add(value, isReusable: true);
+                    _stringReferenceMap.Add(value);
 
                     if (value.IsValidUnicodeString())
                     {
