@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -161,7 +162,7 @@ internal static partial class SourceTextExtensions
     // 32KB. comes from SourceText char buffer size and less than large object size
     internal const int SourceTextLengthThreshold = 32 * 1024 / sizeof(char);
 
-    public static void WriteTo(this SourceText sourceText, ObjectWriter writer, CancellationToken cancellationToken)
+    public static async ValueTask WriteToAsync(this SourceText sourceText, ObjectWriter writer, CancellationToken cancellationToken)
     {
         // Source length
         var length = sourceText.Length;
@@ -170,16 +171,16 @@ internal static partial class SourceTextExtensions
         // if source is small, no point on optimizing. just write out string
         if (length < SourceTextLengthThreshold)
         {
-            writer.WriteString(sourceText.ToString());
+            await writer.WriteStringAsync(sourceText.ToString()).ConfigureAwait(false);
         }
         else
         {
             // if bigger, write out as chunks
-            WriteChunksTo(sourceText, writer, length, cancellationToken);
+            await WriteChunksToAsync(sourceText, writer, length, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private static void WriteChunksTo(SourceText sourceText, ObjectWriter writer, int length, CancellationToken cancellationToken)
+    private static async ValueTask WriteChunksToAsync(SourceText sourceText, ObjectWriter writer, int length, CancellationToken cancellationToken)
     {
         // chunk size
         var buffer = SharedPools.CharArray.Allocate();
@@ -202,7 +203,7 @@ internal static partial class SourceTextExtensions
                 {
                     // chunks before last chunk or last chunk match buffer size
                     sourceText.CopyTo(offset, buffer, 0, buffer.Length);
-                    writer.WriteValue(buffer);
+                    await writer.WriteValueAsync(buffer).ConfigureAwait(false);
                 }
                 else if (i == numberOfChunks - 1)
                 {
@@ -210,7 +211,7 @@ internal static partial class SourceTextExtensions
                     var tempArray = new char[count];
 
                     sourceText.CopyTo(offset, tempArray, 0, tempArray.Length);
-                    writer.WriteValue(tempArray);
+                    await writer.WriteValueAsync(tempArray).ConfigureAwait(false);
                 }
 
                 offset += count;
@@ -239,31 +240,31 @@ internal static partial class SourceTextExtensions
 
         private int _position;
 
-        public static TextReader Create(ObjectReader reader)
+        public static async ValueTask<TextReader> CreateAsync(ObjectReader reader)
         {
-            var length = reader.ReadInt32();
+            var length = await reader.ReadInt32Async().ConfigureAwait(false);
             if (length < SourceTextLengthThreshold)
             {
                 // small size, read as string
-                return new StringReader(reader.ReadString());
+                return new StringReader(await reader.ReadStringAsync().ConfigureAwait(false));
             }
 
             // read as chunks
             using var _ = ArrayBuilder<char[]>.GetInstance(out var builder);
 
-            var chunkSize = reader.ReadInt32();
-            var numberOfChunks = reader.ReadInt32();
+            var chunkSize = await reader.ReadInt32Async().ConfigureAwait(false);
+            var numberOfChunks = await reader.ReadInt32Async().ConfigureAwait(false);
 
             var offset = 0;
             for (var i = 0; i < numberOfChunks; i++)
             {
-                var (currentChunk, currentChunkLength) = reader.ReadCharArray(static length =>
+                var (currentChunk, currentChunkLength) = await reader.ReadCharArrayAsync(static length =>
                 {
                     if (length <= SharedPools.CharBufferSize)
                         return SharedPools.CharArray.Allocate();
 
                     return new char[length];
-                });
+                }).ConfigureAwait(false);
 
                 builder.Add(currentChunk);
 
