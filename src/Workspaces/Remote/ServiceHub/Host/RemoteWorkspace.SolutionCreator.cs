@@ -114,43 +114,54 @@ namespace Microsoft.CodeAnalysis.Remote
             private async Task<Solution> UpdateProjectsAsync(
                 Solution solution, SolutionStateChecksums newSolutionChecksums, CancellationToken cancellationToken)
             {
-                using var oldProjectIds = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
-                using var newProjectIds = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+                using var _1 = PooledHashSet<ProjectId>.GetInstance(out var oldProjectIds);
+                using var _2 = PooledHashSet<ProjectId>.GetInstance(out var newProjectIds);
 
-                oldProjectIds.Object.AddRange(solution.ProjectIds);
-                newProjectIds.Object.AddRange(newSolutionChecksums.Projects.Ids);
+                oldProjectIds.AddRange(solution.ProjectIds);
+                newProjectIds.AddRange(newSolutionChecksums.Projects.Ids);
 
-                // First, collect information about which projects changed.  Do this before we start mutating anything.
-                using var _1 = PooledHashSet<Checksum>.GetInstance(out var changedProjectChecksums);
+                // First, collect information about which projects were added and which were changed.  Do this before we
+                // start mutating anything.
+                using var _3 = PooledHashSet<Checksum>.GetInstance(out var changedProjectChecksums);
+                using var _4 = PooledHashSet<Checksum>.GetInstance(out var addedProjectChecksums);
                 foreach (var (newProjectChecksum, projectId) in newSolutionChecksums.Projects)
                 {
-                    // If it's not a project in the local solution, then it's definitely not getting changed.
-                    if (!oldProjectIds.Object.Contains(projectId))
-                        continue;
+                    // If it's not a project in the local solution, then it's definitely being added
+                    if (!oldProjectIds.Contains(projectId))
+                    {
+                        addedProjectChecksums.Add(newProjectChecksum);
+                    }
+                    else
+                    {
+                        var oldProjectStateChecksums = await solution.SolutionState
+                            .GetRequiredProjectState(projectId)
+                            .GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
-                    var oldProjectStateChecksums = await solution.SolutionState
-                        .GetRequiredProjectState(projectId)
-                        .GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-
-                    // Ignore if they didn't actually change.
-                    if (oldProjectStateChecksums.Checksum == newProjectChecksum)
-                        continue;
-
-                    changedProjectChecksums.Add(newProjectChecksum);
+                        // Ignore if they didn't actually change.
+                        if (oldProjectStateChecksums.Checksum != newProjectChecksum)
+                            changedProjectChecksums.Add(newProjectChecksum);
+                    }
                 }
 
-                // Fetch all the changed projects at once.
+                // Fetch the state checksums for the changed and added projects at once.
+                var addedProjectStateChecksums = await _assetProvider.GetAssetsAsync<ProjectStateChecksums>(
+                    assetHint: default, addedProjectChecksums, cancellationToken).ConfigureAwait(false);
                 var changedProjectStateChecksums = await _assetProvider.GetAssetsAsync<ProjectStateChecksums>(
                     assetHint: default, changedProjectChecksums, cancellationToken).ConfigureAwait(false);
 
-                using var _2 = ArrayBuilder<(ProjectId projectId, ProjectStateChecksums oldProjectStateChecksums, ProjectStateChecksums newProjectStateChecksums)>.GetInstance(out var changedProjects);
+                // Bulk fetch the data for the added projects since we'll definitely need that.  Do *not* do this for
+                // the changed projects.  We'll only want to fetch what *actually* changed.
+                foreach (var (_, projectStateChecksum) in addedProjectStateChecksums)
+                    await _assetProvider.SynchronizeProjectAssetsAsync(projectStateChecksum, cancellationToken).ConfigureAwait(false);
+
+                using var _5 = ArrayBuilder<(ProjectId projectId, ProjectStateChecksums oldProjectStateChecksums, ProjectStateChecksums newProjectStateChecksums)>.GetInstance(out var changedProjects);
                 foreach (var (changedChecksum, newProjectStateChecksums) in changedProjectStateChecksums)
                 {
                     Contract.ThrowIfTrue(changedChecksum != newProjectStateChecksums.Checksum);
                     var projectId = newProjectStateChecksums.ProjectId;
 
                     // As this is a changed project, the old solution must know about it.
-                    Contract.ThrowIfTrue(!oldProjectIds.Object.Contains(projectId));
+                    Contract.ThrowIfTrue(!oldProjectIds.Contains(projectId));
 
                     // This call will be cheap, since we already performed it in the top loop.
                     var oldProjectStateChecksums = await solution.SolutionState
@@ -166,9 +177,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 // From this point on, we can change the solution instance.
 
                 // Second, add any projects on the 'new' side that aren't currently in this solution.
+
                 foreach (var (newProjectChecksum, newProjectId) in newSolutionChecksums.Projects)
                 {
-                    if (!oldProjectIds.Object.Contains(newProjectId))
+                    if (!oldProjectIds.Contains(newProjectId))
                     {
                         var projectInfo = await _assetProvider.CreateProjectInfoAsync(newProjectId, newProjectChecksum, cancellationToken).ConfigureAwait(false);
                         Contract.ThrowIfNull(projectInfo);
@@ -179,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Third, remove any projects no longer present in the 'new' side.
                 foreach (var oldProjectId in solution.ProjectIds)
                 {
-                    if (!newProjectIds.Object.Contains(oldProjectId))
+                    if (!newProjectIds.Contains(oldProjectId))
                         solution = solution.RemoveProject(oldProjectId);
                 }
 
