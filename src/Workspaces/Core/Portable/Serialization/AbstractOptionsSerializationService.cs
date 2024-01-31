@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             strongNameProvider = new DesktopStrongNameProvider();
         }
 
-        protected static void WriteParseOptionsTo(ParseOptions options, ObjectWriter writer)
+        protected static async ValueTask WriteParseOptionsToAsync(ParseOptions options, ObjectWriter writer)
         {
             writer.WriteInt32((int)options.Kind);
             writer.WriteInt32((int)options.DocumentationMode);
@@ -173,8 +173,8 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteInt32(options.Features.Count);
             foreach (var kv in options.Features.OrderBy(o => o.Key))
             {
-                writer.WriteString(kv.Key);
-                writer.WriteString(kv.Value);
+                await writer.WriteStringAsync(kv.Key).ConfigureAwait(false);
+                await writer.WriteStringAsync(kv.Value).ConfigureAwait(false);
             }
         }
 
