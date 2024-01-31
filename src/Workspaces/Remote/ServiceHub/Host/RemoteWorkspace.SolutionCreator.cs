@@ -115,11 +115,20 @@ namespace Microsoft.CodeAnalysis.Remote
             private async Task<Solution> UpdateProjectsAsync(
                 Solution solution, SolutionStateChecksums oldSolutionChecksums, SolutionStateChecksums newSolutionChecksums, CancellationToken cancellationToken)
             {
-                using var _1 = PooledHashSet<Checksum>.GetInstance(out var olds);
-                using var _2 = PooledHashSet<Checksum>.GetInstance(out var news);
+                var solutionState = solution.SolutionState;
 
-                olds.AddRange(oldSolutionChecksums.Projects.Checksums.Children);
-                news.AddRange(newSolutionChecksums.Projects.Checksums.Children);
+                using var _1 = PooledDictionary<ProjectId, Checksum>.GetInstance(out var oldProjectIdToChecksum);
+                using var _2 = PooledDictionary<ProjectId, Checksum>.GetInstance(out var newProjectIdToChecksum);
+                using var _3 = PooledHashSet<ProjectId>.GetInstance(out var allProjectIds);
+
+                foreach (var (oldChecksum, projectId) in oldSolutionChecksums.Projects)
+                    oldProjectIdToChecksum.Add(projectId, oldChecksum);
+
+                foreach (var (newChecksum, projectId) in newSolutionChecksums.Projects)
+                    newProjectIdToChecksum.Add(projectId, newChecksum);
+
+                allProjectIds.AddRange(oldSolutionChecksums.Projects.Ids);
+                allProjectIds.AddRange(newSolutionChecksums.Projects.Ids);
 
                 // If there are old projects that are now missing on the new side, and this is a projectConeSync, then
                 // exclude them from the old side as well.  This way we only consider projects actually added or
@@ -131,40 +140,51 @@ namespace Microsoft.CodeAnalysis.Remote
                 var isConeSync = newSolutionChecksums.ProjectConeId != null;
                 if (isConeSync)
                 {
-                    using var _3 = PooledHashSet<ProjectId>.GetInstance(out var newProjectIds);
-                    newProjectIds.AddRange(newSolutionChecksums.Projects.Ids);
-
                     foreach (var (oldChecksum, oldProjectId) in oldSolutionChecksums.Projects)
                     {
-                        if (!newProjectIds.Contains(oldProjectId))
-                            olds.Remove(oldChecksum);
+                        if (!newProjectIdToChecksum.ContainsKey(oldProjectId))
+                            oldProjectIdToChecksum.Remove(oldProjectId);
+                    }
+
+                    // All the old projects must be in the new project set.  Though the reverse doesn't have to hold.
+                    // The new project set may contain additional projects to add.
+                    Debug.Assert(oldProjectIdToChecksum.Keys.All(newProjectIdToChecksum.Keys.Contains));
+                }
+
+                // remove projects that are the same on both sides.
+                foreach (var projectId in allProjectIds)
+                {
+                    if (oldProjectIdToChecksum.TryGetValue(projectId, out var oldChecksum)&&
+                        newProjectIdToChecksum.TryGetValue(projectId, out var newChecksum) &&
+                        oldChecksum == newChecksum)
+                    {
+                        oldProjectIdToChecksum.Remove(projectId);
+                        newProjectIdToChecksum.Remove(projectId);
                     }
                 }
 
-                // remove projects that exist in both sides
-                olds.ExceptWith(newSolutionChecksums.Projects.Checksums);
-                news.ExceptWith(oldSolutionChecksums.Projects.Checksums);
-
                 using var _4 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var oldProjectIdToStateChecksums);
-                using var _5 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var newMap);
+                using var _5 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var newProjectIdToStateChecksums);
 
-                foreach (var (projectId, projectState) in solution.SolutionState.ProjectStates)
+                foreach (var (projectId, oldChecksum) in oldProjectIdToChecksum)
                 {
-                    var projectChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                    if (olds.Contains(projectChecksums.Checksum))
-                        oldMap.Add(projectId, projectChecksums);
+                    var oldProjectState = solutionState.GetRequiredProjectState(projectId);
+
+                    // this should be cheap since we already computed oldSolutionChecksums (which calls into this).
+                    var oldProjectStateChecksums = await oldProjectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfTrue(oldChecksum != oldProjectStateChecksums.Checksum);
+                    oldProjectIdToStateChecksums.Add(projectId, oldProjectStateChecksums);
                 }
 
-                await PopulateOldProjectMapAsync().ConfigureAwait(false);
                 await PopulateNewProjectMapAsync(this).ConfigureAwait(false);
 
                 // bulk sync assets
                 await SynchronizeAssetsAsync(oldMap, newMap, cancellationToken).ConfigureAwait(false);
 
                 // added project
-                foreach (var (projectId, newProjectChecksums) in newMap)
+                foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
                 {
-                    if (!oldMap.ContainsKey(projectId))
+                    if (!oldProjectIdToStateChecksums.ContainsKey(projectId))
                     {
                         var projectInfo = await _assetProvider.CreateProjectInfoAsync(projectId, newProjectChecksums.Checksum, cancellationToken).ConfigureAwait(false);
                         solution = solution.AddProject(projectInfo);
@@ -173,23 +193,23 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // remove all project references from projects that changed. this ensures exceptions will not occur for
                 // cyclic references during an incremental update.
-                foreach (var (projectId, newProjectChecksums) in newMap)
+                foreach (var (projectId, newProjectChecksums) in newProjectIdToChecksum)
                 {
-                    if (!oldMap.TryGetValue(projectId, out var oldProjectChecksums))
-                    {
-                        continue;
-                    }
-
-                    if (oldProjectChecksums.ProjectReferences.Checksum != newProjectChecksums.ProjectReferences.Checksum)
+                    // Only have to do something if this was a changed project, and specifically the project references
+                    // changed.
+                    if (oldProjectIdToStateChecksums.TryGetValue(projectId, out var oldProjectChecksums) &&
+                        oldProjectChecksums.ProjectReferences.Checksum != newProjectChecksums.ProjectReferences.Checksum)
                     {
                         solution = solution.WithProjectReferences(projectId, SpecializedCollections.EmptyEnumerable<ProjectReference>());
                     }
                 }
 
                 // removed project
-                foreach (var (projectId, _) in oldMap)
+                foreach (var (projectId, _) in oldProjectIdToStateChecksums)
                 {
-                    if (!newMap.ContainsKey(projectId))
+                    // Should never be removing projects during cone syncing.
+                    Contract.ThrowIfTrue(isConeSync);
+                    if (!newProjectIdToStateChecksums.ContainsKey(projectId))
                     {
                         // we have a project removed
                         solution = solution.RemoveProject(projectId);
@@ -197,15 +217,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 // changed project
-                foreach (var (projectId, newProjectChecksums) in newMap)
+                foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
                 {
-                    if (!oldMap.TryGetValue(projectId, out var oldProjectChecksums))
-                    {
+                    if (!oldProjectIdToStateChecksums.TryGetValue(projectId, out var oldProjectChecksums))
                         continue;
-                    }
 
+                    // If this project was in the old map, then the project must have changed.  Otherwise, we would have
+                    // removed it earlier on.
                     Contract.ThrowIfTrue(oldProjectChecksums.Checksum == newProjectChecksums.Checksum);
-
                     solution = await UpdateProjectAsync(solution.GetRequiredProject(projectId), oldProjectChecksums, newProjectChecksums, cancellationToken).ConfigureAwait(false);
                 }
 
