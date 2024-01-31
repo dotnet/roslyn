@@ -179,11 +179,23 @@ namespace Microsoft.CodeAnalysis.Remote
                 await PopulateNewProjectMapAsync(this).ConfigureAwait(false);
 
                 // bulk sync assets
-                await SynchronizeAssetsAsync(oldMap, newMap, cancellationToken).ConfigureAwait(false);
+                await SynchronizeAssetsAsync(oldProjectIdToStateChecksums, newProjectIdToStateChecksums, cancellationToken).ConfigureAwait(false);
 
                 solution = await UpdateProjectsAsync(solution, isConeSync, oldProjectIdToStateChecksums, newProjectIdToStateChecksums, cancellationToken).ConfigureAwait(false);
 
                 return solution;
+
+                async ValueTask SynchronizeAssetsAsync(Dictionary<ProjectId, ProjectStateChecksums> oldMap, Dictionary<ProjectId, ProjectStateChecksums> newMap, CancellationToken cancellationToken)
+                {
+                    // added project
+                    foreach (var (projectId, projectStateChecksums) in newMap)
+                    {
+                        if (oldMap.ContainsKey(projectId))
+                            continue;
+
+                        await _assetProvider.SynchronizeProjectAssetsAsync(projectStateChecksums, cancellationToken).ConfigureAwait(false);
+                    }
+                }
 
                 async Task PopulateNewProjectMapAsync(SolutionCreator @this)
                 {
@@ -248,18 +260,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 return solution;
-            }
-
-            private async ValueTask SynchronizeAssetsAsync(Dictionary<ProjectId, ProjectStateChecksums> oldMap, Dictionary<ProjectId, ProjectStateChecksums> newMap, CancellationToken cancellationToken)
-            {
-                // added project
-                foreach (var (projectId, projectStateChecksums) in newMap)
-                {
-                    if (oldMap.ContainsKey(projectId))
-                        continue;
-
-                    await _assetProvider.SynchronizeProjectAssetsAsync(projectStateChecksums, cancellationToken).ConfigureAwait(false);
-                }
             }
 
             private async Task<Solution> UpdateProjectAsync(Project project, ProjectStateChecksums oldProjectChecksums, ProjectStateChecksums newProjectChecksums, CancellationToken cancellationToken)
