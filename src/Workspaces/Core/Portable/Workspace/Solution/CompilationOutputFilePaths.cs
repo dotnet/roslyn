@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -47,14 +48,12 @@ namespace Microsoft.CodeAnalysis
         public static bool operator !=(in CompilationOutputInfo left, in CompilationOutputInfo right)
             => !left.Equals(right);
 
-        internal void WriteTo(ObjectWriter writer)
-        {
-            writer.WriteString(AssemblyPath);
-        }
+        internal ValueTask WriteToAsync(ObjectWriter writer)
+            => writer.WriteStringAsync(AssemblyPath);
 
-        internal static CompilationOutputInfo ReadFrom(ObjectReader reader)
+        internal static async ValueTask<CompilationOutputInfo> ReadFromAsync(ObjectReader reader)
         {
-            var assemblyPath = reader.ReadString();
+            var assemblyPath = await reader.ReadStringAsync().ConfigureAwait(false);
             return new CompilationOutputInfo(assemblyPath);
         }
     }
