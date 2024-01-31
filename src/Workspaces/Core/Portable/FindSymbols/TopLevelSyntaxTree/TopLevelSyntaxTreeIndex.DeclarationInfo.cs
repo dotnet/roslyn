@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -19,11 +20,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public void WriteTo(ObjectWriter writer)
                 => writer.WriteArray(DeclaredSymbolInfos, static (w, d) => d.WriteTo(w));
 
-            public static DeclarationInfo? TryReadFrom(StringTable stringTable, ObjectReader reader)
+            public static async ValueTask<DeclarationInfo?> TryReadFromAsync(StringTable stringTable, ObjectReader reader)
             {
                 try
                 {
-                    var infos = reader.ReadArray(static (r, stringTable) => DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, r), stringTable);
+                    var infos = await reader.ReadArrayAsync(
+                        static (r, stringTable) => DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, r), stringTable).ConfigureAwait(false);
                     return new DeclarationInfo(infos);
                 }
                 catch (Exception)

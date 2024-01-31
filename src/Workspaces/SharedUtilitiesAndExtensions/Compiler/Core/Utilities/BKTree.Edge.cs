@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading.Tasks;
+
 namespace Roslyn.Utilities
 {
     internal readonly partial struct BKTree
@@ -21,8 +23,9 @@ namespace Roslyn.Utilities
                 writer.WriteInt32(ChildNodeIndex);
             }
 
-            internal static Edge ReadFrom(ObjectReader reader)
-                => new(editDistance: reader.ReadInt32(), childNodeIndex: reader.ReadInt32());
+            internal static async ValueTask<Edge> ReadFromAsync(ObjectReader reader)
+                => new(editDistance: await reader.ReadInt32Async().ConfigureAwait(false),
+                    childNodeIndex: await reader.ReadInt32Async().ConfigureAwait(false));
         }
     }
 }

@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task<SyntaxTreeIndex?> LoadAsync(
             IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
         {
-            return LoadAsync(storageService, documentKey, checksum, stringTable, ReadIndex, cancellationToken);
+            return LoadAsync(storageService, documentKey, checksum, stringTable, ReadIndexAsync, cancellationToken);
         }
 
-        public override void WriteTo(ObjectWriter writer)
+        public override async ValueTask WriteToAsync(ObjectWriter writer)
         {
             _literalInfo.WriteTo(writer);
             _identifierInfo.WriteTo(writer);
@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 writer.WriteInt32(_globalAliasInfo.Count);
                 foreach (var (alias, name, arity) in _globalAliasInfo)
                 {
-                    writer.WriteString(alias);
-                    writer.WriteString(name);
+                    await writer.WriteStringAsync(alias).ConfigureAwait(false);
+                    await writer.WriteStringAsync(name).ConfigureAwait(false);
                     writer.WriteInt32(arity);
                 }
             }
         }
 
-        private static SyntaxTreeIndex? ReadIndex(
+        private static async ValueTask<SyntaxTreeIndex?> ReadIndexAsync(
             StringTable stringTable, ObjectReader reader, Checksum? checksum)
         {
             var literalInfo = LiteralInfo.TryReadFrom(reader);
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (literalInfo == null || identifierInfo == null || contextInfo == null)
                 return null;
 
-            var globalAliasInfoCount = reader.ReadInt32();
+            var globalAliasInfoCount = await reader.ReadInt32Async().ConfigureAwait(false);
             HashSet<(string alias, string name, int arity)>? globalAliasInfo = null;
 
             if (globalAliasInfoCount > 0)
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 for (var i = 0; i < globalAliasInfoCount; i++)
                 {
-                    var alias = reader.ReadString();
-                    var name = reader.ReadString();
-                    var arity = reader.ReadInt32();
+                    var alias = await reader.ReadStringAsync().ConfigureAwait(false);
+                    var name = await reader.ReadStringAsync().ConfigureAwait(false);
+                    var arity = await reader.ReadInt32Async().ConfigureAwait(false);
                     globalAliasInfo.Add((alias, name, arity));
                 }
             }

@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ValueTask<ImmutableArray<T>> ReadArrayAsync<T>(this ObjectReader reader, Func<ObjectReader, ValueTask<T>> read)
             => ReadArrayAsync(reader, static (reader, read) => read(reader), read);
 
+        public static ValueTask<ImmutableArray<T>> ReadArrayAsync<T, TArg>(this ObjectReader reader, Func<ObjectReader, TArg, T> read, TArg arg)
+            => ReadArrayAsync(reader, static (reader, tuple) => new ValueTask<T>(tuple.read(reader, tuple.arg)), (read, arg));
+
         public static async ValueTask<ImmutableArray<T>> ReadArrayAsync<T, TArg>(
             this ObjectReader reader, Func<ObjectReader, TArg, ValueTask<T>> read, TArg arg)
         {

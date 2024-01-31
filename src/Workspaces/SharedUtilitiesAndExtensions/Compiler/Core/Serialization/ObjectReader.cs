@@ -456,10 +456,10 @@ internal sealed partial class ObjectReader : IDisposable
             var result = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
 
 #if NETSTANDARD
-                var bytes = System.Buffers.ArrayPool<byte>.Shared.Rent(byteCount);
-                result.Buffer.Slice(0, byteCount).CopyTo(bytes);
-                value = Encoding.UTF8.GetString(bytes);
-                System.Buffers.ArrayPool<byte>.Shared.Return(bytes);
+            var bytes = System.Buffers.ArrayPool<byte>.Shared.Rent(byteCount);
+            result.Buffer.Slice(0, byteCount).CopyTo(bytes);
+            var value = Encoding.UTF8.GetString(bytes);
+            System.Buffers.ArrayPool<byte>.Shared.Return(bytes);
 #else
             var value = Encoding.UTF8.GetString(result.Buffer);
 #endif
