@@ -117,13 +117,13 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using var _1 = PooledHashSet<Checksum>.GetInstance(out var olds);
                 using var _2 = PooledHashSet<Checksum>.GetInstance(out var news);
-                // using var _3 = PooledHashSet<Checksum>.GetInstance(out var allProjectIds);
 
                 olds.AddRange(oldSolutionChecksums.Projects.Checksums.Children);
                 news.AddRange(newSolutionChecksums.Projects.Checksums.Children);
 
-                // If there are missing projects, and this is a projectConeSync, we'll copy over the equivalent
-                // project/checksums from the current local snapshot, indicating that we don't think anything changed.
+                // If there are old projects that are now missing on the new side, and this is a projectConeSync, then
+                // exclude them from the old side as well.  This way we only consider projects actually added or
+                // changed.
                 //
                 // Importantly, this means in the event of a cone-sync, we never drop projects locally.  That's very
                 // desirable as it will likely be useful in future calls to still know about that project info without
@@ -145,8 +145,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 olds.ExceptWith(newSolutionChecksums.Projects.Checksums);
                 news.ExceptWith(oldSolutionChecksums.Projects.Checksums);
 
-                using var _4 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var oldMap);
+                using var _4 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var oldProjectIdToStateChecksums);
                 using var _5 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var newMap);
+
+                foreach (var (projectId, projectState) in solution.SolutionState.ProjectStates)
+                {
+                    var projectChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                    if (olds.Contains(projectChecksums.Checksum))
+                        oldMap.Add(projectId, projectChecksums);
+                }
 
                 await PopulateOldProjectMapAsync().ConfigureAwait(false);
                 await PopulateNewProjectMapAsync(this).ConfigureAwait(false);
@@ -203,16 +210,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 return solution;
-
-                async Task PopulateOldProjectMapAsync()
-                {
-                    foreach (var (projectId, projectState) in solution.SolutionState.ProjectStates)
-                    {
-                        var projectChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                        if (olds.Contains(projectChecksums.Checksum))
-                            oldMap.Add(projectId, projectChecksums);
-                    }
-                }
 
                 async Task PopulateNewProjectMapAsync(SolutionCreator @this)
                 {
