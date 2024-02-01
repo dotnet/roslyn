@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 foreach (var (_, projectStateChecksum) in projectStateChecksumsArray)
                     newProjectIdToStateChecksums.Add(projectStateChecksum.ProjectId, projectStateChecksum);
 
-                // bulk sync assets for added project
+                // bulk sync assets for added projects
                 foreach (var (projectId, projectStateChecksums) in newProjectIdToStateChecksums)
                 {
                     if (oldProjectIdToStateChecksums.ContainsKey(projectId))
