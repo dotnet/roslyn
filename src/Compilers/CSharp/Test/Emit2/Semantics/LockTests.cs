@@ -363,7 +363,7 @@ public class LockTests : CSharpTestBase
 
             namespace System.Threading
             {
-                public class Lock
+                internal class Lock
                 {
                     public Scope EnterLockScope()
                     {
