@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.Serialization;
 /// </summary>
 internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) : IReadOnlyCollection<Checksum>
 {
+    /// <summary>
+    /// Aggregate checksum produced from all the constituent checksums in <see cref="Children"/>.
+    /// </summary>
     public Checksum Checksum { get; } = Checksum.Create(children);
 
     public int Count => children.Length;
