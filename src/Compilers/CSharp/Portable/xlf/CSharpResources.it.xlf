@@ -2328,8 +2328,8 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_LockObject">
-        <source>'Lock' object</source>
-        <target state="new">'Lock' object</target>
+        <source>Lock object</source>
+        <target state="new">Lock object</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Missing">
