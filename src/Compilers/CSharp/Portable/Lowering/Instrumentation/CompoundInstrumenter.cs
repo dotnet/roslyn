@@ -116,14 +116,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentForEachStatementIterationVarDeclaration(original, iterationVarDecl);
         }
 
-        public override BoundStatement InstrumentForEachStatementConditionalGotoStart(BoundForEachStatement original, BoundStatement branchBack)
-        {
-            return Previous.InstrumentForEachStatementConditionalGotoStart(original, branchBack);
-        }
-
         public override BoundStatement InstrumentForStatementConditionalGotoStartOrBreak(BoundForStatement original, BoundStatement branchBack)
         {
             return Previous.InstrumentForStatementConditionalGotoStartOrBreak(original, branchBack);
+        }
+
+        public override BoundStatement InstrumentForEachStatementConditionalGotoStart(BoundForEachStatement original, BoundStatement branchBack)
+        {
+            return Previous.InstrumentForEachStatementConditionalGotoStart(original, branchBack);
         }
 
         public override BoundExpression InstrumentForStatementCondition(BoundForStatement original, BoundExpression rewrittenCondition, SyntheticBoundNodeFactory factory)
