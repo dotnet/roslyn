@@ -1634,6 +1634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_EncReferenceToAddedMember:
                 case ErrorCode.ERR_MutuallyExclusiveOptions:
                 case ErrorCode.ERR_InvalidDebugInfo:
+                case ErrorCode.ERR_NotYetImplementedInRoslyn:
                 case ErrorCode.WRN_UnimplementedCommandLineSwitch:
                 case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                 case ErrorCode.ERR_InvalidSignaturePublicKey:
