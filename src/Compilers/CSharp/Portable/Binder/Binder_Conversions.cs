@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ = GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, syntax: node.Syntax);
             }
 
-            var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType);
+            var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType, out MethodSymbol? constructor, out bool isExpanded);
 
             if (collectionTypeKind == CollectionExpressionTypeKind.None)
             {
@@ -600,40 +600,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(elementType is { });
 
                         var namedType = (NamedTypeSymbol)targetType;
-                        bool result = namedType.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
-                        Debug.Assert(result);
 
-                        var targetTypeOriginalDefinition = targetType.OriginalDefinition;
-                        result = TryGetCollectionIterationType(syntax, targetTypeOriginalDefinition, out TypeWithAnnotations elementTypeOriginalDefinition);
-                        Debug.Assert(result);
-
-                        var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                        Conversion collectionBuilderReturnTypeConversion;
-                        collectionBuilderMethod = GetCollectionBuilderMethod(namedType, elementTypeOriginalDefinition.Type, builderType, methodName, ref useSiteInfo, out collectionBuilderReturnTypeConversion);
-                        diagnostics.Add(syntax, useSiteInfo);
+                        collectionBuilderMethod = GetAndValidateCollectionBuilderMethod(syntax, namedType, diagnostics, out var updatedElementType);
                         if (collectionBuilderMethod is null)
                         {
-                            diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementTypeOriginalDefinition, targetTypeOriginalDefinition);
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                         }
 
-                        Debug.Assert(collectionBuilderReturnTypeConversion.Exists);
+                        elementType = updatedElementType;
                         collectionBuilderInvocationPlaceholder = new BoundValuePlaceholder(syntax, collectionBuilderMethod.ReturnType) { WasCompilerGenerated = true };
                         collectionBuilderInvocationConversion = CreateConversion(collectionBuilderInvocationPlaceholder, targetType, diagnostics);
-
-                        ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
-
-                        var parameterType = (NamedTypeSymbol)collectionBuilderMethod.Parameters[0].Type;
-                        Debug.Assert(parameterType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
-
-                        elementType = parameterType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-
-                        collectionBuilderMethod.CheckConstraints(
-                            new ConstraintsHelper.CheckConstraintsArgs(Compilation, Conversions, syntax.Location, diagnostics));
-
-                        ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
-                        ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
-                        ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
                     }
                     break;
 
@@ -655,6 +631,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
                 collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, diagnostics);
+                Debug.Assert((collectionCreation is BoundNewT && !isExpanded && constructor is null) ||
+                             (collectionCreation is BoundObjectCreationExpression creation && creation.Expanded == isExpanded && creation.Constructor == constructor));
 
                 var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
                 foreach (var element in elements)
@@ -758,8 +736,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal MethodSymbol? GetAndValidateCollectionBuilderMethod(
+            SyntaxNode syntax,
+            NamedTypeSymbol namedType,
+            BindingDiagnosticBag diagnostics,
+            out TypeSymbol? elementType)
+        {
+            MethodSymbol? collectionBuilderMethod;
+            bool result = namedType.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
+            Debug.Assert(result);
+
+            var targetTypeOriginalDefinition = namedType.OriginalDefinition;
+            result = TryGetCollectionIterationType(syntax, targetTypeOriginalDefinition, out TypeWithAnnotations elementTypeOriginalDefinition);
+            Debug.Assert(result);
+
+            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            Conversion collectionBuilderReturnTypeConversion;
+            collectionBuilderMethod = GetCollectionBuilderMethod(namedType, elementTypeOriginalDefinition.Type, builderType, methodName, ref useSiteInfo, out collectionBuilderReturnTypeConversion);
+            diagnostics.Add(syntax, useSiteInfo);
+            if (collectionBuilderMethod is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementTypeOriginalDefinition, targetTypeOriginalDefinition);
+                elementType = null;
+                return null;
+            }
+
+            Debug.Assert(collectionBuilderReturnTypeConversion.Exists);
+
+            ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
+
+            var parameterType = (NamedTypeSymbol)collectionBuilderMethod.Parameters[0].Type;
+            Debug.Assert(parameterType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
+
+            elementType = parameterType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+
+            collectionBuilderMethod.CheckConstraints(
+                new ConstraintsHelper.CheckConstraintsArgs(Compilation, Conversions, syntax.Location, diagnostics));
+
+            ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
+
+            return collectionBuilderMethod;
+        }
+
         internal BoundExpression BindCollectionExpressionConstructor(SyntaxNode syntax, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
         {
+            //
+            // !!! ATTENTION !!!
+            //
+            // In terms of errors relevant for HasCollectionExpressionApplicableConstructor check
+            // this function should be kept in sync with HasCollectionExpressionApplicableConstructor.
+            //
+
             BoundExpression collectionCreation;
             var analyzedArguments = AnalyzedArguments.GetInstance();
             if (targetType is NamedTypeSymbol namedType)
@@ -781,25 +810,454 @@ namespace Microsoft.CodeAnalysis.CSharp
             return collectionCreation;
         }
 
-        internal bool HasCollectionExpressionApplicableConstructor(SyntaxNode syntax, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
+        internal bool HasCollectionExpressionApplicableConstructor(SyntaxNode syntax, TypeSymbol targetType, out MethodSymbol? constructor, out bool isExpanded, BindingDiagnosticBag diagnostics)
         {
-            var collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, diagnostics);
-            return !collectionCreation.HasErrors;
+            // This is what BindClassCreationExpression is doing in terms of reporting diagnostics
+
+            constructor = null;
+            isExpanded = false;
+
+            if (targetType is NamedTypeSymbol namedType)
+            {
+                // This is what BindClassCreationExpression called by BindCollectionExpressionConstructor is doing in terms of reporting diagnostics
+
+                if (namedType.IsAbstract)
+                {
+                    // Report error for new of abstract type.
+                    diagnostics.Add(ErrorCode.ERR_NoNewAbstract, syntax.Location, namedType);
+                    return false;
+                }
+
+                if (HasParamsCollectionTypeInProgress(namedType))
+                {
+                    // We are in a cycle. Optimistically assume we have the right constructor to break the cycle
+                    return true;
+                }
+
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this);
+
+                bool overloadResolutionSucceeded = binder.TryPerformConstructorOverloadResolution(
+                        namedType,
+                        analyzedArguments,
+                        namedType.Name,
+                        syntax.Location,
+                        suppressResultDiagnostics: false,
+                        diagnostics,
+                        out MemberResolutionResult<MethodSymbol> memberResolutionResult,
+                        candidateConstructors: out _,
+                        allowProtectedConstructorsOfBaseType: false,
+                        out CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo);
+
+                analyzedArguments.Free();
+
+                if (overloadResolutionSucceeded)
+                {
+                    bindClassCreationExpressionContinued(binder, syntax, memberResolutionResult, in overloadResolutionUseSiteInfo, diagnostics);
+                    constructor = memberResolutionResult.Member;
+                    isExpanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
+                }
+                else
+                {
+                    reportAdditionalDiagnosticsForOverloadResolutionFailure(syntax, in overloadResolutionUseSiteInfo, diagnostics);
+                }
+
+                return overloadResolutionSucceeded;
+            }
+            else if (targetType is TypeParameterSymbol typeParameter)
+            {
+                return TypeParameterHasParameterlessConstructor(syntax, typeParameter, diagnostics);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(targetType);
+            }
+
+            // This is what BindClassCreationExpressionContinued is doing in terms of reporting diagnostics
+            static void bindClassCreationExpressionContinued(
+                Binder binder,
+                SyntaxNode node,
+                MemberResolutionResult<MethodSymbol> memberResolutionResult,
+                in CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo,
+                BindingDiagnosticBag diagnostics)
+            {
+                ReportConstructorUseSiteDiagnostics(node.Location, diagnostics, suppressUnsupportedRequiredMembersError: false, in overloadResolutionUseSiteInfo);
+
+                var method = memberResolutionResult.Member;
+
+                binder.ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
+                // NOTE: Use-site diagnostics were reported during overload resolution.
+
+                CheckRequiredMembersInObjectInitializer(method, initializers: default, node, diagnostics);
+            }
+
+            // This is what CreateBadClassCreationExpression is doing in terms of reporting diagnostics
+            static void reportAdditionalDiagnosticsForOverloadResolutionFailure(
+                SyntaxNode typeNode,
+                in CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo,
+                BindingDiagnosticBag diagnostics)
+            {
+                ReportConstructorUseSiteDiagnostics(typeNode.Location, diagnostics, suppressUnsupportedRequiredMembersError: false, in overloadResolutionUseSiteInfo);
+            }
         }
 
-        internal bool HasCollectionExpressionApplicableAddMethod(SyntaxNode syntax, TypeSymbol targetType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
+        private bool HasParamsCollectionTypeInProgress(NamedTypeSymbol toCheck)
         {
+            Binder? current = this;
+            while (current?.Flags.Includes(BinderFlags.CollectionExpressionConversionValidation) == true)
+            {
+                if (current.ParamsCollectionTypeInProgress?.OriginalDefinition.Equals(toCheck.OriginalDefinition, TypeCompareKind.AllIgnoreOptions) == true)
+                {
+                    // We are in a cycle.
+                    return true;
+                }
+
+                current = current.Next;
+            }
+
+            return false;
+        }
+
+        internal bool HasCollectionExpressionApplicableAddMethod(SyntaxNode syntax, TypeSymbol targetType, TypeSymbol elementType, out ImmutableArray<MethodSymbol> addMethods, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(!targetType.IsDynamic());
+
+            NamedTypeSymbol? namedType = targetType as NamedTypeSymbol;
+
+            if (namedType is not null && HasParamsCollectionTypeInProgress(namedType))
+            {
+                // We are in a cycle. Optimistically assume we have the right Add to break the cycle
+                addMethods = [];
+                return true;
+            }
+
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
             var elementPlaceholder = new BoundValuePlaceholder(syntax, elementType) { WasCompilerGenerated = true };
             var addMethodBinder = WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod | BinderFlags.CollectionExpressionConversionValidation);
-            var result = BindCollectionInitializerElementAddMethod(
-                syntax,
-                ImmutableArray.Create<BoundExpression>(elementPlaceholder),
-                hasEnumerableInitializerType: true,
+
+            if (namedType is not null)
+            {
+                addMethodBinder = new ParamsCollectionTypeInProgressBinder(namedType, addMethodBinder);
+            }
+
+            return bindCollectionInitializerElementAddMethod(
                 addMethodBinder,
+                syntax,
+                elementPlaceholder,
                 diagnostics,
-                implicitReceiver);
-            return !result.HasErrors;
+                implicitReceiver,
+                out addMethods);
+
+            // This is what BindCollectionInitializerElementAddMethod is doing in terms of reporting diagnostics and detecting a failure
+            static bool bindCollectionInitializerElementAddMethod(
+                Binder addMethodBinder,
+                SyntaxNode elementInitializer,
+                BoundValuePlaceholder arg,
+                BindingDiagnosticBag diagnostics,
+                BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+                out ImmutableArray<MethodSymbol> addMethods)
+            {
+                return makeInvocationExpression(
+                    addMethodBinder,
+                    elementInitializer,
+                    implicitReceiver,
+                    arg: arg,
+                    diagnostics,
+                    out addMethods);
+            }
+
+            // This is what MakeInvocationExpression is doing in terms of reporting diagnostics and detecting a failure
+            static bool makeInvocationExpression(
+                Binder addMethodBinder,
+                SyntaxNode node,
+                BoundExpression receiver,
+                BoundValuePlaceholder arg,
+                BindingDiagnosticBag diagnostics,
+                out ImmutableArray<MethodSymbol> addMethods)
+            {
+                var boundExpression = addMethodBinder.BindInstanceMemberAccess(
+                    node, node, receiver, WellKnownMemberNames.CollectionInitializerAddMethodName, rightArity: 0,
+                    typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
+                    typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
+                    invoked: true, indexed: false, diagnostics, searchExtensionMethodsIfNecessary: true);
+
+                // require the target member to be a method.
+                if (boundExpression.Kind == BoundKind.FieldAccess || boundExpression.Kind == BoundKind.PropertyAccess)
+                {
+                    ReportMakeInvocationExpressionBadMemberKind(node, WellKnownMemberNames.CollectionInitializerAddMethodName, boundExpression, diagnostics);
+                    addMethods = [];
+                    return false;
+                }
+
+                if (boundExpression.Kind != BoundKind.MethodGroup)
+                {
+                    Debug.Assert(boundExpression.HasErrors);
+                    addMethods = [];
+                    return false;
+                }
+
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+                analyzedArguments.Arguments.AddRange(arg);
+
+                bool result = bindInvocationExpression(
+                    addMethodBinder, node, node, (BoundMethodGroup)boundExpression, analyzedArguments, diagnostics, out addMethods);
+
+                analyzedArguments.Free();
+                return result;
+            }
+
+            // This is what BindInvocationExpression is doing in terms of reporting diagnostics and detecting a failure
+            static bool bindInvocationExpression(
+                Binder addMethodBinder,
+                SyntaxNode node,
+                SyntaxNode expression,
+                BoundMethodGroup boundExpression,
+                AnalyzedArguments analyzedArguments,
+                BindingDiagnosticBag diagnostics,
+                out ImmutableArray<MethodSymbol> addMethods)
+            {
+                return bindMethodGroupInvocation(
+                    addMethodBinder, node, expression, boundExpression, analyzedArguments,
+                    diagnostics, out addMethods);
+            }
+
+            // This is what BindDynamicInvocation is doing in terms of reporting diagnostics and detecting a failure
+            static bool bindDynamicInvocation(
+                Binder addMethodBinder,
+                SyntaxNode node,
+                AnalyzedArguments arguments,
+                BindingDiagnosticBag diagnostics)
+            {
+                ImmutableArray<BoundExpression> argArray = addMethodBinder.BuildArgumentsForDynamicInvocation(arguments, diagnostics);
+                var refKindsArray = arguments.RefKinds.ToImmutableOrNull();
+
+                return !ReportBadDynamicArguments(node, argArray, refKindsArray, diagnostics, queryClause: null);
+            }
+
+            // This is what BindMethodGroupInvocation is doing in terms of reporting diagnostics and detecting a failure
+            static bool bindMethodGroupInvocation(
+                Binder addMethodBinder,
+                SyntaxNode syntax,
+                SyntaxNode expression,
+                BoundMethodGroup methodGroup,
+                AnalyzedArguments analyzedArguments,
+                BindingDiagnosticBag diagnostics,
+                out ImmutableArray<MethodSymbol> addMethods)
+            {
+                bool result;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = addMethodBinder.GetNewCompoundUseSiteInfo(diagnostics);
+                var resolution = addMethodBinder.ResolveMethodGroup(
+                    methodGroup, expression, WellKnownMemberNames.CollectionInitializerAddMethodName, analyzedArguments,
+                    useSiteInfo: ref useSiteInfo,
+                    options: (analyzedArguments.HasDynamicArgument ? OverloadResolution.Options.DynamicResolution : OverloadResolution.Options.None));
+
+                diagnostics.Add(expression, useSiteInfo);
+
+                if (!methodGroup.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
+
+                if (resolution.HasAnyErrors)
+                {
+                    addMethods = [];
+                    result = false;
+                }
+                else if (!resolution.IsEmpty)
+                {
+                    // We're checking resolution.ResultKind, rather than methodGroup.HasErrors
+                    // to better handle the case where there's a problem with the receiver
+                    // (e.g. inaccessible), but the method group resolved correctly (e.g. because
+                    // it's actually an accessible static method on a base type).
+                    // CONSIDER: could check for error types amongst method group type arguments.
+                    if (resolution.ResultKind != LookupResultKind.Viable)
+                    {
+                        addMethods = [];
+                        result = false;
+                    }
+                    else
+                    {
+                        // If overload resolution found one or more applicable methods and at least one argument
+                        // was dynamic then treat this as a dynamic call.
+                        if (resolution.AnalyzedArguments.HasDynamicArgument &&
+                            resolution.OverloadResolutionResult.HasAnyApplicableMember)
+                        {
+                            // Note that the runtime binder may consider candidates that haven't passed compile-time final validation 
+                            // and an ambiguity error may be reported. Also additional checks are performed in runtime final validation 
+                            // that are not performed at compile-time.
+                            // Only if the set of final applicable candidates is empty we know for sure the call will fail at runtime.
+                            var finalApplicableCandidates = addMethodBinder.GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult,
+                                                                                                                methodGroup.ReceiverOpt,
+                                                                                                                methodGroup.TypeArgumentsOpt,
+                                                                                                                invokedAsExtensionMethod: resolution.IsExtensionMethodGroup,
+                                                                                                                diagnostics);
+
+                            Debug.Assert(finalApplicableCandidates.Length != 1 || finalApplicableCandidates[0].IsApplicable);
+
+                            if (finalApplicableCandidates.Length == 0)
+                            {
+                                addMethods = [];
+                                result = false;
+                            }
+                            else if (finalApplicableCandidates.Length == 1 &&
+                                     tryEarlyBindSingleCandidateInvocationWithDynamicArgument(addMethodBinder, syntax, expression, methodGroup, diagnostics, resolution, finalApplicableCandidates[0], out var addMethod) is bool earlyBoundResult)
+                            {
+                                addMethods = addMethod is null ? [] : [addMethod];
+                                result = earlyBoundResult;
+                            }
+                            else
+                            {
+                                Debug.Assert(finalApplicableCandidates.Length > 0);
+
+                                if (resolution.IsExtensionMethodGroup)
+                                {
+                                    // error CS1973: 'T' has no applicable method named 'M' but appears to have an
+                                    // extension method by that name. Extension methods cannot be dynamically dispatched. Consider
+                                    // casting the dynamic arguments or calling the extension method without the extension method
+                                    // syntax.
+
+                                    // We found an extension method, so the instance associated with the method group must have 
+                                    // existed and had a type.
+                                    Debug.Assert(methodGroup.InstanceOpt?.Type is not null);
+
+                                    Error(diagnostics, ErrorCode.ERR_BadArgTypeDynamicExtension, syntax, methodGroup.InstanceOpt.Type, methodGroup.Name);
+                                    addMethods = [];
+                                    result = false;
+                                }
+                                else
+                                {
+                                    addMethodBinder.ReportDynamicInvocationWarnings(syntax, methodGroup, diagnostics, resolution, finalApplicableCandidates);
+
+                                    addMethods = finalApplicableCandidates.SelectAsArray(r => r.Member);
+                                    result = bindDynamicInvocation(addMethodBinder, syntax, resolution.AnalyzedArguments, diagnostics);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            result = bindInvocationExpressionContinued(
+                                addMethodBinder, syntax, expression, resolution.OverloadResolutionResult, resolution.AnalyzedArguments,
+                                resolution.MethodGroup, diagnostics: diagnostics, out var addMethod);
+                            addMethods = addMethod is null ? [] : [addMethod];
+                        }
+                    }
+                }
+                else
+                {
+                    addMethods = [];
+                    result = false;
+                }
+
+                resolution.Free();
+                return result;
+            }
+
+            // This is what TryEarlyBindSingleCandidateInvocationWithDynamicArgument is doing in terms of reporting diagnostics and detecting a failure
+            static bool? tryEarlyBindSingleCandidateInvocationWithDynamicArgument(
+                Binder addMethodBinder,
+                SyntaxNode syntax,
+                SyntaxNode expression,
+                BoundMethodGroup boundMethodGroup,
+                BindingDiagnosticBag diagnostics,
+                MethodGroupResolution resolution,
+                MemberResolutionResult<MethodSymbol> methodResolutionResult,
+                out MethodSymbol? addMethod)
+            {
+                MethodSymbol singleCandidate = methodResolutionResult.LeastOverriddenMember;
+                if (!addMethodBinder.CanEarlyBindSingleCandidateInvocationWithDynamicArgument(syntax, boundMethodGroup, diagnostics, resolution, methodResolutionResult, singleCandidate))
+                {
+                    addMethod = null;
+                    return null;
+                }
+
+                var resultWithSingleCandidate = OverloadResolutionResult<MethodSymbol>.GetInstance();
+                resultWithSingleCandidate.ResultsBuilder.Add(methodResolutionResult);
+
+                // PROTOTYPE(ParamsCollections): This code path is affected by https://github.com/dotnet/roslyn/issues/71399
+                bool result = bindInvocationExpressionContinued(
+                    addMethodBinder,
+                    node: syntax,
+                    expression: expression,
+                    result: resultWithSingleCandidate,
+                    analyzedArguments: resolution.AnalyzedArguments,
+                    methodGroup: resolution.MethodGroup,
+                    diagnostics: diagnostics,
+                    out addMethod);
+
+                resultWithSingleCandidate.Free();
+
+                return result;
+            }
+
+            // This is what BindInvocationExpressionContinued is doing in terms of reporting diagnostics and detecting a failure
+            static bool bindInvocationExpressionContinued(
+                Binder addMethodBinder,
+                SyntaxNode node,
+                SyntaxNode expression,
+                OverloadResolutionResult<MethodSymbol> result,
+                AnalyzedArguments analyzedArguments,
+                MethodGroup methodGroup,
+                BindingDiagnosticBag diagnostics,
+                out MethodSymbol? addMethod)
+            {
+                Debug.Assert(node != null);
+                Debug.Assert(methodGroup != null);
+                Debug.Assert(methodGroup.Error == null);
+                Debug.Assert(methodGroup.Methods.Count > 0);
+
+                var invokedAsExtensionMethod = methodGroup.IsExtensionMethodGroup;
+
+                // We have already determined that we are not in a situation where we can successfully do
+                // a dynamic binding. We might be in one of the following situations:
+                //
+                // * There were dynamic arguments but overload resolution still found zero applicable candidates.
+                // * There were no dynamic arguments and overload resolution found zero applicable candidates.
+                // * There were no dynamic arguments and overload resolution found multiple applicable candidates
+                //   without being able to find the best one.
+                //
+                // In those three situations we might give an additional error.
+
+                if (!result.Succeeded)
+                {
+                    // Since there were no argument errors to report, we report an error on the invocation itself.
+                    result.ReportDiagnostics(
+                        binder: addMethodBinder, location: GetLocationForOverloadResolutionDiagnostic(node, expression), nodeOpt: node, diagnostics: diagnostics, name: WellKnownMemberNames.CollectionInitializerAddMethodName,
+                        receiver: methodGroup.Receiver, invokedExpression: expression, arguments: analyzedArguments, memberGroup: methodGroup.Methods.ToImmutable(),
+                        typeContainingConstructor: null, delegateTypeBeingInvoked: null, queryClause: null);
+
+                    addMethod = null;
+                    return false;
+                }
+
+                // Otherwise, there were no dynamic arguments and overload resolution found a unique best candidate. 
+                // We still have to determine if it passes final validation.
+
+                var methodResult = result.ValidResult;
+                var method = methodResult.Member;
+
+                // It is possible that overload resolution succeeded, but we have chosen an
+                // instance method and we're in a static method. A careful reading of the
+                // overload resolution spec shows that the "final validation" stage allows an
+                // "implicit this" on any method call, not just method calls from inside
+                // instance methods. Therefore we must detect this scenario here, rather than in
+                // overload resolution.
+
+                var receiver = methodGroup.Receiver;
+
+                // Note: we specifically want to do final validation (7.6.5.1) without checking delegate compatibility (15.2),
+                // so we're calling MethodGroupFinalValidation directly, rather than via MethodGroupConversionHasErrors.
+                // Note: final validation wants the receiver that corresponds to the source representation
+                // (i.e. the first argument, if invokedAsExtensionMethod).
+                var gotError = addMethodBinder.MemberGroupFinalValidation(receiver, method, expression, diagnostics, invokedAsExtensionMethod);
+
+                addMethodBinder.ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
+                ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
+
+                // No use site errors, but there could be use site warnings.
+                // If there are any use site warnings, they have already been reported by overload resolution.
+                Debug.Assert(!method.HasUseSiteError, "Shouldn't have reached this point if there were use site errors.");
+                Debug.Assert(!method.IsRuntimeFinalizer());
+
+                addMethod = method;
+                return !gotError;
+            }
         }
 
         /// <summary>
@@ -909,13 +1367,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                 {
-                    if (!HasCollectionExpressionApplicableConstructor(node.Syntax, targetType, diagnostics))
+                    if (!HasCollectionExpressionApplicableConstructor(node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
                     {
                         reportedErrors = true;
                     }
 
                     if (elements.Length > 0 &&
-                        !HasCollectionExpressionApplicableAddMethod(node.Syntax, targetType, elementType, diagnostics))
+                        !HasCollectionExpressionApplicableAddMethod(node.Syntax, targetType, elementType, addMethods: out _, diagnostics))
                     {
                         reportedErrors = true;
                     }

@@ -191,7 +191,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, scope, diagnostics);
 
                 ScopedKind? declaredScope = parameter is SourceParameterSymbol s ? s.DeclaredScope : null;
-                ReportParameterErrors(withTypeParametersBinder, owner, parameterSyntax, parameter.Ordinal, lastParameterIndex: lastIndex, parameter.IsParams, parameter.TypeWithAnnotations,
+
+                Debug.Assert(parameter is SourceComplexParameterSymbolBase || !parameter.IsParams); // Only SourceComplexParameterSymbolBase validates 'params' type.
+                ReportParameterErrors(owner, parameterSyntax, parameter.Ordinal, lastParameterIndex: lastIndex, parameter.IsParams, parameter.TypeWithAnnotations,
                                       parameter.RefKind, declaredScope, parameter.ContainingSymbol, thisKeyword, paramsKeyword, firstDefault, diagnostics);
 
                 builder.Add(parameter);
@@ -643,7 +645,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public static void ReportParameterErrors(
-            Binder binder,
             Symbol? owner,
             BaseParameterSyntax syntax,
             int ordinal,
@@ -660,7 +661,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int parameterIndex = ordinal;
             bool isDefault = syntax is ParameterSyntax { Default: { } };
-            bool? isValidParamsCollection = null;
 
             if (thisKeyword.Kind() == SyntaxKind.ThisKeyword && parameterIndex != 0)
             {
@@ -674,10 +674,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // error CS1670: params is not valid in this context
                 diagnostics.Add(ErrorCode.ERR_IllegalParams, paramsKeyword.GetLocation());
-            }
-            else if (isParams && !validParamsCollection(typeWithAnnotations, ref isValidParamsCollection))
-            {
-                diagnostics.Add(ErrorCode.ERR_ParamsMustBeCollection, paramsKeyword.GetLocation());
             }
             else if (typeWithAnnotations.IsStatic)
             {
@@ -701,59 +697,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, syntax.Location, typeWithAnnotations.Type);
             }
 
-            if (isParams)
+            if (isParams && ordinal != lastParameterIndex)
             {
-                if (ordinal != lastParameterIndex)
-                {
-                    // error CS0231: A params parameter must be the last parameter in a parameter list
-                    diagnostics.Add(ErrorCode.ERR_ParamsLast, syntax.GetLocation());
-                }
-
-                if (!typeWithAnnotations.IsSZArray() && validParamsCollection(typeWithAnnotations, ref isValidParamsCollection))
-                {
-                    MessageID.IDS_ParamsCollections.CheckFeatureAvailability(diagnostics, syntax);
-                }
+                // error CS0231: A params parameter must be the last parameter in a parameter list
+                diagnostics.Add(ErrorCode.ERR_ParamsLast, syntax.GetLocation());
             }
 
             if (declaredScope == ScopedKind.ScopedValue && !typeWithAnnotations.IsRefLikeType())
             {
                 diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, syntax.Location);
-            }
-
-            bool validParamsCollection(TypeWithAnnotations typeWithAnnotations, ref bool? isValidParamsCollection)
-            {
-                if (isValidParamsCollection.HasValue)
-                {
-                    return isValidParamsCollection.GetValueOrDefault();
-                }
-
-                if (typeWithAnnotations.IsSZArray())
-                {
-                    isValidParamsCollection = true;
-                    return true;
-                }
-
-                if (ConversionsBase.GetCollectionExpressionTypeKind(binder.Compilation, typeWithAnnotations.Type, out TypeWithAnnotations elementTypeWithAnnotations) != CollectionExpressionTypeKind.None)
-                {
-                    var elementType = elementTypeWithAnnotations.Type;
-
-                    if (elementType is null)
-                    {
-                        // PROTOTYPE(ParamsCollections): Test this code path
-                        binder.TryGetCollectionIterationType(syntax.Type ?? (SyntaxNode)syntax, typeWithAnnotations.Type, out elementTypeWithAnnotations);
-                        elementType = elementTypeWithAnnotations.Type;
-                    }
-
-                    if (elementType is not null)
-                    {
-                        // PROTOTYPE(ParamsCollections): Check accessibility of the Create method
-                        isValidParamsCollection = true;
-                        return true;
-                    }
-                }
-
-                isValidParamsCollection = false;
-                return false;
             }
         }
 

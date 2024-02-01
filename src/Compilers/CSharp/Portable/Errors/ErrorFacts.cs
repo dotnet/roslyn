@@ -2422,6 +2422,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
+                case ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls:
+                case ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

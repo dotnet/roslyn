@@ -34010,5 +34010,246 @@ partial class Program
                     IList<T>.RemoveAt(0): System.NotSupportedException
                     """);
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71840")]
+        public void UnsafeContext_01_Constructor()
+        {
+            string source1 = """
+                            using System.Collections;
+                            using System.Collections.Generic;
+                            
+                            public class MyCollectionOfInt : IEnumerable<int>
+                            {
+                                unsafe public MyCollectionOfInt(void* dummy = null){}
+
+                                public List<int> Array = new List<int>();
+                                IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+                                IEnumerator IEnumerable.GetEnumerator() => throw null;
+                            
+                                public void Add(int l) => Array.Add(l);
+
+                                public static implicit operator MyCollectionOfLong(MyCollectionOfInt c) => throw null;
+                            }
+                            
+                            public class MyCollectionOfLong : IEnumerable<long>
+                            {
+                                public List<long> Array = new List<long>();
+                                IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+                                IEnumerator IEnumerable.GetEnumerator() => throw null;
+                            
+                                public void Add(long l) => Array.Add(l);
+                            }
+
+                            public class Overloads
+                            {
+                                public static void Test(MyCollectionOfInt a)
+                                {
+                                    System.Console.WriteLine("Int");
+                                }
+                            
+                                public static void Test(MyCollectionOfLong a)
+                                {
+                                    System.Console.WriteLine("Long");
+                                }
+                            }
+                            """;
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll);
+            var comp1Ref = comp1.EmitToImageReference();
+
+            string source2 = """
+                            class Program
+                            {
+                                unsafe static void Main()
+                                {
+                                    Overloads.Test([2, 3]);
+                                }
+                            }
+                            """;
+
+            var comp2 = CreateCompilation(source2, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(
+                comp2,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: "Int");
+
+            string source3 = """
+                            class Program
+                            {
+                                static void Main()
+                                {
+                                    Overloads.Test([2, 3]);
+                                }
+                            }
+                            """;
+
+            var comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
+
+            // PROTOTYPE(ParamsCollections): Confirm the behavior matches what we decided to do for https://github.com/dotnet/roslyn/issues/71840
+            comp3.VerifyDiagnostics(
+                // (5,24): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         Overloads.Test([2, 3]);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "[2, 3]").WithLocation(5, 24)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71840")]
+        public void UnsafeContext_02_Add()
+        {
+            string source1 = """
+                            using System.Collections;
+                            using System.Collections.Generic;
+                            
+                            public class MyCollectionOfInt : IEnumerable<int>
+                            {
+                                public List<int> Array = new List<int>();
+                                IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+                                IEnumerator IEnumerable.GetEnumerator() => throw null;
+                            
+                                unsafe public void Add(int l, void* dummy = null) => Array.Add(l);
+
+                                public static implicit operator MyCollectionOfLong(MyCollectionOfInt c) => throw null;
+                            }
+                            
+                            public class MyCollectionOfLong : IEnumerable<long>
+                            {
+                                public List<long> Array = new List<long>();
+                                IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+                                IEnumerator IEnumerable.GetEnumerator() => throw null;
+                            
+                                public void Add(long l) => Array.Add(l);
+                            }
+                            
+                            public class Overloads
+                            {
+                                public static void Test(MyCollectionOfInt a)
+                                {
+                                    System.Console.WriteLine("Int");
+                                }
+                            
+                                public static void Test(MyCollectionOfLong a)
+                                {
+                                    System.Console.WriteLine("Long");
+                                }
+                            }
+                            """;
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll);
+            var comp1Ref = comp1.EmitToImageReference();
+
+            string source2 = """
+                            class Program
+                            {
+                                unsafe static void Main()
+                                {
+                                    Overloads.Test([2, 3]);
+                                }
+                            }
+                            """;
+
+            var comp2 = CreateCompilation(source2, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(
+                comp2,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: "Int");
+
+            string source3 = """
+                            class Program
+                            {
+                                static void Main()
+                                {
+                                    Overloads.Test([2, 3]);
+                                }
+                            }
+                            """;
+
+            var comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
+
+            // PROTOTYPE(ParamsCollections): Confirm the behavior matches what we decided to do for https://github.com/dotnet/roslyn/issues/71840
+            comp3.VerifyDiagnostics(
+                // (5,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         Overloads.Test([2, 3]);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "2").WithLocation(5, 25),
+                // (5,28): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         Overloads.Test([2, 3]);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "3").WithLocation(5, 28)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71854")]
+        public void CreateMethod_InDifferentAssembly()
+        {
+            var myCollection_v0Source = """
+using System.Collections.Generic;
+
+public class MyCollection
+{
+    public long[] Array;
+    public IEnumerator<long> GetEnumerator() => throw null;
+}
+""";
+
+            var myCollection_v0 = CreateCompilation(myCollection_v0Source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, assemblyName: "Collection");
+            myCollection_v0.VerifyDiagnostics();
+
+            var builderSource = """
+using System;
+
+public class MyCollectionBuilder
+{
+    public static MyCollection Create(ReadOnlySpan<long> items) => new MyCollection() { Array = items.ToArray() };
+}
+""";
+
+            var builder = CreateCompilation(builderSource, references: [myCollection_v0.ToMetadataReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            builder.VerifyDiagnostics();
+
+            var myCollectionSource = """
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public class MyCollection
+{
+    public long[] Array;
+    public IEnumerator<long> GetEnumerator() => throw null;
+}
+""";
+
+            var myCollection = CreateCompilation(myCollectionSource, references: [builder.ToMetadataReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, assemblyName: "Collection");
+            myCollection.VerifyDiagnostics();
+            var myCollectionRef = myCollection.EmitToImageReference();
+
+            var src = """
+class Program
+{
+    static void Main()
+    {
+        Test([1]);
+    }
+
+    static void Test(MyCollection a)
+    {
+        System.Console.WriteLine("{0}: {1}", a.Array.Length, a.Array[0]);
+    }
+}
+""";
+            var comp = CreateCompilation(src, references: [myCollectionRef, builder.EmitToImageReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput(@"1: 1")).VerifyDiagnostics();
+
+            comp = CreateCompilation(src, references: [myCollectionRef], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (5,14): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                //         Test([1]);
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1]").WithArguments("Create", "long", "MyCollection").WithLocation(5, 14)
+                );
+        }
     }
 }

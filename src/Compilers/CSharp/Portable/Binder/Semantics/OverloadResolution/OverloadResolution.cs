@@ -1177,28 +1177,41 @@ outerDefault:
 
         public static bool TryInferParamsCollectionIterationType(Binder binder, TypeSymbol type, out TypeWithAnnotations elementType)
         {
-            if (type.IsSZArray())
+            var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(binder.Compilation, type, out elementType);
+
+            switch (collectionTypeKind)
             {
-                elementType = ((ArrayTypeSymbol)type).ElementTypeWithAnnotations;
-                return true;
+                case CollectionExpressionTypeKind.None:
+                    return false;
+
+                case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                case CollectionExpressionTypeKind.CollectionBuilder:
+                    {
+                        binder.TryGetCollectionIterationType(CSharpSyntaxTree.Dummy.GetRoot(), type, out elementType);
+
+                        if (elementType.Type is null)
+                        {
+                            return false;
+                        }
+
+                        if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+                        {
+                            if (!binder.HasCollectionExpressionApplicableConstructor(CSharpSyntaxTree.Dummy.GetRoot(), type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
+                            {
+                                return false;
+                            }
+
+                            if (!binder.HasCollectionExpressionApplicableAddMethod(CSharpSyntaxTree.Dummy.GetRoot(), type, elementType.Type, addMethods: out _, BindingDiagnosticBag.Discarded))
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                    break;
             }
 
-            if (ConversionsBase.GetCollectionExpressionTypeKind(binder.Compilation, type, out elementType) != CollectionExpressionTypeKind.None)
-            {
-                if (elementType.Type is null)
-                {
-                    // PROTOTYPE(ParamsCollections): Test this code path
-                    binder.TryGetCollectionIterationType(CSharpSyntaxTree.Dummy.GetRoot(), type, out elementType);
-                }
-
-                if (elementType.Type is not null)
-                {
-                    return true;
-                }
-            }
-
-            elementType = default;
-            return false;
+            Debug.Assert(elementType.Type is { });
+            return true;
         }
 
         /// <summary>
@@ -2744,9 +2757,9 @@ outerDefault:
         private bool IsBetterCollectionExpressionConversion(TypeSymbol t1, Conversion conv1, TypeSymbol t2, Conversion conv2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             TypeSymbol elementType1;
-            var kind1 = conv1.GetCollectionExpressionTypeKind(out elementType1);
+            var kind1 = conv1.GetCollectionExpressionTypeKind(out elementType1, out _, out _);
             TypeSymbol elementType2;
-            var kind2 = conv2.GetCollectionExpressionTypeKind(out elementType2);
+            var kind2 = conv2.GetCollectionExpressionTypeKind(out elementType2, out _, out _);
 
             return IsBetterCollectionExpressionConversion(t1, kind1, elementType1, t2, kind2, elementType2, ref useSiteInfo);
         }
