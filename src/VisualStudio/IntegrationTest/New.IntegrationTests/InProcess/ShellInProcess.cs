@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -85,6 +86,30 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
 
             return (bool)isProvisionalObject;
+        }
+
+        public Task ExecuteCommandAsync<TCommand>(CancellationToken cancellationToken) where TCommand : Commands.Command
+            => ExecuteRemotableCommandAsync(typeof(TCommand).FullName, cancellationToken);
+
+        private async Task ExecuteRemotableCommandAsync(string commandName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var commandService = await GetRequiredGlobalServiceAsync<SVsRemotableCommandInteropService, IVsRemotableCommandInteropService2>(cancellationToken);
+
+            ErrorHandler.ThrowOnFailure(commandService.GetControlDataSourceAsync(
+                (uint)__VSCOMMANDTYPES.cCommandTypeButton,
+                commandName,
+                timeout: 0,
+                out var dataSourceTask));
+
+            Assumes.NotNull(dataSourceTask);
+            if (dataSourceTask.GetResult() is not IVsUIDataSource commandSource)
+            {
+                throw new InvalidOperationException($"Error resolving command '{commandName}'.");
+            }
+
+            ErrorHandler.ThrowOnFailure(commandSource.Invoke("Execute", pvaIn: null, out _));
         }
 
         public async Task<string> GetActiveDocumentFileNameAsync(CancellationToken cancellationToken)
