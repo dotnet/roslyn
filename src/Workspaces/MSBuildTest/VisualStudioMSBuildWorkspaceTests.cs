@@ -2349,18 +2349,18 @@ class C1
 
             CreateFiles(files);
 
-            using var workspace = new AdhocWorkspace(MSBuildMefHostServices.DefaultServices, WorkspaceKind.MSBuild);
+            using var workspace = CreateMSBuildWorkspace();
             var projectFullPath = GetSolutionFileName(@"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj");
 
-            var loader = new MSBuildProjectLoader(workspace);
-            var infos = await loader.LoadProjectInfoAsync(projectFullPath);
+            var project = await workspace.OpenProjectAsync(projectFullPath);
 
-            var doc = infos[0].Documents[0];
-            var tav = doc.TextLoader.LoadTextAndVersionSynchronously(new LoadTextOptions(SourceHashAlgorithms.Default), CancellationToken.None);
+            var document = project.Documents.Single(d => d.Name == "CSharpClass.cs");
+            var documentText = document.GetTextSynchronously(CancellationToken.None);
+            Assert.Contains("public class CSharpClass", documentText.ToString(), StringComparison.Ordinal);
 
-            var adoc = infos[0].AdditionalDocuments.First(a => a.Name == "XamlFile.xaml");
-            var atav = adoc.TextLoader.LoadTextAndVersionSynchronously(new LoadTextOptions(SourceHashAlgorithms.Default), CancellationToken.None);
-            Assert.Contains("Window", atav.Text.ToString(), StringComparison.Ordinal);
+            var additionalDocument = project.AdditionalDocuments.Single(a => a.Name == "XamlFile.xaml");
+            var additionalDocumentText = additionalDocument.GetTextSynchronously(CancellationToken.None);
+            Assert.Contains("Window", additionalDocumentText.ToString(), StringComparison.Ordinal);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
