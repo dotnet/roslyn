@@ -128,11 +128,28 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var _1 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var oldMap);
                 using var _2 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var newMap);
 
-                await PopulateOldProjectMapAsync().ConfigureAwait(false);
-                await PopulateNewProjectMapAsync(this).ConfigureAwait(false);
+                foreach (var (projectId, projectState) in solution.SolutionState.ProjectStates)
+                {
+                    var projectChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                    if (olds.Object.Contains(projectChecksums.Checksum))
+                        oldMap.Add(projectId, projectChecksums);
+                }
 
-                // bulk sync assets
-                await SynchronizeAssetsAsync(oldMap, newMap, cancellationToken).ConfigureAwait(false);
+                // Populate the new project state map.
+                var projectStateChecksumsArray = await _assetProvider.GetAssetsAsync<ProjectStateChecksums>(
+                    assetHint: AssetHint.None, news.Object, cancellationToken).ConfigureAwait(false);
+
+                foreach (var (_, projectStateChecksum) in projectStateChecksumsArray)
+                    newMap.Add(projectStateChecksum.ProjectId, projectStateChecksum);
+
+                // bulk sync assets for added project
+                foreach (var (projectId, projectStateChecksums) in newMap)
+                {
+                    if (oldMap.ContainsKey(projectId))
+                        continue;
+
+                    await _assetProvider.SynchronizeProjectAssetsAsync(projectStateChecksums, cancellationToken).ConfigureAwait(false);
+                }
 
                 // added project
                 foreach (var (projectId, newProjectChecksums) in newMap)
@@ -183,37 +200,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 return solution;
-
-                async Task PopulateOldProjectMapAsync()
-                {
-                    foreach (var (projectId, projectState) in solution.SolutionState.ProjectStates)
-                    {
-                        var projectChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                        if (olds.Object.Contains(projectChecksums.Checksum))
-                            oldMap.Add(projectId, projectChecksums);
-                    }
-                }
-
-                async Task PopulateNewProjectMapAsync(SolutionCreator @this)
-                {
-                    var projectStateChecksums = await @this._assetProvider.GetAssetsAsync<ProjectStateChecksums>(
-                        assetHint: AssetHint.None, news.Object, cancellationToken).ConfigureAwait(false);
-
-                    foreach (var (_, projectStateChecksum) in projectStateChecksums)
-                        newMap.Add(projectStateChecksum.ProjectId, projectStateChecksum);
-                }
-            }
-
-            private async ValueTask SynchronizeAssetsAsync(Dictionary<ProjectId, ProjectStateChecksums> oldMap, Dictionary<ProjectId, ProjectStateChecksums> newMap, CancellationToken cancellationToken)
-            {
-                // added project
-                foreach (var (projectId, projectStateChecksums) in newMap)
-                {
-                    if (oldMap.ContainsKey(projectId))
-                        continue;
-
-                    await _assetProvider.SynchronizeProjectAssetsAsync(projectStateChecksums, cancellationToken).ConfigureAwait(false);
-                }
             }
 
             private async Task<Solution> UpdateProjectAsync(Project project, ProjectStateChecksums oldProjectChecksums, ProjectStateChecksums newProjectChecksums, CancellationToken cancellationToken)
