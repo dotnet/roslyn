@@ -2212,6 +2212,11 @@
         <target state="translated">champs de struct par défaut automatique</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureBaseExtensions">
+        <source>base extensions</source>
+        <target state="new">base extensions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
         <source>checked user-defined operators</source>
         <target state="translated">opérateurs définis par l’utilisateur vérifiés</target>

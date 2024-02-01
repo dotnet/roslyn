@@ -1572,6 +1572,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // PROTOTYPE decide whether to keep parsing base extensions or not
             var baseList = this.ParseBaseList();
+            if (mainKeyword.Kind == SyntaxKind.ExtensionKeyword
+                && baseList is not null)
+            {
+                baseList = this.AddError(baseList, ErrorCode.ERR_NotYetImplementedInRoslyn, MessageID.IDS_FeatureBaseExtensions.Localize());
+            }
+
             _termState = saveTerm;
 
             // Parse class body

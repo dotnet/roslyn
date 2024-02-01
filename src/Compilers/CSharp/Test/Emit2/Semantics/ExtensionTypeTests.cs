@@ -164,7 +164,11 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension R for UnderlyingClas
 explicit extension R2 for UnderlyingClass : R { }
 """;
         var comp2 = CreateCompilation(src2, references: new[] { AsReference(comp, useImageReference) }, targetFramework: TargetFramework.Net70);
-        comp2.VerifyDiagnostics();
+        comp2.VerifyDiagnostics(
+            // (1,43): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // explicit extension R2 for UnderlyingClass : R { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R").WithArguments("base extensions").WithLocation(1, 43)
+            );
         return;
 
         void validate(ModuleSymbol module)
@@ -821,6 +825,9 @@ explicit extension R2 for UnderlyingClass : I
             // (11,12): error CS0541: 'R1.M()': explicit interface declaration can only be declared in a class, record, struct or interface
             //     void I.M() { }
             Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("R1.M()").WithLocation(11, 12),
+            // (13,43): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // explicit extension R2 for UnderlyingClass : I
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": I").WithArguments("base extensions").WithLocation(13, 43),
             // (15,12): error CS0541: 'R2.M()': explicit interface declaration can only be declared in a class, record, struct or interface
             //     void I.M() { }
             Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("R2.M()").WithLocation(15, 12)
@@ -925,7 +932,7 @@ partial explicit extension R for UnderlyingClass
         Assert.True(r.GetProperty("MethodRefReadonly").ReturnsByRefReadonly);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoBaseExtensions))]
     public void Members_Methods_AllowedModifiers_New()
     {
         var src = """
@@ -944,7 +951,7 @@ partial explicit extension R2 for UnderlyingClass : R1
         comp.VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoBaseExtensions))]
     public void Members_Methods_AllowedModifiers_New_Missing()
     {
         var src = """
@@ -2914,6 +2921,8 @@ public explicit extension R for nint { }
         comp.VerifyDiagnostics();
 
         CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+
+        if (new NoBaseExtensions().ShouldSkip) return;
 
         var src2 = """
 explicit extension R2 for nint : R { }
@@ -4944,7 +4953,7 @@ public class C
             );
     }
 
-    [Theory]
+    [ConditionalTheory(typeof(NoBaseExtensions))]
     [InlineData("public", "public")]
     [InlineData("public", "internal")]
     [InlineData("public", "protected")]
@@ -5036,7 +5045,7 @@ explicit extension R for UnderlyingClass : R1, R2 { }
         Assert.Equal(new[] { "R1@<tree 0>", "R2@<tree 0>" }, r.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(NoBaseExtensions)), CombinatorialData]
     public void BaseExtension_ImplicitVsExplicit(bool baseIsExplicit, bool thisIsExplicit)
     {
         var src = $$"""
@@ -5314,7 +5323,7 @@ explicit extension R8b for C : R8a, R3<(int, int)> { } // 3
             );
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoBaseExtensions))]
     public void BaseExtension_CouldUnify()
     {
         var src = """
@@ -5616,7 +5625,7 @@ unsafe explicit extension R for UnderlyingClass
         comp.VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoBaseExtensions))]
     public void Modifiers_New()
     {
         var src = """
@@ -6642,7 +6651,7 @@ class C<T> where T : R
         VerifyNotExtension<TypeParameterSymbol>(m.ReturnType);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoBaseExtensions))]
     public void NotExtension_TypeParameterSymbol_ViaSubstitution()
     {
         var src = $$"""
@@ -6967,7 +6976,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
@@ -6996,7 +7009,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
@@ -7038,7 +7055,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
@@ -7076,7 +7097,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
@@ -7112,7 +7137,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
@@ -7154,7 +7183,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
@@ -7207,7 +7240,11 @@ public explicit extension R3 for object : R2 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R3 for object : R2 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R2").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
@@ -7246,7 +7283,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyNotExtension<PENamedTypeSymbol>(r1);
@@ -7296,7 +7337,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyNotExtension<PENamedTypeSymbol>(r1);
@@ -7360,7 +7405,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyNotExtension<PENamedTypeSymbol>(r1);
@@ -7418,7 +7467,11 @@ static class OtherExtension
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
@@ -7448,7 +7501,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
     }
@@ -7475,7 +7532,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
@@ -7528,7 +7589,11 @@ public explicit extension R2 for object : R1 { }
 
         // PROTOTYPE this test should be updated once we emit erase references to extensions (different metadata format)
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
@@ -7573,7 +7638,11 @@ public explicit extension R2 for object : R1 { }
         // PROTOTYPE this test should be updated once we emit erase references to extensions (different metadata format)
         // PROTOTYPE should have a use-site error too
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
@@ -7706,7 +7775,11 @@ public explicit extension R3 for object : R2 { }
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should we consider duplicate base extensions to be bad metadata?
         // PROTOTYPE this test should be updated once we emit erase references to extensions (different metadata format)
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R3 for object : R2 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R2").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
@@ -7754,7 +7827,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyNotExtension<PENamedTypeSymbol>(r1);
@@ -8051,7 +8128,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
@@ -8090,7 +8171,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
@@ -8129,7 +8214,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
@@ -8159,11 +8248,18 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
         Assert.True(r1.ExtendedTypeNoUseSiteDiagnostics.IsErrorType());
+
+        var r2 = comp.GlobalNamespace.GetTypeMember("R2");
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -8173,9 +8269,6 @@ public explicit extension R2 for object : R1 { }
             // public explicit extension R2 for object : R1 { }
             Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R2").WithArguments("R2", "object", "R1", "?").WithLocation(1, 27)
             );
-
-        var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
     }
 
     [Theory, CombinatorialData]
@@ -8199,7 +8292,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: isExplicit);
@@ -8237,7 +8334,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
@@ -8478,7 +8579,11 @@ static class OtherExtension
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var m = comp.GlobalNamespace.GetTypeMember("R1").GetMethod("M");
         Assert.False(m.IsExtensionMethod);
@@ -8514,7 +8619,11 @@ public explicit extension R2 for object : R1 { }
 """;
 
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
         VerifyNotExtension<PENamedTypeSymbol>(r1);
@@ -9431,7 +9540,13 @@ public explicit extension E1 for object : E2<B.C>
             references: new[] { comp2.ToMetadataReference() });
 
         // PROTOTYPE should we have a diagnostic for using B (whose base extension is missing)?
-        comp3.VerifyDiagnostics();
+        comp3.VerifyDiagnostics(
+            // (6,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension E1 for object : E2<B.C>
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": E2<B.C>").WithArguments("base extensions").WithLocation(6, 41)
+            );
+
+        if (new NoBaseExtensions().ShouldSkip) return;
         CompileAndVerify(comp3, expectedOutput: "Method");
     }
 
@@ -9977,7 +10092,7 @@ implicit extension E for object
         Assert.Equal("void E.Method()", model.GetSymbolInfo(method).Symbol.ToTestDisplayString());
     }
 
-    [ConditionalFact(typeof(CoreClrOnly))]
+    [ConditionalFact(typeof(NoBaseExtensions), typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_Simple_Static_FromBaseExtension()
     {
         var src = """
@@ -10108,7 +10223,7 @@ namespace N
         Assert.Empty(model.GetMemberGroup(staticType));
     }
 
-    [ConditionalFact(typeof(CoreClrOnly))]
+    [ConditionalFact(typeof(NoBaseExtensions), typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_Simple_Static_FromBaseExtension_OnlyDerivedInScope_Inaccessible()
     {
         var src = """
@@ -10175,7 +10290,7 @@ namespace N
         Assert.Empty(model.GetMemberGroup(type));
     }
 
-    [ConditionalFact(typeof(CoreClrOnly))]
+    [ConditionalFact(typeof(NoBaseExtensions), typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_Simple_Static_FromBaseExtension_Method()
     {
         var src = """
@@ -10447,9 +10562,16 @@ namespace N
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should warn about hiding
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (5,39): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // implicit extension Derived for object : N.Base
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": N.Base").WithArguments("base extensions").WithLocation(5, 39)
+            );
 
-        CompileAndVerify(comp, expectedOutput: "Property Field(42) Type");
+        if (!new NoBaseExtensions().ShouldSkip)
+        {
+            CompileAndVerify(comp, expectedOutput: "Property Field(42) Type");
+        }
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);

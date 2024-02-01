@@ -281,6 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_ImplicitIndexerInitializer = MessageBase + 12840,
 
         IDS_FeatureExtensions = MessageBase + 12850, // PROTOTYPE consolidate feature identifier
+        IDS_FeatureBaseExtensions = MessageBase + 12851, // PROTOTYPE remove this temporary feature flag
     }
 
     // Message IDs may refer to strings that need to be localized.

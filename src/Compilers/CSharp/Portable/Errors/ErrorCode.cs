@@ -1250,6 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // unused 7104-8000
 
         #region more diagnostics introduced in Roslyn (C# 6)
+        ERR_NotYetImplementedInRoslyn = 8000,
         WRN_UnimplementedCommandLineSwitch = 8001,
         WRN_ReferencedAssemblyDoesNotHaveStrongName = 8002,
         ERR_InvalidSignaturePublicKey = 8003,

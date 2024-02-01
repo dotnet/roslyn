@@ -3968,6 +3968,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_NotYetImplementedInRoslyn" xml:space="preserve">
     <value>This language feature ('{0}') is not yet implemented.</value>
   </data>
+  <data name="IDS_FeatureBaseExtensions" xml:space="preserve">
+    <value>base extensions</value>
+  </data>
   <data name="ERR_DefaultValueNotAllowed" xml:space="preserve">
     <value>Default values are not valid in this context.</value>
   </data>

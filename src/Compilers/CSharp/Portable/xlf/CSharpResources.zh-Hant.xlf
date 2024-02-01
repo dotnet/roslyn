@@ -2212,6 +2212,11 @@
         <target state="translated">自動預設結構欄位</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureBaseExtensions">
+        <source>base extensions</source>
+        <target state="new">base extensions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
         <source>checked user-defined operators</source>
         <target state="translated">已檢查使用者定義的運算子</target>

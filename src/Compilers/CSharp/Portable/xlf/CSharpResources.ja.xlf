@@ -2212,6 +2212,11 @@
         <target state="translated">自動既定の構造体フィールド</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureBaseExtensions">
+        <source>base extensions</source>
+        <target state="new">base extensions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
         <source>checked user-defined operators</source>
         <target state="translated">チェックされたユーザー定義演算子</target>
