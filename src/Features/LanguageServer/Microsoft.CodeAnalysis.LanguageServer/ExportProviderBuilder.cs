@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExportProviderBuilder
 {
-    public static async Task<ExportProvider> CreateExportProviderAsync(ExtensionAssemblyManager extensionAssemblyManager, ILoggerFactory loggerFactory)
+    public static async Task<ExportProvider> CreateExportProviderAsync(ExtensionAssemblyManager extensionAssemblyManager, string? devKitDependencyPath, ILoggerFactory loggerFactory)
     {
         var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
         var baseDirectory = AppContext.BaseDirectory;
@@ -37,15 +37,13 @@ internal sealed class ExportProviderBuilder
         // DevKit assemblies are not shipped in the main language server folder
         // and not included in ExtensionAssemblyPaths (they get loaded into the default ALC).
         // So manually add them to the MEF catalog here.
-        if (extensionAssemblyManager.DevKitDependencyPath != null)
+        if (devKitDependencyPath != null)
         {
-            assemblyPaths = assemblyPaths.Concat(extensionAssemblyManager.DevKitDependencyPath);
+            assemblyPaths = assemblyPaths.Concat(devKitDependencyPath);
         }
 
         // Add the extension assemblies to the MEF catalog.
         assemblyPaths = assemblyPaths.Concat(extensionAssemblyManager.ExtensionAssemblyPaths);
-
-        ValidateNoDuplicateAssemblies(assemblyPaths, logger);
 
         logger.LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", assemblyPaths)}.");
 
@@ -105,24 +103,6 @@ internal sealed class ExportProviderBuilder
                 logger.LogError($"Encountered errors in the MEF composition:{Environment.NewLine}{ex.ErrorsAsString}");
                 throw;
             }
-        }
-    }
-
-    private static void ValidateNoDuplicateAssemblies(IEnumerable<string> assemblyPaths, ILogger logger)
-    {
-        // MEF relies on type full names (*without* their assembly names) to identify parts.
-        // If an assembly is added to the catalog twice then we will almost certainly get duplicate MEF parts
-        // which breaks consumers who are only expecting one part.
-        //
-        // We validate this constraint here by checking for duplicate assembly full names in the MEF composition.
-        var duplicateAssemblyNames = assemblyPaths
-            .Select(p => AssemblyName.GetAssemblyName(p).FullName)
-            .GroupBy(n => n)
-            .Where(key => key.Count() > 1);
-        if (duplicateAssemblyNames.Any())
-        {
-            logger.LogError("Found duplicate assemblies in the MEF composition:{line}:{assemblies}", Environment.NewLine, string.Join($"    {Environment.NewLine}", duplicateAssemblyNames.Select(g => g.Key)));
-            throw new InvalidOperationException("Found duplicate assemblies in the MEF composition");
         }
     }
 }

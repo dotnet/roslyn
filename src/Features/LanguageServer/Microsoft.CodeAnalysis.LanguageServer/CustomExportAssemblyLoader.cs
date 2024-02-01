@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal class CustomExportAssemblyLoader(ExtensionAssemblyManager extensionAssemblyManager, ILoggerFactory loggerFactory) : IAssemblyLoader
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger("MEF Assembly Loader");
+
     /// <summary>
     /// Loads assemblies from either the host or from our extensions.
     /// If an assembly exists in both the host and an extension, we will use the host assembly for the MEF catalog.
-    /// If an assembly exists in two extensions, we use the first one we find for the MEF catalog.
     /// </summary>
     public Assembly LoadAssembly(AssemblyName assemblyName)
     {
@@ -47,7 +47,7 @@ internal class CustomExportAssemblyLoader(ExtensionAssemblyManager extensionAsse
         {
             return AssemblyLoadContext.Default.LoadFromAssemblyName(assemblyName);
         }
-        catch (FileNotFoundException ex) when (assemblyName.Name is not null)
+        catch (FileNotFoundException ex)
         {
             loadException = ex;
             // continue checking the extension contexts.
@@ -58,16 +58,16 @@ internal class CustomExportAssemblyLoader(ExtensionAssemblyManager extensionAsse
             return LoadAssemblyFromCodeBase(assemblyName, codeBasePath);
         }
 
-        // We don't have a code base path for this assembly.  We'll search the extension contexts
-        // and load the first one that ships the assembly.
-        var assembly = extensionAssemblyManager.SearchExtensionContextsForAssembly(assemblyName);
+        // We don't have a code base path for this assembly.  We'll look at our map of assembly name
+        // to extension to see if we can find the assembly in the right context.
+        var assembly = extensionAssemblyManager.TryLoadAssemblyInExtensionContext(assemblyName);
         if (assembly is not null)
         {
             _logger.LogTrace("{assemblyName} found in extension context without code base", assemblyName);
             return assembly;
         }
 
-        _logger.LogTrace("{assemblyName} not found in any host or extension context", assemblyName);
+        _logger.LogCritical("{assemblyName} not found in any host or extension context", assemblyName);
         throw loadException;
     }
 
@@ -77,7 +77,7 @@ internal class CustomExportAssemblyLoader(ExtensionAssemblyManager extensionAsse
         var codeBaseUri = ProtocolConversions.CreateAbsoluteUri(codeBaseUriStr);
         if (!codeBaseUri.IsFile)
         {
-            throw new ArgumentException($"Code base {codeBaseUriStr} is not a file URI.", codeBaseUriStr);
+            throw new ArgumentException($"Code base {codeBaseUriStr} for {assemblyName} is not a file URI.", nameof(codeBaseUriStr));
         }
 
         var codeBasePath = codeBaseUri.LocalPath;
@@ -85,7 +85,7 @@ internal class CustomExportAssemblyLoader(ExtensionAssemblyManager extensionAsse
         var assembly = extensionAssemblyManager.TryLoadAssemblyInExtensionContext(codeBasePath);
         if (assembly is not null)
         {
-            _logger.LogTrace("{assemblyName} with code base {codeBase} found in extension context", assemblyName, codeBasePath);
+            _logger.LogTrace("{assemblyName} with code base {codeBase} found in extension context.", assemblyName, codeBasePath);
             return assembly;
         }
 

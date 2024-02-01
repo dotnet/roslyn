@@ -32,29 +32,24 @@ internal sealed class ExtensionAssemblyManager
 {
     private readonly ImmutableDictionary<string, AssemblyLoadContext> _directoryLoadContexts;
 
+    private readonly ImmutableDictionary<string, AssemblyLoadContext> _assemblyFullNameToLoadContext;
+
     public ImmutableArray<string> ExtensionAssemblyPaths { get; }
 
-    public string? DevKitDependencyPath { get; }
-
     public ExtensionAssemblyManager(ImmutableDictionary<string, AssemblyLoadContext> directoryLoadContexts,
-        ImmutableArray<string> extensionAssemblyPaths,
-        string? devKitDependencyPath)
+        ImmutableDictionary<string, AssemblyLoadContext> assemblyFullNameToLoadContext,
+        ImmutableArray<string> extensionAssemblyPaths)
     {
         _directoryLoadContexts = directoryLoadContexts;
+        _assemblyFullNameToLoadContext = assemblyFullNameToLoadContext;
         ExtensionAssemblyPaths = extensionAssemblyPaths;
-        DevKitDependencyPath = devKitDependencyPath;
     }
 
     public static ExtensionAssemblyManager Create(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
     {
         var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
-        if (serverConfiguration.DevKitDependencyPath is not null)
-        {
-            // Ensure the Roslyn DevKit assemblies are loaded into the default ALC so that extensions can use them.
-            ResolveDevKitAssemblies(serverConfiguration.DevKitDependencyPath, logger);
-        }
-
         var directoryLoadContexts = new Dictionary<string, AssemblyLoadContext>(StringComparer.Ordinal);
+        var assemblyFullNameToLoadContext = new Dictionary<string, AssemblyLoadContext>(StringComparer.Ordinal);
         using var _ = ArrayBuilder<string>.GetInstance(out var validExtensionAssemblies);
 
         if (serverConfiguration.StarredCompletionsPath is not null)
@@ -66,20 +61,20 @@ internal sealed class ExtensionAssemblyManager
             // We should migrate the intellicode completion provider to be a normal extension component with MEF provided parts,
             // but it requires changes to the intellicode vscode extension and here to access our IServiceBroker instance via MEF.
             var starredCompletionsComponentDll = StarredCompletionAssemblyHelper.GetStarredCompletionAssemblyPath(serverConfiguration.StarredCompletionsPath);
-            Contract.ThrowIfFalse(TryCreateLoadContext(starredCompletionsComponentDll, directoryLoadContexts, logger, loggerFactory));
+            Contract.ThrowIfFalse(TryGetOrCreateLoadContext(starredCompletionsComponentDll));
         }
 
         foreach (var assemblyFilePath in serverConfiguration.ExtensionAssemblyPaths)
         {
-            if (TryCreateLoadContext(assemblyFilePath, directoryLoadContexts, logger, loggerFactory))
+            if (TryGetOrCreateLoadContext(assemblyFilePath))
             {
                 validExtensionAssemblies.Add(assemblyFilePath);
             }
         }
 
-        return new ExtensionAssemblyManager(directoryLoadContexts.ToImmutableDictionary(), validExtensionAssemblies.ToImmutable(), serverConfiguration.DevKitDependencyPath);
+        return new ExtensionAssemblyManager(directoryLoadContexts.ToImmutableDictionary(), assemblyFullNameToLoadContext.ToImmutableDictionary(), validExtensionAssemblies.ToImmutable());
 
-        static bool TryCreateLoadContext(string assemblyFilePath, Dictionary<string, AssemblyLoadContext> directoryLoadContexts, ILogger logger, ILoggerFactory loggerFactory)
+        bool TryGetOrCreateLoadContext(string assemblyFilePath)
         {
             // Verify that the path is something we can load.
             // If it's not, log helpful error messages and no-op.  We do not want to take down the server if an extension fails to load.
@@ -96,44 +91,45 @@ internal sealed class ExtensionAssemblyManager
                 return false;
             }
 
-            var fileNameNoExt = Path.GetFileNameWithoutExtension(assemblyFilePath);
-            if (fileNameNoExt == null)
+            var assemblyFullName = AssemblyName.GetAssemblyName(assemblyFilePath).FullName;
+            if (assemblyFullNameToLoadContext.TryGetValue(assemblyFullName, out var existingContext))
             {
-                logger.LogError("Failed to get file name without extension from {assemblyFilePath}", assemblyFilePath);
+                // MEF relies on type full names (*without* their assembly names) to identify parts.
+                // If an extension assembly is added to the catalog twice, then we will almost certainly get duplicate MEF parts
+                // which breaks consumers who are only expecting one part.
+                //
+                // We validate this constraint here by checking for duplicate extension assembly full names.
+                logger.LogError(
+                    "{assemblyFilePath} with assembly name {assemblyName} conflicts with extension loaded from {existingContextName}",
+                    assemblyFilePath, assemblyFullName, existingContext.Name);
                 return false;
             }
 
             if (directoryLoadContexts.TryGetValue(directory, out var directoryContext))
             {
-                logger.LogTrace("Reusing {contextName} load context for {assemblyFilePath}", directoryContext.Name, assemblyFilePath);
+                assemblyFullNameToLoadContext.Add(assemblyFullName, directoryContext);
                 return true;
             }
 
-            // Create an extension assembly load context for the directory that the extension is in.
-            logger.LogTrace("Creating {contextName} load context for {assemblyFilePath}", fileNameNoExt, assemblyFilePath);
-            var loadContext = new ExtensionAssemblyLoadContext(fileNameNoExt, directory, loggerFactory);
-            directoryLoadContexts.Add(directory, loadContext);
+            var loadContext = GetOrCreateDirectoryContext(directory, assemblyFilePath);
+            assemblyFullNameToLoadContext.Add(assemblyFullName, loadContext);
             return true;
         }
-    }
 
-    private static void ResolveDevKitAssemblies(string devKitDependencyPath, ILogger logger)
-    {
-        var devKitDependencyDirectory = Path.GetDirectoryName(devKitDependencyPath);
-        Contract.ThrowIfNull(devKitDependencyDirectory);
-
-        AssemblyLoadContext.Default.Resolving += (context, assemblyName) =>
+        AssemblyLoadContext GetOrCreateDirectoryContext(string directory, string assemblyFilePath)
         {
-            var simpleName = assemblyName.Name!;
-            var assemblyPath = Path.Combine(devKitDependencyDirectory, simpleName + ".dll");
-            if (File.Exists(assemblyPath))
+            if (directoryLoadContexts.TryGetValue(directory, out var directoryContext))
             {
-                logger.LogTrace("Loading {assembly} from DevKit directory", simpleName);
-                return context.LoadFromAssemblyPath(assemblyPath);
+                logger.LogTrace("Reusing {contextName} load context for {assemblyFilePath}", directoryContext.Name, assemblyFilePath);
+                return directoryContext;
             }
 
-            return null;
-        };
+            // Create an extension assembly load context for the directory that the extension is in.
+            logger.LogTrace("Creating {contextName} load context for {assemblyFilePath}", directory, assemblyFilePath);
+            var loadContext = new ExtensionAssemblyLoadContext(directory, loggerFactory);
+            directoryLoadContexts.Add(directory, loadContext);
+            return loadContext;
+        }
     }
 
     /// <summary>
@@ -158,23 +154,14 @@ internal sealed class ExtensionAssemblyManager
 
     /// <summary>
     /// Loads an assembly from an assembly name in the extension load context.
-    /// This will attempt to load the assembly from each extension load context and use the first one that succeeds.
-    /// 
-    /// Prefer using <see cref="TryLoadAssemblyInExtensionContext"/> when a path to the assembly is available.
+    /// This will look for an extension assembly with the same assembly full name.
     /// </summary>
-    public Assembly? SearchExtensionContextsForAssembly(AssemblyName assemblyName)
+    public Assembly? TryLoadAssemblyInExtensionContext(AssemblyName assemblyName)
     {
-        // We don't know exactly which extension the assembly came from, so we'll try each extension load context.
-        foreach (var loadContext in _directoryLoadContexts.Values)
+        var assemblyFullName = assemblyName.FullName;
+        if (_assemblyFullNameToLoadContext.TryGetValue(assemblyFullName, out var loadContext))
         {
-            try
-            {
-                return loadContext.LoadFromAssemblyName(assemblyName);
-            }
-            catch (FileNotFoundException)
-            {
-                // Ignore and try the next context.
-            }
+            return loadContext.LoadFromAssemblyName(assemblyName);
         }
 
         return null;
@@ -185,18 +172,24 @@ internal sealed class ExtensionAssemblyManager
     /// If the assembly is not found in the extension context it will continue with
     /// normal assembly loading to check the host (or potentially other extensions) for the assembly.
     /// </summary>
-    private sealed class ExtensionAssemblyLoadContext(string name, string extensionDirectory, ILoggerFactory loggerFactory)
-        : AssemblyLoadContext(name)
+    private sealed class ExtensionAssemblyLoadContext : AssemblyLoadContext
     {
-        private readonly ILogger _logger = loggerFactory.CreateLogger($"ALC-{name}");
+        private readonly string _extensionDirectory;
+        private readonly ILogger _logger;
+
+        public ExtensionAssemblyLoadContext(string extensionDirectory, ILoggerFactory loggerFactory) : base(extensionDirectory)
+        {
+            _extensionDirectory = extensionDirectory;
+            _logger = loggerFactory.CreateLogger($"ALC-{extensionDirectory}");
+        }
 
         protected override Assembly? Load(AssemblyName assemblyName)
         {
             var simpleName = assemblyName.Name!;
-            var assemblyPath = Path.Combine(extensionDirectory, simpleName + ".dll");
+            var assemblyPath = Path.Combine(_extensionDirectory, simpleName + ".dll");
             if (File.Exists(assemblyPath))
             {
-                _logger.LogTrace("Loading {assembly} from extension load context", simpleName);
+                _logger.LogTrace("Loading {assembly} in this load context", simpleName);
                 return LoadFromAssemblyPath(assemblyPath);
             }
 

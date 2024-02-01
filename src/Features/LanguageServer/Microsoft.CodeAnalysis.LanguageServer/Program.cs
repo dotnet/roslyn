@@ -7,6 +7,7 @@ using System.CommandLine;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
+using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Newtonsoft.Json;
+using Roslyn.Utilities;
 
 // Setting the title can fail if the process is run without a window, such
 // as when launched detached from nodejs
@@ -77,9 +79,14 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     logger.LogTrace($".NET Runtime Version: {RuntimeInformation.FrameworkDescription}");
 
+    if (serverConfiguration.DevKitDependencyPath != null)
+    {
+        ResolveDevKitAssemblies(serverConfiguration.DevKitDependencyPath, loggerFactory);
+    }
+
     var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, loggerFactory);
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, serverConfiguration.DevKitDependencyPath, loggerFactory);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
     Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
@@ -255,4 +262,24 @@ static string GetUnixTypePipeName(string pipeName)
 {
     // Unix-type pipes are actually writing to a file
     return Path.Combine(Path.GetTempPath(), pipeName + ".sock");
+}
+
+static void ResolveDevKitAssemblies(string devKitDependencyPath, ILoggerFactory loggerFactory)
+{
+    var devKitDependencyDirectory = Path.GetDirectoryName(devKitDependencyPath);
+    Contract.ThrowIfNull(devKitDependencyDirectory);
+    var logger = loggerFactory.CreateLogger("DevKitAssemblyResolver");
+
+    AssemblyLoadContext.Default.Resolving += (context, assemblyName) =>
+    {
+        var simpleName = assemblyName.Name!;
+        var assemblyPath = Path.Combine(devKitDependencyDirectory, simpleName + ".dll");
+        if (File.Exists(assemblyPath))
+        {
+            logger.LogTrace("Loading {assembly} from DevKit directory", simpleName);
+            return context.LoadFromAssemblyPath(assemblyPath);
+        }
+
+        return null;
+    };
 }

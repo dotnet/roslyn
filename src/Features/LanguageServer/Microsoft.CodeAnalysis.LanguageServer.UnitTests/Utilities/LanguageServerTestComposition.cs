@@ -24,15 +24,16 @@ internal sealed class LanguageServerTestComposition
 
     public static Task<ExportProvider> CreateExportProviderAsync(ILoggerFactory loggerFactory, bool includeDevKitComponents)
     {
+        var devKitDependencyPath = includeDevKitComponents ? GetDevKitExtensionPath() : null;
         var serverConfiguration = new ServerConfiguration(LaunchDebugger: false,
             MinimumLogLevel: LogLevel.Trace,
             StarredCompletionsPath: null,
             TelemetryLevel: null,
             SessionId: null,
             ExtensionAssemblyPaths: [],
-            DevKitDependencyPath: includeDevKitComponents ? GetDevKitExtensionPath() : null,
+            DevKitDependencyPath: devKitDependencyPath,
             ExtensionLogDirectory: string.Empty);
         var extensionAssemblyManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
-        return ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyManager, loggerFactory: loggerFactory);
+        return ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyManager, devKitDependencyPath, loggerFactory: loggerFactory);
     }
 }
