@@ -14,14 +14,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class ModuleCancellationTests : CSharpTestBase
 {
+#if NET
+    const string NativeIntDisplay = "nint";
+#else
+    const string NativeIntDisplay = "System.IntPtr";
+#endif
+
     private static readonly EmitOptions s_emitOptions = EmitOptions.Default.WithInstrumentationKinds([InstrumentationKind.ModuleCancellation]);
 
-    private CompilationVerifier CompileAndVerify(string source, string? expectedOutput = null)
+    private CompilationVerifier CompileAndVerify(string source, string? expectedOutput = null, CSharpCompilationOptions? options = null, Verification? verification = null)
         => CompileAndVerify(
             source,
-            options: (expectedOutput != null) ? TestOptions.UnsafeDebugExe : TestOptions.UnsafeDebugDll,
+            options: options ?? (expectedOutput != null ? TestOptions.UnsafeDebugExe : TestOptions.UnsafeDebugDll),
             emitOptions: s_emitOptions,
-            verify: Verification.Passes,
+            verify: verification ?? Verification.Passes,
             targetFramework: TargetFramework.NetLatest,
             expectedOutput: expectedOutput);
 
@@ -65,8 +71,8 @@ public sealed class ModuleCancellationTests : CSharpTestBase
 
         var verifier = CompileAndVerify(source);
 
-        verifier.VerifyMethodBody("C.F", """
-             {
+        verifier.VerifyMethodBody("C.F", $$"""
+            {
               // Code size       51 (0x33)
               .maxstack  3
               // sequence point: <hidden>
@@ -83,7 +89,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
               IL_0015:  pop
               IL_0016:  ldsfld     "C.<>c C.<>c.<>9"
               IL_001b:  ldftn      "int C.<>c.<F>b__0_1()"
-              IL_0021:  newobj     "System.Func<int>..ctor(object, nint)"
+              IL_0021:  newobj     "System.Func<int>..ctor(object, {{NativeIntDisplay}})"
               IL_0026:  dup
               IL_0027:  stsfld     "System.Func<int> C.<>c.<>9__0_1"
               IL_002c:  call       "void C.F(System.Func<int>)"
@@ -120,6 +126,89 @@ public sealed class ModuleCancellationTests : CSharpTestBase
               // sequence point: 1
               IL_000a:  ldc.i4.1
               IL_000b:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void LambdaAndLocalFunction_TopLevel()
+    {
+        var source = """
+            using System;
+
+            var b = true;
+            for(;b;) F();
+            
+            void F()
+            {
+                while(b) { }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source, options: TestOptions.DebugExe);
+
+        verifier.VerifyMethodBody("<top-level-statements-entry-point>", """
+            {
+              // Code size       60 (0x3c)
+              .maxstack  2
+              .locals init (Program.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                            bool V_1)
+              // sequence point: <hidden>
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              // sequence point: var b = true;
+              IL_000a:  ldloca.s   V_0
+              IL_000c:  ldc.i4.1
+              IL_000d:  stfld      "bool Program.<>c__DisplayClass0_0.b"
+              // sequence point: <hidden>
+              IL_0012:  br.s       IL_001c
+              // sequence point: F();
+              IL_0014:  ldloca.s   V_0
+              IL_0016:  call       "void Program.<<Main>$>g__F|0_0(ref Program.<>c__DisplayClass0_0)"
+              IL_001b:  nop
+              // sequence point: b
+              IL_001c:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0021:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              IL_0026:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_002b:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              IL_0030:  ldloc.0
+              IL_0031:  ldfld      "bool Program.<>c__DisplayClass0_0.b"
+              IL_0036:  stloc.1
+              // sequence point: <hidden>
+              IL_0037:  ldloc.1
+              IL_0038:  brtrue.s   IL_0014
+              IL_003a:  nop
+              IL_003b:  ret
+            }
+            """);
+
+        verifier.VerifyMethodBody("Program.<<Main>$>g__F|0_0", """
+            {
+              // Code size       36 (0x24)
+              .maxstack  1
+              .locals init (bool V_0)
+              // sequence point: <hidden>
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              // sequence point: {
+              IL_000a:  nop
+              // sequence point: <hidden>
+              IL_000b:  br.s       IL_000f
+              // sequence point: {
+              IL_000d:  nop
+              // sequence point: }
+              IL_000e:  nop
+              // sequence point: while(b)
+              IL_000f:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0014:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              IL_0019:  ldarg.0
+              IL_001a:  ldfld      "bool Program.<>c__DisplayClass0_0.b"
+              IL_001f:  stloc.0
+              // sequence point: <hidden>
+              IL_0020:  ldloc.0
+              IL_0021:  brtrue.s   IL_000d
+              // sequence point: }
+              IL_0023:  ret
             }
             """);
     }
@@ -696,9 +785,9 @@ public sealed class ModuleCancellationTests : CSharpTestBase
                     return true;
                 }                
             }
-            """;
+            """ + IsExternalInitTypeDefinition;
 
-        var verifier = CompileAndVerify(source);
+        var verifier = CompileAndVerify(source, verification: Verification.FailsPEVerify);
 
         AssertNotInstrumented(verifier, "R.P.get");
         AssertNotInstrumented(verifier, "R.P.init");
@@ -1835,7 +1924,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
 
         var verifier = CompileAndVerify(source);
 
-        verifier.VerifyMethodBody("C.F", """
+        verifier.VerifyMethodBody("C.F", $$"""
             {
               // Code size       37 (0x25)
               .maxstack  2
@@ -1848,7 +1937,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
               // sequence point: var g = new Action<CancellationToken>(G);
               IL_000b:  ldarg.0
               IL_000c:  ldftn      "void C.G(System.Threading.CancellationToken)"
-              IL_0012:  newobj     "System.Action<System.Threading.CancellationToken>..ctor(object, nint)"
+              IL_0012:  newobj     "System.Action<System.Threading.CancellationToken>..ctor(object, {{NativeIntDisplay}})"
               IL_0017:  stloc.0
               // sequence point: g(token);
               IL_0018:  ldloc.0
@@ -1918,7 +2007,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
 
         var verifier = CompileAndVerify(source);
 
-        verifier.VerifyMethodBody("C.F", """
+        verifier.VerifyMethodBody("C.F", $$"""
             {
               // Code size       38 (0x26)
               .maxstack  3
@@ -1931,7 +2020,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
               // sequence point: var g = new D(G);
               IL_000b:  ldarg.0
               IL_000c:  ldftn      "void C.G(int, System.Threading.CancellationToken)"
-              IL_0012:  newobj     "D..ctor(object, nint)"
+              IL_0012:  newobj     "D..ctor(object, {{NativeIntDisplay}})"
               IL_0017:  stloc.0
               // sequence point: g(token: token, a: 1);
               IL_0018:  ldloc.0
@@ -1970,7 +2059,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
 
         var verifier = CompileAndVerify(source);
 
-        verifier.VerifyMethodBody("C.F", """
+        verifier.VerifyMethodBody("C.F", $$"""
              {
               // Code size       38 (0x26)
               .maxstack  3
@@ -1983,7 +2072,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
               // sequence point: var g = new D(G);
               IL_000b:  ldarg.0
               IL_000c:  ldftn      "void C.G(int, System.Threading.CancellationToken)"
-              IL_0012:  newobj     "D..ctor(object, nint)"
+              IL_0012:  newobj     "D..ctor(object, {{NativeIntDisplay}})"
               IL_0017:  stloc.0
               // sequence point: g(1);
               IL_0018:  ldloc.0

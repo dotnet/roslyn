@@ -13,14 +13,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class StackOverflowProbingTests : CSharpTestBase
 {
+#if NET
+    const string NativeIntDisplay = "nint";
+#else
+    const string NativeIntDisplay = "System.IntPtr";
+#endif
+
     private static readonly EmitOptions s_emitOptions = EmitOptions.Default.WithInstrumentationKinds([InstrumentationKind.StackOverflowProbing]);
 
-    private CompilationVerifier CompileAndVerify(string source, string? expectedOutput = null)
+    private CompilationVerifier CompileAndVerify(string source, string? expectedOutput = null, CSharpCompilationOptions? options = null, Verification? verification = null)
         => CompileAndVerify(
             source,
-            options: (expectedOutput != null) ? TestOptions.UnsafeDebugExe : TestOptions.UnsafeDebugDll,
+            options: options ?? (expectedOutput != null ? TestOptions.UnsafeDebugExe : TestOptions.UnsafeDebugDll),
             emitOptions: s_emitOptions,
-            verify: Verification.Passes,
+            verify: verification ?? Verification.Passes,
             targetFramework: TargetFramework.NetLatest,
             expectedOutput: expectedOutput);
 
@@ -58,7 +64,7 @@ public sealed class StackOverflowProbingTests : CSharpTestBase
 
         var verifier = CompileAndVerify(source);
 
-        verifier.VerifyMethodBody("C.F", """
+        verifier.VerifyMethodBody("C.F", $$"""
             {
               // Code size       47 (0x2f)
               .maxstack  3
@@ -76,7 +82,7 @@ public sealed class StackOverflowProbingTests : CSharpTestBase
               IL_0011:  pop
               IL_0012:  ldsfld     "C.<>c C.<>c.<>9"
               IL_0017:  ldftn      "int C.<>c.<F>b__0_1()"
-              IL_001d:  newobj     "System.Func<int>..ctor(object, nint)"
+              IL_001d:  newobj     "System.Func<int>..ctor(object, {{NativeIntDisplay}})"
               IL_0022:  dup
               IL_0023:  stsfld     "System.Func<int> C.<>c.<>9__0_1"
               IL_0028:  call       "void C.F(System.Func<int>)"
@@ -113,6 +119,53 @@ public sealed class StackOverflowProbingTests : CSharpTestBase
               // sequence point: 1
               IL_0006:  ldc.i4.1
               IL_0007:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void LambdaAndLocalFunction_TopLevel()
+    {
+        var source = """
+            F();
+            
+            void F()
+            {
+                F();
+            }
+            """;
+
+        var verifier = CompileAndVerify(source, options: TestOptions.DebugExe);
+
+        verifier.VerifyMethodBody("<top-level-statements-entry-point>", """
+            {
+              // Code size       14 (0xe)
+              .maxstack  0
+              // sequence point: <hidden>
+              IL_0000:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()"
+              IL_0005:  nop
+              // sequence point: F();
+              IL_0006:  call       "void Program.<<Main>$>g__F|0_0()"
+              IL_000b:  nop
+              IL_000c:  nop
+              IL_000d:  ret
+            }
+            """);
+
+        verifier.VerifyMethodBody("Program.<<Main>$>g__F|0_0", """
+            {
+              // Code size       14 (0xe)
+              .maxstack  0
+              // sequence point: <hidden>
+              IL_0000:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()"
+              IL_0005:  nop
+              // sequence point: {
+              IL_0006:  nop
+              // sequence point: F();
+              IL_0007:  call       "void Program.<<Main>$>g__F|0_0()"
+              IL_000c:  nop
+              // sequence point: }
+              IL_000d:  ret
             }
             """);
     }
@@ -637,11 +690,11 @@ public sealed class StackOverflowProbingTests : CSharpTestBase
                 {
                     builder.Append("x");
                     return true;
-                }                
+                }
             }
-            """;
+            """ + IsExternalInitTypeDefinition;
 
-        var verifier = CompileAndVerify(source);
+        var verifier = CompileAndVerify(source, verification: Verification.FailsPEVerify);
 
         AssertNotInstrumented(verifier, "R.P.get");
         AssertNotInstrumented(verifier, "R.P.init");

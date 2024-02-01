@@ -40,7 +40,7 @@ internal sealed class ModuleCancellationInstrumenter(
         // Instrument implicit constructors in order to prevent stack overflow caused by member initializers.
         if (method.MethodKind is not (MethodKind.Constructor or MethodKind.StaticConstructor) &&
             (method is { IsImplicitlyDeclared: true } ||
-             method is SourceMemberMethodSymbol { Bodies: { arrowBody: null, blockBody: null } }))
+             method is SourceMemberMethodSymbol { Bodies: { arrowBody: null, blockBody: null } } and not SynthesizedSimpleProgramEntryPointSymbol))
         {
             return false;
         }
