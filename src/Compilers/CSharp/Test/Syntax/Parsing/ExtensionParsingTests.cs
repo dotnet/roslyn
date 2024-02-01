@@ -25,7 +25,11 @@ public sealed class ExtensionParsingTests : ParsingTests
 
         var keyword = isExplicit ? "explicit" : "implicit";
         var text = $$"""{{keyword}} extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }""";
-        UsingTreeWithCSharpNext(text);
+        UsingTreeWithCSharpNext(text,
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": BaseExtension1, BaseExtension2").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1094,7 +1098,11 @@ public sealed class ExtensionParsingTests : ParsingTests
         var keyword = isExplicit ? "explicit" : "implicit";
         var text = $$"""{{keyword}} extension C for UnderlyingType : BaseExtension() { }""";
 
-        UsingTreeWithCSharpNext(text);
+        UsingTreeWithCSharpNext(text,
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // explicit extension C for UnderlyingType : BaseExtension() { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": BaseExtension()").WithArguments("base extensions").WithLocation(1, 41)
+            );
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -2783,7 +2791,11 @@ explicit extension X
     {
         var keyword = isExplicit ? "explicit" : "implicit";
         var text = $$"""{{keyword}} extension X for delegate*<void> : Base1, Base2 { }""";
-        UsingTreeWithCSharpNext(text);
+        UsingTreeWithCSharpNext(text,
+            // (1,42): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // explicit extension X for delegate*<void> : Base1, Base2 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": Base1, Base2").WithArguments("base extensions").WithLocation(1, 42)
+            );
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3090,8 +3102,11 @@ explicit extension X
     {
         var text = """explicit extension X : X1 for int { }""";
         UsingTreeWithCSharpNext(text,
+            // (1,22): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // explicit extension X : X1 for int { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": X1").WithArguments("base extensions").WithLocation(1, 22),
             // (1,27): error CS1003: Syntax error, ',' expected
-            // explicit extension X : X1 for int
+            // explicit extension X : X1 for int { }
             Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments(",").WithLocation(1, 27)
             );
 
