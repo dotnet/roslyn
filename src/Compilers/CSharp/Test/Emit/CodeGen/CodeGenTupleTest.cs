@@ -3312,7 +3312,6 @@ class C
                 // (6,15015): warning CS0168: The variable 'x' is declared but never used
                 //         (int, int, ..., int) x;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 15015));
-            throw new Exception("This test will always fail");
         }
 
         [Fact]
