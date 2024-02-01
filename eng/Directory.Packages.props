@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
-    <RoslynDiagnosticsNugetPackageVersion>3.11.0-beta1.23364.2</RoslynDiagnosticsNugetPackageVersion>
+    <RoslynDiagnosticsNugetPackageVersion>3.11.0-beta1.24081.1</RoslynDiagnosticsNugetPackageVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>8.0.0-preview.23468.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.23411.1</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.187-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
