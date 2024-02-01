@@ -7196,5 +7196,237 @@ public struct Vec4
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefStruct_Explicit()
+        {
+            var source = """
+                class C
+                {
+                    S M1()
+                    {
+                        S s;
+                        s = (S)100; // 1
+                        return s;
+                    }
+
+                    S M2()
+                    {
+                        return (S)200; // 2
+                    }
+
+                    S M3(in int x)
+                    {
+                        S s;
+                        s = (S)x; // 3
+                        return s;
+                    }
+
+                    S M4(in int x)
+                    {
+                        return (S)x;
+                    }
+
+                    S M4s(scoped in int x)
+                    {
+                        return (S)x; // 4
+                    }
+
+                    S M5(in int x)
+                    {
+                        S s = (S)x;
+                        return s;
+                    }
+
+                    S M5s(scoped in int x)
+                    {
+                        S s = (S)x;
+                        return s; // 5
+                    }
+
+                    S M6()
+                    {
+                        S s = (S)300;
+                        return s; // 6
+                    }
+                }
+
+                ref struct S
+                {
+                    public static explicit operator S(in int x) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS8347: Cannot use a result of 'S.explicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = (S)100; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "(S)100").WithArguments("S.explicit operator S(in int)", "x").WithLocation(6, 13),
+                // (6,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         s = (S)100; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "100").WithLocation(6, 16),
+                // (12,16): error CS8347: Cannot use a result of 'S.explicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return (S)200; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "(S)200").WithArguments("S.explicit operator S(in int)", "x").WithLocation(12, 16),
+                // (12,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return (S)200; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "200").WithLocation(12, 19),
+                // (18,13): error CS8347: Cannot use a result of 'S.explicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = (S)x; // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "(S)x").WithArguments("S.explicit operator S(in int)", "x").WithLocation(18, 13),
+                // (18,16): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
+                //         s = (S)x; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(18, 16),
+                // (29,16): error CS8347: Cannot use a result of 'S.explicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return (S)x; // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "(S)x").WithArguments("S.explicit operator S(in int)", "x").WithLocation(29, 16),
+                // (29,19): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //         return (S)x; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(29, 19),
+                // (41,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(41, 16),
+                // (47,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(47, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefStruct_Implicit()
+        {
+            var source = """
+                class C
+                {
+                    S M1()
+                    {
+                        S s;
+                        s = 100; // 1
+                        return s;
+                    }
+
+                    S M2()
+                    {
+                        return 200; // 2
+                    }
+
+                    S M3(in int x)
+                    {
+                        S s;
+                        s = x; // 3
+                        return s;
+                    }
+
+                    S M4(in int x)
+                    {
+                        return x;
+                    }
+
+                    S M4s(scoped in int x)
+                    {
+                        return x; // 4
+                    }
+
+                    S M5(in int x)
+                    {
+                        S s = x;
+                        return s;
+                    }
+
+                    S M5s(scoped in int x)
+                    {
+                        S s = x;
+                        return s; // 5
+                    }
+
+                    S M6()
+                    {
+                        S s = 300;
+                        return s; // 6
+                    }
+                }
+
+                ref struct S
+                {
+                    public static implicit operator S(in int x) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         s = 100; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "100").WithLocation(6, 13),
+                // (6,13): error CS8347: Cannot use a result of 'S.implicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = 100; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "100").WithArguments("S.implicit operator S(in int)", "x").WithLocation(6, 13),
+                // (12,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return 200; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "200").WithLocation(12, 16),
+                // (12,16): error CS8347: Cannot use a result of 'S.implicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return 200; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "200").WithArguments("S.implicit operator S(in int)", "x").WithLocation(12, 16),
+                // (18,13): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
+                //         s = x; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(18, 13),
+                // (18,13): error CS8347: Cannot use a result of 'S.implicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = x; // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x").WithArguments("S.implicit operator S(in int)", "x").WithLocation(18, 13),
+                // (29,16): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //         return x; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(29, 16),
+                // (29,16): error CS8347: Cannot use a result of 'S.implicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return x; // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x").WithArguments("S.implicit operator S(in int)", "x").WithLocation(29, 16),
+                // (41,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(41, 16),
+                // (47,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(47, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefStructArgument()
+        {
+            var source = """
+                class C
+                {
+                    S2 M1()
+                    {
+                        int x = 1;
+                        S1 s1 = (S1)x;
+                        return (S2)s1; // 1
+                    }
+                }
+
+                ref struct S1
+                {
+                    public static implicit operator S1(in int x) => throw null;
+                }
+
+                ref struct S2
+                {
+                    public static implicit operator S2(S1 s1) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,16): error CS8347: Cannot use a result of 'S2.implicit operator S2(S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
+                //         return (S2)s1; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "(S2)s1").WithArguments("S2.implicit operator S2(S1)", "s1").WithLocation(7, 16),
+                // (7,20): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return (S2)s1; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(7, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RegularStruct()
+        {
+            var source = """
+                S s;
+                s = (S)100;
+
+                struct S
+                {
+                    public static explicit operator S(in int x) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
     }
 }

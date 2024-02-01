@@ -3927,6 +3927,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isRefEscape: false);
                     }
 
+                    if (conversion.Conversion.IsUserDefined)
+                    {
+                        var operatorMethod = conversion.Conversion.Method;
+                        Debug.Assert(operatorMethod is not null);
+
+                        return GetInvocationEscapeScope(
+                            operatorMethod,
+                            receiver: null,
+                            receiverIsSubjectToCloning: ThreeState.Unknown,
+                            operatorMethod.Parameters,
+                            argsOpt: [conversion.Operand],
+                            argRefKindsOpt: default,
+                            argsToParamsOpt: default,
+                            scopeOfTheContainingExpression: scopeOfTheContainingExpression,
+                            isRefEscape: false);
+                    }
+
                     return GetValEscape(conversion.Operand, scopeOfTheContainingExpression);
 
                 case BoundKind.AssignmentOperator:
@@ -4516,6 +4533,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                             checkingReceiver,
                             escapeFrom,
                             escapeTo,
+                            diagnostics,
+                            isRefEscape: false);
+                    }
+
+                    if (conversion.Conversion.IsUserDefined)
+                    {
+                        var operatorMethod = conversion.Conversion.Method;
+                        Debug.Assert(operatorMethod is not null);
+
+                        return CheckInvocationEscape(
+                            conversion.Syntax,
+                            operatorMethod,
+                            receiver: null,
+                            receiverIsSubjectToCloning: ThreeState.Unknown,
+                            operatorMethod.Parameters,
+                            argsOpt: [conversion.Operand],
+                            argRefKindsOpt: default,
+                            argsToParamsOpt: default,
+                            checkingReceiver: checkingReceiver,
+                            escapeFrom: escapeFrom,
+                            escapeTo: escapeTo,
                             diagnostics,
                             isRefEscape: false);
                     }
