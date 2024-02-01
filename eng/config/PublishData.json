@@ -51,6 +51,8 @@
       "Microsoft.CodeAnalysis.LanguageServer.alpine-x64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.linux-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.linux-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.linux-musl-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.linux-musl-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.neutral": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.osx-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.osx-x64": "vs-impl",

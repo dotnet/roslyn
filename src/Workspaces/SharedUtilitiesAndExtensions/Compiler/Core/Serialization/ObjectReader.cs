@@ -589,12 +589,6 @@ internal sealed partial class ObjectReader : IDisposable
         return array;
     }
 
-    public Type ReadType()
-    {
-        _reader.ReadByte();
-        return Type.GetType(ReadString());
-    }
-
     private static Exception DeserializationReadIncorrectNumberOfValuesException(string typeName)
     {
         throw new InvalidOperationException(String.Format(Resources.Deserialization_reader_for_0_read_incorrect_number_of_values, typeName));
