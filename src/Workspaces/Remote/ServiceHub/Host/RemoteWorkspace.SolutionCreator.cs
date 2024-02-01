@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     // All the old projects must be in the new project set.  Though the reverse doesn't have to hold.
                     // The new project set may contain additional projects to add.
-                    Debug.Assert(oldProjectIdToChecksum.Keys.All(newProjectIdToChecksum.Keys.Contains));
+                    Contract.ThrowIfFalse(oldProjectIdToChecksum.Keys.All(newProjectIdToChecksum.Keys.Contains));
                 }
 
                 // remove projects that are the same on both sides.
