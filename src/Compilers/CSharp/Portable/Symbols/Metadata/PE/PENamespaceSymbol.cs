@@ -96,7 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             EnsureAllMembersLoaded();
 
             if (lazyNamespaces.TryGetValue(name, out var ns))
+            {
                 return ns;
+            }
 
             return null;
         }
