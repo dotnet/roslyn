@@ -17,13 +17,31 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         public async Task AssemblyReferencePresentAsync(string projectName, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken, CancellationToken cancellationToken)
         {
             var assemblyReferences = await TestServices.SolutionExplorer.GetAssemblyReferencesAsync(projectName, cancellationToken);
-            var expectedAssemblyReference = (assemblyName, assemblyVersion, assemblyPublicKeyToken.ToUpper());
+            var expectedAssemblyReference = (assemblyName, assemblyVersion, assemblyPublicKeyToken: assemblyPublicKeyToken.ToUpper());
             if (assemblyReferences.Contains(expectedAssemblyReference))
                 return;
 
             var assemblyReferencesMatchingName = assemblyReferences.WhereAsArray(reference => string.Equals(reference.name, expectedAssemblyReference.assemblyName, StringComparison.OrdinalIgnoreCase));
             if (!assemblyReferencesMatchingName.IsEmpty)
                 assemblyReferences = assemblyReferencesMatchingName;
+
+            // 17.9.0 Preview 2.0 through 17.9.0 Preview 2.1
+            if (await TestServices.Shell.GetVersionAsync(cancellationToken) >= Version.Parse("17.9.34407.89")
+                && await TestServices.Shell.GetVersionAsync(cancellationToken) <= Version.Parse("17.9.34414.90")
+                && !assemblyReferencesMatchingName.IsEmpty)
+            {
+                // The actual assembly version has a number like:
+                //   0.0.527041792.678
+                //   0.0.528033936.678
+                //   0.0.292991664.480
+                //   0.0.205444464.480
+                //
+                // The actual public key token is empty in these test cases.
+                //
+                // Since we can't predict the exact outcome, only validate the assembly name (indirectly by knowing
+                // assemblyReferencesMatchingName is not empty).
+                return;
+            }
 
             Assert.Contains(expectedAssemblyReference, assemblyReferences);
         }
