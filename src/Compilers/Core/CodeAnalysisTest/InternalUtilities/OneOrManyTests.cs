@@ -269,5 +269,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             Assert.True(OneOrMany.Create(1, 2).SequenceEqual(new[] { 11, 32 }, comparer));
             Assert.False(OneOrMany.Create(1, 2).SequenceEqual(new[] { 0, 1 }, comparer));
         }
+
+        [Fact]
+        public void Equality()
+        {
+            Assert.True(default(OneOrMany<int>).Equals(default));
+            Assert.True(OneOrMany<int>.Empty.Equals(OneOrMany<int>.Empty));
+            Assert.False(OneOrMany<int>.Empty.Equals(default));
+            Assert.False(default(OneOrMany<int>).Equals(OneOrMany<int>.Empty));
+
+            var a = ImmutableArray.Create(1, 2, 3);
+            Assert.True(OneOrMany.Create(a).Equals(OneOrMany.Create(a)));
+
+            var b = ImmutableArray.Create(1, 2, 3);
+            Assert.False(OneOrMany.Create(a).Equals(OneOrMany.Create(b)));
+
+            Assert.True(OneOrMany.Create(1).Equals(OneOrMany.Create(1)));
+            Assert.False(OneOrMany.Create(1).Equals(OneOrMany.Create(1, 2)));
+            Assert.False(OneOrMany.Create(1, 2).Equals(OneOrMany.Create(1, 2)));
+        }
     }
 }

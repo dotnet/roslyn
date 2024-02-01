@@ -215,14 +215,18 @@ namespace Roslyn.Utilities
             return true;
         }
 
+        /// <summary>
+        /// Similarly to <see cref="ImmutableArray{T}"/>, true means that this instance is equal to <paramref name="other"/>,
+        /// not that that all items in the collection are equal.
+        /// </summary>
         public bool Equals(OneOrMany<T> other)
-            => HasOneItem ? EqualityComparer<T>.Default.Equals(_one, other._one) : _many.Equals(other._many);
+            => HasOneItem ? other.HasOneItem && EqualityComparer<T>.Default.Equals(_one, other._one) : _many.Equals(other._many);
 
         public override bool Equals(object? obj)
             => obj is OneOrMany<T> other && Equals(other);
 
         public override int GetHashCode()
-            => Hash.Combine(_one?.GetHashCode() ?? 0, _many.GetHashCode());
+            => HasOneItem ? _one.GetHashCode() : _many.GetHashCode();
 
         public static bool operator ==(OneOrMany<T> left, OneOrMany<T> right)
             => left.Equals(right);

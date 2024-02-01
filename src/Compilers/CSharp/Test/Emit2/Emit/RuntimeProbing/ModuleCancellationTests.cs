@@ -1065,6 +1065,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
               IL_0020:  ldc.i4.1
               IL_0021:  add
               IL_0022:  stloc.1
+              // sequence point: in
               IL_0023:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
               IL_0028:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
               IL_002d:  ldloc.1
@@ -1129,6 +1130,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
                 IL_0023:  nop
                 // sequence point: }
                 IL_0024:  nop
+                // sequence point: in
                 IL_0025:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
                 IL_002a:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
                 IL_002f:  ldloc.0
