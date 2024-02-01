@@ -26,6 +26,12 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
     public Checksum this[int index] => children[index];
     public ImmutableArray<Checksum> Children => children;
 
+    /// <summary>
+    /// Enumerates the child checksums (found in <see cref="Children"/>) that make up this collection.   This is
+    /// equivalent to directly enumerating the <see cref="Children"/> property.  Importantly, <see cref="Checksum"/> is
+    /// not part of this enumeration.  <see cref="Checksum"/> is the checksum <em>produced</em> by all those child
+    /// checksums.
+    /// </summary>
     public ImmutableArray<Checksum>.Enumerator GetEnumerator()
         => children.GetEnumerator();
 
