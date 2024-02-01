@@ -4,13 +4,14 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.ExtractMethod
     <Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
     Public Class ExtractMethodTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New ExtractMethodCodeRefactoringProvider()
         End Function
 

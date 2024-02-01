@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConditionalExpressionInStringInterpolati
         // CS8361 is a syntax error and it is unlikely that there is more than one CS8361 at a time.
         public override FixAllProvider? GetFixAllProvider() => null;
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS8361);
+        public override ImmutableArray<string> FixableDiagnosticIds => [CS8361];
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

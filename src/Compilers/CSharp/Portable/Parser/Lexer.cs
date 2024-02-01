@@ -1931,22 +1931,19 @@ LoopExit:
                                 break;
                             }
 
-                            bool isTerminated;
-                            this.ScanMultiLineComment(out isTerminated);
-                            if (!isTerminated)
-                            {
-                                // The comment didn't end.  Report an error at the start point.
-                                this.AddError(ErrorCode.ERR_OpenEndedComment);
-                            }
-
-                            var text = TextWindow.GetText(false);
-                            this.AddTrivia(SyntaxFactory.Comment(text), ref triviaList);
+                            lexMultiLineComment(ref triviaList, delimiter: '/');
                             onlyWhitespaceOnLine = false;
                             break;
                         }
 
                         // not trivia
                         return;
+                    case '@' when TextWindow.PeekChar(1) == '*':
+                        // Razor comment. We pretend that it's a multi-line comment for error recovery, but it's an error case.
+                        this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_UnexpectedCharacter, '@');
+                        lexMultiLineComment(ref triviaList, delimiter: '@');
+                        onlyWhitespaceOnLine = false;
+                        break;
                     case '\r':
                     case '\n':
                         var endOfLine = this.ScanEndOfLine();
@@ -1993,6 +1990,20 @@ LoopExit:
                     default:
                         return;
                 }
+            }
+
+            void lexMultiLineComment(ref SyntaxListBuilder triviaList, char delimiter)
+            {
+                bool isTerminated;
+                this.ScanMultiLineComment(out isTerminated, delimiter);
+                if (!isTerminated)
+                {
+                    // The comment didn't end.  Report an error at the start point.
+                    this.AddError(ErrorCode.ERR_OpenEndedComment);
+                }
+
+                var text = TextWindow.GetText(false);
+                this.AddTrivia(SyntaxFactory.Comment(text), ref triviaList);
             }
         }
 
@@ -2145,38 +2156,30 @@ LoopExit:
             list.Add(trivia);
         }
 
-        private bool ScanMultiLineComment(out bool isTerminated)
+        private void ScanMultiLineComment(out bool isTerminated, char delimiter)
         {
-            if (TextWindow.PeekChar() == '/' && TextWindow.PeekChar(1) == '*')
-            {
-                TextWindow.AdvanceChar(2);
+            Debug.Assert(delimiter is '/' or '@');
+            Debug.Assert(TextWindow.PeekChar() == delimiter && TextWindow.PeekChar(1) == '*');
+            TextWindow.AdvanceChar(2);
 
-                char ch;
-                while (true)
+            char ch;
+            while (true)
+            {
+                if ((ch = TextWindow.PeekChar()) == SlidingTextWindow.InvalidCharacter && TextWindow.IsReallyAtEnd())
                 {
-                    if ((ch = TextWindow.PeekChar()) == SlidingTextWindow.InvalidCharacter && TextWindow.IsReallyAtEnd())
-                    {
-                        isTerminated = false;
-                        break;
-                    }
-                    else if (ch == '*' && TextWindow.PeekChar(1) == '/')
-                    {
-                        TextWindow.AdvanceChar(2);
-                        isTerminated = true;
-                        break;
-                    }
-                    else
-                    {
-                        TextWindow.AdvanceChar();
-                    }
+                    isTerminated = false;
+                    break;
                 }
-
-                return true;
-            }
-            else
-            {
-                isTerminated = false;
-                return false;
+                else if (ch == '*' && TextWindow.PeekChar(1) == delimiter)
+                {
+                    TextWindow.AdvanceChar(2);
+                    isTerminated = true;
+                    break;
+                }
+                else
+                {
+                    TextWindow.AdvanceChar();
+                }
             }
         }
 

@@ -18,7 +18,7 @@ using static PullDiagnosticConstants;
 
 internal sealed class TaskListDiagnosticSource(Document document, IGlobalOptionService globalOptions) : AbstractDocumentDiagnosticSource<Document>(document)
 {
-    private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(TaskItemCustomTag);
+    private static readonly ImmutableArray<string> s_todoCommentCustomTags = [TaskItemCustomTag];
 
     private static readonly ImmutableDictionary<string, string?> s_lowPriorityProperties = ImmutableDictionary<string, string?>.Empty.Add(Priority, Low);
     private static readonly ImmutableDictionary<string, string?> s_mediumPriorityProperties = ImmutableDictionary<string, string?>.Empty.Add(Priority, Medium);
@@ -37,14 +37,14 @@ internal sealed class TaskListDiagnosticSource(Document document, IGlobalOptionS
     {
         var service = this.Document.GetLanguageService<ITaskListService>();
         if (service == null)
-            return ImmutableArray<DiagnosticData>.Empty;
+            return [];
 
         var options = _globalOptions.GetTaskListOptions();
         var descriptors = GetAndCacheDescriptors(options.Descriptors);
 
         var items = await service.GetTaskListItemsAsync(this.Document, descriptors, cancellationToken).ConfigureAwait(false);
         if (items.Length == 0)
-            return ImmutableArray<DiagnosticData>.Empty;
+            return [];
 
         return items.SelectAsArray(i => new DiagnosticData(
             id: "TODO",

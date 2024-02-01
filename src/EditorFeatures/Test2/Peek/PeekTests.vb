@@ -252,8 +252,8 @@ public partial class D
             End Using
         End Sub
 
-        Private Shared Function CreateTestWorkspace(element As XElement) As TestWorkspace
-            Return TestWorkspace.Create(element, composition:=EditorTestCompositions.EditorFeaturesWpf)
+        Private Shared Function CreateTestWorkspace(element As XElement) As EditorTestWorkspace
+            Return EditorTestWorkspace.Create(element, composition:=EditorTestCompositions.EditorFeaturesWpf)
         End Function
 
         Private Shared Function GetPeekResultCollection(element As XElement) As PeekResultCollection
@@ -262,7 +262,7 @@ public partial class D
             End Using
         End Function
 
-        Private Shared Function GetPeekResultCollection(workspace As TestWorkspace) As PeekResultCollection
+        Private Shared Function GetPeekResultCollection(workspace As EditorTestWorkspace) As PeekResultCollection
             Dim document = workspace.Documents.FirstOrDefault(Function(d) d.CursorPosition.HasValue)
 
             If document Is Nothing Then
@@ -362,9 +362,9 @@ public partial class D
 
             Public ReadOnly Items As New List(Of IPeekResult)
 
-            Private ReadOnly _workspace As TestWorkspace
+            Private ReadOnly _workspace As EditorTestWorkspace
 
-            Public Sub New(workspace As TestWorkspace)
+            Public Sub New(workspace As EditorTestWorkspace)
                 _workspace = workspace
             End Sub
 

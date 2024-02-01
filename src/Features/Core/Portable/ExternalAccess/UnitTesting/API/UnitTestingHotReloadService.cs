@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
             (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
-        private static readonly ImmutableArray<Update> EmptyUpdate = ImmutableArray.Create<Update>();
-        private static readonly ImmutableArray<Diagnostic> EmptyDiagnostic = ImmutableArray.Create<Diagnostic>();
+        private static readonly ImmutableArray<Update> EmptyUpdate = [];
+        private static readonly ImmutableArray<Diagnostic> EmptyDiagnostic = [];
 
         private readonly IEditAndContinueService _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
         private DebuggingSessionId _sessionId;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                 solution,
                 new DebuggerService(capabilities),
                 NullPdbMatchingSourceTextProvider.Instance,
-                captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                captureMatchingDocuments: [],
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: false,
                 cancellationToken).ConfigureAwait(false);

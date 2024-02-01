@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         static ReferenceFinders()
         {
-            DefaultRenameReferenceFinders = ImmutableArray.Create(
+            DefaultRenameReferenceFinders =
+            [
                 Constructor,
                 Destructor,
                 Event,
@@ -56,7 +57,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 Property,
                 PropertyAccessor,
                 RangeVariable,
-                TypeParameter);
+                TypeParameter,
+            ];
             DefaultReferenceFinders = DefaultRenameReferenceFinders.Add(ConstructorInitializer);
         }
     }

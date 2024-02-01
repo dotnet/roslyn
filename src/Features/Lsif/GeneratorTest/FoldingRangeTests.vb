@@ -44,7 +44,7 @@ using System.Linq;|}", "imports", "...")>
 {|foldingRange:// Comment Line 1
 // Comment Line 2|}", Nothing, "// Comment Line 1...")>
         Public Async Function TestFoldingRanges(code As String, rangeKind As String, collapsedText As String) As Task
-            Using workspace = TestWorkspace.CreateWorkspace(
+            Using workspace = EditorTestWorkspace.CreateWorkspace(
                     <Workspace>
                         <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
                             <Document Name="A.cs" FilePath="Z:\A.cs">

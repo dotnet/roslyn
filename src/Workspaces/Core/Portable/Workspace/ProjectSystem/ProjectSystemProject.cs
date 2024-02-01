@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
     internal sealed partial class ProjectSystemProject
     {
         private static readonly char[] s_directorySeparator = [Path.DirectorySeparatorChar];
-        private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = ImmutableArray.Create(default(MetadataReferenceProperties));
+        private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = [default(MetadataReferenceProperties)];
 
         private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
         private readonly ProjectSystemHostInfo _hostInfo;
@@ -982,10 +982,12 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
         private const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
         private static readonly string s_razorSourceGeneratorSdkDirectory = Path.Combine("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators") + PathUtilities.DirectorySeparatorStr;
-        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames = ImmutableArray.Create(
+        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames =
+        [
             "Microsoft.NET.Sdk.Razor.SourceGenerators",
             "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators",
-            "Microsoft.CodeAnalysis.Razor.Compiler");
+            "Microsoft.CodeAnalysis.Razor.Compiler",
+        ];
         private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyRootedFileNames = s_razorSourceGeneratorAssemblyNames.SelectAsArray(
             assemblyName => PathUtilities.DirectorySeparatorStr + assemblyName + ".dll");
 
@@ -1097,7 +1099,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         {
             using (_gate.DisposableWait())
             {
-                return _allMetadataReferences.TryGetValue(fullPath, out var list) ? list : ImmutableArray<MetadataReferenceProperties>.Empty;
+                return _allMetadataReferences.TryGetValue(fullPath, out var list) ? list : [];
             }
         }
 

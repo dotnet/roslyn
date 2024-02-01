@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             }
             else
             {
-                return ImmutableArray<ICodeCleanupProvider>.Empty;
+                return [];
             }
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// Optionally you can provide your own options and code cleaners. Otherwise, the default will be used.
         /// </summary>
         public static Task<Document> CleanupAsync(Document document, TextSpan span, CodeCleanupOptions options, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
-            => CleanupAsync(document, ImmutableArray.Create(span), options, providers, cancellationToken);
+            => CleanupAsync(document, [span], options, providers, cancellationToken);
 
         /// <summary>
         /// Clean up the provided spans in the document.
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// This will only cleanup stuff that doesn't require semantic information.
         /// </summary>
         public static Task<SyntaxNode> CleanupAsync(SyntaxNode root, TextSpan span, SyntaxFormattingOptions options, SolutionServices services, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
-            => CleanupAsync(root, ImmutableArray.Create(span), options, services, providers, cancellationToken);
+            => CleanupAsync(root, [span], options, services, providers, cancellationToken);
 
         /// <summary>
         /// Clean up the provided spans in the node.

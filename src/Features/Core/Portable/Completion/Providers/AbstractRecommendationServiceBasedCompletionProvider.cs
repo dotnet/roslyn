@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var shouldProvideSymbols = await ShouldProvideAvailableSymbolsInCurrentContextAsync(completionContext, context, position, options, cancellationToken).ConfigureAwait(false);
             if (!shouldProvideSymbols)
-                return ImmutableArray<SymbolAndSelectionInfo>.Empty;
+                return [];
 
             var recommendationOptions = options.ToRecommendationServiceOptions();
             var recommender = context.GetRequiredLanguageService<IRecommendationService>();

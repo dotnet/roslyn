@@ -39,9 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
 
             var attributeList =
                 SyntaxFactory.AttributeList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Attribute(
-                            SyntaxFactory.IdentifierName("System.Reflection.AssemblyVersion(\"1.0.0.0\")"))))
+                    [SyntaxFactory.Attribute(
+                        SyntaxFactory.IdentifierName("System.Reflection.AssemblyVersion(\"1.0.0.0\")"))])
                 .WithTarget(
                     SyntaxFactory.AttributeTargetSpecifier(
                         SyntaxFactory.Token(SyntaxKind.AssemblyKeyword)));

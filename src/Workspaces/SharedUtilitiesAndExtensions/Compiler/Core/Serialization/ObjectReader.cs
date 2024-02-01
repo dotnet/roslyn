@@ -471,7 +471,7 @@ internal sealed partial class ObjectReader : IDisposable
         if (length == 0)
         {
             // quick check
-            return Array.Empty<T>();
+            return [];
         }
         else
         {
@@ -587,12 +587,6 @@ internal sealed partial class ObjectReader : IDisposable
         }
 
         return array;
-    }
-
-    public Type ReadType()
-    {
-        _reader.ReadByte();
-        return Type.GetType(ReadString());
     }
 
     private static Exception DeserializationReadIncorrectNumberOfValuesException(string typeName)

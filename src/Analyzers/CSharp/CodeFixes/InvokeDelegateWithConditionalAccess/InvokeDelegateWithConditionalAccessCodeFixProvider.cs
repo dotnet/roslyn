@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId];
 
         // Filter out the diagnostics we created for the faded out code.  We don't want
         // to try to fix those as well as the normal diagnostics we created.
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             if (ifStatement.Parent.IsKind(SyntaxKind.ElseClause) &&
                 ifStatement.Statement is BlockSyntax block)
             {
-                newStatement = block.WithStatements(SyntaxFactory.SingletonList(newStatement));
+                newStatement = block.WithStatements([newStatement]);
             }
 
             newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);

@@ -924,7 +924,7 @@ public class RemoveUnnecessaryCastTests
     }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545595")]
-    [WpfFact(Skip = "529787")]
+    [Fact(Skip = "529787")]
     public async Task RemoveUnneededCastInCollectionInitializer()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -954,7 +954,7 @@ public class RemoveUnnecessaryCastTests
     }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
-    [WpfFact(Skip = "529787")]
+    [Fact(Skip = "529787")]
     public async Task DoNotRemoveNecessaryCastWhichInCollectionInitializer1()
     {
         var source =
@@ -985,7 +985,7 @@ public class RemoveUnnecessaryCastTests
     }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
-    [WpfFact(Skip = "529787")]
+    [Fact(Skip = "529787")]
     public async Task DoNotRemoveNecessaryCastWhichInCollectionInitializer2()
     {
         var source =
@@ -5590,21 +5590,22 @@ public class RemoveUnnecessaryCastTests
     public async Task DoNotRemoveCastOnInvalidUnaryOperatorEnumValue1(string op)
     {
         var source =
-$@"
-enum Sign
-    {{
-        Positive = 1,
-        Negative = -1
-    }}
+            $$"""
+            enum Sign
+                {
+                    Positive = 1,
+                    Negative = -1
+                }
 
-    class T
-    {{
-        void Goo()
-        {{
-            Sign mySign = Sign.Positive;
-            Sign invertedSign = (Sign) ( {op}((int) mySign) );
-        }}
-    }}";
+                class T
+                {
+                    void Goo()
+                    {
+                        Sign mySign = Sign.Positive;
+                        Sign invertedSign = (Sign) ( {{op}}((int) mySign) );
+                    }
+                }
+            """;
 
         await VerifyCS.VerifyCodeFixAsync(source, source);
     }
@@ -5615,21 +5616,22 @@ enum Sign
     public async Task DoNotRemoveCastOnInvalidUnaryOperatorEnumValue2(string op)
     {
         var source =
-$@"
-enum Sign
-    {{
-        Positive = 1,
-        Negative = -1
-    }}
+            $$"""
+            enum Sign
+                {
+                    Positive = 1,
+                    Negative = -1
+                }
 
-    class T
-    {{
-        void Goo()
-        {{
-            Sign mySign = Sign.Positive;
-            Sign invertedSign = (Sign) ( {op}(int) mySign );
-        }}
-    }}";
+                class T
+                {
+                    void Goo()
+                    {
+                        Sign mySign = Sign.Positive;
+                        Sign invertedSign = (Sign) ( {{op}}(int) mySign );
+                    }
+                }
+            """;
 
         await VerifyCS.VerifyCodeFixAsync(source, source);
     }
@@ -13007,28 +13009,28 @@ enum Sign
     [InlineData("Func<string>")]
     public async Task ConvertingMethodGroupToObject_CastIsUnnecessary(string type)
     {
-        var code = $@"
-using System;
+        var code = $$"""
+            using System;
 
-class C
-{{
-    static {type} M(object o)
-    {{
-        return ({type})[|(object)|]o.ToString;
-    }}
-}}
-";
-        var fixedCode = $@"
-using System;
+            class C
+            {
+                static {{type}} M(object o)
+                {
+                    return ({{type}})[|(object)|]o.ToString;
+                }
+            }
+            """;
+        var fixedCode = $$"""
+            using System;
 
-class C
-{{
-    static {type} M(object o)
-    {{
-        return o.ToString;
-    }}
-}}
-";
+            class C
+            {
+                static {{type}} M(object o)
+                {
+                    return o.ToString;
+                }
+            }
+            """;
         await new VerifyCS.Test
         {
             TestCode = code,

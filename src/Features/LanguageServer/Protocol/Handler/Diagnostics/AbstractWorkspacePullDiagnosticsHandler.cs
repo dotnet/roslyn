@@ -59,7 +59,7 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
         // diagnostics will be handled by razor itself, which will operate by calling into Roslyn and asking for
         // document-diagnostics instead.
         if (context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
-            return ImmutableArray<IDiagnosticSource>.Empty;
+            return [];
 
         var category = GetDiagnosticCategory(diagnosticsParams);
 
@@ -71,7 +71,7 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
             return await GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken).ConfigureAwait(false);
 
         // if it's a category we don't recognize, return nothing.
-        return ImmutableArray<IDiagnosticSource>.Empty;
+        return [];
     }
 
     private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
@@ -113,7 +113,7 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
         // Only compute task list items for closed files if the option is on for it.
         var taskListEnabled = globalOptions.GetTaskListOptions().ComputeForClosedFiles;
         if (!taskListEnabled)
-            return ImmutableArray<IDiagnosticSource>.Empty;
+            return [];
 
         using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
 

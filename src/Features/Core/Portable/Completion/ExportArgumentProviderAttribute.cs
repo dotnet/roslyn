@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
         public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
-        public string[] Roles { get; set; } = Array.Empty<string>();
+        public string[] Roles { get; set; } = [];
     }
 }

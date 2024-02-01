@@ -302,8 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 : accessor.WithExpressionBody(expressionBody)
                           .WithSemicolonToken(semicolonToken);
 
-            return WithAccessorList(declaration, SyntaxFactory.AccessorList(
-                SyntaxFactory.SingletonList(accessor)));
+            return WithAccessorList(declaration, SyntaxFactory.AccessorList([accessor]));
         }
 
         protected virtual TDeclaration WithAccessorList(TDeclaration declaration, AccessorListSyntax accessorListSyntax)

@@ -271,7 +271,7 @@ internal static class ConvertNamespaceTransform
             (_, _) => converted.WithAdditionalAnnotations(annotation),
             new SyntaxToken[] { tokenAfterNamespace },
             (_, _) => tokenAfterNamespace.WithLeadingTrivia(triviaAfterSplit),
-            Array.Empty<SyntaxTrivia>(),
+            [],
             (_, _) => throw ExceptionUtilities.Unreachable());
     }
 

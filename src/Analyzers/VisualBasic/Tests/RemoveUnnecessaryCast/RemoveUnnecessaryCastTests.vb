@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryCast
     <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
     Partial Public Class RemoveUnnecessaryCastTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer(),
@@ -2155,7 +2155,7 @@ End Class
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770187")>
-        <WpfFact(Skip:="770187")>
+        <Fact(Skip:="770187")>
         Public Async Function TestDoNotRemoveNecessaryCastInSelectCaseExpression() As Task
             ' Cast removal invokes a different user defined operator, hence the cast is necessary.
 
@@ -2200,7 +2200,7 @@ End Namespace]]>
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770187")>
-        <WpfFact(Skip:="770187")>
+        <Fact(Skip:="770187")>
         Public Async Function TestDoNotRemoveNecessaryCastInSelectCaseExpression2() As Task
             ' Cast removal invokes a different user defined operator, hence the cast is necessary.
 
@@ -2245,7 +2245,7 @@ End Namespace]]>
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770187")>
-        <WpfFact(Skip:="770187")>
+        <Fact(Skip:="770187")>
         Public Async Function TestDoNotRemoveNecessaryCastInSelectCaseExpression3() As Task
             ' Cast removal invokes a different user defined operator, hence the cast is necessary.
 

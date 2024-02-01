@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         [Obsolete("Built-in providers will be ignored in a future release, please make them MEF exports instead.")]
         protected virtual ImmutableArray<CompletionProvider> GetBuiltInProviders()
-            => ImmutableArray<CompletionProvider>.Empty;
+            => [];
 
         /// <summary>
         /// The language from <see cref="LanguageNames"/> this service corresponds to.

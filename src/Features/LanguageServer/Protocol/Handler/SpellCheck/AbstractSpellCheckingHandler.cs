@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.
-            var previousResults = GetPreviousResults(requestParams) ?? ImmutableArray<PreviousPullResult>.Empty;
+            var previousResults = GetPreviousResults(requestParams) ?? [];
             context.TraceInformation($"previousResults.Length={previousResults.Length}");
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 
             if (spans.Length == 0)
             {
-                yield return CreateReport(textDocumentIdentifier, Array.Empty<int>(), resultId);
+                yield return CreateReport(textDocumentIdentifier, [], resultId);
                 yield break;
             }
 

@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     tokens: SpecializedCollections.SingletonCollection(nextToken),
                     computeReplacementToken: (_, _) =>
                         SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(objectCreationNodeWithCorrectInitializer.GetTrailingTrivia()),
-                    trivia: Enumerable.Empty<SyntaxTrivia>(),
+                    trivia: [],
                     computeReplacementTrivia: (_, syntaxTrivia) => syntaxTrivia);
                 return (replacementContainerNode, objectCreationNodeContainer);
             }
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     && parentOfParent is PropertyDeclarationSyntax)
                 {
                     var otherAccessors = accessorListNode.Accessors
-                        .Except(new[] { accessorDeclarationNode })
+                        .Except([accessorDeclarationNode])
                         .ToImmutableArray();
                     if (!otherAccessors.IsEmpty)
                     {
@@ -847,14 +847,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             => SyntaxFactory.Token(
                     leading: SyntaxTriviaList.Empty,
                     kind: SyntaxKind.OpenBraceToken,
-                    trailing: SyntaxTriviaList.Create(GetNewLineTrivia(formattingOptions)))
+                    trailing: [GetNewLineTrivia(formattingOptions)])
                 .WithAdditionalAnnotations(s_openBracePositionAnnotation);
 
         private static SyntaxToken GetCloseBrace(SyntaxFormattingOptions formattingOptions)
             => SyntaxFactory.Token(
                 leading: SyntaxTriviaList.Empty,
                 kind: SyntaxKind.CloseBraceToken,
-                trailing: SyntaxTriviaList.Create(GetNewLineTrivia(formattingOptions)));
+                trailing: [GetNewLineTrivia(formattingOptions)]);
 
         private static SyntaxTrivia GetNewLineTrivia(SyntaxFormattingOptions formattingOptions)
         {
@@ -1006,8 +1006,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 propertyDeclarationNode.Modifiers,
                 SyntaxFactory.VariableDeclaration(
                     propertyDeclarationNode.Type,
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(propertyDeclarationNode.Identifier))),
+                    [SyntaxFactory.VariableDeclarator(propertyDeclarationNode.Identifier)]),
                 SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         /// <summary>
@@ -1020,8 +1019,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 eventDeclarationNode.Modifiers,
                 SyntaxFactory.VariableDeclaration(
                     eventDeclarationNode.Type,
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(eventDeclarationNode.Identifier))));
+                    [SyntaxFactory.VariableDeclarator(eventDeclarationNode.Identifier)]));
 
         /// <summary>
         /// Remove the body of <param name="accessorDeclarationNode"/>.

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
             this IEnumerable<SymbolDisplayPart> displayParts, TaggedTextStyle style, Func<ISymbol, string> getNavigationHint = null, bool includeNavigationHints = true)
         {
             if (displayParts == null)
-                return ImmutableArray<TaggedText>.Empty;
+                return [];
 
             getNavigationHint ??= static symbol => symbol?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
 

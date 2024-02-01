@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_indexer), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_indexer), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedIndexers,
-                   ImmutableArray.Create(SyntaxKind.IndexerDeclaration))
+                   [SyntaxKind.IndexerDeclaration])
         {
         }
 

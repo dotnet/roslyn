@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             if (ranges.Length == 0)
             {
-                return Array.Empty<int>();
+                return [];
             }
 
             var contextDocument = context.GetRequiredDocument();

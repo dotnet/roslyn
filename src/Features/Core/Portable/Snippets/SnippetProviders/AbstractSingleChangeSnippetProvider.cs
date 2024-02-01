@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         protected sealed override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var change = await GenerateSnippetTextChangeAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return ImmutableArray.Create(change);
+            return [change];
         }
     }
 }

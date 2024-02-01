@@ -70,8 +70,7 @@ if (true)
 {");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/325")]
         public async Task ScopeBrackets_0()
         {
             await TestInMethodAndScriptAsync(
@@ -83,8 +82,7 @@ if (true)
             "{");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/325")]
         public async Task ScopeBrackets_1()
         {
             await TestInMethodAndScriptAsync(
@@ -100,8 +98,7 @@ if (true)
 {");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/325")]
         public async Task ScopeBrackets_2()
         {
             await TestInMethodAndScriptAsync(
@@ -116,8 +113,7 @@ if (true)
 {");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/325")]
         public async Task ScopeBrackets_3()
         {
             await TestInMethodAndScriptAsync(
@@ -136,8 +132,7 @@ if (true)
     // comment");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/325")]
         public async Task ScopeBrackets_4()
         {
             await TestInMethodAndScriptAsync(
@@ -151,8 +146,7 @@ if (true)
     /* comment */");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/325")]
         public async Task ScopeBrackets_5()
         {
             await TestInMethodAndScriptAsync(
@@ -167,8 +161,7 @@ if (true)
 {");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/325")]
         public async Task ScopeBrackets_6()
         {
             await TestInMethodAndScriptAsync(
@@ -190,8 +183,7 @@ if (true)
 {");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/325")]
         public async Task ScopeBrackets_7()
         {
             await TestInMethodAndScriptAsync(
@@ -214,8 +206,7 @@ if (true)
 {");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/325")]
         public async Task ScopeBrackets_8()
         {
             await TestInMethodAndScriptAsync(
@@ -236,8 +227,7 @@ if (true)
     // part 2");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/325")]
         public async Task ScopeBrackets_9()
         {
             await TestInClassAsync(
@@ -252,8 +242,7 @@ if (true)
             "{");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/325")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/325")]
         public async Task ScopeBrackets_10()
         {
             await TestInMethodAndScriptAsync(
@@ -542,7 +531,7 @@ if (true)
             => new CSharpSyntacticQuickInfoProvider();
 
         protected override async Task AssertNoContentAsync(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             Document document,
             int position)
         {
@@ -551,7 +540,7 @@ if (true)
         }
 
         protected override async Task AssertContentIsAsync(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             Document document,
             int position,
             string expectedContent,
@@ -604,7 +593,7 @@ if (true)
             string expectedDocumentationComment = null,
             CSharpParseOptions parseOptions = null)
         {
-            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions);
             var testDocument = workspace.Documents.Single();
             var position = testDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.Projects.First().Documents.First();

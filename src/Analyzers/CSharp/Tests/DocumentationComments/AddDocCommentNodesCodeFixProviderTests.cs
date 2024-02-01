@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -15,8 +16,10 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
+        private static readonly CSharpParseOptions Regular = new(kind: SourceCodeKind.Regular);
+
         public AddDocCommentNodesCodesFixProviderTests(ITestOutputHelper logger)
            : base(logger)
         {
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
 
         private async Task TestAsync(string initial, string expected)
         {
-            var parseOptions = Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose);
+            var parseOptions = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
             await TestAsync(initial, expected, parseOptions: parseOptions);
         }
 
@@ -847,46 +850,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
         public async Task AddsParamTag_Class()
         {
-            var initial = @"
-/// <summary>
-/// 
-/// </summary>
-/// <param name=""Second""></param>
-class R(int [|First|], int Second, int Third);
-";
+            var initial = """
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="Second"></param>
+                class R(int [|First|], int Second, int Third);
+                """;
 
-            var expected = @"
-/// <summary>
-/// 
-/// </summary>
-/// <param name=""First""></param>
-/// <param name=""Second""></param>
-/// <param name=""Third""></param>
-class R(int First, int Second, int Third);
-";
+            var expected = """
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="First"></param>
+                /// <param name="Second"></param>
+                /// <param name="Third"></param>
+                class R(int First, int Second, int Third);
+                """;
             await TestAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
         public async Task AddsParamTag_Struct()
         {
-            var initial = @"
-/// <summary>
-/// 
-/// </summary>
-/// <param name=""Second""></param>
-struct R(int [|First|], int Second, int Third);
-";
+            var initial = """
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="Second"></param>
+                struct R(int [|First|], int Second, int Third);
+                """;
 
-            var expected = @"
-/// <summary>
-/// 
-/// </summary>
-/// <param name=""First""></param>
-/// <param name=""Second""></param>
-/// <param name=""Third""></param>
-struct R(int First, int Second, int Third);
-";
+            var expected = """
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="First"></param>
+                /// <param name="Second"></param>
+                /// <param name="Third"></param>
+                struct R(int First, int Second, int Third);
+                """;
             await TestAsync(initial, expected);
         }
     }

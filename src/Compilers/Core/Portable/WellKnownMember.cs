@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Array__get_Length,
         System_Array__Empty,
+        System_Array__SetValue,
 
         System_Convert__ToBooleanDecimal,
         System_Convert__ToBooleanInt32,
@@ -586,6 +587,8 @@ namespace Microsoft.CodeAnalysis
         System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
 
         System_NotSupportedException__ctor,
+        System_IndexOutOfRangeException__ctor,
+
         System_MissingMethodException__ctorString,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
 

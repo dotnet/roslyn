@@ -26,13 +26,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             // The members that are not implemented at all.
             public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented { get; private set; }
-                = ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
+                = [];
             public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitOrImplicitImplementation { get; private set; }
-                = ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
+                = [];
 
             // The members that have no explicit implementation.
             public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> MembersWithoutExplicitImplementation { get; private set; }
-                = ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
+                = [];
 
             public static State Generate(
                 AbstractImplementInterfaceService service,

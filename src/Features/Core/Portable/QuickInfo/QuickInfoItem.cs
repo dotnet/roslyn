@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             ImmutableArray<TextSpan> relatedSpans)
         {
             Span = span;
-            Tags = tags.IsDefault ? ImmutableArray<string>.Empty : tags;
-            Sections = sections.IsDefault ? ImmutableArray<QuickInfoSection>.Empty : sections;
-            RelatedSpans = relatedSpans.IsDefault ? ImmutableArray<TextSpan>.Empty : relatedSpans;
+            Tags = tags.IsDefault ? [] : tags;
+            Sections = sections.IsDefault ? [] : sections;
+            RelatedSpans = relatedSpans.IsDefault ? [] : relatedSpans;
         }
 
         public static QuickInfoItem Create(

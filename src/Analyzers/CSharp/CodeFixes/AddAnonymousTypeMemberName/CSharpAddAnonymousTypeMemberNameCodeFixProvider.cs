@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
-            = ImmutableArray.Create(CS0746);
+            = [CS0746];
 
         protected override bool HasName(AnonymousObjectMemberDeclaratorSyntax declarator)
             => declarator.NameEquals != null;

@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            GetTemporaryStorage(reader, kind, out var storage, out var length, cancellationToken);
+            var (storage, length) = GetTemporaryStorage(reader, kind, cancellationToken);
 
             var storageStream = storage.ReadStream(cancellationToken);
             Contract.ThrowIfFalse(length == storageStream.Length);
@@ -453,22 +453,22 @@ namespace Microsoft.CodeAnalysis.Serialization
             return metadata;
         }
 
-        private void GetTemporaryStorage(
-            ObjectReader reader, SerializationKinds kind, out ITemporaryStreamStorageInternal storage, out long length, CancellationToken cancellationToken)
+        private (ITemporaryStreamStorageInternal storage, long length) GetTemporaryStorage(
+            ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
         {
             if (kind == SerializationKinds.Bits)
             {
-                storage = _storageService.CreateTemporaryStreamStorage();
+                var storage = _storageService.CreateTemporaryStreamStorage();
                 using var stream = SerializableBytes.CreateWritableStream();
 
                 CopyByteArrayToStream(reader, stream, cancellationToken);
 
-                length = stream.Length;
+                var length = stream.Length;
 
                 stream.Position = 0;
                 storage.WriteStream(stream, cancellationToken);
 
-                return;
+                return (storage, length);
             }
 
             if (kind == SerializationKinds.MemoryMapFile)
@@ -479,10 +479,10 @@ namespace Microsoft.CodeAnalysis.Serialization
                 var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
-                storage = service2.AttachTemporaryStreamStorage(name, offset, size);
-                length = size;
+                var storage = service2.AttachTemporaryStreamStorage(name, offset, size);
+                var length = size;
 
-                return;
+                return (storage, length);
             }
 
             throw ExceptionUtilities.UnexpectedValue(kind);

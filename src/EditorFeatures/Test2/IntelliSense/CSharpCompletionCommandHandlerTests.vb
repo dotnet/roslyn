@@ -915,7 +915,7 @@ $$
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/71851"), CombinatorialData>
         Public Async Function TestDeletingWholeWordResetCompletionToTheDefaultItem(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -11609,7 +11609,7 @@ public class Class1
                 </Project>
             </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures)
                 Dim cursorDocument = workspace.Documents.First(Function(d As TestHostDocument)
                                                                    Return d.CursorPosition.HasValue
                                                                End Function)

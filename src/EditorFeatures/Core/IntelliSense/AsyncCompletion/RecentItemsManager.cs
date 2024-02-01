@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         {
         }
 
-        private ImmutableArray<string> RecentItems { get; set; } = ImmutableArray<string>.Empty;
+        private ImmutableArray<string> RecentItems { get; set; } = [];
 
         public void MakeMostRecentItem(CompletionItem item)
         {
