@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public KeywordCompletionProvider()
-            : base(ImmutableArray.Create<IKeywordRecommender<CSharpSyntaxContext>>(
+            : base(
+            [
                 new AbstractKeywordRecommender(),
                 new AddKeywordRecommender(),
                 new AliasKeywordRecommender(),
@@ -168,7 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new WhereKeywordRecommender(),
                 new WhileKeywordRecommender(),
                 new WithKeywordRecommender(),
-                new YieldKeywordRecommender()))
+                new YieldKeywordRecommender(),
+            ])
         {
         }
 

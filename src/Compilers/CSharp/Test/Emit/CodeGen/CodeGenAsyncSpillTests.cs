@@ -3274,7 +3274,86 @@ public class AsyncBug {
 }
 ";
 
-            var v = CompileAndVerify(source, "System.Int32");
+            // See tracking issue https://github.com/dotnet/runtime/issues/96695
+            var verifier = CompileAndVerify(source, expectedOutput: "System.Int32",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = "[MoveNext]: Unrecognized arguments for delegate .ctor. { Offset = 0x6d }" });
+
+            verifier.VerifyIL("AsyncBug.<Boom>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+{
+  // Code size      169 (0xa9)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int AsyncBug.<Boom>d__1.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_003f
+    IL_000a:  ldc.i4.1
+    IL_000b:  call       "System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)"
+    IL_0010:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+    IL_0015:  stloc.1
+    IL_0016:  ldloca.s   V_1
+    IL_0018:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get"
+    IL_001d:  brtrue.s   IL_005b
+    IL_001f:  ldarg.0
+    IL_0020:  ldc.i4.0
+    IL_0021:  dup
+    IL_0022:  stloc.0
+    IL_0023:  stfld      "int AsyncBug.<Boom>d__1.<>1__state"
+    IL_0028:  ldarg.0
+    IL_0029:  ldloc.1
+    IL_002a:  stfld      "System.Runtime.CompilerServices.TaskAwaiter<int> AsyncBug.<Boom>d__1.<>u__1"
+    IL_002f:  ldarg.0
+    IL_0030:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder AsyncBug.<Boom>d__1.<>t__builder"
+    IL_0035:  ldloca.s   V_1
+    IL_0037:  ldarg.0
+    IL_0038:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, AsyncBug.<Boom>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref AsyncBug.<Boom>d__1)"
+    IL_003d:  leave.s    IL_00a8
+    IL_003f:  ldarg.0
+    IL_0040:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<int> AsyncBug.<Boom>d__1.<>u__1"
+    IL_0045:  stloc.1
+    IL_0046:  ldarg.0
+    IL_0047:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter<int> AsyncBug.<Boom>d__1.<>u__1"
+    IL_004c:  initobj    "System.Runtime.CompilerServices.TaskAwaiter<int>"
+    IL_0052:  ldarg.0
+    IL_0053:  ldc.i4.m1
+    IL_0054:  dup
+    IL_0055:  stloc.0
+    IL_0056:  stfld      "int AsyncBug.<Boom>d__1.<>1__state"
+    IL_005b:  ldloca.s   V_1
+    IL_005d:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+    IL_0062:  box        "int"
+    IL_0067:  ldftn      "System.Type object.GetType()"
+    IL_006d:  newobj     "System.Func<System.Type>..ctor(object, System.IntPtr)"
+    IL_0072:  callvirt   "System.Type System.Func<System.Type>.Invoke()"
+    IL_0077:  call       "void System.Console.WriteLine(object)"
+    IL_007c:  leave.s    IL_0095
+  }
+  catch System.Exception
+  {
+    IL_007e:  stloc.2
+    IL_007f:  ldarg.0
+    IL_0080:  ldc.i4.s   -2
+    IL_0082:  stfld      "int AsyncBug.<Boom>d__1.<>1__state"
+    IL_0087:  ldarg.0
+    IL_0088:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder AsyncBug.<Boom>d__1.<>t__builder"
+    IL_008d:  ldloc.2
+    IL_008e:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_0093:  leave.s    IL_00a8
+  }
+  IL_0095:  ldarg.0
+  IL_0096:  ldc.i4.s   -2
+  IL_0098:  stfld      "int AsyncBug.<Boom>d__1.<>1__state"
+  IL_009d:  ldarg.0
+  IL_009e:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder AsyncBug.<Boom>d__1.<>t__builder"
+  IL_00a3:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_00a8:  ret
+}
+""");
         }
 
         [Fact]

@@ -38,11 +38,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public static ImmutableArray<PackageReference> GetPackageReferences(this MSB.Execution.ProjectInstance executedProject)
         {
             var packageReferenceItems = executedProject.GetItems(ItemNames.PackageReference);
-            if (packageReferenceItems == null)
-            {
-                return ImmutableArray<PackageReference>.Empty;
-            }
-
             using var _ = PooledHashSet<PackageReference>.GetInstance(out var references);
 
             foreach (var item in packageReferenceItems)
@@ -68,7 +63,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             return !RoslynString.IsNullOrWhiteSpace(aliasesText)
                 ? ImmutableArray.CreateRange(aliasesText.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(a => a.Trim()))
-                : ImmutableArray<string>.Empty;
+                : [];
         }
 
         public static bool ReferenceOutputAssemblyIsTrue(this MSB.Framework.ITaskItem item)

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             // this is the TS entrypoint to get push diagnostics.  Only return diagnostics if we're actually in push-mode.
             var diagnosticMode = _globalOptions.GetDiagnosticMode();
             if (diagnosticMode != DiagnosticMode.SolutionCrawlerPush)
-                return ImmutableArray<VSTypeScriptDiagnosticData>.Empty;
+                return [];
 
             var result = await _service.GetDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
             return result.SelectAsArray(data => new VSTypeScriptDiagnosticData(data));

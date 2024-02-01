@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             CancellationToken cancellationToken)
         {
             if (propertyDeclarationNode is not PropertyDeclarationSyntax propertyDeclaration)
-                return ImmutableArray<SyntaxNode>.Empty;
+                return [];
 
             var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             if (parameterType is TypeSyntax typeSyntax)
             {
                 var parameter = SyntaxFactory.CrefParameter(typeSyntax);
-                parameterList = SyntaxFactory.CrefParameterList(SyntaxFactory.SingletonSeparatedList(parameter));
+                parameterList = SyntaxFactory.CrefParameterList([parameter]);
             }
             else
             {

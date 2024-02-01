@@ -6,6 +6,7 @@
 param(
   [string]$configuration = "Debug",
   [switch]$ci = $false,
+  [switch]$prepareMachine = $false,
   [switch]$useGlobalNuGetCache = $true,
   [switch]$noBuild = $false,
   [switch]$help)
@@ -33,7 +34,7 @@ try {
 
   if (-not $noBuild) {
     Write-Host "Building Roslyn"
-    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog }
+    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog }
   }
 
   Subst-TempDir
@@ -54,7 +55,7 @@ try {
 # Rebuilds with missing references
 # Rebuilds with other issues
   " --exclude net472\Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll" +
-  " --exclude net6.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
+  " --exclude net8.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Debugging.Package.dll" +

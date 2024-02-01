@@ -249,15 +249,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 ITypeSymbol expressionType)
             {
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    attributes: ImmutableArray<AttributeData>.Empty,
+                    attributes: [],
                     accessibility: default,
                     modifiers: default,
                     returnType: expressionType,
                     refKind: RefKind.None,
                     explicitInterfaceImplementations: default,
                     name: null,
-                    typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
-                    parameters: ImmutableArray<IParameterSymbol>.Empty);
+                    typeParameters: [],
+                    parameters: []);
             }
         }
     }

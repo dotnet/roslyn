@@ -13,7 +13,7 @@
 param(
   [string]$configuration = "Debug",
   [switch]$enableDumps = $false,
-  [string]$bootstrapToolset = "",
+  [string]$bootstrapToolset = "AnyCPU",
   [switch]$help)
 
 Set-StrictMode -version 2.0
@@ -30,8 +30,6 @@ try {
     exit 0
   }
 
-  $ci = $true
-
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
 
@@ -39,12 +37,12 @@ try {
     $key = "HKLM:\\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
     New-Item -Path $key -ErrorAction SilentlyContinue
     New-ItemProperty -Path $key -Name 'DumpType' -PropertyType 'DWord' -Value 2 -Force
-    New-ItemProperty -Path $key -Name 'DumpCount' -PropertyType 'DWord' -Value 2 -Force
+    New-ItemProperty -Path $key -Name 'DumpCount' -PropertyType 'DWord' -Value 10 -Force
     New-ItemProperty -Path $key -Name 'DumpFolder' -PropertyType 'String' -Value $LogDir -Force
   }
 
   Write-Host "Building Roslyn"
-  Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -bootstrapConfiguration:Debug -bootstrapToolset:$bootstrapToolset -ci:$ci -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"}
+  Exec-Script (Join-Path $PSScriptRoot "build.ps1") "-restore -build -bootstrap -bootstrapConfiguration:Debug -bootstrapToolset:$bootstrapToolset -ci:$true -prepareMachine:$true -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties `"/p:RoslynEnforceCodeStyle=true`""
 
   Subst-TempDir
 
@@ -57,7 +55,7 @@ try {
 
   # Verify the state of our generated syntax files
   Write-Host "Checking generated compiler files"
-  Exec-Block { & (Join-Path $PSScriptRoot "generate-compiler-code.ps1") -test -configuration:$configuration }
+  Exec-Script (Join-Path $PSScriptRoot "generate-compiler-code.ps1") "-test -configuration:$configuration"
   Exec-Console dotnet "tool run dotnet-format whitespace . --folder --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --verify-no-changes"
   Write-Host ""
 

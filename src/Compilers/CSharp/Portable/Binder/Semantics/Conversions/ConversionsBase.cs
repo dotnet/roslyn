@@ -1488,7 +1488,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     for (int p = 0; p < delegateParameters.Length; ++p)
                     {
-                        if (!OverloadResolution.AreRefsCompatibleForMethodConversion(delegateParameters[p].RefKind, anonymousFunction.RefKind(p), compilation) ||
+                        if (!OverloadResolution.AreRefsCompatibleForMethodConversion(
+                                candidateMethodParameterRefKind: anonymousFunction.RefKind(p),
+                                delegateParameterRefKind: delegateParameters[p].RefKind,
+                                compilation) ||
                             !delegateParameters[p].Type.Equals(anonymousFunction.ParameterType(p), TypeCompareKind.AllIgnoreOptions))
                         {
                             return LambdaConversionResult.MismatchedParameterType;
@@ -1638,31 +1641,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CollectionExpressionTypeKind.Array;
                 }
             }
-            else if (isSpanOrListType(compilation, destination, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out elementType)
-                && compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is not null)
-            {
-                return CollectionExpressionTypeKind.ImmutableArray;
-            }
-            else if (isSpanOrListType(compilation, destination, WellKnownType.System_Span_T, out elementType))
+            else if (IsSpanOrListType(compilation, destination, WellKnownType.System_Span_T, out elementType))
             {
                 return CollectionExpressionTypeKind.Span;
             }
-            else if (isSpanOrListType(compilation, destination, WellKnownType.System_ReadOnlySpan_T, out elementType))
+            else if (IsSpanOrListType(compilation, destination, WellKnownType.System_ReadOnlySpan_T, out elementType))
             {
                 return CollectionExpressionTypeKind.ReadOnlySpan;
-            }
-            else if (isSpanOrListType(compilation, destination, WellKnownType.System_Collections_Generic_List_T, out elementType))
-            {
-                return CollectionExpressionTypeKind.List;
             }
             else if ((destination as NamedTypeSymbol)?.HasCollectionBuilderAttribute(out _, out _) == true)
             {
                 return CollectionExpressionTypeKind.CollectionBuilder;
-            }
-            else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_Generic_IEnumerable_T))
-            {
-                elementType = default;
-                return CollectionExpressionTypeKind.ImplementsIEnumerableT;
             }
             else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_IEnumerable))
             {
@@ -1683,24 +1672,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             elementType = default;
             return CollectionExpressionTypeKind.None;
 
-            static bool isSpanOrListType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeWithAnnotations elementType)
-            {
-                if (targetType is NamedTypeSymbol { Arity: 1 } namedType
-                    && ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
-                {
-                    elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-                    return true;
-                }
-                elementType = default;
-                return false;
-            }
-
             static bool implementsSpecialInterface(CSharpCompilation compilation, TypeSymbol targetType, SpecialType specialInterface)
             {
                 var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
                 var specialType = compilation.GetSpecialType(specialInterface);
                 return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), specialType);
             }
+        }
+
+        internal static bool IsSpanOrListType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeWithAnnotations elementType)
+        {
+            if (targetType is NamedTypeSymbol { Arity: 1 } namedType
+                && ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
+            {
+                elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                return true;
+            }
+            elementType = default;
+            return false;
         }
 #nullable disable
 

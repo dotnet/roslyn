@@ -2570,10 +2570,10 @@ outerDefault:
                 return true;
             }
 
-            // - T1 is System.ReadOnlySpan<E1> or System.Span<E1>, and T2 is an array_or_array_interface_or_string_type
+            // - T1 is System.ReadOnlySpan<E1> or System.Span<E1>, and T2 is an array_or_array_interface
             //    with iteration type E2, and an implicit conversion exists from E1 to E2
             if (kind1 is CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span &&
-                IsSZArrayOrArrayInterfaceOrString(t2, out elementType2) &&
+                IsSZArrayOrArrayInterface(t2, out elementType2) &&
                 hasImplicitConversion(elementType1, elementType2, ref useSiteInfo))
             {
                 return true;
@@ -2593,14 +2593,8 @@ outerDefault:
                 Conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteInfo).IsImplicit;
         }
 
-        private bool IsSZArrayOrArrayInterfaceOrString(TypeSymbol type, out TypeSymbol elementType)
+        private static bool IsSZArrayOrArrayInterface(TypeSymbol type, out TypeSymbol elementType)
         {
-            if (type.SpecialType == SpecialType.System_String)
-            {
-                elementType = Compilation.GetSpecialType(SpecialType.System_Char);
-                return true;
-            }
-
             if (type is ArrayTypeSymbol { IsSZArray: true } arrayType)
             {
                 elementType = arrayType.ElementType;
@@ -3305,7 +3299,7 @@ outerDefault:
                     return argRefKind;
                 }
             }
-            else if (AreRefsCompatibleForMethodConversion(paramRefKind, argRefKind, binder.Compilation))
+            else if (AreRefsCompatibleForMethodConversion(candidateMethodParameterRefKind: paramRefKind, delegateParameterRefKind: argRefKind, binder.Compilation))
             {
                 return argRefKind;
             }
@@ -3322,28 +3316,33 @@ outerDefault:
             return paramRefKind;
         }
 
-        // In method group conversions, 'in' is allowed to match 'ref' and 'ref readonly' is allowed to match 'ref' or 'in'.
-        internal static bool AreRefsCompatibleForMethodConversion(RefKind x, RefKind y, CSharpCompilation compilation)
+        // In method group conversions,
+        // - 'ref readonly' parameter of the candidate method is allowed to match 'in' or 'ref' parameter of the delegate,
+        // - 'in' parameter of the candidate method is allowed to match 'ref readonly' or (in C# 12+) 'ref' parameter of the delegate.
+        internal static bool AreRefsCompatibleForMethodConversion(RefKind candidateMethodParameterRefKind, RefKind delegateParameterRefKind, CSharpCompilation compilation)
         {
             Debug.Assert(compilation is not null);
 
-            if (x == y)
+            if (candidateMethodParameterRefKind == delegateParameterRefKind)
             {
                 return true;
             }
 
-            if (x == RefKind.RefReadOnlyParameter)
+            if ((candidateMethodParameterRefKind, delegateParameterRefKind) is
+                (RefKind.RefReadOnlyParameter, RefKind.Ref) or
+                (RefKind.RefReadOnlyParameter, RefKind.In) or
+                (RefKind.In, RefKind.RefReadOnlyParameter))
             {
-                return y is RefKind.Ref or RefKind.In;
+                return true;
             }
 
-            if (y == RefKind.RefReadOnlyParameter)
+            if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters) &&
+                (candidateMethodParameterRefKind, delegateParameterRefKind) is (RefKind.In, RefKind.Ref))
             {
-                return x is RefKind.Ref or RefKind.In;
+                return true;
             }
 
-            return (x, y) is (RefKind.In, RefKind.Ref) or (RefKind.Ref, RefKind.In) &&
-                compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters);
+            return false;
         }
 
         private EffectiveParameters GetEffectiveParametersInExpandedForm<TMember>(

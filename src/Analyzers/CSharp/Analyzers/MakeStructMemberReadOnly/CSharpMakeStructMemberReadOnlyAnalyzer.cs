@@ -329,6 +329,17 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 return false;
             }
 
+            if (operation is IInlineArrayAccessOperation)
+            {
+                // If we're writing into an inline-array off of 'this'.  Then we can't make this `readonly`.
+                if (CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, operation.Syntax, cancellationToken))
+                    return true;
+
+                // We're reading a value from inside the inline-array.  Have to keep looking upwards to see how the
+                // value is treated.
+                continue;
+            }
+
             // See if we're accessing or invoking a method.
             if (operation is IMethodReferenceOperation methodRefOperation)
             {
@@ -342,6 +353,15 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 // Either a mutating or not mutating method reference.  Regardless, once we examine it, we're done
                 // looking up as the method itself cannot return anything that could mutate this.
                 return IsPotentiallyMutatingMethod(owningMethod, invocationOperation.Instance, invocationOperation.TargetMethod);
+            }
+
+            // Converting an inline-array into a Span<T> allows the array to be written into.  As such, we have to
+            // consider this a potential future mutation of 'this'.
+            if (operation is IConversionOperation conversionOperation)
+            {
+                var conversion = conversionOperation.GetConversion();
+                if (conversion.IsInlineArray && conversionOperation.Type.IsSpan())
+                    return true;
             }
 
             // Wasn't something that mutates this instance.  Go onto the next instance expression.

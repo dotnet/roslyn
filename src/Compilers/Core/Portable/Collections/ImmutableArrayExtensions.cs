@@ -878,6 +878,15 @@ namespace Microsoft.CodeAnalysis
             return sum;
         }
 
+        public static int Sum<T>(this ImmutableArray<T> items, Func<T, int, int> selector)
+        {
+            var sum = 0;
+            for (var i = 0; i < items.Length; i++)
+                sum += selector(items[i], i);
+
+            return sum;
+        }
+
         internal static void AddToMultiValueDictionaryBuilder<K, T>(Dictionary<K, object> accumulator, K key, T item)
             where K : notnull
             where T : notnull
@@ -1097,6 +1106,44 @@ namespace Microsoft.CodeAnalysis
             }
 
             return ~low;
+        }
+
+        public static bool IsSubsetOf<TElement>(this ImmutableArray<TElement> array, ImmutableArray<TElement> other)
+        {
+            if (other.Length == 0)
+            {
+                return array.Length == 0;
+            }
+
+            switch (array.Length)
+            {
+                case 0:
+                    return true;
+                case 1:
+                    return other.Contains(array[0]);
+                case 2:
+                    return other.Contains(array[0]) && other.Contains(array[1]);
+                case 3:
+                    return other.Contains(array[0]) && other.Contains(array[1]) && other.Contains(array[2]);
+            }
+
+            var set = PooledHashSet<TElement>.GetInstance();
+            foreach (var item in other)
+            {
+                set.Add(item);
+            }
+
+            foreach (var item in array)
+            {
+                if (!set.Contains(item))
+                {
+                    set.Free();
+                    return false;
+                }
+            }
+
+            set.Free();
+            return true;
         }
     }
 }

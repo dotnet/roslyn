@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     var inferredTypes = completionContext.CompletionOptions.TargetTypedCompletionFilter
                         ? syntaxContext.InferredTypes
-                        : ImmutableArray<ITypeSymbol>.Empty;
+                        : [];
 
                     var result = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
                         completionContext.Document,

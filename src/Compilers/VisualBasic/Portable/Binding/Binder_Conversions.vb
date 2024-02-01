@@ -1303,7 +1303,7 @@ DoneWithDiagnostics:
                 Dim anonymousDelegate As BoundExpression = ReclassifyUnboundLambdaExpression(unboundLambda, diagnostics)
 
 #If DEBUG Then
-                Dim anonymousDelegateInfo As KeyValuePair(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol)) = unboundLambda.InferredAnonymousDelegate
+                Dim anonymousDelegateInfo As KeyValuePair(Of NamedTypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol)) = unboundLambda.InferredAnonymousDelegate
 
                 Debug.Assert(anonymousDelegate.Type Is anonymousDelegateInfo.Key)
 
@@ -1342,7 +1342,7 @@ DoneWithDiagnostics:
                         delegateInvoke = Nothing ' No conversion
 
                     ElseIf unboundLambda.IsInferredDelegateForThisLambda(delegateInvoke.ContainingType) Then
-                        Dim inferenceDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol) = unboundLambda.InferredAnonymousDelegate.Value
+                        Dim inferenceDiagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol) = unboundLambda.InferredAnonymousDelegate.Value
 
                         diagnostics.AddRange(inferenceDiagnostics)
 

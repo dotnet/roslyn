@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         {
             if (rawXmlText is null)
             {
-                return ImmutableArray<TaggedText>.Empty;
+                return [];
             }
             //symbol = symbol.OriginalDefinition;
 
@@ -449,23 +449,16 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         private static (string target, string hint)? GetNavigationTarget(XElement element, SemanticModel semanticModel, int position, SymbolDisplayFormat format)
         {
             var crefAttribute = element.Attribute(DocumentationCommentXmlNames.CrefAttributeName);
-            if (crefAttribute is object)
+            if (crefAttribute is not null && semanticModel is not null)
             {
-                if (semanticModel is object)
-                {
-                    var symbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(crefAttribute.Value, semanticModel.Compilation);
-                    if (symbol is object)
-                    {
-                        return (target: SymbolKey.CreateString(symbol), hint: symbol.ToMinimalDisplayString(semanticModel, position, format ?? SymbolDisplayFormat.MinimallyQualifiedFormat));
-                    }
-                }
+                var symbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(crefAttribute.Value, semanticModel.Compilation);
+                if (symbol is not null)
+                    return (target: SymbolKey.CreateString(symbol), hint: symbol.ToMinimalDisplayString(semanticModel, position, format ?? SymbolDisplayFormat.MinimallyQualifiedFormat));
             }
 
             var hrefAttribute = element.Attribute(DocumentationCommentXmlNames.HrefAttributeName);
-            if (hrefAttribute is object)
-            {
+            if (hrefAttribute is not null)
                 return (target: hrefAttribute.Value, hint: hrefAttribute.Value);
-            }
 
             return null;
         }
@@ -505,7 +498,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             string crefValue, int position, SemanticModel semanticModel, SymbolDisplayFormat format = null, SymbolDisplayPartKind kind = SymbolDisplayPartKind.Text)
         {
             // first try to parse the symbol
-            if (semanticModel != null)
+            if (crefValue != null && semanticModel != null)
             {
                 var symbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(crefValue, semanticModel.Compilation);
                 if (symbol != null)

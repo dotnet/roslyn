@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 </Workspace>
                 """;
 
-            using var workspace = TestWorkspace.Create(workspaceXml);
+            using var workspace = EditorTestWorkspace.Create(workspaceXml);
 
             if (useTabs && expectedOutputMarkup != null)
             {
@@ -724,8 +724,7 @@ $""[||]"";
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
         public void TestBeforeEndQuote1()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -761,8 +760,7 @@ $""[||]"";
             verifyUndo: false);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
         public void TestBeforeEndQuote2()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -798,8 +796,7 @@ $""[||]"";
             verifyUndo: false);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
         public void TestBeforeEndQuote3()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -835,8 +832,7 @@ $""[||]"";
             verifyUndo: false);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
         public void TestBeforeEndQuote4()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -872,8 +868,7 @@ $""[||]"";
             verifyUndo: false);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
         public void TestBeforeEndQuote5()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -909,8 +904,7 @@ $""[||]"";
             verifyUndo: false);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20258")]
         public void TestBeforeEndQuote6()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -946,8 +940,7 @@ $""[||]"";
             verifyUndo: false);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
         public void TestMultiCaretSingleLine()
         {
             TestHandled(
@@ -969,8 +962,7 @@ $""[||]"";
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
         public void TestMultiCaretMultiLines()
         {
             TestHandled(
@@ -997,8 +989,7 @@ $""[||]"";
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39040")]
         public void TestMultiCaretInterpolatedString()
         {
             TestHandled(
@@ -1026,8 +1017,7 @@ $""[||]"";
 }");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40277")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40277")]
         public void TestInStringWithKeepTabsEnabled1()
         {
             TestHandled(
@@ -1049,8 +1039,7 @@ $""[||]"";
             useTabs: true);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40277")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40277")]
         public void TestInStringWithKeepTabsEnabled2()
         {
             TestHandled(

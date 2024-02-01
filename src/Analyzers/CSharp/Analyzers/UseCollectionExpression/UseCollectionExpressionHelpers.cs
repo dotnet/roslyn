@@ -39,10 +39,33 @@ internal static class UseCollectionExpressionHelpers
         SemanticModel semanticModel,
         ExpressionSyntax expression,
         INamedTypeSymbol? expressionType,
+        bool isSingletonInstance,
+        bool allowSemanticsChange,
         bool skipVerificationForReplacedNode,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        out bool changesSemantics)
+    {
+        // To keep things simple, all we do is replace the existing expression with the `[]` literal.This is an
+        // 'untyped' collection expression literal, so it tells us if the new code will have any issues moving to
+        // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
+        // types that could accept the collection expression).
+        return CanReplaceWithCollectionExpression(
+            semanticModel, expression, s_emptyCollectionExpression, expressionType, isSingletonInstance, allowSemanticsChange, skipVerificationForReplacedNode, cancellationToken, out changesSemantics);
+    }
+
+    public static bool CanReplaceWithCollectionExpression(
+        SemanticModel semanticModel,
+        ExpressionSyntax expression,
+        CollectionExpressionSyntax replacementExpression,
+        INamedTypeSymbol? expressionType,
+        bool isSingletonInstance,
+        bool allowSemanticsChange,
+        bool skipVerificationForReplacedNode,
+        CancellationToken cancellationToken,
+        out bool changesSemantics)
     {
         var compilation = semanticModel.Compilation;
+        changesSemantics = false;
 
         var topMostExpression = expression.WalkUpParentheses();
         if (topMostExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
@@ -78,7 +101,7 @@ internal static class UseCollectionExpressionHelpers
         // Note: we can relax this on a case by case basis if we feel like it's acceptable.
         if (originalTypeInfo.Type != null &&
             !originalTypeInfo.Type.Equals(originalTypeInfo.ConvertedType) &&
-            !IsSafeConversionWhenTypesDoNotMatch())
+            !IsSafeConversionWhenTypesDoNotMatch(out changesSemantics))
         {
             return false;
         }
@@ -91,13 +114,10 @@ internal static class UseCollectionExpressionHelpers
             return IsConstructibleCollectionType(semanticModel.GetTypeInfo(parent, cancellationToken).Type);
 
         // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
-        // any issues.  To keep things simple, all we do is replace the existing expression with the `[]` literal. This
-        // is an 'untyped' collection expression literal, so it tells us if the new code will have any issues moving to
-        // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
-        // types that could accept the collection expression).
+        // any issues.
         var speculationAnalyzer = new SpeculationAnalyzer(
             topMostExpression,
-            s_emptyCollectionExpression,
+            replacementExpression,
             semanticModel,
             cancellationToken,
             skipVerificationForReplacedNode,
@@ -146,6 +166,9 @@ internal static class UseCollectionExpressionHelpers
                 if (namedType.GetAttributes().Any(a => a.AttributeClass.IsCollectionBuilderAttribute()))
                     return true;
 
+                if (IsWellKnownInterface(namedType))
+                    return true;
+
                 // At this point, all that is left are collection-initializer types.  These need to derive from
                 // System.Collections.IEnumerable, and have an invokable no-arg constructor.
 
@@ -187,8 +210,9 @@ internal static class UseCollectionExpressionHelpers
             return constructor is not null && constructor.IsAccessibleWithin(compilation.Assembly) ? constructor : null;
         }
 
-        bool IsSafeConversionWhenTypesDoNotMatch()
+        bool IsSafeConversionWhenTypesDoNotMatch(out bool changesSemantics)
         {
+            changesSemantics = false;
             var type = originalTypeInfo.Type;
             var convertedType = originalTypeInfo.ConvertedType;
 
@@ -230,8 +254,39 @@ internal static class UseCollectionExpressionHelpers
             if (s_tupleNamesCanDifferComparer.Equals(type, convertedType))
                 return true;
 
+            if (allowSemanticsChange &&
+                IsWellKnownInterface(convertedType) &&
+                type.AllInterfaces.Contains(convertedType))
+            {
+                // In the case of a singleton (like `Array.Empty<T>()`) we don't want to convert to `IList<T>` as that
+                // will replace the code with code that now always allocates.
+                if (isSingletonInstance && IsWellKnownReadWriteInterface(convertedType))
+                    return false;
+
+                changesSemantics = true;
+                return true;
+            }
+
             // Add more cases to support here.
             return false;
+        }
+
+        bool IsWellKnownInterface(ITypeSymbol type)
+            => IsWellKnownReadOnlyInterface(type) || IsWellKnownReadWriteInterface(type);
+
+        bool IsWellKnownReadOnlyInterface(ITypeSymbol type)
+        {
+            return type.OriginalDefinition.SpecialType
+                is SpecialType.System_Collections_Generic_IEnumerable_T
+                or SpecialType.System_Collections_Generic_IReadOnlyCollection_T
+                or SpecialType.System_Collections_Generic_IReadOnlyList_T;
+        }
+
+        bool IsWellKnownReadWriteInterface(ITypeSymbol type)
+        {
+            return type.OriginalDefinition.SpecialType
+                is SpecialType.System_Collections_Generic_ICollection_T
+                or SpecialType.System_Collections_Generic_IList_T;
         }
     }
 
@@ -698,12 +753,17 @@ internal static class UseCollectionExpressionHelpers
         SemanticModel semanticModel,
         TArrayCreationExpressionSyntax expression,
         INamedTypeSymbol? expressionType,
+        bool isSingletonInstance,
+        bool allowSemanticsChange,
         Func<TArrayCreationExpressionSyntax, TypeSyntax> getType,
         Func<TArrayCreationExpressionSyntax, InitializerExpressionSyntax?> getInitializer,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        out bool changesSemantics)
         where TArrayCreationExpressionSyntax : ExpressionSyntax
     {
         Contract.ThrowIfFalse(expression is ArrayCreationExpressionSyntax or StackAllocArrayCreationExpressionSyntax);
+
+        changesSemantics = false;
 
         // has to either be `stackalloc X[]` or `stackalloc X[const]`.
         if (getType(expression) is not ArrayTypeSyntax { RankSpecifiers: [{ Sizes: [var size] }, ..] })
@@ -801,7 +861,7 @@ internal static class UseCollectionExpressionHelpers
         }
 
         if (!CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
+                semanticModel, expression, expressionType, isSingletonInstance, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
         {
             return default;
         }
@@ -949,13 +1009,13 @@ internal static class UseCollectionExpressionHelpers
                 if (arguments.Count == 1 &&
                     compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes) &&
                     originalCreateMethod.Parameters is [
-                    {
-                        Type: INamedTypeSymbol
                         {
-                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                            TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-                        } spanType
-                    }])
+                            Type: INamedTypeSymbol
+                            {
+                                Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
+                                TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                            } spanType
+                        }])
                 {
                     if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
                         spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))

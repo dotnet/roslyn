@@ -1016,8 +1016,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
 
-            var document = new TestHostDocument();
-            var project = new TestHostProject(workspace, document);
+            var document = new EditorTestHostDocument();
+            var project = new EditorTestHostProject(workspace, document);
             workspace.AddTestProject(project);
 
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -1051,8 +1051,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
 
-            var document = new TestHostDocument();
-            var project = new TestHostProject(workspace, additionalDocuments: new[] { document });
+            var document = new EditorTestHostDocument();
+            var project = new EditorTestHostProject(workspace, additionalDocuments: new[] { document });
             workspace.AddTestProject(project);
 
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -1079,8 +1079,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
 
-            var document = new TestHostDocument();
-            var project = new TestHostProject(workspace, analyzerConfigDocuments: new[] { document });
+            var document = new EditorTestHostDocument();
+            var project = new EditorTestHostProject(workspace, analyzerConfigDocuments: new[] { document });
             workspace.AddTestProject(project);
 
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -1522,7 +1522,7 @@ class C
 
         private static async Task InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
         {
-            using var workspace = TestWorkspace.Create(
+            using var workspace = EditorTestWorkspace.Create(
                 language,
                 compilationOptions: null,
                 parseOptions: null,
@@ -1558,14 +1558,14 @@ class C
             Assert.Equal(expectDocumentAnalysis ? 1 : 0, analyzer.DocumentIds.Count);
         }
 
-        private static Task<Analyzer> ExecuteOperationAsync(TestWorkspace workspace, Action<TestWorkspace> operation)
+        private static Task<Analyzer> ExecuteOperationAsync(EditorTestWorkspace workspace, Action<EditorTestWorkspace> operation)
             => ExecuteOperationAsync(workspace, w =>
             {
                 operation(w);
                 return Task.CompletedTask;
             });
 
-        private static async Task<Analyzer> ExecuteOperationAsync(TestWorkspace workspace, Func<TestWorkspace, Task> operation)
+        private static async Task<Analyzer> ExecuteOperationAsync(EditorTestWorkspace workspace, Func<EditorTestWorkspace, Task> operation)
         {
             var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
             Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
@@ -1602,7 +1602,7 @@ class C
             }
         }
 
-        private static async Task WaitAsync(SolutionCrawlerRegistrationService service, TestWorkspace workspace)
+        private static async Task WaitAsync(SolutionCrawlerRegistrationService service, EditorTestWorkspace workspace)
         {
             await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -1688,7 +1688,7 @@ class C
             documentTrackingService.SetActiveDocument(null);
         }
 
-        private class WorkCoordinatorWorkspace : TestWorkspace
+        private class WorkCoordinatorWorkspace : EditorTestWorkspace
         {
             private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures
                 .AddParts(typeof(TestDocumentTrackingService))

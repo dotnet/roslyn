@@ -13,11 +13,7 @@ namespace Roslyn.Utilities
     {
         public static ImmutableArray<T> ToImmutableArray<T>(this HashSet<T> set)
         {
-            using var _ = ArrayBuilder<T>.GetInstance(set.Count, out var result);
-            foreach (var value in set)
-                result.Add(value);
-
-            return result.ToImmutableAndClear();
+            return [.. set];
         }
 
         public static bool Contains<T>(this ImmutableArray<T> items, T item, IEqualityComparer<T>? equalityComparer)
@@ -27,7 +23,7 @@ namespace Roslyn.Utilities
         {
             if (items == null)
             {
-                return ImmutableArray.Create<T>();
+                return [];
             }
 
             return ImmutableArray.Create<T>(items);

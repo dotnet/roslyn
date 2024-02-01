@@ -6,6 +6,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -35,10 +36,10 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             return (EnvDTE100.Debugger5)dte.Debugger;
         }
 
-        public Task SetBreakpointAsync(string fileName, string text, CancellationToken cancellationToken)
-            => SetBreakpointAsync(fileName, text, charsOffset: 0, cancellationToken);
+        public Task SetBreakpointAsync(string projectName, string fileName, string text, CancellationToken cancellationToken)
+            => SetBreakpointAsync(projectName, fileName, text, charsOffset: 0, cancellationToken);
 
-        public async Task SetBreakpointAsync(string fileName, string text, int charsOffset, CancellationToken cancellationToken)
+        public async Task SetBreakpointAsync(string projectName, string fileName, string text, int charsOffset, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -47,16 +48,18 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
 
             var caretPosition = await TestServices.Editor.GetCaretPositionAsync(cancellationToken);
             caretPosition.BufferPosition.GetLineAndCharacter(out var lineNumber, out var characterIndex);
-            await SetBreakpointAsync(fileName, lineNumber, characterIndex + charsOffset, cancellationToken);
+            await SetBreakpointAsync(projectName, fileName, lineNumber, characterIndex + charsOffset, cancellationToken);
         }
 
-        public async Task SetBreakpointAsync(string fileName, int lineNumber, int characterIndex, CancellationToken cancellationToken)
+        public async Task SetBreakpointAsync(string projectName, string fileName, int lineNumber, int characterIndex, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            var breakpointFile = await TestServices.SolutionExplorer.GetAbsolutePathForProjectRelativeFilePathAsync(projectName, fileName, cancellationToken);
+
             var debugger = await GetDebuggerAsync(cancellationToken);
             // Need to increment the line number because editor line numbers starts from 0 but the debugger ones starts from 1.
-            debugger.Breakpoints.Add(File: fileName, Line: lineNumber + 1, Column: characterIndex);
+            debugger.Breakpoints.Add(File: breakpointFile, Line: lineNumber + 1, Column: characterIndex);
         }
 
         public async Task GoAsync(bool waitForBreakMode, CancellationToken cancellationToken)
@@ -64,6 +67,19 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var debugger = await GetDebuggerAsync(cancellationToken);
+
+            // Dismiss the unexpected WSL error if it appears, since it will cause test hangs otherwise
+            using var _ = TestServices.MessageBox.HandleMessageBox((text, caption) =>
+            {
+                if (text.Contains("WSL is not installed."))
+                {
+                    // We do not understand why WSL is being selected as the active debugger
+                    return DialogResult.OK;
+                }
+
+                return DialogResult.None;
+            });
+
             debugger.Go(waitForBreakMode);
         }
 

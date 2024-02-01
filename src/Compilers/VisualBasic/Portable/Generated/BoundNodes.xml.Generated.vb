@@ -6853,7 +6853,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundLambda
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Lambda, syntax, Nothing, hasErrors OrElse body.NonNullAndHasErrors())
 
             Debug.Assert(lambdaSymbol IsNot Nothing, "Field 'lambdaSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6887,8 +6887,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly _Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
-        Public ReadOnly Property Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
+        Private ReadOnly _Diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
+        Public ReadOnly Property Diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
             Get
                 Return _Diagnostics
             End Get
@@ -6920,7 +6920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitLambda(Me)
         End Function
 
-        Public Function Update(lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind) As BoundLambda
+        Public Function Update(lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind) As BoundLambda
             If lambdaSymbol IsNot Me.LambdaSymbol OrElse body IsNot Me.Body OrElse diagnostics <> Me.Diagnostics OrElse lambdaBinderOpt IsNot Me.LambdaBinderOpt OrElse delegateRelaxation <> Me.DelegateRelaxation OrElse methodConversionKind <> Me.MethodConversionKind Then
                 Dim result = New BoundLambda(Me.Syntax, lambdaSymbol, body, diagnostics, lambdaBinderOpt, delegateRelaxation, methodConversionKind, Me.HasErrors)
                 result.CopyAttributes(Me)

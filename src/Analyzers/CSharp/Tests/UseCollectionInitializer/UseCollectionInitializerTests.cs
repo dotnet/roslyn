@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitializer;
@@ -20,19 +17,20 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionInitializerCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-public partial class UseCollectionInitializerTests
+public sealed partial class UseCollectionInitializerTests
 {
     private static async Task TestInRegularAndScriptAsync(
         string testCode,
         string fixedCode,
-        OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+        OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary,
+        LanguageVersion languageVersion = LanguageVersion.CSharp11)
     {
         var test = new VerifyCS.Test
         {
             ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = testCode,
             FixedCode = fixedCode,
-            LanguageVersion = LanguageVersion.CSharp11,
+            LanguageVersion = languageVersion,
             TestState = { OutputKind = outputKind },
         };
 
@@ -1065,8 +1063,7 @@ public partial class UseCollectionInitializerTests
             """);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/46670")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46670")]
     public async Task TestTriviaRemoveLeadingBlankLinesForFirstElement()
     {
         await TestInRegularAndScriptAsync(
@@ -1644,8 +1641,7 @@ public partial class UseCollectionInitializerTests
             """);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/61066")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61066")]
     public async Task TestInTopLevelStatements()
     {
         await TestInRegularAndScriptAsync(
@@ -1664,5 +1660,58 @@ public partial class UseCollectionInitializerTests
             };
 
             """, OutputKind.ConsoleApplication);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71245")]
+    public async Task TestCollectionExpressionArgument1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            var list = [|new|] List<object[]>();
+            [|list.Add(|][]);
+            """,
+            """
+            using System.Collections.Generic;
+
+            var list = new List<object[]>
+            {
+                ([])
+            };
+
+            """, OutputKind.ConsoleApplication, LanguageVersion.CSharp12);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71245")]
+    public async Task TestCollectionExpressionArgument2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var list = [|new|] List<object[]>();
+                    [|list.Add(|][]);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var list = new List<object[]>
+                    {
+                        ([])
+                    };
+                }
+            }
+            """, languageVersion: LanguageVersion.CSharp12);
     }
 }

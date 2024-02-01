@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
             {
                 BlockSyntax block => block.Statements,
                 SwitchSectionSyntax switchSection => switchSection.Statements,
-                _ => SyntaxFactory.SingletonList<StatementSyntax>(declarationStatement),
+                _ => [declarationStatement],
             };
 
         protected override SyntaxNode WithStatements(SyntaxNode parentOfStatementsToSurround, SyntaxList<StatementSyntax> statements)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
 
             usingDeclarationStatement = declarationStatement
                 .WithoutLeadingTrivia()
-                .WithUsingKeyword(SyntaxFactory.Token(declarationStatement.GetLeadingTrivia(), SyntaxKind.UsingKeyword, SyntaxFactory.TriviaList(SyntaxFactory.Space)));
+                .WithUsingKeyword(SyntaxFactory.Token(declarationStatement.GetLeadingTrivia(), SyntaxKind.UsingKeyword, [SyntaxFactory.Space]));
             return true;
         }
     }

@@ -75,6 +75,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return VisualBasicLambdaSyntaxFacts.Instance
         End Function
 
+        Private Shared Function IsParentDisplayClassFieldName(name As String) As Boolean
+            Return name.StartsWith(GeneratedNameConstants.HoistedSpecialVariablePrefix & GeneratedNameConstants.ClosureVariablePrefix, StringComparison.Ordinal)
+        End Function
+
         Friend Function TryGetAnonymousTypeName(template As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Return _mapToPrevious.TryGetAnonymousTypeName(template, name, index)
         End Function
@@ -210,19 +214,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return ImmutableArray.Create(result)
         End Function
 
-        Protected Overrides Function TryParseDisplayClassOrLambdaName(name As String, <Out> ByRef suffixIndex As Integer, <Out> ByRef idSeparator As Char, <Out> ByRef isDisplayClass As Boolean, <Out> ByRef hasDebugIds As Boolean) As Boolean
+        Protected Overrides Function TryParseDisplayClassOrLambdaName(
+            name As String,
+            <Out> ByRef suffixIndex As Integer,
+            <Out> ByRef idSeparator As Char,
+            <Out> ByRef isDisplayClass As Boolean,
+            <Out> ByRef isDisplayClassParentField As Boolean,
+            <Out> ByRef hasDebugIds As Boolean) As Boolean
+
             idSeparator = GeneratedNameConstants.IdSeparator
 
             isDisplayClass = name.StartsWith(GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal)
             If isDisplayClass Then
                 suffixIndex = GeneratedNameConstants.DisplayClassPrefix.Length
+                isDisplayClassParentField = False
                 hasDebugIds = name.Length > suffixIndex
                 Return True
             End If
 
             If name.StartsWith(GeneratedNameConstants.LambdaMethodNamePrefix, StringComparison.Ordinal) Then
                 suffixIndex = GeneratedNameConstants.LambdaMethodNamePrefix.Length
+                isDisplayClassParentField = False
                 hasDebugIds = name.Length > suffixIndex
+                Return True
+            End If
+
+            If IsParentDisplayClassFieldName(name) Then
+                suffixIndex = -1
+                isDisplayClassParentField = True
+                hasDebugIds = False
                 Return True
             End If
 

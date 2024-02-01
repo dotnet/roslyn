@@ -7,7 +7,6 @@ using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -17,7 +16,6 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
-using Microsoft.VisualStudio.Utilities;
 using Xunit;
 using IAsyncDisposable = System.IAsyncDisposable;
 
@@ -120,35 +118,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return new PauseFileChangesRestorer(fileChangeService);
         }
 
-        public Task ExecuteCommandAsync(CommandID command, string argument, CancellationToken cancellationToken)
-            => ExecuteCommandAsync(command.Guid, (uint)command.ID, argument, cancellationToken);
-
-        public async Task ExecuteCommandAsync(Guid commandGuid, uint commandId, string argument, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var dispatcher = await TestServices.Shell.GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
-
-            var pvaIn = Marshal.AllocHGlobal(Marshal.SizeOf<VARIANT>());
-            try
-            {
-                Marshal.GetNativeVariantForObject(argument, pvaIn);
-                ErrorHandler.ThrowOnFailure(dispatcher.Exec(commandGuid, commandId, (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT, pvaIn, IntPtr.Zero));
-            }
-            finally
-            {
-                var variant = Marshal.PtrToStructure<VARIANT>(pvaIn);
-                Marshal.FreeBSTR(variant.bstrVal);
-                Marshal.FreeHGlobal(pvaIn);
-            }
-        }
-
-        public Task ExecuteCommandAsync<TEnum>(TEnum command, string argument, CancellationToken cancellationToken)
-            where TEnum : struct, Enum
-        {
-            return ExecuteCommandAsync(typeof(TEnum).GUID, Convert.ToUInt32(command), argument, cancellationToken);
-        }
-
         public Task<bool> IsCommandAvailableAsync(CommandID command, CancellationToken cancellationToken)
             => IsCommandAvailableAsync(command.Guid, (uint)command.ID, cancellationToken);
 
@@ -164,9 +133,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             var dispatcher = await TestServices.Shell.GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
             OLECMD[] commands =
-            {
+            [
                 new OLECMD { cmdID = commandId },
-            };
+            ];
 
             var status = dispatcher.QueryStatus(commandGuid, (uint)commands.Length, commands, pCmdText: IntPtr.Zero);
             ErrorHandler.ThrowOnFailure(status);

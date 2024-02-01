@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -10,8 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -22,6 +25,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
     [IdeSettings(MinVersion = VisualStudioVersion.VS2022, RootSuffix = "RoslynDev", MaxAttempts = 2)]
     public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
     {
+        private static string? s_catalogCacheFolder;
         private static AsynchronousOperationListenerProvider? s_listenerProvider;
         private static VisualStudioWorkspace? s_workspace;
 
@@ -34,6 +38,35 @@ namespace Roslyn.VisualStudio.IntegrationTests
             // it will replace it with ThrowingTraceListener later.
             RuntimeHelpers.RunModuleConstructor(typeof(TestBase).Module.ModuleHandle);
             TestTraceListener.Install();
+
+            DataCollectionService.RegisterCustomLogger(
+                static fileName =>
+                {
+                    if (s_catalogCacheFolder is null)
+                        return;
+
+                    var file = Path.Combine(s_catalogCacheFolder, "Microsoft.VisualStudio.Default.err");
+                    if (File.Exists(file))
+                    {
+                        string content;
+                        try
+                        {
+                            content = File.ReadAllText(file);
+                        }
+                        catch (Exception ex)
+                        {
+                            content =
+                                $"""
+                                Exception thrown while reading '{file}':
+                                {ex}
+                                """;
+                        }
+
+                        File.WriteAllText(fileName, content);
+                    }
+                },
+                logId: "MEF",
+                extension: "err");
 
             IdeStateCollector.RegisterCustomState(
                 "Pending asynchronous operations",
@@ -105,6 +138,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
         public override async Task InitializeAsync()
         {
             await base.InitializeAsync();
+
+            if (s_catalogCacheFolder is null)
+            {
+                var componentModel = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsComponentModelHost, IVsComponentModelHost>(HangMitigatingCancellationToken);
+                ErrorHandler.ThrowOnFailure(componentModel.GetCatalogCacheFolder(out s_catalogCacheFolder));
+            }
 
             s_listenerProvider ??= await TestServices.Shell.GetComponentModelServiceAsync<AsynchronousOperationListenerProvider>(HangMitigatingCancellationToken);
             s_workspace ??= await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(HangMitigatingCancellationToken);

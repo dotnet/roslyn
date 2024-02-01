@@ -20,14 +20,12 @@ parameters:
 - name: helixApiAccessToken
   type: string
   default: ''
+- name: poolParameters
+  type: object
 
 jobs:
 - job: ${{ parameters.jobName }}
-  pool:
-    # Note that when helix is enabled, the agent running this job is essentially
-    # a thin client that kicks off a helix job and waits for it to complete.
-    # Thus we don't use a helix queue to run the job here, and instead use the plentiful AzDO vmImages.
-    vmImage: ubuntu-20.04
+  pool: ${{ parameters.poolParameters }}
   timeoutInMinutes: 90
   steps:
     - checkout: none
@@ -41,14 +39,17 @@ jobs:
     - task: ShellScript@2
       displayName: Rehydrate RunTests
       inputs:
-        scriptPath: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net7.0/rehydrate.sh
+        scriptPath: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net8.0/rehydrate.sh
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
 
     - task: ShellScript@2
       inputs:
-        scriptPath: ./eng/build.sh
-        args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}
+        scriptPath: ./eng/build.sh        
+        ${{ if ne(variables['System.TeamProject'], 'public') }}:
+          args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }}        
+        ${{ else }}:
+          args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}
       displayName: Test
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)

@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
             await base.InitializeAsync();
 
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(BasicImmediate), HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddProjectAsync(ProjectName, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic, HangMitigatingCancellationToken);
         }
 
         [IdeFact]
@@ -42,7 +42,7 @@ End Module
 ", HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
-            await TestServices.Debugger.SetBreakpointAsync("Module1.vb", "End Sub", HangMitigatingCancellationToken);
+            await TestServices.Debugger.SetBreakpointAsync(ProjectName, "Module1.vb", "End Sub", HangMitigatingCancellationToken);
             await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
             await TestServices.ImmediateWindow.ShowAsync(HangMitigatingCancellationToken);
             await TestServices.ImmediateWindow.ClearAllAsync(HangMitigatingCancellationToken);

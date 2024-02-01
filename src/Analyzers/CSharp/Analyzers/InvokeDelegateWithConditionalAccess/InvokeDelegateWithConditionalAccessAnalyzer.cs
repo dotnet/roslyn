@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 fadeLocation,
                 NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
                 additionalLocations,
-                additionalUnnecessaryLocations: ImmutableArray.Create(fadeLocation),
+                additionalUnnecessaryLocations: [fadeLocation],
                 properties));
 
             // Put a diagnostic with the appropriate severity on the expression-statement itself.
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                     fadeLocation,
                     NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
                     additionalLocations,
-                    additionalUnnecessaryLocations: ImmutableArray.Create(fadeLocation),
+                    additionalUnnecessaryLocations: [fadeLocation],
                     properties));
             }
         }
@@ -294,10 +294,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             // The initializer can't be inlined if it's an actual lambda/method reference.
             // These cannot be invoked with `?.` (only delegate *values* can be).
             var initializer = declarator.Initializer.Value.WalkDownParentheses();
-            if (initializer.IsAnyLambdaOrAnonymousMethod())
-            {
+            if (initializer is AnonymousFunctionExpressionSyntax)
                 return false;
-            }
 
             var initializerSymbol = semanticModel.GetSymbolInfo(initializer, cancellationToken).GetAnySymbol();
             if (initializerSymbol is IMethodSymbol)

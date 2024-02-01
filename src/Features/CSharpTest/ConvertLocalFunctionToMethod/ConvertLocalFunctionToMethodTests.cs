@@ -14,9 +14,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLocalFunctionToMethod
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-    public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest
+    public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpConvertLocalFunctionToMethodCodeRefactoringProvider();
 
         [Fact]

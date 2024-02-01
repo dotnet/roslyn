@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         IAsynchronousOperationListenerProvider listenerProvider) :
         AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>(threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listenerProvider)
     {
-        protected sealed override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(DiagnosticsOptionsStorage.Squiggles);
+        protected sealed override ImmutableArray<IOption2> Options { get; } = [DiagnosticsOptionsStorage.Squiggles];
 
         protected sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
             => diagnostic.Severity == DiagnosticSeverity.Info;

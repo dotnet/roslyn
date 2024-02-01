@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             => WellKnownFixAllProviders.BatchFixer;
 
         protected AbstractImplementAbstractClassCodeFixProvider(string diagnosticId)
-            => FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
+            => FixableDiagnosticIds = [diagnosticId];
 
         protected abstract SyntaxToken GetClassIdentifier(TClassNode classNode);
 

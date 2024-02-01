@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal const string ExcludedCommitCharactersMap = nameof(ExcludedCommitCharactersMap);
 
         private static readonly ImmutableArray<ImageElement> s_warningImageAttributeImagesArray =
-            ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element));
+            [new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element)];
 
         private static readonly EditorOptionKey<bool> s_nonBlockingCompletionEditorOption = new(NonBlockingCompletion);
 
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
 
                 var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(roslynItem, document.Project.Solution);
-                var attributeImages = supportedPlatforms != null ? s_warningImageAttributeImagesArray : ImmutableArray<ImageElement>.Empty;
+                var attributeImages = supportedPlatforms != null ? s_warningImageAttributeImagesArray : [];
 
                 itemData = new VSCompletionItemData(
                     DisplayText: roslynItem.GetEntireDisplayText(),

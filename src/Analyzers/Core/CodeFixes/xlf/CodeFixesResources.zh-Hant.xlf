@@ -157,6 +157,11 @@
         <target state="translated">使用捨棄的區域函式</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_may_change_semantics">
+        <source>{0} (may change semantics)</source>
+        <target state="translated">{0} (可能會變更語意)</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

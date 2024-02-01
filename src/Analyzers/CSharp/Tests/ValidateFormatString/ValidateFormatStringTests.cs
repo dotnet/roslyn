@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
 {
     [Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
-    public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public ValidateFormatStringTests(ITestOutputHelper logger)
            : base(logger)

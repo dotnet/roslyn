@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override string? GetDiagnosticCategory(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.QueryingDiagnosticKind?.Value;
 
-        protected override VSInternalWorkspaceDiagnosticReport[] CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
-            => new[] {
+        protected override VSInternalWorkspaceDiagnosticReport[] CreateReport(TextDocumentIdentifier identifier, Roslyn.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
+            => [
                 new VSInternalWorkspaceDiagnosticReport
                 {
                     TextDocument = identifier,
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     // same file produced by the DocumentPullDiagnosticHandler.
                     Identifier = WorkspaceDiagnosticIdentifier,
                 }
-            };
+            ];
 
         protected override VSInternalWorkspaceDiagnosticReport[] CreateRemovedReport(TextDocumentIdentifier identifier)
             => CreateReport(identifier, diagnostics: null, resultId: null);

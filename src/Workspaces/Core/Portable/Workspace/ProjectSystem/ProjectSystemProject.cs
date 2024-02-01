@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
     internal sealed partial class ProjectSystemProject
     {
         private static readonly char[] s_directorySeparator = [Path.DirectorySeparatorChar];
-        private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = ImmutableArray.Create(default(MetadataReferenceProperties));
+        private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = [default(MetadataReferenceProperties)];
 
         private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
         private readonly ProjectSystemHostInfo _hostInfo;
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
                         if (!isFullyLoaded)
                         {
-                            TryReportCompilationThrownAway(_projectSystemProjectFactory.Workspace.CurrentSolution.State, Id);
+                            TryReportCompilationThrownAway(_projectSystemProjectFactory.Workspace.CurrentSolution, Id);
                         }
                     }
                 }
@@ -273,10 +273,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// <summary>
         /// Reports a telemetry event if compilation information is being thrown away after being previously computed
         /// </summary>
-        private static void TryReportCompilationThrownAway(SolutionState solutionState, ProjectId projectId)
+        private static void TryReportCompilationThrownAway(
+            Solution solution, ProjectId projectId)
         {
             // We log the number of syntax trees that have been parsed even if there was no compilation created yet
-            var projectState = solutionState.GetRequiredProjectState(projectId);
+            var projectState = solution.SolutionState.GetRequiredProjectState(projectId);
             var parsedTrees = 0;
             foreach (var (_, documentState) in projectState.DocumentStates.States)
             {
@@ -287,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             }
 
             // But we also want to know if a compilation was created
-            var hadCompilation = solutionState.TryGetCompilation(projectId, out _);
+            var hadCompilation = solution.CompilationState.TryGetCompilation(projectId, out _);
 
             if (parsedTrees > 0 || hadCompilation)
             {
@@ -981,10 +982,12 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
         private const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
         private static readonly string s_razorSourceGeneratorSdkDirectory = Path.Combine("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators") + PathUtilities.DirectorySeparatorStr;
-        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames = ImmutableArray.Create(
+        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames =
+        [
             "Microsoft.NET.Sdk.Razor.SourceGenerators",
             "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators",
-            "Microsoft.CodeAnalysis.Razor.Compiler");
+            "Microsoft.CodeAnalysis.Razor.Compiler",
+        ];
         private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyRootedFileNames = s_razorSourceGeneratorAssemblyNames.SelectAsArray(
             assemblyName => PathUtilities.DirectorySeparatorStr + assemblyName + ".dll");
 
@@ -1096,7 +1099,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         {
             using (_gate.DisposableWait())
             {
-                return _allMetadataReferences.TryGetValue(fullPath, out var list) ? list : ImmutableArray<MetadataReferenceProperties>.Empty;
+                return _allMetadataReferences.TryGetValue(fullPath, out var list) ? list : [];
             }
         }
 

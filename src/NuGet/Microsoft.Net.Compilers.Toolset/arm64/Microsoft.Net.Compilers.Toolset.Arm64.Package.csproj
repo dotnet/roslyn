@@ -39,8 +39,8 @@
                       Targets="Publish"
                       ReferenceOutputAssembly="false"
                       SkipGetTargetFrameworkProperties="true"
-                      Condition="'$(TargetFramework)' == 'net6.0'"
-                      SetTargetFramework="TargetFramework=net6.0" />
+                      Condition="'$(TargetFramework)' == '$(NetVS)'"
+                      SetTargetFramework="TargetFramework=$(NetVS)" />
   </ItemGroup>
 
   <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">

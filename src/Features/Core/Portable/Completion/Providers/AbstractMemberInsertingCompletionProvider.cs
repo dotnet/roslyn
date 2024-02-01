@@ -225,11 +225,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return await dismemberedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private static readonly ImmutableArray<CharacterSetModificationRule> s_commitRules = ImmutableArray.Create(
-            CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '('));
+        private static readonly ImmutableArray<CharacterSetModificationRule> s_commitRules = [CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '(')];
 
-        private static readonly ImmutableArray<CharacterSetModificationRule> s_filterRules = ImmutableArray.Create(
-            CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '('));
+        private static readonly ImmutableArray<CharacterSetModificationRule> s_filterRules = [CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '(')];
 
         private static readonly CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(

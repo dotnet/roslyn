@@ -109,15 +109,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     if (AnalyzerResult.HasReturnType)
                     {
-                        return ImmutableArray.Create<StatementSyntax>(
-                            SyntaxFactory.ReturnStatement(
-                                WrapInCheckedExpressionIfNeeded(expression)));
+                        return [SyntaxFactory.ReturnStatement(
+                                WrapInCheckedExpressionIfNeeded(expression))];
                     }
                     else
                     {
-                        return ImmutableArray.Create<StatementSyntax>(
-                            SyntaxFactory.ExpressionStatement(
-                                WrapInCheckedExpressionIfNeeded(expression)));
+                        return [SyntaxFactory.ExpressionStatement(
+                                WrapInCheckedExpressionIfNeeded(expression))];
                     }
                 }
 

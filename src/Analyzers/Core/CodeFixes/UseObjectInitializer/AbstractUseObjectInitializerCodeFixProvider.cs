@@ -45,11 +45,8 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
         TVariableDeclaratorSyntax,
         TAnalyzer>, new()
 {
-    protected AbstractUseObjectInitializerCodeFixProvider()
-        : base(AnalyzersResources.Object_initialization_can_be_simplified,
-               nameof(AnalyzersResources.Object_initialization_can_be_simplified))
-    {
-    }
+    protected override (string title, string equivalenceKey) GetTitleAndEquivalenceKey(CodeFixContext context)
+        => (AnalyzersResources.Object_initialization_can_be_simplified, nameof(AnalyzersResources.Object_initialization_can_be_simplified));
 
     protected abstract TAnalyzer GetAnalyzer();
 
@@ -58,7 +55,7 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
         ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
 
     public override ImmutableArray<string> FixableDiagnosticIds
-        => ImmutableArray.Create(IDEDiagnosticIds.UseObjectInitializerDiagnosticId);
+        => [IDEDiagnosticIds.UseObjectInitializerDiagnosticId];
 
     protected override async Task FixAsync(
         Document document,

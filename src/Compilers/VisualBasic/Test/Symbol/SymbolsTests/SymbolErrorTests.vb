@@ -24344,10 +24344,23 @@ End Namespace"
                 options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 assemblyName:="D").EmitToImageReference()
 
-            CompileAndVerify(
+            ' ECMA-335 "II.22.14 ExportedType : 0x27" rule 14: "Ignoring nested Types, there shall be no duplicate rows, based upon FullName [ERROR]".
+            Dim verifier = CompileAndVerify(
                 source:=codeA,
                 references:={referenceB, referenceC2, referenceD},
-                expectedOutput:="obj is nothing")
+                expectedOutput:="obj is nothing",
+                verify:=Verification.FailsILVerify.WithILVerifyMessage("[Main]: Unable to resolve token. { Offset = 0x1, Token = 167772166 }"))
+
+            verifier.VerifyIL("A.ClassA.Main()", "
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  call       ""Function B.ClassB.MethodB(C.ClassC) As String""
+  IL_0006:  call       ""Sub System.Console.WriteLine(String)""
+  IL_000b:  ret
+}
+")
         End Sub
 
         <Fact>

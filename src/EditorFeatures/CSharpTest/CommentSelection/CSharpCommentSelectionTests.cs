@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
 
         private static void UncommentSelection(string markup, string expected)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup);
+            using var workspace = EditorTestWorkspace.CreateCSharp(markup);
             var doc = workspace.Documents.First();
             SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
 

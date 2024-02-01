@@ -451,8 +451,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckBackspace(session.Session);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546047")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546047")]
         public void VerbatimStringDoubleQuote()
         {
             var code = """
@@ -556,14 +555,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         internal static Holder CreateSessionSingleQuote(string code)
         {
             return CreateSession(
-                TestWorkspace.CreateCSharp(code),
+                EditorTestWorkspace.CreateCSharp(code),
                 SingleQuote.OpenCharacter, SingleQuote.CloseCharacter);
         }
 
         internal static Holder CreateSessionDoubleQuote(string code)
         {
             return CreateSession(
-                TestWorkspace.CreateCSharp(code),
+                EditorTestWorkspace.CreateCSharp(code),
                 DoubleQuote.OpenCharacter, DoubleQuote.CloseCharacter);
         }
     }

@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         result.Add((diagnostics.First(), currentAction));
                     }
 
-                    foreach (var nestedAction in currentAction.NestedCodeActions)
+                    foreach (var nestedAction in currentAction.NestedActions)
                     {
                         builder.Push(nestedAction);
                     }

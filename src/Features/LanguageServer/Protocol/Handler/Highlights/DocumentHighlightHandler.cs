@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             // No keyword or references to highlight at this location.
-            return Array.Empty<DocumentHighlight>();
+            return [];
         }
 
         private async Task<ImmutableArray<DocumentHighlight>> GetKeywordHighlightsAsync(Document document, SourceText text, int position, CancellationToken cancellationToken)
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 });
             }
 
-            return ImmutableArray<DocumentHighlight>.Empty;
+            return [];
         }
     }
 }

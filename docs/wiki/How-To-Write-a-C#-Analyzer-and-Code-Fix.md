@@ -179,7 +179,7 @@ private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
 {
     var localDeclaration = (LocalDeclarationStatementSyntax)context.Node;
 
-    // Only consider local variasble declarations that aren't already const.
+    // Only consider local variable declarations that aren't already const.
     if (localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
     {
         return;
@@ -202,7 +202,7 @@ private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         }
     }
 
-    // Perform data flow analysis on the local declarartion.
+    // Perform data flow analysis on the local declaration.
     var dataFlowAnalysis = context.SemanticModel.AnalyzeDataFlow(localDeclaration);
 
     // Retrieve the local symbol for each variable in the local declaration

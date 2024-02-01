@@ -24,6 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<SyntaxReference> GetDeclarations(ISymbol symbol)
             => symbol != null
                 ? symbol.DeclaringSyntaxReferences
-                : ImmutableArray<SyntaxReference>.Empty;
+                : [];
     }
 }

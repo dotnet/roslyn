@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     {
         [Fact]
         public void BreakIntoCharacterParts_EmptyIdentifier()
-            => VerifyBreakIntoCharacterParts(string.Empty, Array.Empty<string>());
+            => VerifyBreakIntoCharacterParts(string.Empty, []);
 
         [Fact]
         public void BreakIntoCharacterParts_SimpleIdentifier()

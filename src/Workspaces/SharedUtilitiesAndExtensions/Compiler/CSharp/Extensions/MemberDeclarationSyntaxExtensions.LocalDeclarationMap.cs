@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     return _dictionary.TryGetValue(identifier, out var result)
                         ? result
-                        : ImmutableArray.Create<SyntaxToken>();
+                        : [];
                 }
             }
         }

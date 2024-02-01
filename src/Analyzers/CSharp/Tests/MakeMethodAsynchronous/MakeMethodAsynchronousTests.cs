@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMethodAsynchronous
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
-    public partial class MakeMethodAsynchronousTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class MakeMethodAsynchronousTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public MakeMethodAsynchronousTests(ITestOutputHelper logger)
            : base(logger)
