@@ -320,11 +320,44 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Write an array of bytes. The array data is provided as a
-        /// <see cref="ReadOnlySpan{T}">ReadOnlySpan</see>&lt;<see cref="byte"/>&gt;, and deserialized to a byte array.
+        /// Write an array of bytes. The array data is provided as a <see
+        /// cref="ReadOnlySpan{T}">ReadOnlySpan</see>&lt;<see cref="byte"/>&gt;, and deserialized to a byte array.
         /// </summary>
         /// <param name="span">The array data.</param>
-        public void WriteValue(ReadOnlySpan<byte> span)
+        public void WriteSpan(ReadOnlySpan<byte> span)
+        {
+            WriteSpanPreamble(span, TypeCode.UInt8);
+
+#if NETCOREAPP
+            _writer.Write(span);
+#else
+            // BinaryWriter in .NET Framework does not support ReadOnlySpan<byte>, so we use a temporary buffer to write
+            // arrays of data. The buffer is chosen to be no larger than 8K, which avoids allocations in the large
+            // object heap.
+            WriteSpanPieces(span, 8192, static (writer, buffer, length) => writer.Write(buffer, 0, length));
+#endif
+        }
+
+        /// <summary>
+        /// Write an array of bytes. The array data is provided as a <see
+        /// cref="ReadOnlySpan{T}">ReadOnlySpan</see>&lt;<see cref="char"/>&gt;, and deserialized to a char array.
+        /// </summary>
+        /// <param name="span">The array data.</param>
+        public void WriteSpan(ReadOnlySpan<char> span)
+        {
+            WriteSpanPreamble(span, TypeCode.Char);
+
+#if NETCOREAPP
+            _writer.Write(span);
+#else
+            // BinaryWriter in .NET Framework does not support ReadOnlySpan<char>, so we use a temporary buffer to write
+            // arrays of data. The buffer is chosen to be no larger than 4K chars, which avoids allocations in the large
+            // object heap.
+            WriteSpanPieces(span, 4096, static (writer, buffer, length) => writer.Write(buffer, 0, length));
+#endif
+        }
+
+        private void WriteSpanPreamble<T>(ReadOnlySpan<T> span, TypeCode expectedType)
         {
             var length = span.Length;
             switch (length)
@@ -347,25 +380,34 @@ namespace Roslyn.Utilities
                     break;
             }
 
-            var elementType = typeof(byte);
-            Debug.Assert(s_typeMap[elementType] == TypeCode.UInt8);
+            var elementType = typeof(T);
+            Contract.ThrowIfFalse(s_typeMap.ContainsKey(elementType));
+            var actualType = s_typeMap[elementType];
+            Contract.ThrowIfTrue(expectedType != actualType);
 
-            WritePrimitiveType(elementType, TypeCode.UInt8);
+            WritePrimitiveType(elementType, actualType);
+        }
 
-#if NETCOREAPP
-            _writer.Write(span);
-#else
-            // BinaryWriter in .NET Framework does not support ReadOnlySpan<byte>, so we use a temporary buffer to write
-            // arrays of data. The buffer is chosen to be no larger than 8K, which avoids allocations in the large
-            // object heap.
-            var buffer = new byte[Math.Min(length, 8192)];
-            for (var offset = 0; offset < length; offset += buffer.Length)
+        private void WriteSpanPieces<T>(
+            ReadOnlySpan<T> span,
+            int rentLength,
+            Action<BinaryWriter, T[], int> write)
+        {
+            var spanLength = span.Length;
+            var buffer = System.Buffers.ArrayPool<T>.Shared.Rent(Math.Min(spanLength, rentLength));
+            try
             {
-                var segmentLength = Math.Min(buffer.Length, length - offset);
-                span.Slice(offset, segmentLength).CopyTo(buffer.AsSpan());
-                _writer.Write(buffer, 0, segmentLength);
+                for (var offset = 0; offset < spanLength; offset += buffer.Length)
+                {
+                    var segmentLength = Math.Min(buffer.Length, spanLength - offset);
+                    span.Slice(offset, segmentLength).CopyTo(buffer.AsSpan());
+                    write(_writer, buffer, segmentLength);
+                }
             }
-#endif
+            finally
+            {
+                System.Buffers.ArrayPool<T>.Shared.Return(buffer);
+            }
         }
 
         private void WriteEncodedInt32(int v)

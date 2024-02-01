@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            writer.WriteValue(new ReadOnlySpan<byte>(reader.MetadataPointer, reader.MetadataLength));
+            writer.WriteSpan(new ReadOnlySpan<byte>(reader.MetadataPointer, reader.MetadataLength));
         }
 
         private static async ValueTask WriteUnresolvedAnalyzerReferenceToAsync(AnalyzerReference reference, ObjectWriter writer)

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             await writer.WriteStringAsync(options.CryptoKeyContainer).ConfigureAwait(false);
             await writer.WriteStringAsync(options.CryptoKeyFile).ConfigureAwait(false);
 
-            writer.WriteValue(options.CryptoPublicKey.AsSpan());
+            writer.WriteSpan(options.CryptoPublicKey.AsSpan());
             writer.WriteBoolean(options.DelaySign.HasValue);
             if (options.DelaySign.HasValue)
             {

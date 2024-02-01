@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static void TestWritingByteSpan(byte[] data, ObjectWriter writer)
         {
-            writer.WriteValue(data.AsSpan());
+            writer.WriteSpan(data.AsSpan());
         }
 
         private static void TestReadingByteSpan(byte[] expected, ObjectReader reader)

@@ -193,47 +193,39 @@ internal static partial class SourceTextExtensions
     private static async ValueTask WriteChunksToAsync(SourceText sourceText, ObjectWriter writer, int length, CancellationToken cancellationToken)
     {
         // chunk size
-        var buffer = s_charArrayPool.Allocate();
+        using var pooledObject = s_charArrayPool.GetPooledObject();
+        var buffer = pooledObject.Object;
         Contract.ThrowIfTrue(buffer.Length != CharArrayLength);
-        writer.WriteInt32(buffer.Length);
+
+        // We write out the chunk size for sanity purposes.
+        writer.WriteInt32(CharArrayLength);
 
         // number of chunks
         var numberOfChunks = 1 + (length / buffer.Length);
         writer.WriteInt32(numberOfChunks);
 
         // write whole chunks
-        try
+        var offset = 0;
+        for (var i = 0; i < numberOfChunks; i++)
         {
-            var offset = 0;
-            for (var i = 0; i < numberOfChunks; i++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
-                var count = Math.Min(buffer.Length, length - offset);
-                if ((i < numberOfChunks - 1) || (count == buffer.Length))
-                {
-                    // chunks before last chunk or last chunk match buffer size
-                    sourceText.CopyTo(offset, buffer, 0, buffer.Length);
-                    await writer.WriteValueAsync(buffer).ConfigureAwait(false);
-                }
-                else if (i == numberOfChunks - 1)
-                {
-                    // last chunk which size is not buffer size
-                    var tempArray = new char[count];
+            var count = Math.Min(buffer.Length, length - offset);
+            sourceText.CopyTo(offset, buffer, 0, count);
 
-                    sourceText.CopyTo(offset, tempArray, 0, tempArray.Length);
-                    await writer.WriteValueAsync(tempArray).ConfigureAwait(false);
-                }
+            // In the case where the array is entirely full, we can pass that as is to the ObjectWriter.  It already
+            // supports sending the array all the way through to the underlying stream without allocations. In the case
+            // where it's partially full, we pass in a span to the section that is filled.  This will fast path on
+            // netcore, though will incur a copy to pooled memory on netfx.
+            if (count == buffer.Length)
+                await writer.WriteValueAsync(buffer).ConfigureAwait(false);
+            else
+                writer.WriteSpanAsync(buffer.AsSpan()[..count]);
 
-                offset += count;
-            }
-
-            Contract.ThrowIfFalse(offset == length);
+            offset += count;
         }
-        finally
-        {
-            s_charArrayPool.Free(buffer);
-        }
+
+        Contract.ThrowIfFalse(offset == length);
     }
 
     public static SourceText ReadFrom(ITextFactoryService textService, ObjectReader reader, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
@@ -261,6 +253,7 @@ internal static partial class SourceTextExtensions
             }
 
             var chunkSize = await reader.ReadInt32Async().ConfigureAwait(false);
+            Contract.ThrowIfTrue(chunkSize != CharArrayLength);
             var numberOfChunks = await reader.ReadInt32Async().ConfigureAwait(false);
 
             // read as chunks
@@ -271,7 +264,16 @@ internal static partial class SourceTextExtensions
             {
                 // Shared pool array will be freed in the Dispose method below.
                 var (currentChunk, currentChunkLength) = await reader.ReadCharArrayAsync(
-                    static length => length == CharArrayLength ? s_charArrayPool.Allocate() : new char[length]).ConfigureAwait(false);
+                    static length =>
+                    {
+                        Contract.ThrowIfTrue(length > CharArrayLength);
+                        return s_charArrayPool.Allocate();
+                    }).ConfigureAwait(false);
+
+                Contract.ThrowIfTrue(currentChunk.Length != CharArrayLength);
+
+                // All but the last chunk must be completely filled.
+                Contract.ThrowIfTrue(i < numberOfChunks - 1 && currentChunkLength != CharArrayLength);
 
                 chunks.Add(currentChunk);
                 offset += currentChunkLength;
@@ -287,6 +289,8 @@ internal static partial class SourceTextExtensions
             _chunks = chunks;
             _chunkSize = chunkSize;
             _disposed = false;
+            Contract.ThrowIfTrue(chunkSize != CharArrayLength);
+            Contract.ThrowIfTrue(chunks.Any(static (c, s) => c.Length != s, chunkSize));
         }
 
         protected override void Dispose(bool disposing)
@@ -294,11 +298,10 @@ internal static partial class SourceTextExtensions
             if (!_disposed)
             {
                 _disposed = true;
+
+                // Constructor already validated that all chunks are the right size to go back into the pool.
                 foreach (var chunk in _chunks)
-                {
-                    if (chunk.Length == CharArrayLength)
-                        s_charArrayPool.Free(chunk);
-                }
+                    s_charArrayPool.Free(chunk);
             }
 
             base.Dispose(disposing);
