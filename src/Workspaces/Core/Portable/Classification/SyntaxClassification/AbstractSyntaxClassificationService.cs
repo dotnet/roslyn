@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.Classification
                 SemanticModel semanticModel;
                 if (document.Project.Solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options.DisableNullableAnalysisInClassification)
                 {
+#pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
                     semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+#pragma warning restore RSEXPERIMENTAL001
                 }
                 else
                 {

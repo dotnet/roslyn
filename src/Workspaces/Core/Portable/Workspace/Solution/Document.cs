@@ -267,6 +267,7 @@ namespace Microsoft.CodeAnalysis
         /// In almost all cases, you should call <see cref="GetSemanticModelAsync"/>, which will compute the semantic model
         /// if necessary.
         /// </summary>
+        [Experimental("RSEXPERIMENTAL001")]
         public bool TryGetNullableDisabledSemanticModel([NotNullWhen(returnValue: true)] out SemanticModel? semanticModel)
         {
             semanticModel = null;
@@ -281,6 +282,7 @@ namespace Microsoft.CodeAnalysis
         /// cref="SupportsSemanticModel"/> returns <see langword="false"/>. This function will
         /// return the same value if called multiple times.
         /// </returns>
+        [Experimental("RSEXPERIMENTAL001")]
         public async Task<SemanticModel?> GetNullableDisabledSemanticModelAsync(CancellationToken cancellationToken = default)
         {
             return await GetSemanticModelHelperAsync(disableNullableAnalysis: true, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -319,7 +321,9 @@ namespace Microsoft.CodeAnalysis
                 SemanticModel? semanticModel;
                 if (disableNullableAnalysis)
                 {
+#pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
                     if (this.TryGetNullableDisabledSemanticModel(out semanticModel))
+#pragma warning restore
                     {
                         return semanticModel;
                     }
@@ -335,9 +339,9 @@ namespace Microsoft.CodeAnalysis
                 var syntaxTree = await this.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = await this.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-#pragma warning disable EXPERIMENT1 // sym-shipped usage of experimental API
+#pragma warning disable RSEXPERIMENTAL001 // sym-shipped usage of experimental API
                 var result = compilation.GetSemanticModel(syntaxTree, disableNullableAnalysis ? SemanticModelOptions.DisableNullableAnalysis : SemanticModelOptions.None);
-#pragma warning restore EXPERIMENT1
+#pragma warning restore RSEXPERIMENTAL001
                 Contract.ThrowIfNull(result);
                 WeakReference<SemanticModel>? original = null;
 
