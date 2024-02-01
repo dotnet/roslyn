@@ -2080,7 +2080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsWellKnownTypeLock(this TypeSymbol typeSymbol)
         {
-            return typeSymbol.Name == "Lock" && typeSymbol.ContainingType is null &&
+            return typeSymbol is NamedTypeSymbol { Name: "Lock", Arity: 0, ContainingType: null } &&
                 typeSymbol.IsContainedInNamespace("System", "Threading");
         }
 

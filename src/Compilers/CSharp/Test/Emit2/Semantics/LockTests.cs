@@ -447,8 +447,39 @@ public class LockTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(source, expectedOutput: "ELD", verify: Verification.FailsILVerify);
+        var verifier = CompileAndVerify(source, expectedOutput: "L", verify: Verification.FailsILVerify);
         verifier.VerifyDiagnostics();
+        // Should use Monitor locking.
+        verifier.VerifyIL("Program.Main", """
+            {
+              // Code size       39 (0x27)
+              .maxstack  2
+              .locals init (System.Threading.Lock<int> V_0,
+                            bool V_1)
+              IL_0000:  newobj     "System.Threading.Lock<int>..ctor()"
+              IL_0005:  stloc.0
+              IL_0006:  ldc.i4.0
+              IL_0007:  stloc.1
+              .try
+              {
+                IL_0008:  ldloc.0
+                IL_0009:  ldloca.s   V_1
+                IL_000b:  call       "void System.Threading.Monitor.Enter(object, ref bool)"
+                IL_0010:  ldstr      "L"
+                IL_0015:  call       "void System.Console.Write(string)"
+                IL_001a:  leave.s    IL_0026
+              }
+              finally
+              {
+                IL_001c:  ldloc.1
+                IL_001d:  brfalse.s  IL_0025
+                IL_001f:  ldloc.0
+                IL_0020:  call       "void System.Threading.Monitor.Exit(object)"
+                IL_0025:  endfinally
+              }
+              IL_0026:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -562,7 +593,10 @@ public class LockTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source, expectedOutput: "ELD").VerifyDiagnostics();
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,15): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            //         lock (l) { System.Console.Write("L"); }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(6, 15));
     }
 
     [Fact]
