@@ -21,18 +21,18 @@
   -->
   <PropertyGroup>
     <SystemCommandLineVersion>2.0.0-beta4.23407.1</SystemCommandLineVersion>
-    <SystemCompositionVersion>7.0.0</SystemCompositionVersion>
-    <SystemIOPipelinesVersion>7.0.0</SystemIOPipelinesVersion>
+    <SystemCompositionVersion>8.0.0</SystemCompositionVersion>
+    <SystemIOPipelinesVersion>8.0.0</SystemIOPipelinesVersion>
     <SystemCollectionsImmutableVersion>8.0.0</SystemCollectionsImmutableVersion>
     <SystemReflectionMetadataVersion>8.0.0</SystemReflectionMetadataVersion>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
-    <SystemTextJsonVersion>7.0.3</SystemTextJsonVersion>
+    <SystemTextJsonVersion>8.0.0</SystemTextJsonVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.3.4</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>3.3.0</MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>8.0.0-preview.23468.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <MicrosoftDiaSymReaderVersion>2.0.0</MicrosoftDiaSymReaderVersion>
     <MicrosoftExtensionsLoggingVersion>7.0.0</MicrosoftExtensionsLoggingVersion>
-    <MicrosoftExtensionsLoggingAbstractionsVersion>7.0.0</MicrosoftExtensionsLoggingAbstractionsVersion>
+    <MicrosoftExtensionsLoggingAbstractionsVersion>8.0.0</MicrosoftExtensionsLoggingAbstractionsVersion>
     <MicrosoftExtensionsLoggingConsoleVersion>7.0.0</MicrosoftExtensionsLoggingConsoleVersion>
     <MicrosoftNetCompilersToolsetVersion>4.10.0-1.24061.4</MicrosoftNetCompilersToolsetVersion>
     <MicrosoftVSSDKBuildToolsVersion>17.9.3137-preview3</MicrosoftVSSDKBuildToolsVersion>
