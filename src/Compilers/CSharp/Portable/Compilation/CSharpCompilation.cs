@@ -2400,10 +2400,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Binding
 
+        public new SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
+#pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
+            => GetSemanticModel(syntaxTree, ignoreAccessibility ? SemanticModelOptions.IgnoreAccessibility : SemanticModelOptions.None);
+#pragma warning restore RSEXPERIMENTAL001
+
         /// <summary>
         /// Gets a new SyntaxTreeSemanticModel for the specified syntax tree.
         /// </summary>
-        [Experimental("EXPERIMENT1")]
+        [Experimental("RSEXPERIMENTAL001")]
         public new SemanticModel GetSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options)
         {
             if (syntaxTree == null)
@@ -2426,10 +2431,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return model ?? CreateSemanticModel(syntaxTree, options);
         }
 
-#pragma warning disable EXPERIMENT1 // Internal usage of experimental API
+#pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
         internal override SemanticModel CreateSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options)
             => new SyntaxTreeSemanticModel(this, syntaxTree, options);
-#pragma warning restore EXPERIMENT1
+#pragma warning restore RSEXPERIMENTAL001
 
         // When building symbols from the declaration table (lazily), or inside a type, or when
         // compiling a method body, we may not have a BinderContext in hand for the enclosing
@@ -3819,7 +3824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _options; }
         }
 
-        [Experimental("EXPERIMENT1")]
+        [Experimental("RSEXPERIMENTAL001")]
         protected override SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options)
         {
             return this.GetSemanticModel(syntaxTree, options);

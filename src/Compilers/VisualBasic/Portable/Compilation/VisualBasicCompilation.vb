@@ -2041,7 +2041,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shadows Function GetSemanticModel(syntaxTree As SyntaxTree, Optional ignoreAccessibility As Boolean = False) As SemanticModel
             Dim model As SemanticModel = Nothing
             If SemanticModelProvider IsNot Nothing Then
-#Disable Warning EXPERIMENT1 'internal use of experimental API
+#Disable Warning RSEXPERIMENTAL001 'internal use of experimental API
                 model = SemanticModelProvider.GetSemanticModel(syntaxTree, Me, If(ignoreAccessibility, SemanticModelOptions.IgnoreAccessibility, SemanticModelOptions.None))
                 Debug.Assert(model IsNot Nothing)
             End If
@@ -2052,7 +2052,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function CreateSemanticModel(syntaxTree As SyntaxTree, options As SemanticModelOptions) As SemanticModel
             Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree, ignoreAccessibility:=(options And SemanticModelOptions.IgnoreAccessibility) <> 0)
         End Function
-#Enable Warning EXPERIMENT1
+#Enable Warning RSEXPERIMENTAL001
 
         Friend ReadOnly Property FeatureStrictEnabled As Boolean
             Get

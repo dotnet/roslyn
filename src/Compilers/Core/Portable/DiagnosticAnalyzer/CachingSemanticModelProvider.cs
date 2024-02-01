@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable EXPERIMENT1 // internal usage of experimental API
+#pragma warning disable RSEXPERIMENTAL001 // internal usage of experimental API
 
 using System;
 using System.Collections.Concurrent;

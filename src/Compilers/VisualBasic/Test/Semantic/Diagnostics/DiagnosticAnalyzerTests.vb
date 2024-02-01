@@ -1706,7 +1706,7 @@ End Class")
 
             Private ReadOnly _cache As New ConcurrentDictionary(Of SyntaxTree, SemanticModel)()
 
-#Disable Warning EXPERIMENT1 ' Test usage of experimental API
+#Disable Warning RSEXPERIMENTAL001 ' Test usage of experimental API
             Public Overrides Function GetSemanticModel(tree As SyntaxTree, compilation As Compilation, Optional options As SemanticModelOptions = SemanticModelOptions.None) As SemanticModel
                 Return _cache.GetOrAdd(tree, compilation.CreateSemanticModel(tree, options))
             End Function

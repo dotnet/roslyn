@@ -307,11 +307,11 @@ namespace Microsoft.CodeAnalysis
 #pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
         public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility = false)
 #pragma warning restore RS0027
-#pragma warning disable EXPERIMENT1 // internal usage of experimental API
+#pragma warning disable RSEXPERIMENTAL001 // internal usage of experimental API
             => GetSemanticModel(syntaxTree, ignoreAccessibility ? SemanticModelOptions.IgnoreAccessibility : SemanticModelOptions.None);
-#pragma warning restore EXPERIMENT1
+#pragma warning restore RSEXPERIMENTAL001
 
-        [Experimental("EXPERIMENT1")]
+        [Experimental("RSEXPERIMENTAL001")]
         public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options)
             => CommonGetSemanticModel(syntaxTree, options);
 
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis
         /// If <see cref="SemanticModelProvider"/> is non-null, it attempts to use <see cref="SemanticModelProvider.GetSemanticModel(SyntaxTree, Compilation, SemanticModelOptions)"/>
         /// to get a semantic model. Otherwise, it creates a new semantic model using <see cref="CreateSemanticModel(SyntaxTree, SemanticModelOptions)"/>.
         /// </summary>
-        [Experimental("EXPERIMENT1")]
+        [Experimental("RSEXPERIMENTAL001")]
         protected abstract SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options);
 
         /// <summary>
@@ -328,9 +328,9 @@ namespace Microsoft.CodeAnalysis
         /// Unlike the <see cref="GetSemanticModel(SyntaxTree, bool)"/> and <see cref="CommonGetSemanticModel(SyntaxTree, SemanticModelOptions)"/>,
         /// it does not attempt to use the <see cref="SemanticModelProvider"/> to get a semantic model, but instead always creates a new semantic model.
         /// </summary>
-#pragma warning disable EXPERIMENT1 // internal usage of experimental API
+#pragma warning disable RSEXPERIMENTAL001 // internal usage of experimental API
         internal abstract SemanticModel CreateSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options);
-#pragma warning restore EXPERIMENT1 // internal usage of experimental API
+#pragma warning restore RSEXPERIMENTAL001 // internal usage of experimental API
 
         /// <summary>
         /// Returns a new INamedTypeSymbol representing an error type with the given name and arity

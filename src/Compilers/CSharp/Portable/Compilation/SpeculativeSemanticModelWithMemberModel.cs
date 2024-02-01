@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -127,6 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxTree SyntaxTree => _memberModel.SyntaxTree;
 
+        [Experimental("RSEXPERIMENT001")]
+        public override bool DisableNullableAnalysis => _parentSemanticModel.DisableNullableAnalysis;
         public override bool IgnoresAccessibility => _parentSemanticModel.IgnoresAccessibility;
 
         private MemberSemanticModel GetEnclosingMemberModel(int position)

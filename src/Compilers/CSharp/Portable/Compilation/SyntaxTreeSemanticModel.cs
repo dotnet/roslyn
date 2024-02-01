@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable EXPERIMENT1 // Internal use of experimental API
+#pragma warning disable RSEXPERIMENTAL001 // Internal use of experimental API
 #nullable disable
 
 using System;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _compilation = parentCompilation;
             _syntaxTree = speculatedSyntaxTree;
             _binderFactory = _compilation.GetBinderFactory(parentSyntaxTree, ignoreAccessibility);
-            // PROTOTYPE(ndsm): allow speculation to disable nullable analysis?
+            // https://github.com/dotnet/roslyn/issues/71904: allow speculation to disable nullable analysis?
             _options = ignoreAccessibility ? SemanticModelOptions.IgnoreAccessibility : SemanticModelOptions.None;
         }
 

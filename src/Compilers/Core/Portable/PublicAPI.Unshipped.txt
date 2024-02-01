@@ -31,3 +31,9 @@ virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.MinimumReportedSeveri
 static Microsoft.CodeAnalysis.Emit.EmitBaseline.CreateInitialBaseline(Microsoft.CodeAnalysis.Compilation! compilation, Microsoft.CodeAnalysis.ModuleMetadata! module, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation>! debugInformationProvider, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, System.Reflection.Metadata.StandaloneSignatureHandle>! localSignatureProvider, bool hasPortableDebugInformation) -> Microsoft.CodeAnalysis.Emit.EmitBaseline!
 virtual Microsoft.CodeAnalysis.SyntaxContextReceiverCreator.Invoke() -> Microsoft.CodeAnalysis.ISyntaxContextReceiver?
 virtual Microsoft.CodeAnalysis.SyntaxReceiverCreator.Invoke() -> Microsoft.CodeAnalysis.ISyntaxReceiver!
+Microsoft.CodeAnalysis.SemanticModelOptions
+Microsoft.CodeAnalysis.SemanticModelOptions.None = 0 -> Microsoft.CodeAnalysis.SemanticModelOptions
+Microsoft.CodeAnalysis.SemanticModelOptions.IgnoreAccessibility = 1 -> Microsoft.CodeAnalysis.SemanticModelOptions
+Microsoft.CodeAnalysis.SemanticModelOptions.DisableNullableAnalysis = 2 -> Microsoft.CodeAnalysis.SemanticModelOptions
+Microsoft.CodeAnalysis.Compilation.GetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree! syntaxTree, Microsoft.CodeAnalysis.SemanticModelOptions options) -> Microsoft.CodeAnalysis.SemanticModel!
+abstract Microsoft.CodeAnalysis.SemanticModel.DisableNullableAnalysis.get -> bool
