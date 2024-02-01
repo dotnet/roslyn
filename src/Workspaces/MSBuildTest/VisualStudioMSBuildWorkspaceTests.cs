@@ -91,6 +91,20 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestDirectUseOfMSBuildProjectLoader()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles());
+            var solutionFilePath = GetSolutionFileName("TestSolution.sln");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var msbuildProjectLoader = new MSBuildProjectLoader(workspace);
+            var solutionInfo = await msbuildProjectLoader.LoadSolutionInfoAsync(solutionFilePath);
+            var projectInfo = Assert.Single(solutionInfo.Projects);
+
+            Assert.Single(projectInfo.Documents.Where(d => d.Name == "CSharpClass.cs"));
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         public async Task Test_SharedMetadataReferences()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
