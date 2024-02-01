@@ -2052,7 +2052,22 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundLockStatement.Syntax;
             bool isImplicit = boundLockStatement.WasCompilerGenerated;
 
-            return new LockOperation(lockedValue, body, lockTakenSymbol, _semanticModel, syntax, isImplicit);
+            (IOperation, IMethodSymbol)? lockTypeInfo =
+                boundLockStatement.Argument is { Type: { } argType, Syntax: var argSyntax } argExpression &&
+                argType.IsWellKnownTypeLock() &&
+                LockBinder.TryFindLockTypeInfo(argType, CSharp.BindingDiagnosticBag.Discarded, argSyntax) is { } binderInfo
+                    ? (CreateBoundCallOperation(BoundCall.Synthesized(
+                            argSyntax,
+                            argExpression,
+                            initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                            binderInfo.EnterLockScopeMethod)),
+                        binderInfo.ScopeDisposeMethod.GetPublicSymbol())
+                    : null;
+
+            return new LockOperation(lockedValue, body, lockTakenSymbol, _semanticModel, syntax, isImplicit)
+            {
+                LockTypeInfo = lockTypeInfo,
+            };
         }
 
         private IInvalidOperation CreateBoundBadStatementOperation(BoundBadStatement boundBadStatement)

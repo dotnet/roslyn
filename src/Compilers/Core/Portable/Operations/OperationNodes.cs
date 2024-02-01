@@ -701,4 +701,9 @@ namespace Microsoft.CodeAnalysis.Operations
             Locals = ImmutableArray<ILocalSymbol>.Empty;
         }
     }
+
+    internal sealed partial class LockOperation
+    {
+        public (IOperation EnterLockScope, IMethodSymbol DisposeMethod)? LockTypeInfo { get; init; }
+    }
 }

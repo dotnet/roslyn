@@ -4200,6 +4200,22 @@ oneMoreTime:
         {
             StartVisitingStatement(operation);
 
+            var lockStatement = (LockOperation)operation;
+
+            // `lock (l) { }` on value of type `System.Threading.Lock` is lowered to `using (l.EnterLockScope()) { }`.
+            if (lockStatement.LockTypeInfo is (var enterLockScope, var disposeMethod))
+            {
+                HandleUsingOperationParts(
+                    resources: enterLockScope,
+                    body: lockStatement.Body,
+                    disposeMethod: disposeMethod,
+                    disposeArguments: ImmutableArray<IArgumentOperation>.Empty,
+                    locals: ImmutableArray<ILocalSymbol>.Empty,
+                    isAsynchronous: false);
+
+                return FinishVisitingStatement(operation);
+            }
+
             ITypeSymbol objectType = _compilation.GetSpecialType(SpecialType.System_Object);
 
             // If Monitor.Enter(object, ref bool) is available:
@@ -4233,7 +4249,6 @@ oneMoreTime:
             // Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.CheckForSyncLockOnValueType to ensure no value type is
             // used.
             // For simplicity, we will not synthesize this call because its presence is unlikely to affect graph analysis.
-            var lockStatement = (LockOperation)operation;
 
             var lockRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime,
                                                locals: lockStatement.LockTakenSymbol != null ?
