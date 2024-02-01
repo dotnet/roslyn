@@ -109,15 +109,17 @@ public class Ref<T> where T : Entity
         {
         }
 
-        private CodeFunction GetCodeFunction(params object[] path)
+        private CodeFunction GetCodeFunction(EditorTestWorkspace workspace, params object[] path)
         {
-            return (CodeFunction)GetCodeElement(path);
+            return (CodeFunction)GetCodeElement(workspace, path);
         }
 
         [WpfFact]
         public void CanOverride_False()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
 
             Assert.False(testObject.CanOverride);
         }
@@ -125,7 +127,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void CanOverride_True()
         {
-            var testObject = GetCodeFunction("A", "MethodB");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodB");
 
             Assert.True(testObject.CanOverride);
         }
@@ -133,7 +137,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void FullName()
         {
-            var testObject = GetCodeFunction("A", "MethodD");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodD");
 
             Assert.Equal("A.MethodD", testObject.FullName);
         }
@@ -141,7 +147,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void FunctionKind_Function()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
 
             Assert.Equal(vsCMFunction.vsCMFunctionFunction, testObject.FunctionKind);
         }
@@ -149,7 +157,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void FunctionKind_Constructor()
         {
-            var testObject = GetCodeFunction("A", 1);
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", 1);
 
             Assert.Equal(vsCMFunction.vsCMFunctionConstructor, testObject.FunctionKind);
         }
@@ -157,7 +167,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void FunctionKind_Finalizer()
         {
-            var testObject = GetCodeFunction("A", 2);
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", 2);
 
             Assert.Equal(vsCMFunction.vsCMFunctionDestructor, testObject.FunctionKind);
         }
@@ -165,7 +177,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void IsOverloaded_True()
         {
-            var testObject = GetCodeFunction("A", "MethodE");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodE");
 
             Assert.True(testObject.IsOverloaded);
         }
@@ -173,7 +187,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void IsOverloaded_False()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
 
             Assert.False(testObject.IsOverloaded);
         }
@@ -181,7 +197,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void IsShared_False()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
 
             Assert.False(testObject.IsShared);
         }
@@ -189,7 +207,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void IsShared_True()
         {
-            var testObject = GetCodeFunction("A", "MethodC");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodC");
 
             Assert.True(testObject.IsShared);
         }
@@ -197,7 +217,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void Kind()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
 
             Assert.Equal(vsCMElement.vsCMElementFunction, testObject.Kind);
         }
@@ -205,7 +227,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void Name()
         {
-            var testObject = GetCodeFunction("A", "MethodC");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodC");
 
             Assert.Equal("MethodC", testObject.Name);
         }
@@ -213,7 +237,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void Parameters_Count()
         {
-            var testObject = GetCodeFunction("A", "MethodD");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodD");
 
             Assert.Equal(3, testObject.Parameters.Count);
         }
@@ -221,7 +247,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void Parent()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
 
             Assert.NotNull(testObject.Parent);
             Assert.True(testObject.Parent is CodeClass, testObject.Parent.GetType().ToString());
@@ -231,7 +259,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void Type()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
 
             Assert.Equal("System.Int32", testObject.Type.AsFullName);
         }
@@ -239,7 +269,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void Comment()
         {
-            var testObject = GetCodeFunction("C", "MethodB");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "C", "MethodB");
 
             var expected = "This is a short comment.\r\n";
 
@@ -249,7 +281,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void DocComment()
         {
-            var testObject = GetCodeFunction("C", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "C", "MethodA");
 
             var expected = "<doc>\r\n<summary>\r\nA short summary.\r\n</summary>\r\n<param name=\"intA\">A parameter.</param>\r\n<returns>An int.</returns>\r\n</doc>";
 
@@ -259,7 +293,9 @@ public class Ref<T> where T : Entity
         [WpfFact(Skip = "636860")]
         public void Overloads_Count()
         {
-            var testObject = GetCodeFunction("A", "MethodE");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodE");
 
             Assert.Equal(2, testObject.Overloads.Count);
         }
@@ -267,21 +303,27 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void GetStartPoint_Attributes()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [WpfFact]
         public void GetStartPoint_AttributesWithDelimiter()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
             Assert.Throws<COMException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
         [WpfFact]
         public void GetStartPoint_Body()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
 
             var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartBody);
 
@@ -292,14 +334,18 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void GetStartPoint_BodyWithDelimiter()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [WpfFact]
         public void GetStartPoint_Header()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
 
             var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartHeader);
 
@@ -310,21 +356,27 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void GetStartPoint_HeaderWithAttributes()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [WpfFact]
         public void GetStartPoint_Name()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
         [WpfFact]
         public void GetStartPoint_Navigate()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
 
             var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartNavigate);
 
@@ -335,7 +387,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void GetStartPoint_NavigateWithBlankLine()
         {
-            var testObject = GetCodeFunction("A", "MethodWithBlankLine");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodWithBlankLine");
 
             var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartNavigate);
 
@@ -346,14 +400,18 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void GetStartPoint_Whole()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
         [WpfFact]
         public void GetStartPoint_WholeWithAttributes()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
 
             var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -364,21 +422,27 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void GetEndPoint_Attributes()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [WpfFact]
         public void GetEndPoint_AttributesWithDelimiter()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
             Assert.Throws<COMException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
         [WpfFact]
         public void GetEndPoint_Body()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
 
             var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
@@ -389,35 +453,45 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void GetEndPoint_BodyWithDelimiter()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [WpfFact]
         public void GetEndPoint_Header()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
         [WpfFact]
         public void GetEndPoint_HeaderWithAttributes()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [WpfFact]
         public void GetEndPoint_Name()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
         [WpfFact]
         public void GetEndPoint_Navigate()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
 
             var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartNavigate);
 
@@ -428,14 +502,18 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void GetEndPoint_Whole()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
         [WpfFact]
         public void GetEndPoint_WholeWithAttributes()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
 
             var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -446,7 +524,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void StartPoint()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
 
             var startPoint = testObject.StartPoint;
 
@@ -457,7 +537,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void EndPoint()
         {
-            var testObject = GetCodeFunction("A", "MethodA");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "A", "MethodA");
 
             var endPoint = testObject.EndPoint;
 
@@ -468,7 +550,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void DynamicReturnType()
         {
-            var testObject = (CodeVariable)GetCodeElement("C", "DynamicField");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = (CodeVariable)GetCodeElement(workspace, "C", "DynamicField");
 
             var returnType = testObject.Type;
             Assert.Equal("dynamic", returnType.AsFullName);
@@ -480,7 +564,9 @@ public class Ref<T> where T : Entity
         [WpfFact]
         public void DynamicParameter()
         {
-            var testObject = GetCodeFunction("C", "DynamicMethod");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeFunction(workspace, "C", "DynamicMethod");
 
             var returnType = ((CodeParameter)testObject.Parameters.Item(1)).Type;
             Assert.Equal("dynamic", returnType.AsFullName);
@@ -492,43 +578,51 @@ public class Ref<T> where T : Entity
         [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530496")]
         public async Task TestCodeElementFromPoint()
         {
-            var text = await (GetCurrentDocument()).GetTextAsync();
-            var tree = await (GetCurrentDocument()).GetSyntaxTreeAsync();
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var text = await (GetCurrentDocument(workspace)).GetTextAsync();
+            var tree = await (GetCurrentDocument(workspace)).GetSyntaxTreeAsync();
             var position = text.ToString().IndexOf("DynamicMethod", StringComparison.Ordinal);
             var virtualTreePoint = new VirtualTreePoint(tree, text, position);
             var textPoint = new MockTextPoint(virtualTreePoint);
             var scope = vsCMElement.vsCMElementFunction;
-            var element = (GetCodeModel()).CodeElementFromPoint(textPoint, scope);
+            var element = (GetCodeModel(workspace)).CodeElementFromPoint(textPoint, scope);
             Assert.Equal("DynamicMethod", element.Name);
         }
 
         [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726710")]
         public async Task TestCodeElementFromPointBetweenMembers()
         {
-            var text = await (GetCurrentDocument()).GetTextAsync();
-            var tree = await (GetCurrentDocument()).GetSyntaxTreeAsync();
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var text = await (GetCurrentDocument(workspace)).GetTextAsync();
+            var tree = await (GetCurrentDocument(workspace)).GetSyntaxTreeAsync();
             var position = text.ToString().IndexOf("protected virtual string MethodB", StringComparison.Ordinal) - 1;
             var virtualTreePoint = new VirtualTreePoint(tree, text, position);
             var textPoint = new MockTextPoint(virtualTreePoint);
 
             Assert.Throws<COMException>(() =>
-                (GetCodeModel()).CodeElementFromPoint(textPoint, vsCMElement.vsCMElementFunction));
+                (GetCodeModel(workspace)).CodeElementFromPoint(textPoint, vsCMElement.vsCMElementFunction));
 
-            var element = (GetCodeModel()).CodeElementFromPoint(textPoint, vsCMElement.vsCMElementClass);
+            var element = (GetCodeModel(workspace)).CodeElementFromPoint(textPoint, vsCMElement.vsCMElementClass);
             Assert.Equal("A", element.Name);
         }
 
         [WpfFact]
         public void Operator()
         {
-            var functionObject = GetCodeFunction("A", 3);
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var functionObject = GetCodeFunction(workspace, "A", 3);
             Assert.Equal("operator +", functionObject.Name);
         }
 
         [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924179")]
         public void ConversionOperator()
         {
-            var classObject = (CodeClass)GetCodeElement("Ref");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var classObject = (CodeClass)GetCodeElement(workspace, "Ref");
             var element = classObject.Members.Item(1);
             Assert.Equal("implicit operator Ref<T>", element.Name);
         }

@@ -11,7 +11,6 @@ Imports Microsoft.VisualStudio.Settings
 Imports Microsoft.VisualStudio.Settings.Internal
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Moq
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
@@ -29,6 +28,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         Private ReadOnly _exportProvider As Composition.ExportProvider
         Private ReadOnly _fileChangeEx As New MockVsFileChangeEx
         Private ReadOnly _localRegistry As New StubLocalRegistry
+        Private ReadOnly _vsSolution As New MockVsSolution
+        Private ReadOnly _vsShell As New MockVsShell
         Private _settingsManager As ISettingsManager
 
         Public MockMonitorSelection As IVsMonitorSelection
@@ -41,10 +42,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
             Select Case serviceType
-                Case GetType(SVsSolution), GetType(SVsShell)
-                    ' Return a loose mock that just is a big no-op
-                    Dim solutionMock As New Mock(Of IVsSolution2)(MockBehavior.Loose)
-                    Return solutionMock.Object
+                Case GetType(SVsSolution)
+                    Return _vsSolution
+
+                Case GetType(SVsShell)
+                    Return _vsShell
 
                 Case GetType(SComponentModel)
                     Return GetComponentModelMock()

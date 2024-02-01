@@ -41,15 +41,17 @@ public class Bar
         {
         }
 
-        private CodeClass GetCodeClass(params object[] path)
+        private CodeClass GetCodeClass(EditorTestWorkspace workspace, params object[] path)
         {
-            return (CodeClass)GetCodeElement(path);
+            return (CodeClass)GetCodeElement(workspace, path);
         }
 
         [WpfFact]
         public void IsAbstract()
         {
-            var cc = GetCodeClass("Goo");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var cc = GetCodeClass(workspace, "Goo");
 
             Assert.True(cc.IsAbstract);
         }
@@ -57,7 +59,9 @@ public class Bar
         [WpfFact]
         public void Bases()
         {
-            var cc = GetCodeClass("Goo");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var cc = GetCodeClass(workspace, "Goo");
 
             var bases = cc.Bases;
 
@@ -76,7 +80,9 @@ public class Bar
         [WpfFact]
         public void ImplementedInterfaces()
         {
-            var cc = GetCodeClass("Goo");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var cc = GetCodeClass(workspace, "Goo");
 
             var interfaces = cc.ImplementedInterfaces;
 
@@ -96,7 +102,9 @@ public class Bar
         [WpfFact]
         public void KindTest()
         {
-            var cc = GetCodeClass("Goo");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var cc = GetCodeClass(workspace, "Goo");
 
             Assert.Equal(vsCMElement.vsCMElementClass, cc.Kind);
         }
@@ -104,14 +112,18 @@ public class Bar
         [WpfFact]
         public void GetStartPoint_Attributes()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [WpfFact]
         public void GetStartPoint_AttributesWithDelimiter()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
 
             var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter);
 
@@ -122,7 +134,9 @@ public class Bar
         [WpfFact]
         public void GetStartPoint_Body()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
 
             var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartBody);
 
@@ -133,14 +147,18 @@ public class Bar
         [WpfFact]
         public void GetStartPoint_BodyWithDelimiter()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [WpfFact]
         public void GetStartPoint_Header()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
 
             var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartHeader);
 
@@ -151,21 +169,27 @@ public class Bar
         [WpfFact]
         public void GetStartPoint_HeaderWithAttributes()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [WpfFact]
         public void GetStartPoint_Name()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
         [WpfFact]
         public void GetStartPoint_Navigate()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
 
             var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartNavigate);
 
@@ -176,14 +200,18 @@ public class Bar
         [WpfFact]
         public void GetStartPoint_Whole()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
         [WpfFact]
         public void GetStartPoint_WholeWithAttributes()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
 
             var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -194,14 +222,18 @@ public class Bar
         [WpfFact]
         public void GetEndPoint_Attributes()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [WpfFact]
         public void GetEndPoint_AttributesWithDelimiter()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
 
             var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter);
 
@@ -212,7 +244,9 @@ public class Bar
         [WpfFact]
         public void GetEndPoint_Body()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
 
             var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
@@ -223,14 +257,18 @@ public class Bar
         [WpfFact]
         public void GetEndPoint_BodyWithDelimiter()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [WpfFact]
         public void GetEndPoint_Header()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
 
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
@@ -238,21 +276,27 @@ public class Bar
         [WpfFact]
         public void GetEndPoint_HeaderWithAttributes()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [WpfFact]
         public void GetEndPoint_Name()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
         [WpfFact]
         public void GetEndPoint_Navigate()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
 
             var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartNavigate);
 
@@ -263,14 +307,18 @@ public class Bar
         [WpfFact]
         public void GetEndPoint_Whole()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
         [WpfFact]
         public void GetEndPoint_WholeWithAttributes()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
 
             var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -281,7 +329,9 @@ public class Bar
         [WpfFact]
         public void StartPoint()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
 
             var startPoint = testObject.StartPoint;
 
@@ -292,7 +342,9 @@ public class Bar
         [WpfFact]
         public void EndPoint()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
 
             var endPoint = testObject.EndPoint;
 
@@ -303,7 +355,9 @@ public class Bar
         [WpfFact]
         public void Accessor()
         {
-            var testObject = GetCodeClass("Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Bar");
 
             var l = from p in testObject.Members.OfType<CodeProperty>() where vsCMAccess.vsCMAccessPublic == p.Access && p.Getter != null && !p.Getter.IsShared && vsCMAccess.vsCMAccessPublic == p.Getter.Access select p;
             var z = l.ToList<CodeProperty>();

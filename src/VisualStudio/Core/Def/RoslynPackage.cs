@@ -101,7 +101,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
                 var shell = (IVsShell7?)await serviceProvider.GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
                 Assumes.Present(shell);
-                await shell.LoadPackageAsync(typeof(RoslynPackage).GUID);
+
+                var packageLoadTask = shell.LoadPackageAsync(typeof(RoslynPackage).GUID);
+                if (packageLoadTask is null)
+                {
+                    // This is a unit test run where RoslynPackage can't be loaded.
+                    return null;
+                }
+
+                await packageLoadTask;
 
                 if (ErrorHandler.Succeeded(((IVsShell)shell).IsPackageLoaded(typeof(RoslynPackage).GUID, out var package)))
                 {

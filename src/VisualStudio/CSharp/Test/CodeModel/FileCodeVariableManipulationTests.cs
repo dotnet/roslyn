@@ -25,12 +25,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void DeleteField()
         {
-            var c = (CodeClass)GetCodeElement("Goo");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var c = (CodeClass)GetCodeElement(workspace, "Goo");
             c.RemoveMember(c.Members.Item("bar"));
 
             Assert.Equal(@"class Goo
 {
-}", GetFileText());
+}", GetFileText(workspace));
         }
     }
 }

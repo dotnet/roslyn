@@ -46,15 +46,17 @@ class Baz
         {
         }
 
-        private CodeClass GetCodeClass(params object[] path)
+        private CodeClass GetCodeClass(EditorTestWorkspace workspace, params object[] path)
         {
-            return (CodeClass)GetCodeElement(path);
+            return (CodeClass)GetCodeElement(workspace, path);
         }
 
         [WpfFact]
         public void GetEndPoint_Body_BeforeNamespace()
         {
-            var testObject = GetCodeClass("Goo");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Goo");
 
             var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
@@ -65,7 +67,9 @@ class Baz
         [WpfFact]
         public void GetEndPoint_Body_BeforeOtherClass()
         {
-            var testObject = GetCodeClass("Goo", "Bar");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Goo", "Bar");
 
             var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
@@ -76,7 +80,9 @@ class Baz
         [WpfFact]
         public void GetEndPoint_Body_Eof()
         {
-            var testObject = GetCodeClass("Baz");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeClass(workspace, "Baz");
 
             var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
