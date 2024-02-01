@@ -7089,6 +7089,9 @@ class C
 
             // Not expected to bind, since we don't consider inherited members.
             comp.VerifyDiagnostics(
+                // (6,39): error CS8000: This language feature ('base extensions') is not yet implemented.
+                // explicit extension Derived for object : Base
+                Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": Base").WithArguments("base extensions").WithLocation(6, 39),
                 // (10,16): warning CS1574: XML comment has cref attribute 'P' that could not be resolved
                 // /// <see cref='Derived.P'/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "Derived.P").WithArguments("P").WithLocation(10, 16));
@@ -7130,7 +7133,11 @@ class Member
             var compilation = (Compilation)CreateCompilation(source, targetFramework: TargetFramework.Net70,
                 parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
 
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (11,43): error CS8000: This language feature ('base extensions') is not yet implemented.
+                //     explicit extension Derived for object : Base { }
+                Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": Base").WithArguments("base extensions").WithLocation(11, 43)
+                );
 
             var expectedSymbol = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("Member");
 
