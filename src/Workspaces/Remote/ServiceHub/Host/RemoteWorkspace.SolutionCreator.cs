@@ -424,15 +424,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var _1 = PooledHashSet<Checksum>.GetInstance(out var olds);
                 using var _2 = PooledHashSet<Checksum>.GetInstance(out var news);
 
-                olds.UnionWith(oldChecksums.Checksums);
-                news.UnionWith(newChecksums.Checksums);
+                olds.AddRange(oldChecksums.Checksums.Children);
+                news.AddRange(newChecksums.Checksums.Children);
 
                 // remove documents that exist in both side
                 olds.ExceptWith(newChecksums.Checksums);
                 news.ExceptWith(oldChecksums.Checksums);
 
-                using var _3 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var oldMap);
-                using var _4 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var newMap);
+                using var _3 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var oldDocumentIdToStateChecksums);
+                using var _4 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var newDocumentIdToStateChecksums);
 
                 await PopulateOldDocumentMapAsync().ConfigureAwait(false);
                 await PopulateNewDocumentMapAsync(this).ConfigureAwait(false);
@@ -440,16 +440,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 // If more than two documents changed during a single update, perform a bulk synchronization on the
                 // project to avoid large numbers of small synchronization calls during document updates.
                 // 🔗 https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1365014
-                if (newMap.Count > 2)
+                if (newDocumentIdToStateChecksums.Count > 2)
                 {
                     await _assetProvider.SynchronizeProjectAssetsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
                 }
 
                 // added document
                 ImmutableArray<DocumentInfo>.Builder? lazyDocumentsToAdd = null;
-                foreach (var (documentId, newDocumentChecksums) in newMap)
+                foreach (var (documentId, newDocumentChecksums) in newDocumentIdToStateChecksums)
                 {
-                    if (!oldMap.ContainsKey(documentId))
+                    if (!oldDocumentIdToStateChecksums.ContainsKey(documentId))
                     {
                         lazyDocumentsToAdd ??= ImmutableArray.CreateBuilder<DocumentInfo>();
 
@@ -466,9 +466,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 // changed document
-                foreach (var (documentId, newDocumentChecksums) in newMap)
+                foreach (var (documentId, newDocumentChecksums) in newDocumentIdToStateChecksums)
                 {
-                    if (!oldMap.TryGetValue(documentId, out var oldDocumentChecksums))
+                    if (!oldDocumentIdToStateChecksums.TryGetValue(documentId, out var oldDocumentChecksums))
                     {
                         continue;
                     }
@@ -483,9 +483,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // removed document
                 ImmutableArray<DocumentId>.Builder? lazyDocumentsToRemove = null;
-                foreach (var (documentId, _) in oldMap)
+                foreach (var (documentId, _) in oldDocumentIdToStateChecksums)
                 {
-                    if (!newMap.ContainsKey(documentId))
+                    if (!newDocumentIdToStateChecksums.ContainsKey(documentId))
                     {
                         // we have a document removed
                         lazyDocumentsToRemove ??= ImmutableArray.CreateBuilder<DocumentId>();
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         var documentChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                         if (olds.Contains(documentChecksums.Checksum))
-                            oldMap.Add(state.Id, documentChecksums);
+                            oldDocumentIdToStateChecksums.Add(state.Id, documentChecksums);
                     }
                 }
 
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         assetHint: project.Id, news, cancellationToken).ConfigureAwait(false);
 
                     foreach (var (_, documentStateChecksum) in documentStateChecksums)
-                        newMap.Add(documentStateChecksum.DocumentId, documentStateChecksum);
+                        newDocumentIdToStateChecksums.Add(documentStateChecksum.DocumentId, documentStateChecksum);
                 }
             }
 
