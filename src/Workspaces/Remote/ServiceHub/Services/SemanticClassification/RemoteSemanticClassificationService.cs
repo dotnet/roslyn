@@ -6,17 +6,23 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed partial class RemoteSemanticClassificationService : BrokeredServiceBase, IRemoteSemanticClassificationService
+    internal sealed class RemoteSemanticClassificationService : BrokeredServiceBase, IRemoteSemanticClassificationService
     {
         internal sealed class Factory : FactoryBase<IRemoteSemanticClassificationService>
         {
             protected override IRemoteSemanticClassificationService CreateService(in ServiceConstructionArguments arguments)
                 => new RemoteSemanticClassificationService(arguments);
+        }
+
+        public RemoteSemanticClassificationService(in ServiceConstructionArguments arguments)
+            : base(arguments)
+        {
         }
 
         public ValueTask<SerializableClassifiedSpans> GetClassificationsAsync(
@@ -39,23 +45,21 @@ namespace Microsoft.CodeAnalysis.Remote
                     document = document.WithFrozenPartialSemantics(cancellationToken);
                 }
 
-                using var _ = Classifier.GetPooledList(out var temp);
-                await AbstractClassificationService.AddClassificationsInCurrentProcessAsync(
-                    document, spans, type, options, temp, cancellationToken).ConfigureAwait(false);
-
-                if (isFullyLoaded)
-                {
-                    // Once fully loaded, there's no need for us to keep around any of the data we cached in-memory
-                    // during the time the solution was loading.
-                    lock (_cachedData)
-                        _cachedData.Clear();
-
-                    // Enqueue this document into our work queue to fully classify and cache.
-                    _workQueue.AddWork((document, type, options));
-                }
-
-                return SerializableClassifiedSpans.Dehydrate(temp.ToImmutableArray());
+                var cachingService = GetWorkspaceServices().GetRequiredService<IClassificationCachingService>();
+                return await cachingService.GetClassificationsAsync(document, spans, type, options, isFullyLoaded, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
+        }
+
+        public ValueTask<SerializableClassifiedSpans?> GetCachedClassificationsAsync(DocumentKey documentKey, ImmutableArray<TextSpan> textSpans, ClassificationType type, Checksum checksum, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(
+                async cancellationToken =>
+                {
+                    var workspaceServices = GetWorkspaceServices();
+                    var cachingService = workspaceServices.GetRequiredService<IClassificationCachingService>();
+                    return await cachingService.GetCachedClassificationsAsync(workspaceServices, documentKey, textSpans, type, checksum, cancellationToken).ConfigureAwait(false);
+                },
+                cancellationToken);
         }
     }
 }

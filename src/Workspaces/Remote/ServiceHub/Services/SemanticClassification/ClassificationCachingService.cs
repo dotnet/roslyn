@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -21,7 +24,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed partial class RemoteSemanticClassificationService : BrokeredServiceBase, IRemoteSemanticClassificationService
+    [ExportWorkspaceService(typeof(IClassificationCachingService))]
+    [Shared]
+    internal class ClassificationCachingService : IClassificationCachingService
     {
         /// <summary>
         /// Key we use to look this up in the persistence store for a particular document.
@@ -52,24 +57,46 @@ namespace Microsoft.CodeAnalysis.Remote
         /// same document may appear multiple times inside of this queue (for different versions of the document).
         /// However, we'll only process the last version of any document added.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<(Document, ClassificationType type, ClassificationOptions)> _workQueue;
+        private readonly AsyncBatchingWorkQueue<(Document document, ClassificationType type, ClassificationOptions options)> _workQueue;
         private readonly CancellationTokenSource _cancellationTokenSource = new();
 
-        public RemoteSemanticClassificationService(in ServiceConstructionArguments arguments)
-            : base(arguments)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public ClassificationCachingService(
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _workQueue = new AsyncBatchingWorkQueue<(Document, ClassificationType, ClassificationOptions)>(
                 DelayTimeSpan.NonFocus,
                 CacheClassificationsAsync,
                 EqualityComparer<(Document, ClassificationType, ClassificationOptions)>.Default,
-                AsynchronousOperationListenerProvider.NullListener,
+                listenerProvider.GetListener(FeatureAttribute.Classification),
                 _cancellationTokenSource.Token);
         }
 
-        public override void Dispose()
+        public async ValueTask<SerializableClassifiedSpans> GetClassificationsAsync(
+            Document document,
+            ImmutableArray<TextSpan> spans,
+            ClassificationType type,
+            ClassificationOptions options,
+            bool isFullyLoaded,
+            CancellationToken cancellationToken)
         {
-            _cancellationTokenSource.Cancel();
-            base.Dispose();
+            using var _ = Classifier.GetPooledList(out var temp);
+            await AbstractClassificationService.AddClassificationsInCurrentProcessAsync(
+                document, spans, type, options, temp, cancellationToken).ConfigureAwait(false);
+
+            if (isFullyLoaded)
+            {
+                // Once fully loaded, there's no need for us to keep around any of the data we cached in-memory
+                // during the time the solution was loading.
+                lock (_cachedData)
+                    _cachedData.Clear();
+
+                // Enqueue this document into our work queue to fully classify and cache.
+                _workQueue.AddWork((document, type, options));
+            }
+
+            return SerializableClassifiedSpans.Dehydrate(temp.ToImmutableArray());
         }
 
         private static string GetPersistenceName(ClassificationType type)
@@ -81,10 +108,10 @@ namespace Microsoft.CodeAnalysis.Remote
             };
 
         public async ValueTask<SerializableClassifiedSpans?> GetCachedClassificationsAsync(
-            DocumentKey documentKey, ImmutableArray<TextSpan> textSpans, ClassificationType type, Checksum checksum, CancellationToken cancellationToken)
+            SolutionServices workspaceServices, DocumentKey documentKey, ImmutableArray<TextSpan> textSpans, ClassificationType type, Checksum checksum, CancellationToken cancellationToken)
         {
             var classifiedSpans = await TryGetOrReadCachedSemanticClassificationsAsync(
-                documentKey, type, checksum, cancellationToken).ConfigureAwait(false);
+                workspaceServices, documentKey, type, checksum, cancellationToken).ConfigureAwait(false);
             var textSpanIntervalTree = new TextSpanIntervalTree(textSpans);
             return classifiedSpans.IsDefault
                 ? null
@@ -210,6 +237,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         private async Task<ImmutableArray<ClassifiedSpan>> TryGetOrReadCachedSemanticClassificationsAsync(
+            SolutionServices workspaceServices,
             DocumentKey documentKey,
             ClassificationType type,
             Checksum checksum,
@@ -221,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Otherwise, attempt to read in classifications from persistence store.
             classifiedSpans = await TryReadCachedSemanticClassificationsAsync(
-                documentKey, type, checksum, cancellationToken).ConfigureAwait(false);
+                workspaceServices, documentKey, type, checksum, cancellationToken).ConfigureAwait(false);
             if (classifiedSpans.IsDefault)
                 return default;
 
@@ -272,13 +300,14 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async Task<ImmutableArray<ClassifiedSpan>> TryReadCachedSemanticClassificationsAsync(
+        private static async Task<ImmutableArray<ClassifiedSpan>> TryReadCachedSemanticClassificationsAsync(
+            SolutionServices workspaceServices,
             DocumentKey documentKey,
             ClassificationType type,
             Checksum checksum,
             CancellationToken cancellationToken)
         {
-            var persistenceService = GetWorkspaceServices().GetPersistentStorageService();
+            var persistenceService = workspaceServices.GetPersistentStorageService();
             var storage = await persistenceService.GetStorageAsync(documentKey.Project.Solution, cancellationToken).ConfigureAwait(false);
             await using var _ = storage.ConfigureAwait(false);
             if (storage == null)
