@@ -130,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         [Experimental("RSEXPERIMENT001")]
         public override bool DisableNullableAnalysis => _parentSemanticModel.DisableNullableAnalysis;
+
         public override bool IgnoresAccessibility => _parentSemanticModel.IgnoresAccessibility;
 
         private MemberSemanticModel GetEnclosingMemberModel(int position)

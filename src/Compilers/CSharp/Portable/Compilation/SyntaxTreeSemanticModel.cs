@@ -50,13 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _binderFactory = compilation.GetBinderFactory(SyntaxTree, (options & SemanticModelOptions.IgnoreAccessibility) != 0);
         }
 
-        internal SyntaxTreeSemanticModel(CSharpCompilation parentCompilation, SyntaxTree parentSyntaxTree, SyntaxTree speculatedSyntaxTree, bool ignoreAccessibility)
+        internal SyntaxTreeSemanticModel(CSharpCompilation parentCompilation, SyntaxTree parentSyntaxTree, SyntaxTree speculatedSyntaxTree, SemanticModelOptions options)
         {
             _compilation = parentCompilation;
             _syntaxTree = speculatedSyntaxTree;
-            _binderFactory = _compilation.GetBinderFactory(parentSyntaxTree, ignoreAccessibility);
-            // https://github.com/dotnet/roslyn/issues/71904: allow speculation to disable nullable analysis?
-            _options = ignoreAccessibility ? SemanticModelOptions.IgnoreAccessibility : SemanticModelOptions.None;
+            _binderFactory = _compilation.GetBinderFactory(parentSyntaxTree, ignoreAccessibility: (options & SemanticModelOptions.IgnoreAccessibility) != 0);
+            _options = options;
         }
 
         /// <summary>
@@ -91,6 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _syntaxTree;
             }
         }
+
+        internal SemanticModelOptions Options => _options;
 
         /// <summary>
         /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
