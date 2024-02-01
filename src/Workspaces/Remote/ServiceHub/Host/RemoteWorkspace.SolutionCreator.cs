@@ -170,7 +170,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     // this should be cheap since we already computed oldSolutionChecksums (which calls into this).
                     var oldProjectStateChecksums = await oldProjectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfTrue(oldProjectStateChecksums.ProjectId != projectId);
                     Contract.ThrowIfTrue(oldChecksum != oldProjectStateChecksums.Checksum);
+
                     oldProjectIdToStateChecksums.Add(projectId, oldProjectStateChecksums);
                 }
 
@@ -185,8 +187,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 foreach (var (checksum, newProjectStateChecksum) in newProjectStateChecksums)
                 {
                     Contract.ThrowIfTrue(checksum != newProjectStateChecksum.Checksum);
-                    var projectId = newProjectStateChecksum.ProjectId;
-                    newProjectIdToStateChecksums.Add(projectId, newProjectStateChecksum);
+                    newProjectIdToStateChecksums.Add(newProjectStateChecksum.ProjectId, newProjectStateChecksum);
                 }
 
                 // Now that we've collected the old and new project state checksums, we can actually process them to
@@ -234,10 +235,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 // removed project
                 foreach (var (projectId, _) in oldProjectIdToStateChecksums)
                 {
-                    // Should never be removing projects during cone syncing.
-                    Contract.ThrowIfTrue(isConeSync);
                     if (!newProjectIdToStateChecksums.ContainsKey(projectId))
+                    {
+                        // Should never be removing projects during cone syncing.
+                        Contract.ThrowIfTrue(isConeSync);
                         solution = solution.RemoveProject(projectId);
+                    }
                 }
 
                 // changed project
