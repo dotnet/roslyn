@@ -70,12 +70,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // No definition found - see if we can get metadata as source but that's only applicable for C#\VB.
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
-
-                if (symbol.IsTupleType())
-                {
-                    symbol = symbol.OriginalDefinition;
-                }
-
                 if (symbol != null && _metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                 {
                     if (!typeOnly || symbol is ITypeSymbol)
