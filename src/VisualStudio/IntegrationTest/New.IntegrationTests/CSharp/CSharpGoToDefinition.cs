@@ -238,7 +238,7 @@ class C
             await TestServices.Editor.PlaceCaretAsync("ValueTuple", charsOffset: -1, HangMitigatingCancellationToken);
 
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            Assert.Equal("ValueTuple [decompiled] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal($"ValueTuple [{FeaturesResources.Decompiled}] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
         }
     }
 }

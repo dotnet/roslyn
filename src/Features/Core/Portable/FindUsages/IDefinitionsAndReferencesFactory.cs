@@ -153,6 +153,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             if (sourceLocations.IsDefault || definition.IsTupleType())
             {
+                // If the location is in metadata, then create a metadata definition.
+                // A special case is the tuple type, where its locations are preserved in the original definition.
                 return DefinitionItem.CreateMetadataDefinition(
                     tags, displayParts, nameDisplayParts, solution,
                     definition, properties, displayIfNoReferences);
