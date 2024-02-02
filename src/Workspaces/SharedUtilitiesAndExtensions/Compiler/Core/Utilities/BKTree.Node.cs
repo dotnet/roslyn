@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Utilities
@@ -32,11 +33,11 @@ namespace Roslyn.Utilities
                 writer.WriteInt32(FirstEdgeIndex);
             }
 
-            internal static Node ReadFrom(ObjectReader reader)
+            internal static async ValueTask<Node> ReadFromAsync(ObjectReader reader)
             {
                 return new Node(
-                    new TextSpan(start: reader.ReadInt32(), length: reader.ReadInt32()),
-                    edgeCount: reader.ReadInt32(), firstEdgeIndex: reader.ReadInt32());
+                    new TextSpan(start: await reader.ReadInt32Async().ConfigureAwait(false), length: await reader.ReadInt32Async().ConfigureAwait(false)),
+                    edgeCount: await reader.ReadInt32Async().ConfigureAwait(false), firstEdgeIndex: await reader.ReadInt32Async().ConfigureAwait(false));
             }
         }
     }

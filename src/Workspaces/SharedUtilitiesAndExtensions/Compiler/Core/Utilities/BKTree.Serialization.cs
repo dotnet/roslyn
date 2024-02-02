@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -16,14 +17,14 @@ internal readonly partial struct BKTree
         writer.WriteArray(_edges, static (w, n) => n.WriteTo(w));
     }
 
-    internal static BKTree? ReadFrom(ObjectReader reader)
+    internal static async ValueTask<BKTree?> ReadFromAsync(ObjectReader reader)
     {
         try
         {
             return new BKTree(
-                (char[])reader.ReadValue(),
-                reader.ReadArray(Node.ReadFrom),
-                reader.ReadArray(Edge.ReadFrom));
+                (char[])await reader.ReadValueAsync().ConfigureAwait(false),
+                await reader.ReadArrayAsync(Node.ReadFromAsync).ConfigureAwait(false),
+                await reader.ReadArrayAsync(Edge.ReadFromAsync).ConfigureAwait(false));
         }
         catch
         {

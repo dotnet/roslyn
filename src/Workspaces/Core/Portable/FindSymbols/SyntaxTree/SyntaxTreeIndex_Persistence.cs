@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task<SyntaxTreeIndex?> LoadAsync(
             IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
         {
-            return LoadAsync(storageService, documentKey, checksum, stringTable, ReadIndex, cancellationToken);
+            return LoadAsync(storageService, documentKey, checksum, stringTable, ReadIndexAsync, cancellationToken);
         }
 
         public override void WriteTo(ObjectWriter writer)
@@ -41,17 +41,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static SyntaxTreeIndex? ReadIndex(
+        private static async ValueTask<SyntaxTreeIndex?> ReadIndexAsync(
             StringTable stringTable, ObjectReader reader, Checksum? checksum)
         {
-            var literalInfo = LiteralInfo.TryReadFrom(reader);
-            var identifierInfo = IdentifierInfo.TryReadFrom(reader);
-            var contextInfo = ContextInfo.TryReadFrom(reader);
+            var literalInfo = await LiteralInfo.TryReadFromAsync(reader).ConfigureAwait(false);
+            var identifierInfo = await IdentifierInfo.TryReadFromAsync(reader).ConfigureAwait(false);
+            var contextInfo = await ContextInfo.TryReadFromAsync(reader).ConfigureAwait(false);
 
             if (literalInfo == null || identifierInfo == null || contextInfo == null)
                 return null;
 
-            var globalAliasInfoCount = reader.ReadInt32();
+            var globalAliasInfoCount = await reader.ReadInt32Async().ConfigureAwait(false);
             HashSet<(string alias, string name, int arity)>? globalAliasInfo = null;
 
             if (globalAliasInfoCount > 0)
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 for (var i = 0; i < globalAliasInfoCount; i++)
                 {
-                    var alias = reader.ReadString();
-                    var name = reader.ReadString();
-                    var arity = reader.ReadInt32();
+                    var alias = await reader.ReadStringAsync().ConfigureAwait(false);
+                    var name = await reader.ReadStringAsync().ConfigureAwait(false);
+                    var arity = await reader.ReadInt32Async().ConfigureAwait(false);
                     globalAliasInfo.Add((alias, name, arity));
                 }
             }

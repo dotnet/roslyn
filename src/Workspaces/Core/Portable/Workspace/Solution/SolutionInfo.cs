@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
@@ -145,12 +146,12 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteGuid(TelemetryId);
             }
 
-            public static SolutionAttributes ReadFrom(ObjectReader reader)
+            public static async ValueTask<SolutionAttributes> ReadFromAsync(ObjectReader reader)
             {
-                var solutionId = SolutionId.ReadFrom(reader);
+                var solutionId = await SolutionId.ReadFromAsync(reader).ConfigureAwait(false);
                 // var version = VersionStamp.ReadFrom(reader);
-                var filePath = reader.ReadString();
-                var telemetryId = reader.ReadGuid();
+                var filePath = await reader.ReadStringAsync().ConfigureAwait(false);
+                var telemetryId = await reader.ReadGuidAsync().ConfigureAwait(false);
 
                 return new SolutionAttributes(solutionId, VersionStamp.Create(), filePath, telemetryId);
             }

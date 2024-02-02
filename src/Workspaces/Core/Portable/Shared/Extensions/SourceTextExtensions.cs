@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -171,7 +172,7 @@ internal static partial class SourceTextExtensions
     // 32KB. comes from SourceText char buffer size and less than large object size
     internal const int SourceTextLengthThreshold = 32 * 1024 / sizeof(char);
 
-    public static void WriteTo(this SourceText sourceText, ObjectWriter writer, CancellationToken cancellationToken)
+    public static async ValueTask WriteToAsync(this SourceText sourceText, ObjectWriter writer, CancellationToken cancellationToken)
     {
         // Source length
         var length = sourceText.Length;
@@ -187,6 +188,8 @@ internal static partial class SourceTextExtensions
             // if bigger, write out as chunks
             WriteChunksTo(sourceText, writer, length, cancellationToken);
         }
+
+        await writer.FlushAsync().ConfigureAwait(false);
     }
 
     private static void WriteChunksTo(SourceText sourceText, ObjectWriter writer, int length, CancellationToken cancellationToken)
@@ -242,18 +245,18 @@ internal static partial class SourceTextExtensions
 
         private int _position;
 
-        public static TextReader Create(ObjectReader reader)
+        public static async ValueTask<TextReader> CreateAsync(ObjectReader reader)
         {
-            var length = reader.ReadInt32();
+            var length = await reader.ReadInt32Async().ConfigureAwait(false);
             if (length < SourceTextLengthThreshold)
             {
                 // small size, read as string
-                return new StringReader(reader.ReadString());
+                return new StringReader(await reader.ReadStringAsync().ConfigureAwait(false));
             }
 
-            var chunkSize = reader.ReadInt32();
+            var chunkSize = await reader.ReadInt32Async().ConfigureAwait(false);
             Contract.ThrowIfTrue(chunkSize != CharArrayLength);
-            var numberOfChunks = reader.ReadInt32();
+            var numberOfChunks = await reader.ReadInt32Async().ConfigureAwait(false);
 
             // read as chunks
             using var _ = ArrayBuilder<char[]>.GetInstance(numberOfChunks, out var chunks);
@@ -262,12 +265,12 @@ internal static partial class SourceTextExtensions
             for (var i = 0; i < numberOfChunks; i++)
             {
                 // Shared pool array will be freed in the Dispose method below.
-                var (currentChunk, currentChunkLength) = reader.ReadCharArray(
+                var (currentChunk, currentChunkLength) = await reader.ReadCharArrayAsync(
                     static length =>
                     {
                         Contract.ThrowIfTrue(length > CharArrayLength);
                         return s_charArrayPool.Allocate();
-                    });
+                    }).ConfigureAwait(false);
 
                 Contract.ThrowIfTrue(currentChunk.Length != CharArrayLength);
 

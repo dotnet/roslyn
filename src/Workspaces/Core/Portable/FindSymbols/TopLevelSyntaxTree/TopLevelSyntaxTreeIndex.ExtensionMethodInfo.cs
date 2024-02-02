@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -55,15 +56,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            public static ExtensionMethodInfo? TryReadFrom(ObjectReader reader)
+            public static async ValueTask<ExtensionMethodInfo?> TryReadFromAsync(ObjectReader reader)
             {
                 try
                 {
                     var receiverTypeNameToExtensionMethodMapBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<int>>();
-                    var count = reader.ReadInt32();
+                    var count = await reader.ReadInt32Async().ConfigureAwait(false);
 
                     for (var i = 0; i < count; ++i)
-                        receiverTypeNameToExtensionMethodMapBuilder[reader.ReadString()] = reader.ReadArray(static r => r.ReadInt32());
+                    {
+                        receiverTypeNameToExtensionMethodMapBuilder[await reader.ReadStringAsync().ConfigureAwait(false)] =
+                            await reader.ReadArrayAsync(static r => r.ReadInt32Async()).ConfigureAwait(false);
+                    }
 
                     return new ExtensionMethodInfo(receiverTypeNameToExtensionMethodMapBuilder.ToImmutable());
                 }

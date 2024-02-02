@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -18,19 +19,19 @@ internal readonly struct ChecksumsAndIds<TId>
     public readonly ChecksumCollection Checksums;
     public readonly ImmutableArray<TId> Ids;
 
-    private static readonly Func<ObjectReader, TId> s_readId;
+    private static readonly Func<ObjectReader, ValueTask<TId>> s_readId;
     private static readonly Action<ObjectWriter, TId> s_writeTo;
 
     static ChecksumsAndIds()
     {
         if (typeof(TId) == typeof(ProjectId))
         {
-            s_readId = reader => (TId)(object)ProjectId.ReadFrom(reader);
+            s_readId = async reader => (TId)(object)await ProjectId.ReadFromAsync(reader).ConfigureAwait(false);
             s_writeTo = (writer, id) => ((ProjectId)(object)id!).WriteTo(writer);
         }
         else if (typeof(TId) == typeof(DocumentId))
         {
-            s_readId = reader => (TId)(object)DocumentId.ReadFrom(reader);
+            s_readId = async reader => (TId)(object)await DocumentId.ReadFromAsync(reader).ConfigureAwait(false);
             s_writeTo = (writer, id) => ((DocumentId)(object)id!).WriteTo(writer);
         }
         else
@@ -56,11 +57,11 @@ internal readonly struct ChecksumsAndIds<TId>
         writer.WriteArray(this.Ids, s_writeTo);
     }
 
-    public static ChecksumsAndIds<TId> ReadFrom(ObjectReader reader)
+    public static async ValueTask<ChecksumsAndIds<TId>> ReadFromAsync(ObjectReader reader)
     {
         return new(
-            ChecksumCollection.ReadFrom(reader),
-            reader.ReadArray(s_readId));
+            await ChecksumCollection.ReadFromAsync(reader).ConfigureAwait(false),
+            await reader.ReadArrayAsync(s_readId).ConfigureAwait(false));
     }
 
     public Enumerator GetEnumerator()

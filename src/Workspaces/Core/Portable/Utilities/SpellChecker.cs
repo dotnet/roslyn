@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
@@ -42,14 +43,14 @@ namespace Roslyn.Utilities
             bKTree.WriteTo(writer);
         }
 
-        internal static SpellChecker? TryReadFrom(ObjectReader reader)
+        internal static async ValueTask<SpellChecker?> TryReadFromAsync(ObjectReader reader)
         {
             try
             {
-                var formatVersion = reader.ReadString();
+                var formatVersion = await reader.ReadStringAsync().ConfigureAwait(false);
                 if (string.Equals(formatVersion, SerializationFormat, StringComparison.Ordinal))
                 {
-                    var bkTree = BKTree.ReadFrom(reader);
+                    var bkTree = await BKTree.ReadFromAsync(reader).ConfigureAwait(false);
                     if (bkTree != null)
                         return new SpellChecker(bkTree.Value);
                 }

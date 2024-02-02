@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             => GetRequiredIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, cancellationToken);
 
         public static ValueTask<SyntaxTreeIndex> GetRequiredIndexAsync(SolutionKey solutionKey, ProjectState project, DocumentState document, CancellationToken cancellationToken)
-            => GetRequiredIndexAsync(solutionKey, project, document, ReadIndex, CreateIndex, cancellationToken);
+            => GetRequiredIndexAsync(solutionKey, project, document, ReadIndexAsync, CreateIndex, cancellationToken);
 
         public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(Document document, CancellationToken cancellationToken)
             => GetIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, cancellationToken);
@@ -46,6 +46,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             => GetIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, loadOnly, cancellationToken);
 
         public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(SolutionKey solutionKey, ProjectState project, DocumentState document, bool loadOnly, CancellationToken cancellationToken)
-            => GetIndexAsync(solutionKey, project, document, loadOnly, ReadIndex, CreateIndex, cancellationToken);
+            => GetIndexAsync(solutionKey, project, document, loadOnly, ReadIndexAsync, CreateIndex, cancellationToken);
     }
 }

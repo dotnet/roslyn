@@ -5,14 +5,21 @@
 #nullable disable
 
 using System;
+using System.Buffers;
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipelines;
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SQLite.Interop;
 
 namespace Roslyn.Utilities;
 
@@ -39,7 +46,9 @@ internal sealed partial class ObjectReader : IDisposable
     internal const byte VersionByte1 = 0b10101010;
     internal const byte VersionByte2 = 0b00001100;
 
-    private readonly BinaryReader _reader;
+    private readonly bool _leaveOpen;
+    private readonly PipeReader _reader;
+
     private readonly CancellationToken _cancellationToken;
 
     /// <summary>
@@ -50,11 +59,11 @@ internal sealed partial class ObjectReader : IDisposable
     /// <summary>
     /// Creates a new instance of a <see cref="ObjectReader"/>.
     /// </summary>
-    /// <param name="stream">The stream to read objects from.</param>
-    /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
+    /// <param name="reader">The stream to read objects from.</param>
+    /// <param name="leaveOpen">True to leave the <paramref name="reader"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
     /// <param name="cancellationToken"></param>
     private ObjectReader(
-        Stream stream,
+        PipeReader reader,
         bool leaveOpen,
         CancellationToken cancellationToken)
     {
@@ -62,34 +71,30 @@ internal sealed partial class ObjectReader : IDisposable
         // It can be adjusted for BigEndian if needed.
         Debug.Assert(BitConverter.IsLittleEndian);
 
-        _reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen);
+        _reader = reader;
+        _leaveOpen = leaveOpen;
         _stringReferenceMap = ReaderReferenceMap<string>.Create();
 
         _cancellationToken = cancellationToken;
     }
 
     /// <summary>
-    /// Attempts to create a <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
-    /// If the <paramref name="stream"/> does not start with a valid header, then <see langword="null"/> will
-    /// be returned.
+    /// Attempts to create a <see cref="ObjectReader"/> from the provided <paramref name="reader"/>. If the <paramref
+    /// name="reader"/> does not start with a valid header, then <see langword="null"/> will be returned.
     /// </summary>
-    public static ObjectReader TryGetReader(
-        Stream stream,
+    public static async ValueTask<ObjectReader> TryGetReaderAsync(
+        PipeReader reader,
         bool leaveOpen = false,
         CancellationToken cancellationToken = default)
     {
-        if (stream == null)
-        {
+        const int preambleSize = 2;
+        if (reader == null)
             return null;
-        }
 
         try
         {
-            if (stream.ReadByte() != VersionByte1 ||
-                stream.ReadByte() != VersionByte2)
-            {
-                return null;
-            }
+            var readResult = await reader.ReadAtLeastAsync(preambleSize, cancellationToken).ConfigureAwait(false);
+            return CreateReaderFromResult(readResult);
         }
         catch (AggregateException ex) when (ex.InnerException is not null)
         {
@@ -101,94 +106,179 @@ internal sealed partial class ObjectReader : IDisposable
 #else
             ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
 #endif
+
+            return null;
         }
 
-        return new ObjectReader(stream, leaveOpen, cancellationToken);
+        ObjectReader CreateReaderFromResult(ReadResult result)
+        {
+            Span<byte> preamble = stackalloc byte[preambleSize];
+            result.Buffer.Slice(0, preambleSize).CopyTo(preamble);
+
+            if (preamble[0] != VersionByte1 ||
+                preamble[1] != VersionByte2)
+            {
+                return null;
+            }
+
+            reader.AdvanceTo(result.Buffer.GetPosition(preambleSize));
+            return new ObjectReader(reader, leaveOpen, cancellationToken);
+        }
     }
 
     /// <summary>
-    /// Creates an <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
-    /// Unlike <see cref="TryGetReader(Stream, bool, CancellationToken)"/>, it requires the version
-    /// of the data in the stream to exactly match the current format version.
-    /// Should only be used to read data written by the same version of Roslyn.
+    /// Creates an <see cref="ObjectReader"/> from the provided <paramref name="reader"/>. Unlike <see
+    /// cref="TryGetReaderAsync"/>, it requires the version of the data in the stream to exactly match the current
+    /// format version. Should only be used to read data written by the same version of Roslyn.
     /// </summary>
-    public static ObjectReader GetReader(
-        Stream stream,
+    public static async ValueTask<ObjectReader> GetReaderAsync(
+        PipeReader reader,
         bool leaveOpen,
         CancellationToken cancellationToken)
     {
-        var b = stream.ReadByte();
-        if (b == -1)
-        {
-            throw new EndOfStreamException();
-        }
+        var objectReader = new ObjectReader(reader, leaveOpen, cancellationToken);
 
+        var b = await objectReader.ReadByteAsync().ConfigureAwait(false);
         if (b != VersionByte1)
-        {
             throw ExceptionUtilities.UnexpectedValue(b);
-        }
 
-        b = stream.ReadByte();
-        if (b == -1)
-        {
-            throw new EndOfStreamException();
-        }
-
+        b = await objectReader.ReadByteAsync().ConfigureAwait(false);
         if (b != VersionByte2)
-        {
             throw ExceptionUtilities.UnexpectedValue(b);
-        }
 
-        return new ObjectReader(stream, leaveOpen, cancellationToken);
+        return objectReader;
     }
 
     public void Dispose()
     {
+        if (!_leaveOpen)
+            _reader.Complete();
+
         _stringReferenceMap.Dispose();
     }
 
-    public bool ReadBoolean() => _reader.ReadBoolean();
-    public byte ReadByte() => _reader.ReadByte();
-    // read as ushort because BinaryWriter fails on chars that are unicode surrogates
-    public char ReadChar() => (char)_reader.ReadUInt16();
-    public decimal ReadDecimal() => _reader.ReadDecimal();
-    public double ReadDouble() => _reader.ReadDouble();
-    public float ReadSingle() => _reader.ReadSingle();
-    public int ReadInt32() => _reader.ReadInt32();
-    public long ReadInt64() => _reader.ReadInt64();
-    public sbyte ReadSByte() => _reader.ReadSByte();
-    public short ReadInt16() => _reader.ReadInt16();
-    public uint ReadUInt32() => _reader.ReadUInt32();
-    public ulong ReadUInt64() => _reader.ReadUInt64();
-    public ushort ReadUInt16() => _reader.ReadUInt16();
-    public string ReadString() => ReadStringValue();
+    public async ValueTask<bool> ReadBooleanAsync()
+        => await ReadByteAsync().ConfigureAwait(false) != 0;
 
-    public Guid ReadGuid()
+    public async ValueTask<byte> ReadByteAsync()
+    {
+        const int byteCount = 1;
+        var readResult = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
+        var result = readResult.Buffer.FirstSpan[0];
+        _reader.AdvanceTo(readResult.Buffer.GetPosition(byteCount));
+        return result;
+    }
+
+    public async ValueTask<sbyte> ReadSByteAsync()
+        => unchecked((sbyte)await ReadByteAsync().ConfigureAwait(false));
+
+    public async ValueTask<short> ReadInt16Async()
+    {
+        const int byteCount = 2;
+        var readResult = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
+        var result = ReadValue(readResult);
+        _reader.AdvanceTo(readResult.Buffer.GetPosition(byteCount));
+        return result;
+
+        static short ReadValue(ReadResult result)
+        {
+            Span<byte> dest = stackalloc byte[byteCount];
+            result.Buffer.Slice(0, byteCount).CopyTo(dest);
+            return BinaryPrimitives.ReadInt16LittleEndian(dest);
+        }
+    }
+
+    public async ValueTask<ushort> ReadUInt16Async()
+        => unchecked((ushort)await ReadInt16Async().ConfigureAwait(false));
+
+    public async ValueTask<int> ReadInt32Async()
+    {
+        const int byteCount = 4;
+        var readResult = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
+        var result = ReadValue(readResult);
+        _reader.AdvanceTo(readResult.Buffer.GetPosition(byteCount));
+        return result;
+
+        static int ReadValue(ReadResult result)
+        {
+            Span<byte> dest = stackalloc byte[byteCount];
+            result.Buffer.Slice(0, byteCount).CopyTo(dest);
+            return BinaryPrimitives.ReadInt32LittleEndian(dest);
+        }
+    }
+
+    public async ValueTask<uint> ReadUInt32Async()
+        => unchecked((uint)await ReadInt32Async().ConfigureAwait(false));
+
+    public async ValueTask<long> ReadInt64Async()
+    {
+        const int byteCount = 8;
+        var readResult = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
+        var result = ReadValue(readResult);
+        _reader.AdvanceTo(readResult.Buffer.GetPosition(byteCount));
+        return result;
+
+        static long ReadValue(ReadResult result)
+        {
+            Span<byte> dest = stackalloc byte[byteCount];
+            result.Buffer.Slice(0, byteCount).CopyTo(dest);
+            return BinaryPrimitives.ReadInt64LittleEndian(dest);
+        }
+    }
+
+    public async ValueTask<ulong> ReadUInt64Async()
+        => unchecked((ulong)await ReadInt64Async().ConfigureAwait(false));
+
+    public async ValueTask<double> ReadDoubleAsync()
+        => BitConverter.Int64BitsToDouble(await ReadInt64Async().ConfigureAwait(false));
+
+    public async ValueTask<float> ReadSingleAsync()
+#if NETSTANDARD
+        => Unsafe.BitCast<int, float>(value);
+#else
+        => BitConverter.Int32BitsToSingle(await ReadInt32Async().ConfigureAwait(false));
+#endif
+
+    // read as ushort because BinaryWriter fails on chars that are unicode surrogates
+    public async ValueTask<char> ReadCharAsync()
+        => (char)await ReadUInt16Async().ConfigureAwait(false);
+
+    public async ValueTask<decimal> ReadDecimalAsync()
+    {
+        return new decimal(
+            isNegative: await ReadBooleanAsync().ConfigureAwait(false),
+            scale: await ReadByteAsync().ConfigureAwait(false),
+            lo: await ReadInt32Async().ConfigureAwait(false),
+            mid: await ReadInt32Async().ConfigureAwait(false),
+            hi: await ReadInt32Async().ConfigureAwait(false));
+    }
+
+    public async ValueTask<Guid> ReadGuidAsync()
     {
         var accessor = new ObjectWriter.GuidAccessor
         {
-            Low64 = ReadInt64(),
-            High64 = ReadInt64()
+            Low64 = await ReadInt64Async().ConfigureAwait(false),
+            High64 = await ReadInt64Async().ConfigureAwait(false),
         };
 
         return accessor.Guid;
     }
 
-    public object ReadValue()
+    public async ValueTask<object> ReadValueAsync()
     {
-        var code = (TypeCode)ReadByte();
+        var code = (TypeCode)await ReadByteAsync().ConfigureAwait(false);
         switch (code)
         {
             case TypeCode.Null: return null;
             case TypeCode.Boolean_True: return true;
             case TypeCode.Boolean_False: return false;
-            case TypeCode.Int8: return ReadSByte();
-            case TypeCode.UInt8: return ReadByte();
-            case TypeCode.Int16: return ReadInt16();
-            case TypeCode.UInt16: return ReadUInt16();
-            case TypeCode.Int32: return ReadInt32();
-            case TypeCode.Int32_1Byte: return (int)ReadByte();
-            case TypeCode.Int32_2Bytes: return (int)ReadUInt16();
+            case TypeCode.Int8: return await ReadSByteAsync().ConfigureAwait(false);
+            case TypeCode.UInt8: return await ReadByteAsync().ConfigureAwait(false);
+            case TypeCode.Int16: return await ReadInt16Async().ConfigureAwait(false);
+            case TypeCode.UInt16: return await ReadUInt16Async().ConfigureAwait(false);
+            case TypeCode.Int32: return await ReadInt32Async().ConfigureAwait(false);
+            case TypeCode.Int32_1Byte: return (int)await ReadByteAsync().ConfigureAwait(false);
+            case TypeCode.Int32_2Bytes: return (int)await ReadUInt16Async().ConfigureAwait(false);
             case TypeCode.Int32_0:
             case TypeCode.Int32_1:
             case TypeCode.Int32_2:
@@ -201,9 +291,9 @@ internal sealed partial class ObjectReader : IDisposable
             case TypeCode.Int32_9:
             case TypeCode.Int32_10:
                 return (int)code - (int)TypeCode.Int32_0;
-            case TypeCode.UInt32: return ReadUInt32();
-            case TypeCode.UInt32_1Byte: return (uint)ReadByte();
-            case TypeCode.UInt32_2Bytes: return (uint)ReadUInt16();
+            case TypeCode.UInt32: return await ReadUInt32Async().ConfigureAwait(false);
+            case TypeCode.UInt32_1Byte: return (uint)await ReadByteAsync().ConfigureAwait(false);
+            case TypeCode.UInt32_2Bytes: return (uint)await ReadUInt16Async().ConfigureAwait(false);
             case TypeCode.UInt32_0:
             case TypeCode.UInt32_1:
             case TypeCode.UInt32_2:
@@ -216,53 +306,54 @@ internal sealed partial class ObjectReader : IDisposable
             case TypeCode.UInt32_9:
             case TypeCode.UInt32_10:
                 return (uint)((int)code - (int)TypeCode.UInt32_0);
-            case TypeCode.Int64: return ReadInt64();
-            case TypeCode.UInt64: return ReadUInt64();
-            case TypeCode.Float4: return ReadSingle();
-            case TypeCode.Float8: return ReadDouble();
-            case TypeCode.Decimal: return ReadDecimal();
+            case TypeCode.Int64: return await ReadInt64Async().ConfigureAwait(false);
+            case TypeCode.UInt64: return await ReadUInt64Async().ConfigureAwait(false);
+            case TypeCode.Float4: return await ReadSingleAsync().ConfigureAwait(false);
+            case TypeCode.Float8: return await ReadDoubleAsync().ConfigureAwait(false);
+            case TypeCode.Decimal: return await ReadDecimalAsync().ConfigureAwait(false);
             case TypeCode.Char:
                 // read as ushort because BinaryWriter fails on chars that are unicode surrogates
-                return (char)ReadUInt16();
+                return (char)await ReadUInt16Async().ConfigureAwait(false);
             case TypeCode.StringUtf8:
             case TypeCode.StringUtf16:
             case TypeCode.StringRef_4Bytes:
             case TypeCode.StringRef_1Byte:
             case TypeCode.StringRef_2Bytes:
-                return ReadStringValue(code);
+                return await ReadStringAsync(code).ConfigureAwait(false);
             case TypeCode.DateTime:
-                return DateTime.FromBinary(ReadInt64());
+                return DateTime.FromBinary(await ReadInt64Async().ConfigureAwait(false));
             case TypeCode.Array:
             case TypeCode.Array_0:
             case TypeCode.Array_1:
             case TypeCode.Array_2:
             case TypeCode.Array_3:
-                return ReadArray(code);
+                return await ReadArrayAsync(code).ConfigureAwait(false);
 
             case TypeCode.EncodingName:
-                return Encoding.GetEncoding(ReadString());
+                return Encoding.GetEncoding(await ReadStringAsync().ConfigureAwait(false));
 
             case >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding:
                 return ObjectWriter.ToEncodingKind(code).GetEncoding();
 
             case TypeCode.EncodingCodePage:
-                return Encoding.GetEncoding(ReadInt32());
+                return Encoding.GetEncoding(await ReadInt32Async().ConfigureAwait(false));
 
             default:
                 throw ExceptionUtilities.UnexpectedValue(code);
         }
     }
 
-    public (char[] array, int length) ReadCharArray(Func<int, char[]> getArray)
+    public async ValueTask<(char[] array, int length)> ReadCharArrayAsync(Func<int, char[]> getArray)
     {
-        var kind = (TypeCode)ReadByte();
+        var kind = (TypeCode)await ReadByteAsync().ConfigureAwait(false);
 
-        (var length, _) = ReadArrayLengthAndElementKind(kind);
+        (var length, _) = await ReadArrayLengthAndElementKindAsync(kind).ConfigureAwait(false);
         var array = getArray(length);
 
-        var charsRead = _reader.Read(array, 0, length);
-
-        return (array, charsRead);
+        var byteCount = length * 2;
+        var readResult = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
+        readResult.Buffer.Slice(byteCount).CopyTo(MemoryMarshal.AsBytes(array.AsSpan()));
+        return (array, length);
     }
 
     /// <summary>
@@ -305,9 +396,9 @@ internal sealed partial class ObjectReader : IDisposable
             => _values[referenceId];
     }
 
-    internal uint ReadCompressedUInt()
+    internal async ValueTask<uint> ReadCompressedUIntAsync()
     {
-        var info = ReadByte();
+        var info = await ReadByteAsync().ConfigureAwait(false);
         var marker = (byte)(info & ObjectWriter.ByteMarkerMask);
         var byte0 = (byte)(info & ~ObjectWriter.ByteMarkerMask);
 
@@ -318,15 +409,15 @@ internal sealed partial class ObjectReader : IDisposable
 
         if (marker == ObjectWriter.Byte2Marker)
         {
-            var byte1 = ReadByte();
+            var byte1 = await ReadByteAsync().ConfigureAwait(false);
             return (((uint)byte0) << 8) | byte1;
         }
 
         if (marker == ObjectWriter.Byte4Marker)
         {
-            var byte1 = ReadByte();
-            var byte2 = ReadByte();
-            var byte3 = ReadByte();
+            var byte1 = await ReadByteAsync().ConfigureAwait(false);
+            var byte2 = await ReadByteAsync().ConfigureAwait(false);
+            var byte3 = await ReadByteAsync().ConfigureAwait(false);
 
             return (((uint)byte0) << 24) | (((uint)byte1) << 16) | (((uint)byte2) << 8) | byte3;
         }
@@ -334,54 +425,83 @@ internal sealed partial class ObjectReader : IDisposable
         throw ExceptionUtilities.UnexpectedValue(marker);
     }
 
-    private string ReadStringValue()
+    public async ValueTask<string> ReadStringAsync()
     {
-        var kind = (TypeCode)ReadByte();
-        return kind == TypeCode.Null ? null : ReadStringValue(kind);
+        var kind = (TypeCode)await ReadByteAsync().ConfigureAwait(false);
+        if (kind == TypeCode.Null)
+            return null;
+
+        return await ReadStringAsync(kind).ConfigureAwait(false);
     }
 
-    private string ReadStringValue(TypeCode kind)
+    private async ValueTask<string> ReadStringAsync(TypeCode kind)
     {
         return kind switch
         {
-            TypeCode.StringRef_1Byte => _stringReferenceMap.GetValue(ReadByte()),
-            TypeCode.StringRef_2Bytes => _stringReferenceMap.GetValue(ReadUInt16()),
-            TypeCode.StringRef_4Bytes => _stringReferenceMap.GetValue(ReadInt32()),
-            TypeCode.StringUtf16 or TypeCode.StringUtf8 => ReadStringLiteral(kind),
+            TypeCode.StringRef_1Byte => _stringReferenceMap.GetValue(await ReadByteAsync().ConfigureAwait(false)),
+            TypeCode.StringRef_2Bytes => _stringReferenceMap.GetValue(await ReadUInt16Async().ConfigureAwait(false)),
+            TypeCode.StringRef_4Bytes => _stringReferenceMap.GetValue(await ReadInt32Async().ConfigureAwait(false)),
+            TypeCode.StringUtf16 or TypeCode.StringUtf8 => await ReadStringContentsAsync(kind).ConfigureAwait(false),
             _ => throw ExceptionUtilities.UnexpectedValue(kind),
         };
-    }
 
-    private unsafe string ReadStringLiteral(TypeCode kind)
-    {
-        string value;
-        if (kind == TypeCode.StringUtf8)
+        async ValueTask<string> ReadStringContentsAsync(TypeCode kind)
         {
-            value = _reader.ReadString();
-        }
-        else
-        {
-            // This is rare, just allocate UTF-16 bytes for simplicity.
-            var characterCount = (int)ReadCompressedUInt();
-            var bytes = _reader.ReadBytes(characterCount * sizeof(char));
-            fixed (byte* bytesPtr = bytes)
-            {
-                value = new string((char*)bytesPtr, 0, characterCount);
-            }
+            var value = kind == TypeCode.StringUtf8
+                ? await ReadUtf8StringContentsAsync().ConfigureAwait(false)
+                : await ReadUtf16StringContentsAsync().ConfigureAwait(false);
+
+            _stringReferenceMap.AddValue(value);
+            return value;
         }
 
-        _stringReferenceMap.AddValue(value);
-        return value;
+        async ValueTask<string> ReadUtf8StringContentsAsync()
+        {
+            var byteCount = await ReadInt32Async().ConfigureAwait(false);
+            var result = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
+
+#if NETSTANDARD
+            var bytes = System.Buffers.ArrayPool<byte>.Shared.Rent(byteCount);
+            result.Buffer.Slice(0, byteCount).CopyTo(bytes);
+            var value = Encoding.UTF8.GetString(bytes);
+            System.Buffers.ArrayPool<byte>.Shared.Return(bytes);
+#else
+            var value = Encoding.UTF8.GetString(result.Buffer);
+#endif
+            _reader.AdvanceTo(result.Buffer.GetPosition(byteCount));
+
+            return value;
+        }
+
+        async ValueTask<string> ReadUtf16StringContentsAsync()
+        {
+            var byteCount = await ReadInt32Async().ConfigureAwait(false);
+            Contract.ThrowIfTrue(byteCount % 2 == 1);
+
+            var result = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
+            return ReadUtf16StringContents(byteCount, result);
+        }
+
+        string ReadUtf16StringContents(int byteCount, ReadResult result)
+        {
+            var chars = new char[byteCount / 2];
+            var bytes = MemoryMarshal.AsBytes(chars.AsSpan());
+            result.Buffer.Slice(byteCount).CopyTo(bytes);
+
+            var value = new string(chars);
+            _reader.AdvanceTo(result.Buffer.GetPosition(byteCount));
+            return value;
+        }
     }
 
-    private Array ReadArray(TypeCode kind)
+    private async ValueTask<Array> ReadArrayAsync(TypeCode kind)
     {
-        var (length, elementKind) = ReadArrayLengthAndElementKind(kind);
+        var (length, elementKind) = await ReadArrayLengthAndElementKindAsync(kind).ConfigureAwait(false);
 
         var elementType = ObjectWriter.s_reverseTypeMap[(int)elementKind];
         if (elementType != null)
         {
-            return this.ReadPrimitiveTypeArrayElements(elementType, elementKind, length);
+            return await this.ReadPrimitiveTypeArrayElementsAsync(elementType, elementKind, length).ConfigureAwait(false);
         }
         else
         {
@@ -389,7 +509,7 @@ internal sealed partial class ObjectReader : IDisposable
         }
     }
 
-    private (int length, TypeCode elementKind) ReadArrayLengthAndElementKind(TypeCode kind)
+    private async ValueTask<(int length, TypeCode elementKind)> ReadArrayLengthAndElementKindAsync(TypeCode kind)
     {
         var length = kind switch
         {
@@ -397,50 +517,61 @@ internal sealed partial class ObjectReader : IDisposable
             TypeCode.Array_1 => 1,
             TypeCode.Array_2 => 2,
             TypeCode.Array_3 => 3,
-            _ => (int)this.ReadCompressedUInt(),
+            _ => (int)await this.ReadCompressedUIntAsync().ConfigureAwait(false),
         };
 
         // SUBTLE: If it was a primitive array, only the EncodingKind byte of the element type was written, instead of encoding as a type.
-        var elementKind = (TypeCode)ReadByte();
+        var elementKind = (TypeCode)await ReadByteAsync().ConfigureAwait(false);
 
         return (length, elementKind);
     }
 
-    private Array ReadPrimitiveTypeArrayElements(Type type, TypeCode kind, int length)
+    private async ValueTask<Array> ReadPrimitiveTypeArrayElementsAsync(Type type, TypeCode kind, int length)
     {
         Debug.Assert(ObjectWriter.s_reverseTypeMap[(int)kind] == type);
 
         // optimizations for supported array type by binary reader
         if (type == typeof(byte))
-            return _reader.ReadBytes(length);
+        {
+            var result = new byte[length];
+            var readResult = await _reader.ReadAtLeastAsync(length, _cancellationToken).ConfigureAwait(false);
+            readResult.Buffer.Slice(length).CopyTo(result);
+            return result;
+        }
         if (type == typeof(char))
-            return _reader.ReadChars(length);
+        {
+            var result = new char[length];
+            var byteCount = length * 2;
+            var readResult = await _reader.ReadAtLeastAsync(byteCount, _cancellationToken).ConfigureAwait(false);
+            readResult.Buffer.Slice(byteCount).CopyTo(MemoryMarshal.AsBytes(result.AsSpan()));
+            return result;
+        }
 
         // optimizations for string where object reader/writer has its own mechanism to
         // reduce duplicated strings
         if (type == typeof(string))
-            return ReadStringArrayElements(CreateArray<string>(length));
+            return await ReadStringArrayElementsAsync(CreateArray<string>(length)).ConfigureAwait(false);
         if (type == typeof(bool))
-            return ReadBooleanArrayElements(CreateArray<bool>(length));
+            return await ReadBooleanArrayElementsAsync(CreateArray<bool>(length)).ConfigureAwait(false);
 
         // otherwise, read elements directly from underlying binary writer
         return kind switch
         {
-            TypeCode.Int8 => ReadInt8ArrayElements(CreateArray<sbyte>(length)),
-            TypeCode.Int16 => ReadInt16ArrayElements(CreateArray<short>(length)),
-            TypeCode.Int32 => ReadInt32ArrayElements(CreateArray<int>(length)),
-            TypeCode.Int64 => ReadInt64ArrayElements(CreateArray<long>(length)),
-            TypeCode.UInt16 => ReadUInt16ArrayElements(CreateArray<ushort>(length)),
-            TypeCode.UInt32 => ReadUInt32ArrayElements(CreateArray<uint>(length)),
-            TypeCode.UInt64 => ReadUInt64ArrayElements(CreateArray<ulong>(length)),
-            TypeCode.Float4 => ReadFloat4ArrayElements(CreateArray<float>(length)),
-            TypeCode.Float8 => ReadFloat8ArrayElements(CreateArray<double>(length)),
-            TypeCode.Decimal => ReadDecimalArrayElements(CreateArray<decimal>(length)),
+            TypeCode.Int8 => await ReadInt8ArrayElementsAsync(CreateArray<sbyte>(length)).ConfigureAwait(false),
+            TypeCode.Int16 => await ReadInt16ArrayElementsAsync(CreateArray<short>(length)).ConfigureAwait(false),
+            TypeCode.Int32 => await ReadInt32ArrayElementsAsync(CreateArray<int>(length)).ConfigureAwait(false),
+            TypeCode.Int64 => await ReadInt64ArrayElementsAsync(CreateArray<long>(length)).ConfigureAwait(false),
+            TypeCode.UInt16 => await ReadUInt16ArrayElementsAsync(CreateArray<ushort>(length)).ConfigureAwait(false),
+            TypeCode.UInt32 => await ReadUInt32ArrayElementsAsync(CreateArray<uint>(length)).ConfigureAwait(false),
+            TypeCode.UInt64 => await ReadUInt64ArrayElementsAsync(CreateArray<ulong>(length)).ConfigureAwait(false),
+            TypeCode.Float4 => await ReadFloat4ArrayElementsAsync(CreateArray<float>(length)).ConfigureAwait(false),
+            TypeCode.Float8 => await ReadFloat8ArrayElementsAsync(CreateArray<double>(length)).ConfigureAwait(false),
+            TypeCode.Decimal => await ReadDecimalArrayElementsAsync(CreateArray<decimal>(length)).ConfigureAwait(false),
             _ => throw ExceptionUtilities.UnexpectedValue(kind),
         };
     }
 
-    private bool[] ReadBooleanArrayElements(bool[] array)
+    private async ValueTask<bool[]> ReadBooleanArrayElementsAsync(bool[] array)
     {
         // Confirm the type to be read below is ulong
         Debug.Assert(BitVector.BitsPerWord == 64);
@@ -450,7 +581,7 @@ internal sealed partial class ObjectReader : IDisposable
         var count = 0;
         for (var i = 0; i < wordLength; i++)
         {
-            var word = ReadUInt64();
+            var word = await ReadUInt64Async().ConfigureAwait(false);
 
             for (var p = 0; p < BitVector.BitsPerWord; p++)
             {
@@ -479,90 +610,90 @@ internal sealed partial class ObjectReader : IDisposable
         }
     }
 
-    private string[] ReadStringArrayElements(string[] array)
+    private async ValueTask<string[]> ReadStringArrayElementsAsync(string[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = this.ReadStringValue();
+            array[i] = await this.ReadStringAsync().ConfigureAwait(false);
 
         return array;
     }
 
-    private sbyte[] ReadInt8ArrayElements(sbyte[] array)
+    private async ValueTask<sbyte[]> ReadInt8ArrayElementsAsync(sbyte[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadSByte();
+            array[i] = await ReadSByteAsync().ConfigureAwait(false);
 
         return array;
     }
 
-    private short[] ReadInt16ArrayElements(short[] array)
+    private async ValueTask<short[]> ReadInt16ArrayElementsAsync(short[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadInt16();
+            array[i] = await ReadInt16Async().ConfigureAwait(false);
 
         return array;
     }
 
-    private int[] ReadInt32ArrayElements(int[] array)
+    private async ValueTask<int[]> ReadInt32ArrayElementsAsync(int[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadInt32();
+            array[i] = await ReadInt32Async().ConfigureAwait(false);
 
         return array;
     }
 
-    private long[] ReadInt64ArrayElements(long[] array)
+    private async ValueTask<long[]> ReadInt64ArrayElementsAsync(long[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadInt64();
+            array[i] = await ReadInt64Async().ConfigureAwait(false);
 
         return array;
     }
 
-    private ushort[] ReadUInt16ArrayElements(ushort[] array)
+    private async ValueTask<ushort[]> ReadUInt16ArrayElementsAsync(ushort[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadUInt16();
+            array[i] = await ReadUInt16Async().ConfigureAwait(false);
 
         return array;
     }
 
-    private uint[] ReadUInt32ArrayElements(uint[] array)
+    private async ValueTask<uint[]> ReadUInt32ArrayElementsAsync(uint[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadUInt32();
+            array[i] = await ReadUInt32Async().ConfigureAwait(false);
 
         return array;
     }
 
-    private ulong[] ReadUInt64ArrayElements(ulong[] array)
+    private async ValueTask<ulong[]> ReadUInt64ArrayElementsAsync(ulong[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadUInt64();
+            array[i] = await ReadUInt64Async().ConfigureAwait(false);
 
         return array;
     }
 
-    private decimal[] ReadDecimalArrayElements(decimal[] array)
+    private async ValueTask<decimal[]> ReadDecimalArrayElementsAsync(decimal[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadDecimal();
+            array[i] = await ReadDecimalAsync().ConfigureAwait(false);
 
         return array;
     }
 
-    private float[] ReadFloat4ArrayElements(float[] array)
+    private async ValueTask<float[]> ReadFloat4ArrayElementsAsync(float[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadSingle();
+            array[i] = await ReadSingleAsync().ConfigureAwait(false);
 
         return array;
     }
 
-    private double[] ReadFloat8ArrayElements(double[] array)
+    private async ValueTask<double[]> ReadFloat8ArrayElementsAsync(double[] array)
     {
         for (var i = 0; i < array.Length; i++)
-            array[i] = ReadDouble();
+            array[i] = await ReadDoubleAsync().ConfigureAwait(false);
 
         return array;
     }

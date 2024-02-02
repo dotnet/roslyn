@@ -6,7 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -233,23 +236,23 @@ namespace Microsoft.CodeAnalysis
                 Id.WriteTo(writer);
 
                 writer.WriteString(Name);
-                writer.WriteValue(Folders.ToArray());
+                writer.WriteArray(Folders.ToImmutableArrayOrEmpty(), static (w, v) => w.WriteString(v));
                 writer.WriteByte(checked((byte)SourceCodeKind));
                 writer.WriteString(FilePath);
                 writer.WriteBoolean(IsGenerated);
                 writer.WriteBoolean(DesignTimeOnly);
             }
 
-            public static DocumentAttributes ReadFrom(ObjectReader reader)
+            public static async ValueTask<DocumentAttributes> ReadFromAsync(ObjectReader reader)
             {
-                var documentId = DocumentId.ReadFrom(reader);
+                var documentId = await DocumentId.ReadFromAsync(reader).ConfigureAwait(false);
 
-                var name = reader.ReadString();
-                var folders = (string[])reader.ReadValue();
-                var sourceCodeKind = (SourceCodeKind)reader.ReadByte();
-                var filePath = reader.ReadString();
-                var isGenerated = reader.ReadBoolean();
-                var designTimeOnly = reader.ReadBoolean();
+                var name = await reader.ReadStringAsync().ConfigureAwait(false);
+                var folders = await reader.ReadArrayAsync(static r => r.ReadStringAsync()).ConfigureAwait(false);
+                var sourceCodeKind = (SourceCodeKind)await reader.ReadByteAsync().ConfigureAwait(false);
+                var filePath = await reader.ReadStringAsync().ConfigureAwait(false);
+                var isGenerated = await reader.ReadBooleanAsync().ConfigureAwait(false);
+                var designTimeOnly = await reader.ReadBooleanAsync().ConfigureAwait(false);
 
                 return new DocumentAttributes(documentId, name, folders, sourceCodeKind, filePath, isGenerated, designTimeOnly);
             }

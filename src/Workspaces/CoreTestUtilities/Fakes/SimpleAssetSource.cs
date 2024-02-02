@@ -36,7 +36,7 @@ internal sealed class SimpleAssetSource(ISerializerService serializerService, IR
 
             stream.Position = 0;
             using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
-            var asset = deserializerService.Deserialize<object>(data.GetWellKnownSynchronizationKind(), reader, cancellationToken);
+            var asset = deserializerService.Deserialize(data.GetWellKnownSynchronizationKind(), reader, cancellationToken);
             Contract.ThrowIfNull(asset);
             results.Add(asset);
         }

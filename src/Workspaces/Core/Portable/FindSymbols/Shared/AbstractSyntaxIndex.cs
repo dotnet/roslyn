@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal abstract partial class AbstractSyntaxIndex<TIndex>
         where TIndex : AbstractSyntaxIndex<TIndex>
     {
-        protected delegate TIndex? IndexReader(StringTable stringTable, ObjectReader reader, Checksum? checksum);
+        protected delegate ValueTask<TIndex?> IndexReader(StringTable stringTable, ObjectReader reader, Checksum? checksum);
         protected delegate TIndex IndexCreator(ProjectState project, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken);
 
         private static readonly ConditionalWeakTable<DocumentState, TIndex?> s_documentToIndex = new();

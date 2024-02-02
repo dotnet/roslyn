@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using System.Runtime.Serialization;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
@@ -241,14 +242,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             writer.WriteArray(RequiredModifierList, (w, v) => v.WriteTo(w));
         }
 
-        public static SymbolSpecification ReadFrom(ObjectReader reader)
+        public static async ValueTask<SymbolSpecification> ReadFromAsync(ObjectReader reader)
         {
             return new SymbolSpecification(
-                reader.ReadGuid(),
-                reader.ReadString(),
-                reader.ReadArray(SymbolKindOrTypeKind.ReadFrom),
-                reader.ReadArray(r => (Accessibility)r.ReadInt32()),
-                reader.ReadArray(ModifierKind.ReadFrom));
+                await reader.ReadGuidAsync().ConfigureAwait(false),
+                await reader.ReadStringAsync().ConfigureAwait(false),
+                await reader.ReadArrayAsync(SymbolKindOrTypeKind.ReadFromAsync).ConfigureAwait(false),
+                await reader.ReadArrayAsync(async r => (Accessibility)await r.ReadInt32Async().ConfigureAwait(false)).ConfigureAwait(false),
+                await reader.ReadArrayAsync(ModifierKind.ReadFromAsync).ConfigureAwait(false));
         }
 
         private XElement CreateSymbolKindsXElement()
@@ -440,10 +441,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 }
             }
 
-            public static SymbolKindOrTypeKind ReadFrom(ObjectReader reader)
+            public static async ValueTask<SymbolKindOrTypeKind> ReadFromAsync(ObjectReader reader)
             {
-                var category = (SymbolCategory)reader.ReadInt32();
-                var kind = (byte)((category != SymbolCategory.Invalid) ? reader.ReadInt32() : 0);
+                var category = (SymbolCategory)await reader.ReadInt32Async().ConfigureAwait(false);
+                var kind = (byte)((category != SymbolCategory.Invalid) ? await reader.ReadInt32Async().ConfigureAwait(false) : 0);
                 return new SymbolKindOrTypeKind(category, kind);
             }
 
@@ -560,8 +561,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             public void WriteTo(ObjectWriter writer)
                 => writer.WriteInt32((int)ModifierKindWrapper);
 
-            public static ModifierKind ReadFrom(ObjectReader reader)
-                => new((ModifierKindEnum)reader.ReadInt32());
+            public static async ValueTask<ModifierKind> ReadFromAsync(ObjectReader reader)
+                => new((ModifierKindEnum)await reader.ReadInt32Async().ConfigureAwait(false));
 
             public override bool Equals(object obj)
                 => obj is ModifierKind kind && Equals(kind);

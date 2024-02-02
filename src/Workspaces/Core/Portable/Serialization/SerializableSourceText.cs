@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        public void Serialize(ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+        public async ValueTask SerializeAsync(ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (_storage is not null)
@@ -137,11 +137,11 @@ namespace Microsoft.CodeAnalysis.Serialization
                 writer.WriteInt32((int)_text.ChecksumAlgorithm);
                 writer.WriteEncoding(_text.Encoding);
                 writer.WriteInt32((int)SerializationKinds.Bits);
-                _text.WriteTo(writer, cancellationToken);
+                await _text.WriteToAsync(writer, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public static SerializableSourceText Deserialize(
+        public static async ValueTask<SerializableSourceText> DeserializeAsync(
             ObjectReader reader,
             ITemporaryStorageServiceInternal storageService,
             ITextFactoryService textService,
@@ -149,17 +149,19 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
-            var encoding = (Encoding)reader.ReadValue();
+            var checksumAlgorithm = (SourceHashAlgorithm)await reader.ReadInt32Async().ConfigureAwait(false);
+            var encoding = (Encoding)await reader.ReadValueAsync().ConfigureAwait(false);
 
-            var kind = (SerializationKinds)reader.ReadInt32();
+            var kind = (SerializationKinds)await reader.ReadInt32Async().ConfigureAwait(false);
+            Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
+
             if (kind == SerializationKinds.MemoryMapFile)
             {
                 var storage2 = (ITemporaryStorageService2)storageService;
 
-                var name = reader.ReadString();
-                var offset = reader.ReadInt64();
-                var size = reader.ReadInt64();
+                var name = await reader.ReadStringAsync().ConfigureAwait(false);
+                var offset = await reader.ReadInt64Async().ConfigureAwait(false);
+                var size = await reader.ReadInt64Async().ConfigureAwait(false);
 
                 var storage = storage2.AttachTemporaryTextStorage(name, offset, size, checksumAlgorithm, encoding);
                 if (storage is ITemporaryTextStorageWithName storageWithName)
@@ -171,9 +173,10 @@ namespace Microsoft.CodeAnalysis.Serialization
                     return new SerializableSourceText(storage.ReadText(cancellationToken));
                 }
             }
-
-            Contract.ThrowIfFalse(kind == SerializationKinds.Bits);
-            return new SerializableSourceText(SourceTextExtensions.ReadFrom(textService, reader, encoding, checksumAlgorithm, cancellationToken));
+            else
+            {
+                return new SerializableSourceText(SourceTextExtensions.ReadFrom(textService, reader, encoding, checksumAlgorithm, cancellationToken));
+            }
         }
     }
 }

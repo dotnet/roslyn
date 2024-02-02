@@ -12,8 +12,10 @@ using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
@@ -24,11 +26,11 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
 
-        public static Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
+        public static ValueTask<Checksum> CreateChecksumAsync(MetadataReference reference, CancellationToken cancellationToken)
         {
             if (reference is PortableExecutableReference portable)
             {
-                return CreatePortableExecutableReferenceChecksum(portable, cancellationToken);
+                return CreatePortableExecutableReferenceChecksumAsync(portable, cancellationToken);
             }
 
             throw ExceptionUtilities.UnexpectedValue(reference.GetType());
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         private static bool IsAnalyzerReferenceWithShadowCopyLoader(AnalyzerFileReference reference)
             => reference.AssemblyLoader is ShadowCopyAnalyzerAssemblyLoader;
 
-        public static Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
+        public static async ValueTask<Checksum> CreateChecksumAsync(AnalyzerReference reference, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -61,31 +63,32 @@ namespace Microsoft.CodeAnalysis.Serialization
             return Checksum.Create(stream);
         }
 
-        public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+        public virtual async ValueTask WriteMetadataReferenceToAsync(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
             if (reference is PortableExecutableReference portable)
             {
                 if (portable is ISupportTemporaryStorage supportTemporaryStorage)
                 {
-                    if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, context, cancellationToken))
+                    if (await TryWritePortableExecutableReferenceBackedByTemporaryStorageToAsync(
+                            supportTemporaryStorage, writer, context, cancellationToken).ConfigureAwait(false))
                     {
                         return;
                     }
                 }
 
-                WritePortableExecutableReferenceTo(portable, writer, cancellationToken);
+                WritePortableExecutableReferenceTo(portable, writer, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
             throw ExceptionUtilities.UnexpectedValue(reference.GetType());
         }
 
-        public virtual MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+        public virtual async ValueTask<MetadataReference> ReadMetadataReferenceFromAsync(ObjectReader reader, CancellationToken cancellationToken)
         {
-            var type = reader.ReadString();
+            var type = await reader.ReadStringAsync().ConfigureAwait(false);
             if (type == nameof(PortableExecutableReference))
             {
-                return ReadPortableExecutableReferenceFrom(reader, cancellationToken);
+                return await ReadPortableExecutableReferenceFromAsync(reader, cancellationToken).ConfigureAwait(false);
             }
 
             throw ExceptionUtilities.UnexpectedValue(type);
@@ -108,15 +111,15 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        public virtual AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+        public virtual async ValueTask<AnalyzerReference> ReadAnalyzerReferenceFromAsync(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var type = reader.ReadString();
+            var type = await reader.ReadStringAsync().ConfigureAwait(false);
             if (type == nameof(AnalyzerFileReference))
             {
-                var fullPath = reader.ReadString();
-                var shadowCopy = reader.ReadBoolean();
+                var fullPath = await reader.ReadStringAsync().ConfigureAwait(false);
+                var shadowCopy = await reader.ReadBooleanAsync().ConfigureAwait(false);
                 return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(new AnalyzerAssemblyLoaderOptions(shadowCopy)));
             }
 
@@ -138,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteString(reference.FilePath);
         }
 
-        private static Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference, CancellationToken cancellationToken)
+        private static async ValueTask<Checksum> CreatePortableExecutableReferenceChecksumAsync(PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
@@ -225,40 +228,37 @@ namespace Microsoft.CodeAnalysis.Serialization
             // TODO: what I should do with documentation provider? it is not exposed outside
         }
 
-        private PortableExecutableReference ReadPortableExecutableReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+        private async ValueTask<PortableExecutableReference> ReadPortableExecutableReferenceFromAsync(ObjectReader reader, CancellationToken cancellationToken)
         {
-            var kind = (SerializationKinds)reader.ReadInt32();
-            if (kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile)
+            var kind = (SerializationKinds)await reader.ReadInt32Async().ConfigureAwait(false);
+            Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
+
+            var properties = await ReadMetadataReferencePropertiesFromAsync(reader, cancellationToken).ConfigureAwait(false);
+
+            var filePath = await reader.ReadStringAsync().ConfigureAwait(false);
+
+            var tuple = await TryReadMetadataFromAsync(reader, kind, cancellationToken).ConfigureAwait(false);
+            if (tuple == null)
             {
-                var properties = ReadMetadataReferencePropertiesFrom(reader, cancellationToken);
+                // TODO: deal with xml document provider properly
+                //       should we shadow copy xml doc comment?
 
-                var filePath = reader.ReadString();
-
-                var tuple = TryReadMetadataFrom(reader, kind, cancellationToken);
-                if (tuple == null)
-                {
-                    // TODO: deal with xml document provider properly
-                    //       should we shadow copy xml doc comment?
-
-                    // image doesn't exist
-                    return new MissingMetadataReference(properties, filePath, XmlDocumentationProvider.Default);
-                }
-
-                // for now, we will use IDocumentationProviderService to get DocumentationProvider for metadata
-                // references. if the service is not available, then use Default (NoOp) provider.
-                // since xml doc comment is not part of solution snapshot, (like xml reference resolver or strong name
-                // provider) this provider can also potentially provide content that is different than one in the host. 
-                // an alternative approach of this is synching content of xml doc comment to remote host as well
-                // so that we can put xml doc comment as part of snapshot. but until we believe that is necessary,
-                // it will go with simpler approach
-                var documentProvider = filePath != null && _documentationService != null ?
-                    _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
-
-                return new SerializedMetadataReference(
-                    properties, filePath, tuple.Value.metadata, tuple.Value.storages, documentProvider);
+                // image doesn't exist
+                return new MissingMetadataReference(properties, filePath, XmlDocumentationProvider.Default);
             }
 
-            throw ExceptionUtilities.UnexpectedValue(kind);
+            // for now, we will use IDocumentationProviderService to get DocumentationProvider for metadata
+            // references. if the service is not available, then use Default (NoOp) provider.
+            // since xml doc comment is not part of solution snapshot, (like xml reference resolver or strong name
+            // provider) this provider can also potentially provide content that is different than one in the host. 
+            // an alternative approach of this is synching content of xml doc comment to remote host as well
+            // so that we can put xml doc comment as part of snapshot. but until we believe that is necessary,
+            // it will go with simpler approach
+            var documentProvider = filePath != null && _documentationService != null ?
+                _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
+
+            return new SerializedMetadataReference(
+                properties, filePath, tuple.Value.metadata, tuple.Value.storages, documentProvider);
         }
 
         private static void WriteTo(MetadataReferenceProperties properties, ObjectWriter writer, CancellationToken cancellationToken)
@@ -266,17 +266,17 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             writer.WriteInt32((int)properties.Kind);
-            writer.WriteValue(properties.Aliases.ToArray());
+            writer.WriteArray(properties.Aliases, static (w, a) => w.WriteString(a));
             writer.WriteBoolean(properties.EmbedInteropTypes);
         }
 
-        private static MetadataReferenceProperties ReadMetadataReferencePropertiesFrom(ObjectReader reader, CancellationToken cancellationToken)
+        private static async ValueTask<MetadataReferenceProperties> ReadMetadataReferencePropertiesFromAsync(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var kind = (MetadataImageKind)reader.ReadInt32();
-            var aliases = reader.ReadArray<string>().ToImmutableArrayOrEmpty();
-            var embedInteropTypes = reader.ReadBoolean();
+            var kind = (MetadataImageKind)await reader.ReadInt32Async().ConfigureAwait(false);
+            var aliases = await reader.ReadArrayAsync(static r => r.ReadStringAsync()).ConfigureAwait(false);
+            var embedInteropTypes = await reader.ReadBooleanAsync().ConfigureAwait(false);
 
             return new MetadataReferenceProperties(kind, aliases, embedInteropTypes);
         }
@@ -354,10 +354,10 @@ namespace Microsoft.CodeAnalysis.Serialization
             return true;
         }
 
-        private (Metadata metadata, ImmutableArray<ITemporaryStreamStorageInternal> storages)? TryReadMetadataFrom(
+        private async ValueTask<(Metadata metadata, ImmutableArray<ITemporaryStreamStorageInternal> storages)?> TryReadMetadataFromAsync(
             ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
         {
-            var imageKind = reader.ReadInt32();
+            var imageKind = await reader.ReadInt32Async().ConfigureAwait(false);
             if (imageKind == MetadataFailed)
             {
                 // error case
@@ -371,14 +371,14 @@ namespace Microsoft.CodeAnalysis.Serialization
                 {
                     using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
 
-                    var count = reader.ReadInt32();
+                    var count = await reader.ReadInt32Async().ConfigureAwait(false);
                     for (var i = 0; i < count; i++)
                     {
-                        metadataKind = (MetadataImageKind)reader.ReadInt32();
+                        metadataKind = (MetadataImageKind)await reader.ReadInt32Async().ConfigureAwait(false);
                         Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
 #pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
-                        pooledMetadata.Object.Add(ReadModuleMetadataFrom(reader, kind));
+                        pooledMetadata.Object.Add(await ReadModuleMetadataFromAsync(reader, kind).ConfigureAwait(false));
 #pragma warning restore CA2016 
                     }
 
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
                 Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 #pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
-                return (ReadModuleMetadataFrom(reader, kind), storages: default);
+                return (await ReadModuleMetadataFromAsync(reader, kind).ConfigureAwait(false), storages: default);
 #pragma warning restore CA2016
             }
 
@@ -396,13 +396,13 @@ namespace Microsoft.CodeAnalysis.Serialization
                 using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
                 using var pooledStorage = Creator.CreateList<ITemporaryStreamStorageInternal>();
 
-                var count = reader.ReadInt32();
+                var count = await reader.ReadInt32Async().ConfigureAwait(false);
                 for (var i = 0; i < count; i++)
                 {
-                    metadataKind = (MetadataImageKind)reader.ReadInt32();
+                    metadataKind = (MetadataImageKind)await reader.ReadInt32Async().ConfigureAwait(false);
                     Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
-                    var (metadata, storage) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
+                    var (metadata, storage) = await ReadModuleMetadataFromAsync(reader, kind, cancellationToken).ConfigureAwait(false);
 
                     pooledMetadata.Object.Add(metadata);
                     pooledStorage.Object.Add(storage);
@@ -413,16 +413,16 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
-            var moduleInfo = ReadModuleMetadataFrom(reader, kind, cancellationToken);
+            var moduleInfo = await ReadModuleMetadataFromAsync(reader, kind, cancellationToken).ConfigureAwait(false);
             return (moduleInfo.metadata, ImmutableArray.Create(moduleInfo.storage));
         }
 
-        private (ModuleMetadata metadata, ITemporaryStreamStorageInternal storage) ReadModuleMetadataFrom(
+        private async ValueTask<(ModuleMetadata metadata, ITemporaryStreamStorageInternal storage)> ReadModuleMetadataFromAsync(
             ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var (storage, length) = GetTemporaryStorage(reader, kind, cancellationToken);
+            var (storage, length) = await GetTemporaryStorageAsync(reader, kind, cancellationToken).ConfigureAwait(false);
 
             var storageStream = storage.ReadStream(cancellationToken);
             Contract.ThrowIfFalse(length == storageStream.Length);
@@ -437,11 +437,11 @@ namespace Microsoft.CodeAnalysis.Serialization
             return (metadata, storage);
         }
 
-        private static ModuleMetadata ReadModuleMetadataFrom(ObjectReader reader, SerializationKinds kind)
+        private static async ValueTask<ModuleMetadata> ReadModuleMetadataFromAsync(ObjectReader reader, SerializationKinds kind)
         {
             Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
 
-            var array = reader.ReadArray<byte>();
+            var array = await reader.ReadArrayAsync<byte>().ConfigureAwait(false);
             var pinnedObject = new PinnedObject(array);
 
             var metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), array.Length);
@@ -453,15 +453,17 @@ namespace Microsoft.CodeAnalysis.Serialization
             return metadata;
         }
 
-        private (ITemporaryStreamStorageInternal storage, long length) GetTemporaryStorage(
+        private async ValueTask<(ITemporaryStreamStorageInternal storage, long length)> GetTemporaryStorageAsync(
             ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
+
             if (kind == SerializationKinds.Bits)
             {
                 var storage = _storageService.CreateTemporaryStreamStorage();
                 using var stream = SerializableBytes.CreateWritableStream();
 
-                CopyByteArrayToStream(reader, stream, cancellationToken);
+                await CopyByteArrayToStreamAsync(reader, stream, cancellationToken).ConfigureAwait(false);
 
                 var length = stream.Length;
 
@@ -470,22 +472,19 @@ namespace Microsoft.CodeAnalysis.Serialization
 
                 return (storage, length);
             }
-
-            if (kind == SerializationKinds.MemoryMapFile)
+            else
             {
                 var service2 = (ITemporaryStorageService2)_storageService;
 
-                var name = reader.ReadString();
-                var offset = reader.ReadInt64();
-                var size = reader.ReadInt64();
+                var name = await reader.ReadStringAsync().ConfigureAwait(false);
+                var offset = await reader.ReadInt64Async().ConfigureAwait(false);
+                var size = await reader.ReadInt64Async().ConfigureAwait(false);
 
                 var storage = service2.AttachTemporaryStreamStorage(name, offset, size);
                 var length = size;
 
                 return (storage, length);
             }
-
-            throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
         private static void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object? lifeTimeObject)
@@ -520,20 +519,21 @@ namespace Microsoft.CodeAnalysis.Serialization
             lifeTimeObject = pinnedObject;
         }
 
-        private static void CopyByteArrayToStream(ObjectReader reader, Stream stream, CancellationToken cancellationToken)
+        private static async ValueTask CopyByteArrayToStreamAsync(ObjectReader reader, Stream stream, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             // TODO: make reader be able to read byte[] chunk
-            var content = reader.ReadArray<byte>();
+            var content = await reader.ReadArrayAsync<byte>().ConfigureAwait(false);
             stream.Write(content, 0, content.Length);
         }
 
-        private static void WriteTo(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
+        private static async ValueTask WriteToAsync(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
         {
             writer.WriteInt32((int)metadata.Kind);
 
             WriteTo(metadata.GetMetadataReader(), writer, cancellationToken);
+            await writer.FlushAsync().ConfigureAwait(false);
         }
 
         private static unsafe void WriteTo(MetadataReader reader, ObjectWriter writer, CancellationToken cancellationToken)

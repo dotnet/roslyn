@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
@@ -52,30 +53,28 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        public static BloomFilter ReadFrom(ObjectReader reader)
+        public static async ValueTask<BloomFilter> ReadFromAsync(ObjectReader reader)
         {
-            var version = reader.ReadString();
+            var version = await reader.ReadStringAsync().ConfigureAwait(false);
             if (!string.Equals(version, SerializationFormat, StringComparison.Ordinal))
             {
                 return null;
             }
 
-            var isCaseSensitive = reader.ReadBoolean();
-            var hashFunctionCount = reader.ReadInt32();
-            var bitArray = ReadBitArray(reader);
+            var isCaseSensitive = await reader.ReadBooleanAsync().ConfigureAwait(false);
+            var hashFunctionCount = await reader.ReadInt32Async().ConfigureAwait(false);
+            var bitArray = await ReadBitArrayAsync(reader).ConfigureAwait(false);
             return new BloomFilter(bitArray, hashFunctionCount, isCaseSensitive);
         }
 
-        private static BitArray ReadBitArray(ObjectReader reader)
+        private static async ValueTask<BitArray> ReadBitArrayAsync(ObjectReader reader)
         {
             // TODO: find a way to use pool
-            var length = reader.ReadInt32();
+            var length = await reader.ReadInt32Async().ConfigureAwait(false);
             var bytes = new byte[length];
 
             for (var i = 0; i < bytes.Length; i++)
-            {
-                bytes[i] = reader.ReadByte();
-            }
+                bytes[i] = await reader.ReadByteAsync().ConfigureAwait(false);
 
             return new BitArray(bytes);
         }

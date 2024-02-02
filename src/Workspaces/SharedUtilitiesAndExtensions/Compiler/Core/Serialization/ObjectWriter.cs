@@ -14,9 +14,13 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using EncodingExtensions = Microsoft.CodeAnalysis.EncodingExtensions;
+using System.IO.Pipelines;
+using System.Buffers;
 
 namespace Roslyn.Utilities
 {
+    using System.Buffers;
+    using System.Buffers.Binary;
     using System.Collections.Immutable;
     using System.Threading.Tasks;
 #if COMPILERCORE
@@ -30,9 +34,10 @@ namespace Roslyn.Utilities
     /// <summary>
     /// An <see cref="ObjectWriter"/> that serializes objects to a byte stream.
     /// </summary>
-    internal sealed partial class ObjectWriter : IDisposable
+    internal struct ObjectWriter : IAsyncDisposable
     {
-        private readonly BinaryWriter _writer;
+        private readonly PipeWriter _writer;
+        private readonly bool _leaveOpen;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -59,24 +64,35 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Creates a new instance of a <see cref="ObjectWriter"/>.
         /// </summary>
-        /// <param name="stream">The stream to write to.</param>
-        /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public ObjectWriter(
-            Stream stream,
-            bool leaveOpen = false,
-            CancellationToken cancellationToken = default)
+            PipeWriter writer,
+            bool leaveOpen,
+            CancellationToken cancellationToken)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
             // It can be adjusted for BigEndian if needed.
             Debug.Assert(BitConverter.IsLittleEndian);
 
-            _writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen);
+            _writer = writer;
+            _leaveOpen = leaveOpen;
             _stringReferenceMap = new WriterReferenceMap();
             _cancellationToken = cancellationToken;
 
             WriteVersion();
         }
+
+        public async ValueTask DisposeAsync()
+        {
+            await _writer.FlushAsync(_cancellationToken).ConfigureAwait(false);
+            if (!_leaveOpen)
+                _writer.Complete();
+
+            _stringReferenceMap.Dispose();
+        }
+
+        public async ValueTask FlushAsync()
+            => await _writer.FlushAsync(_cancellationToken).ConfigureAwait(false);
 
         private void WriteVersion()
         {
@@ -84,27 +100,83 @@ namespace Roslyn.Utilities
             WriteByte(ObjectReader.VersionByte2);
         }
 
-        public void Dispose()
+        public void WriteByte(byte value)
         {
-            _writer.Dispose();
-            _stringReferenceMap.Dispose();
+            var span = _writer.GetSpan(1);
+            span[0] = value;
+            _writer.Advance(1);
         }
 
-        public void WriteBoolean(bool value) => _writer.Write(value);
-        public void WriteByte(byte value) => _writer.Write(value);
+        public void WriteSByte(sbyte value)
+            => WriteByte(unchecked((byte)value));
+
+        public void WriteInt16(short value)
+        {
+            const int size = 2;
+            var span = _writer.GetSpan(size);
+            BinaryPrimitives.WriteInt16LittleEndian(span, value);
+            _writer.Advance(size);
+        }
+
+        public void WriteUInt16(ushort value)
+            => WriteInt16(unchecked((short)value));
+
+        public void WriteInt32(int value)
+        {
+            const int size = 4;
+            var span = _writer.GetSpan(size);
+            BinaryPrimitives.WriteInt32LittleEndian(span, value);
+            _writer.Advance(size);
+        }
+
+        public void WriteUInt32(uint value)
+            => WriteInt32(unchecked((int)value));
+
+        public void WriteInt64(long value)
+        {
+            const int size = 8;
+            var span = _writer.GetSpan(size);
+            BinaryPrimitives.WriteInt64LittleEndian(span, value);
+            _writer.Advance(size);
+        }
+
+        public void WriteUInt64(ulong value)
+            => WriteInt64(unchecked((long)value));
+
+        public void WriteDouble(double value)
+        {
+            const int size = 8;
+            var span = _writer.GetSpan(size);
+            var bits = BitConverter.DoubleToInt64Bits(value);
+            MemoryMarshal.Write(span, ref bits);
+            _writer.Advance(size);
+        }
+
+        public void WriteSingle(float value)
+        {
+            const int size = 4;
+            var span = _writer.GetSpan(size);
+            var bits = BitConverter.SingleToInt32Bits(value);
+            MemoryMarshal.Write(span, ref bits);
+            _writer.Advance(size);
+        }
+
+        public void WriteBoolean(bool value)
+            => WriteByte(value ? (byte)1 : (byte)0);
+
         // written as ushort because BinaryWriter fails on chars that are unicode surrogates
-        public void WriteChar(char ch) => _writer.Write((ushort)ch);
-        public void WriteDecimal(decimal value) => _writer.Write(value);
-        public void WriteDouble(double value) => _writer.Write(value);
-        public void WriteSingle(float value) => _writer.Write(value);
-        public void WriteInt32(int value) => _writer.Write(value);
-        public void WriteInt64(long value) => _writer.Write(value);
-        public void WriteSByte(sbyte value) => _writer.Write(value);
-        public void WriteInt16(short value) => _writer.Write(value);
-        public void WriteUInt32(uint value) => _writer.Write(value);
-        public void WriteUInt64(ulong value) => _writer.Write(value);
-        public void WriteUInt16(ushort value) => _writer.Write(value);
-        public void WriteString(string? value) => WriteStringValue(value);
+        public void WriteChar(char ch)
+            => WriteUInt16((ushort)ch);
+
+        public void WriteDecimal(decimal value)
+        {
+            value.GetBits(out var isNegative, out var scale, out var low, out var mid, out var high);
+            WriteBoolean(isNegative);
+            WriteByte(scale);
+            WriteUInt32(low);
+            WriteUInt32(mid);
+            WriteUInt32(high);
+        }
 
         /// <summary>
         /// Used so we can easily grab the low/high 64bits of a guid for serialization.
@@ -223,11 +295,11 @@ namespace Roslyn.Utilities
             else if (value.GetType() == typeof(DateTime))
             {
                 WriteByte((byte)TypeCode.DateTime);
-                _writer.Write(((DateTime)value).ToBinary());
+                WriteInt64(((DateTime)value).ToBinary());
             }
             else if (value.GetType() == typeof(string))
             {
-                WriteStringValue((string)value);
+                WriteString((string)value);
             }
             else if (type.IsArray)
             {
@@ -322,7 +394,7 @@ namespace Roslyn.Utilities
         private void WriteSpanPieces<T>(
             ReadOnlySpan<T> span,
             int rentLength,
-            Action<BinaryWriter, T[], int> write)
+            Action<PipeWriter, T[], int> write)
         {
             var spanLength = span.Length;
             var buffer = System.Buffers.ArrayPool<T>.Shared.Rent(Math.Min(spanLength, rentLength));
@@ -465,7 +537,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private unsafe void WriteStringValue(string? value)
+        public void WriteString(string? value)
         {
             if (value == null)
             {
@@ -498,27 +570,52 @@ namespace Roslyn.Utilities
 
                     if (value.IsValidUnicodeString())
                     {
-                        // Usual case - the string can be encoded as UTF-8:
-                        // We can use the UTF-8 encoding of the binary writer.
-
-                        WriteByte((byte)TypeCode.StringUtf8);
-                        _writer.Write(value);
+                        WriteUtf8String();
                     }
                     else
                     {
-                        WriteByte((byte)TypeCode.StringUtf16);
-
-                        // This is rare, just allocate UTF16 bytes for simplicity.
-                        var bytes = new byte[(uint)value.Length * sizeof(char)];
-                        fixed (char* valuePtr = value)
-                        {
-                            Marshal.Copy((IntPtr)valuePtr, bytes, 0, bytes.Length);
-                        }
-
-                        WriteCompressedUInt((uint)value.Length);
-                        _writer.Write(bytes);
+                        WriteUtf16String();
                     }
                 }
+            }
+
+            return;
+
+            void WriteUtf8String()
+            {
+                // Usual case - the string can be encoded as UTF-8:
+                // We can use the UTF-8 encoding of the binary writer.
+
+                WriteByte((byte)TypeCode.StringUtf8);
+
+                var byteCount = Encoding.UTF8.GetByteCount(value);
+                WriteInt32(byteCount);
+
+#if NETSTANDARD
+                var bytes = System.Buffers.ArrayPool<byte>.Shared.Rent(byteCount);
+                var encodedCount = Encoding.UTF8.GetBytes(value, 0, value.Length, bytes, 0);
+                Contract.ThrowIfTrue(byteCount != encodedCount);
+                var writerSpan = _writer.GetSpan(byteCount);
+                bytes.AsSpan().Slice(0, byteCount).CopyTo(writerSpan);
+                _writer.Advance(byteCount);
+                System.Buffers.ArrayPool<byte>.Shared.Return(bytes);
+#else
+                var writtenBytes = Encoding.UTF8.GetBytes(value, _writer);
+                Contract.ThrowIfTrue(byteCount != writtenBytes);
+                // don't need to Advance.  GetBytes already does that.
+#endif
+            }
+
+            void WriteUtf16String()
+            {
+                WriteByte((byte)TypeCode.StringUtf16);
+
+                var bytes = MemoryMarshal.AsBytes(value.AsSpan());
+                Contract.ThrowIfTrue(bytes.Length % 2 == 1);
+                WriteInt32(bytes.Length);
+
+                _writer.Write(bytes);
+                // don't need to Advance.  _writer.Write already does that.
             }
         }
 
@@ -570,7 +667,7 @@ namespace Roslyn.Utilities
             }
             else if (type == typeof(char))
             {
-                _writer.Write((char[])instance);
+                _writer.Write(MemoryMarshal.AsBytes(((char[])instance).AsSpan()));
             }
             else if (type == typeof(string))
             {
@@ -641,7 +738,7 @@ namespace Roslyn.Utilities
         private void WriteStringArrayElements(string[] array)
         {
             for (var i = 0; i < array.Length; i++)
-                WriteStringValue(array[i]);
+                WriteString(array[i]);
         }
 
         private void WriteInt8ArrayElements(sbyte[] array)

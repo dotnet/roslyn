@@ -5,6 +5,7 @@
 using System;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -85,16 +86,16 @@ internal readonly record struct SourceGeneratedDocumentIdentity : IEquatable<Sou
         writer.WriteString(FilePath);
     }
 
-    internal static SourceGeneratedDocumentIdentity ReadFrom(ObjectReader reader)
+    internal static async ValueTask<SourceGeneratedDocumentIdentity> ReadFromAsync(ObjectReader reader)
     {
-        var documentId = DocumentId.ReadFrom(reader);
+        var documentId = await DocumentId.ReadFromAsync(reader).ConfigureAwait(false);
 
-        var hintName = reader.ReadString();
-        var generatorAssemblyName = reader.ReadString();
-        var generatorAssemblyPath = reader.ReadString();
-        var generatorAssemblyVersion = Version.Parse(reader.ReadString());
-        var generatorTypeName = reader.ReadString();
-        var filePath = reader.ReadString();
+        var hintName = await reader.ReadStringAsync().ConfigureAwait(false);
+        var generatorAssemblyName = await reader.ReadStringAsync().ConfigureAwait(false);
+        var generatorAssemblyPath = await reader.ReadStringAsync().ConfigureAwait(false);
+        var generatorAssemblyVersion = Version.Parse(await reader.ReadStringAsync().ConfigureAwait(false));
+        var generatorTypeName = await reader.ReadStringAsync().ConfigureAwait(false);
+        var filePath = await reader.ReadStringAsync().ConfigureAwait(false);
 
         return new SourceGeneratedDocumentIdentity(
             documentId,

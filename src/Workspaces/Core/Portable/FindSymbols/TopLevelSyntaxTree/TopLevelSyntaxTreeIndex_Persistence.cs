@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task<TopLevelSyntaxTreeIndex?> LoadAsync(
             IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
         {
-            return LoadAsync(storageService, documentKey, checksum, stringTable, ReadIndex, cancellationToken);
+            return LoadAsync(storageService, documentKey, checksum, stringTable, ReadIndexAsync, cancellationToken);
         }
 
         public override void WriteTo(ObjectWriter writer)
@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _extensionMethodInfo.WriteTo(writer);
         }
 
-        private static TopLevelSyntaxTreeIndex? ReadIndex(
+        private static async ValueTask<TopLevelSyntaxTreeIndex?> ReadIndexAsync(
             StringTable stringTable, ObjectReader reader, Checksum? checksum)
         {
-            var declarationInfo = DeclarationInfo.TryReadFrom(stringTable, reader);
-            var extensionMethodInfo = ExtensionMethodInfo.TryReadFrom(reader);
+            var declarationInfo = await DeclarationInfo.TryReadFromAsync(stringTable, reader).ConfigureAwait(false);
+            var extensionMethodInfo = await ExtensionMethodInfo.TryReadFromAsync(reader).ConfigureAwait(false);
 
             if (declarationInfo == null || extensionMethodInfo == null)
                 return null;

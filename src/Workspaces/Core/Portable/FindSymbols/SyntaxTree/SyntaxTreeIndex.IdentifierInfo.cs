@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -43,12 +44,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _escapedIdentifierFilter.WriteTo(writer);
             }
 
-            public static IdentifierInfo? TryReadFrom(ObjectReader reader)
+            public static async ValueTask<IdentifierInfo?> TryReadFromAsync(ObjectReader reader)
             {
                 try
                 {
-                    var identifierFilter = BloomFilter.ReadFrom(reader);
-                    var escapedIdentifierFilter = BloomFilter.ReadFrom(reader);
+                    var identifierFilter = await BloomFilter.ReadFromAsync(reader).ConfigureAwait(false);
+                    var escapedIdentifierFilter = await BloomFilter.ReadFromAsync(reader).ConfigureAwait(false);
 
                     return new IdentifierInfo(identifierFilter, escapedIdentifierFilter);
                 }
