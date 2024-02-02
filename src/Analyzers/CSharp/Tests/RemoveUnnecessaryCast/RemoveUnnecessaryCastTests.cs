@@ -13755,4 +13755,27 @@ public class RemoveUnnecessaryCastTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71926")]
+    public async Task NecessaryDelegateCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var main = (Delegate)Main; // IDE0004: Cast is redundant.
+                        var x = Unsafe.As<Delegate, object>(ref main);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }
