@@ -532,6 +532,113 @@ namespace Roslyn.Utilities
             }
         }
 
+        public void WriteCharArray(char[] array)
+        {
+            throw new NotImplementedException();
+        }
+
+        //private void WriteArray(Array array)
+        //{
+        //    var length = array.GetLength(0);
+
+        //    switch (length)
+        //    {
+        //        case 0:
+        //            WriteByte((byte)TypeCode.Array_0);
+        //            break;
+        //        case 1:
+        //            WriteByte((byte)TypeCode.Array_1);
+        //            break;
+        //        case 2:
+        //            WriteByte((byte)TypeCode.Array_2);
+        //            break;
+        //        case 3:
+        //            WriteByte((byte)TypeCode.Array_3);
+        //            break;
+        //        default:
+        //            WriteByte((byte)TypeCode.Array);
+        //            WriteCompressedUInt((uint)length);
+        //            break;
+        //    }
+
+        //    var elementType = array.GetType().GetElementType()!;
+
+        //    if (s_typeMap.TryGetValue(elementType, out var elementKind))
+        //    {
+        //        WritePrimitiveType(elementType, elementKind);
+        //        WritePrimitiveTypeArrayElements(elementType, elementKind, array);
+        //    }
+        //    else
+        //    {
+        //        throw new InvalidOperationException($"Unsupported array element type: {elementType}");
+        //    }
+        //}
+
+        private void WritePrimitiveTypeArrayElements(Type type, TypeCode kind, Array instance)
+        {
+            Debug.Assert(s_typeMap[type] == kind);
+
+            // optimization for type underlying binary writer knows about
+            if (type == typeof(byte))
+            {
+                _writer.Write((byte[])instance);
+            }
+            else if (type == typeof(char))
+            {
+                _writer.Write((char[])instance);
+            }
+            else if (type == typeof(string))
+            {
+                // optimization for string which object writer has
+                // its own optimization to reduce repeated string
+                WriteStringArrayElements((string[])instance);
+            }
+            else if (type == typeof(bool))
+            {
+                // optimization for bool array
+                WriteBooleanArrayElements((bool[])instance);
+            }
+            else
+            {
+                // otherwise, write elements directly to underlying binary writer
+                switch (kind)
+                {
+                    case TypeCode.Int8:
+                        WriteInt8ArrayElements((sbyte[])instance);
+                        return;
+                    case TypeCode.Int16:
+                        WriteInt16ArrayElements((short[])instance);
+                        return;
+                    case TypeCode.Int32:
+                        WriteInt32ArrayElements((int[])instance);
+                        return;
+                    case TypeCode.Int64:
+                        WriteInt64ArrayElements((long[])instance);
+                        return;
+                    case TypeCode.UInt16:
+                        WriteUInt16ArrayElements((ushort[])instance);
+                        return;
+                    case TypeCode.UInt32:
+                        WriteUInt32ArrayElements((uint[])instance);
+                        return;
+                    case TypeCode.UInt64:
+                        WriteUInt64ArrayElements((ulong[])instance);
+                        return;
+                    case TypeCode.Float4:
+                        WriteFloat4ArrayElements((float[])instance);
+                        return;
+                    case TypeCode.Float8:
+                        WriteFloat8ArrayElements((double[])instance);
+                        return;
+                    case TypeCode.Decimal:
+                        WriteDecimalArrayElements((decimal[])instance);
+                        return;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(kind);
+                }
+            }
+        }
+
         private void WriteBooleanArrayElements(bool[] array)
         {
             // convert bool array to bit array

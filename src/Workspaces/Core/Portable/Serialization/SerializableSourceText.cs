@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
-            var encoding = (Encoding)reader.ReadValue();
+            var encoding = reader.ReadEncoding();
 
             var kind = (SerializationKinds)reader.ReadInt32();
             if (kind == SerializationKinds.MemoryMapFile)

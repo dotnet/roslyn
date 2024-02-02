@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
 
-            var array = (byte[])reader.ReadValue();
+            var array = reader.ReadByteArray();
             var pinnedObject = new PinnedObject(array);
 
             var metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), array.Length);
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             // TODO: make reader be able to read byte[] chunk
-            var content = (byte[])reader.ReadValue();
+            var content = reader.ReadByteArray();
             stream.Write(content, 0, content.Length);
         }
 

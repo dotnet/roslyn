@@ -217,7 +217,7 @@ internal static partial class SourceTextExtensions
             // where it's partially full, we pass in a span to the section that is filled.  This will fast path on
             // netcore, though will incur a copy to pooled memory on netfx.
             if (count == buffer.Length)
-                writer.WriteValue(buffer);
+                writer.WriteCharArray(buffer);
             else
                 writer.WriteSpan(buffer.AsSpan()[..count]);
 

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             var cryptoKeyContainer = reader.ReadString();
             var cryptoKeyFile = reader.ReadString();
 
-            var cryptoPublicKey = ((byte[])reader.ReadValue()).ToImmutableArrayOrEmpty();
+            var cryptoPublicKey = reader.ReadByteArray().ToImmutableArrayOrEmpty();
 
             bool? delaySign = reader.ReadBoolean() ? reader.ReadBoolean() : null;
 

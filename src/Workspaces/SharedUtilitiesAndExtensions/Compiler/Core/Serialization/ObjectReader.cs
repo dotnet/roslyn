@@ -174,7 +174,7 @@ internal sealed partial class ObjectReader : IDisposable
         return accessor.Guid;
     }
 
-    public object ReadValue()
+    public object ReadScalerValue()
     {
         var code = (TypeCode)ReadByte();
         switch (code)
@@ -232,25 +232,25 @@ internal sealed partial class ObjectReader : IDisposable
                 return ReadStringValue(code);
             case TypeCode.DateTime:
                 return DateTime.FromBinary(ReadInt64());
-            case TypeCode.Array:
-            case TypeCode.Array_0:
-            case TypeCode.Array_1:
-            case TypeCode.Array_2:
-            case TypeCode.Array_3:
-                return ReadArray(code);
-
-            case TypeCode.EncodingName:
-                return Encoding.GetEncoding(ReadString());
-
-            case >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding:
-                return ObjectWriter.ToEncodingKind(code).GetEncoding();
-
-            case TypeCode.EncodingCodePage:
-                return Encoding.GetEncoding(ReadInt32());
 
             default:
                 throw ExceptionUtilities.UnexpectedValue(code);
         }
+    }
+
+    public Encoding ReadEncoding()
+    {
+        throw new NotImplementedException();
+    }
+
+    public char[] ReadCharArray()
+    {
+        throw new NotImplementedException();
+    }
+
+    public byte[] ReadByteArray()
+    {
+        throw new NotImplementedException();
     }
 
     public (char[] array, int length) ReadCharArray(Func<int, char[]> getArray)
