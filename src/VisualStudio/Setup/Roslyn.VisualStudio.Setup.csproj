@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(RepositoryEngineeringDir)targets\Services.props" />
@@ -15,6 +15,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <ExtensionInstallationRoot>$(CommonExtensionInstallationRoot)</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>$(LanguageServicesExtensionInstallationFolder)</ExtensionInstallationFolder>
+    <VssdkCompatibleExtension>true</VssdkCompatibleExtension>
 
     <!-- VS Insertion -->
     <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.LanguageServices</VisualStudioInsertionComponent>
@@ -222,7 +223,7 @@
     </ProjectReference>
     <ProjectReference Include="..\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj">
       <Name>CSharpVisualStudio</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;ContentFilesProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;ContentFilesProjectOutputGroup;SatelliteDllsProjectOutputGroup;ExtensionJsonOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>

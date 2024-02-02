@@ -54,8 +54,7 @@ public class b : a
 }", "goo()");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543799")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543799")]
         public async Task InheritedParameterDefaultValue1()
         {
             await VerifyItemExistsAsync(@"public class a
@@ -69,8 +68,7 @@ public class b : a
 }", "goo(int x = 42)", "void a.goo([int x = 42])");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543799")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543799")]
         public async Task InheritedParameterDefaultValue2()
         {
             await VerifyItemExistsAsync(@"public class a
@@ -652,8 +650,7 @@ class SomeClass : Derived
             await VerifyItemExistsAsync(markup, "Goo()", "void Derived.Goo()");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543748")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543748")]
         public async Task NotOfferedBaseClassMember()
         {
             var markup = @"abstract class Base
@@ -788,8 +785,7 @@ public class SomeClass : Base<int, Exception>
             await VerifyItemIsAbsentAsync(markup, "Goo(T t, S s)");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543756")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543756")]
         public async Task ParameterTypeSimplified()
         {
             var markup = @"using System;
@@ -908,8 +904,7 @@ public class SomeClass : Base
             await VerifyItemExistsAsync(markup, "goo(int x, out string y)", "void Base.goo(int x, out string y)");
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
         public async Task GenericMethodTypeParametersNotRenamed()
         {
             var markup = @"abstract class CGoo    
@@ -948,8 +943,7 @@ class Derived<X> : CGoo
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
         public async Task CommitGenericMethodTypeParametersNotRenamed()
         {
             var markupBeforeCommit = @"abstract class CGoo    
@@ -1027,8 +1021,7 @@ class Derived<X> : CGoo
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543798")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543798")]
         public async Task CommitOptionalParameterValuesAreGenerated()
         {
             var markupBeforeCommit = @"using System;
@@ -2243,8 +2236,7 @@ public class SomeClass : Base
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo(int x, out string y)", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
         public async Task TestUnsafe1()
         {
             var markupBeforeCommit =
@@ -2279,8 +2271,7 @@ public class B : A
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "F()", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
         public async Task TestUnsafe2()
         {
             var markupBeforeCommit =
@@ -2315,8 +2306,7 @@ public class B : A
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "F()", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
         public async Task TestUnsafe3()
         {
             var markupBeforeCommit =
@@ -2351,8 +2341,7 @@ public class B : A
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "F()", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
         public async Task TestUnsafe4()
         {
             var markupBeforeCommit =
@@ -2387,8 +2376,7 @@ public class B : A
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "F(int* i)", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545534")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545534")]
         public async Task TestPrivateVirtualProperty()
         {
             var markupBeforeCommit =
@@ -2428,8 +2416,7 @@ public class B : A
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Goo", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636706")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636706")]
         public async Task CrossLanguageParameterizedPropertyOverride()
         {
             var vbFile = @"Public Class Goo
@@ -2505,8 +2492,7 @@ End Class
 
         #region "Commit: With Trivia"
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
         public async Task CommitSurroundingTriviaDirective()
         {
             var markupBeforeCommit = @"class Base
@@ -2538,8 +2524,7 @@ class Derived : Base
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
         public async Task CommitBeforeTriviaDirective()
         {
             var markupBeforeCommit = @"class Base
@@ -2603,8 +2588,7 @@ class Derived : Base
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
         public async Task CommitBeforeComment()
         {
             var markupBeforeCommit = @"class Base
@@ -2702,8 +2686,7 @@ int bar;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736742")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736742")]
         public async Task AcrossPartialTypes1()
         {
             var file1 = @"partial class c
@@ -2758,8 +2741,7 @@ int bar;
             }
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736742")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736742")]
         public async Task AcrossPartialTypes2()
         {
             var file1 = @"partial class c
@@ -3093,8 +3075,7 @@ namespace ConsoleApplication46
             Assert.Equal(change.Span, TextSpan.FromBounds(136, 145));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/8257")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/8257")]
         public async Task NotImplementedQualifiedWhenSystemUsingNotPresent_Property()
         {
             var markupBeforeCommit = @"abstract class C
@@ -3131,8 +3112,7 @@ class Program : C
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo", expectedCodeAfterCommit);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/8257")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/8257")]
         public async Task NotImplementedQualifiedWhenSystemUsingNotPresent_Method()
         {
             var markupBeforeCommit = @"abstract class C
@@ -3289,8 +3269,7 @@ public class SomeClass : Base
             Assert.Equal(after, actualCodeAfterCommit);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39909")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39909")]
         public async Task CommitAddsMissingImports()
         {
             var markupBeforeCommit = @"

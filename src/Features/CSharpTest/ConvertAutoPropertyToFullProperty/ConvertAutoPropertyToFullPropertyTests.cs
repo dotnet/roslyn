@@ -1036,8 +1036,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: UseUnderscorePrefixedFieldName);
         }
 
-        [Fact]
-        [WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
+        [Fact, WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/30208")]
         public async Task PropertyNameEqualsToClassNameExceptFirstCharCasingWhichCausesFieldNameCollisionByDefault()
         {

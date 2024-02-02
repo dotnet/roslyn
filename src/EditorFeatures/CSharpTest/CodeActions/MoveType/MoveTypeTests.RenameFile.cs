@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16284")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16284")]
         public async Task MoreThanOneTypeInFile_RenameFile_InnerType()
         {
             var code =
