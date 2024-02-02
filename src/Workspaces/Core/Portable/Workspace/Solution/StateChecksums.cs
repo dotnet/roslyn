@@ -97,16 +97,23 @@ internal sealed class SolutionCompilationStateChecksums(
     }
 }
 
+/// <param name="projectConeId">The particular <see cref="ProjectId"/> if this was a checksum tree made for a particular
+/// project cone.</param>
 internal sealed class SolutionStateChecksums(
+    ProjectId? projectConeId,
     Checksum attributes,
     ChecksumsAndIds<ProjectId> projects,
     ChecksumCollection analyzerReferences)
 {
-    public Checksum Checksum { get; } = Checksum.Create(
+    public Checksum Checksum { get; } = Checksum.Create(stackalloc[]
+    {
+        projectConeId == null ? Checksum.Null : projectConeId.Checksum,
         attributes,
         projects.Checksum,
-        analyzerReferences.Checksum);
+        analyzerReferences.Checksum,
+    });
 
+    public ProjectId? ProjectConeId { get; } = projectConeId;
     public Checksum Attributes { get; } = attributes;
     public ChecksumsAndIds<ProjectId> Projects { get; } = projects;
     public ChecksumCollection AnalyzerReferences { get; } = analyzerReferences;
@@ -123,6 +130,9 @@ internal sealed class SolutionStateChecksums(
     {
         // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
         this.Checksum.WriteTo(writer);
+        writer.WriteBoolean(this.ProjectConeId != null);
+        this.ProjectConeId?.WriteTo(writer);
+
         this.Attributes.WriteTo(writer);
         this.Projects.WriteTo(writer);
         this.AnalyzerReferences.WriteTo(writer);
@@ -132,6 +142,7 @@ internal sealed class SolutionStateChecksums(
     {
         var checksum = await Checksum.ReadFromAsync(reader).ConfigureAwait(false);
         var result = new SolutionStateChecksums(
+            projectConeId: await reader.ReadBooleanAsync().ConfigureAwait(false) ? await ProjectId.ReadFromAsync(reader).ConfigureAwait(false) : null,
             attributes: await Checksum.ReadFromAsync(reader).ConfigureAwait(false),
             projects: await ChecksumsAndIds<ProjectId>.ReadFromAsync(reader).ConfigureAwait(false),
             analyzerReferences: await ChecksumCollection.ReadFromAsync(reader).ConfigureAwait(false));
