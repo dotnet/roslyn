@@ -128,7 +128,12 @@ namespace Roslyn.Utilities
             WriteInt64(accessor.High64);
         }
 
-        public void WriteValue(object? value)
+        /// <summary>
+        /// Only supports values of primitive scaler types.  This really should only be used to emit VB preprocessor
+        /// symbol values (which are scaler, but untyped as 'object').  Callers which know their value's type should
+        /// call into that directly.
+        /// </summary>
+        public void WriteScalerValue(object? value)
         {
             Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
 
@@ -145,14 +150,34 @@ namespace Roslyn.Utilities
             // Perf: Note that JIT optimizes each expression value.GetType() == typeof(T) to a single register comparison.
             // Also the checks are sorted by commonality of the checked types.
 
-            // The primitive types are
-            // Boolean, Byte, SByte, Int16, UInt16, Int32, UInt32,
-            // Int64, UInt64, IntPtr, UIntPtr, Char, Double, and Single.
+            // The list supported is from CConst.TryCreate:
+#if false
+        Friend Shared Function TryCreate(value As Object) As CConst
+            Dim specialType = SpecialTypeExtensions.FromRuntimeTypeOfLiteralValue(value)
+            Select Case specialType
+                Case SpecialType.System_Boolean
+                Case SpecialType.System_Byte
+                Case SpecialType.System_Char
+                Case SpecialType.System_DateTime
+                Case SpecialType.System_Decimal
+                Case SpecialType.System_Double
+                Case SpecialType.System_Int16
+                Case SpecialType.System_Int32
+                Case SpecialType.System_Int64
+                Case SpecialType.System_SByte
+                Case SpecialType.System_Single
+                Case SpecialType.System_String
+                Case SpecialType.System_UInt16
+                Case SpecialType.System_UInt32
+                Case SpecialType.System_UInt64
+#endif
+
+            // The primitive types are Boolean, Byte, SByte, Int16, UInt16, Int32, UInt32, Int64, UInt64, IntPtr,
+            // UIntPtr, Char, Double, and Single.
             if (typeInfo.IsPrimitive)
             {
-                // Note: int, double, bool, char, have been chosen to go first as they're they
-                // common values of literals in code, and so would be the likely hits if we do
-                // have a primitive type we're serializing out.
+                // Note: int, double, bool, char, have been chosen to go first as they're they common values of literals
+                // in code, and so would be the likely hits if we do have a primitive type we're serializing out.
                 if (value.GetType() == typeof(int))
                 {
                     WriteEncodedInt32((int)value);
@@ -169,7 +194,7 @@ namespace Roslyn.Utilities
                 else if (value.GetType() == typeof(char))
                 {
                     WriteByte((byte)TypeCode.Char);
-                    WriteUInt16((ushort)(char)value);  // written as ushort because BinaryWriter fails on chars that are unicode surrogates
+                    WriteChar((char)value);
                 }
                 else if (value.GetType() == typeof(byte))
                 {
@@ -228,21 +253,6 @@ namespace Roslyn.Utilities
             else if (value.GetType() == typeof(string))
             {
                 WriteStringValue((string)value);
-            }
-            else if (type.IsArray)
-            {
-                var instance = (Array)value;
-
-                if (instance.Rank > 1)
-                {
-                    throw new InvalidOperationException(Resources.Arrays_with_more_than_one_dimension_cannot_be_serialized);
-                }
-
-                WriteArray(instance);
-            }
-            else if (value is Encoding encoding)
-            {
-                WriteEncoding(encoding);
             }
             else
             {
@@ -518,108 +528,6 @@ namespace Roslyn.Utilities
                         WriteCompressedUInt((uint)value.Length);
                         _writer.Write(bytes);
                     }
-                }
-            }
-        }
-
-        private void WriteArray(Array array)
-        {
-            var length = array.GetLength(0);
-
-            switch (length)
-            {
-                case 0:
-                    WriteByte((byte)TypeCode.Array_0);
-                    break;
-                case 1:
-                    WriteByte((byte)TypeCode.Array_1);
-                    break;
-                case 2:
-                    WriteByte((byte)TypeCode.Array_2);
-                    break;
-                case 3:
-                    WriteByte((byte)TypeCode.Array_3);
-                    break;
-                default:
-                    WriteByte((byte)TypeCode.Array);
-                    WriteCompressedUInt((uint)length);
-                    break;
-            }
-
-            var elementType = array.GetType().GetElementType()!;
-
-            if (s_typeMap.TryGetValue(elementType, out var elementKind))
-            {
-                WritePrimitiveType(elementType, elementKind);
-                WritePrimitiveTypeArrayElements(elementType, elementKind, array);
-            }
-            else
-            {
-                throw new InvalidOperationException($"Unsupported array element type: {elementType}");
-            }
-        }
-
-        private void WritePrimitiveTypeArrayElements(Type type, TypeCode kind, Array instance)
-        {
-            Debug.Assert(s_typeMap[type] == kind);
-
-            // optimization for type underlying binary writer knows about
-            if (type == typeof(byte))
-            {
-                _writer.Write((byte[])instance);
-            }
-            else if (type == typeof(char))
-            {
-                _writer.Write((char[])instance);
-            }
-            else if (type == typeof(string))
-            {
-                // optimization for string which object writer has
-                // its own optimization to reduce repeated string
-                WriteStringArrayElements((string[])instance);
-            }
-            else if (type == typeof(bool))
-            {
-                // optimization for bool array
-                WriteBooleanArrayElements((bool[])instance);
-            }
-            else
-            {
-                // otherwise, write elements directly to underlying binary writer
-                switch (kind)
-                {
-                    case TypeCode.Int8:
-                        WriteInt8ArrayElements((sbyte[])instance);
-                        return;
-                    case TypeCode.Int16:
-                        WriteInt16ArrayElements((short[])instance);
-                        return;
-                    case TypeCode.Int32:
-                        WriteInt32ArrayElements((int[])instance);
-                        return;
-                    case TypeCode.Int64:
-                        WriteInt64ArrayElements((long[])instance);
-                        return;
-                    case TypeCode.UInt16:
-                        WriteUInt16ArrayElements((ushort[])instance);
-                        return;
-                    case TypeCode.UInt32:
-                        WriteUInt32ArrayElements((uint[])instance);
-                        return;
-                    case TypeCode.UInt64:
-                        WriteUInt64ArrayElements((ulong[])instance);
-                        return;
-                    case TypeCode.Float4:
-                        WriteFloat4ArrayElements((float[])instance);
-                        return;
-                    case TypeCode.Float8:
-                        WriteFloat8ArrayElements((double[])instance);
-                        return;
-                    case TypeCode.Decimal:
-                        WriteDecimalArrayElements((decimal[])instance);
-                        return;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(kind);
                 }
             }
         }
