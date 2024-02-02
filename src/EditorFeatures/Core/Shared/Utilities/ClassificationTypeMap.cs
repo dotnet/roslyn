@@ -56,7 +56,7 @@ internal sealed class ClassificationTypeMap : AbstractClassificationTypeMap
         var type = GetClassificationTypeWorker(name);
         if (type == null)
         {
-            FatalError.ReportAndCatch(new Exception($"classification type doesn't exist for {name}"));
+            FatalError.ReportNonFatalErrorAndCatch(new Exception($"classification type doesn't exist for {name}"));
         }
 
         return type ?? GetClassificationTypeWorker(ClassificationTypeNames.Text);

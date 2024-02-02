@@ -3,15 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SQLite.v2;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
@@ -33,6 +34,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         [Fact]
         public async Task TestCrashInNewConnection()
         {
+            var thrownExceptions = ImmutableList<Exception>.Empty;
+
             var solution = CreateOrOpenSolution(nullPaths: true);
 
             var hitInjector = false;
@@ -40,7 +43,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 onNewConnection: () =>
                 {
                     hitInjector = true;
-                    throw new Exception();
+
+                    var exception = new Exception();
+                    ImmutableInterlocked.Update(ref thrownExceptions, (list, exception) => list.Add(exception), exception);
+                    throw exception;
                 },
                 onFatalError: e => throw e);
 
@@ -70,6 +76,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
             }
+
+            UseExportProviderAttribute.HandleExpectedNonFatalErrors(thrownExceptions.Contains);
         }
 
         private class PersistentStorageFaultInjector : IPersistentStorageFaultInjector

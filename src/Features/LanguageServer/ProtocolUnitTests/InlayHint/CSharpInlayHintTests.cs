@@ -2,17 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InlineHints;
-using Roslyn.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit;
@@ -157,6 +155,8 @@ class A
             // Assert that the server did not shutdown and that we can resolve the latest inlay hint request we made.
             var lastInlayHint = await testLspServer.ExecuteRequestAsync<LSP.InlayHint, LSP.InlayHint>(LSP.Methods.InlayHintResolveName, lastInlayHints.First(), CancellationToken.None);
             Assert.NotNull(lastInlayHint?.ToolTip);
+
+            UseExportProviderAttribute.HandleExpectedNonFatalErrors(exception => exception.Message.StartsWith("Missing cache entry for inlay hint resolve request"));
         }
 
         private async Task RunVerifyInlayHintAsync(string markup, bool mutatingLspWorkspace, bool hasTextEdits = true)

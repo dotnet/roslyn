@@ -864,6 +864,8 @@ public class C
                 Assert.Equal((long)-1, resolvedItem.Command.Arguments[3]);
             }
         }
+
+        UseExportProviderAttribute.HandleExpectedNonFatalErrors(exception => exception.Message == "GetChangeAsync throws");
     }
 
     [Theory, CombinatorialData]

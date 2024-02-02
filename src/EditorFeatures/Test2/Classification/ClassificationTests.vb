@@ -301,6 +301,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             Dim run = classifiedText.ToRun(formatMap, typeMap)
 
             Assert.NotNull(run)
+
+            UseExportProviderAttribute.HandleExpectedNonFatalErrors(Function(exception) exception.Message = "classification type doesn't exist for UnknownClassificationType")
         End Sub
 
         <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/13753")>

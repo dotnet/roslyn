@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     hasChanges: true,
                     hasSyntaxErrors: false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportNonFatalErrorAndCatchUnlessCanceled(e, cancellationToken))
             {
                 // The same behavior as if there was a syntax error - we are unable to analyze the document. 
                 // We expect OOM to be thrown during the analysis if the number of top-level entities is too large.

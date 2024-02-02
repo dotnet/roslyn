@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -249,6 +250,7 @@ class A {
             await OpenDocumentAsync(testLspServer, document);
 
             await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics));
+            UseExportProviderAttribute.HandleExpectedNonFatalErrors(exception => exception.Message.StartsWith("SolutionCrawlerPush is not pull"));
         }
 
         [Theory, CombinatorialData]
@@ -268,6 +270,7 @@ class A {
             testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, false);
 
             await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics));
+            UseExportProviderAttribute.HandleExpectedNonFatalErrors(exception => exception.Message.StartsWith("SolutionCrawlerPush is not pull"));
         }
 
         [Theory, CombinatorialData]
@@ -1294,6 +1297,7 @@ class A {
                 new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics, pullDiagnostics: false);
 
             await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics));
+            UseExportProviderAttribute.HandleExpectedNonFatalErrors(exception => exception.Message.StartsWith("SolutionCrawlerPush is not pull"));
         }
 
         [Theory, CombinatorialData]
