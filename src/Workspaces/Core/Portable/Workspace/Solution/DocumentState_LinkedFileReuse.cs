@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis
                 AsyncLazy<TreeAndVersion> treeSource,
                 ITextAndVersionSource siblingTextSource,
                 AsyncLazy<TreeAndVersion> siblingTreeSource,
-                bool force,
+                bool forceEvenIfTreesWouldDiffer,
                 CancellationToken cancellationToken)
             {
                 var siblingTreeAndVersion = await siblingTreeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis
 
                 var siblingRoot = await siblingTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-                if (TryReuseSiblingRoot(filePath, languageServices, loadTextOptions, parseOptions, siblingRoot, siblingTreeAndVersion.Version, force, out var newTreeAndVersion))
+                if (TryReuseSiblingRoot(filePath, languageServices, loadTextOptions, parseOptions, siblingRoot, siblingTreeAndVersion.Version, forceEvenIfTreesWouldDiffer, out var newTreeAndVersion))
                     return newTreeAndVersion;
 
                 // Couldn't use the sibling file to get the tree contents.  Instead, incrementally parse our tree to the text passed in.

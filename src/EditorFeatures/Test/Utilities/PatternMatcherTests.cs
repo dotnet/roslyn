@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             if (match == null)
             {
-                Assert.True(spans.Length == 0);
+                Assert.Empty(spans);
             }
             else
             {
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             if (matches.Count == 0)
             {
-                Assert.True(expectedSpans.Length == 0);
+                Assert.Empty(expectedSpans);
                 return null;
             }
             else
