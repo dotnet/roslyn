@@ -1,0 +1,57 @@
+ Volume in drive D has no label.
+ Volume Serial Number is 324E-4A22
+
+ Directory of D:\roslyn
+
+02/02/2024  10:05 AM    <DIR>          .
+02/02/2024  10:05 AM    <DIR>          ..
+02/01/2024  06:29 AM    <DIR>          .devcontainer
+02/01/2024  06:29 AM            12,194 .editorconfig
+02/01/2024  06:29 AM               172 .git-blame-ignore-revs
+02/01/2024  06:29 AM             3,022 .gitattributes
+02/01/2024  06:29 AM    <DIR>          .github
+02/01/2024  06:29 AM             2,953 .gitignore
+02/01/2024  06:29 AM    <DIR>          .vscode
+02/01/2024  06:29 AM               269 .vsconfig
+02/01/2024  06:29 AM             4,721 azure-pipelines-compliance.yml
+02/01/2024  06:29 AM             2,769 azure-pipelines-integration-corehost.yml
+02/01/2024  06:29 AM             5,932 azure-pipelines-integration-dartlab.yml
+02/01/2024  06:29 AM             1,999 azure-pipelines-integration-lsp.yml
+02/01/2024  06:29 AM             1,720 azure-pipelines-integration-scouting.yml
+02/01/2024  06:29 AM             2,858 azure-pipelines-integration.yml
+02/01/2024  06:29 AM            14,666 azure-pipelines-official.yml
+02/01/2024  06:29 AM            10,838 azure-pipelines-pr-validation.yml
+02/01/2024  06:29 AM             1,557 azure-pipelines-richnav.yml
+02/01/2024  06:29 AM            20,068 azure-pipelines.yml
+02/01/2024  06:29 AM               106 Build.cmd
+02/01/2024  06:29 AM               521 build.sh
+02/01/2024  06:29 AM               265 CODE-OF-CONDUCT.md
+02/01/2024  06:29 AM             7,146 Compilers.slnf
+02/01/2024  06:29 AM            13,105 CONTRIBUTING.md
+02/01/2024  06:29 AM               348 Directory.Build.props
+02/01/2024  06:29 AM                79 Directory.Build.rsp
+02/01/2024  06:29 AM               414 Directory.Build.targets
+02/01/2024  06:29 AM               282 Directory.Packages.props
+02/01/2024  06:29 AM    <DIR>          docs
+02/01/2024  06:29 AM               264 dotnet-tools.json
+02/01/2024  10:05 AM    <DIR>          eng
+02/01/2024  06:29 AM               421 global.json
+02/02/2024  10:05 AM                 0 go.txt
+02/01/2024  06:29 AM             1,137 License.txt
+02/01/2024  06:29 AM             2,450 NuGet.config
+02/01/2024  06:29 AM            18,770 README.md
+02/01/2024  06:29 AM               108 Restore.cmd
+02/01/2024  06:29 AM               523 restore.sh
+02/01/2024  06:29 AM               188 Roslyn.lutconfig
+02/01/2024  06:29 AM           156,134 Roslyn.sln
+02/01/2024  06:29 AM    <DIR>          scripts
+02/01/2024  06:29 AM             1,057 SECURITY.md
+02/01/2024  06:29 AM                56 SpellingExclusions.dic
+02/01/2024  06:29 AM    <DIR>          src
+02/01/2024  06:29 AM               105 Test.cmd
+02/01/2024  06:29 AM               497 test.sh
+02/01/2024  06:29 AM             9,879 THIRD-PARTY-NOTICES.txt
+02/01/2024  06:29 AM               163 Verify.cmd
+02/01/2024  06:29 AM               561 verify.sh
+              41 File(s)        300,317 bytes
+               9 Dir(s)  378,276,712,448 bytes free
