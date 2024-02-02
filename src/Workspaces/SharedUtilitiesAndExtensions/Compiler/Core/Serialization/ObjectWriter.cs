@@ -34,7 +34,7 @@ namespace Roslyn.Utilities
     /// <summary>
     /// An <see cref="ObjectWriter"/> that serializes objects to a byte stream.
     /// </summary>
-    internal sealed partial class ObjectWriter : IAsyncDisposable
+    internal struct ObjectWriter : IAsyncDisposable
     {
         private readonly PipeWriter _writer;
         private readonly bool _leaveOpen;
