@@ -270,7 +270,7 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Write an array of bytes. The array data is provided as a <see
+        /// Write an array of chars. The array data is provided as a <see
         /// cref="ReadOnlySpan{T}">ReadOnlySpan</see>&lt;<see cref="char"/>&gt;, and deserialized to a char array.
         /// </summary>
         /// <param name="span">The array data.</param>
@@ -312,8 +312,7 @@ namespace Roslyn.Utilities
             }
 
             var elementType = typeof(T);
-            Contract.ThrowIfFalse(s_typeMap.ContainsKey(elementType));
-            var actualType = s_typeMap[elementType];
+            Contract.ThrowIfFalse(s_typeMap.TryGetValue(elementType, out var actualType));
             Contract.ThrowIfTrue(expectedType != actualType);
 
             WritePrimitiveType(elementType, actualType);
