@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -53,6 +54,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         private static readonly TimeSpan CleanupTimeout = TimeSpan.FromMinutes(1);
 
+        private static UseExportProviderAttribute? s_instance;
+
         private MefHostServices? _hostServices;
         private ImmutableList<Exception> _fatalErrors = ImmutableList<Exception>.Empty;
         private ImmutableList<Exception> _nonFatalErrors = ImmutableList<Exception>.Empty;
@@ -75,6 +78,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void Before(MethodInfo? methodUnderTest)
         {
+            s_instance = this;
+
             FatalError.OverwriteHandlers(_fatalErrorHandler, _nonFatalErrorHandler);
 
             // Need to clear cached MefHostServices between test runs.
@@ -99,6 +104,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </remarks>
         public override void After(MethodInfo? methodUnderTest)
         {
+            s_instance = null;
+
             try
             {
                 DisposeExportProvider(ExportProviderCache.LocalExportProviderForCleanup);
@@ -123,6 +130,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _hostServices = null;
                 ExportProviderCache.SetEnabled_OnlyUseExportProviderAttributeCanCall(false);
             }
+        }
+
+        public static void HandleExpectedNonFatalErrors(Predicate<Exception> handler)
+        {
+            if (s_instance is not { } instance)
+                throw new InvalidOperationException("Cannot handle errors outside the context of a test.");
+
+            ImmutableInterlocked.Update(
+                ref instance._nonFatalErrors,
+                (errors, handler) => errors.RemoveAll(handler),
+                handler);
         }
 
         private static void DisposeExportProvider(ExportProvider? exportProvider)

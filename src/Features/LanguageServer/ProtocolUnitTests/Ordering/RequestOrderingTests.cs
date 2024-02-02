@@ -126,6 +126,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             Assert.Empty(responses.Where(r => r == null));
             Assert.Empty(responses.Where(r => r!.StartTime == default));
             Assert.All(responses, r => Assert.True(r!.EndTime > r!.StartTime));
+
+            UseExportProviderAttribute.HandleExpectedNonFatalErrors(
+                ex => ex is InvalidOperationException && ex.StackTrace.Contains("<HandleRequestAsync>"));
         }
 
         [Theory, CombinatorialData]

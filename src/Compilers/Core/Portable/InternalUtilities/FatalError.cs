@@ -234,6 +234,77 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             return ReportAndCatch(exception, severity);
         }
 
+        /// <summary>
+        /// Report an error.
+        /// Calls <see cref="s_nonFatalHandler"/> and doesn't pass the exception through (the method returns true).
+        /// This is generally expected to be used within an exception filter as that allows us to
+        /// capture data at the point the exception is thrown rather than when it is handled.
+        /// However, it can also be used outside of an exception filter. If the exception has not
+        /// already been thrown the method will throw and catch it itself to ensure we get a useful
+        /// stack trace.
+        /// </summary>
+        /// <returns>True to catch the exception.</returns>
+        [DebuggerHidden]
+        public static bool ReportNonFatalErrorAndCatch(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        {
+            ReportNonFatalError(exception, severity);
+            return true;
+        }
+
+        [DebuggerHidden]
+        public static bool ReportNonFatalErrorWithDumpAndCatch(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        {
+            ReportNonFatalError(exception, severity, forceDump: true);
+            return true;
+        }
+
+        /// <summary>
+        /// Use in an exception filter to report a non-fatal error (by calling <see cref="s_nonFatalHandler"/>) and catch
+        /// the exception, unless the operation was cancelled.
+        /// </summary>
+        /// <returns><see langword="true"/> to catch the exception if the error was reported; otherwise,
+        /// <see langword="false"/> to propagate the exception if the operation was cancelled.</returns>
+        [DebuggerHidden]
+        public static bool ReportNonFatalErrorAndCatchUnlessCanceled(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        {
+            if (exception is OperationCanceledException)
+            {
+                return false;
+            }
+
+            return ReportNonFatalErrorAndCatch(exception, severity);
+        }
+
+        /// <summary>
+        /// <para>Use in an exception filter to report an error (by calling <see cref="s_nonFatalHandler"/>) and
+        /// catch the exception, unless the operation was cancelled at the request of
+        /// <paramref name="contextCancellationToken"/>.</para>
+        ///
+        /// <para>Cancellable operations are only expected to throw <see cref="OperationCanceledException"/> if the
+        /// applicable <paramref name="contextCancellationToken"/> indicates cancellation is requested by setting
+        /// <see cref="CancellationToken.IsCancellationRequested"/>. Unexpected cancellation, i.e. an
+        /// <see cref="OperationCanceledException"/> which occurs without <paramref name="contextCancellationToken"/>
+        /// requesting cancellation, is treated as an error by this method.</para>
+        ///
+        /// <para>This method does not require <see cref="OperationCanceledException.CancellationToken"/> to match
+        /// <paramref name="contextCancellationToken"/>, provided cancellation is expected per the previous
+        /// paragraph.</para>
+        /// </summary>
+        /// <param name="contextCancellationToken">A <see cref="CancellationToken"/> which will have
+        /// <see cref="CancellationToken.IsCancellationRequested"/> set if cancellation is expected.</param>
+        /// <returns><see langword="true"/> to catch the exception if the error was reported; otherwise,
+        /// <see langword="false"/> to propagate the exception if the operation was cancelled.</returns>
+        [DebuggerHidden]
+        public static bool ReportNonFatalErrorAndCatchUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        {
+            if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken) || exception is OperationCanceledIgnoringCallerTokenException)
+            {
+                return false;
+            }
+
+            return ReportNonFatalErrorAndCatch(exception, severity);
+        }
+
 #endif
 
         private static readonly object s_reportedMarker = new();
