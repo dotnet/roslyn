@@ -134,15 +134,15 @@ namespace Microsoft.CodeAnalysis
                 return new SolutionAttributes(Id, newVersion, newFilePath, newTelemetryId);
             }
 
-            public async ValueTask WriteToAsync(ObjectWriter writer)
+            public void WriteTo(ObjectWriter writer)
             {
-                await Id.WriteToAsync(writer).ConfigureAwait(false);
+                Id.WriteTo(writer);
 
                 // TODO: figure out a way to send version info over as well.
                 //       right now, version get updated automatically, so 2 can't be exactly match
                 // info.Version.WriteTo(writer);
 
-                await writer.WriteStringAsync(FilePath).ConfigureAwait(false);
+                writer.WriteString(FilePath);
                 writer.WriteGuid(TelemetryId);
             }
 

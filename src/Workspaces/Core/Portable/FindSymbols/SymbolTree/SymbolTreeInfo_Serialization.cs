@@ -105,12 +105,12 @@ internal partial class SymbolTreeInfo
         return TryReadSymbolTreeInfo(reader, checksum);
     }
 
-    public async ValueTask WriteToAsync(ObjectWriter writer)
+    public void WriteTo(ObjectWriter writer)
     {
         writer.WriteInt32(_nodes.Length);
         foreach (var group in GroupByName(_nodes.AsMemory()))
         {
-            await writer.WriteStringAsync(group.Span[0].Name).ConfigureAwait(false);
+            writer.WriteString(group.Span[0].Name);
             WriteGroup(writer, group);
         }
 
@@ -135,15 +135,15 @@ internal partial class SymbolTreeInfo
             writer.WriteInt32(_receiverTypeNameToExtensionMethodMap.Count);
             foreach (var key in _receiverTypeNameToExtensionMethodMap.Keys)
             {
-                await writer.WriteStringAsync(key).ConfigureAwait(false);
+                writer.WriteString(key);
 
                 var values = _receiverTypeNameToExtensionMethodMap[key];
                 writer.WriteInt32(values.Count);
 
                 foreach (var value in values)
                 {
-                    await writer.WriteStringAsync(value.FullyQualifiedContainerName).ConfigureAwait(false);
-                    await writer.WriteStringAsync(value.Name).ConfigureAwait(false);
+                    writer.WriteString(value.FullyQualifiedContainerName);
+                    writer.WriteString(value.Name);
                 }
             }
         }
@@ -157,7 +157,7 @@ internal partial class SymbolTreeInfo
         else
         {
             writer.WriteBoolean(true);
-            await spellChecker.WriteToAsync(writer).ConfigureAwait(false);
+            spellChecker.WriteTo(writer);
         }
 
         return;

@@ -10,9 +10,9 @@ namespace Roslyn.Utilities;
 
 internal readonly partial struct BKTree
 {
-    internal async ValueTask WriteToAsync(ObjectWriter writer)
+    internal void WriteTo(ObjectWriter writer)
     {
-        await writer.WriteValueAsync(_concatenatedLowerCaseWords).ConfigureAwait(false);
+        writer.WriteValue(_concatenatedLowerCaseWords);
         writer.WriteArray(_nodes, static (w, n) => n.WriteTo(w));
         writer.WriteArray(_edges, static (w, n) => n.WriteTo(w));
     }

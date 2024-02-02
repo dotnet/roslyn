@@ -123,10 +123,10 @@ namespace Microsoft.CodeAnalysis.Serialization
                 context.AddResource(_storage);
 
                 writer.WriteInt32((int)_storage.ChecksumAlgorithm);
-                await writer.WriteEncodingAsync(_storage.Encoding).ConfigureAwait(false);
+                writer.WriteEncoding(_storage.Encoding);
 
                 writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
-                await writer.WriteStringAsync(_storage.Name).ConfigureAwait(false);
+                writer.WriteString(_storage.Name);
                 writer.WriteInt64(_storage.Offset);
                 writer.WriteInt64(_storage.Size);
             }
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 RoslynDebug.AssertNotNull(_text);
 
                 writer.WriteInt32((int)_text.ChecksumAlgorithm);
-                await writer.WriteEncodingAsync(_text.Encoding).ConfigureAwait(false);
+                writer.WriteEncoding(_text.Encoding);
                 writer.WriteInt32((int)SerializationKinds.Bits);
                 await _text.WriteToAsync(writer, cancellationToken).ConfigureAwait(false);
             }

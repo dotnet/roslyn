@@ -37,10 +37,10 @@ namespace Roslyn.Utilities
             }
         }
 
-        public async ValueTask WriteToAsync(ObjectWriter writer)
+        public void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(SerializationFormat);
-            await bKTree.WriteToAsync(writer).ConfigureAwait(false);
+            bKTree.WriteTo(writer);
         }
 
         internal static async ValueTask<SpellChecker?> TryReadFromAsync(ObjectReader reader)

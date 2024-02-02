@@ -18,25 +18,26 @@ namespace Microsoft.CodeAnalysis.Serialization;
 /// </summary>
 internal partial class SerializerService
 {
-    private static void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+    private static async ValueTask SerializeSourceTextAsync(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
     {
-        text.Serialize(writer, context, cancellationToken);
+        await text.SerializeAsync(writer, context, cancellationToken).ConfigureAwait(false);
     }
 
-    private SourceText DeserializeSourceText(ObjectReader reader, CancellationToken cancellationToken)
+    private async ValueTask<SourceText> DeserializeSourceTextAsync(ObjectReader reader, CancellationToken cancellationToken)
     {
-        var serializableSourceText = SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken);
+        var serializableSourceText = await SerializableSourceText.DeserializeAsync(
+            reader, _storageService, _textService, cancellationToken).ConfigureAwait(false);
         return serializableSourceText.GetText(cancellationToken);
     }
 
-    private async ValueTask SerializeCompilationOptionsAsync(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+    private void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var language = options.Language;
 
         // TODO: once compiler team adds ability to serialize compilation options to ObjectWriter directly, we won't need this.
-        await writer.WriteStringAsync(language).ConfigureAwait(false);
+        writer.WriteString(language);
 
         var service = GetOptionsSerializationService(language);
         service.WriteTo(options, writer, cancellationToken);
@@ -52,12 +53,12 @@ internal partial class SerializerService
         return service.ReadCompilationOptionsFrom(reader, cancellationToken);
     }
 
-    public async ValueTask SerializeParseOptionsAsync(ParseOptions options, ObjectWriter writer)
+    public void SerializeParseOptions(ParseOptions options, ObjectWriter writer)
     {
         var language = options.Language;
 
         // TODO: once compiler team adds ability to serialize parse options to ObjectWriter directly, we won't need this.
-        await writer.WriteStringAsync(language).ConfigureAwait(false);
+        writer.WriteString(language);
 
         var service = GetOptionsSerializationService(language);
         service.WriteTo(options, writer);
@@ -78,7 +79,7 @@ internal partial class SerializerService
         cancellationToken.ThrowIfCancellationRequested();
 
         reference.ProjectId.WriteTo(writer);
-        await writer.WriteValueAsync(reference.Aliases.ToArray()).ConfigureAwait(false);
+        writer.WriteArray(reference.Aliases, static (w, a) => w.WriteString(a));
         writer.WriteBoolean(reference.EmbedInteropTypes);
     }
 
@@ -87,33 +88,33 @@ internal partial class SerializerService
         cancellationToken.ThrowIfCancellationRequested();
 
         var projectId = ProjectId.ReadFrom(reader);
-        var aliases = reader.ReadArray<string>();
+        var aliases = await reader.ReadArrayAsync(static r => r.ReadStringAsync()).ConfigureAwait(false);
         var embedInteropTypes = await reader.ReadBooleanAsync().ConfigureAwait(false);
 
         return new ProjectReference(projectId, aliases.ToImmutableArrayOrEmpty(), embedInteropTypes);
     }
 
-    private void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+    private async ValueTask SerializeMetadataReferenceAsync(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        WriteMetadataReferenceTo(reference, writer, context, cancellationToken);
+        await WriteMetadataReferenceToAsync(reference, writer, context, cancellationToken).ConfigureAwait(false);
     }
 
-    private MetadataReference DeserializeMetadataReference(ObjectReader reader, CancellationToken cancellationToken)
+    private async ValueTask<MetadataReference> DeserializeMetadataReferenceAsync(ObjectReader reader, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return ReadMetadataReferenceFrom(reader, cancellationToken);
+        return await ReadMetadataReferenceFromAsync(reader, cancellationToken).ConfigureAwait(false);
     }
 
-    private void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    private async ValueTask SerializeAnalyzerReferenceAsync(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        WriteAnalyzerReferenceTo(reference, writer, cancellationToken);
+        await WriteAnalyzerReferenceToAsync(reference, writer, cancellationToken).ConfigureAwait(false);
     }
 
-    private AnalyzerReference DeserializeAnalyzerReference(ObjectReader reader, CancellationToken cancellationToken)
+    private async ValueTask<AnalyzerReference> DeserializeAnalyzerReferenceAsync(ObjectReader reader, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return ReadAnalyzerReferenceFrom(reader, cancellationToken);
+        return await ReadAnalyzerReferenceFromAsync(reader, cancellationToken).ConfigureAwait(false);
     }
 }

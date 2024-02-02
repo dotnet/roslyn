@@ -109,15 +109,15 @@ internal partial class SerializerService : ISerializerService
             switch (kind)
             {
                 case WellKnownSynchronizationKind.SolutionAttributes:
-                    await ((SolutionInfo.SolutionAttributes)value).WriteToAsync(writer).ConfigureAwait(false);
+                    ((SolutionInfo.SolutionAttributes)value).WriteTo(writer);
                     return;
 
                 case WellKnownSynchronizationKind.ProjectAttributes:
-                    await ((ProjectInfo.ProjectAttributes)value).WriteToAsync(writer).ConfigureAwait(false);
+                    ((ProjectInfo.ProjectAttributes)value).WriteTo(writer);
                     return;
 
                 case WellKnownSynchronizationKind.DocumentAttributes:
-                    await ((DocumentInfo.DocumentAttributes)value).WriteToAsync(writer).ConfigureAwait(false);
+                    ((DocumentInfo.DocumentAttributes)value).WriteTo(writer);
                     return;
 
                 case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
@@ -157,15 +157,15 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.SolutionState:
-                    await ((SolutionStateChecksums)value).SerializeAsync(writer).ConfigureAwait(false);
+                    ((SolutionStateChecksums)value).Serialize(writer);
                     return;
 
                 case WellKnownSynchronizationKind.ProjectState:
-                    await ((ProjectStateChecksums)value).SerializeAsync(writer).ConfigureAwait(false);
+                    ((ProjectStateChecksums)value).Serialize(writer);
                     return;
 
                 case WellKnownSynchronizationKind.DocumentState:
-                    await ((DocumentStateChecksums)value).SerializeAsync(writer).ConfigureAwait(false);
+                    ((DocumentStateChecksums)value).Serialize(writer);
                     return;
 
                 case WellKnownSynchronizationKind.ChecksumCollection:

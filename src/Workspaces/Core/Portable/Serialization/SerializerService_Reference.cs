@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 switch (reference)
                 {
                     case AnalyzerFileReference file:
-                        await writer.WriteStringAsync(file.FullPath).ConfigureAwait(false);
+                        writer.WriteString(file.FullPath);
                         writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
                         break;
 
@@ -93,15 +94,15 @@ namespace Microsoft.CodeAnalysis.Serialization
             throw ExceptionUtilities.UnexpectedValue(type);
         }
 
-        public virtual async ValueTask WriteAnalyzerReferenceToAsync(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public virtual void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             switch (reference)
             {
                 case AnalyzerFileReference file:
-                    await writer.WriteStringAsync(nameof(AnalyzerFileReference)).ConfigureAwait(false);
-                    await writer.WriteStringAsync(file.FullPath).ConfigureAwait(false);
+                    writer.WriteString(nameof(AnalyzerFileReference));
+                    writer.WriteString(file.FullPath);
                     writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
                     break;
 
@@ -125,19 +126,19 @@ namespace Microsoft.CodeAnalysis.Serialization
             throw ExceptionUtilities.UnexpectedValue(type);
         }
 
-        protected static async ValueTask WritePortableExecutableReferenceHeaderToAsync(
+        protected static void WritePortableExecutableReferenceHeaderTo(
             PortableExecutableReference reference, SerializationKinds kind, ObjectWriter writer, CancellationToken cancellationToken)
         {
-            await writer.WriteStringAsync(nameof(PortableExecutableReference)).ConfigureAwait(false);
+            writer.WriteString(nameof(PortableExecutableReference));
             writer.WriteInt32((int)kind);
 
-            await WritePortableExecutableReferencePropertiesToAsync(reference, writer, cancellationToken).ConfigureAwait(false);
+            WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
         }
 
-        private static async ValueTask WritePortableExecutableReferencePropertiesToAsync(PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        private static void WritePortableExecutableReferencePropertiesTo(PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
-            await WriteToAsync(reference.Properties, writer, cancellationToken).ConfigureAwait(false);
-            await writer.WriteStringAsync(reference.FilePath).ConfigureAwait(false);
+            WriteTo(reference.Properties, writer, cancellationToken);
+            writer.WriteString(reference.FilePath);
         }
 
         private static async ValueTask<Checksum> CreatePortableExecutableReferenceChecksumAsync(PortableExecutableReference reference, CancellationToken cancellationToken)
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
             {
-                await WritePortableExecutableReferencePropertiesToAsync(reference, writer, cancellationToken).ConfigureAwait(false);
+                WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
                 WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
             }
 
@@ -217,10 +218,10 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteGuid(guid);
         }
 
-        private static async ValueTask WritePortableExecutableReferenceToAsync(
+        private static void WritePortableExecutableReferenceTo(
             PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
-            await WritePortableExecutableReferenceHeaderToAsync(reference, SerializationKinds.Bits, writer, cancellationToken).ConfigureAwait(false);
+            WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.Bits, writer, cancellationToken);
 
             WriteTo(TryGetMetadata(reference), writer, cancellationToken);
 
@@ -263,12 +264,12 @@ namespace Microsoft.CodeAnalysis.Serialization
             throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
-        private static async ValueTask WriteToAsync(MetadataReferenceProperties properties, ObjectWriter writer, CancellationToken cancellationToken)
+        private static void WriteTo(MetadataReferenceProperties properties, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             writer.WriteInt32((int)properties.Kind);
-            await writer.WriteValueAsync(properties.Aliases.ToArray()).ConfigureAwait(false);
+            writer.WriteArray(properties.Aliases, static (w, a) => w.WriteString(a));
             writer.WriteBoolean(properties.EmbedInteropTypes);
         }
 
@@ -277,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             var kind = (MetadataImageKind)await reader.ReadInt32Async().ConfigureAwait(false);
-            var aliases = (await reader.ReadArrayAsync<string>().ConfigureAwait(false)).ToImmutableArrayOrEmpty();
+            var aliases = await reader.ReadArrayAsync(static r => r.ReadStringAsync()).ConfigureAwait(false);
             var embedInteropTypes = await reader.ReadBooleanAsync().ConfigureAwait(false);
 
             return new MetadataReferenceProperties(kind, aliases, embedInteropTypes);
@@ -316,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             WriteTo((ModuleMetadata)metadata, writer, cancellationToken);
         }
 
-        private static async ValueTask<bool> TryWritePortableExecutableReferenceBackedByTemporaryStorageToAsync(
+        private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
             ISupportTemporaryStorage reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
             var storages = reference.GetStorages();
@@ -340,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
             }
 
-            await WritePortableExecutableReferenceHeaderToAsync((PortableExecutableReference)reference, SerializationKinds.MemoryMapFile, writer, cancellationToken).ConfigureAwait(false);
+            WritePortableExecutableReferenceHeaderTo((PortableExecutableReference)reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
 
             writer.WriteInt32((int)MetadataImageKind.Assembly);
             writer.WriteInt32(pooled.Object.Count);
@@ -348,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             foreach (var (name, offset, size) in pooled.Object)
             {
                 writer.WriteInt32((int)MetadataImageKind.Module);
-                await writer.WriteStringAsync(name).ConfigureAwait(false);
+                writer.WriteString(name);
                 writer.WriteInt64(offset);
                 writer.WriteInt64(size);
             }
@@ -545,10 +546,10 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteSpan(new ReadOnlySpan<byte>(reader.MetadataPointer, reader.MetadataLength));
         }
 
-        private static async ValueTask WriteUnresolvedAnalyzerReferenceToAsync(AnalyzerReference reference, ObjectWriter writer)
+        private static void WriteUnresolvedAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer)
         {
-            await writer.WriteStringAsync(nameof(UnresolvedAnalyzerReference)).ConfigureAwait(false);
-            await writer.WriteStringAsync(reference.FullPath).ConfigureAwait(false);
+            writer.WriteString(nameof(UnresolvedAnalyzerReference));
+            writer.WriteString(reference.FullPath);
         }
 
         private static Metadata? TryGetMetadata(PortableExecutableReference reference)

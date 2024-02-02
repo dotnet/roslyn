@@ -119,12 +119,12 @@ internal sealed class SolutionStateChecksums(
         this.AnalyzerReferences.AddAllTo(checksums);
     }
 
-    public async ValueTask SerializeAsync(ObjectWriter writer)
+    public void Serialize(ObjectWriter writer)
     {
         // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
         this.Checksum.WriteTo(writer);
         this.Attributes.WriteTo(writer);
-        await this.Projects.WriteToAsync(writer).ConfigureAwait(false);
+        this.Projects.WriteTo(writer);
         this.AnalyzerReferences.WriteTo(writer);
     }
 
@@ -281,9 +281,9 @@ internal sealed class ProjectStateChecksums(
         this.ProjectReferences.WriteTo(writer);
         this.MetadataReferences.WriteTo(writer);
         this.AnalyzerReferences.WriteTo(writer);
-        this.Documents.WriteToAsync(writer).ConfigureAwait(false);
-        this.AdditionalDocuments.WriteToAsync(writer).ConfigureAwait(false);
-        this.AnalyzerConfigDocuments.WriteToAsync(writer).ConfigureAwait(false);
+        this.Documents.WriteTo(writer);
+        this.AdditionalDocuments.WriteTo(writer);
+        this.AnalyzerConfigDocuments.WriteTo(writer);
     }
 
     public static async ValueTask<ProjectStateChecksums> DeserializeAsync(ObjectReader reader)
