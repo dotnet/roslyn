@@ -259,13 +259,13 @@ internal sealed partial class ObjectReader : IDisposable
 
     public byte[] ReadByteArray()
     {
-        var (result, _) = ReadRawArray(static length => new byte[length], TypeCode.UInt8, static (reader, array, length) => reader.Read(array, 0, length));
+        var (result, _) = ReadRawArray(static length => CreateArray<byte>(length), TypeCode.UInt8, static (reader, array, length) => reader.Read(array, 0, length));
         return result;
     }
 
     public char[] ReadCharArray()
     {
-        var (result, _) = ReadCharArray(static length => new char[length]);
+        var (result, _) = ReadCharArray(static length => CreateArray<char>(length));
         return result;
     }
 
@@ -395,21 +395,6 @@ internal sealed partial class ObjectReader : IDisposable
         return value;
     }
 
-    private Array ReadArray(TypeCode kind)
-    {
-        var (length, elementKind) = ReadArrayLengthAndElementKind(kind);
-
-        var elementType = ObjectWriter.s_reverseTypeMap[(int)elementKind];
-        if (elementType != null)
-        {
-            return this.ReadPrimitiveTypeArrayElements(elementType, elementKind, length);
-        }
-        else
-        {
-            throw ExceptionUtilities.UnexpectedValue(elementKind);
-        }
-    }
-
     private (int length, TypeCode elementKind) ReadArrayLengthAndElementKind(TypeCode kind)
     {
         var length = kind switch
@@ -425,66 +410,6 @@ internal sealed partial class ObjectReader : IDisposable
         var elementKind = (TypeCode)ReadByte();
 
         return (length, elementKind);
-    }
-
-    private Array ReadPrimitiveTypeArrayElements(Type type, TypeCode kind, int length)
-    {
-        Debug.Assert(ObjectWriter.s_reverseTypeMap[(int)kind] == type);
-
-        // optimizations for supported array type by binary reader
-        if (type == typeof(byte))
-            return _reader.ReadBytes(length);
-        if (type == typeof(char))
-            return _reader.ReadChars(length);
-
-        // optimizations for string where object reader/writer has its own mechanism to
-        // reduce duplicated strings
-        if (type == typeof(string))
-            return ReadStringArrayElements(CreateArray<string>(length));
-        if (type == typeof(bool))
-            return ReadBooleanArrayElements(CreateArray<bool>(length));
-
-        // otherwise, read elements directly from underlying binary writer
-        return kind switch
-        {
-            TypeCode.Int8 => ReadInt8ArrayElements(CreateArray<sbyte>(length)),
-            TypeCode.Int16 => ReadInt16ArrayElements(CreateArray<short>(length)),
-            TypeCode.Int32 => ReadInt32ArrayElements(CreateArray<int>(length)),
-            TypeCode.Int64 => ReadInt64ArrayElements(CreateArray<long>(length)),
-            TypeCode.UInt16 => ReadUInt16ArrayElements(CreateArray<ushort>(length)),
-            TypeCode.UInt32 => ReadUInt32ArrayElements(CreateArray<uint>(length)),
-            TypeCode.UInt64 => ReadUInt64ArrayElements(CreateArray<ulong>(length)),
-            TypeCode.Float4 => ReadFloat4ArrayElements(CreateArray<float>(length)),
-            TypeCode.Float8 => ReadFloat8ArrayElements(CreateArray<double>(length)),
-            TypeCode.Decimal => ReadDecimalArrayElements(CreateArray<decimal>(length)),
-            _ => throw ExceptionUtilities.UnexpectedValue(kind),
-        };
-    }
-
-    private bool[] ReadBooleanArrayElements(bool[] array)
-    {
-        // Confirm the type to be read below is ulong
-        Debug.Assert(BitVector.BitsPerWord == 64);
-
-        var wordLength = BitVector.WordsRequired(array.Length);
-
-        var count = 0;
-        for (var i = 0; i < wordLength; i++)
-        {
-            var word = ReadUInt64();
-
-            for (var p = 0; p < BitVector.BitsPerWord; p++)
-            {
-                if (count >= array.Length)
-                {
-                    return array;
-                }
-
-                array[count++] = BitVector.IsTrue(word, p);
-            }
-        }
-
-        return array;
     }
 
     private static T[] CreateArray<T>(int length)
