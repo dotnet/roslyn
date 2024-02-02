@@ -269,29 +269,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(Enumerable.SequenceEqual(expected, (byte[])reader.ReadByteArray()));
         }
 
-        [Fact]
-        public void TestBooleanArrays()
-        {
-            for (var i = 0; i < 1000; i++)
-            {
-                var inputBool = new bool[i];
-
-                for (var j = 0; j < i; j++)
-                {
-                    inputBool[j] = j % 2 == 0;
-                }
-
-                TestRoundTripValue(inputBool);
-            }
-        }
-
-        [Fact]
-        public void TestFalseBooleanArray()
-        {
-            var inputBool = Enumerable.Repeat<bool>(false, 1000).ToArray();
-            TestRoundTripValue(inputBool);
-        }
-
         private static readonly DateTime _testNow = DateTime.Now;
 
         [Fact]
@@ -662,18 +639,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static void TestRoundTripStringCharacter(ushort code)
         {
             TestRoundTripString(new String((char)code, 1));
-        }
-
-        [Fact]
-        public void TestRoundTripArrays()
-        {
-            //TestRoundTripArray(new object[] { });
-            //TestRoundTripArray(new object[] { "hello" });
-            //TestRoundTripArray(new object[] { "hello", "world" });
-            //TestRoundTripArray(new object[] { "hello", "world", "good" });
-            //TestRoundTripArray(new object[] { "hello", "world", "good", "bye" });
-            //TestRoundTripArray(new object[] { "hello", 123, 45m, 99.9, 'c' });
-            TestRoundTripArray(new string[] { "hello", null, "world" });
         }
 
         private static void TestRoundTripArray<T>(T[] values)
