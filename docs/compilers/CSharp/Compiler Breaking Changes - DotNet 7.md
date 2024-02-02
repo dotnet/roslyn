@@ -314,7 +314,7 @@ These changes could cause a behavioral change if the user code was depending on 
 unchecked context, or if it was not expecting overflow exceptions in a checked context. An analyzer was 
 [added in 7.0](https://github.com/dotnet/runtime/issues/74022) to help detect such behavioral changes
 and take appropriate action. The analyzer will produce diagnostics on potential behavioral changes, which default
-to info severity but can be upgraded to warnings via [editorconfig](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/configuration-options#severity-level).
+to info severity but can be upgraded to warnings via [editorconfig](/dotnet/fundamentals/code-analysis/configuration-options#severity-level).
 
 ## Addition of System.UIntPtr and System.Int32
 
