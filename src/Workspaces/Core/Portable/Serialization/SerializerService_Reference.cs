@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
@@ -266,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             writer.WriteInt32((int)properties.Kind);
-            writer.WriteValue(properties.Aliases.ToArray());
+            writer.WriteArray(properties.Aliases, static (w, a) => w.WriteString(a));
             writer.WriteBoolean(properties.EmbedInteropTypes);
         }
 
@@ -275,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             var kind = (MetadataImageKind)reader.ReadInt32();
-            var aliases = reader.ReadArray<string>().ToImmutableArrayOrEmpty();
+            var aliases = reader.ReadArray(static r => r.ReadString());
             var embedInteropTypes = reader.ReadBoolean();
 
             return new MetadataReferenceProperties(kind, aliases, embedInteropTypes);
@@ -441,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
 
-            var array = reader.ReadArray<byte>();
+            var array = (byte[])reader.ReadValue();
             var pinnedObject = new PinnedObject(array);
 
             var metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), array.Length);
@@ -525,7 +526,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             // TODO: make reader be able to read byte[] chunk
-            var content = reader.ReadArray<byte>();
+            var content = (byte[])reader.ReadValue();
             stream.Write(content, 0, content.Length);
         }
 
