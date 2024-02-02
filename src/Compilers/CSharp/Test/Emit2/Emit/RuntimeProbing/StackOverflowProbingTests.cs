@@ -474,7 +474,6 @@ public sealed class StackOverflowProbingTests : CSharpTestBase
             """);
     }
 
-
     [Fact]
     public void StateMachine_Iterator()
     {

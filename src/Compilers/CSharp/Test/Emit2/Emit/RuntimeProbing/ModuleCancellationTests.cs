@@ -34,9 +34,6 @@ public sealed class ModuleCancellationTests : CSharpTestBase
     private static void AssertNotInstrumented(CompilationVerifier verifier, string qualifiedMethodName)
         => AssertInstrumented(verifier, qualifiedMethodName, "<PrivateImplementationDetails>.ModuleCancellationToken", expected: false);
 
-    private static void AssertNotInstrumentedWithThrow(CompilationVerifier verifier, string qualifiedMethodName)
-        => AssertInstrumented(verifier, qualifiedMethodName, "void System.Threading.CancellationToken.ThrowIfCancellationRequested()", expected: false);
-
     private static void AssertNotInstrumentedWithTokenLoad(CompilationVerifier verifier, string qualifiedMethodName)
         => AssertInstrumented(verifier, qualifiedMethodName, @"ldsfld     ""System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken""", expected: false);
 
