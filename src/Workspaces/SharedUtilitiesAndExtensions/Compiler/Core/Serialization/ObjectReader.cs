@@ -243,6 +243,9 @@ internal sealed partial class ObjectReader : IDisposable
         var code = (TypeCode)ReadByte();
         switch (code)
         {
+            case TypeCode.Null:
+                return null;
+
             case TypeCode.EncodingName:
                 return Encoding.GetEncoding(ReadString());
 
