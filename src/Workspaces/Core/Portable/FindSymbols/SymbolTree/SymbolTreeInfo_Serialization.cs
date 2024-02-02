@@ -102,7 +102,7 @@ internal partial class SymbolTreeInfo
         // We have some previously persisted data.  Attempt to read it back.  
         // If we're able to, and the version of the persisted data matches
         // our version, then we can reuse this instance.
-        return TryReadSymbolTreeInfo(reader, checksum);
+        return await TryReadSymbolTreeInfoAsync(reader, checksum).ConfigureAwait(false);
     }
 
     public void WriteTo(ObjectWriter writer)

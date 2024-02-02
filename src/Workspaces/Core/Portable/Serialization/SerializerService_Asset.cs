@@ -74,7 +74,7 @@ internal partial class SerializerService
         return service.ReadParseOptionsFrom(reader, cancellationToken);
     }
 
-    private static async ValueTask SerializeProjectReferenceAsync(ProjectReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    private static void SerializeProjectReference(ProjectReference reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -87,7 +87,7 @@ internal partial class SerializerService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var projectId = ProjectId.ReadFrom(reader);
+        var projectId = await ProjectId.ReadFromAsync(reader).ConfigureAwait(false);
         var aliases = await reader.ReadArrayAsync(static r => r.ReadStringAsync()).ConfigureAwait(false);
         var embedInteropTypes = await reader.ReadBooleanAsync().ConfigureAwait(false);
 
@@ -106,10 +106,10 @@ internal partial class SerializerService
         return await ReadMetadataReferenceFromAsync(reader, cancellationToken).ConfigureAwait(false);
     }
 
-    private async ValueTask SerializeAnalyzerReferenceAsync(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    private void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await WriteAnalyzerReferenceToAsync(reference, writer, cancellationToken).ConfigureAwait(false);
+        WriteAnalyzerReferenceTo(reference, writer, cancellationToken);
     }
 
     private async ValueTask<AnalyzerReference> DeserializeAnalyzerReferenceAsync(ObjectReader reader, CancellationToken cancellationToken)

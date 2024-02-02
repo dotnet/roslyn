@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static async ValueTask<DocumentId> ReadFromAsync(ObjectReader reader)
         {
-            var projectId = ProjectId.ReadFrom(reader);
+            var projectId = await ProjectId.ReadFromAsync(reader).ConfigureAwait(false);
             var guid = await reader.ReadGuidAsync().ConfigureAwait(false);
             var isSourceGenerated = await reader.ReadBooleanAsync().ConfigureAwait(false);
             var debugName = await reader.ReadStringAsync().ConfigureAwait(false);

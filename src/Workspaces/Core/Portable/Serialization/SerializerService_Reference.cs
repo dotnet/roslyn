@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     }
                 }
 
-                await WritePortableExecutableReferenceToAsync(portable, writer, cancellationToken).ConfigureAwait(false);
+                WritePortableExecutableReferenceTo(portable, writer, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -532,11 +532,12 @@ namespace Microsoft.CodeAnalysis.Serialization
             stream.Write(content, 0, content.Length);
         }
 
-        private static void WriteTo(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
+        private static async ValueTask WriteToAsync(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
         {
             writer.WriteInt32((int)metadata.Kind);
 
             WriteTo(metadata.GetMetadataReader(), writer, cancellationToken);
+            await writer.FlushAsync().ConfigureAwait(false);
         }
 
         private static unsafe void WriteTo(MetadataReader reader, ObjectWriter writer, CancellationToken cancellationToken)

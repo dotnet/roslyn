@@ -91,6 +91,9 @@ namespace Roslyn.Utilities
             _stringReferenceMap.Dispose();
         }
 
+        public async ValueTask FlushAsync()
+            => await _writer.FlushAsync(_cancellationToken).ConfigureAwait(false);
+
         private void WriteVersion()
         {
             WriteByte(ObjectReader.VersionByte1);

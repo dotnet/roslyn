@@ -181,16 +181,18 @@ internal static partial class SourceTextExtensions
         // if source is small, no point on optimizing. just write out string
         if (length < SourceTextLengthThreshold)
         {
-            await writer.WriteStringAsync(sourceText.ToString()).ConfigureAwait(false);
+            writer.WriteString(sourceText.ToString());
         }
         else
         {
             // if bigger, write out as chunks
-            await WriteChunksToAsync(sourceText, writer, length, cancellationToken).ConfigureAwait(false);
+            WriteChunksTo(sourceText, writer, length, cancellationToken);
         }
+
+        await writer.FlushAsync().ConfigureAwait(false);
     }
 
-    private static async ValueTask WriteChunksToAsync(SourceText sourceText, ObjectWriter writer, int length, CancellationToken cancellationToken)
+    private static void WriteChunksTo(SourceText sourceText, ObjectWriter writer, int length, CancellationToken cancellationToken)
     {
         // chunk size
         using var pooledObject = s_charArrayPool.GetPooledObject();
@@ -218,9 +220,9 @@ internal static partial class SourceTextExtensions
             // where it's partially full, we pass in a span to the section that is filled.  This will fast path on
             // netcore, though will incur a copy to pooled memory on netfx.
             if (count == buffer.Length)
-                await writer.WriteValueAsync(buffer).ConfigureAwait(false);
+                writer.WriteValue(buffer);
             else
-                writer.WriteSpanAsync(buffer.AsSpan()[..count]);
+                writer.WriteSpan(buffer.AsSpan()[..count]);
 
             offset += count;
         }

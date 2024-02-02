@@ -74,9 +74,9 @@ internal readonly record struct SourceGeneratedDocumentIdentity : IEquatable<Sou
         return new SourceGeneratedDocumentIdentity(documentId, hintName, generatorIdentity, filePath);
     }
 
-    public async ValueTask WriteToAsync(ObjectWriter writer)
+    public void WriteTo(ObjectWriter writer)
     {
-        DocumentId.WriteToAsync(writer);
+        DocumentId.WriteTo(writer);
 
         writer.WriteString(HintName);
         writer.WriteString(Generator.AssemblyName);
@@ -88,7 +88,7 @@ internal readonly record struct SourceGeneratedDocumentIdentity : IEquatable<Sou
 
     internal static async ValueTask<SourceGeneratedDocumentIdentity> ReadFromAsync(ObjectReader reader)
     {
-        var documentId = DocumentId.ReadFrom(reader);
+        var documentId = await DocumentId.ReadFromAsync(reader).ConfigureAwait(false);
 
         var hintName = await reader.ReadStringAsync().ConfigureAwait(false);
         var generatorAssemblyName = await reader.ReadStringAsync().ConfigureAwait(false);

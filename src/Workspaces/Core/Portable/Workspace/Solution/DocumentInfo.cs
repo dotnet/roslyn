@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis
 
             public static async ValueTask<DocumentAttributes> ReadFromAsync(ObjectReader reader)
             {
-                var documentId = DocumentId.ReadFrom(reader);
+                var documentId = await DocumentId.ReadFromAsync(reader).ConfigureAwait(false);
 
                 var name = await reader.ReadStringAsync().ConfigureAwait(false);
                 var folders = await reader.ReadArrayAsync(static r => r.ReadStringAsync()).ConfigureAwait(false);

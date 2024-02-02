@@ -13,7 +13,7 @@ internal interface ISerializerService : IWorkspaceService
 {
     ValueTask SerializeAsync(object value, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken);
 
-    ValueTask SerializeParseOptionsAsync(ParseOptions options, ObjectWriter writer);
+    void SerializeParseOptions(ParseOptions options, ObjectWriter writer);
 
     ValueTask<T> DeserializeAsync<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken);
 

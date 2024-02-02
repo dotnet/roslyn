@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteString(FilePath);
                 writer.WriteString(OutputFilePath);
                 writer.WriteString(OutputRefFilePath);
-                CompilationOutputInfo.WriteToAsync(writer);
+                CompilationOutputInfo.WriteTo(writer);
                 writer.WriteString(DefaultNamespace);
                 writer.WriteByte(checked((byte)ChecksumAlgorithm));
                 writer.WriteBoolean(IsSubmission);
@@ -606,7 +606,7 @@ namespace Microsoft.CodeAnalysis
 
             public static async ValueTask<ProjectAttributes> ReadFromAsync(ObjectReader reader)
             {
-                var projectId = ProjectId.ReadFrom(reader);
+                var projectId = await ProjectId.ReadFromAsync(reader).ConfigureAwait(false);
 
                 // var version = VersionStamp.ReadFrom(reader);
                 var name = await reader.ReadStringAsync().ConfigureAwait(false);
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis
                 var filePath = await reader.ReadStringAsync().ConfigureAwait(false);
                 var outputFilePath = await reader.ReadStringAsync().ConfigureAwait(false);
                 var outputRefFilePath = await reader.ReadStringAsync().ConfigureAwait(false);
-                var compilationOutputFilePaths = CompilationOutputInfo.ReadFrom(reader);
+                var compilationOutputFilePaths = await CompilationOutputInfo.ReadFromAsync(reader).ConfigureAwait(false);
                 var defaultNamespace = await reader.ReadStringAsync().ConfigureAwait(false);
                 var checksumAlgorithm = (SourceHashAlgorithm)await reader.ReadByteAsync().ConfigureAwait(false);
                 var isSubmission = await reader.ReadBooleanAsync().ConfigureAwait(false);

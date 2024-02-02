@@ -121,23 +121,23 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
-                    await ((SourceGeneratedDocumentIdentity)value).WriteToAsync(writer).ConfigureAwait(false);
+                    ((SourceGeneratedDocumentIdentity)value).WriteTo(writer);
                     return;
 
                 case WellKnownSynchronizationKind.CompilationOptions:
-                    await SerializeCompilationOptionsAsync((CompilationOptions)value, writer, cancellationToken).ConfigureAwait(false);
+                    SerializeCompilationOptions((CompilationOptions)value, writer, cancellationToken);
                     return;
 
                 case WellKnownSynchronizationKind.ParseOptions:
-                    await SerializeParseOptionsAsync((ParseOptions)value, writer).ConfigureAwait(false);
+                    SerializeParseOptions((ParseOptions)value, writer);
                     return;
 
                 case WellKnownSynchronizationKind.ProjectReference:
-                    await SerializeProjectReferenceAsync((ProjectReference)value, writer, cancellationToken).ConfigureAwait(false);
+                    SerializeProjectReference((ProjectReference)value, writer, cancellationToken);
                     return;
 
                 case WellKnownSynchronizationKind.MetadataReference:
-                    SerializeMetadataReference((MetadataReference)value, writer, context, cancellationToken);
+                    await SerializeMetadataReferenceAsync((MetadataReference)value, writer, context, cancellationToken).ConfigureAwait(false);
                     return;
 
                 case WellKnownSynchronizationKind.AnalyzerReference:
@@ -145,11 +145,11 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
-                    SerializeSourceText((SerializableSourceText)value, writer, context, cancellationToken);
+                    await SerializeSourceTextAsync((SerializableSourceText)value, writer, context, cancellationToken).ConfigureAwait(false);
                     return;
 
                 case WellKnownSynchronizationKind.SourceText:
-                    SerializeSourceText(new SerializableSourceText((SourceText)value), writer, context, cancellationToken);
+                    await SerializeSourceTextAsync(new SerializableSourceText((SourceText)value), writer, context, cancellationToken).ConfigureAwait(false);
                     return;
 
                 case WellKnownSynchronizationKind.SolutionCompilationState:
@@ -218,13 +218,13 @@ internal partial class SerializerService : ISerializerService
                 case WellKnownSynchronizationKind.ProjectReference:
                     return (T)(object)await DeserializeProjectReferenceAsync(reader, cancellationToken).ConfigureAwait(false);
                 case WellKnownSynchronizationKind.MetadataReference:
-                    return (T)(object)DeserializeMetadataReference(reader, cancellationToken);
+                    return (T)(object)await DeserializeMetadataReferenceAsync(reader, cancellationToken).ConfigureAwait(false);
                 case WellKnownSynchronizationKind.AnalyzerReference:
-                    return (T)(object)DeserializeAnalyzerReference(reader, cancellationToken);
+                    return (T)(object)await DeserializeAnalyzerReferenceAsync(reader, cancellationToken).ConfigureAwait(false);
                 case WellKnownSynchronizationKind.SerializableSourceText:
                     return (T)(object)await SerializableSourceText.DeserializeAsync(reader, _storageService, _textService, cancellationToken).ConfigureAwait(false);
                 case WellKnownSynchronizationKind.SourceText:
-                    return (T)(object)DeserializeSourceText(reader, cancellationToken);
+                    return (T)(object)await DeserializeSourceTextAsync(reader, cancellationToken).ConfigureAwait(false);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
