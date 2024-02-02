@@ -21,6 +21,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         End Function
 
         Public Function GetProperty(propid As Integer, ByRef pvar As Object) As Integer Implements IVsShell.GetProperty
+            If propid = __VSSPROPID.VSSPROPID_ObjectMgrTypesImgList Then
+                pvar = IntPtr.Zero
+                Return VSConstants.E_NOTIMPL
+            End If
+
             Throw New NotImplementedException()
         End Function
 
