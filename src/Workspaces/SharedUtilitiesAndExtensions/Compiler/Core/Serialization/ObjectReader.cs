@@ -240,7 +240,21 @@ internal sealed partial class ObjectReader : IDisposable
 
     public Encoding ReadEncoding()
     {
-        throw new NotImplementedException();
+        var code = (TypeCode)ReadByte();
+        switch (code)
+        {
+            case TypeCode.EncodingName:
+                return Encoding.GetEncoding(ReadString());
+
+            case >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding:
+                return ObjectWriter.ToEncodingKind(code).GetEncoding();
+
+            case TypeCode.EncodingCodePage:
+                return Encoding.GetEncoding(ReadInt32());
+
+            default:
+                throw ExceptionUtilities.UnexpectedValue(code);
+        }
     }
 
     public char[] ReadCharArray()
