@@ -1086,6 +1086,7 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71636")]
         public async Task TestUpdateExpressionBody4()
         {
             await VerifyCS.VerifyRefactoringAsync(
