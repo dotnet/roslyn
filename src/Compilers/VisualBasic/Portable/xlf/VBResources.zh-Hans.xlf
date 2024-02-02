@@ -648,6 +648,16 @@
         <target state="translated">生成器初始化失败。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_LockTypeUnsupported">
+        <source>A value of type 'System.Threading.Lock' in SyncLock will use likely unintended monitor-based locking. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
+        <target state="new">A value of type 'System.Threading.Lock' in SyncLock will use likely unintended monitor-based locking. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_LockTypeUnsupported_Title">
+        <source>A value of type 'System.Threading.Lock' in SyncLock will use likely unintended monitor-based locking. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
+        <target state="new">A value of type 'System.Threading.Lock' in SyncLock will use likely unintended monitor-based locking. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WrongNumberOfTypeArguments">
         <source>Wrong number of type arguments</source>
         <target state="translated">类型参数的数目不正确</target>

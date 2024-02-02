@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -472,6 +473,29 @@ End Module
     </file>
 </compilation>).VerifyDiagnostics(
             Diagnostic(ERRID.ERR_CaseElseNoSelect, "Case Else"))
+        End Sub
+
+        <Fact>
+        Public Sub LockType_InSyncLock()
+            Dim source = "
+Module Program
+    Sub Main()
+        Dim l = New System.Threading.Lock()
+        SyncLock l
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics(
+"BC42508: A value of type 'System.Threading.Lock' in SyncLock will use likely unintended monitor-based locking. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock l
+                 ~
+")
         End Sub
     End Class
 End Namespace
