@@ -497,5 +497,171 @@ End Namespace
                  ~
 ")
         End Sub
+
+        <Fact>
+        Public Sub LockType_CastToObject()
+            Dim source = "
+Imports System.Threading
+
+Module Program
+    Sub Main()
+        Dim l = New Lock()
+        Dim o As Object = l
+
+        o = DirectCast(l, Object)
+        SyncLock DirectCast(l, Object)
+        End SyncLock
+
+        o = CType(l, Object)
+        SyncLock CType(l, Object)
+        End SyncLock
+
+        o = TryCast(l, Object)
+        SyncLock TryCast(l, Object)
+        End SyncLock
+
+        o = M1(l)
+        SyncLock M1(l)
+        End SyncLock
+
+        o = M2(l)
+        SyncLock M2(l)
+        End SyncLock
+
+        o = M3(l)
+        SyncLock M3(l)
+        End SyncLock
+    End Sub
+
+    Function M1(Of T)(o as T) As Object
+        Return o
+    End Function
+
+    Function M2(Of T As Class)(o as T) As Object
+        Return o
+    End Function
+
+    Function M3(Of T As Lock)(o as T) As Object
+        Return o
+    End Function
+End Module
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics(
+"BC42509: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim o As Object = l
+                          ~
+BC42509: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        o = DirectCast(l, Object)
+                       ~
+BC42509: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        SyncLock DirectCast(l, Object)
+                            ~
+BC42509: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        o = CType(l, Object)
+                  ~
+BC42509: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        SyncLock CType(l, Object)
+                       ~
+BC42509: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        o = TryCast(l, Object)
+                    ~
+BC42509: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        SyncLock TryCast(l, Object)
+                         ~
+")
+        End Sub
+
+        <Fact>
+        Public Sub LockType_CastToBase()
+            Dim source = "
+Imports System.Threading
+
+Module Program
+    Sub Main()
+        Dim l = New Lock()
+        Dim o As LockBase = l
+        SyncLock o
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class LockBase
+    End Class
+
+    Public Class Lock
+        Inherits LockBase
+    End Class
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics(
+"BC42509: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim o As LockBase = l
+                            ~
+")
+        End Sub
+
+        <Fact>
+        Public Sub LockType_CastToInterface()
+            Dim source = "
+Imports System.Threading
+
+Module Program
+    Sub Main()
+        Dim l = New Lock()
+        Dim o As ILockBase = l
+        SyncLock o
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Interface ILockBase
+    End Interface
+
+    Public Class Lock
+        Implements ILockBase
+    End Class
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics(
+"BC42509: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim o As ILockBase = l
+                             ~
+")
+        End Sub
+
+        <Fact>
+        Public Sub LockType_Downcast()
+            Dim source = "
+Imports System.Threading
+Module Program
+    Sub Main()
+        Dim l = New Lock()
+        Dim o As Object = l
+        SyncLock CType(o, Lock)
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics(
+"BC42509: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim o As Object = l
+                          ~
+BC42508: A value of type 'System.Threading.Lock' in SyncLock will use likely unintended monitor-based locking. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock CType(o, Lock)
+                 ~~~~~~~~~~~~~~
+")
+        End Sub
     End Class
 End Namespace

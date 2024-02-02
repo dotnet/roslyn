@@ -158,6 +158,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 constantResult = Conversions.TryFoldNothingReferenceConversion(argument, conv, targetType)
             End If
 
+            WarnOnLockConversion(sourceType, argument.Syntax, diagnostics)
+
             Return New BoundDirectCast(node, argument, conv, constantResult, targetType)
         End Function
 
@@ -256,6 +258,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim constantResult = Conversions.TryFoldNothingReferenceConversion(argument, conv, targetType)
+
+            WarnOnLockConversion(sourceType, argument.Syntax, diagnostics)
 
             Return New BoundTryCast(node, argument, conv, constantResult, targetType)
         End Function
@@ -1042,6 +1046,11 @@ DoneWithDiagnostics:
 
             Dim tupleElements As BoundConvertedTupleElements = CreateConversionForTupleElements(tree, sourceType, targetType, convKind, isExplicit)
 
+            If convKind = ConversionKind.WideningReference AndAlso
+                sourceType.IsWellKnownTypeLock() Then
+                ReportDiagnostic(diagnostics, argument.Syntax, ERRID.WRN_ConvertingLock)
+            End If
+
             Return New BoundConversion(tree, argument, convKind, CheckOverflow, isExplicit, constantResult, tupleElements, targetType)
         End Function
 
@@ -1720,6 +1729,12 @@ DoneWithDiagnostics:
                 End If
 
                 diagnostics.AddDependencies(useSiteInfo)
+            End If
+        End Sub
+
+        Private Sub WarnOnLockConversion(sourceType As TypeSymbol, syntax As SyntaxNode, diagnostics As BindingDiagnosticBag)
+            If sourceType IsNot Nothing AndAlso sourceType.IsWellKnownTypeLock() Then
+                ReportDiagnostic(diagnostics, syntax, ERRID.WRN_ConvertingLock)
             End If
         End Sub
 

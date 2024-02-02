@@ -2012,6 +2012,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_DuplicateAnalyzerReference = 42507
 
         WRN_LockTypeUnsupported = 42508
+        WRN_ConvertingLock = 42509
 
         ' // AVAILABLE                             42600 - 49998
         WRN_NextAvailable = 42600
