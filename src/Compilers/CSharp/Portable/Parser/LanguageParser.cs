@@ -1570,7 +1570,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 forType = ParseType();
             }
 
+            // PROTOTYPE decide whether to keep parsing base extensions or not
             var baseList = this.ParseBaseList();
+            if (mainKeyword.Kind == SyntaxKind.ExtensionKeyword
+                && baseList is not null)
+            {
+                baseList = this.AddError(baseList, ErrorCode.ERR_NotYetImplementedInRoslyn, MessageID.IDS_FeatureBaseExtensions.Localize());
+            }
+
             _termState = saveTerm;
 
             // Parse class body
@@ -1731,7 +1738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             static TypeDeclarationSyntax constructTypeDeclaration(ContextAwareSyntax syntaxFactory, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers,
                 SyntaxToken? firstKeyword, SyntaxToken? secondKeyword, SyntaxToken mainKeyword,
                 SyntaxToken name, TypeParameterListSyntax typeParameters, ParameterListSyntax? paramList, SyntaxToken? forKeyword, TypeSyntax? forType,
-                BaseListSyntax baseList, SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints,
+                BaseListSyntax? baseList, SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints,
                 SyntaxToken? openBrace, SyntaxListBuilder<MemberDeclarationSyntax> members, SyntaxToken? closeBrace, SyntaxToken semicolon)
             {
                 var modifiersList = (SyntaxList<SyntaxToken>)modifiers.ToList();

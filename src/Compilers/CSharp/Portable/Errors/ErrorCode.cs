@@ -1250,6 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // unused 7104-8000
 
         #region more diagnostics introduced in Roslyn (C# 6)
+        ERR_NotYetImplementedInRoslyn = 8000,
         WRN_UnimplementedCommandLineSwitch = 8001,
         WRN_ReferencedAssemblyDoesNotHaveStrongName = 8002,
         ERR_InvalidSignaturePublicKey = 8003,
@@ -2287,11 +2288,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // PROTOTYPE compact error codes
         ERR_BadExtensionUnderlyingType = 9305,
         ERR_StaticBaseTypeOnInstanceExtension = 9306,
-        ERR_OnlyBaseExtensionAllowed = 9307,
+        ERR_OnlyBaseExtensionAllowed = 9307, // PROTOTYPE restore base extension support
         ERR_PartialMultipleUnderlyingTypes = 9308,
         ERR_BadVisUnderlyingType = 9309,
-        ERR_BadVisBaseExtension = 9310,
-        ERR_CycleInBaseExtensions = 9311,
+        ERR_BadVisBaseExtension = 9310, // PROTOTYPE restore base extension support
+        ERR_CycleInBaseExtensions = 9311, // PROTOTYPE restore base extension support
         ERR_FileTypeUnderlying = 9312,
         ERR_StateInExtension = 9313,
         ERR_ExtensionMissingUnderlyingType = 9314,

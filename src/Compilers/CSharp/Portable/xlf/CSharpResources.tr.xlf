@@ -2212,6 +2212,11 @@
         <target state="translated">otomatik varsayılan yapı alanları</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureBaseExtensions">
+        <source>base extensions</source>
+        <target state="new">base extensions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
         <source>checked user-defined operators</source>
         <target state="translated">kullanıcı tanımlı işleçler işaretlendi</target>

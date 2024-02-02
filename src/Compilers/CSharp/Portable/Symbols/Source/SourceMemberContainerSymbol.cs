@@ -536,7 +536,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract void CheckBase(BindingDiagnosticBag diagnostics);
         protected abstract void CheckInterfaces(BindingDiagnosticBag diagnostics);
         protected abstract void CheckUnderlyingType(BindingDiagnosticBag diagnostics);
-        protected abstract void CheckBaseExtensions(BindingDiagnosticBag diagnostics);
 
         internal override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
         {
@@ -559,7 +558,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (IsExtension)
                             {
                                 CheckUnderlyingType(diagnostics);
-                                CheckBaseExtensions(diagnostics);
                             }
                             else
                             {
@@ -1829,7 +1827,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var baseType = BaseTypeNoUseSiteDiagnostics;
             var interfaces = GetInterfacesToEmit();
             var extendedType = ExtendedTypeNoUseSiteDiagnostics;
-            var baseExtensions = BaseExtensionsNoUseSiteDiagnostics;
 
             if (compilation.ShouldEmitNativeIntegerAttributes())
             {
@@ -1906,8 +1903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return (baseType is not null && predicate(baseType)) ||
                     interfaces.As<TypeSymbol>().Any(predicate) ||
-                    (extendedType is not null && predicate(extendedType)) ||
-                    baseExtensions.As<TypeSymbol>().Any(predicate);
+                    (extendedType is not null && predicate(extendedType));
             }
 
             static bool needsTupleElementNamesAttribute(TypeSymbol type)

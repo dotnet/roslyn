@@ -154,9 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ThreeState lazyIsExplicitExtension = ThreeState.Unknown;
             // PROTOTYPE consider renaming ExtensionUnderlyingType->ExtendedType (here and elsewhere)
             internal TypeSymbol lazyDeclaredExtensionUnderlyingType = null;
-            internal ImmutableArray<NamedTypeSymbol> lazyDeclaredBaseExtensions = default;
-            internal ImmutableArray<NamedTypeSymbol> lazyBaseExtensions = default;
-            internal ImmutableArray<NamedTypeSymbol> lazyAllBaseExtensions = default;
 
 #if DEBUG
             internal bool IsDefaultValue()
@@ -177,10 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     lazyFilePathChecksum.IsDefault &&
                     lazyDisplayFileName == null &&
                     !lazyIsExplicitExtension.HasValue() &&
-                    lazyDeclaredExtensionUnderlyingType is null &&
-                    lazyDeclaredBaseExtensions.IsDefault &&
-                    lazyBaseExtensions.IsDefault &&
-                    lazyAllBaseExtensions.IsDefault;
+                    lazyDeclaredExtensionUnderlyingType is null;
             }
 #endif
         }
@@ -686,43 +680,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
-        {
-            get
-            {
-                var uncommon = GetUncommonProperties();
-                if (uncommon == s_noUncommonProperties)
-                    return ImmutableArray<NamedTypeSymbol>.Empty;
-
-                if (!uncommon.lazyBaseExtensions.IsDefault)
-                    return uncommon.lazyBaseExtensions;
-
-                var declaredBaseExtensions = GetDeclaredBaseExtensions(basesBeingResolved: null);
-                var baseExtensions = declaredBaseExtensions.SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(depends: t, on: this) ? CyclicInheritanceError(t) : t);
-                ImmutableInterlocked.InterlockedCompareExchange(ref uncommon.lazyBaseExtensions, baseExtensions, default);
-
-                return uncommon.lazyBaseExtensions;
-            }
-        }
-
-        internal sealed override ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics
-        {
-            get
-            {
-                var uncommon = GetUncommonProperties();
-                if (uncommon == s_noUncommonProperties)
-                    return ImmutableArray<NamedTypeSymbol>.Empty;
-
-                if (!uncommon.lazyAllBaseExtensions.IsDefault)
-                    return uncommon.lazyAllBaseExtensions;
-
-                var allBaseExtensions = MakeAllBaseExtensions();
-                ImmutableInterlocked.InterlockedCompareExchange(ref uncommon.lazyAllBaseExtensions, allBaseExtensions, default);
-
-                return uncommon.lazyAllBaseExtensions;
-            }
-        }
-
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
         {
             if (this.TypeKind != TypeKind.Extension)
@@ -739,28 +696,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return uncommon.lazyDeclaredExtensionUnderlyingType;
         }
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions(ConsList<TypeSymbol>? basesBeingResolved)
-        {
-            if (this.TypeKind != TypeKind.Extension)
-                return ImmutableArray<NamedTypeSymbol>.Empty;
-
-            var uncommon = GetUncommonProperties();
-            Debug.Assert(uncommon != s_noUncommonProperties);
-
-            if (!uncommon.lazyDeclaredBaseExtensions.IsDefault)
-                return uncommon.lazyDeclaredBaseExtensions;
-
-            EnsureExtensionTypeDecoded(uncommon);
-
-            return uncommon.lazyDeclaredBaseExtensions;
-        }
-
         private void EnsureExtensionTypeDecoded(UncommonProperties uncommon)
         {
-            DecodeExtensionType(out bool isExplicit, out TypeSymbol underlyingType, out ImmutableArray<NamedTypeSymbol> baseExtensions);
+            DecodeExtensionType(out bool isExplicit, out TypeSymbol underlyingType);
             uncommon.lazyIsExplicitExtension = isExplicit.ToThreeState();
             Interlocked.CompareExchange(ref uncommon.lazyDeclaredExtensionUnderlyingType, underlyingType, null);
-            ImmutableInterlocked.InterlockedCompareExchange(ref uncommon.lazyDeclaredBaseExtensions, baseExtensions, default);
         }
 #nullable disable
 
@@ -2010,21 +1950,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return default;
         }
 
-        private void DecodeExtensionType(out bool isExplicit, out TypeSymbol underlyingType, out ImmutableArray<NamedTypeSymbol> baseExtensions)
+        private void DecodeExtensionType(out bool isExplicit, out TypeSymbol underlyingType)
         {
             // PROTOTYPE consider optimizing/caching
 
             TypeSymbol? foundUnderlyingType;
-            if (!tryDecodeExtensionType(out isExplicit, out foundUnderlyingType, out baseExtensions))
+            if (!tryDecodeExtensionType(out isExplicit, out foundUnderlyingType))
             {
                 if (foundUnderlyingType is null)
                 {
                     foundUnderlyingType = ErrorTypeSymbol.UnknownResultType;
-                }
-
-                if (baseExtensions.IsDefault)
-                {
-                    baseExtensions = ImmutableArray<NamedTypeSymbol>.Empty;
                 }
             }
 
@@ -2032,7 +1967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return;
 
-            bool tryDecodeExtensionType(out bool isExplicit, [NotNullWhen(true)] out TypeSymbol? underlyingType, out ImmutableArray<NamedTypeSymbol> baseExtensions)
+            bool tryDecodeExtensionType(out bool isExplicit, [NotNullWhen(true)] out TypeSymbol? underlyingType)
             {
                 var markerMethod = TryGetExtensionMarkerMethod();
                 Debug.Assert(!markerMethod.IsNil);
@@ -2040,7 +1975,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 isExplicit = false;
                 underlyingType = null;
-                baseExtensions = default;
 
                 MethodAttributes localFlags;
                 try
@@ -2070,7 +2004,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return false;
                 }
 
-                var baseExtensionsBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance(paramInfos.Length - 1);
                 for (int i = 0; i < paramInfos.Length; i++)
                 {
                     var paramInfo = paramInfos[i];
@@ -2107,26 +2040,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     else
                     {
-                        // PROTOTYPE what if the base extension is nullable-annotated?
-                        // PROTOTYPE we should check that the extended type is compatible
-                        // with the base extension's (but that causes a cycle)
-                        NamedTypeSymbol baseExtension;
-                        if (type is NamedTypeSymbol { IsExtension: true } namedType)
-                        {
-                            baseExtension = namedType;
-                        }
-                        else
-                        {
-                            var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, this);
-                            baseExtension = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
-                        }
-
-                        baseExtensionsBuilder.Add(baseExtension);
+                        return false;
                     }
                 }
 
                 Debug.Assert(underlyingType is not null);
-                baseExtensions = baseExtensionsBuilder.ToImmutableAndFree();
                 return true;
             }
         }

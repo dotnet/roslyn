@@ -131,10 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsExplicitExtension => false;
 
         internal override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics => null;
-        internal override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
-            => ImmutableArray<NamedTypeSymbol>.Empty;
-        internal override ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics
-            => ImmutableArray<NamedTypeSymbol>.Empty;
 
         internal override ObsoleteAttributeData ObsoleteAttributeData => throw ExceptionUtilities.Unreachable();
 

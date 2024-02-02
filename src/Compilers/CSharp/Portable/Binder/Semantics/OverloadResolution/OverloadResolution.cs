@@ -1339,10 +1339,6 @@ outerDefault:
                 {
                     return true;
                 }
-                else if (currentType.IsExtension && type.IsExtension && currentType.AllBaseExtensionsWithDefinitionUseSiteDiagnostics(ref useSiteInfo).Contains((NamedTypeSymbol)type))
-                {
-                    return true;
-                }
                 else if (currentType.IsClassType() && type.IsClassType() && currentType.IsDerivedFrom(type, TypeCompareKind.ConsiderEverything, useSiteInfo: ref useSiteInfo))
                 {
                     return true;

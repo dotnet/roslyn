@@ -36,11 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private ImmutableArray<NamedTypeSymbol> _lazyDeclaredInterfaces;
 
         private TypeSymbol _lazyExtendedType = ErrorTypeSymbol.UnknownResultType;
-        private ImmutableArray<NamedTypeSymbol> _lazyBaseExtensions = default;
-        private ImmutableArray<NamedTypeSymbol> _lazyAllBaseExtensions = default;
 
         private TypeSymbol _lazyDeclaredExtendedType = ErrorTypeSymbol.UnknownResultType;
-        private ImmutableArray<NamedTypeSymbol> _lazyDeclaredBaseExtensions;
 
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
@@ -424,38 +421,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
-        {
-            get
-            {
-                if (_lazyBaseExtensions.IsDefault)
-                {
-                    var declaredBaseExtensions = GetDeclaredBaseExtensions(basesBeingResolved: null);
-
-                    ImmutableArray<NamedTypeSymbol> result = declaredBaseExtensions
-                        .SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(t, on: this) ? CyclicInheritanceError(t) : t);
-
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyBaseExtensions, result, default);
-                }
-
-                return _lazyBaseExtensions;
-            }
-        }
-
-        internal sealed override ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics
-        {
-            get
-            {
-                if (_lazyAllBaseExtensions.IsDefault)
-                {
-                    var allBaseExtensions = MakeAllBaseExtensions();
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyAllBaseExtensions, allBaseExtensions, default);
-                }
-
-                return _lazyAllBaseExtensions;
-            }
-        }
-
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
         {
             if (TypeKind != TypeKind.Extension)
@@ -485,35 +450,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             // PROTOTYPE consider using a more specific diagnostic. Maybe ERR_MalformedExtensionInMetadata or "Extension type declaration is malformed"
             var info = new CSDiagnosticInfo(ErrorCode.ERR_ErrorInReferencedAssembly, type.ContainingAssembly?.Identity.GetDisplayName() ?? string.Empty);
             return new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
-        }
-
-        internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions(ConsList<TypeSymbol>? basesBeingResolved)
-        {
-            if (TypeKind != TypeKind.Extension)
-                return ImmutableArray<NamedTypeSymbol>.Empty;
-
-            if (_lazyDeclaredBaseExtensions.IsDefault)
-            {
-                var underlyingBaseExtensions = _underlyingType.GetDeclaredBaseExtensions(basesBeingResolved);
-                var result = this.RetargetingTranslator.Retarget(underlyingBaseExtensions);
-
-                if (result.Any(b => isBadBaseExtension(b)))
-                {
-                    result = result.SelectAsArray(b => isBadBaseExtension(b) ? MakeErrorType(b) : b);
-                }
-
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeclaredBaseExtensions, result, comparand: default);
-            }
-
-            return _lazyDeclaredBaseExtensions;
-
-            bool isBadBaseExtension(NamedTypeSymbol baseExtension)
-            {
-                return !baseExtension.IsExtension
-                    || SourceExtensionTypeSymbol.AreExtendedTypesIncompatible(
-                        this.ExtendedTypeNoUseSiteDiagnostics,
-                        baseExtension.ExtendedTypeNoUseSiteDiagnostics);
-            }
         }
 #nullable disable
 

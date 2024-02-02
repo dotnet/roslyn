@@ -1156,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return other;
         }
 
-        // Lookup member in an extension type and its base extensions.
+        // Lookup member in an extension type
         private void LookupMembersInExtension(
             LookupResult current,
             NamedTypeSymbol type,
@@ -1171,79 +1171,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(type is { IsExtension: true });
 
             LookupMembersWithoutInheritance(current, type, name, arity, options, originalBinder, accessThroughType: type, diagnose, ref useSiteInfo, basesBeingResolved);
-
-            if (ShouldLookInBaseInterfacesOrExtensions(current, type, options, originalBinder))
-            {
-                LookupMembersInBasesWithoutInheritance(current, GetBaseExtensions(type, basesBeingResolved, ref useSiteInfo),
-                    name, arity, basesBeingResolved, options, originalBinder, accessThroughType: type, diagnose, ref useSiteInfo);
-            }
-        }
-
-        private static ImmutableArray<NamedTypeSymbol> GetBaseExtensions(NamedTypeSymbol type, ConsList<TypeSymbol> basesBeingResolved, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            if (basesBeingResolved?.Any() != true)
-            {
-                return type.AllBaseExtensionsWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
-            }
-
-            if (basesBeingResolved.ContainsReference(type.OriginalDefinition))
-            {
-                return ImmutableArray<NamedTypeSymbol>.Empty;
-            }
-
-            var baseExtensions = type.GetDeclaredBaseExtensions(basesBeingResolved);
-
-            if (baseExtensions.IsEmpty)
-            {
-                return ImmutableArray<NamedTypeSymbol>.Empty;
-            }
-
-            var cycleGuard = ConsList<NamedTypeSymbol>.Empty.Prepend(type.OriginalDefinition);
-
-            // Consumers of the result depend on the sorting performed by AllExtensionsWithDefinitionUseSiteDiagnostics.
-            // Let's use similar sort algorithm.
-            var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var visited = new HashSet<NamedTypeSymbol>(Symbols.SymbolEqualityComparer.ConsiderEverything);
-
-            for (int i = baseExtensions.Length - 1; i >= 0; i--)
-            {
-                addAllExtensions(baseExtensions[i], visited, result, basesBeingResolved, cycleGuard);
-            }
-
-            result.ReverseContents();
-
-            foreach (var candidate in result)
-            {
-                // PROTOTYPE not managed to hit this use-site diagnostic scenario yet
-                candidate.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
-            }
-
-            return result.ToImmutableAndFree();
-
-            static void addAllExtensions(NamedTypeSymbol extension, HashSet<NamedTypeSymbol> visited, ArrayBuilder<NamedTypeSymbol> result, ConsList<TypeSymbol> basesBeingResolved, ConsList<NamedTypeSymbol> cycleGuard)
-            {
-                Debug.Assert(extension.IsExtension);
-
-                NamedTypeSymbol originalDefinition = extension.OriginalDefinition;
-                if (!cycleGuard.ContainsReference(originalDefinition) && visited.Add(extension))
-                {
-                    if (!basesBeingResolved.ContainsReference(originalDefinition))
-                    {
-                        ImmutableArray<NamedTypeSymbol> baseExtensions = extension.GetDeclaredBaseExtensions(basesBeingResolved);
-
-                        if (!baseExtensions.IsEmpty)
-                        {
-                            cycleGuard = cycleGuard.Prepend(originalDefinition);
-                            for (int i = baseExtensions.Length - 1; i >= 0; i--)
-                            {
-                                addAllExtensions(baseExtensions[i], visited, result, basesBeingResolved, cycleGuard);
-                            }
-                        }
-                    }
-
-                    result.Add(extension);
-                }
-            }
         }
 
         // Lookup member in interface, and any base interfaces.
@@ -1463,11 +1390,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GetBaseInterfaces(derivedType, basesBeingResolved, ref useSiteInfo).Contains(baseType);
             }
 
-            if (baseType.IsExtension)
-            {
-                return GetBaseExtensions(derivedType, basesBeingResolved, ref useSiteInfo).Contains(baseType);
-            }
-
             return false;
         }
 
@@ -1501,12 +1423,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // SPEC: For the purposes of member lookup [...] if T is an
                             // SPEC: interface type, the base types of T are the base interfaces
                             // SPEC: of T and the class type object. 
-
-                            // PROTOTYPE revisit how we want to deal with duplicates and what type comparison we want when we get to the generic case of extension member lookup
-                            if (hidingContainer.IsExtension && TypeSymbol.Equals(hiddenContainer, hidingContainer, TypeCompareKind.ConsiderEverything2))
-                            {
-                                goto symIsHidden; // members from a base extension can be brought in multiple ways (by scope and by inheritance)
-                            }
 
                             if (!IsDerivedType(baseType: hiddenContainer, derivedType: hidingContainer, basesBeingResolved, this.Compilation, useSiteInfo: ref useSiteInfo) &&
                                 hiddenContainer.SpecialType != SpecialType.System_Object)
