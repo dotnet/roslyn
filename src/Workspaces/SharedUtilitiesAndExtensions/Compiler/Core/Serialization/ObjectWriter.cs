@@ -260,6 +260,18 @@ namespace Roslyn.Utilities
             }
         }
 
+        public void WriteByteArray(byte[] array)
+        {
+            WriteSpanPreamble<byte>(array.AsSpan(), TypeCode.UInt8);
+            _writer.Write(array);
+        }
+
+        public void WriteCharArray(char[] array)
+        {
+            WriteSpanPreamble<char>(array.AsSpan(), TypeCode.Char);
+            _writer.Write(array);
+        }
+
         /// <summary>
         /// Write an array of bytes. The array data is provided as a <see
         /// cref="ReadOnlySpan{T}">ReadOnlySpan</see>&lt;<see cref="byte"/>&gt;, and deserialized to a byte array.
@@ -530,193 +542,6 @@ namespace Roslyn.Utilities
                     }
                 }
             }
-        }
-
-        public void WriteCharArray(char[] array)
-        {
-            throw new NotImplementedException();
-        }
-
-        //private void WriteArray(Array array)
-        //{
-        //    var length = array.GetLength(0);
-
-        //    switch (length)
-        //    {
-        //        case 0:
-        //            WriteByte((byte)TypeCode.Array_0);
-        //            break;
-        //        case 1:
-        //            WriteByte((byte)TypeCode.Array_1);
-        //            break;
-        //        case 2:
-        //            WriteByte((byte)TypeCode.Array_2);
-        //            break;
-        //        case 3:
-        //            WriteByte((byte)TypeCode.Array_3);
-        //            break;
-        //        default:
-        //            WriteByte((byte)TypeCode.Array);
-        //            WriteCompressedUInt((uint)length);
-        //            break;
-        //    }
-
-        //    var elementType = array.GetType().GetElementType()!;
-
-        //    if (s_typeMap.TryGetValue(elementType, out var elementKind))
-        //    {
-        //        WritePrimitiveType(elementType, elementKind);
-        //        WritePrimitiveTypeArrayElements(elementType, elementKind, array);
-        //    }
-        //    else
-        //    {
-        //        throw new InvalidOperationException($"Unsupported array element type: {elementType}");
-        //    }
-        //}
-
-        private void WritePrimitiveTypeArrayElements(Type type, TypeCode kind, Array instance)
-        {
-            Debug.Assert(s_typeMap[type] == kind);
-
-            // optimization for type underlying binary writer knows about
-            if (type == typeof(byte))
-            {
-                _writer.Write((byte[])instance);
-            }
-            else if (type == typeof(char))
-            {
-                _writer.Write((char[])instance);
-            }
-            else if (type == typeof(string))
-            {
-                // optimization for string which object writer has
-                // its own optimization to reduce repeated string
-                WriteStringArrayElements((string[])instance);
-            }
-            else if (type == typeof(bool))
-            {
-                // optimization for bool array
-                WriteBooleanArrayElements((bool[])instance);
-            }
-            else
-            {
-                // otherwise, write elements directly to underlying binary writer
-                switch (kind)
-                {
-                    case TypeCode.Int8:
-                        WriteInt8ArrayElements((sbyte[])instance);
-                        return;
-                    case TypeCode.Int16:
-                        WriteInt16ArrayElements((short[])instance);
-                        return;
-                    case TypeCode.Int32:
-                        WriteInt32ArrayElements((int[])instance);
-                        return;
-                    case TypeCode.Int64:
-                        WriteInt64ArrayElements((long[])instance);
-                        return;
-                    case TypeCode.UInt16:
-                        WriteUInt16ArrayElements((ushort[])instance);
-                        return;
-                    case TypeCode.UInt32:
-                        WriteUInt32ArrayElements((uint[])instance);
-                        return;
-                    case TypeCode.UInt64:
-                        WriteUInt64ArrayElements((ulong[])instance);
-                        return;
-                    case TypeCode.Float4:
-                        WriteFloat4ArrayElements((float[])instance);
-                        return;
-                    case TypeCode.Float8:
-                        WriteFloat8ArrayElements((double[])instance);
-                        return;
-                    case TypeCode.Decimal:
-                        WriteDecimalArrayElements((decimal[])instance);
-                        return;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(kind);
-                }
-            }
-        }
-
-        private void WriteBooleanArrayElements(bool[] array)
-        {
-            // convert bool array to bit array
-            var bits = BitVector.Create(array.Length);
-            for (var i = 0; i < array.Length; i++)
-            {
-                bits[i] = array[i];
-            }
-
-            // send over bit array
-            foreach (var word in bits.Words())
-                WriteUInt64(word);
-        }
-
-        private void WriteStringArrayElements(string[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-                WriteStringValue(array[i]);
-        }
-
-        private void WriteInt8ArrayElements(sbyte[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-                WriteSByte(array[i]);
-        }
-
-        private void WriteInt16ArrayElements(short[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-                WriteInt16(array[i]);
-        }
-
-        private void WriteInt32ArrayElements(int[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-                WriteInt32(array[i]);
-        }
-
-        private void WriteInt64ArrayElements(long[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-                WriteInt64(array[i]);
-        }
-
-        private void WriteUInt16ArrayElements(ushort[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-                WriteUInt16(array[i]);
-        }
-
-        private void WriteUInt32ArrayElements(uint[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-                WriteUInt32(array[i]);
-        }
-
-        private void WriteUInt64ArrayElements(ulong[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-                WriteUInt64(array[i]);
-        }
-
-        private void WriteDecimalArrayElements(decimal[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-                WriteDecimal(array[i]);
-        }
-
-        private void WriteFloat4ArrayElements(float[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-                WriteSingle(array[i]);
-        }
-
-        private void WriteFloat8ArrayElements(double[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-                WriteDouble(array[i]);
         }
 
         private void WritePrimitiveType(Type type, TypeCode kind)
