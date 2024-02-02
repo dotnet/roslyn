@@ -36,7 +36,9 @@ stages:
   #     dependsOn: symbol_archive
   #   pool:
   #     name: AzurePipelines-EO
-  #     vmImage: AzurePipelinesUbuntu20.04compliant
+  #     demands:
+  #     - ImageOverride -equals AzurePipelinesUbuntu20.04compliantGPT
+  #     os: Linux
   #   steps:
   #   - checkout: none
   #   - download: current
