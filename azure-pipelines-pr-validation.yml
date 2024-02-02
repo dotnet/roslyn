@@ -145,7 +145,7 @@ stages:
                    /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
                    /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
-                   /p:DotnetPublishUsingPipelines=false
+                   /p:DotnetPublishUsingPipelines=true
                    /p:IgnoreIbcMergeErrors=true
                    /p:PreReleaseVersionLabel=pr-validation
                    /p:IgnoreIbcMergeErrors=true
@@ -242,10 +242,20 @@ stages:
       displayName: Perform Cleanup Tasks
       condition: succeededOrFailed()
 
+  # Publish to Build Asset Registry
+  - template: /eng/common/templates/job/publish-build-assets.yml
+    parameters:
+      publishUsingPipelines: true
+      dependsOn:
+        - PRValidationBuild
+  #    pool:
+  #      name: NetCore1ESPool-Svc-Internal
+  #      demands: ImageOverride -equals windows.vs2022.amd64
+
 - stage: insert
   displayName: Create Insertion
   dependsOn:
-    - build
+    - publish_using_darc
 
   jobs:
   - job: insert
@@ -272,3 +282,11 @@ stages:
         publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
         queueSpeedometerValidation: true
 
+# Publish symbols via arcade v3 publishing
+- template: eng\common\templates\post-build\post-build.yml
+  parameters:
+    publishingInfraVersion: 3
+    # Symbol validation is not entirely reliable as of yet, so should be turned off until
+    # https://github.com/dotnet/arcade/issues/2871 is resolved.
+    enableSymbolValidation: false
+    enableSourceLinkValidation: false
