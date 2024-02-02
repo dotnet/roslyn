@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(throughName, syntaxFacts, out var simpleName)
                 ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
-                : ImmutableArray<Document>.Empty;
+                : [];
 
             result.AddRange(documentsWithName);
             result.AddRange(documentsWithAttribute);
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var predefinedType = symbol.SpecialType.ToPredefinedType();
             if (predefinedType == PredefinedType.None)
-                return new(ImmutableArray<FinderLocation>.Empty);
+                return new([]);
 
             var tokens = state.Root
                 .DescendantTokens(descendIntoTrivia: true)
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return TryGetNameWithoutAttributeSuffix(name, state.SyntaxFacts, out var nameWithoutSuffix)
                 ? FindReferencesInDocumentUsingIdentifierAsync(namedType, nameWithoutSuffix, state, cancellationToken)
-                : new(ImmutableArray<FinderLocation>.Empty);
+                : new([]);
         }
     }
 }

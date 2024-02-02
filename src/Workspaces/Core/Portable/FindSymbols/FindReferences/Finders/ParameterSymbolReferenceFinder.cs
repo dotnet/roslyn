@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             if (parameter.IsThis)
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 

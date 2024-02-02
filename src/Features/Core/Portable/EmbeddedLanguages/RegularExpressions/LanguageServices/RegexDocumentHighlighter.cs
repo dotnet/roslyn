@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
     [ExportEmbeddedLanguageDocumentHighlighter(
         PredefinedEmbeddedLanguageNames.Regex,
-        new[] { LanguageNames.CSharp, LanguageNames.VisualBasic },
+        [LanguageNames.CSharp, LanguageNames.VisualBasic],
         supportsUnannotatedAPIs: true, "Regex", "Regexp"), Shared]
     internal sealed class RegexDocumentHighlighter : IEmbeddedLanguageDocumentHighlighter
     {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         {
             var virtualChar = tree.Text.Find(position);
             if (virtualChar == null)
-                return ImmutableArray<HighlightSpan>.Empty;
+                return [];
 
             var ch = virtualChar.Value;
             return FindReferenceHighlights(tree, ch);
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             var node = FindReferenceNode(tree.Root, ch);
             if (node == null)
             {
-                return ImmutableArray<HighlightSpan>.Empty;
+                return [];
             }
 
             var captureToken = GetCaptureToken(node);
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                 }
             }
 
-            return ImmutableArray<HighlightSpan>.Empty;
+            return [];
         }
 
         private static ImmutableArray<HighlightSpan> CreateHighlights(

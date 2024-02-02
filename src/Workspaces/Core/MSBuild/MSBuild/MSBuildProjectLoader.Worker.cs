@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, reportingOptions.OnLoaderFailure, out var languageName))
                 {
-                    return ImmutableArray<ProjectFileInfo>.Empty; // Failure should already be reported.
+                    return []; // Failure should already be reported.
                 }
 
                 var (buildHost, buildHostPreferredKind) = await _buildHostProcessManager.GetBuildHostAsync(projectPath, cancellationToken).ConfigureAwait(false);
@@ -348,9 +348,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     var metadataService = GetWorkspaceService<IMetadataService>();
                     var compilationOptions = commandLineArgs.CompilationOptions
                         .WithXmlReferenceResolver(new XmlFileResolver(projectDirectory))
-                        .WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, projectDirectory))
+                        .WithSourceReferenceResolver(new SourceFileResolver([], projectDirectory))
                         // TODO: https://github.com/dotnet/roslyn/issues/4967
-                        .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, projectDirectory)))
+                        .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver([], projectDirectory)))
                         .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths))
                         .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
@@ -464,14 +464,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     folders = pathNames.Length > 1
                         ? pathNames.Take(pathNames.Length - 1).ToImmutableArray()
-                        : ImmutableArray<string>.Empty;
+                        : [];
 
                     name = pathNames[^1];
                 }
                 else
                 {
                     name = logicalPath;
-                    folders = ImmutableArray<string>.Empty;
+                    folders = [];
                 }
             }
 

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     return new([method.PartialImplementationPart.TypeParameters[ordinal]]);
             }
 
-            return new(ImmutableArray<ISymbol>.Empty);
+            return new([]);
         }
 
         protected sealed override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(

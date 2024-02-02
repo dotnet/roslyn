@@ -1961,7 +1961,7 @@ parseOptions: TestOptions.Regular);
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
         }
 
         [Fact]
@@ -2006,7 +2006,7 @@ parseOptions: TestOptions.Regular);
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
@@ -3846,7 +3846,7 @@ class Program
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
         }
 
         [Fact]

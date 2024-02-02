@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         {
             var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
             if (fields.IsDefaultOrEmpty)
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
 
             if (fields.Length == 1)
             {
@@ -379,14 +379,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var factory = document.GetLanguageService<SyntaxGenerator>();
 
             var propertySymbol = annotation.AddAnnotationToSymbol(CodeGenerationSymbolFactory.CreatePropertySymbol(containingType: containingSymbol,
-                attributes: ImmutableArray<AttributeData>.Empty,
+                attributes: [],
                 accessibility: ComputeAccessibility(accessibility, field.Type),
                 modifiers: new DeclarationModifiers(isStatic: field.IsStatic, isReadOnly: field.IsReadOnly, isUnsafe: field.RequiresUnsafeModifier()),
                 type: field.GetSymbolType(),
                 refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: propertyName,
-                parameters: ImmutableArray<IParameterSymbol>.Empty,
+                parameters: [],
                 getMethod: CreateGet(fieldName, field, factory),
                 setMethod: field.IsReadOnly || field.IsConst ? null : CreateSet(fieldName, field, factory)));
 
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 factory.IdentifierName("value")));
 
             return CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                ImmutableArray<AttributeData>.Empty,
+                [],
                 Accessibility.NotApplicable,
                 [body]);
         }
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 value.WithAdditionalAnnotations(Simplifier.Annotation));
 
             return CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                ImmutableArray<AttributeData>.Empty,
+                [],
                 Accessibility.NotApplicable,
                 [body]);
         }

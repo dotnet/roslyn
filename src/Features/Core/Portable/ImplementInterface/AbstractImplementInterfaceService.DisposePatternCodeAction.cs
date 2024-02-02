@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // {
                 //     // TODO: dispose managed state...
                 // }
-                var ifDisposingStatement = g.IfStatement(g.IdentifierName(DisposingName), Array.Empty<SyntaxNode>());
+                var ifDisposingStatement = g.IfStatement(g.IdentifierName(DisposingName), []);
                 ifDisposingStatement = Service.AddCommentInsideIfStatement(
                     ifDisposingStatement,
                     CreateCommentTrivia(g, FeaturesResources.TODO_colon_dispose_managed_state_managed_objects))
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var ifStatement = g.IfStatement(
                     g.LogicalNotExpression(g.IdentifierName(disposedValueField.Name)),
-                    new[] { ifDisposingStatement, disposedValueEqualsTrueStatement });
+                    [ifDisposingStatement, disposedValueEqualsTrueStatement]);
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     disposeMethod,

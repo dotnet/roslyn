@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
 
         private Solution(SolutionCompilationState compilationState)
         {
-            _projectIdToProjectMap = ImmutableHashMap<ProjectId, Project>.Empty;
+            _projectIdToProjectMap = [];
             _compilationState = compilationState;
         }
 
@@ -1345,9 +1345,9 @@ namespace Microsoft.CodeAnalysis
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
-        internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
+        internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
         {
-            var newCompilationState = _compilationState.WithDocumentContentsFrom(documentId, documentState);
+            var newCompilationState = _compilationState.WithDocumentContentsFrom(documentId, documentState, forceEvenIfTreesWouldDiffer);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -1442,16 +1442,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a branch of the solution that has its compilations frozen in whatever state they are in at the time, assuming a background compiler is
-        /// busy building this compilations.
-        /// 
-        /// A compilation for the project containing the specified document id will be guaranteed to exist with at least the syntax tree for the document.
-        /// 
-        /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
+        /// Creates a branch of the solution that has its compilations frozen in whatever state they are in at the time,
+        /// assuming a background compiler is busy building this compilations.
+        /// <para/> A compilation for the project containing the specified document id will be guaranteed to exist with
+        /// at least the syntax tree for the document.
+        /// <para/> This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
         /// </summary>
         internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
-            var newCompilationState = _compilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
+            var newCompilationState = this.CompilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
             return new Solution(newCompilationState);
         }
 

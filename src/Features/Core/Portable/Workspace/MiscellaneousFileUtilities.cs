@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces
 
             return compilationOptions
                 .WithMetadataReferenceResolver(referenceResolver)
-                .WithSourceReferenceResolver(new SourceFileResolver(searchPaths: ImmutableArray<string>.Empty, baseDirectory));
+                .WithSourceReferenceResolver(new SourceFileResolver(searchPaths: [], baseDirectory));
         }
     }
 

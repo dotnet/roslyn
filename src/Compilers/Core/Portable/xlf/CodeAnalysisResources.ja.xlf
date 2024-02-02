@@ -225,7 +225,7 @@
       </trans-unit>
       <trans-unit id="SigningTempPathUnavailable">
         <source>The temporary path for legacy file signing is unavailable.</source>
-        <target state="translated">レガシ ファイル署名の一時パスは使用できません。</target>
+        <target state="translated">レガシ ファイル署名用の一時パスは使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">

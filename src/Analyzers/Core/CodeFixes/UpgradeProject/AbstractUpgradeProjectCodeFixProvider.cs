@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
 
             if (upgradeableProjects.Length == 0)
             {
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
             }
 
             var fixOneProjectTitle = string.Format(UpgradeThisProjectResource, newVersion);

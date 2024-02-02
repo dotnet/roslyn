@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 projectName,
                 projectName,
                 languageName,
-                metadataReferences: new[] { metadataReference },
+                metadataReferences: [metadataReference],
                 projectReferences: projectReferences.Select(p => new ProjectReference(p)));
             return solution.AddProject(pi).AddDocument(did, $"{projectName}.{suffix}", SourceText.From(code));
         }
@@ -369,7 +369,7 @@ namespace N2
 }", SystemRef_v46, solution.Projects.Single(pid => pid.Name == "NetStandardProject").Id);
 
             var desktopProject = solution.Projects.First(p => p.Name == "DesktopProject");
-            solution = solution.AddMetadataReferences(desktopProject.Id, new[] { MscorlibRef_v46, Net46StandardFacade });
+            solution = solution.AddMetadataReferences(desktopProject.Id, [MscorlibRef_v46, Net46StandardFacade]);
 
             desktopProject = solution.GetProject(desktopProject.Id);
             var netStandardProject = solution.Projects.First(p => p.Name == "NetStandardProject");
@@ -416,7 +416,7 @@ namespace N2
 
             using var workspace = CreateWorkspace();
             var solution = GetMultipleDocumentSolution(workspace, [implText, interface1Text, interface2Text]);
-            solution = solution.AddMetadataReferences(solution.ProjectIds.Single(), new[] { MscorlibRef_v46, Net46StandardFacade, SystemRef_v46, NetStandard20Ref });
+            solution = solution.AddMetadataReferences(solution.ProjectIds.Single(), [MscorlibRef_v46, Net46StandardFacade, SystemRef_v46, NetStandard20Ref]);
 
             var project = solution.Projects.Single();
             var compilation = await project.GetCompilationAsync();

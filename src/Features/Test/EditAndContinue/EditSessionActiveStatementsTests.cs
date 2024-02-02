@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var updatedText = SourceText.From(updatedSource);
 
             var baseActiveStatementInfos = GetActiveStatementDebugInfosCSharp(
-                new[] { baseSource },
+                [baseSource],
                 modules: [module1, module1],
                 methodVersions: [1, 1],
                 flags:
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var sourceTextV2 = SourceText.From(markedSourceV2);
             var sourceTextV3 = SourceText.From(markedSourceV3);
 
-            var activeStatementsPreRemap = GetActiveStatementDebugInfosCSharp(new[] { markedSourceV1 },
+            var activeStatementsPreRemap = GetActiveStatementDebugInfosCSharp([markedSourceV1],
                 modules: [module1, module1, module1, module1],
                 methodVersions: [2, 2, 1, 1], // method F3 and F4 were not remapped
                 flags:

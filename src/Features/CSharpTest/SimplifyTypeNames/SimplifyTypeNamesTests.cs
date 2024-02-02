@@ -528,8 +528,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21449")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/40972")]
         public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName1()
         {

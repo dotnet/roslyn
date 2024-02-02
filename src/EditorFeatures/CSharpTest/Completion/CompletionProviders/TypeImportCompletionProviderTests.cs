@@ -1035,8 +1035,7 @@ namespace Baz
             AssertRelativeOrder(new List<string>() { "SomeType", "SomeTypeWithLongerName" }, completionList.ItemsList.ToImmutableArray());
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeInAttributeNameContext()
         {
             var file1 = @"
@@ -1093,8 +1092,7 @@ namespace Test
             await VerifyCustomCommitProviderAsync(markup, "My", expectedCodeAfterCommit, sourceCodeKind: kind);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeInNonAttributeNameContext()
         {
             var file1 = @"
@@ -1156,8 +1154,7 @@ namespace Test
             await VerifyCustomCommitProviderAsync(markup, "MyAttribute", expectedCodeAfterCommit, sourceCodeKind: kind);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeWithoutSuffixInAttributeNameContext()
         {
             // attribute suffix isn't capitalized
@@ -1214,8 +1211,7 @@ namespace Test
             await VerifyCustomCommitProviderAsync(markup, "Myattribute", expectedCodeAfterCommit, sourceCodeKind: kind);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeWithoutSuffixInNonAttributeNameContext()
         {
             // attribute suffix isn't capitalized
@@ -1277,8 +1273,7 @@ namespace Test
             await VerifyCustomCommitProviderAsync(markup, "Myattribute", expectedCodeAfterCommit, sourceCodeKind: kind);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task VBAttributeTypeWithoutSuffixInAttributeNameContext()
         {
             var file1 = @"

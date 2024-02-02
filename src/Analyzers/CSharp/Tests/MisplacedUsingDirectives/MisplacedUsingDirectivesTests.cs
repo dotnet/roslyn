@@ -151,10 +151,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
         [InlineData(DelegateDefinition)]
         public Task WhenPreserve_UsingsInCompilationUnitWithTypeDefinition_ValidUsingStatements(string typeDefinition)
         {
-            var testCode = $@"[|using System;|]
+            var testCode = $"""
+                [|using System;|]
 
-{typeDefinition}
-";
+                {typeDefinition}
+                """;
 
             return TestDiagnosticMissingAsync(testCode, InsidePreferPreservationOption);
         }
@@ -246,10 +247,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
         [InlineData(DelegateDefinition)]
         public Task WhenOutsidePreferred_UsingsInCompilationUnitWithMember_ValidUsingStatements(string typeDefinition)
         {
-            var testCode = $@"[|using System;|]
+            var testCode = $"""
+                [|using System;|]
 
-{typeDefinition}
-";
+                {typeDefinition}
+                """;
 
             return TestDiagnosticMissingAsync(testCode, OutsideNamespaceOption);
         }
@@ -757,10 +759,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
         [InlineData(DelegateDefinition)]
         public Task WhenInsidePreferred_UsingsInCompilationUnitWithTypeDefinition_ValidUsingStatements(string typeDefinition)
         {
-            var testCode = $@"[|using System;|]
+            var testCode = $"""
+                [|using System;|]
 
-{typeDefinition}
-";
+                {typeDefinition}
+                """;
 
             return TestDiagnosticMissingAsync(testCode, InsideNamespaceOption);
         }

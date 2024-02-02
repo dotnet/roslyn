@@ -87,7 +87,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
                 compileTimeSolution,
                 _debuggerService,
                 PdbMatchingSourceTextProvider.Instance,
-                captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                captureMatchingDocuments: [],
                 captureAllMatchingDocuments: false,
                 reportDiagnostics: true,
                 cancellationToken).ConfigureAwait(false);
@@ -241,7 +241,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
     {
         if (_disabled)
         {
-            return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
+            return new ManagedHotReloadUpdates([], []);
         }
 
         try
@@ -275,8 +275,8 @@ internal sealed partial class ManagedHotReloadLanguageService(
                     string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
 
                 diagnosticData = [DiagnosticData.Create(designTimeSolution, diagnostic, project: null)];
-                rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
-                moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedHotReloadUpdate>.Empty);
+                rudeEdits = [];
+                moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []);
                 syntaxError = null;
             }
 
@@ -292,7 +292,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
             Disable();
-            return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
+            return new ManagedHotReloadUpdates([], []);
         }
     }
 }

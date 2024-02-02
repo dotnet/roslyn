@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             CancellationToken cancellationToken,
             out ImmutableArray<(ExpressionSyntax, ITypeSymbol)> potentialConversionTypes)
         {
-            potentialConversionTypes = ImmutableArray<(ExpressionSyntax, ITypeSymbol)>.Empty;
+            potentialConversionTypes = [];
             using var _ = ArrayBuilder<(ExpressionSyntax, ITypeSymbol)>.GetInstance(out var mutablePotentialConversionTypes);
 
             if (diagnosticId == CS0266)

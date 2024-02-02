@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
                 }
 
-                return ImmutableArray<INamedTypeSymbol>.Empty;
+                return [];
             }
 
             private INamedTypeSymbol RemoveUnavailableTypeParameters(INamedTypeSymbol type)

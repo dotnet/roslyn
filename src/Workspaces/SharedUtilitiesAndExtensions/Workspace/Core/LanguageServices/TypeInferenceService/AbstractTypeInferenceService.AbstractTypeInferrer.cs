@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageService.TypeInferenceService
                     }
                 }
 
-                return ImmutableArray<TypeInferenceInfo>.Empty;
+                return [];
             }
 
             protected IEnumerable<TypeInferenceInfo> GetTypes(SyntaxNode expression, bool objectAsDefault = false)

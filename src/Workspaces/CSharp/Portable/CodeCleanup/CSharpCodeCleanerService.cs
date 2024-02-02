@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             => s_defaultProviders;
 
         protected override ImmutableArray<TextSpan> GetSpansToAvoid(SyntaxNode root)
-            => ImmutableArray<TextSpan>.Empty;
+            => [];
     }
 }

@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             // ordered against each other.
             var result = GetInitiallyOrderedActionSets(selectionOpt, fixes, refactorings);
             if (result.IsEmpty)
-                return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
+                return [];
 
             // Now that we have the entire set of action sets, inline, sort and filter
             // them appropriately against each other.

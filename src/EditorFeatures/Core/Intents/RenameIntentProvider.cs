@@ -42,7 +42,7 @@ internal class RenameIntentProvider : IIntentProvider
         var renameInfo = await renameService.GetRenameInfoAsync(priorDocument, priorSelection.Start, cancellationToken).ConfigureAwait(false);
         if (!renameInfo.CanRename)
         {
-            return ImmutableArray<IntentProcessorResult>.Empty;
+            return [];
         }
 
         var options = new SymbolRenameOptions(

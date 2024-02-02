@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                                     container: null,
                                     baseName: name,
                                     filter: s => IsRelevantSymbolKind(s),
-                                    usedNames: Enumerable.Empty<string>(),
+                                    usedNames: [],
                                     cancellationToken: cancellationToken);
 
                                 if (seenUniqueNames.Add(uniqueName.Text))
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                 {
                     MethodDeclarationSyntax method => namedType.GetMembers(method.Identifier.ValueText).OfType<IMethodSymbol>().ToImmutableArray(),
                     ConstructorDeclarationSyntax constructor => namedType.GetMembers(WellKnownMemberNames.InstanceConstructorName).OfType<IMethodSymbol>().ToImmutableArray(),
-                    _ => ImmutableArray<IMethodSymbol>.Empty
+                    _ => []
                 };
             }
         }

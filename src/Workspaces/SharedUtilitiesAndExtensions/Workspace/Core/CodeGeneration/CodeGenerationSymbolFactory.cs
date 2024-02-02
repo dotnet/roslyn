@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 interfaces: default,
                 specialType: SpecialType.None,
                 members: [invokeMethod],
-                typeMembers: ImmutableArray<CodeGenerationAbstractNamedTypeSymbol>.Empty,
+                typeMembers: [],
                 nullableAnnotation: nullableAnnotation,
                 enumUnderlyingType: null);
         }

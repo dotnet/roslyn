@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             if (expressionType == null)
             {
-                indexers = ImmutableArray<IPropertySymbol>.Empty;
+                indexers = [];
                 return false;
             }
 

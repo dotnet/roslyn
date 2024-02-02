@@ -115,7 +115,7 @@ internal sealed class LspServices : ILspServices
     private IEnumerable<T> GetBaseServices<T>()
         => _baseServices.TryGetValue(typeof(T), out var baseServices)
             ? baseServices.Select(creatorFunc => (T)creatorFunc(this)).ToImmutableArray()
-            : (IEnumerable<T>)ImmutableArray<T>.Empty;
+            : (IEnumerable<T>)[];
 
     private IEnumerable<T> GetMefServices<T>()
     {

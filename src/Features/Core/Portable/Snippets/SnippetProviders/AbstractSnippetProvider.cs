@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         public abstract string Identifier { get; }
         public abstract string Description { get; }
 
-        public virtual ImmutableArray<string> AdditionalFilterTexts => ImmutableArray<string>.Empty;
+        public virtual ImmutableArray<string> AdditionalFilterTexts => [];
 
         protected readonly SyntaxAnnotation CursorAnnotation = new();
         protected readonly SyntaxAnnotation FindSnippetAnnotation = new();

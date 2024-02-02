@@ -37,14 +37,14 @@ internal sealed class TaskListDiagnosticSource(Document document, IGlobalOptionS
     {
         var service = this.Document.GetLanguageService<ITaskListService>();
         if (service == null)
-            return ImmutableArray<DiagnosticData>.Empty;
+            return [];
 
         var options = _globalOptions.GetTaskListOptions();
         var descriptors = GetAndCacheDescriptors(options.Descriptors);
 
         var items = await service.GetTaskListItemsAsync(this.Document, descriptors, cancellationToken).ConfigureAwait(false);
         if (items.Length == 0)
-            return ImmutableArray<DiagnosticData>.Empty;
+            return [];
 
         return items.SelectAsArray(i => new DiagnosticData(
             id: "TODO",
