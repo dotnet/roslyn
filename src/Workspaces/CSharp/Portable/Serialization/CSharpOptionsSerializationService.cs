@@ -44,14 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Serialization
 
         public override CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
-            ReadCompilationOptionsFrom(
-                reader,
-                out var outputKind, out var reportSuppressedDiagnostics, out var moduleName, out var mainTypeName, out var scriptClassName,
-                out var optimizationLevel, out var checkOverflow, out var cryptoKeyContainer, out var cryptoKeyFile, out var cryptoPublicKey,
-                out var delaySign, out var platform, out var generalDiagnosticOption, out var warningLevel, out var specificDiagnosticOptions,
-                out var concurrentBuild, out var deterministic, out var publicSign, out var metadataImportOptions,
-                out var xmlReferenceResolver, out var sourceReferenceResolver, out var metadataReferenceResolver, out var assemblyIdentityComparer,
-                out var strongNameProvider, cancellationToken);
+            var (outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
+                optimizationLevel, checkOverflow, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey,
+                delaySign, platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
+                concurrentBuild, deterministic, publicSign, metadataImportOptions,
+                xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
+                strongNameProvider) = ReadCompilationOptionsPieces(reader, cancellationToken);
 
             var usings = reader.ReadArray<string>();
             var allowUnsafe = reader.ReadBoolean();
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Serialization
 
         public override ParseOptions ReadParseOptionsFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
-            ReadParseOptionsFrom(reader, out var kind, out var documentationMode, out var features, cancellationToken);
+            var (kind, documentationMode, features) = ReadParseOptionsPieces(reader, cancellationToken);
 
             var languageVersion = (LanguageVersion)reader.ReadInt32();
             var preprocessorSymbolNames = reader.ReadArray<string>();

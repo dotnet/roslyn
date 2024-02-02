@@ -252,17 +252,17 @@ namespace Microsoft.CodeAnalysis
                 public override Compilation FinalCompilationWithGeneratedDocuments { get; }
 
                 private FinalState(
-                    Compilation finalCompilation,
-                    Compilation compilationWithoutGeneratedFiles,
+                    Compilation finalCompilationWithGeneratedDocuments,
+                    Compilation compilationWithoutGeneratedDocuments,
                     bool hasSuccessfullyLoaded,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     UnrootedSymbolSet unrootedSymbolSet)
-                    : base(compilationWithoutGeneratedFiles,
+                    : base(compilationWithoutGeneratedDocuments,
                            generatorInfo.WithDocumentsAreFinal(true)) // when we're in a final state, we've ran generators and should not run again
                 {
-                    Contract.ThrowIfNull(finalCompilation);
+                    Contract.ThrowIfNull(finalCompilationWithGeneratedDocuments);
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
-                    FinalCompilationWithGeneratedDocuments = finalCompilation;
+                    FinalCompilationWithGeneratedDocuments = finalCompilationWithGeneratedDocuments;
                     UnrootedSymbolSet = unrootedSymbolSet;
 
                     if (this.GeneratorInfo.Documents.IsEmpty)
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis
                         // If we have no generated files, the pre-generator compilation and post-generator compilation
                         // should be the exact same instance; that way we're not creating more compilations than
                         // necessary that would be unable to share source symbols.
-                        Debug.Assert(object.ReferenceEquals(finalCompilation, compilationWithoutGeneratedFiles));
+                        Debug.Assert(object.ReferenceEquals(finalCompilationWithGeneratedDocuments, compilationWithoutGeneratedDocuments));
                     }
                 }
 
@@ -278,8 +278,8 @@ namespace Microsoft.CodeAnalysis
                 /// <param name="projectId">Not held onto</param>
                 /// <param name="metadataReferenceToProjectId">Not held onto</param>
                 public static FinalState Create(
-                    Compilation finalCompilationSource,
-                    Compilation compilationWithoutGeneratedFiles,
+                    Compilation finalCompilationWithGeneratedDocuments,
+                    Compilation compilationWithoutGeneratedDocuments,
                     bool hasSuccessfullyLoaded,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation finalCompilation,
@@ -293,8 +293,8 @@ namespace Microsoft.CodeAnalysis
                     RecordAssemblySymbols(projectId, finalCompilation, metadataReferenceToProjectId);
 
                     return new FinalState(
-                        finalCompilationSource,
-                        compilationWithoutGeneratedFiles,
+                        finalCompilationWithGeneratedDocuments,
+                        compilationWithoutGeneratedDocuments,
                         hasSuccessfullyLoaded,
                         generatorInfo,
                         unrootedSymbolSet);
