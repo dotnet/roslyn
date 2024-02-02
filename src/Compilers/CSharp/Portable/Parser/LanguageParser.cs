@@ -13432,12 +13432,7 @@ tryAgain:
                 // We're not on a valid separator, but we want to be resilient for the user accidentally using the wrong
                 // one in common cases.
                 if (allowSemicolonAsSeparator && this.CurrentToken.Kind is SyntaxKind.SemicolonToken)
-                {
-                    using var semicolonResetPoint = GetDisposableResetPoint(resetOnDispose: true);
-                    this.EatToken();
-                    bool canContinue = this.CurrentToken.Kind == closeTokenKind || isPossibleElement(this);
-                    return canContinue;
-                }
+                    return true;
 
                 if (isPossibleElement(this))
                     return true;
