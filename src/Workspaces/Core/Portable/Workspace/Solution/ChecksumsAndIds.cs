@@ -20,19 +20,19 @@ internal readonly struct ChecksumsAndIds<TId>
     public readonly ImmutableArray<TId> Ids;
 
     private static readonly Func<ObjectReader, ValueTask<TId>> s_readId;
-    private static readonly Func<ObjectWriter, TId, ValueTask> s_writeTo;
+    private static readonly Action<ObjectWriter, TId> s_writeTo;
 
     static ChecksumsAndIds()
     {
         if (typeof(TId) == typeof(ProjectId))
         {
             s_readId = async reader => (TId)(object)await ProjectId.ReadFromAsync(reader).ConfigureAwait(false);
-            s_writeTo = (writer, id) => ((ProjectId)(object)id!).WriteToAsync(writer);
+            s_writeTo = (writer, id) => ((ProjectId)(object)id!).WriteTo(writer);
         }
         else if (typeof(TId) == typeof(DocumentId))
         {
             s_readId = async reader => (TId)(object)await DocumentId.ReadFromAsync(reader).ConfigureAwait(false);
-            s_writeTo = (writer, id) => ((DocumentId)(object)id!).WriteToAsync(writer);
+            s_writeTo = (writer, id) => ((DocumentId)(object)id!).WriteTo(writer);
         }
         else
         {
@@ -51,10 +51,10 @@ internal readonly struct ChecksumsAndIds<TId>
     public int Length => Ids.Length;
     public Checksum Checksum => Checksums.Checksum;
 
-    public async ValueTask WriteToAsync(ObjectWriter writer)
+    public void WriteTo(ObjectWriter writer)
     {
         this.Checksums.WriteTo(writer);
-        await writer.WriteArrayAsync(this.Ids, s_writeTo).ConfigureAwait(false);
+        writer.WriteArray(this.Ids, s_writeTo);
     }
 
     public static async ValueTask<ChecksumsAndIds<TId>> ReadFromAsync(ObjectReader reader)

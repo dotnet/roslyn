@@ -181,6 +181,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        public abstract ValueTask WriteToAsync(ObjectWriter writer);
+        public abstract void WriteTo(ObjectWriter writer);
     }
 }

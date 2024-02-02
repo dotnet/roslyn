@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return LoadAsync(storageService, documentKey, checksum, stringTable, ReadIndexAsync, cancellationToken);
         }
 
-        public override async ValueTask WriteToAsync(ObjectWriter writer)
+        public override void WriteTo(ObjectWriter writer)
         {
-            await _declarationInfo.WriteToAsync(writer).ConfigureAwait(false);
+            _declarationInfo.WriteTo(writer);
             _extensionMethodInfo.WriteTo(writer);
         }
 
