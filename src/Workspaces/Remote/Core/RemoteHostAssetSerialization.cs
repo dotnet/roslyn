@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static ValueTask<ImmutableArray<object>> ReadDataAsync(
+        public static async ValueTask<ImmutableArray<object>> ReadDataAsync(
             PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
@@ -73,34 +73,34 @@ namespace Microsoft.CodeAnalysis.Remote
             //
             // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
             // same thread where SuppressFlow was originally run.
-            using var _ = FlowControlHelper.TrySuppressFlow();
-            return ReadDataSuppressedFlowAsync(pipeReader, solutionChecksum, objectCount, serializerService, cancellationToken);
+            using var _1 = FlowControlHelper.TrySuppressFlow();
+        //    return ReadDataSuppressedFlowAsync(pipeReader, solutionChecksum, objectCount, serializerService, cancellationToken);
 
-            static async ValueTask<ImmutableArray<object>> ReadDataSuppressedFlowAsync(
-                PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
-            {
-                using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
-                return ReadData(stream, solutionChecksum, objectCount, serializerService, cancellationToken);
-            }
-        }
+        //    static async ValueTask<ImmutableArray<object>> ReadDataSuppressedFlowAsync(
+        //        PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
+        //    {
+        //        using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
+        //        return ReadData(stream, solutionChecksum, objectCount, serializerService, cancellationToken);
+        //    }
+        //}
 
-        public static ImmutableArray<object> ReadData(Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<object>.GetInstance(objectCount, out var results);
+        //public static ImmutableArray<object> ReadData(Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
+        //{
+            using var _2 = ArrayBuilder<object>.GetInstance(objectCount, out var results);
 
-            using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
+            using var reader = await ObjectReader.GetReaderAsync(pipeReader, leaveOpen: true, cancellationToken).ConfigureAwait(false);
 
             // Ensure that no invariants were broken and that both sides of the communication channel are talking about
             // the same pinned solution.
-            var responseSolutionChecksum = Checksum.ReadFrom(reader);
+            var responseSolutionChecksum = await Checksum.ReadFromAsync(reader).ConfigureAwait(false);
             Contract.ThrowIfFalse(solutionChecksum == responseSolutionChecksum);
 
             for (int i = 0, n = objectCount; i < n; i++)
             {
-                var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
+                var kind = (WellKnownSynchronizationKind)await reader.ReadInt32Async().ConfigureAwait(false);
 
                 // in service hub, cancellation means simply closed stream
-                var result = serializerService.Deserialize<object>(kind, reader, cancellationToken);
+                var result = await serializerService.DeserializeAsync<object>(kind, reader, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(result);
                 results.Add(result);
             }
