@@ -197,7 +197,7 @@ namespace Roslyn.Utilities
             WriteInt64(accessor.High64);
         }
 
-        public async ValueTask WriteValueAsync(object? value)
+        public void WriteValue(object? value)
         {
             Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
 
@@ -296,7 +296,7 @@ namespace Roslyn.Utilities
             }
             else if (value.GetType() == typeof(string))
             {
-                await WritePotentiallyLargeStringAsync((string)value).ConfigureAwait(false);
+                WriteString((string)value);
             }
             else if (type.IsArray)
             {
@@ -307,7 +307,7 @@ namespace Roslyn.Utilities
                     throw new InvalidOperationException(Resources.Arrays_with_more_than_one_dimension_cannot_be_serialized);
                 }
 
-                await WriteArrayAsync(instance).ConfigureAwait(false);
+                WriteArray(instance);
             }
             else if (value is Encoding encoding)
             {
@@ -616,13 +616,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        public async ValueTask WritePotentiallyLargeStringAsync(string? value)
-        {
-            WriteString(value);
-            await _writer.FlushAsync(_cancellationToken).ConfigureAwait(false);
-        }
-
-        private async ValueTask WriteArrayAsync(Array array)
+        private void WriteArray(Array array)
         {
             var length = array.GetLength(0);
 
@@ -651,8 +645,7 @@ namespace Roslyn.Utilities
             if (s_typeMap.TryGetValue(elementType, out var elementKind))
             {
                 WritePrimitiveType(elementType, elementKind);
-                WritePrimitiveTypeArrayElements(elementType, elementKind, array).ConfigureAwait(false);
-                await _writer.FlushAsync(_cancellationToken).ConfigureAwait(false);
+                WritePrimitiveTypeArrayElements(elementType, elementKind, array);
             }
             else
             {
