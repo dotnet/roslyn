@@ -1738,7 +1738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             static TypeDeclarationSyntax constructTypeDeclaration(ContextAwareSyntax syntaxFactory, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers,
                 SyntaxToken? firstKeyword, SyntaxToken? secondKeyword, SyntaxToken mainKeyword,
                 SyntaxToken name, TypeParameterListSyntax typeParameters, ParameterListSyntax? paramList, SyntaxToken? forKeyword, TypeSyntax? forType,
-                BaseListSyntax baseList, SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints,
+                BaseListSyntax? baseList, SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints,
                 SyntaxToken? openBrace, SyntaxListBuilder<MemberDeclarationSyntax> members, SyntaxToken? closeBrace, SyntaxToken semicolon)
             {
                 var modifiersList = (SyntaxList<SyntaxToken>)modifiers.ToList();
