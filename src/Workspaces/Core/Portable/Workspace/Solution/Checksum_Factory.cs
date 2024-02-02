@@ -7,8 +7,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.IO.Hashing;
+using System.IO.Pipelines;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
@@ -18,10 +20,21 @@ namespace Microsoft.CodeAnalysis
     // various factory methods. all these are just helper methods
     internal readonly partial record struct Checksum
     {
+        private static readonly ObjectPool<Pipe> s_pipes = new(() => new());
+
         private const int XXHash128SizeBytes = 128 / 8;
 
         private static readonly ObjectPool<XxHash128> s_incrementalHashPool =
             new(() => new(), size: 20);
+
+        private static Pipe GetPipe()
+            => s_pipes.Allocate();
+
+        private static void ReturnPipe(Pipe pipe)
+        {
+            pipe.Reset();
+            s_pipes.Free(pipe);
+        }
 
         public static Checksum Create(IEnumerable<string?> values)
         {
@@ -55,11 +68,33 @@ namespace Microsoft.CodeAnalysis
             return From(hash);
         }
 
-        public static Checksum Create<T>(T @object, Action<T, ObjectWriter> writeObject)
+        public static async ValueTask<Checksum> CreateAsync(PipeReader reader, CancellationToken cancellationToken)
+        {
+            using var pooledHash = s_incrementalHashPool.GetPooledObject();
+
+            ReadResult readResult;
+            while (!(readResult = await reader.ReadAsync(cancellationToken).ConfigureAwait(false)).IsCompleted)
+            {
+                foreach (var buffer in readResult.Buffer)
+                    pooledHash.Object.Append(buffer.Span);
+            }
+
+            return GetChecksumFromHash(pooledHash.Object);
+
+            static Checksum GetChecksumFromHash(XxHash128 xxHash)
+            {
+                Span<byte> hash = stackalloc byte[XXHash128SizeBytes];
+                xxHash.GetHashAndReset(hash);
+                return From(hash);
+            }
+        }
+
+        public static async ValueTask<Checksum> CreateAsync<T>(T @object, Action<T, ObjectWriter> writeObject, CancellationToken cancellationToken)
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
-            using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
+            var objectWriter = new ObjectWriter(PipeWriter.Create(stream), leaveOpen: true, cancellationToken);
+            await using (var _1 = objectWriter.ConfigureAwait(false))
             {
                 writeObject(@object, objectWriter);
             }
@@ -81,21 +116,22 @@ namespace Microsoft.CodeAnalysis
             return From(destination);
         }
 
-        public static Checksum Create(ArrayBuilder<Checksum> checksums)
+        public static async ValueTask<Checksum> CreateAsync(ArrayBuilder<Checksum> checksums, CancellationToken cancellationToken)
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            var objectWriter = new ObjectWriter(PipeWriter.Create(stream), leaveOpen: true, cancellationToken);
+            await using (var _1 = objectWriter.ConfigureAwait(false))
             {
                 foreach (var checksum in checksums)
-                    checksum.WriteTo(writer);
+                    checksum.WriteTo(objectWriter);
             }
 
             stream.Position = 0;
             return Create(stream);
         }
 
-        public static Checksum Create(ImmutableArray<Checksum> checksums)
+        public static async ValueTask<Checksum> CreateAsync(ImmutableArray<Checksum> checksums)
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
