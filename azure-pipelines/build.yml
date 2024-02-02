@@ -47,10 +47,11 @@ jobs:
       outputParentDirectory: $(Build.ArtifactStagingDirectory)
       outputs:
       - ${{ each artifact_name in parameters.artifact_names }}:
-        - output: pipelineArtifact
-          displayName: 📢 Publish ${{ artifact_name }}-Windows
-          targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-Windows
-          artifactName: ${{ artifact_name }}-Windows
+        - ${{ if or(ne(artifact_name, 'testResults'), parameters.RunTests) }}:
+          - output: pipelineArtifact
+            displayName: 📢 Publish ${{ artifact_name }}-Windows
+            targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-Windows
+            artifactName: ${{ artifact_name }}-Windows
       - output: pipelineArtifact
         displayName: 📢 Publish VSInsertion-Windows
         targetPath: $(Build.ArtifactStagingDirectory)/VSInsertion-Windows
