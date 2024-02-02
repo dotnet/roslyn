@@ -311,7 +311,7 @@ namespace Roslyn.Utilities
             }
             else if (value is Encoding encoding)
             {
-                await WriteEncodingAsync(encoding).ConfigureAwait(false);
+                WriteEncoding(encoding);
             }
             else
             {
@@ -391,7 +391,7 @@ namespace Roslyn.Utilities
         private void WriteSpanPieces<T>(
             ReadOnlySpan<T> span,
             int rentLength,
-            Action<BinaryWriter, T[], int> write)
+            Action<PipeWriter, T[], int> write)
         {
             var spanLength = span.Length;
             var buffer = System.Buffers.ArrayPool<T>.Shared.Rent(Math.Min(spanLength, rentLength));
@@ -651,7 +651,7 @@ namespace Roslyn.Utilities
             if (s_typeMap.TryGetValue(elementType, out var elementKind))
             {
                 WritePrimitiveType(elementType, elementKind);
-                await WritePrimitiveTypeArrayElementsAsync(elementType, elementKind, array).ConfigureAwait(false);
+                WritePrimitiveTypeArrayElements(elementType, elementKind, array).ConfigureAwait(false);
                 await _writer.FlushAsync(_cancellationToken).ConfigureAwait(false);
             }
             else
@@ -660,7 +660,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private async ValueTask WritePrimitiveTypeArrayElementsAsync(Type type, TypeCode kind, Array instance)
+        private void WritePrimitiveTypeArrayElements(Type type, TypeCode kind, Array instance)
         {
             Debug.Assert(s_typeMap[type] == kind);
 
@@ -677,7 +677,7 @@ namespace Roslyn.Utilities
             {
                 // optimization for string which object writer has
                 // its own optimization to reduce repeated string
-                await WriteStringArrayElementsAsync((string[])instance).ConfigureAwait(false);
+                WriteStringArrayElements((string[])instance);
             }
             else if (type == typeof(bool))
             {

@@ -39,7 +39,7 @@ namespace Roslyn.Utilities
 
         public async ValueTask WriteToAsync(ObjectWriter writer)
         {
-            await writer.WriteStringAsync(SerializationFormat).ConfigureAwait(false);
+            writer.WriteString(SerializationFormat);
             await bKTree.WriteToAsync(writer).ConfigureAwait(false);
         }
 
