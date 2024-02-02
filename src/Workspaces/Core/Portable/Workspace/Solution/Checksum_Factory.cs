@@ -91,6 +91,16 @@ namespace Microsoft.CodeAnalysis
 
         public static async ValueTask<Checksum> CreateAsync<T>(T @object, Action<T, ObjectWriter> writeObject, CancellationToken cancellationToken)
         {
+            var pipe = s_pipes.Allocate();
+            try
+            {
+                using 
+            }
+            finally
+            {
+                ReturnPipe(pipe);
+            }
+
             using var stream = SerializableBytes.CreateWritableStream();
 
             var objectWriter = new ObjectWriter(PipeWriter.Create(stream), leaveOpen: true, cancellationToken);
