@@ -21,21 +21,21 @@ namespace Microsoft.CodeAnalysis.Serialization
         public abstract CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
         public abstract ParseOptions ReadParseOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
 
-        protected static async ValueTask WriteCompilationOptionsToAsync(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+        protected static void WriteCompilationOptionsTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             writer.WriteInt32((int)options.OutputKind);
             writer.WriteBoolean(options.ReportSuppressedDiagnostics);
-            await writer.WriteStringAsync(options.ModuleName).ConfigureAwait(false);
-            await writer.WriteStringAsync(options.MainTypeName).ConfigureAwait(false);
-            await writer.WriteStringAsync(options.ScriptClassName).ConfigureAwait(false);
+            writer.WriteString(options.ModuleName);
+            writer.WriteString(options.MainTypeName);
+            writer.WriteString(options.ScriptClassName);
             writer.WriteInt32((int)options.OptimizationLevel);
             writer.WriteBoolean(options.CheckOverflow);
 
             // REVIEW: is it okay this being not part of snapshot?
-            await writer.WriteStringAsync(options.CryptoKeyContainer).ConfigureAwait(false);
-            await writer.WriteStringAsync(options.CryptoKeyFile).ConfigureAwait(false);
+            writer.WriteString(options.CryptoKeyContainer);
+            writer.WriteString(options.CryptoKeyFile);
 
             writer.WriteSpan(options.CryptoPublicKey.AsSpan());
             writer.WriteBoolean(options.DelaySign.HasValue);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteInt32(options.SpecificDiagnosticOptions.Count);
             foreach (var kv in options.SpecificDiagnosticOptions.OrderBy(o => o.Key))
             {
-                await writer.WriteStringAsync(kv.Key).ConfigureAwait(false);
+                writer.WriteString(kv.Key);
                 writer.WriteInt32((int)kv.Value);
             }
 
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 strongNameProvider);
         }
 
-        protected static async ValueTask WriteParseOptionsToAsync(ParseOptions options, ObjectWriter writer)
+        protected static void WriteParseOptionsTo(ParseOptions options, ObjectWriter writer)
         {
             writer.WriteInt32((int)options.Kind);
             writer.WriteInt32((int)options.DocumentationMode);
@@ -198,8 +198,8 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteInt32(options.Features.Count);
             foreach (var kv in options.Features.OrderBy(o => o.Key))
             {
-                await writer.WriteStringAsync(kv.Key).ConfigureAwait(false);
-                await writer.WriteStringAsync(kv.Value).ConfigureAwait(false);
+                writer.WriteString(kv.Key);
+                writer.WriteString(kv.Value);
             }
         }
 

@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 writer.WriteInt32(_globalAliasInfo.Count);
                 foreach (var (alias, name, arity) in _globalAliasInfo)
                 {
-                    await writer.WriteStringAsync(alias).ConfigureAwait(false);
-                    await writer.WriteStringAsync(name).ConfigureAwait(false);
+                    writer.WriteString(alias);
+                    writer.WriteString(name);
                     writer.WriteInt32(arity);
                 }
             }

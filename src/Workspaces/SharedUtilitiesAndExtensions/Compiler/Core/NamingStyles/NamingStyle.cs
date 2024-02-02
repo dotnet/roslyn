@@ -470,13 +470,13 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 wordSeparator: namingStyleElement.Attribute(nameof(WordSeparator)).Value,
                 capitalizationScheme: (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value));
 
-        public async ValueTask WriteToAsync(ObjectWriter writer)
+        public void WriteTo(ObjectWriter writer)
         {
             writer.WriteGuid(ID);
-            await writer.WriteStringAsync(Name).ConfigureAwait(false);
-            await writer.WriteStringAsync(Prefix ?? string.Empty).ConfigureAwait(false);
-            await writer.WriteStringAsync(Suffix ?? string.Empty).ConfigureAwait(false);
-            await writer.WriteStringAsync(WordSeparator ?? string.Empty).ConfigureAwait(false);
+            writer.WriteString(Name);
+            writer.WriteString(Prefix ?? string.Empty);
+            writer.WriteString(Suffix ?? string.Empty);
+            writer.WriteString(WordSeparator ?? string.Empty);
             writer.WriteInt32((int)CapitalizationScheme);
         }
 

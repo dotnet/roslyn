@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public override async ValueTask WriteToAsync(ObjectWriter writer)
         {
             await _declarationInfo.WriteToAsync(writer).ConfigureAwait(false);
-            await _extensionMethodInfo.WriteToAsync(writer).ConfigureAwait(false);
+            _extensionMethodInfo.WriteTo(writer);
         }
 
         private static async ValueTask<TopLevelSyntaxTreeIndex?> ReadIndexAsync(

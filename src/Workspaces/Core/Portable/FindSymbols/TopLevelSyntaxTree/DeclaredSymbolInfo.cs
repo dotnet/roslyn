@@ -178,16 +178,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static bool GetHasAttributes(uint flags)
             => ((flags >> 19) & 1) == 1;
 
-        internal async ValueTask WriteToAsync(ObjectWriter writer)
+        internal void WriteTo(ObjectWriter writer)
         {
-            await writer.WriteStringAsync(Name).ConfigureAwait(false);
-            await writer.WriteStringAsync(NameSuffix).ConfigureAwait(false);
-            await writer.WriteStringAsync(ContainerDisplayName).ConfigureAwait(false);
-            await writer.WriteStringAsync(FullyQualifiedContainerName).ConfigureAwait(false);
+            writer.WriteString(Name);
+            writer.WriteString(NameSuffix);
+            writer.WriteString(ContainerDisplayName);
+            writer.WriteString(FullyQualifiedContainerName);
             writer.WriteUInt32(_flags);
             writer.WriteInt32(Span.Start);
             writer.WriteInt32(Span.Length);
-            await writer.WriteArrayAsync(InheritanceNames, static (w, n) => w.WriteStringAsync(n)).ConfigureAwait(false);
+            writer.WriteArray(InheritanceNames, static (w, n) => w.WriteString(n));
         }
 
         internal static async ValueTask<DeclaredSymbolInfo> ReadFrom_ThrowsOnFailureAsync(StringTable stringTable, ObjectReader reader)

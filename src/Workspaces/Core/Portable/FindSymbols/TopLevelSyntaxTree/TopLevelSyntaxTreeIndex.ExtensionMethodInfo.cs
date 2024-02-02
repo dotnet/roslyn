@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public bool ContainsExtensionMethod => !ReceiverTypeNameToExtensionMethodMap.IsEmpty;
 
-            public async ValueTask WriteToAsync(ObjectWriter writer)
+            public void WriteTo(ObjectWriter writer)
             {
                 writer.WriteInt32(ReceiverTypeNameToExtensionMethodMap.Count);
 
                 foreach (var (name, indices) in ReceiverTypeNameToExtensionMethodMap)
                 {
-                    await writer.WriteStringAsync(name).ConfigureAwait(false);
+                    writer.WriteString(name);
                     writer.WriteArray(indices, static (w, i) => w.WriteInt32(i));
                 }
             }

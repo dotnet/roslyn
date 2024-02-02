@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
             => this.Id.GetHashCode();
 
-        internal async ValueTask WriteToAsync(ObjectWriter writer)
+        internal void WriteTo(ObjectWriter writer)
         {
             writer.WriteGuid(Id);
-            await writer.WriteStringAsync(DebugName).ConfigureAwait(false);
+            writer.WriteString(DebugName);
         }
 
         internal static async ValueTask<ProjectId> ReadFromAsync(ObjectReader reader)

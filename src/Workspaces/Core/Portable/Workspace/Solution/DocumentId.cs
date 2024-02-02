@@ -88,12 +88,12 @@ namespace Microsoft.CodeAnalysis
         public static bool operator !=(DocumentId? left, DocumentId? right)
             => !(left == right);
 
-        internal async ValueTask WriteToAsync(ObjectWriter writer)
+        internal void WriteTo(ObjectWriter writer)
         {
             this.ProjectId.WriteTo(writer);
             writer.WriteGuid(Id);
             writer.WriteBoolean(IsSourceGenerated);
-            await writer.WriteStringAsync(DebugName).ConfigureAwait(false);
+            writer.WriteString(DebugName);
         }
 
         internal static async ValueTask<DocumentId> ReadFromAsync(ObjectReader reader)

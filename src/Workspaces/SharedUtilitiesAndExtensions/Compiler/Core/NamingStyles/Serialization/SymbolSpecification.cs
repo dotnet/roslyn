@@ -233,10 +233,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 CreateModifiersXElement());
         }
 
-        public async ValueTask WriteToAsync(ObjectWriter writer)
+        public void WriteTo(ObjectWriter writer)
         {
             writer.WriteGuid(ID);
-            await writer.WriteStringAsync(Name).ConfigureAwait(false);
+            writer.WriteString(Name);
             writer.WriteArray(ApplicableSymbolKindList, (w, v) => v.WriteTo(w));
             writer.WriteArray(ApplicableAccessibilityList, (w, v) => w.WriteInt32((int)v));
             writer.WriteArray(RequiredModifierList, (w, v) => v.WriteTo(w));

@@ -296,7 +296,7 @@ namespace Roslyn.Utilities
             }
             else if (value.GetType() == typeof(string))
             {
-                await WriteStringAsync((string)value).ConfigureAwait(false);
+                await WritePotentiallyLargeStringAsync((string)value).ConfigureAwait(false);
             }
             else if (type.IsArray)
             {
@@ -534,7 +534,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        public async ValueTask WriteStringAsync(string? value)
+        public void WriteString(string? value)
         {
             if (value == null)
             {
@@ -573,8 +573,6 @@ namespace Roslyn.Utilities
                     {
                         WriteUtf16String();
                     }
-
-                    await _writer.FlushAsync(_cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -616,6 +614,12 @@ namespace Roslyn.Utilities
                 _writer.Write(bytes);
                 // don't need to Advance.  _writer.Write already does that.
             }
+        }
+
+        public async ValueTask WritePotentiallyLargeStringAsync(string? value)
+        {
+            WriteString(value);
+            await _writer.FlushAsync(_cancellationToken).ConfigureAwait(false);
         }
 
         private async ValueTask WriteArrayAsync(Array array)
@@ -735,10 +739,10 @@ namespace Roslyn.Utilities
                 WriteUInt64(word);
         }
 
-        private async ValueTask WriteStringArrayElementsAsync(string[] array)
+        private void WriteStringArrayElements(string[] array)
         {
             for (var i = 0; i < array.Length; i++)
-                await WriteStringAsync(array[i]).ConfigureAwait(false);
+                WriteString(array[i]);
         }
 
         private void WriteInt8ArrayElements(sbyte[] array)
@@ -807,7 +811,7 @@ namespace Roslyn.Utilities
             WriteByte((byte)kind);
         }
 
-        public async ValueTask WriteEncodingAsync(Encoding? encoding)
+        public void WriteEncoding(Encoding? encoding)
         {
             if (encoding == null)
             {
@@ -825,7 +829,7 @@ namespace Roslyn.Utilities
             else
             {
                 WriteByte((byte)TypeCode.EncodingName);
-                await WriteStringAsync(encoding.WebName).ConfigureAwait(false);
+                WriteString(encoding.WebName);
             }
         }
 

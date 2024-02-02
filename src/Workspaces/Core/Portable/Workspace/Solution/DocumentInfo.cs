@@ -231,14 +231,14 @@ namespace Microsoft.CodeAnalysis
             public string SyntaxTreeFilePath
                 => FilePath ?? (SourceCodeKind == SourceCodeKind.Regular ? Name : "");
 
-            public async ValueTask WriteToAsync(ObjectWriter writer)
+            public void WriteTo(ObjectWriter writer)
             {
                 Id.WriteTo(writer);
 
-                await writer.WriteStringAsync(Name).ConfigureAwait(false);
-                await writer.WriteValueAsync(Folders.ToArray()).ConfigureAwait(false);
+                writer.WriteString(Name);
+                writer.WriteArray(Folders.ToImmutableArrayOrEmpty(), static (w, v) => w.WriteString(v));
                 writer.WriteByte(checked((byte)SourceCodeKind));
-                await writer.WriteStringAsync(FilePath).ConfigureAwait(false);
+                writer.WriteString(FilePath);
                 writer.WriteBoolean(IsGenerated);
                 writer.WriteBoolean(DesignTimeOnly);
             }
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis
                 var documentId = DocumentId.ReadFrom(reader);
 
                 var name = await reader.ReadStringAsync().ConfigureAwait(false);
-                var folders = await reader.ReadArrayAsync<string>().ConfigureAwait(false);
+                var folders = await reader.ReadArrayAsync(static r => r.ReadStringAsync()).ConfigureAwait(false);
                 var sourceCodeKind = (SourceCodeKind)await reader.ReadByteAsync().ConfigureAwait(false);
                 var filePath = await reader.ReadStringAsync().ConfigureAwait(false);
                 var isGenerated = await reader.ReadBooleanAsync().ConfigureAwait(false);

@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         private const string SerializationFormat = "2";
 
-        public async ValueTask WriteToAsync(ObjectWriter writer)
+        public void WriteTo(ObjectWriter writer)
         {
-            await writer.WriteStringAsync(SerializationFormat).ConfigureAwait(false);
+            writer.WriteString(SerializationFormat);
             writer.WriteBoolean(_isCaseSensitive);
             writer.WriteInt32(_hashFunctionCount);
             WriteBitArray(writer, _bitArray);
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             var isCaseSensitive = await reader.ReadBooleanAsync().ConfigureAwait(false);
             var hashFunctionCount = await reader.ReadInt32Async().ConfigureAwait(false);
-            var bitArray = ReadBitArray(reader);
+            var bitArray = await ReadBitArrayAsync(reader).ConfigureAwait(false);
             return new BloomFilter(bitArray, hashFunctionCount, isCaseSensitive);
         }
 
