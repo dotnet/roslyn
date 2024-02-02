@@ -15,6 +15,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         Implements IVsSolution7
         Implements IVsSolution8
 
+        Private ReadOnly _lock As New Object
+        Private ReadOnly _eventHandlers As New Dictionary(Of UInteger, IVsSolutionEvents)
+        Private _nextCookie As UInteger
+
         Public Function GetProjectEnum(grfEnumFlags As UInteger, ByRef rguidEnumOnlyThisType As Guid, ByRef ppenum As IEnumHierarchies) As Integer Implements IVsSolution.GetProjectEnum
             Throw New NotImplementedException()
         End Function
@@ -40,11 +44,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         End Function
 
         Public Function AdviseSolutionEvents(pSink As IVsSolutionEvents, ByRef pdwCookie As UInteger) As Integer Implements IVsSolution.AdviseSolutionEvents
-            Throw New NotImplementedException()
+            SyncLock _lock
+                Dim cookie = _nextCookie
+                _eventHandlers.Add(cookie, pSink)
+                _nextCookie += 1UI
+
+                pdwCookie = cookie
+                Return VSConstants.S_OK
+            End SyncLock
         End Function
 
         Public Function UnadviseSolutionEvents(dwCookie As UInteger) As Integer Implements IVsSolution.UnadviseSolutionEvents
-            Throw New NotImplementedException()
+            SyncLock _lock
+                _eventHandlers.Remove(dwCookie)
+                Return VSConstants.S_OK
+            End SyncLock
         End Function
 
         Public Function SaveSolutionElement(grfSaveOpts As UInteger, pHier As IVsHierarchy, docCookie As UInteger) As Integer Implements IVsSolution.SaveSolutionElement
@@ -180,7 +194,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         End Function
 
         Private Function IVsSolution2_GetSolutionInfo(ByRef pbstrSolutionDirectory As String, ByRef pbstrSolutionFile As String, ByRef pbstrUserOptsFile As String) As Integer Implements IVsSolution2.GetSolutionInfo
-            Throw New NotImplementedException()
+            pbstrSolutionDirectory = Nothing
+            pbstrSolutionFile = Nothing
+            pbstrUserOptsFile = Nothing
+            Return VSConstants.E_NOTIMPL
         End Function
 
         Private Function IVsSolution2_AdviseSolutionEvents(pSink As IVsSolutionEvents, ByRef pdwCookie As UInteger) As Integer Implements IVsSolution2.AdviseSolutionEvents
