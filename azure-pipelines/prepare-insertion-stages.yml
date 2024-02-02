@@ -42,6 +42,11 @@ stages:
   #   steps:
   #   - checkout: none
   #   - download: current
+  #     artifact: Variables-Windows
+  #     displayName: 🔻 Download Variables-Windows artifact
+  #   - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
+  #     displayName: ⚙️ Set pipeline variables based on artifacts
+  #   - download: current
   #     artifact: deployables-Windows
   #     displayName: 🔻 Download deployables-Windows artifact
   #   - task: UseDotNet@2
