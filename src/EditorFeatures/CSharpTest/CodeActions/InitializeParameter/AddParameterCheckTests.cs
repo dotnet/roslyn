@@ -1813,8 +1813,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63307")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63307")]
         public async Task TestNotOnIndexerParameterInRecordWithParameter()
         {
             var code = """

@@ -832,8 +832,7 @@ partial class Outer {
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16283")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16283")]
         public async Task TestLeadingTrivia1()
         {
             var code =
@@ -869,8 +868,7 @@ partial class Outer
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17171")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17171")]
         public async Task TestInsertFinalNewLine()
         {
             var code =
@@ -908,8 +906,7 @@ partial class Outer
                 options: Option(FormattingOptions2.InsertFinalNewLine, true));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17171")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17171")]
         public async Task TestInsertFinalNewLine2()
         {
             var code =
@@ -946,8 +943,7 @@ partial class Outer
                 options: Option(FormattingOptions2.InsertFinalNewLine, false));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16282")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16282")]
         public async Task MoveTypeRemoveOuterInheritanceTypes()
         {
             var code =
@@ -976,8 +972,7 @@ partial class Outer
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17930")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17930")]
         public async Task MoveTypeWithDirectives1()
         {
             var code =
@@ -1029,8 +1024,7 @@ public class Inner
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17930")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17930")]
         public async Task MoveTypeWithDirectives2()
         {
             var code =
@@ -1087,8 +1081,7 @@ namespace N
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21456")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21456")]
         public async Task TestLeadingBlankLines1()
         {
             var code =
@@ -1140,8 +1133,7 @@ class Class1
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21456")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21456")]
         public async Task TestLeadingBlankLines2()
         {
             var code =
@@ -1193,8 +1185,7 @@ class Class2
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
         public async Task TestLeadingCommentInContainer()
         {
             var code =
@@ -1246,8 +1237,7 @@ partial class Class1
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
         public async Task TestLeadingCommentInContainer2()
         {
             var code =
@@ -1297,8 +1287,7 @@ partial class Class1
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
         public async Task TestTrailingCommentInContainer()
         {
             var code =
@@ -1350,8 +1339,7 @@ partial class Class1
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
         public async Task TestTrailingCommentInContainer2()
         {
             var code =
@@ -1400,8 +1388,7 @@ partial class Class1
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/50329")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/50329")]
         public async Task MoveRecordToNewFilePreserveUsings()
         {
             var code =

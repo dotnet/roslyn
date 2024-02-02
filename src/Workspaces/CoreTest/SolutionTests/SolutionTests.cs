@@ -3614,8 +3614,7 @@ public class C : A {
             Assert.Same(await frozenDocument.GetSyntaxTreeAsync(), singleTree);
         }
 
-        [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
         public async Task TestFrozenPartialSemanticsHandlesDocumentWithSamePathBeingRemovedAndAdded()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
@@ -3636,8 +3635,7 @@ public class C : A {
             Assert.Same(await frozenDocument.GetSyntaxTreeAsync(), singleTree);
         }
 
-        [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
         public async Task TestFrozenPartialSemanticsHandlesRemoveAndAddWithNullPathAndDifferentNames()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
