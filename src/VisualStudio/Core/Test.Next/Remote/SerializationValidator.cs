@@ -100,9 +100,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             using var reader = ObjectReader.TryGetReader(stream);
 
             // deserialize bits to object
-            var result = Serializer.Deserialize<T>(data.Kind, reader, CancellationToken.None);
+            var result = Serializer.Deserialize(data.Kind, reader, CancellationToken.None);
             Contract.ThrowIfNull<object?>(result);
-            return result;
+            return (T)result;
         }
 
         public async Task<Solution> GetSolutionAsync(SolutionAssetStorage.Scope scope)

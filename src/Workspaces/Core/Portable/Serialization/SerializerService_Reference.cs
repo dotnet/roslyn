@@ -228,37 +228,34 @@ namespace Microsoft.CodeAnalysis.Serialization
         private PortableExecutableReference ReadPortableExecutableReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             var kind = (SerializationKinds)reader.ReadInt32();
-            if (kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile)
+            Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
+
+            var properties = ReadMetadataReferencePropertiesFrom(reader, cancellationToken);
+
+            var filePath = reader.ReadString();
+
+            var tuple = TryReadMetadataFrom(reader, kind, cancellationToken);
+            if (tuple == null)
             {
-                var properties = ReadMetadataReferencePropertiesFrom(reader, cancellationToken);
+                // TODO: deal with xml document provider properly
+                //       should we shadow copy xml doc comment?
 
-                var filePath = reader.ReadString();
-
-                var tuple = TryReadMetadataFrom(reader, kind, cancellationToken);
-                if (tuple == null)
-                {
-                    // TODO: deal with xml document provider properly
-                    //       should we shadow copy xml doc comment?
-
-                    // image doesn't exist
-                    return new MissingMetadataReference(properties, filePath, XmlDocumentationProvider.Default);
-                }
-
-                // for now, we will use IDocumentationProviderService to get DocumentationProvider for metadata
-                // references. if the service is not available, then use Default (NoOp) provider.
-                // since xml doc comment is not part of solution snapshot, (like xml reference resolver or strong name
-                // provider) this provider can also potentially provide content that is different than one in the host. 
-                // an alternative approach of this is synching content of xml doc comment to remote host as well
-                // so that we can put xml doc comment as part of snapshot. but until we believe that is necessary,
-                // it will go with simpler approach
-                var documentProvider = filePath != null && _documentationService != null ?
-                    _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
-
-                return new SerializedMetadataReference(
-                    properties, filePath, tuple.Value.metadata, tuple.Value.storages, documentProvider);
+                // image doesn't exist
+                return new MissingMetadataReference(properties, filePath, XmlDocumentationProvider.Default);
             }
 
-            throw ExceptionUtilities.UnexpectedValue(kind);
+            // for now, we will use IDocumentationProviderService to get DocumentationProvider for metadata
+            // references. if the service is not available, then use Default (NoOp) provider.
+            // since xml doc comment is not part of solution snapshot, (like xml reference resolver or strong name
+            // provider) this provider can also potentially provide content that is different than one in the host. 
+            // an alternative approach of this is synching content of xml doc comment to remote host as well
+            // so that we can put xml doc comment as part of snapshot. but until we believe that is necessary,
+            // it will go with simpler approach
+            var documentProvider = filePath != null && _documentationService != null ?
+                _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
+
+            return new SerializedMetadataReference(
+                properties, filePath, tuple.Value.metadata, tuple.Value.storages, documentProvider);
         }
 
         private static void WriteTo(MetadataReferenceProperties properties, ObjectWriter writer, CancellationToken cancellationToken)
@@ -456,6 +453,8 @@ namespace Microsoft.CodeAnalysis.Serialization
         private (ITemporaryStreamStorageInternal storage, long length) GetTemporaryStorage(
             ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
+
             if (kind == SerializationKinds.Bits)
             {
                 var storage = _storageService.CreateTemporaryStreamStorage();
@@ -470,8 +469,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
                 return (storage, length);
             }
-
-            if (kind == SerializationKinds.MemoryMapFile)
+            else
             {
                 var service2 = (ITemporaryStorageService2)_storageService;
 
@@ -484,8 +482,6 @@ namespace Microsoft.CodeAnalysis.Serialization
 
                 return (storage, length);
             }
-
-            throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
         private static void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object? lifeTimeObject)
