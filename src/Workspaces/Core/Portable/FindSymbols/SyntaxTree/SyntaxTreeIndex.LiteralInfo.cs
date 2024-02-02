@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public bool ProbablyContainsInt64Value(long value)
                 => _literalsFilter.ProbablyContains(value);
 
-            public ValueTask WriteToAsync(ObjectWriter writer)
-                => _literalsFilter.WriteToAsync(writer);
+            public void WriteTo(ObjectWriter writer)
+                => _literalsFilter.WriteTo(writer);
 
             public static async ValueTask<LiteralInfo?> TryReadFromAsync(ObjectReader reader)
             {

@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis
         public static bool operator !=(in CompilationOutputInfo left, in CompilationOutputInfo right)
             => !left.Equals(right);
 
-        internal ValueTask WriteToAsync(ObjectWriter writer)
-            => writer.WriteStringAsync(AssemblyPath);
+        internal void WriteTo(ObjectWriter writer)
+            => writer.WriteString(AssemblyPath);
 
         internal static async ValueTask<CompilationOutputInfo> ReadFromAsync(ObjectReader reader)
         {

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -17,8 +16,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos { get; } = declaredSymbolInfos;
 
-            public ValueTask WriteToAsync(ObjectWriter writer)
-                => writer.WriteArrayAsync(DeclaredSymbolInfos, static (w, d) => d.WriteToAsync(w));
+            public void WriteTo(ObjectWriter writer)
+                => writer.WriteArray(DeclaredSymbolInfos, static (w, d) => d.WriteTo(w));
 
             public static async ValueTask<DeclarationInfo?> TryReadFromAsync(StringTable stringTable, ObjectReader reader)
             {

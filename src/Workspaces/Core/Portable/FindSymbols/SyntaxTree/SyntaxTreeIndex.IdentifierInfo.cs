@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public bool ProbablyContainsEscapedIdentifier(string identifier)
                 => _escapedIdentifierFilter.ProbablyContains(identifier);
 
-            public async ValueTask WriteToAsync(ObjectWriter writer)
+            public void WriteTo(ObjectWriter writer)
             {
-                await _identifierFilter.WriteToAsync(writer).ConfigureAwait(false);
-                await _escapedIdentifierFilter.WriteToAsync(writer).ConfigureAwait(false);
+                _identifierFilter.WriteTo(writer);
+                _escapedIdentifierFilter.WriteTo(writer);
             }
 
             public static async ValueTask<IdentifierInfo?> TryReadFromAsync(ObjectReader reader)

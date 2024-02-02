@@ -367,11 +367,11 @@ internal sealed class DocumentStateChecksums(
     public Checksum Info => infoChecksum;
     public Checksum Text => textChecksum;
 
-    public async ValueTask SerializeAsync(ObjectWriter writer)
+    public void Serialize(ObjectWriter writer)
     {
         // We don't write out the checksum itself as it would bloat the size of this message. If there is corruption
         // (which should never ever happen), it will be detected at the project level.
-        await this.DocumentId.WriteToAsync(writer).ConfigureAwait(false);
+        this.DocumentId.WriteTo(writer);
         this.Info.WriteTo(writer);
         this.Text.WriteTo(writer);
     }
