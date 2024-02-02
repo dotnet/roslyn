@@ -16,15 +16,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly TypeWithAnnotations _type;
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
-        private readonly bool _isParamArray;
-        private readonly bool _isParamCollection;
+        private readonly bool _isParamsArray;
+        private readonly bool _isParamsCollection;
         private readonly RefKind _refKind;
 
         public SignatureOnlyParameterSymbol(
             TypeWithAnnotations type,
             ImmutableArray<CustomModifier> refCustomModifiers,
-            bool isParamArray,
-            bool isParamCollection,
+            bool isParamsArray,
+            bool isParamsCollection,
             RefKind refKind)
         {
             Debug.Assert((object)type.Type != null);
@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _type = type;
             _refCustomModifiers = refCustomModifiers;
-            _isParamArray = isParamArray;
-            _isParamCollection = isParamCollection;
+            _isParamsArray = isParamsArray;
+            _isParamsCollection = isParamsCollection;
             _refKind = refKind;
         }
 
@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return _refCustomModifiers; } }
 
-        public override bool IsParamArray { get { return _isParamArray; } }
+        public override bool IsParamsArray { get { return _isParamsArray; } }
 
-        public override bool IsParamCollection { get { return _isParamCollection; } }
+        public override bool IsParamsCollection { get { return _isParamsCollection; } }
 
         public override RefKind RefKind { get { return _refKind; } }
 
@@ -118,8 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol.Equals(_type.Type, other._type.Type, compareKind) &&
                 _type.CustomModifiers.Equals(other._type.CustomModifiers) &&
                 _refCustomModifiers.SequenceEqual(other._refCustomModifiers) &&
-                _isParamArray == other._isParamArray &&
-                _isParamCollection == other._isParamCollection &&
+                _isParamsArray == other._isParamsArray &&
+                _isParamsCollection == other._isParamsCollection &&
                 _refKind == other._refKind;
         }
 
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Hash.Combine(
                     Hash.CombineValues(_type.CustomModifiers),
                     Hash.Combine(
-                        (_isParamArray || _isParamCollection).GetHashCode(),
+                        (_isParamsArray || _isParamsCollection).GetHashCode(),
                         ((int)_refKind).GetHashCode())));
         }
     }

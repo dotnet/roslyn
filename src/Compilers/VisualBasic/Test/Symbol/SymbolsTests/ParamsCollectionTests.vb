@@ -96,5 +96,52 @@ End Class
             AssertEx.Equal("Sub C1.M2(ParamArray a As System.Int32())", comp1.GetMember("C1.M2").ToTestDisplayString())
         End Sub
 
+        <Fact>
+        Public Sub PublicApi_01()
+
+            Dim csSource =
+"
+public class C1
+{
+    public static void M1(params System.Collections.Generic.IEnumerable<int> a) {}
+    public static void M2(System.Collections.Generic.IEnumerable<int> a) {}
+    public static void M3(params int[] a) {}
+}
+"
+
+            Dim csCompilation = CreateCSharpCompilation(csSource,
+                                           parseOptions:=CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Preview),
+                                           referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Standard)).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class C2
+    Shared Sub M4(ParamArray b as Integer())
+    End Sub
+    Shared Sub M5(b as Integer())
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.Standard, references:={csCompilation}, options:=TestOptions.DebugDll)
+
+            VerifyParams(comp1.GetMember("C1.M1").GetParameters().Last(), isParamArray:=False)
+            VerifyParams(comp1.GetMember("C1.M2").GetParameters().Last(), isParamArray:=False)
+            VerifyParams(comp1.GetMember("C1.M3").GetParameters().Last(), isParamArray:=True)
+            VerifyParams(comp1.GetMember("C2.M4").GetParameters().Last(), isParamArray:=True)
+            VerifyParams(comp1.GetMember("C2.M5").GetParameters().Last(), isParamArray:=False)
+        End Sub
+
+        Private Shared Sub VerifyParams(parameter As ParameterSymbol, isParamArray As Boolean)
+            Assert.Equal(isParamArray, parameter.IsParamArray)
+
+            Dim iParameter = DirectCast(parameter, IParameterSymbol)
+            Assert.Equal(isParamArray, iParameter.IsParamsArray)
+            Assert.False(iParameter.IsParamsCollection)
+            Assert.Equal(isParamArray, iParameter.IsParams)
+        End Sub
+
     End Class
 End Namespace

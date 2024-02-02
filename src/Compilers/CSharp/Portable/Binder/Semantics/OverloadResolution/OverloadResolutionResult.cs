@@ -1328,8 +1328,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
                             TypeWithAnnotations.Create(argType),
                             ImmutableArray<CustomModifier>.Empty,
-                            isParamArray: false,
-                            isParamCollection: false,
+                            isParamsArray: false,
+                            isParamsCollection: false,
                             refKind: refArg);
 
                             SymbolDistinguisher distinguisher = new SymbolDistinguisher(binder.Compilation, displayArg, unwrapIfParamsCollection(badArg, parameter, isLastParameter));

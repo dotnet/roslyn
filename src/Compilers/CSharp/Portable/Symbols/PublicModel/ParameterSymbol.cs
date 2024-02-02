@@ -62,9 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool IParameterSymbol.IsDiscard => _underlying.IsDiscard;
 
-        bool IParameterSymbol.IsParams => _underlying.IsParamArray;
+        bool IParameterSymbol.IsParams => _underlying.IsParams;
 
-        bool IParameterSymbol.IsParamCollection => _underlying.IsParamCollection;
+        bool IParameterSymbol.IsParamsArray => _underlying.IsParamsArray;
+
+        bool IParameterSymbol.IsParamsCollection => _underlying.IsParamsCollection;
 
         bool IParameterSymbol.IsOptional => _underlying.IsOptional;
 

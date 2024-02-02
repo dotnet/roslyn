@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool IsParamArray
+        public override bool IsParamsArray
         {
-            get { return !_suppressOptional && _originalParam.IsParamArray; }
+            get { return !_suppressOptional && _originalParam.IsParamsArray; }
         }
 
-        public override bool IsParamCollection
+        public override bool IsParamsCollection
         {
-            get { return !_suppressOptional && _originalParam.IsParamCollection; }
+            get { return !_suppressOptional && _originalParam.IsParamsCollection; }
         }
 
         internal override bool IsMetadataOptional

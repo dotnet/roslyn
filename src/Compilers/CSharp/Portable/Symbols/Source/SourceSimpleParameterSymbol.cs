@@ -57,12 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        public override bool IsParamArray
+        public override bool IsParamsArray
         {
             get { return false; }
         }
 
-        public override bool IsParamCollection
+        public override bool IsParamsCollection
         {
             get { return false; }
         }

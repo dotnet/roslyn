@@ -989,7 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool IsParamArray
+        public override bool IsParamsArray
         {
             get
             {
@@ -997,7 +997,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool IsParamCollection
+        public override bool IsParamsCollection
         {
             get
             {

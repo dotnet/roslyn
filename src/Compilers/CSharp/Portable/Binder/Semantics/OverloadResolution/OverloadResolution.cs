@@ -1167,7 +1167,7 @@ outerDefault:
             }
 
             ParameterSymbol final = member.GetParameters().Last();
-            if ((final.IsParamArray && final.Type.IsSZArray()) || (final.IsParamCollection && !final.Type.IsSZArray()))
+            if ((final.IsParamsArray && final.Type.IsSZArray()) || (final.IsParamsCollection && !final.Type.IsSZArray()))
             {
                 return TryInferParamsCollectionIterationType(binder, final.OriginalDefinition.Type, out _);
             }

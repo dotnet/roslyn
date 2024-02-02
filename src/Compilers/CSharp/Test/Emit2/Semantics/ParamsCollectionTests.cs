@@ -43,9 +43,14 @@ namespace System.Runtime.CompilerServices
 
         private static void VerifyParams(ParameterSymbol parameter, bool isParamArray = false, bool isParamCollection = false)
         {
-            Assert.Equal(isParamArray, parameter.IsParamArray);
-            Assert.Equal(isParamCollection, parameter.IsParamCollection);
+            Assert.Equal(isParamArray, parameter.IsParamsArray);
+            Assert.Equal(isParamCollection, parameter.IsParamsCollection);
             Assert.Equal(isParamArray | isParamCollection, parameter.IsParams);
+
+            IParameterSymbol iParameter = parameter.GetPublicSymbol();
+            Assert.Equal(isParamArray, iParameter.IsParamsArray);
+            Assert.Equal(isParamCollection, iParameter.IsParamsCollection);
+            Assert.Equal(isParamArray | isParamCollection, iParameter.IsParams);
         }
 
         private static void VerifyParams(IParameterSymbol parameter, bool isParamArray = false, bool isParamCollection = false)
@@ -2403,7 +2408,8 @@ class Program2
                 var parameter = (IParameterSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().First());
                 AssertEx.Equal("System.Collections.Generic.IEnumerable<System.Int64> e1", parameter.ToTestDisplayString());
                 Assert.False(parameter.IsParams);
-                Assert.False(parameter.IsParamCollection);
+                Assert.False(parameter.IsParamsArray);
+                Assert.False(parameter.IsParamsCollection);
 
                 CompileAndVerify(comp2,
                     symbolValidator: (m) =>

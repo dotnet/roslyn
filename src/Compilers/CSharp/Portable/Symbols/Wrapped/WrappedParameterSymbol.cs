@@ -86,14 +86,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.Ordinal; }
         }
 
-        public override bool IsParamArray
+        public override bool IsParamsArray
         {
-            get { return _underlyingParameter.IsParamArray; }
+            get { return _underlyingParameter.IsParamsArray; }
         }
 
-        public override bool IsParamCollection
+        public override bool IsParamsCollection
         {
-            get { return _underlyingParameter.IsParamCollection; }
+            get { return _underlyingParameter.IsParamsCollection; }
         }
 
         internal override bool IsMetadataOptional
