@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.UseConditionalExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
@@ -21,5 +22,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 
         protected override ISyntaxFacts GetSyntaxFacts()
             => CSharpSyntaxFacts.Instance;
+
+        protected override bool IsStatementSupported(IOperation statement)
+        {
+            // Return statements wrapped in an unsafe, checked or unchecked block are not supported
+            // because having these enclosing blocks makes it difficult or impossible to convert
+            // the blocks to expressions
+            return !IsWrappedByCheckedOrUnsafe(statement);
+        }
+
+        private static bool IsWrappedByCheckedOrUnsafe(IOperation statement)
+        {
+            if (statement is not IReturnOperation { Parent: IBlockOperation block })
+                return false;
+
+            if (block.Syntax.Parent is UnsafeStatementSyntax or CheckedStatementSyntax)
+                return true;
+
+            return false;
+        }
     }
 }
