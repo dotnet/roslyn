@@ -90,14 +90,24 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override void Write(TextWriter textWriter, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (span.Start == 0 && span.End == this.Length)
+            CheckSubSpan(span);
+
+            if (span.Length == 0)
+                return;
+
+            if (span.Start == 0 && span.Length == this.Length)
             {
+                // Even on .NET Core, prefer the string overload of Write, because in case the writer is a custom TextWriter that
+                // doesn't override the ReadOnlySpan<char> overload, it delegates to the array one under the hood.
                 textWriter.Write(this.Source);
+                return;
             }
-            else
-            {
-                base.Write(textWriter, span, cancellationToken);
-            }
+
+#if NETCOREAPP
+            textWriter.Write(this.Source.AsSpan(span.Start, span.Length));
+#else
+            base.Write(textWriter, span, cancellationToken);
+#endif
         }
     }
 }

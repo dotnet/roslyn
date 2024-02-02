@@ -4,7 +4,9 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -88,6 +90,44 @@ namespace Microsoft.CodeAnalysis.Text
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
             _builder.CopyTo(sourceIndex, destination, destinationIndex, count);
+        }
+
+        public override void Write(TextWriter textWriter, TextSpan span, CancellationToken cancellationToken = default)
+        {
+            CheckSubSpan(span);
+
+            if (span.Length == 0)
+                return;
+
+#if NETCOREAPP
+            // Index of the current chunk within the text.
+            int chunkOffset = 0;
+
+            foreach (var chunk in this.Builder.GetChunks())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Start index of the span with respect to the current chunk.
+                var startFromChunk = span.Start - chunkOffset;
+                if (startFromChunk < chunk.Length)
+                {
+                    // End infex of the span with respect to the current chunk.
+                    var endFromChunk = span.End - chunkOffset;
+
+                    var start = Math.Max(startFromChunk, 0);
+                    var end = Math.Min(endFromChunk, chunk.Length);
+
+                    textWriter.Write(chunk.Span[start..end]);
+
+                    if (endFromChunk <= chunk.Length)
+                        break;
+                }
+
+                chunkOffset += chunk.Length;
+            }
+#else
+            base.Write(textWriter, span, cancellationToken);
+#endif
         }
     }
 }
