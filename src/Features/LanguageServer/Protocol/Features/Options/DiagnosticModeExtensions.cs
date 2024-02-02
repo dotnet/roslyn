@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // If the workspace diagnostic mode is set to Default, defer to the feature flag service.
             return diagnosticModeOption == DiagnosticMode.Default
-                ? globalOptions.GetOption(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag) ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush
+                ? globalOptions.GetOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag) ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush
                 : diagnosticModeOption;
         }
 

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             {
                 return new LSP.VSInternalCompletionList
                 {
-                    Items = Array.Empty<LSP.CompletionItem>(),
+                    Items = [],
                     // If we have a suggestion mode item, we just need to keep the list in suggestion mode.
                     // We don't need to return the fake suggestion mode item.
                     SuggestionMode = isSuggestionMode,
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Set resolve data on list if the client supports it, otherwise set it on each item.
-            var resolveData = new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document));
+            var resolveData = new CompletionResolveData() { ResultId = resultId };
             var completionItemResolveData = capabilityHelper.SupportCompletionListData || capabilityHelper.SupportVSInternalCompletionListData
                 ? null : resolveData;
 
@@ -135,14 +135,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 // This means only tab / enter will commit. VS supports soft selection, so we only do this for non-VS clients.
                 if (isSuggestionMode)
                 {
-                    lspItem.CommitCharacters = Array.Empty<string>();
+                    lspItem.CommitCharacters = [];
                 }
                 else if (typedText.Length == 0 && item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
                 {
                     // Note this also applies when user hasn't actually typed anything and completion provider does not request the item
                     // to be hard-selected. Otherwise, we set its commit characters as normal. This means we'd need to set IsIncomplete to true
                     // to make sure the client will ask us again when user starts typing so we can provide items with proper commit characters.
-                    lspItem.CommitCharacters = Array.Empty<string>();
+                    lspItem.CommitCharacters = [];
                     isIncomplete = true;
                 }
                 else

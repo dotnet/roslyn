@@ -393,6 +393,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SolutionState_ComputeChecksumsAsync = 315,
         ProjectState_ComputeChecksumsAsync = 316,
         DocumentState_ComputeChecksumsAsync = 317,
+        SolutionCompilationState_ComputeChecksumsAsync = 318,
 
         // obsolete: SolutionSynchronizationService_GetRemotableData = 318,
         // obsolete: SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync = 319,
@@ -616,7 +617,5 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SuggestedAction_Application_Summary = 743,
         SuggestedAction_Preview_Delay = 744,
         SuggestedAction_Preview_Summary = 745,
-
-        LSP_DocumentIdCacheMiss = 746,
     }
 }

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
             var lockStatement = (LockStatementSyntax)node;
             var expression = lockStatement.Expression;
-            return ImmutableArray.Create(new SnippetPlaceholder(expression.ToString(), expression.SpanStart));
+            return [new SnippetPlaceholder(expression.ToString(), expression.SpanStart)];
         }
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)

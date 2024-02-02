@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             // If we get no value results back, treat that as empty results.  That way we don't keep showing stale
             // results if the server starts returning nothing.
-            var documentSymbols = token.ToObject<RoslynDocumentSymbol[]>() ?? Array.Empty<RoslynDocumentSymbol>();
+            var documentSymbols = token.ToObject<RoslynDocumentSymbol[]>() ?? [];
 
             // Obtain a flat list of all the document symbols sorted by location in the document.
             var allSymbols = documentSymbols

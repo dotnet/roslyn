@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (!document.SupportsSemanticModel)
             {
-                return ImmutableArray<Diagnostic>.Empty;
+                return [];
             }
 
             ignoreErrorCode ??= SpecializedCollections.EmptyList<string>();

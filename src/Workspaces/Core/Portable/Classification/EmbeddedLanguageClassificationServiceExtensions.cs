@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 solutionServices,
                 project,
                 semanticModel,
-                ImmutableArray.Create(textSpan),
+                [textSpan],
                 options,
                 result,
                 cancellationToken);

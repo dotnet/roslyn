@@ -45,6 +45,6 @@ namespace Microsoft.CodeAnalysis.GoToBase
 
         protected override Task FindActionAsync(IFindUsagesContext context, Document document, int caretPosition, CancellationToken cancellationToken)
             => document.GetRequiredLanguageService<IGoToBaseService>()
-                       .FindBasesAsync(context, document, caretPosition, cancellationToken);
+                       .FindBasesAsync(context, document, caretPosition, ClassificationOptionsProvider, cancellationToken);
     }
 }

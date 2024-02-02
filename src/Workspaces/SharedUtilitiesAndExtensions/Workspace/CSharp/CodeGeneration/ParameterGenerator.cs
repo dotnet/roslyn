@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var parameters = GetParameters(parameterDefinitions, isExplicit, info);
 
-            return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters));
+            return SyntaxFactory.ParameterList([.. parameters]);
         }
 
         public static BracketedParameterListSyntax GenerateBracketedParameterList(
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // could never have a typeParameterMapping.
             var parameters = GetParameters(parameterDefinitions, isExplicit, info);
 
-            return SyntaxFactory.BracketedParameterList(SyntaxFactory.SeparatedList(parameters));
+            return SyntaxFactory.BracketedParameterList([.. parameters]);
         }
 
         internal static ImmutableArray<ParameterSyntax> GetParameters(

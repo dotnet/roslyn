@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
         {
             symbol = await TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
             if (symbol is null)
-                return ImmutableArray.Create<DefinitionItem>();
+                return [];
 
             using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
 

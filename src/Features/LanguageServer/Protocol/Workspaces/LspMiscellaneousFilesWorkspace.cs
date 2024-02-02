@@ -30,11 +30,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     /// </summary>
     internal sealed class LspMiscellaneousFilesWorkspace : Workspace, ILspService, ILspWorkspace
     {
-        private readonly ILspServices _lspServices;
+        private static readonly LanguageInformation s_csharpLanguageInformation = new(LanguageNames.CSharp, ".csx");
+        private static readonly LanguageInformation s_vbLanguageInformation = new(LanguageNames.VisualBasic, ".vbx");
 
-        public LspMiscellaneousFilesWorkspace(ILspServices lspServices, HostServices hostServices) : base(hostServices, WorkspaceKind.MiscellaneousFiles)
+        private static readonly Dictionary<string, LanguageInformation> s_extensionToLanguageInformation = new()
         {
-            _lspServices = lspServices;
+            { ".cs", s_csharpLanguageInformation },
+            { ".csx", s_csharpLanguageInformation },
+            { ".vb", s_vbLanguageInformation },
+            { ".vbx", s_vbLanguageInformation },
+        };
+
+        public LspMiscellaneousFilesWorkspace(HostServices hostServices) : base(hostServices, WorkspaceKind.MiscellaneousFiles)
+        {
         }
 
         public bool SupportsMutation => true;
@@ -48,8 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public Document? AddMiscellaneousDocument(Uri uri, SourceText documentText, string languageId, ILspLogger logger)
         {
             var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
-            var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
-            var languageInformation = languageInfoProvider.GetLanguageInformation(documentFilePath, languageId);
+            var languageInformation = GetLanguageInformation(documentFilePath, languageId);
             if (languageInformation == null)
             {
                 // Only log here since throwing here could take down the LSP server.
@@ -60,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var sourceTextLoader = new SourceTextLoader(documentText, documentFilePath);
 
             var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-                this, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, ImmutableArray<MetadataReference>.Empty);
+                this, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, []);
             OnProjectAdded(projectInfo);
 
             var id = projectInfo.Documents.Single().Id;
@@ -79,14 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var matchingDocument = CurrentSolution.GetDocumentIds(uri).SingleOrDefault();
             if (matchingDocument != null)
             {
-                if (CurrentSolution.ContainsDocument(matchingDocument))
-                {
-                    OnDocumentRemoved(matchingDocument);
-                }
-                else if (CurrentSolution.ContainsAdditionalDocument(matchingDocument))
-                {
-                    OnAdditionalDocumentRemoved(matchingDocument);
-                }
+                OnDocumentRemoved(matchingDocument);
 
                 // Also remove the project - we always create a new project for each misc file we add
                 // so it should never have other documents in it.
@@ -99,6 +99,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             this.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
             return ValueTaskFactory.CompletedTask;
+        }
+
+        private static LanguageInformation? GetLanguageInformation(string documentPath, string languageId)
+        {
+            if (s_extensionToLanguageInformation.TryGetValue(Path.GetExtension(documentPath), out var languageInformation))
+            {
+                return languageInformation;
+            }
+
+            // It is totally possible to not find language based on the file path (e.g. a newly created file that hasn't been saved to disk).
+            // In that case, we use the languageId that the client gave us.
+            return languageId switch
+            {
+                "csharp" => s_csharpLanguageInformation,
+                "vb" => s_vbLanguageInformation,
+                _ => null,
+            };
         }
     }
 }

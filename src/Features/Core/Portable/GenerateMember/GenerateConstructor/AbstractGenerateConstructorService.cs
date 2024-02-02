@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 }
             }
 
-            return ImmutableArray<CodeAction>.Empty;
+            return [];
         }
 
         protected static bool IsSymbolAccessible(ISymbol? symbol, SemanticDocument document)

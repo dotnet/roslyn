@@ -166,10 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             {
                 var getter = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                                           .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-                return SyntaxFactory.AccessorList(SyntaxFactory.List(Enumerable.Repeat(getter, 1)));
+                return SyntaxFactory.AccessorList([getter]);
             }
 
-            return accessorList.WithAccessors(SyntaxFactory.List(GetAccessors(accessorList.Accessors)));
+            return accessorList.WithAccessors([.. GetAccessors(accessorList.Accessors)]);
         }
 
         private static IEnumerable<AccessorDeclarationSyntax> GetAccessors(SyntaxList<AccessorDeclarationSyntax> accessors)

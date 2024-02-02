@@ -420,8 +420,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
                 // We need the DLLs to exist, in order for some checks to pass correct, but to ensure
                 // that the file isn't read, we just zero it out.
-                File.WriteAllBytes(typeForwardDllFilePath, Array.Empty<byte>());
-                File.WriteAllBytes(dllFilePath, Array.Empty<byte>());
+                File.WriteAllBytes(typeForwardDllFilePath, []);
+                File.WriteAllBytes(dllFilePath, []);
 
                 Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
             });
@@ -485,8 +485,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
                 // We need the DLLs to exist, in order for some checks to pass correct, but to ensure
                 // that the file isn't read, we just zero it out.
-                File.WriteAllBytes(typeForwardDllFilePath, Array.Empty<byte>());
-                File.WriteAllBytes(dllFilePath, Array.Empty<byte>());
+                File.WriteAllBytes(typeForwardDllFilePath, []);
+                File.WriteAllBytes(dllFilePath, []);
 
                 Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
             });
@@ -557,9 +557,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
                 // We need the DLLs to exist, in order for some checks to pass correct, but to ensure
                 // that the file isn't read, we just zero it out.
-                File.WriteAllBytes(typeForwardDllFilePath, Array.Empty<byte>());
-                File.WriteAllBytes(realImplementationDllFilePath, Array.Empty<byte>());
-                File.WriteAllBytes(dllFilePath, Array.Empty<byte>());
+                File.WriteAllBytes(typeForwardDllFilePath, []);
+                File.WriteAllBytes(realImplementationDllFilePath, []);
+                File.WriteAllBytes(dllFilePath, []);
 
                 foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger());
                 Assert.Equal(realImplementationDllFilePath, foundImplementationFilePath);

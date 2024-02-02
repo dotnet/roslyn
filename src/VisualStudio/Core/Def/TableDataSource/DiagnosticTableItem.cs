@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         internal static DiagnosticTableItem Create(Workspace workspace, DiagnosticData data)
         {
             GetProjectNameAndGuid(workspace, data.ProjectId, out var projectName, out var projectGuid);
-            return new DiagnosticTableItem(workspace, data, projectName, projectGuid, projectNames: Array.Empty<string>(), projectGuids: Array.Empty<Guid>());
+            return new DiagnosticTableItem(workspace, data, projectName, projectGuid, projectNames: [], projectGuids: []);
         }
 
         public override TableItem WithAggregatedData(string[] projectNames, Guid[] projectGuids)

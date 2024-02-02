@@ -618,11 +618,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_parameters, ParameterToNewFieldMap, IsContainedInUnsafeType) :
                               withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_parameters, ParameterToNewPropertyMap, IsContainedInUnsafeType) :
-                              ImmutableArray<ISymbol>.Empty;
+                              [];
 
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var assignments = !withFields && !withProperties
-                    ? ImmutableArray<SyntaxNode>.Empty
+                    ? []
                     : provider.GetRequiredService<SyntaxGenerator>().CreateAssignmentStatements(
                         semanticModel, _parameters,
                         _parameterToExistingMemberMap,

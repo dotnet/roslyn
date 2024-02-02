@@ -49,7 +49,7 @@ internal sealed class LspServices : ILspServices
         _lazyMefLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.Type, lazyService => lazyService);
 
         // Bit cheaky, but lets make an this ILspService available on the base services to make constructors that take an ILspServices instance possible.
-        _baseServices = baseServices.Add(typeof(ILspServices), ImmutableArray.Create<Func<ILspServices, object>>((_) => this));
+        _baseServices = baseServices.Add(typeof(ILspServices), [(_) => this]);
     }
 
     public T GetRequiredService<T>() where T : notnull
@@ -60,7 +60,15 @@ internal sealed class LspServices : ILspServices
     }
 
     public T? GetService<T>()
-        => (T?)TryGetService(typeof(T));
+    {
+        T? service;
+
+        // Check the base services first
+        service = GetBaseServices<T>().SingleOrDefault();
+        service ??= (T?)TryGetService(typeof(T));
+
+        return service;
+    }
 
     public IEnumerable<T> GetRequiredServices<T>()
     {
@@ -73,17 +81,6 @@ internal sealed class LspServices : ILspServices
     public object? TryGetService(Type type)
     {
         object? lspService;
-
-        // Check the base services first
-        if (_baseServices.TryGetValue(type, out var baseServices))
-        {
-            lspService = baseServices.Select(creatorFunc => creatorFunc(this)).SingleOrDefault();
-            if (lspService is not null)
-            {
-                return lspService;
-            }
-        }
-
         if (_lazyMefLspServices.TryGetValue(type, out var lazyService))
         {
             // If we are creating a stateful LSP service for the first time, we need to check
@@ -118,7 +115,7 @@ internal sealed class LspServices : ILspServices
     private IEnumerable<T> GetBaseServices<T>()
         => _baseServices.TryGetValue(typeof(T), out var baseServices)
             ? baseServices.Select(creatorFunc => (T)creatorFunc(this)).ToImmutableArray()
-            : (IEnumerable<T>)ImmutableArray<T>.Empty;
+            : (IEnumerable<T>)[];
 
     private IEnumerable<T> GetMefServices<T>()
     {

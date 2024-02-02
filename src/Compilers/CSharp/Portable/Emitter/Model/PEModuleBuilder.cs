@@ -1916,19 +1916,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
         }
 
-        internal NamedTypeSymbol EnsureReadOnlyListTypeExists(SyntaxNode syntaxNode, bool hasKnownLength, DiagnosticBag diagnostics)
+        internal NamedTypeSymbol EnsureReadOnlyListTypeExists(SyntaxNode syntaxNode, SynthesizedReadOnlyListKind kind, DiagnosticBag diagnostics)
         {
             Debug.Assert(syntaxNode is { });
             Debug.Assert(diagnostics is { });
 
-            string typeName = GeneratedNames.MakeSynthesizedReadOnlyListName(hasKnownLength, CurrentGenerationOrdinal);
+            string typeName = GeneratedNames.MakeSynthesizedReadOnlyListName(kind, CurrentGenerationOrdinal);
             var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics).PrivateImplementationDetails;
             var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
             NamedTypeSymbol typeSymbol;
 
             if (typeAdapter is null)
             {
-                typeSymbol = SynthesizedReadOnlyListTypeSymbol.Create(SourceModule, typeName, hasKnownLength);
+                typeSymbol = SynthesizedReadOnlyListTypeSymbol.Create(SourceModule, typeName, kind);
                 privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
                 typeAdapter = privateImplClass.GetSynthesizedType(typeName)!;
             }

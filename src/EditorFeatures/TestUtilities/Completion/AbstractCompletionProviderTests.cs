@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
         {
-            foreach (var sourceKind in sourceCodeKind.HasValue ? new[] { sourceCodeKind.Value } : new[] { SourceCodeKind.Regular, SourceCodeKind.Script })
+            foreach (var sourceKind in sourceCodeKind.HasValue ? [sourceCodeKind.Value] : new[] { SourceCodeKind.Regular, SourceCodeKind.Script })
             {
                 using var workspaceFixture = GetOrCreateWorkspaceFixture();
 

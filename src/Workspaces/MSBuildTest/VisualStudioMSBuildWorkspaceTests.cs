@@ -3290,7 +3290,7 @@ class C { }";
             using var workspace = CreateMSBuildWorkspace();
             var project = await workspace.OpenProjectAsync(GetSolutionFileName("Project.csproj"));
             var document = project.Documents.Single(d => d.Name == "MyClass.cs");
-            Assert.Equal(new[] { "dir1", "dir2", "dir3" }, document.Folders);
+            Assert.Equal(["dir1", "dir2", "dir3"], document.Folders);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -3303,7 +3303,7 @@ class C { }";
             using var workspace = CreateMSBuildWorkspace();
             var project = await workspace.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
             var linkedDocument = project.Documents.Single(d => d.Name == "Foo.cs");
-            Assert.Equal(new[] { "Blah" }, linkedDocument.Folders);
+            Assert.Equal(["Blah"], linkedDocument.Folders);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -3316,7 +3316,7 @@ class C { }";
             using var workspace = CreateMSBuildWorkspace();
             var project = await workspace.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
             var linkedDocument = project.Documents.Single(d => d.Name == "MyClass.cs");
-            Assert.Equal(new[] { "..", "MyDir" }, linkedDocument.Folders);
+            Assert.Equal(["..", "MyDir"], linkedDocument.Folders);
         }
 
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader

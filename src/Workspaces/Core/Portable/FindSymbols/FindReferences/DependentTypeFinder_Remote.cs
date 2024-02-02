@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     if (!result.HasValue)
                     {
-                        return ImmutableArray<INamedTypeSymbol>.Empty;
+                        return [];
                     }
 
                     return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);

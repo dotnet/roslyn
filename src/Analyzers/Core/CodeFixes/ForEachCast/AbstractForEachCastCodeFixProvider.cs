@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
         protected abstract ITypeSymbol GetForEachElementType(SemanticModel semanticModel, TForEachStatementSyntax forEachStatement);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.ForEachCastDiagnosticId);
+            => [IDEDiagnosticIds.ForEachCastDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

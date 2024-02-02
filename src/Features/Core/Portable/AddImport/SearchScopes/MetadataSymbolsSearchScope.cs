@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var service = _assemblyProject.Solution.Services.GetRequiredService<ISymbolTreeInfoCacheService>();
                 var info = await service.TryGetPotentiallyStaleMetadataSymbolTreeInfoAsync(_assemblyProject, _metadataReference, cancellationToken).ConfigureAwait(false);
                 if (info == null)
-                    return ImmutableArray<ISymbol>.Empty;
+                    return [];
 
                 var declarations = await info.FindAsync(
                     searchQuery, _assembly, filter, cancellationToken).ConfigureAwait(false);

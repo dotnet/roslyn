@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             => null;
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(CS8865);
+            => [CS8865];
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

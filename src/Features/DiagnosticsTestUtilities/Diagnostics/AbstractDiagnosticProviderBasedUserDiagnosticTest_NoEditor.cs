@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             if (fixer == null)
             {
-                return (diagnostics, ImmutableArray<CodeAction>.Empty, null);
+                return (diagnostics, [], null);
             }
 
             var ids = new HashSet<string>(fixer.FixableDiagnosticIds);

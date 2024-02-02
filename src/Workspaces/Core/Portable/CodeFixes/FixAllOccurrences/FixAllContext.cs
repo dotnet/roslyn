@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (this.Project.Language != document.Project.Language)
             {
-                return ImmutableArray<Diagnostic>.Empty;
+                return [];
             }
 
             var getDiagnosticsTask = State.DiagnosticProvider.GetDocumentDiagnosticsAsync(document, this.CancellationToken);
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
             }
 
-            return ImmutableArray<Diagnostic>.Empty;
+            return [];
         }
 
         /// <summary>
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (this.Project.Language != document.Project.Language)
             {
-                return ImmutableArray<Diagnostic>.Empty;
+                return [];
             }
 
             var getDiagnosticsTask = State.DiagnosticProvider is FixAllContext.SpanBasedDiagnosticProvider spanBasedDiagnosticProvider
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (this.Project.Language != project.Language)
             {
-                return ImmutableArray<Diagnostic>.Empty;
+                return [];
             }
 
             var getDiagnosticsTask = includeAllDocumentDiagnostics
