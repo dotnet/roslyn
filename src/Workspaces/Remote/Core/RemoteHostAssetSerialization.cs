@@ -100,7 +100,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 var kind = (WellKnownSynchronizationKind)await reader.ReadInt32Async().ConfigureAwait(false);
 
                 // in service hub, cancellation means simply closed stream
+<<<<<<< HEAD
                 var result = await serializerService.DeserializeAsync<object>(kind, reader, cancellationToken).ConfigureAwait(false);
+=======
+                var result = serializerService.Deserialize(kind, reader, cancellationToken);
+>>>>>>> removeGenerics
                 Contract.ThrowIfNull(result);
                 results.Add(result);
             }

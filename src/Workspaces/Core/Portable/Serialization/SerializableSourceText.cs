@@ -153,6 +153,8 @@ namespace Microsoft.CodeAnalysis.Serialization
             var encoding = (Encoding)await reader.ReadValueAsync().ConfigureAwait(false);
 
             var kind = (SerializationKinds)await reader.ReadInt32Async().ConfigureAwait(false);
+            Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
+
             if (kind == SerializationKinds.MemoryMapFile)
             {
                 var storage2 = (ITemporaryStorageService2)storageService;
@@ -171,9 +173,10 @@ namespace Microsoft.CodeAnalysis.Serialization
                     return new SerializableSourceText(storage.ReadText(cancellationToken));
                 }
             }
-
-            Contract.ThrowIfFalse(kind == SerializationKinds.Bits);
-            return new SerializableSourceText(SourceTextExtensions.ReadFrom(textService, reader, encoding, checksumAlgorithm, cancellationToken));
+            else
+            {
+                return new SerializableSourceText(SourceTextExtensions.ReadFrom(textService, reader, encoding, checksumAlgorithm, cancellationToken));
+            }
         }
     }
 }

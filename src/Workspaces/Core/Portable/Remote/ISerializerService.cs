@@ -15,7 +15,7 @@ internal interface ISerializerService : IWorkspaceService
 
     void SerializeParseOptions(ParseOptions options, ObjectWriter writer);
 
-    ValueTask<T> DeserializeAsync<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken);
+    ValueTask<object> DeserializeAsync(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken);
 
     Checksum CreateChecksum(object value, CancellationToken cancellationToken);
     Checksum CreateParseOptionsChecksum(ParseOptions value);
