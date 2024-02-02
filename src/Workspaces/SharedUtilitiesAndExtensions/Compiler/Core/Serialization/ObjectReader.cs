@@ -257,24 +257,31 @@ internal sealed partial class ObjectReader : IDisposable
         }
     }
 
-    public char[] ReadCharArray()
-    {
-        throw new NotImplementedException();
-    }
-
     public byte[] ReadByteArray()
     {
-        throw new NotImplementedException();
+        var (result, _) = ReadRawArray(static length => new byte[length], TypeCode.UInt8, static (reader, array, length) => reader.Read(array, 0, length));
+        return result;
+    }
+
+    public char[] ReadCharArray()
+    {
+        var (result, _) = ReadCharArray(static length => new char[length]);
+        return result;
     }
 
     public (char[] array, int length) ReadCharArray(Func<int, char[]> getArray)
+        => ReadRawArray(getArray, TypeCode.Char, static (reader, array, length) => reader.Read(array, 0, length));
+
+    public (T[] array, int length) ReadRawArray<T>(
+        Func<int, T[]> getArray, TypeCode expectedElementKind, Func<BinaryReader, T[], int, int> read)
     {
         var kind = (TypeCode)ReadByte();
 
-        (var length, _) = ReadArrayLengthAndElementKind(kind);
+        var (length, readKind) = ReadArrayLengthAndElementKind(kind);
+        Contract.ThrowIfTrue(readKind != expectedElementKind);
         var array = getArray(length);
 
-        var charsRead = _reader.Read(array, 0, length);
+        var charsRead = read(_reader, array, length);
 
         return (array, charsRead);
     }
