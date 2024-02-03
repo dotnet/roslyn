@@ -133,7 +133,7 @@ namespace Roslyn.Utilities
         /// symbol values (which are scaler, but untyped as 'object').  Callers which know their value's type should
         /// call into that directly.
         /// </summary>
-        public void WriteScalerValue(object? value)
+        public void WriteScalarValue(object? value)
         {
             Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
 

@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Serialization
                 writer.WriteString(kv.Key)
 
                 ' all value here should be primitive types
-                writer.WriteScalerValue(kv.Value)
+                writer.WriteScalarValue(kv.Value)
             Next
         End Sub
 
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Serialization
             Dim builder = ImmutableArray.CreateBuilder(Of KeyValuePair(Of String, Object))(count)
             For i = 0 To count - 1
                 Dim key = reader.ReadString()
-                Dim value = reader.ReadScalerValue()
+                Dim value = reader.ReadScalarValue()
                 builder.Add(KeyValuePairUtil.Create(key, value))
             Next
 

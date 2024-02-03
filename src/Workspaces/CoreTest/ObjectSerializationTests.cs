@@ -89,12 +89,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     }
                     else
                     {
-                        w.WriteScalerValue(v);
+                        w.WriteScalarValue(v);
                     }
                 },
                 r => value != null && value.GetType().IsEnum
                     ? (T)Enum.ToObject(typeof(T), r.ReadInt64())
-                    : (T)r.ReadScalerValue(), recursive);
+                    : (T)r.ReadScalarValue(), recursive);
         }
 
         private static void TestRoundTripValue<T>(T value, bool recursive)
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
                 else
                 {
-                    writer.WriteScalerValue(_member);
+                    writer.WriteScalarValue(_member);
                 }
             }
 
@@ -463,27 +463,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static void TestWritingPrimitiveValues(ObjectWriter writer)
         {
-            writer.WriteScalerValue(true);
-            writer.WriteScalerValue(false);
-            writer.WriteScalerValue(Byte.MaxValue);
-            writer.WriteScalerValue(SByte.MaxValue);
-            writer.WriteScalerValue(Int16.MaxValue);
-            writer.WriteScalerValue(Int32.MaxValue);
-            writer.WriteScalerValue((Int32)Byte.MaxValue);
-            writer.WriteScalerValue((Int32)Int16.MaxValue);
-            writer.WriteScalerValue(Int64.MaxValue);
-            writer.WriteScalerValue(UInt16.MaxValue);
-            writer.WriteScalerValue(UInt32.MaxValue);
-            writer.WriteScalerValue(UInt64.MaxValue);
-            writer.WriteScalerValue(Decimal.MaxValue);
-            writer.WriteScalerValue(Double.MaxValue);
-            writer.WriteScalerValue(Single.MaxValue);
-            writer.WriteScalerValue('X');
-            writer.WriteScalerValue((object)"YYY");
-            writer.WriteScalerValue((object)"\uD800\uDC00"); // valid surrogate pair
-            writer.WriteScalerValue((object)"\uDC00\uD800"); // invalid surrogate pair
-            writer.WriteScalerValue((object)"\uD800"); // incomplete surrogate pair
-            writer.WriteScalerValue((object)null);
+            writer.WriteScalarValue(true);
+            writer.WriteScalarValue(false);
+            writer.WriteScalarValue(Byte.MaxValue);
+            writer.WriteScalarValue(SByte.MaxValue);
+            writer.WriteScalarValue(Int16.MaxValue);
+            writer.WriteScalarValue(Int32.MaxValue);
+            writer.WriteScalarValue((Int32)Byte.MaxValue);
+            writer.WriteScalarValue((Int32)Int16.MaxValue);
+            writer.WriteScalarValue(Int64.MaxValue);
+            writer.WriteScalarValue(UInt16.MaxValue);
+            writer.WriteScalarValue(UInt32.MaxValue);
+            writer.WriteScalarValue(UInt64.MaxValue);
+            writer.WriteScalarValue(Decimal.MaxValue);
+            writer.WriteScalarValue(Double.MaxValue);
+            writer.WriteScalarValue(Single.MaxValue);
+            writer.WriteScalarValue('X');
+            writer.WriteScalarValue((object)"YYY");
+            writer.WriteScalarValue((object)"\uD800\uDC00"); // valid surrogate pair
+            writer.WriteScalarValue((object)"\uDC00\uD800"); // invalid surrogate pair
+            writer.WriteScalarValue((object)"\uD800"); // incomplete surrogate pair
+            writer.WriteScalarValue((object)null);
             unchecked
             {
                 writer.WriteInt64((long)ConsoleColor.Cyan);
@@ -496,32 +496,32 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 writer.WriteInt64((long)ELong.Value);
                 writer.WriteInt64((long)EULong.Value);
             }
-            writer.WriteScalerValue(_testNow);
+            writer.WriteScalarValue(_testNow);
         }
 
         private static void TestReadingPrimitiveValues(ObjectReader reader)
         {
-            Assert.True((bool)reader.ReadScalerValue());
-            Assert.False((bool)reader.ReadScalerValue());
-            Assert.Equal(Byte.MaxValue, (Byte)reader.ReadScalerValue());
-            Assert.Equal(SByte.MaxValue, (SByte)reader.ReadScalerValue());
-            Assert.Equal(Int16.MaxValue, (Int16)reader.ReadScalerValue());
-            Assert.Equal(Int32.MaxValue, (Int32)reader.ReadScalerValue());
-            Assert.Equal(Byte.MaxValue, (Int32)reader.ReadScalerValue());
-            Assert.Equal(Int16.MaxValue, (Int32)reader.ReadScalerValue());
-            Assert.Equal(Int64.MaxValue, (Int64)reader.ReadScalerValue());
-            Assert.Equal(UInt16.MaxValue, (UInt16)reader.ReadScalerValue());
-            Assert.Equal(UInt32.MaxValue, (UInt32)reader.ReadScalerValue());
-            Assert.Equal(UInt64.MaxValue, (UInt64)reader.ReadScalerValue());
-            Assert.Equal(Decimal.MaxValue, (Decimal)reader.ReadScalerValue());
-            Assert.Equal(Double.MaxValue, (Double)reader.ReadScalerValue());
-            Assert.Equal(Single.MaxValue, (Single)reader.ReadScalerValue());
-            Assert.Equal('X', (Char)reader.ReadScalerValue());
-            Assert.Equal("YYY", (String)reader.ReadScalerValue());
-            Assert.Equal("\uD800\uDC00", (String)reader.ReadScalerValue()); // valid surrogate pair
-            Assert.Equal("\uDC00\uD800", (String)reader.ReadScalerValue()); // invalid surrogate pair
-            Assert.Equal("\uD800", (String)reader.ReadScalerValue()); // incomplete surrogate pair
-            Assert.Null(reader.ReadScalerValue());
+            Assert.True((bool)reader.ReadScalarValue());
+            Assert.False((bool)reader.ReadScalarValue());
+            Assert.Equal(Byte.MaxValue, (Byte)reader.ReadScalarValue());
+            Assert.Equal(SByte.MaxValue, (SByte)reader.ReadScalarValue());
+            Assert.Equal(Int16.MaxValue, (Int16)reader.ReadScalarValue());
+            Assert.Equal(Int32.MaxValue, (Int32)reader.ReadScalarValue());
+            Assert.Equal(Byte.MaxValue, (Int32)reader.ReadScalarValue());
+            Assert.Equal(Int16.MaxValue, (Int32)reader.ReadScalarValue());
+            Assert.Equal(Int64.MaxValue, (Int64)reader.ReadScalarValue());
+            Assert.Equal(UInt16.MaxValue, (UInt16)reader.ReadScalarValue());
+            Assert.Equal(UInt32.MaxValue, (UInt32)reader.ReadScalarValue());
+            Assert.Equal(UInt64.MaxValue, (UInt64)reader.ReadScalarValue());
+            Assert.Equal(Decimal.MaxValue, (Decimal)reader.ReadScalarValue());
+            Assert.Equal(Double.MaxValue, (Double)reader.ReadScalarValue());
+            Assert.Equal(Single.MaxValue, (Single)reader.ReadScalarValue());
+            Assert.Equal('X', (Char)reader.ReadScalarValue());
+            Assert.Equal("YYY", (String)reader.ReadScalarValue());
+            Assert.Equal("\uD800\uDC00", (String)reader.ReadScalarValue()); // valid surrogate pair
+            Assert.Equal("\uDC00\uD800", (String)reader.ReadScalarValue()); // invalid surrogate pair
+            Assert.Equal("\uD800", (String)reader.ReadScalarValue()); // incomplete surrogate pair
+            Assert.Null(reader.ReadScalarValue());
 
             unchecked
             {
@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal((long)EULong.Value, reader.ReadInt64());
             }
 
-            Assert.Equal(_testNow, (DateTime)reader.ReadScalerValue());
+            Assert.Equal(_testNow, (DateTime)reader.ReadScalarValue());
         }
 
         public enum EByte : byte

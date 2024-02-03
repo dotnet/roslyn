@@ -174,7 +174,7 @@ internal sealed partial class ObjectReader : IDisposable
         return accessor.Guid;
     }
 
-    public object ReadScalerValue()
+    public object ReadScalarValue()
     {
         var code = (TypeCode)ReadByte();
         switch (code)
