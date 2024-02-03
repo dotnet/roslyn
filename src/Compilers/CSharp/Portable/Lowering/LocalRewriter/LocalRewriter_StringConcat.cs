@@ -198,30 +198,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             (object)method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_3ReadOnlySpans) ||
                             (object)method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_4ReadOnlySpans))
                         {
-                            // Faced a span-based string.Concat call. Since we can produce such call on the previous iterations ourselves, we need to unwrap it.
+                            // Faced a span-based `string.Concat` call. Since we can produce such call on the previous iterations ourselves, we need to unwrap it.
                             // The key thing is that we need not to only extract arguments, but also unwrap them from being spans and for chars also wrap them into `ToString` calls.
-                            // Another challenge is that we may have merged user-written span-based string.Concat with additional argument previously and we need to undo this change as well
-                            // so that if at some point we exceed 3 or 4 span arguments we can undo all span-concat changes and use string.Concat(string[]) overload with the same arguments as the user provided.
-                            // We do that by tracking which argument nodes have `WasCompilerGenerated` flag. If If a consecutive span of nodes is not compiler-generated, they are arguments from original user-written span.Concat call
                             var wrappedArgs = boundCall.Arguments;
                             var unwrappedArgsBuilder = ArrayBuilder<BoundExpression>.GetInstance(capacity: wrappedArgs.Length);
-
-                            var previousConcatArgsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
-                            var previousConcatIndex = -1;
 
                             for (var i = 0; i < wrappedArgs.Length; i++)
                             {
                                 var wrappedArg = wrappedArgs[i];
-
-                                if (!wrappedArg.WasCompilerGenerated)
-                                {
-                                    previousConcatArgsBuilder.Add(wrappedArg);
-                                    if (previousConcatIndex == -1)
-                                    {
-                                        previousConcatIndex = i;
-                                    }
-                                    continue;
-                                }
 
                                 // Check whether a call is an implicit `string -> ReadOnlySpan<char>` conversion
                                 if (wrappedArg is BoundCall { Method: var argMethod, Arguments: [var singleArgument] } &&
@@ -240,7 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     if (charToString is null)
                                     {
                                         unwrappedArgsBuilder.Free();
-                                        previousConcatArgsBuilder.Free();
                                         arguments = default;
                                         return false;
                                     }
@@ -249,42 +232,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 else
                                 {
                                     unwrappedArgsBuilder.Free();
-                                    previousConcatArgsBuilder.Free();
-                                    arguments = default;
-                                    return false;
-                                }
-                            }
-
-                            if (previousConcatArgsBuilder.Count == boundCall.Arguments.Length)
-                            {
-                                unwrappedArgsBuilder.Free();
-                                previousConcatArgsBuilder.Free();
-                                arguments = default;
-                                return false;
-                            }
-
-                            var previousConcatMember = GetSpanConcatMemberByArgumentsCount(previousConcatArgsBuilder.Count);
-
-                            if (previousConcatMember.HasValue)
-                            {
-                                Debug.Assert(previousConcatIndex > -1);
-
-                                if (TryGetWellKnownTypeMember(lowered.Syntax, previousConcatMember.Value, out MethodSymbol? previousConcatMethod, isOptional: true))
-                                {
-                                    var reconstructedPreviousConcat = BoundCall.Synthesized(lowered.Syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, previousConcatMethod, previousConcatArgsBuilder.ToImmutable());
-                                    unwrappedArgsBuilder.Insert(previousConcatIndex, reconstructedPreviousConcat);
-                                }
-                                else
-                                {
-                                    unwrappedArgsBuilder.Free();
-                                    previousConcatArgsBuilder.Free();
                                     arguments = default;
                                     return false;
                                 }
                             }
 
                             arguments = unwrappedArgsBuilder.ToImmutableAndFree();
-                            previousConcatArgsBuilder.Free();
                             return true;
                         }
                     }
@@ -455,14 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryRewriteStringConcatenationWithSpanBasedConcat(SyntaxNode syntax, ArrayBuilder<BoundExpression> args, [NotNullWhen(true)] out BoundExpression? result)
         {
-            // As we scan arguments we might face span-based string.Concat. If it got to this stage it must be a user-provided one (since we weren't able to unwrap it back to strings previously)
-            // We try our best to merge it with another argument to minimize amount of intermediate string allocations,
-            // e.g. turn `string.Concat(span1, span2) + string3` into `string.Concat(span1, span2, string3ConvertedToSpan)`
-            // instead of `string.Concat(string.Concat(span1, span2), string3)`. We do that by separately tracking arguments as is
-            // and arguments if we unwrap all user-defined `string.Concat`s. If at the end amount of arguments with unwrapped user-defined `string.Concat`s
-            // is < 5 and we have respective span-based concat member, we emit it, otherwise treat user-provided `string.Concat`s as ordinary arguments
             var preparedArgs = ArrayBuilder<BoundExpression>.GetInstance(capacity: args.Count);
-            var preparedArgsIfUnwrapUserStringConcat = ArrayBuilder<BoundExpression>.GetInstance(capacity: args.Count);
 
             var needsSpanRefParamConstructor = false;
             var needsImplicitConversionFromStringToSpan = false;
@@ -479,60 +425,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     needsSpanRefParamConstructor = true;
                     charType = receiverCharType;
                     preparedArgs.Add(receiver);
-                    preparedArgsIfUnwrapUserStringConcat.Add(receiver);
                     continue;
                 }
 
                 preparedArgs.Add(arg);
-
-                if (arg is BoundCall spanConcatCall &&
-                    ((object)spanConcatCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_2ReadOnlySpans) ||
-                    (object)spanConcatCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_3ReadOnlySpans) ||
-                    (object)spanConcatCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_4ReadOnlySpans)))
-                {
-                    preparedArgsIfUnwrapUserStringConcat.AddRange(spanConcatCall.Arguments);
-                    continue;
-                }
-
                 needsImplicitConversionFromStringToSpan = true;
-                preparedArgsIfUnwrapUserStringConcat.Add(arg);
             }
 
-            var concatMemberIfUnwrapUserSpanConcats = GetSpanConcatMemberByArgumentsCount(preparedArgsIfUnwrapUserStringConcat.Count);
-
-            MethodSymbol? spanConcat;
-            MethodSymbol? readOnlySpanCtorRefParamChar;
-            MethodSymbol? stringImplicitConversionToReadOnlySpan;
-
-            if (preparedArgsIfUnwrapUserStringConcat.Count > preparedArgs.Count && concatMemberIfUnwrapUserSpanConcats.HasValue)
+            WellKnownMember? concatMember = preparedArgs.Count switch
             {
-                if (TryGetWellKnownTypeMember(syntax, concatMemberIfUnwrapUserSpanConcats.Value, out spanConcat, isOptional: true) &&
-                    tryGetNeededToSpanMembers(this, syntax, needsSpanRefParamConstructor, needsImplicitConversionFromStringToSpan, charType, out readOnlySpanCtorRefParamChar, out stringImplicitConversionToReadOnlySpan))
-                {
-                    result = rewriteStringConcatenationWithSpanBasedConcat(
-                        syntax,
-                        _factory,
-                        spanConcat,
-                        stringImplicitConversionToReadOnlySpan,
-                        readOnlySpanCtorRefParamChar,
-                        preparedArgsIfUnwrapUserStringConcat.ToImmutableAndFree());
+                2 => WellKnownMember.System_String__Concat_2ReadOnlySpans,
+                3 => WellKnownMember.System_String__Concat_3ReadOnlySpans,
+                4 => WellKnownMember.System_String__Concat_4ReadOnlySpans,
+                _ => null,
+            };
 
-                    preparedArgs.Free();
-                    return true;
-                }
-
-                needsImplicitConversionFromStringToSpan = true;
-            }
-
-            var concatMember = GetSpanConcatMemberByArgumentsCount(preparedArgsIfUnwrapUserStringConcat.Count);
-
-            // If we got here it only makes sense to lower using span-based concat if at least one operand is a char.
-            // Because otherwise we will just unnecessarily wrap every string operand into span conversion and use span-based concat
+            // It only makes sense to lower using span-based concat if at least one operand is a char.
+            // Because otherwise we will just wrap every string operand into span conversion and use span-based concat
             // which is unnecessary IL bloat. Thus we require `needsSpanRefParamConstructor` to be true
             if (needsSpanRefParamConstructor &&
                 concatMember.HasValue &&
-                TryGetWellKnownTypeMember(syntax, concatMember.Value, out spanConcat, isOptional: true) &&
-                tryGetNeededToSpanMembers(this, syntax, needsSpanRefParamConstructor, needsImplicitConversionFromStringToSpan, charType, out readOnlySpanCtorRefParamChar, out stringImplicitConversionToReadOnlySpan))
+                TryGetWellKnownTypeMember(syntax, concatMember.Value, out MethodSymbol? spanConcat, isOptional: true) &&
+                tryGetNeededToSpanMembers(this, syntax, needsSpanRefParamConstructor, needsImplicitConversionFromStringToSpan, charType, out MethodSymbol? readOnlySpanCtorRefParamChar, out MethodSymbol? stringImplicitConversionToReadOnlySpan))
             {
                 result = rewriteStringConcatenationWithSpanBasedConcat(
                         syntax,
@@ -542,7 +456,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         readOnlySpanCtorRefParamChar,
                         preparedArgs.ToImmutableAndFree());
 
-                preparedArgsIfUnwrapUserStringConcat.Free();
                 return true;
             }
 
@@ -591,11 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(arg.Type is not null);
 
-                    if (arg.Type.IsReadOnlySpanChar())
-                    {
-                        preparedArgsBuilder.Add(arg);
-                    }
-                    else if (arg.Type.SpecialType == SpecialType.System_Char)
+                    if (arg.Type.SpecialType == SpecialType.System_Char)
                     {
                         Debug.Assert(readOnlySpanCtorRefParamChar is not null);
 
@@ -644,17 +553,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factory.Syntax = oldSyntax;
                 return sequence;
             }
-        }
-
-        private static WellKnownMember? GetSpanConcatMemberByArgumentsCount(int argumentCount)
-        {
-            return argumentCount switch
-            {
-                2 => WellKnownMember.System_String__Concat_2ReadOnlySpans,
-                3 => WellKnownMember.System_String__Concat_3ReadOnlySpans,
-                4 => WellKnownMember.System_String__Concat_4ReadOnlySpans,
-                _ => null,
-            };
         }
 
         /// <summary>

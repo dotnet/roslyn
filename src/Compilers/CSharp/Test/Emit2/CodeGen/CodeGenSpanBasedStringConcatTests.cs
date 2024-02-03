@@ -1352,6 +1352,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
     [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
     public void ConcatThree_UserInputOfSpanBasedConcat_ConcatWithString(int? missingUnimportantWellKnownMember)
     {
         var source = """
@@ -1386,132 +1388,6 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
         verifier.VerifyIL("Test.M1", """
             {
               // Code size       19 (0x13)
-              .maxstack  3
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0007:  ldarg.2
-              IL_0008:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_000d:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0012:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M2", """
-            {
-              // Code size       19 (0x13)
-              .maxstack  3
-              IL_0000:  ldarg.2
-              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_0006:  ldarg.0
-              IL_0007:  ldarg.1
-              IL_0008:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000d:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0012:  ret
-            }
-            """);
-    }
-
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    public void ConcatThree_UserInputOfSpanBasedConcat_ConcatWithChar(int? missingUnimportantWellKnownMember)
-    {
-        var source = """
-            using System;
-
-            public class Test
-            {
-                static void Main()
-                {
-                    var s1 = "a";
-                    var s2 = "b";
-                    var c = 'c';
-                    Console.Write(M1(s1.AsSpan(), s2, c));
-                    Console.Write(M2(s1.AsSpan(), s2, c));
-                }
-
-                static string M1(ReadOnlySpan<char> s1, string s2, char c) => string.Concat(s1, s2.AsSpan()) + c;
-                static string M2(ReadOnlySpan<char> s1, string s2, char c) => c + string.Concat(s1, s2.AsSpan());
-            }
-            """;
-
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-
-        if (missingUnimportantWellKnownMember.HasValue)
-        {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
-        }
-
-        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abccab" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
-
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Test.M1", """
-            {
-              // Code size       22 (0x16)
-              .maxstack  3
-              .locals init (char V_0)
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0007:  ldarg.2
-              IL_0008:  stloc.0
-              IL_0009:  ldloca.s   V_0
-              IL_000b:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-              IL_0010:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0015:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M2", """
-            {
-              // Code size       22 (0x16)
-              .maxstack  3
-              .locals init (char V_0)
-              IL_0000:  ldarg.2
-              IL_0001:  stloc.0
-              IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-              IL_0009:  ldarg.0
-              IL_000a:  ldarg.1
-              IL_000b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0010:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0015:  ret
-            }
-            """);
-    }
-
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    public void ConcatThree_UserInputOfSpanBasedConcat_ConcatWithString_MissingMemberToMergeIntoSingleConcat(int member)
-    {
-        var source = """
-            using System;
-
-            public class Test
-            {
-                static void Main()
-                {
-                    var s1 = "a";
-                    var s2 = "b";
-                    var s3 = "c";
-                    Console.Write(M1(s1.AsSpan(), s2, s3));
-                    Console.Write(M2(s1.AsSpan(), s2, s3));
-                }
-
-                static string M1(ReadOnlySpan<char> s1, string s2, string s3) => string.Concat(s1, s2.AsSpan()) + s3;
-                static string M2(ReadOnlySpan<char> s1, string s2, string s3) => s3 + string.Concat(s1, s2.AsSpan());
-            }
-            """;
-
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-        comp.MakeMemberMissing((WellKnownMember)member);
-
-        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abccab" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
-
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Test.M1", """
-            {
-              // Code size       19 (0x13)
               .maxstack  2
               IL_0000:  ldarg.0
               IL_0001:  ldarg.1
@@ -1537,10 +1413,73 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    public void ConcatThree_UserInputOfSpanBasedConcat_ConcatWithChar()
+    {
+        var source = """
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    var s1 = "a";
+                    var s2 = "b";
+                    var c = 'c';
+                    Console.Write(M1(s1.AsSpan(), s2, c));
+                    Console.Write(M2(s1.AsSpan(), s2, c));
+                }
+
+                static string M1(ReadOnlySpan<char> s1, string s2, char c) => string.Concat(s1, s2.AsSpan()) + c;
+                static string M2(ReadOnlySpan<char> s1, string s2, char c) => c + string.Concat(s1, s2.AsSpan());
+            }
+            """;
+
+        var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abccab" : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Test.M1", """
+            {
+              // Code size       32 (0x20)
+              .maxstack  2
+              .locals init (char V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_0007:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_000c:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0011:  ldarg.2
+              IL_0012:  stloc.0
+              IL_0013:  ldloca.s   V_0
+              IL_0015:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_001a:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_001f:  ret
+            }
+            """);
+        comp.VerifyIL("Test.M2", """
+            {
+              // Code size       32 (0x20)
+              .maxstack  3
+              .locals init (char V_0)
+              IL_0000:  ldarg.2
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0009:  ldarg.0
+              IL_000a:  ldarg.1
+              IL_000b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_0010:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0015:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_001a:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_001f:  ret
+            }
+            """);
+    }
+
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    public void ConcatThree_UserInputOfSpanBasedConcat_ConcatWithChar_MissingMemberToMergeIntoSingleConcat(int member)
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    public void ConcatThree_UserInputOfSpanBasedConcat_ConcatWithChar_MissingMemberForSpanBasedConcat(int member)
     {
         var source = """
             using System;
@@ -2828,6 +2767,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
     [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
     [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
     public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithString(int? missingUnimportantWellKnownMember)
     {
@@ -2857,528 +2797,6 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
         if (missingUnimportantWellKnownMember.HasValue)
         {
             comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
-        }
-
-        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abccccabcabc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
-
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Test.M1", """
-            {
-              // Code size       25 (0x19)
-              .maxstack  4
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0007:  ldarg.2
-              IL_0008:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_000d:  ldarg.2
-              IL_000e:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_0013:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0018:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M2", """
-            {
-              // Code size       25 (0x19)
-              .maxstack  4
-              IL_0000:  ldarg.2
-              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_0006:  ldarg.2
-              IL_0007:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_000c:  ldarg.0
-              IL_000d:  ldarg.1
-              IL_000e:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0013:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0018:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M3", """
-            {
-              // Code size       25 (0x19)
-              .maxstack  4
-              IL_0000:  ldarg.2
-              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_0006:  ldarg.0
-              IL_0007:  ldarg.1
-              IL_0008:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000d:  ldarg.2
-              IL_000e:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_0013:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0018:  ret
-            }
-            """);
-    }
-
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithChar(int? missingUnimportantWellKnownMember)
-    {
-        var source = """
-            using System;
-
-            public class Test
-            {
-                static void Main()
-                {
-                    var s1 = "a";
-                    var s2 = "b";
-                    var c = 'c';
-                    Console.Write(M1(s1.AsSpan(), s2, c));
-                    Console.Write(M2(s1.AsSpan(), s2, c));
-                    Console.Write(M3(s1.AsSpan(), s2, c));
-                }
-
-                static string M1(ReadOnlySpan<char> s1, string s2, char c) => string.Concat(s1, s2.AsSpan()) + c + c;
-                static string M2(ReadOnlySpan<char> s1, string s2, char c) => c.ToString() + c + string.Concat(s1, s2.AsSpan());
-                static string M3(ReadOnlySpan<char> s1, string s2, char c) => c + string.Concat(s1, s2.AsSpan()) + c;
-            }
-            """;
-
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-
-        if (missingUnimportantWellKnownMember.HasValue)
-        {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
-        }
-
-        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abccccabcabc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
-
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Test.M1", """
-            {
-              // Code size       31 (0x1f)
-              .maxstack  4
-              .locals init (char V_0,
-                            char V_1)
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0007:  ldarg.2
-              IL_0008:  stloc.0
-              IL_0009:  ldloca.s   V_0
-              IL_000b:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-              IL_0010:  ldarg.2
-              IL_0011:  stloc.1
-              IL_0012:  ldloca.s   V_1
-              IL_0014:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-              IL_0019:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_001e:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M2", """
-            {
-              // Code size       31 (0x1f)
-              .maxstack  4
-              .locals init (char V_0,
-                            char V_1)
-              IL_0000:  ldarg.2
-              IL_0001:  stloc.0
-              IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-              IL_0009:  ldarg.2
-              IL_000a:  stloc.1
-              IL_000b:  ldloca.s   V_1
-              IL_000d:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-              IL_0012:  ldarg.0
-              IL_0013:  ldarg.1
-              IL_0014:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0019:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_001e:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M3", """
-            {
-              // Code size       31 (0x1f)
-              .maxstack  4
-              .locals init (char V_0,
-                            char V_1)
-              IL_0000:  ldarg.2
-              IL_0001:  stloc.0
-              IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-              IL_0009:  ldarg.0
-              IL_000a:  ldarg.1
-              IL_000b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0010:  ldarg.2
-              IL_0011:  stloc.1
-              IL_0012:  ldloca.s   V_1
-              IL_0014:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-              IL_0019:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_001e:  ret
-            }
-            """);
-    }
-
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithStringAndChar(int? missingUnimportantWellKnownMember)
-    {
-        var source = """
-            using System;
-
-            public class Test
-            {
-                static void Main()
-                {
-                    var s1 = "a";
-                    var s2 = "b";
-                    var s3 = "c";
-                    var c = 'd';
-                    Console.Write(M1(s1.AsSpan(), s2, s3, c));
-                    Console.Write(M2(s1.AsSpan(), s2, s3, c));
-                    Console.Write(M3(s1.AsSpan(), s2, s3, c));
-                    Console.Write(M4(s1.AsSpan(), s2, s3, c));
-                    Console.Write(M5(s1.AsSpan(), s2, s3, c));
-                    Console.Write(M6(s1.AsSpan(), s2, s3, c));
-                }
-
-                static string M1(ReadOnlySpan<char> s1, string s2, string s3, char c) => string.Concat(s1, s2.AsSpan()) + s3 + c;
-                static string M2(ReadOnlySpan<char> s1, string s2, string s3, char c) => string.Concat(s1, s2.AsSpan()) + c + s3;
-                static string M3(ReadOnlySpan<char> s1, string s2, string s3, char c) => s3 + c + string.Concat(s1, s2.AsSpan());
-                static string M4(ReadOnlySpan<char> s1, string s2, string s3, char c) => c + s3 + string.Concat(s1, s2.AsSpan());
-                static string M5(ReadOnlySpan<char> s1, string s2, string s3, char c) => s3 + string.Concat(s1, s2.AsSpan()) + c;
-                static string M6(ReadOnlySpan<char> s1, string s2, string s3, char c) => c + string.Concat(s1, s2.AsSpan()) + s3;
-            }
-            """;
-
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-
-        if (missingUnimportantWellKnownMember.HasValue)
-        {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
-        }
-
-        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcdabdccdabdcabcabddabc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
-
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Test.M1", """
-            {
-              // Code size       28 (0x1c)
-              .maxstack  4
-              .locals init (char V_0)
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0007:  ldarg.2
-              IL_0008:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_000d:  ldarg.3
-              IL_000e:  stloc.0
-              IL_000f:  ldloca.s   V_0
-              IL_0011:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-              IL_0016:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_001b:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M2", """
-            {
-              // Code size       28 (0x1c)
-              .maxstack  4
-              .locals init (char V_0)
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0007:  ldarg.3
-              IL_0008:  stloc.0
-              IL_0009:  ldloca.s   V_0
-              IL_000b:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-              IL_0010:  ldarg.2
-              IL_0011:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_0016:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_001b:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M3", """
-            {
-              // Code size       28 (0x1c)
-              .maxstack  4
-              .locals init (char V_0)
-              IL_0000:  ldarg.2
-              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_0006:  ldarg.3
-              IL_0007:  stloc.0
-              IL_0008:  ldloca.s   V_0
-              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-              IL_000f:  ldarg.0
-              IL_0010:  ldarg.1
-              IL_0011:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0016:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_001b:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M4", """
-            {
-              // Code size       28 (0x1c)
-              .maxstack  4
-              .locals init (char V_0)
-              IL_0000:  ldarg.3
-              IL_0001:  stloc.0
-              IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-              IL_0009:  ldarg.2
-              IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_000f:  ldarg.0
-              IL_0010:  ldarg.1
-              IL_0011:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0016:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_001b:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M5", """
-            {
-              // Code size       28 (0x1c)
-              .maxstack  4
-              .locals init (char V_0)
-              IL_0000:  ldarg.2
-              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_0006:  ldarg.0
-              IL_0007:  ldarg.1
-              IL_0008:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000d:  ldarg.3
-              IL_000e:  stloc.0
-              IL_000f:  ldloca.s   V_0
-              IL_0011:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-              IL_0016:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_001b:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M6", """
-            {
-              // Code size       28 (0x1c)
-              .maxstack  4
-              .locals init (char V_0)
-              IL_0000:  ldarg.3
-              IL_0001:  stloc.0
-              IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-              IL_0009:  ldarg.0
-              IL_000a:  ldarg.1
-              IL_000b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0010:  ldarg.2
-              IL_0011:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_0016:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_001b:  ret
-            }
-            """);
-    }
-
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    public void ConcatFour_TwoUserInputsOfSpanBasedConcatOf2(int? missingUnimportantWellKnownMember)
-    {
-        var source = """
-            using System;
-
-            public class Test
-            {
-                static void Main()
-                {
-                    var s1 = "a";
-                    var s2 = "b";
-                    var s3 = "c";
-                    var s4 = "d";
-                    Console.Write(M(s1.AsSpan(), s2.AsSpan(), s3.AsSpan(), s4.AsSpan()));
-                }
-
-                static string M(ReadOnlySpan<char> s1, ReadOnlySpan<char> s2, ReadOnlySpan<char> s3, ReadOnlySpan<char> s4) => string.Concat(s1, s2) + string.Concat(s3, s4);
-            }
-            """;
-
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-
-        if (missingUnimportantWellKnownMember.HasValue)
-        {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
-        }
-
-        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcd" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
-
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Test.M", """
-            {
-              // Code size       10 (0xa)
-              .maxstack  4
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  ldarg.2
-              IL_0003:  ldarg.3
-              IL_0004:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0009:  ret
-            }
-            """);
-    }
-
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    public void ConcatFour_UserInputOfSpanBasedConcatOf3_ConcatWithString(int? missingUnimportantWellKnownMember)
-    {
-        var source = """
-            using System;
-
-            public class Test
-            {
-                static void Main()
-                {
-                    var s1 = "a";
-                    var s2 = "b";
-                    var s3 = "c";
-                    var s4 = "d";
-                    Console.Write(M1(s1.AsSpan(), s2, s3.AsSpan(), s4));
-                    Console.Write(M2(s1.AsSpan(), s2, s3.AsSpan(), s4));
-                }
-
-                static string M1(ReadOnlySpan<char> s1, string s2, ReadOnlySpan<char> s3, string s4) => string.Concat(s1, s2.AsSpan(), s3) + s4;
-                static string M2(ReadOnlySpan<char> s1, string s2, ReadOnlySpan<char> s3, string s4) => s4 + string.Concat(s1, s2.AsSpan(), s3);
-            }
-            """;
-
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-
-        if (missingUnimportantWellKnownMember.HasValue)
-        {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
-        }
-
-        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcddabc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
-
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Test.M1", """
-            {
-              // Code size       20 (0x14)
-              .maxstack  4
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0007:  ldarg.2
-              IL_0008:  ldarg.3
-              IL_0009:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_000e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0013:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M2", """
-            {
-              // Code size       20 (0x14)
-              .maxstack  4
-              IL_0000:  ldarg.3
-              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_0006:  ldarg.0
-              IL_0007:  ldarg.1
-              IL_0008:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000d:  ldarg.2
-              IL_000e:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0013:  ret
-            }
-            """);
-    }
-
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    public void ConcatFour_UserInputOfSpanBasedConcatOf3_ConcatWithChar(int? missingUnimportantWellKnownMember)
-    {
-        var source = """
-            using System;
-
-            public class Test
-            {
-                static void Main()
-                {
-                    var s1 = "a";
-                    var s2 = "b";
-                    var s3 = "c";
-                    var c = 'd';
-                    Console.Write(M1(s1.AsSpan(), s2, s3.AsSpan(), c));
-                    Console.Write(M2(s1.AsSpan(), s2, s3.AsSpan(), c));
-                }
-
-                static string M1(ReadOnlySpan<char> s1, string s2, ReadOnlySpan<char> s3, char c) => string.Concat(s1, s2.AsSpan(), s3) + c;
-                static string M2(ReadOnlySpan<char> s1, string s2, ReadOnlySpan<char> s3, char c) => c + string.Concat(s1, s2.AsSpan(), s3);
-            }
-            """;
-
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-
-        if (missingUnimportantWellKnownMember.HasValue)
-        {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
-        }
-
-        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcddabc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
-
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Test.M1", """
-            {
-              // Code size       23 (0x17)
-              .maxstack  4
-              .locals init (char V_0)
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0007:  ldarg.2
-              IL_0008:  ldarg.3
-              IL_0009:  stloc.0
-              IL_000a:  ldloca.s   V_0
-              IL_000c:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-              IL_0011:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0016:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M2", """
-            {
-              // Code size       23 (0x17)
-              .maxstack  4
-              .locals init (char V_0)
-              IL_0000:  ldarg.3
-              IL_0001:  stloc.0
-              IL_0002:  ldloca.s   V_0
-              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
-              IL_0009:  ldarg.0
-              IL_000a:  ldarg.1
-              IL_000b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0010:  ldarg.2
-              IL_0011:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0016:  ret
-            }
-            """);
-    }
-
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans, (int)WellKnownMember.System_String__Concat_4ReadOnlySpans)]
-    public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithString_MissingMembersToMergeIntoSingleConcat(params int[] members)
-    {
-        var source = """
-            using System;
-
-            public class Test
-            {
-                static void Main()
-                {
-                    var s1 = "a";
-                    var s2 = "b";
-                    var s3 = "c";
-                    Console.Write(M1(s1.AsSpan(), s2, s3));
-                    Console.Write(M2(s1.AsSpan(), s2, s3));
-                    Console.Write(M3(s1.AsSpan(), s2, s3));
-                }
-
-                static string M1(ReadOnlySpan<char> s1, string s2, string s3) => string.Concat(s1, s2.AsSpan()) + s3 + s3;
-                static string M2(ReadOnlySpan<char> s1, string s2, string s3) => s3 + s3 + string.Concat(s1, s2.AsSpan());
-                static string M3(ReadOnlySpan<char> s1, string s2, string s3) => s3 + string.Concat(s1, s2.AsSpan()) + s3;
-            }
-            """;
-
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-        foreach (var member in members)
-        {
-            comp.MakeMemberMissing((WellKnownMember)member);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abccccabcabc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -3428,10 +2846,448 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithChar()
+    {
+        var source = """
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    var s1 = "a";
+                    var s2 = "b";
+                    var c = 'c';
+                    Console.Write(M1(s1.AsSpan(), s2, c));
+                    Console.Write(M2(s1.AsSpan(), s2, c));
+                    Console.Write(M3(s1.AsSpan(), s2, c));
+                }
+
+                static string M1(ReadOnlySpan<char> s1, string s2, char c) => string.Concat(s1, s2.AsSpan()) + c + c;
+                static string M2(ReadOnlySpan<char> s1, string s2, char c) => c.ToString() + c + string.Concat(s1, s2.AsSpan());
+                static string M3(ReadOnlySpan<char> s1, string s2, char c) => c + string.Concat(s1, s2.AsSpan()) + c;
+            }
+            """;
+
+        var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abccccabcabc" : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Test.M1", """
+            {
+              // Code size       41 (0x29)
+              .maxstack  3
+              .locals init (char V_0,
+                            char V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_0007:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_000c:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0011:  ldarg.2
+              IL_0012:  stloc.0
+              IL_0013:  ldloca.s   V_0
+              IL_0015:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_001a:  ldarg.2
+              IL_001b:  stloc.1
+              IL_001c:  ldloca.s   V_1
+              IL_001e:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0023:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0028:  ret
+            }
+            """);
+        comp.VerifyIL("Test.M2", """
+            {
+              // Code size       41 (0x29)
+              .maxstack  4
+              .locals init (char V_0,
+                            char V_1)
+              IL_0000:  ldarg.2
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0009:  ldarg.2
+              IL_000a:  stloc.1
+              IL_000b:  ldloca.s   V_1
+              IL_000d:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0012:  ldarg.0
+              IL_0013:  ldarg.1
+              IL_0014:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_0019:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_001e:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0023:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0028:  ret
+            }
+            """);
+        comp.VerifyIL("Test.M3", """
+            {
+              // Code size       41 (0x29)
+              .maxstack  3
+              .locals init (char V_0,
+                            char V_1)
+              IL_0000:  ldarg.2
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0009:  ldarg.0
+              IL_000a:  ldarg.1
+              IL_000b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_0010:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0015:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_001a:  ldarg.2
+              IL_001b:  stloc.1
+              IL_001c:  ldloca.s   V_1
+              IL_001e:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0023:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0028:  ret
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithStringAndChar()
+    {
+        var source = """
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    var s1 = "a";
+                    var s2 = "b";
+                    var s3 = "c";
+                    var c = 'd';
+                    Console.Write(M1(s1.AsSpan(), s2, s3, c));
+                    Console.Write(M2(s1.AsSpan(), s2, s3, c));
+                    Console.Write(M3(s1.AsSpan(), s2, s3, c));
+                    Console.Write(M4(s1.AsSpan(), s2, s3, c));
+                    Console.Write(M5(s1.AsSpan(), s2, s3, c));
+                    Console.Write(M6(s1.AsSpan(), s2, s3, c));
+                }
+
+                static string M1(ReadOnlySpan<char> s1, string s2, string s3, char c) => string.Concat(s1, s2.AsSpan()) + s3 + c;
+                static string M2(ReadOnlySpan<char> s1, string s2, string s3, char c) => string.Concat(s1, s2.AsSpan()) + c + s3;
+                static string M3(ReadOnlySpan<char> s1, string s2, string s3, char c) => s3 + c + string.Concat(s1, s2.AsSpan());
+                static string M4(ReadOnlySpan<char> s1, string s2, string s3, char c) => c + s3 + string.Concat(s1, s2.AsSpan());
+                static string M5(ReadOnlySpan<char> s1, string s2, string s3, char c) => s3 + string.Concat(s1, s2.AsSpan()) + c;
+                static string M6(ReadOnlySpan<char> s1, string s2, string s3, char c) => c + string.Concat(s1, s2.AsSpan()) + s3;
+            }
+            """;
+
+        var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcdabdccdabdcabcabddabc" : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Test.M1", """
+            {
+              // Code size       38 (0x26)
+              .maxstack  3
+              .locals init (char V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_0007:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_000c:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0011:  ldarg.2
+              IL_0012:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0017:  ldarg.3
+              IL_0018:  stloc.0
+              IL_0019:  ldloca.s   V_0
+              IL_001b:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0020:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0025:  ret
+            }
+            """);
+        comp.VerifyIL("Test.M2", """
+            {
+              // Code size       38 (0x26)
+              .maxstack  3
+              .locals init (char V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_0007:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_000c:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0011:  ldarg.3
+              IL_0012:  stloc.0
+              IL_0013:  ldloca.s   V_0
+              IL_0015:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_001a:  ldarg.2
+              IL_001b:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0020:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0025:  ret
+            }
+            """);
+        comp.VerifyIL("Test.M3", """
+            {
+              // Code size       38 (0x26)
+              .maxstack  4
+              .locals init (char V_0)
+              IL_0000:  ldarg.2
+              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0006:  ldarg.3
+              IL_0007:  stloc.0
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000f:  ldarg.0
+              IL_0010:  ldarg.1
+              IL_0011:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_0016:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_001b:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0020:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0025:  ret
+            }
+            """);
+        comp.VerifyIL("Test.M4", """
+            {
+              // Code size       38 (0x26)
+              .maxstack  4
+              .locals init (char V_0)
+              IL_0000:  ldarg.3
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0009:  ldarg.2
+              IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_000f:  ldarg.0
+              IL_0010:  ldarg.1
+              IL_0011:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_0016:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_001b:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0020:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0025:  ret
+            }
+            """);
+        comp.VerifyIL("Test.M5", """
+            {
+              // Code size       38 (0x26)
+              .maxstack  3
+              .locals init (char V_0)
+              IL_0000:  ldarg.2
+              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0006:  ldarg.0
+              IL_0007:  ldarg.1
+              IL_0008:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_000d:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0012:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0017:  ldarg.3
+              IL_0018:  stloc.0
+              IL_0019:  ldloca.s   V_0
+              IL_001b:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0020:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0025:  ret
+            }
+            """);
+        comp.VerifyIL("Test.M6", """
+            {
+              // Code size       38 (0x26)
+              .maxstack  3
+              .locals init (char V_0)
+              IL_0000:  ldarg.3
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0009:  ldarg.0
+              IL_000a:  ldarg.1
+              IL_000b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_0010:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0015:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_001a:  ldarg.2
+              IL_001b:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0020:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0025:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    [InlineData(null)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    public void ConcatFour_TwoUserInputsOfSpanBasedConcatOf2(int? missingUnimportantWellKnownMember)
+    {
+        var source = """
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    var s1 = "a";
+                    var s2 = "b";
+                    var s3 = "c";
+                    var s4 = "d";
+                    Console.Write(M(s1.AsSpan(), s2.AsSpan(), s3.AsSpan(), s4.AsSpan()));
+                }
+
+                static string M(ReadOnlySpan<char> s1, ReadOnlySpan<char> s2, ReadOnlySpan<char> s3, ReadOnlySpan<char> s4) => string.Concat(s1, s2) + string.Concat(s3, s4);
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+
+        if (missingUnimportantWellKnownMember.HasValue)
+        {
+            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+        }
+
+        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcd" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Test.M", """
+            {
+              // Code size       20 (0x14)
+              .maxstack  3
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0007:  ldarg.2
+              IL_0008:  ldarg.3
+              IL_0009:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_000e:  call       "string string.Concat(string, string)"
+              IL_0013:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    [InlineData(null)]
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
+    public void ConcatFour_UserInputOfSpanBasedConcatOf3_ConcatWithString(int? missingUnimportantWellKnownMember)
+    {
+        var source = """
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    var s1 = "a";
+                    var s2 = "b";
+                    var s3 = "c";
+                    var s4 = "d";
+                    Console.Write(M1(s1.AsSpan(), s2, s3.AsSpan(), s4));
+                    Console.Write(M2(s1.AsSpan(), s2, s3.AsSpan(), s4));
+                }
+
+                static string M1(ReadOnlySpan<char> s1, string s2, ReadOnlySpan<char> s3, string s4) => string.Concat(s1, s2.AsSpan(), s3) + s4;
+                static string M2(ReadOnlySpan<char> s1, string s2, ReadOnlySpan<char> s3, string s4) => s4 + string.Concat(s1, s2.AsSpan(), s3);
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+
+        if (missingUnimportantWellKnownMember.HasValue)
+        {
+            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+        }
+
+        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcddabc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Test.M1", """
+            {
+              // Code size       20 (0x14)
+              .maxstack  3
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_0007:  ldarg.2
+              IL_0008:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_000d:  ldarg.3
+              IL_000e:  call       "string string.Concat(string, string)"
+              IL_0013:  ret
+            }
+            """);
+        verifier.VerifyIL("Test.M2", """
+            {
+              // Code size       20 (0x14)
+              .maxstack  4
+              IL_0000:  ldarg.3
+              IL_0001:  ldarg.0
+              IL_0002:  ldarg.1
+              IL_0003:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_0008:  ldarg.2
+              IL_0009:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_000e:  call       "string string.Concat(string, string)"
+              IL_0013:  ret
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    public void ConcatFour_UserInputOfSpanBasedConcatOf3_ConcatWithChar()
+    {
+        var source = """
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    var s1 = "a";
+                    var s2 = "b";
+                    var s3 = "c";
+                    var c = 'd';
+                    Console.Write(M1(s1.AsSpan(), s2, s3.AsSpan(), c));
+                    Console.Write(M2(s1.AsSpan(), s2, s3.AsSpan(), c));
+                }
+
+                static string M1(ReadOnlySpan<char> s1, string s2, ReadOnlySpan<char> s3, char c) => string.Concat(s1, s2.AsSpan(), s3) + c;
+                static string M2(ReadOnlySpan<char> s1, string s2, ReadOnlySpan<char> s3, char c) => c + string.Concat(s1, s2.AsSpan(), s3);
+            }
+            """;
+
+        var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcddabc" : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Test.M1", """
+            {
+              // Code size       33 (0x21)
+              .maxstack  3
+              .locals init (char V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_0007:  ldarg.2
+              IL_0008:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_000d:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0012:  ldarg.3
+              IL_0013:  stloc.0
+              IL_0014:  ldloca.s   V_0
+              IL_0016:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0020:  ret
+            }
+            """);
+        comp.VerifyIL("Test.M2", """
+            {
+              // Code size       33 (0x21)
+              .maxstack  4
+              .locals init (char V_0)
+              IL_0000:  ldarg.3
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_0009:  ldarg.0
+              IL_000a:  ldarg.1
+              IL_000b:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_0010:  ldarg.2
+              IL_0011:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0016:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0020:  ret
+            }
+            """);
+    }
+
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans, (int)WellKnownMember.System_String__Concat_4ReadOnlySpans)]
-    public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithChar_MissingMembersToMergeIntoSingleConcat(params int[] members)
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
+    public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithChar_MissingMemberForSpanBasedConcatConcat(int member)
     {
         var source = """
             using System;
@@ -3455,10 +3311,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-        foreach (var member in members)
-        {
-            comp.MakeMemberMissing((WellKnownMember)member);
-        }
+        comp.MakeMemberMissing((WellKnownMember)member);
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abccccabcabc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
@@ -3514,11 +3367,10 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference, (int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans, (int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans, (int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans, (int)WellKnownMember.System_String__Concat_4ReadOnlySpans)]
-    public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithStringAndChar_MissingMembersToMergeIntoSingleConcat(params int[] members)
+    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
+    public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithStringAndChar_MissingMemberForSpanBasedConcat(int member)
     {
         var source = """
             using System;
@@ -3549,10 +3401,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-        foreach (var member in members)
-        {
-            comp.MakeMemberMissing((WellKnownMember)member);
-        }
+        comp.MakeMemberMissing((WellKnownMember)member);
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcdabdccdabdcabcabddabc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
@@ -3650,114 +3499,10 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData((int)WellKnownMember.System_String__Concat_4ReadOnlySpans)]
-    public void ConcatFour_TwoUserInputsOfSpanBasedConcatOf2_MissingMemberToMergeIntoSingleConcat(int member)
-    {
-        var source = """
-            using System;
-
-            public class Test
-            {
-                static void Main()
-                {
-                    var s1 = "a";
-                    var s2 = "b";
-                    var s3 = "c";
-                    var s4 = "d";
-                    Console.Write(M(s1.AsSpan(), s2.AsSpan(), s3.AsSpan(), s4.AsSpan()));
-                }
-
-                static string M(ReadOnlySpan<char> s1, ReadOnlySpan<char> s2, ReadOnlySpan<char> s3, ReadOnlySpan<char> s4) => string.Concat(s1, s2) + string.Concat(s3, s4);
-            }
-            """;
-
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-        comp.MakeMemberMissing((WellKnownMember)member);
-
-        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcd" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
-
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Test.M", """
-            {
-              // Code size       20 (0x14)
-              .maxstack  3
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0007:  ldarg.2
-              IL_0008:  ldarg.3
-              IL_0009:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_000e:  call       "string string.Concat(string, string)"
-              IL_0013:  ret
-            }
-            """);
-    }
-
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_String__Concat_4ReadOnlySpans)]
-    public void ConcatFour_UserInputOfSpanBasedConcatOf3_ConcatWithString_MissingMemberToMergeIntoSingleConcat(int member)
-    {
-        var source = """
-            using System;
-
-            public class Test
-            {
-                static void Main()
-                {
-                    var s1 = "a";
-                    var s2 = "b";
-                    var s3 = "c";
-                    var s4 = "d";
-                    Console.Write(M1(s1.AsSpan(), s2, s3.AsSpan(), s4));
-                    Console.Write(M2(s1.AsSpan(), s2, s3.AsSpan(), s4));
-                }
-
-                static string M1(ReadOnlySpan<char> s1, string s2, ReadOnlySpan<char> s3, string s4) => string.Concat(s1, s2.AsSpan(), s3) + s4;
-                static string M2(ReadOnlySpan<char> s1, string s2, ReadOnlySpan<char> s3, string s4) => s4 + string.Concat(s1, s2.AsSpan(), s3);
-            }
-            """;
-
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-        comp.MakeMemberMissing((WellKnownMember)member);
-
-        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcddabc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
-
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Test.M1", """
-            {
-              // Code size       20 (0x14)
-              .maxstack  3
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0007:  ldarg.2
-              IL_0008:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_000d:  ldarg.3
-              IL_000e:  call       "string string.Concat(string, string)"
-              IL_0013:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M2", """
-            {
-              // Code size       20 (0x14)
-              .maxstack  4
-              IL_0000:  ldarg.3
-              IL_0001:  ldarg.0
-              IL_0002:  ldarg.1
-              IL_0003:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0008:  ldarg.2
-              IL_0009:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_000e:  call       "string string.Concat(string, string)"
-              IL_0013:  ret
-            }
-            """);
-    }
-
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__Concat_4ReadOnlySpans)]
-    public void ConcatFour_UserInputOfSpanBasedConcatOf3_ConcatWithChar_MissingMemberToMergeIntoSingleConcat(int member)
+    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
+    public void ConcatFour_UserInputOfSpanBasedConcatOf3_ConcatWithChar_MissingMemberForSpanBasedConcat(int member)
     {
         var source = """
             using System;
@@ -4146,465 +3891,6 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0037:  stelem.ref
               IL_0038:  call       "string string.Concat(params string[])"
               IL_003d:  ret
-            }
-            """);
-    }
-
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_4ReadOnlySpans)]
-    public void ConcatTotalOfFive_UserInputOfSpanBasedConcatOf2(int? missingUnimportantWellKnownMember)
-    {
-        var source = """
-            using System;
-
-            public class Test
-            {
-                static void Main()
-                {
-                    var s = "s";
-                    var c = 'c';
-                    Console.Write(M1(s, c));
-                    Console.Write(M2(s, c));
-                    Console.Write(M3(s, c));
-                    Console.Write(M4(s, c));
-                }
-
-                static string M1(string s, char c) => string.Concat(s.AsSpan(), s.AsSpan()) + c + s + s;
-                static string M2(string s, char c) => s + string.Concat(s.AsSpan(), s.AsSpan()) + s + c;
-                static string M3(string s, char c) => s + s + c + string.Concat(s.AsSpan(), s.AsSpan());
-                static string M4(string s, char c) => string.Concat(s.AsSpan(), s.AsSpan()) + c + string.Concat(s.AsSpan(), s.AsSpan());
-            }
-            """;
-
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-
-        if (missingUnimportantWellKnownMember.HasValue)
-        {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
-        }
-
-        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "sscsssssscsscsssscss" : null, verify: ExecutionConditionUtil.IsCoreClr ? default : Verification.Skipped);
-
-        verifier.VerifyDiagnostics();
-
-        // Since combined length of arguments if we unwrap all user-provided span-based concats is >4,
-        // we just lower outer concat as is without unwrapping any user-provided ones.
-        verifier.VerifyIL("Test.M1", """
-            {
-              // Code size       32 (0x20)
-              .maxstack  4
-              IL_0000:  ldarg.0
-              IL_0001:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0006:  ldarg.0
-              IL_0007:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000c:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0011:  ldarga.s   V_1
-              IL_0013:  call       "string char.ToString()"
-              IL_0018:  ldarg.0
-              IL_0019:  ldarg.0
-              IL_001a:  call       "string string.Concat(string, string, string, string)"
-              IL_001f:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M2", """
-            {
-              // Code size       32 (0x20)
-              .maxstack  4
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.0
-              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0007:  ldarg.0
-              IL_0008:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000d:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0012:  ldarg.0
-              IL_0013:  ldarga.s   V_1
-              IL_0015:  call       "string char.ToString()"
-              IL_001a:  call       "string string.Concat(string, string, string, string)"
-              IL_001f:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M3", """
-            {
-              // Code size       32 (0x20)
-              .maxstack  5
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.0
-              IL_0002:  ldarga.s   V_1
-              IL_0004:  call       "string char.ToString()"
-              IL_0009:  ldarg.0
-              IL_000a:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000f:  ldarg.0
-              IL_0010:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0015:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_001a:  call       "string string.Concat(string, string, string, string)"
-              IL_001f:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M4", """
-            {
-              // Code size       47 (0x2f)
-              .maxstack  4
-              IL_0000:  ldarg.0
-              IL_0001:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0006:  ldarg.0
-              IL_0007:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000c:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0011:  ldarga.s   V_1
-              IL_0013:  call       "string char.ToString()"
-              IL_0018:  ldarg.0
-              IL_0019:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_001e:  ldarg.0
-              IL_001f:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0024:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0029:  call       "string string.Concat(string, string, string)"
-              IL_002e:  ret
-            }
-            """);
-    }
-
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_4ReadOnlySpans)]
-    public void ConcatTotalOfFive_UserInputOfSpanBasedConcatOf3(int? missingUnimportantWellKnownMember)
-    {
-        var source = """
-            using System;
-
-            public class Test
-            {
-                static void Main()
-                {
-                    var s = "s";
-                    var c = 'c';
-                    Console.Write(M1(s, c));
-                    Console.Write(M2(s, c));
-                    Console.Write(M3(s, c));
-                }
-
-                static string M1(string s, char c) => string.Concat(s.AsSpan(), s.AsSpan(), s.AsSpan()) + c + s;
-                static string M2(string s, char c) => s + string.Concat(s.AsSpan(), s.AsSpan(), s.AsSpan()) + c;
-                static string M3(string s, char c) => s + c + string.Concat(s.AsSpan(), s.AsSpan(), s.AsSpan());
-            }
-            """;
-
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-
-        if (missingUnimportantWellKnownMember.HasValue)
-        {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
-        }
-
-        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "ssscssssscscsss" : null, verify: ExecutionConditionUtil.IsCoreClr ? default : Verification.Skipped);
-
-        verifier.VerifyDiagnostics();
-
-        // Since combined length of arguments if we unwrap all user-provided span-based concats is >4,
-        // we just lower outer concat as is without unwrapping any user-provided ones.
-        verifier.VerifyIL("Test.M1", """
-            {
-              // Code size       37 (0x25)
-              .maxstack  3
-              IL_0000:  ldarg.0
-              IL_0001:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0006:  ldarg.0
-              IL_0007:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000c:  ldarg.0
-              IL_000d:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0012:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0017:  ldarga.s   V_1
-              IL_0019:  call       "string char.ToString()"
-              IL_001e:  ldarg.0
-              IL_001f:  call       "string string.Concat(string, string, string)"
-              IL_0024:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M2", """
-            {
-              // Code size       37 (0x25)
-              .maxstack  4
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.0
-              IL_0002:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0007:  ldarg.0
-              IL_0008:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000d:  ldarg.0
-              IL_000e:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0013:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0018:  ldarga.s   V_1
-              IL_001a:  call       "string char.ToString()"
-              IL_001f:  call       "string string.Concat(string, string, string)"
-              IL_0024:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M3", """
-            {
-              // Code size       37 (0x25)
-              .maxstack  5
-              IL_0000:  ldarg.0
-              IL_0001:  ldarga.s   V_1
-              IL_0003:  call       "string char.ToString()"
-              IL_0008:  ldarg.0
-              IL_0009:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000e:  ldarg.0
-              IL_000f:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0014:  ldarg.0
-              IL_0015:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_001a:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_001f:  call       "string string.Concat(string, string, string)"
-              IL_0024:  ret
-            }
-            """);
-    }
-
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__Concat_4ReadOnlySpans)]
-    public void ConcatTotalOfFive_UserInputOfMixedSpanBasedConcatsOf2And3(int? missingUnimportantWellKnownMember)
-    {
-        var source = """
-            using System;
-
-            public class Test
-            {
-                static void Main()
-                {
-                    var s = "s";
-                    Console.Write(M1(s));
-                    Console.Write(M2(s));
-                }
-
-                static string M1(string s) => string.Concat(s.AsSpan(), s.AsSpan()) + string.Concat(s.AsSpan(), s.AsSpan(), s.AsSpan());
-                static string M2(string s) => string.Concat(s.AsSpan(), s.AsSpan(), s.AsSpan()) + string.Concat(s.AsSpan(), s.AsSpan());
-            }
-            """;
-
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-
-        if (missingUnimportantWellKnownMember.HasValue)
-        {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
-        }
-
-        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "ssssssssss" : null, verify: ExecutionConditionUtil.IsCoreClr ? default : Verification.Skipped);
-
-        verifier.VerifyDiagnostics();
-
-        // Since combined length of arguments if we unwrap all user-provided span-based concats is >4,
-        // we just lower outer concat as is without unwrapping any user-provided ones.
-        verifier.VerifyIL("Test.M1", """
-            {
-              // Code size       46 (0x2e)
-              .maxstack  4
-              IL_0000:  ldarg.0
-              IL_0001:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0006:  ldarg.0
-              IL_0007:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000c:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0011:  ldarg.0
-              IL_0012:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0017:  ldarg.0
-              IL_0018:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_001d:  ldarg.0
-              IL_001e:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0023:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0028:  call       "string string.Concat(string, string)"
-              IL_002d:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M2", """
-            {
-              // Code size       46 (0x2e)
-              .maxstack  3
-              IL_0000:  ldarg.0
-              IL_0001:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0006:  ldarg.0
-              IL_0007:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000c:  ldarg.0
-              IL_000d:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0012:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0017:  ldarg.0
-              IL_0018:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_001d:  ldarg.0
-              IL_001e:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0023:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0028:  call       "string string.Concat(string, string)"
-              IL_002d:  ret
-            }
-            """);
-    }
-
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    public void ConcatTotalOfMoreThanFive_UserInputOf2SpanBasedConcatsOf2InARow(int? missingUnimportantWellKnownMember)
-    {
-        var source = """
-            using System;
-
-            public class Test
-            {
-                static void Main()
-                {
-                    var s = "s";
-                    Console.Write(M1(s));
-                    Console.Write(M2(s));
-                }
-
-                static string M1(string s) => string.Concat(s.AsSpan(), s.AsSpan()) + string.Concat(s.AsSpan(), s.AsSpan()) + string.Concat(s.AsSpan(), s.AsSpan(), s.AsSpan());
-                static string M2(string s) => string.Concat(s.AsSpan(), s.AsSpan(), s.AsSpan()) + string.Concat(s.AsSpan(), s.AsSpan()) + string.Concat(s.AsSpan(), s.AsSpan());
-            }
-            """;
-
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-
-        if (missingUnimportantWellKnownMember.HasValue)
-        {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
-        }
-
-        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "ssssssssssssss" : null, verify: ExecutionConditionUtil.IsCoreClr ? default : Verification.Skipped);
-
-        verifier.VerifyDiagnostics();
-
-        // This is an edge case where due to order of processing arguments during rewriting we manage to merge 2 concats of 2 into a single concat of 4 in the first case (which changes what we get in the end),
-        // but in the second case we leave things untouched. Both lowerings produce correct output in the end, so this isn't much to worry about
-        verifier.VerifyIL("Test.M1", """
-            {
-              // Code size       58 (0x3a)
-              .maxstack  4
-              IL_0000:  ldarg.0
-              IL_0001:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0006:  ldarg.0
-              IL_0007:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000c:  ldarg.0
-              IL_000d:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0012:  ldarg.0
-              IL_0013:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0018:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_001d:  ldarg.0
-              IL_001e:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0023:  ldarg.0
-              IL_0024:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0029:  ldarg.0
-              IL_002a:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_002f:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0034:  call       "string string.Concat(string, string)"
-              IL_0039:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M2", """
-            {
-              // Code size       63 (0x3f)
-              .maxstack  4
-              IL_0000:  ldarg.0
-              IL_0001:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0006:  ldarg.0
-              IL_0007:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000c:  ldarg.0
-              IL_000d:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0012:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0017:  ldarg.0
-              IL_0018:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_001d:  ldarg.0
-              IL_001e:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0023:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0028:  ldarg.0
-              IL_0029:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_002e:  ldarg.0
-              IL_002f:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0034:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0039:  call       "string string.Concat(string, string, string)"
-              IL_003e:  ret
-            }
-            """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    public void ConcatTotalOfMoreThanFive_UserInputOf2SpanBasedConcatsOf2InARow_MissingSpanBasedConcatOf4()
-    {
-        var source = """
-            using System;
-
-            public class Test
-            {
-                static void Main()
-                {
-                    var s = "s";
-                    Console.Write(M1(s));
-                    Console.Write(M2(s));
-                }
-
-                static string M1(string s) => string.Concat(s.AsSpan(), s.AsSpan()) + string.Concat(s.AsSpan(), s.AsSpan()) + string.Concat(s.AsSpan(), s.AsSpan(), s.AsSpan());
-                static string M2(string s) => string.Concat(s.AsSpan(), s.AsSpan(), s.AsSpan()) + string.Concat(s.AsSpan(), s.AsSpan()) + string.Concat(s.AsSpan(), s.AsSpan());
-            }
-            """;
-
-        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-        comp.MakeMemberMissing(WellKnownMember.System_String__Concat_4ReadOnlySpans);
-
-        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "ssssssssssssss" : null, verify: ExecutionConditionUtil.IsCoreClr ? default : Verification.Skipped);
-
-        verifier.VerifyDiagnostics();
-
-        // If span-based concat of 4 is missing we produce Il equivalent to what user has written without any changes
-        verifier.VerifyIL("Test.M1", """
-            {
-              // Code size       63 (0x3f)
-              .maxstack  5
-              IL_0000:  ldarg.0
-              IL_0001:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0006:  ldarg.0
-              IL_0007:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000c:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0011:  ldarg.0
-              IL_0012:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0017:  ldarg.0
-              IL_0018:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_001d:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0022:  ldarg.0
-              IL_0023:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0028:  ldarg.0
-              IL_0029:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_002e:  ldarg.0
-              IL_002f:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0034:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0039:  call       "string string.Concat(string, string, string)"
-              IL_003e:  ret
-            }
-            """);
-        verifier.VerifyIL("Test.M2", """
-            {
-              // Code size       63 (0x3f)
-              .maxstack  4
-              IL_0000:  ldarg.0
-              IL_0001:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0006:  ldarg.0
-              IL_0007:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_000c:  ldarg.0
-              IL_000d:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0012:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0017:  ldarg.0
-              IL_0018:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_001d:  ldarg.0
-              IL_001e:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0023:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0028:  ldarg.0
-              IL_0029:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_002e:  ldarg.0
-              IL_002f:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-              IL_0034:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-              IL_0039:  call       "string string.Concat(string, string, string)"
-              IL_003e:  ret
             }
             """);
     }
