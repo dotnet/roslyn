@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -45,7 +43,7 @@ internal sealed partial class ObjectReader : IDisposable
     /// <summary>
     /// Map of reference id's to deserialized strings.
     /// </summary>
-    private readonly ReaderReferenceMap<string> _stringReferenceMap;
+    private readonly ReaderReferenceMap _stringReferenceMap;
 
     /// <summary>
     /// Creates a new instance of a <see cref="ObjectReader"/>.
@@ -63,7 +61,7 @@ internal sealed partial class ObjectReader : IDisposable
         Debug.Assert(BitConverter.IsLittleEndian);
 
         _reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen);
-        _stringReferenceMap = ReaderReferenceMap<string>.Create();
+        _stringReferenceMap = ReaderReferenceMap.Create();
 
         _cancellationToken = cancellationToken;
     }
@@ -73,7 +71,7 @@ internal sealed partial class ObjectReader : IDisposable
     /// If the <paramref name="stream"/> does not start with a valid header, then <see langword="null"/> will
     /// be returned.
     /// </summary>
-    public static ObjectReader TryGetReader(
+    public static ObjectReader? TryGetReader(
         Stream stream,
         bool leaveOpen = false,
         CancellationToken cancellationToken = default)
@@ -161,7 +159,7 @@ internal sealed partial class ObjectReader : IDisposable
     public uint ReadUInt32() => _reader.ReadUInt32();
     public ulong ReadUInt64() => _reader.ReadUInt64();
     public ushort ReadUInt16() => _reader.ReadUInt16();
-    public string ReadString() => ReadStringValue();
+    public string? ReadString() => ReadStringValue();
 
     public Guid ReadGuid()
     {
@@ -174,7 +172,7 @@ internal sealed partial class ObjectReader : IDisposable
         return accessor.Guid;
     }
 
-    public object ReadScalarValue()
+    public object? ReadScalarValue()
     {
         var code = (TypeCode)ReadByte();
         switch (code)
@@ -238,7 +236,7 @@ internal sealed partial class ObjectReader : IDisposable
         }
     }
 
-    public Encoding ReadEncoding()
+    public Encoding? ReadEncoding()
     {
         var code = (TypeCode)ReadByte();
         switch (code)
@@ -247,7 +245,7 @@ internal sealed partial class ObjectReader : IDisposable
                 return null;
 
             case TypeCode.EncodingName:
-                return Encoding.GetEncoding(ReadString());
+                return Encoding.GetEncoding(ReadString()!);
 
             case >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding:
                 return ObjectWriter.ToEncodingKind(code).GetEncoding();
@@ -289,18 +287,17 @@ internal sealed partial class ObjectReader : IDisposable
     /// <summary>
     /// A reference-id to object map, that can share base data efficiently.
     /// </summary>
-    private readonly struct ReaderReferenceMap<T> : IDisposable
-        where T : class
+    private readonly struct ReaderReferenceMap : IDisposable
     {
-        private readonly SegmentedList<T> _values;
+        private readonly SegmentedList<string> _values;
 
-        private static readonly ObjectPool<SegmentedList<T>> s_objectListPool
-            = new(() => new SegmentedList<T>(20));
+        private static readonly ObjectPool<SegmentedList<string>> s_objectListPool
+            = new(() => new SegmentedList<string>(20));
 
-        private ReaderReferenceMap(SegmentedList<T> values)
+        private ReaderReferenceMap(SegmentedList<string> values)
             => _values = values;
 
-        public static ReaderReferenceMap<T> Create()
+        public static ReaderReferenceMap Create()
             => new(s_objectListPool.Allocate());
 
         public void Dispose()
@@ -309,20 +306,10 @@ internal sealed partial class ObjectReader : IDisposable
             s_objectListPool.Free(_values);
         }
 
-        public int GetNextObjectId()
-        {
-            var id = _values.Count;
-            _values.Add(null);
-            return id;
-        }
-
-        public void AddValue(T value)
+        public void AddValue(string value)
             => _values.Add(value);
 
-        public void AddValue(int index, T value)
-            => _values[index] = value;
-
-        public T GetValue(int referenceId)
+        public string GetValue(int referenceId)
             => _values[referenceId];
     }
 
@@ -355,7 +342,7 @@ internal sealed partial class ObjectReader : IDisposable
         throw ExceptionUtilities.UnexpectedValue(marker);
     }
 
-    private string ReadStringValue()
+    private string? ReadStringValue()
     {
         var kind = (TypeCode)ReadByte();
         return kind == TypeCode.Null ? null : ReadStringValue(kind);
