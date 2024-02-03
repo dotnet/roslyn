@@ -9,6 +9,7 @@ The roslyn repository produces components for a number of different products tha
 - Source build: requires us to ship `$(NetCurrent)` and `$(NetPrevious)` in workspaces and below (presently `net9.0` and `net8.0` respectively)
 - Visual Studio: requires us to ship `net472` for base IDE components and `$(NetVisualStudio)` (presently `net8.0`) for private runtime components.
 - Visual Studio Code: expects us to ship against the same runtime as DevKit (presently `net7.0`) to avoid two runtime downloads.
+- MSBuildWorkspace: requires to ship a process that must be usable on the lowest supported SDK (presently `net6.0`)
 
 It is not reasonable for us to take the union of all TFM and multi-target every single project to them. That would add several hundred compilations to any build operation which would in turn negatively impact our developer throughput. Instead we attempt to use the TFM where needed. That keeps our builds smaller but increases complexity a bit as we end up shipping a mix of TFM for binaries across our layers.
 
@@ -22,7 +23,8 @@ Projects in our repository should include the following values in `<TargetFramew
 4. `$(NetVSShared)`: code that needs to execute in both Visual Studio and VS Code but does not need to be source built.
 5. `$(NetRoslynToolset)`: packages that ship the Roslyn toolset. The compiler often builds against multiple target frameworks. This property controls which of those frameworks are shipped in the toolset packages. This value will potentially change in source builds.
 6. `$(NetRoslynAll)`: code, generally test utilities, that need to build for all .NET runtimes that we support.
-7. `$(NetRoslyn)`:code that needs to execute on .NET but does not have any specific product deployment requirements. For example utilities that are used by our infra, compiler unit tests, etc ...
+7. `$(NetRoslyn)`: code that needs to execute on .NET but does not have any specific product deployment requirements. For example utilities that are used by our infra, compiler unit tests, etc ...
+8. `$(NetRoslynBuildHostNetCoreVersion)`: the target used for the .NET Core BuildHost process used by MSBuildWorkspace.
 
 This properties `$(NetCurrent)`, `$(NetPrevious)` and `$(NetMinimum)` are not used in our project files because they change in ways that make it hard for us to maintain corect product deployments. Our product ships on VS and VS Code which are not captured by arcade `$(Net...)` macros. Further as the arcade properties change it's very easy for us to end up with duplicate entries in a `<TargetFarmeworks>` setting. Instead our repo uses the above values and when inside source build or VMR our properties are initialized with arcade properties.
 
