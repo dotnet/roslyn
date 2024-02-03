@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis
                 var name = reader.ReadRequiredString();
                 var folders = reader.ReadArray(static r => r.ReadRequiredString());
                 var sourceCodeKind = (SourceCodeKind)reader.ReadByte();
-                var filePath = reader.ReadRequiredString();
+                var filePath = reader.ReadString();
                 var isGenerated = reader.ReadBoolean();
                 var designTimeOnly = reader.ReadBoolean();
 
