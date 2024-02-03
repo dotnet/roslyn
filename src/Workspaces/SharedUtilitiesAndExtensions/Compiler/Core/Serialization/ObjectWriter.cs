@@ -150,27 +150,7 @@ namespace Roslyn.Utilities
             // Perf: Note that JIT optimizes each expression value.GetType() == typeof(T) to a single register comparison.
             // Also the checks are sorted by commonality of the checked types.
 
-            // The list supported is from CConst.TryCreate:
-#if false
-        Friend Shared Function TryCreate(value As Object) As CConst
-            Dim specialType = SpecialTypeExtensions.FromRuntimeTypeOfLiteralValue(value)
-            Select Case specialType
-                Case SpecialType.System_Boolean
-                Case SpecialType.System_Byte
-                Case SpecialType.System_Char
-                Case SpecialType.System_DateTime
-                Case SpecialType.System_Decimal
-                Case SpecialType.System_Double
-                Case SpecialType.System_Int16
-                Case SpecialType.System_Int32
-                Case SpecialType.System_Int64
-                Case SpecialType.System_SByte
-                Case SpecialType.System_Single
-                Case SpecialType.System_String
-                Case SpecialType.System_UInt16
-                Case SpecialType.System_UInt32
-                Case SpecialType.System_UInt64
-#endif
+            // The list supported can be found in CConst.TryCreate.
 
             // The primitive types are Boolean, Byte, SByte, Int16, UInt16, Int32, UInt32, Int64, UInt64, IntPtr,
             // UIntPtr, Char, Double, and Single.
