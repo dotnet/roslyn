@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             s_instance = this;
 
             FatalError.OverwriteHandlers(_fatalErrorHandler, _nonFatalErrorHandler);
+            FatalError.CopyHandlersTo(typeof(Compilation).Assembly);
 
             // Need to clear cached MefHostServices between test runs.
             MefHostServices.TestAccessor.HookServiceCreation(CreateMefHostServices);
