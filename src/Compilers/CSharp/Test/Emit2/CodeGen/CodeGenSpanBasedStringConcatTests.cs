@@ -546,6 +546,76 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(14, 43));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    public void ConcatTwo_CharDoesntOverrideObjectToString()
+    {
+        var corlib_cs = """
+            namespace System
+            {
+                public class Object
+                {
+                    public virtual string ToString() => null;
+                }
+                public class String
+                {
+                    public static string Concat(string str0, string str1) => null;
+                    public static string Concat(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1) => null;
+                    public static implicit operator ReadOnlySpan<char>(string value) => default;
+                }
+                public class ValueType { }
+                public struct Char { }
+                public struct Void { }
+                public struct Int32 { }
+                public struct Byte { }
+                public struct Boolean { }
+                public struct ReadOnlySpan<T>
+                {
+                    public ReadOnlySpan(ref readonly T reference) { }
+                }
+                public class Enum : ValueType { }
+                public class Attribute { }
+                public enum AttributeTargets { }
+                public class AttributeUsageAttribute : Attribute
+                {
+                    public AttributeUsageAttribute(AttributeTargets validOn) { }
+
+                    public bool AllowMultiple { get { return default; } set { } }
+                    public bool Inherited { get { return default; } set { } }
+                }
+            }
+            """;
+
+        var corlib = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
+
+        var source = """
+            public class Test
+            {
+                static string M(string s, char c) => s + c;
+            }
+            """;
+
+        var comp = CreateEmptyCompilation(source, [corlib]);
+        comp.VerifyDiagnostics();
+
+        var verifier = CompileAndVerify(compilation: comp);
+        verifier.VerifyDiagnostics();
+
+        // Even though we have all other members for span-based concatenation, `char` doesn't override `ToString`
+        // thus we cannot rely on its well-known behavior and emit string-based concat with a virtual `object.ToString()` call
+        verifier.VerifyIL("Test.M", """
+            {
+              // Code size       20 (0x14)
+              .maxstack  2
+              IL_0000:  ldarg.0
+              IL_0001:  ldarga.s   V_1
+              IL_0003:  constrained. "char"
+              IL_0009:  callvirt   "string object.ToString()"
+              IL_000e:  call       "string string.Concat(string, string)"
+              IL_0013:  ret
+            }
+            """);
+    }
+
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
     [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
@@ -1582,6 +1652,78 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             // (18,51): error CS0656: Missing compiler required member 'System.Object.ToString'
             //     static string M4(string s, char c) => c + s + c;
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(18, 51));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    public void ConcatThree_CharDoesntOverrideObjectToString()
+    {
+        var corlib_cs = """
+            namespace System
+            {
+                public class Object
+                {
+                    public virtual string ToString() => null;
+                }
+                public class String
+                {
+                    public static string Concat(string str0, string str1) => null;
+                    public static string Concat(string str0, string str1, string str2) => null;
+                    public static string Concat(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, ReadOnlySpan<char> str2) => null;
+                    public static implicit operator ReadOnlySpan<char>(string value) => default;
+                }
+                public class ValueType { }
+                public struct Char { }
+                public struct Void { }
+                public struct Int32 { }
+                public struct Byte { }
+                public struct Boolean { }
+                public struct ReadOnlySpan<T>
+                {
+                    public ReadOnlySpan(ref readonly T reference) { }
+                }
+                public class Enum : ValueType { }
+                public class Attribute { }
+                public enum AttributeTargets { }
+                public class AttributeUsageAttribute : Attribute
+                {
+                    public AttributeUsageAttribute(AttributeTargets validOn) { }
+
+                    public bool AllowMultiple { get { return default; } set { } }
+                    public bool Inherited { get { return default; } set { } }
+                }
+            }
+            """;
+
+        var corlib = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
+
+        var source = """
+            public class Test
+            {
+                static string M(string s, char c) => s + c + s;
+            }
+            """;
+
+        var comp = CreateEmptyCompilation(source, [corlib]);
+        comp.VerifyDiagnostics();
+
+        var verifier = CompileAndVerify(compilation: comp);
+        verifier.VerifyDiagnostics();
+
+        // Even though we have all other members for span-based concatenation, `char` doesn't override `ToString`
+        // thus we cannot rely on its well-known behavior and emit string-based concat with a virtual `object.ToString()` call
+        verifier.VerifyIL("Test.M", """
+            {
+              // Code size       21 (0x15)
+              .maxstack  3
+              IL_0000:  ldarg.0
+              IL_0001:  ldarga.s   V_1
+              IL_0003:  constrained. "char"
+              IL_0009:  callvirt   "string object.ToString()"
+              IL_000e:  ldarg.0
+              IL_000f:  call       "string string.Concat(string, string, string)"
+              IL_0014:  ret
+            }
+            """);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
@@ -3629,6 +3771,80 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             // (24,55): error CS0656: Missing compiler required member 'System.Object.ToString'
             //     static string M7(string s, char c) => c + s + s + c;
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(24, 55));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    public void ConcatFour_CharDoesntOverrideObjectToString()
+    {
+        var corlib_cs = """
+            namespace System
+            {
+                public class Object
+                {
+                    public virtual string ToString() => null;
+                }
+                public class String
+                {
+                    public static string Concat(string str0, string str1) => null;
+                    public static string Concat(string str0, string str1, string str2) => null;
+                    public static string Concat(string str0, string str1, string str2, string str3) => null;
+                    public static string Concat(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1, ReadOnlySpan<char> str2, ReadOnlySpan<char> str3) => null;
+                    public static implicit operator ReadOnlySpan<char>(string value) => default;
+                }
+                public class ValueType { }
+                public struct Char { }
+                public struct Void { }
+                public struct Int32 { }
+                public struct Byte { }
+                public struct Boolean { }
+                public struct ReadOnlySpan<T>
+                {
+                    public ReadOnlySpan(ref readonly T reference) { }
+                }
+                public class Enum : ValueType { }
+                public class Attribute { }
+                public enum AttributeTargets { }
+                public class AttributeUsageAttribute : Attribute
+                {
+                    public AttributeUsageAttribute(AttributeTargets validOn) { }
+
+                    public bool AllowMultiple { get { return default; } set { } }
+                    public bool Inherited { get { return default; } set { } }
+                }
+            }
+            """;
+
+        var corlib = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
+
+        var source = """
+            public class Test
+            {
+                static string M(string s, char c) => s + c + s + s;
+            }
+            """;
+
+        var comp = CreateEmptyCompilation(source, [corlib]);
+        comp.VerifyDiagnostics();
+
+        var verifier = CompileAndVerify(compilation: comp);
+        verifier.VerifyDiagnostics();
+
+        // Even though we have all other members for span-based concatenation, `char` doesn't override `ToString`
+        // thus we cannot rely on its well-known behavior and emit string-based concat with a virtual `object.ToString()` call
+        verifier.VerifyIL("Test.M", """
+            {
+              // Code size       22 (0x16)
+              .maxstack  4
+              IL_0000:  ldarg.0
+              IL_0001:  ldarga.s   V_1
+              IL_0003:  constrained. "char"
+              IL_0009:  callvirt   "string object.ToString()"
+              IL_000e:  ldarg.0
+              IL_000f:  ldarg.0
+              IL_0010:  call       "string string.Concat(string, string, string, string)"
+              IL_0015:  ret
+            }
+            """);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
