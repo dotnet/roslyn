@@ -1255,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportNonFatalErrorAndCatchUnlessCanceled(e, cancellationToken))
             {
                 // Set the new spans of active statements overlapping the method body to match the old spans.
                 // Even though these might be now outside of the method body it's ok since we report a rude edit and don't allow to continue.
