@@ -73,11 +73,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
             using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var result);
 
-            var factory = solution.Services.GetRequiredService<IDefinitionsAndReferencesFactory>();
+            var provider = solution.Services.GetRequiredService<IExternalDefinitionItemProvider>();
 
             foreach (var definition in definitions)
             {
-                var thirdParty = await factory.GetThirdPartyDefinitionItemAsync(solution, definition, cancellationToken).ConfigureAwait(false);
+                var thirdParty = await provider.GetThirdPartyDefinitionItemAsync(solution, definition, cancellationToken).ConfigureAwait(false);
                 result.AddIfNotNull(thirdParty);
             }
 

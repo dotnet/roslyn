@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -13,44 +11,15 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
     using static FindUsagesHelpers;
 
-    internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
-    {
-        Task<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
-            Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken);
-    }
-
-    [ExportWorkspaceService(typeof(IDefinitionsAndReferencesFactory)), Shared]
-    internal class DefaultDefinitionsAndReferencesFactory : IDefinitionsAndReferencesFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultDefinitionsAndReferencesFactory()
-        {
-        }
-
-        /// <summary>
-        /// Provides an extension point that allows for other workspace layers to add additional
-        /// results to the results found by the FindReferences engine.
-        /// </summary>
-        public virtual Task<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
-            Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.Null<DefinitionItem>();
-        }
-    }
-
-    internal static class DefinitionItemExtensions
+    internal static class DefinitionItemFactory
     {
         private static readonly SymbolDisplayFormat s_namePartsFormat = new(
             memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);

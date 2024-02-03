@@ -31,21 +31,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             protected override object? GetValueWorker(string keyName)
-            {
-                switch (keyName)
+                => keyName switch
                 {
-                    case StandardTableKeyNames.ProjectName:
-                        return DefinitionBucket.DefinitionItem.OriginationParts.JoinText();
-                    case StandardTableKeyNames.DocumentName:
-                        return DefinitionBucket.DefinitionItem.Properties[AbstractReferenceFinder.ContainingTypeInfoPropertyName];
-                    case StandardTableKeyNames.Text:
-                        return DefinitionBucket.DefinitionItem.DisplayParts.JoinText();
-                    case StandardTableKeyNames.ItemOrigin:
-                        return ItemOrigin.ExactMetadata;
-                }
-
-                return null;
-            }
+                    StandardTableKeyNames.ProjectName => DefinitionBucket.DefinitionItem.OriginationParts.JoinText(),
+                    StandardTableKeyNames.DocumentName => DefinitionBucket.DefinitionItem.Properties[AbstractReferenceFinder.ContainingTypeInfoPropertyName],
+                    StandardTableKeyNames.Text => DefinitionBucket.DefinitionItem.DisplayParts.JoinText(),
+                    StandardTableKeyNames.ItemOrigin => ItemOrigin.ExactMetadata,
+                    _ => null,
+                };
 
             public bool CanNavigateTo()
                 => true;

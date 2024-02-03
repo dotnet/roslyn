@@ -147,109 +147,40 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static string ToClassificationTypeName(this string taggedTextTag)
-        {
-            switch (taggedTextTag)
+            => taggedTextTag switch
             {
-                case TextTags.Keyword:
-                    return ClassificationTypeNames.Keyword;
-
-                case TextTags.Class:
-                    return ClassificationTypeNames.ClassName;
-
-                case TextTags.Delegate:
-                    return ClassificationTypeNames.DelegateName;
-
-                case TextTags.Enum:
-                    return ClassificationTypeNames.EnumName;
-
-                case TextTags.Interface:
-                    return ClassificationTypeNames.InterfaceName;
-
-                case TextTags.Module:
-                    return ClassificationTypeNames.ModuleName;
-
-                case TextTags.Struct:
-                    return ClassificationTypeNames.StructName;
-
-                case TextTags.TypeParameter:
-                    return ClassificationTypeNames.TypeParameterName;
-
-                case TextTags.Field:
-                    return ClassificationTypeNames.FieldName;
-
-                case TextTags.Event:
-                    return ClassificationTypeNames.EventName;
-
-                case TextTags.Label:
-                    return ClassificationTypeNames.LabelName;
-
-                case TextTags.Local:
-                    return ClassificationTypeNames.LocalName;
-
-                case TextTags.Method:
-                    return ClassificationTypeNames.MethodName;
-
-                case TextTags.Namespace:
-                    return ClassificationTypeNames.NamespaceName;
-
-                case TextTags.Parameter:
-                    return ClassificationTypeNames.ParameterName;
-
-                case TextTags.Property:
-                    return ClassificationTypeNames.PropertyName;
-
-                case TextTags.ExtensionMethod:
-                    return ClassificationTypeNames.ExtensionMethodName;
-
-                case TextTags.EnumMember:
-                    return ClassificationTypeNames.EnumMemberName;
-
-                case TextTags.Constant:
-                    return ClassificationTypeNames.ConstantName;
-
-                case TextTags.Alias:
-                case TextTags.Assembly:
-                case TextTags.ErrorType:
-                case TextTags.RangeVariable:
-                    return ClassificationTypeNames.Identifier;
-
-                case TextTags.NumericLiteral:
-                    return ClassificationTypeNames.NumericLiteral;
-
-                case TextTags.StringLiteral:
-                    return ClassificationTypeNames.StringLiteral;
-
-                case TextTags.Space:
-                case TextTags.LineBreak:
-                    return ClassificationTypeNames.WhiteSpace;
-
-                case TextTags.Operator:
-                    return ClassificationTypeNames.Operator;
-
-                case TextTags.Punctuation:
-                    return ClassificationTypeNames.Punctuation;
-
-                case TextTags.AnonymousTypeIndicator:
-                case TextTags.Text:
-                    return ClassificationTypeNames.Text;
-
-                case TextTags.Record:
-                    return ClassificationTypeNames.RecordClassName;
-
-                case TextTags.RecordStruct:
-                    return ClassificationTypeNames.RecordStructName;
-
-                case TextTags.ContainerStart:
-                case TextTags.ContainerEnd:
-                case TextTags.CodeBlockStart:
-                case TextTags.CodeBlockEnd:
-                    // These tags are not visible so classify them as whitespace
-                    return ClassificationTypeNames.WhiteSpace;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(taggedTextTag);
-            }
-        }
+                TextTags.Keyword => ClassificationTypeNames.Keyword,
+                TextTags.Class => ClassificationTypeNames.ClassName,
+                TextTags.Delegate => ClassificationTypeNames.DelegateName,
+                TextTags.Enum => ClassificationTypeNames.EnumName,
+                TextTags.Interface => ClassificationTypeNames.InterfaceName,
+                TextTags.Module => ClassificationTypeNames.ModuleName,
+                TextTags.Struct => ClassificationTypeNames.StructName,
+                TextTags.TypeParameter => ClassificationTypeNames.TypeParameterName,
+                TextTags.Field => ClassificationTypeNames.FieldName,
+                TextTags.Event => ClassificationTypeNames.EventName,
+                TextTags.Label => ClassificationTypeNames.LabelName,
+                TextTags.Local => ClassificationTypeNames.LocalName,
+                TextTags.Method => ClassificationTypeNames.MethodName,
+                TextTags.Namespace => ClassificationTypeNames.NamespaceName,
+                TextTags.Parameter => ClassificationTypeNames.ParameterName,
+                TextTags.Property => ClassificationTypeNames.PropertyName,
+                TextTags.ExtensionMethod => ClassificationTypeNames.ExtensionMethodName,
+                TextTags.EnumMember => ClassificationTypeNames.EnumMemberName,
+                TextTags.Constant => ClassificationTypeNames.ConstantName,
+                TextTags.Alias or TextTags.Assembly or TextTags.ErrorType or TextTags.RangeVariable => ClassificationTypeNames.Identifier,
+                TextTags.NumericLiteral => ClassificationTypeNames.NumericLiteral,
+                TextTags.StringLiteral => ClassificationTypeNames.StringLiteral,
+                TextTags.Space or TextTags.LineBreak => ClassificationTypeNames.WhiteSpace,
+                TextTags.Operator => ClassificationTypeNames.Operator,
+                TextTags.Punctuation => ClassificationTypeNames.Punctuation,
+                TextTags.AnonymousTypeIndicator or TextTags.Text => ClassificationTypeNames.Text,
+                TextTags.Record => ClassificationTypeNames.RecordClassName,
+                TextTags.RecordStruct => ClassificationTypeNames.RecordStructName,
+                // These tags are not visible so classify them as whitespace
+                TextTags.ContainerStart or TextTags.ContainerEnd or TextTags.CodeBlockStart or TextTags.CodeBlockEnd => ClassificationTypeNames.WhiteSpace,
+                _ => throw ExceptionUtilities.UnexpectedValue(taggedTextTag),
+            };
 
         public static IEnumerable<ClassifiedSpan> ToClassifiedSpans(
             this IEnumerable<TaggedText> parts)
