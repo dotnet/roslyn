@@ -262,7 +262,7 @@ internal sealed partial class ObjectReader : IDisposable
 
     public byte[] ReadByteArray()
     {
-        var (result, _) = ReadRawArray(static length => CreateArray<byte>(length), TypeCode.UInt8, static (reader, array, length) => reader.Read(array, 0, length));
+        var (result, _) = ReadRawArray(static length => CreateArray<byte>(length), static (reader, array, length) => reader.Read(array, 0, length));
         return result;
     }
 
@@ -273,15 +273,12 @@ internal sealed partial class ObjectReader : IDisposable
     }
 
     public (char[] array, int length) ReadCharArray(Func<int, char[]> getArray)
-        => ReadRawArray(getArray, TypeCode.Char, static (reader, array, length) => reader.Read(array, 0, length));
+        => ReadRawArray(getArray, static (reader, array, length) => reader.Read(array, 0, length));
 
     public (T[] array, int length) ReadRawArray<T>(
-        Func<int, T[]> getArray, TypeCode expectedElementKind, Func<BinaryReader, T[], int, int> read)
+        Func<int, T[]> getArray, Func<BinaryReader, T[], int, int> read)
     {
-        var kind = (TypeCode)ReadByte();
-
-        var (length, readKind) = ReadArrayLengthAndElementKind(kind);
-        Contract.ThrowIfTrue(readKind != expectedElementKind);
+        var length = ReadArrayLength();
         var array = getArray(length);
 
         var charsRead = read(_reader, array, length);
@@ -398,9 +395,8 @@ internal sealed partial class ObjectReader : IDisposable
         return value;
     }
 
-    private (int length, TypeCode elementKind) ReadArrayLengthAndElementKind(TypeCode kind)
-    {
-        var length = kind switch
+    private int ReadArrayLength()
+        => (TypeCode)ReadByte() switch
         {
             TypeCode.Array_0 => 0,
             TypeCode.Array_1 => 1,
@@ -408,12 +404,6 @@ internal sealed partial class ObjectReader : IDisposable
             TypeCode.Array_3 => 3,
             _ => (int)this.ReadCompressedUInt(),
         };
-
-        // SUBTLE: If it was a primitive array, only the EncodingKind byte of the element type was written, instead of encoding as a type.
-        var elementKind = (TypeCode)ReadByte();
-
-        return (length, elementKind);
-    }
 
     private static T[] CreateArray<T>(int length)
         => length == 0 ? [] : (new T[length]);

@@ -242,13 +242,13 @@ namespace Roslyn.Utilities
 
         public void WriteByteArray(byte[] array)
         {
-            WriteSpanPreamble<byte>(array.AsSpan(), TypeCode.UInt8);
+            WriteArrayLength(array.Length);
             _writer.Write(array);
         }
 
         public void WriteCharArray(char[] array)
         {
-            WriteSpanPreamble<char>(array.AsSpan(), TypeCode.Char);
+            WriteArrayLength(array.Length);
             _writer.Write(array);
         }
 
@@ -259,7 +259,7 @@ namespace Roslyn.Utilities
         /// <param name="span">The array data.</param>
         public void WriteSpan(ReadOnlySpan<byte> span)
         {
-            WriteSpanPreamble(span, TypeCode.UInt8);
+            WriteArrayLength(span.Length);
 
 #if NETCOREAPP
             _writer.Write(span);
@@ -278,7 +278,7 @@ namespace Roslyn.Utilities
         /// <param name="span">The array data.</param>
         public void WriteSpan(ReadOnlySpan<char> span)
         {
-            WriteSpanPreamble(span, TypeCode.Char);
+            WriteArrayLength(span.Length);
 
 #if NETCOREAPP
             _writer.Write(span);
@@ -290,9 +290,8 @@ namespace Roslyn.Utilities
 #endif
         }
 
-        private void WriteSpanPreamble<T>(ReadOnlySpan<T> span, TypeCode expectedType)
+        private void WriteArrayLength(int length)
         {
-            var length = span.Length;
             switch (length)
             {
                 case 0:
@@ -312,13 +311,6 @@ namespace Roslyn.Utilities
                     WriteCompressedUInt((uint)length);
                     break;
             }
-
-            var elementType = typeof(T);
-            Contract.ThrowIfFalse(s_typeMap.ContainsKey(elementType));
-            var actualType = s_typeMap[elementType];
-            Contract.ThrowIfTrue(expectedType != actualType);
-
-            WritePrimitiveType(elementType, actualType);
         }
 
         private void WriteSpanPieces<T>(
@@ -522,12 +514,6 @@ namespace Roslyn.Utilities
                     }
                 }
             }
-        }
-
-        private void WritePrimitiveType(Type type, TypeCode kind)
-        {
-            Debug.Assert(s_typeMap[type] == kind);
-            WriteByte((byte)kind);
         }
 
         public void WriteEncoding(Encoding? encoding)
