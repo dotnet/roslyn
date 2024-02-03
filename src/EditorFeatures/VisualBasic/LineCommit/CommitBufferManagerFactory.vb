@@ -5,6 +5,7 @@
 Imports System.ComponentModel.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.[Shared].TestHooks
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
@@ -13,17 +14,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private ReadOnly _commitFormatter As ICommitFormatter
         Private ReadOnly _inlineRenameService As IInlineRenameService
         Private ReadOnly _threadingContext As IThreadingContext
+        Private ReadOnly _listener As IAsynchronousOperationListener
 
         <ImportingConstructor()>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-        Public Sub New(commitFormatter As ICommitFormatter, inlineRenameService As IInlineRenameService, threadingContext As IThreadingContext)
+        Public Sub New(commitFormatter As ICommitFormatter, inlineRenameService As IInlineRenameService, threadingContext As IThreadingContext, listenerProvider As IAsynchronousOperationListenerProvider)
             _commitFormatter = commitFormatter
             _inlineRenameService = inlineRenameService
             _threadingContext = threadingContext
+            _listener = listenerProvider.GetListener(FeatureAttribute.Workspace)
         End Sub
 
         Public Function CreateForBuffer(buffer As ITextBuffer) As CommitBufferManager
-            Return buffer.Properties.GetOrCreateSingletonProperty(Function() New CommitBufferManager(buffer, _commitFormatter, _inlineRenameService, _threadingContext))
+            Return buffer.Properties.GetOrCreateSingletonProperty(Function() New CommitBufferManager(buffer, _commitFormatter, _inlineRenameService, _threadingContext, _listener))
         End Function
     End Class
 End Namespace
