@@ -262,22 +262,26 @@ internal sealed partial class ObjectReader : IDisposable
 
     public byte[] ReadByteArray()
     {
-        var (result, _) = ReadRawArray(static length => CreateArray<byte>(length), static (reader, array, length) => reader.Read(array, 0, length));
+        var (result, _) = ReadRawArray<byte>(static (reader, array, length) => reader.Read(array, 0, length));
         return result;
     }
 
     public char[] ReadCharArray()
     {
-        var (result, _) = ReadCharArray(static length => CreateArray<char>(length));
+        var (result, _) = ReadCharArray(getArray: null);
         return result;
     }
 
-    public (char[] array, int length) ReadCharArray(Func<int, char[]> getArray)
-        => ReadRawArray(getArray, static (reader, array, length) => reader.Read(array, 0, length));
+    public (char[] array, int length) ReadCharArray(Func<int, char[]>? getArray)
+        => ReadRawArray(static (reader, array, length) => reader.Read(array, 0, length), getArray);
 
     public (T[] array, int length) ReadRawArray<T>(
-        Func<int, T[]> getArray, Func<BinaryReader, T[], int, int> read)
+        Func<BinaryReader, T[], int, int> read,
+        Func<int, T[]>? getArray = null)
     {
+        // Defer to caller provided getArray if provided.  Otherwise, we'll just allocate the array ourselves.
+        getArray ??= static length => length == 0 ? [] : new T[length];
+
         var length = ReadArrayLength();
         var array = getArray(length);
 
@@ -393,7 +397,4 @@ internal sealed partial class ObjectReader : IDisposable
             TypeCode.Array_3 => 3,
             _ => (int)this.ReadCompressedUInt(),
         };
-
-    private static T[] CreateArray<T>(int length)
-        => length == 0 ? [] : (new T[length]);
 }
