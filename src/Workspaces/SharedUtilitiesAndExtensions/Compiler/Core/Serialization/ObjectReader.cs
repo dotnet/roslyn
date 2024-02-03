@@ -35,7 +35,7 @@ internal sealed partial class ObjectReader : IDisposable
     /// this version, just change VersionByte2.
     /// </summary>
     internal const byte VersionByte1 = 0b10101010;
-    internal const byte VersionByte2 = 0b00001100;
+    internal const byte VersionByte2 = 0b00001101;
 
     private readonly BinaryReader _reader;
     private readonly CancellationToken _cancellationToken;
