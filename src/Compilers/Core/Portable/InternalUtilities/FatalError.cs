@@ -158,6 +158,63 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             return ReportAndPropagate(exception, severity);
         }
 
+        /// <summary>
+        /// Use in an exception filter to report a non-fatal error without catching the exception.
+        /// The error is reported by calling <see cref="s_nonFatalHandler"/>.
+        /// </summary>
+        /// <returns><see langword="false"/> to avoid catching the exception.</returns>
+        [DebuggerHidden]
+        public static bool ReportNonFatalErrorAndPropagate(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        {
+            ReportNonFatalError(exception, severity);
+            return false;
+        }
+
+        /// <summary>
+        /// Use in an exception filter to report a non-fatal error (by calling <see cref="s_nonFatalHandler"/>), unless the
+        /// operation has been cancelled. The exception is never caught.
+        /// </summary>
+        /// <returns><see langword="false"/> to avoid catching the exception.</returns>
+        [DebuggerHidden]
+        public static bool ReportNonFatalErrorAndPropagateUnlessCanceled(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        {
+            if (exception is OperationCanceledException)
+            {
+                return false;
+            }
+
+            return ReportNonFatalErrorAndPropagate(exception, severity);
+        }
+
+        /// <summary>
+        /// <para>Use in an exception filter to report a non-fatal error (by calling <see cref="s_nonFatalHandler"/>), unless the
+        /// operation has been cancelled at the request of <paramref name="contextCancellationToken"/>. The exception is
+        /// never caught.</para>
+        ///
+        /// <para>Cancellable operations are only expected to throw <see cref="OperationCanceledException"/> if the
+        /// applicable <paramref name="contextCancellationToken"/> indicates cancellation is requested by setting
+        /// <see cref="CancellationToken.IsCancellationRequested"/>. Unexpected cancellation, i.e. an
+        /// <see cref="OperationCanceledException"/> which occurs without <paramref name="contextCancellationToken"/>
+        /// requesting cancellation, is treated as an error by this method.</para>
+        ///
+        /// <para>This method does not require <see cref="OperationCanceledException.CancellationToken"/> to match
+        /// <paramref name="contextCancellationToken"/>, provided cancellation is expected per the previous
+        /// paragraph.</para>
+        /// </summary>
+        /// <param name="contextCancellationToken">A <see cref="CancellationToken"/> which will have
+        /// <see cref="CancellationToken.IsCancellationRequested"/> set if cancellation is expected.</param>
+        /// <returns><see langword="false"/> to avoid catching the exception.</returns>
+        [DebuggerHidden]
+        public static bool ReportNonFatalErrorAndPropagateUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        {
+            if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken) || exception is OperationCanceledIgnoringCallerTokenException)
+            {
+                return false;
+            }
+
+            return ReportNonFatalErrorAndPropagate(exception, severity);
+        }
+
         // Since the command line compiler has no way to catch exceptions, report them, and march on, we
         // simply don't offer such a mechanism here to avoid accidental swallowing of exceptions.
 

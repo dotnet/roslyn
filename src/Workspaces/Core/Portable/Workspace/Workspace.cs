@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.Critical))
+            catch (Exception e) when (FatalError.ReportNonFatalErrorAndPropagate(e, ErrorSeverity.Critical))
             {
                 // We'll rethrow the exception to the caller, since this exception could represent a bug in a third-party workspace, and if at this point our workspace
                 // is corrupted we want the caller to know.
