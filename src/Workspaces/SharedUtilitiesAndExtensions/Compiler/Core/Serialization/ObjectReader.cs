@@ -72,7 +72,7 @@ internal sealed partial class ObjectReader : IDisposable
     /// be returned.
     /// </summary>
     public static ObjectReader? TryGetReader(
-        Stream stream,
+        Stream? stream,
         bool leaveOpen = false,
         CancellationToken cancellationToken = default)
     {
@@ -160,6 +160,8 @@ internal sealed partial class ObjectReader : IDisposable
     public ulong ReadUInt64() => _reader.ReadUInt64();
     public ushort ReadUInt16() => _reader.ReadUInt16();
     public string? ReadString() => ReadStringValue();
+
+    public string ReadRequiredString() => ReadString() ?? throw ExceptionUtilities.Unreachable();
 
     public Guid ReadGuid()
     {

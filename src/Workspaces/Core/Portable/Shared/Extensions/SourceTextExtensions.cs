@@ -248,7 +248,7 @@ internal static partial class SourceTextExtensions
             if (length < SourceTextLengthThreshold)
             {
                 // small size, read as string
-                return new StringReader(reader.ReadString());
+                return new StringReader(reader.ReadRequiredString());
             }
 
             var chunkSize = reader.ReadInt32();

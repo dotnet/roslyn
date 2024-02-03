@@ -245,10 +245,10 @@ namespace Microsoft.CodeAnalysis
             {
                 var documentId = DocumentId.ReadFrom(reader);
 
-                var name = reader.ReadString();
-                var folders = reader.ReadArray(static r => r.ReadString());
+                var name = reader.ReadRequiredString();
+                var folders = reader.ReadArray(static r => r.ReadRequiredString());
                 var sourceCodeKind = (SourceCodeKind)reader.ReadByte();
-                var filePath = reader.ReadString();
+                var filePath = reader.ReadRequiredString();
                 var isGenerated = reader.ReadBoolean();
                 var designTimeOnly = reader.ReadBoolean();
 

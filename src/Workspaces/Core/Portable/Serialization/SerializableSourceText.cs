@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             {
                 var storage2 = (ITemporaryStorageService2)storageService;
 
-                var name = reader.ReadString();
+                var name = reader.ReadRequiredString();
                 var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 

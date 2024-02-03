@@ -45,7 +45,7 @@ internal partial class SerializerService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var language = reader.ReadString();
+        var language = reader.ReadRequiredString();
 
         var service = GetOptionsSerializationService(language);
         return service.ReadCompilationOptionsFrom(reader, cancellationToken);
@@ -66,7 +66,7 @@ internal partial class SerializerService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var language = reader.ReadString();
+        var language = reader.ReadRequiredString();
 
         var service = GetOptionsSerializationService(language);
         return service.ReadParseOptionsFrom(reader, cancellationToken);

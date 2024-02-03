@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             var type = reader.ReadString();
             if (type == nameof(AnalyzerFileReference))
             {
-                var fullPath = reader.ReadString();
+                var fullPath = reader.ReadRequiredString();
                 var shadowCopy = reader.ReadBoolean();
                 return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(new AnalyzerAssemblyLoaderOptions(shadowCopy)));
             }
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             var kind = (MetadataImageKind)reader.ReadInt32();
-            var aliases = reader.ReadArray(static r => r.ReadString());
+            var aliases = reader.ReadArray(static r => r.ReadRequiredString());
             var embedInteropTypes = reader.ReadBoolean();
 
             return new MetadataReferenceProperties(kind, aliases, embedInteropTypes);
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             {
                 var service2 = (ITemporaryStorageService2)_storageService;
 
-                var name = reader.ReadString();
+                var name = reader.ReadRequiredString();
                 var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
