@@ -27,12 +27,13 @@
 
   <ItemGroup>
     <PackageReference Include="System.ComponentModel.Composition" Version="$(SystemComponentModelCompositionVersion)" />
-    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" PrivateAssets="all" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
     <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" GeneratePathProperty="True" PrivateAssets="None" />
   </ItemGroup>
 
   <ItemGroup>
@@ -48,5 +49,10 @@
     <PublicAPI Include="InternalAPI.Shipped.txt" />
     <PublicAPI Include="InternalAPI.Unshipped.txt" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy /Y &quot;$(PkgMicrosoft_VisualStudio_Debugger_Contracts)\lib\netstandard2.0\Microsoft.VisualStudio.Debugger.Contracts.dll&quot; &quot;$(OutDir)&quot;" />
+  </Target>
+
 
 </Project>

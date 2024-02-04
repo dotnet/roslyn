@@ -1,3 +1,6 @@
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IVisualDiagnosticsLanguageService
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IVisualDiagnosticsLanguageService.CreateDiagnosticsSessionAsync(System.Guid processId) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IVisualDiagnosticsLanguageService.InitializeAsync() -> System.Threading.Tasks.Task
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IVisualDiagnosticsLanguageService.StopDiagnosticsSessionAsync(System.Guid processId) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.IBrokeredDebuggerServices
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.IBrokeredDebuggerServices.HotReloadSessionNotificationService.get -> System.Threading.Tasks.ValueTask<Microsoft.VisualStudio.Debugger.Contracts.HotReload.IHotReloadSessionNotificationService>

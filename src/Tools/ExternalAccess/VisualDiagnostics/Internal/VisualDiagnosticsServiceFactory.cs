@@ -12,32 +12,32 @@ using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics;
 
 [ExportCSharpVisualBasicLspServiceFactory(typeof(OnInitializedService)), Shared]
-internal sealed class VIsualDiagnosticsServiceFactory : ILspServiceFactory
+internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
 {
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
-    private readonly Lazy<IHostDebuggerServices> _hostDebuggerServices;
+    private readonly Lazy<IBrokeredDebuggerServices> _brokeredDebuggerServices;
 
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     [ImportingConstructor]
-    public VIsualDiagnosticsServiceFactory(
+    public VisualDiagnosticsServiceFactory(
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-        Lazy<IHostDebuggerServices> hostDebuggerServices)
+        Lazy<IBrokeredDebuggerServices> brokeredDebuggerServices)
     {
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-        _hostDebuggerServices = hostDebuggerServices;
+        _brokeredDebuggerServices = brokeredDebuggerServices;
     }
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
-        return new OnInitializedService(lspServices, lspWorkspaceManager, _lspWorkspaceRegistrationService, _hostDebuggerServices);
+        return new OnInitializedService(lspServices, lspWorkspaceManager, _lspWorkspaceRegistrationService, _brokeredDebuggerServices);
     }
 
     private class OnInitializedService : ILspService, IOnInitialized, IDisposable
@@ -45,14 +45,14 @@ internal sealed class VIsualDiagnosticsServiceFactory : ILspServiceFactory
         private readonly LspServices _lspServices;
         private readonly LspWorkspaceManager _lspWorkspaceManager;
         private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
-        private readonly Lazy<IHostDebuggerServices> _hostDebuggerServices;
+        private readonly Lazy<IBrokeredDebuggerServices> _brokeredDebuggerServices;
  
-        public OnInitializedService(LspServices lspServices, LspWorkspaceManager lspWorkspaceManager, LspWorkspaceRegistrationService lspWorkspaceRegistrationService, Lazy<IHostDebuggerServices> hostDebuggerServices)
+        public OnInitializedService(LspServices lspServices, LspWorkspaceManager lspWorkspaceManager, LspWorkspaceRegistrationService lspWorkspaceRegistrationService, Lazy<IBrokeredDebuggerServices> brokeredDebuggerServices)
         {
-            _lspServices = lspServices; 
+            _lspServices = lspServices;
             _lspWorkspaceManager = lspWorkspaceManager;
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-            _hostDebuggerServices = hostDebuggerServices;
+            _brokeredDebuggerServices = brokeredDebuggerServices;
         }
 
         public void Dispose()
@@ -69,21 +69,22 @@ internal sealed class VIsualDiagnosticsServiceFactory : ILspServiceFactory
             return Task.CompletedTask;
         }
 
-        private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
+        private async void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
         {
             if (e.DocumentId is not null && e.Kind is WorkspaceChangeKind.DocumentChanged)
             {
-                _hostDebuggerServices.Value.AttacheToDebuggerEvent();
-                var document = e.NewSolution.GetRequiredDocument(e.DocumentId);
-                var documentUri = document.GetURI();
+                IHotReloadSessionNotificationService notificationService = await _brokeredDebuggerServices.Value.HotReloadSessionNotificationService.ConfigureAwait(false);
+                if(notificationService != null)
+                {
+                    CancellationToken token = new CancellationToken();
+                    HotReloadSessionInfo info = await notificationService.FetchHotReloadSessionInfoAsync(token);
+                }
                 Workspace workspace = this._lspWorkspaceRegistrationService.GetAllRegistrations().Where(w => w.Kind == WorkspaceKind.Host).FirstOrDefault();
                 if (workspace != null)
                 {
-                    IVisualDiagnosticsLanguageService vdiagService = workspace.Services.GetService<IVisualDiagnosticsLanguageService>();
-                    if (vdiagService != null)
-                    {
-                        vdiagService.CreateDiagnosticsSessionAsync(Guid.NewGuid());
-                    }
+                    IVisualDiagnosticsLanguageService? visualDiagnosticsLanguageService = workspace.Services.GetService<IVisualDiagnosticsLanguageService>();
+                    visualDiagnosticsLanguageService?.InitializeAsync();
+                    visualDiagnosticsLanguageService?.CreateDiagnosticsSessionAsync(Guid.NewGuid());
                 }
             }
         }
