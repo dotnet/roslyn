@@ -192,8 +192,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(StringTable stringTable, ObjectReader reader)
         {
             var name = reader.ReadRequiredString();
-            var nameSuffix = reader.ReadRequiredString();
-            var containerDisplayName = reader.ReadRequiredString();
+            var nameSuffix = reader.ReadString();
+            var containerDisplayName = reader.ReadString();
             var fullyQualifiedContainerName = reader.ReadRequiredString();
             var flags = reader.ReadUInt32();
             var spanStart = reader.ReadInt32();
