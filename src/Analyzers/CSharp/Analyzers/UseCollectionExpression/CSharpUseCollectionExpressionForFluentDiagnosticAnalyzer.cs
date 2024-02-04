@@ -475,3 +475,4 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> Matches,
         bool ChangesSemantics);
 }
+
