@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             var type = reader.ReadString();
             if (type == nameof(AnalyzerFileReference))
             {
-                var fullPath = reader.ReadString();
+                var fullPath = reader.ReadRequiredString();
                 var shadowCopy = reader.ReadBoolean();
                 return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(new AnalyzerAssemblyLoaderOptions(shadowCopy)));
             }
@@ -263,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             writer.WriteInt32((int)properties.Kind);
-            writer.WriteValue(properties.Aliases.ToArray());
+            writer.WriteArray(properties.Aliases, static (w, a) => w.WriteString(a));
             writer.WriteBoolean(properties.EmbedInteropTypes);
         }
 
@@ -272,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             var kind = (MetadataImageKind)reader.ReadInt32();
-            var aliases = reader.ReadArray<string>().ToImmutableArrayOrEmpty();
+            var aliases = reader.ReadArray(static r => r.ReadRequiredString());
             var embedInteropTypes = reader.ReadBoolean();
 
             return new MetadataReferenceProperties(kind, aliases, embedInteropTypes);
@@ -438,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
 
-            var array = reader.ReadArray<byte>();
+            var array = reader.ReadByteArray();
             var pinnedObject = new PinnedObject(array);
 
             var metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), array.Length);
@@ -473,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             {
                 var service2 = (ITemporaryStorageService2)_storageService;
 
-                var name = reader.ReadString();
+                var name = reader.ReadRequiredString();
                 var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
@@ -521,7 +522,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             // TODO: make reader be able to read byte[] chunk
-            var content = reader.ReadArray<byte>();
+            var content = reader.ReadByteArray();
             stream.Write(content, 0, content.Length);
         }
 

@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);
+            Contract.ThrowIfNull(reader);
 
             // deserialize bits to object
             var result = Serializer.Deserialize(data.Kind, reader, CancellationToken.None);
