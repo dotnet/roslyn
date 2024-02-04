@@ -36,16 +36,17 @@ namespace Microsoft.CodeAnalysis
 
             public GeneratorDriver? GeneratorDriver => UnderlyingTracker.GeneratorDriver;
 
-            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
+            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough)
             {
                 if (_compilationWithReplacements == null)
                 {
                     // We don't have a compilation yet, so this couldn't have came from us
+                    referencedThrough = null;
                     return false;
                 }
                 else
                 {
-                    return UnrootedSymbolSet.Create(_compilationWithReplacements).ContainsAssemblyOrModuleOrDynamic(symbol, primary);
+                    return UnrootedSymbolSet.Create(_compilationWithReplacements).ContainsAssemblyOrModuleOrDynamic(symbol, primary, out referencedThrough);
                 }
             }
 

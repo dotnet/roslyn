@@ -82,6 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 nameDisplayParts: ImmutableArray<TaggedText>.Empty,
                 originationParts: default,
                 sourceSpans: default,
+                metadataLocations: default,
                 classifiedSpans: default,
                 properties: null,
                 displayableProperties: null,

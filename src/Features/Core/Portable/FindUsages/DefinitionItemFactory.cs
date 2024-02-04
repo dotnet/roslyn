@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -44,7 +45,17 @@ namespace Microsoft.CodeAnalysis.FindUsages
             FindReferencesSearchOptions options,
             bool isPrimary,
             bool includeHiddenLocations)
-            => ToDefinitionItem(definition, TryGetSourceLocations(definition, solution, locations, includeHiddenLocations), solution, options, isPrimary);
+        {
+            var sourceLocations = GetSourceLocations(solution, locations, includeHiddenLocations);
+
+            return ToDefinitionItem(
+                definition,
+                sourceLocations,
+                sourceLocations.SelectAsArray(d => (ClassifiedSpansAndHighlightSpan?)null),
+                solution,
+                options,
+                isPrimary);
+        }
 
         public static async ValueTask<DefinitionItem> ToClassifiedDefinitionItemAsync(
             this ISymbol definition,
@@ -55,10 +66,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
             bool includeHiddenLocations,
             CancellationToken cancellationToken)
         {
-            var unclassifiedSpans = TryGetSourceLocations(definition, solution, definition.Locations, includeHiddenLocations);
-            var classifiedSpans = unclassifiedSpans.IsDefault ? default : await ClassifyDocumentSpansAsync(classificationOptions, unclassifiedSpans, cancellationToken).ConfigureAwait(false);
+            // Assembly and Module locations include all source documents; displaying all of them is not useful.
+            // We could consider creating a definition item that points to the project source instead.
+            var sourceLocations = (definition.Kind is SymbolKind.Assembly or SymbolKind.NetModule) ? [] : GetSourceLocations(solution, definition.Locations, includeHiddenLocations);
 
-            return ToDefinitionItem(definition, unclassifiedSpans, classifiedSpans, solution, options, isPrimary);
+            var classifiedSpans = await ClassifyDocumentSpansAsync(classificationOptions, sourceLocations, cancellationToken).ConfigureAwait(false);
+            return ToDefinitionItem(definition, sourceLocations, classifiedSpans, solution, options, isPrimary);
         }
 
         public static async ValueTask<DefinitionItem> ToClassifiedDefinitionItemAsync(
@@ -66,28 +79,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
             // Make a single definition item that knows about all the locations of all the symbols in the group.
             var definition = group.Symbols.First();
-
             var allLocations = group.Symbols.SelectManyAsArray(s => s.Locations);
-            var unclassifiedSpans = TryGetSourceLocations(definition, solution, allLocations, includeHiddenLocations);
-            var classifiedSpans = unclassifiedSpans.IsDefault ? default : await ClassifyDocumentSpansAsync(classificationOptions, unclassifiedSpans, cancellationToken).ConfigureAwait(false);
 
-            return ToDefinitionItem(definition, unclassifiedSpans, classifiedSpans, solution, options, isPrimary);
-        }
-
-        private static DefinitionItem ToDefinitionItem(
-            ISymbol definition,
-            ImmutableArray<DocumentSpan> sourceLocations,
-            Solution solution,
-            FindReferencesSearchOptions options,
-            bool isPrimary)
-        {
-            return ToDefinitionItem(
-                definition,
-                sourceLocations,
-                sourceLocations.IsDefault ? default : sourceLocations.SelectAsArray(d => (ClassifiedSpansAndHighlightSpan?)null),
-                solution,
-                options,
-                isPrimary);
+            var sourceLocations = GetSourceLocations(solution, allLocations, includeHiddenLocations);
+            var classifiedSpans = await ClassifyDocumentSpansAsync(classificationOptions, sourceLocations, cancellationToken).ConfigureAwait(false);
+            return ToDefinitionItem(definition, sourceLocations, classifiedSpans, solution, options, isPrimary);
         }
 
         private static DefinitionItem ToDefinitionItem(
@@ -120,75 +116,118 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             var properties = GetProperties(definition, isPrimary);
 
-            if (sourceLocations.IsDefault || definition.IsTupleType())
+            var metadataLocations = GetMetadataLocations(definition, solution, out var originatingProjectId);
+            if (!metadataLocations.IsEmpty)
             {
-                // If the location is in metadata, then create a metadata definition.
-                // A special case is the tuple type, where its locations are preserved in the original definition.
-                return DefinitionItem.CreateMetadataDefinition(
-                    tags, displayParts, nameDisplayParts, solution,
-                    definition, properties, displayIfNoReferences);
+                Contract.ThrowIfNull(originatingProjectId);
+
+                properties = properties
+                    .Add(DefinitionItem.MetadataSymbolKey, SymbolKey.CreateString(definition))
+                    .Add(DefinitionItem.MetadataSymbolOriginatingProjectIdGuid, originatingProjectId.Id.ToString())
+                    .Add(DefinitionItem.MetadataSymbolOriginatingProjectIdDebugName, originatingProjectId.DebugName ?? "");
             }
 
-            if (sourceLocations.IsEmpty)
+            var originationParts = GetOriginationParts(definition);
+
+            if (sourceLocations.IsEmpty && metadataLocations.IsEmpty)
             {
                 // If we got no definition locations, then create a sentinel one
                 // that we can display but which will not allow navigation.
                 return DefinitionItem.CreateNonNavigableItem(
                     tags, displayParts,
-                    DefinitionItem.GetOriginationParts(definition),
+                    originationParts,
+                    nameDisplayParts,
+                    metadataLocations,
                     properties, displayIfNoReferences);
             }
 
             var displayableProperties = AbstractReferenceFinder.GetAdditionalFindUsagesProperties(definition);
 
             return DefinitionItem.Create(
-                tags, displayParts, sourceLocations, classifiedSpans,
-                nameDisplayParts, properties, displayableProperties, displayIfNoReferences);
+                tags, displayParts, sourceLocations, classifiedSpans, metadataLocations,
+                nameDisplayParts, originationParts, properties, displayableProperties, displayIfNoReferences);
         }
 
-        private static ImmutableArray<DocumentSpan> TryGetSourceLocations(ISymbol definition, Solution solution, ImmutableArray<Location> locations, bool includeHiddenLocations)
+        internal static ImmutableArray<TaggedText> GetOriginationParts(ISymbol symbol)
         {
-            // If it's a namespace, don't create any normal location.  Namespaces
-            // come from many different sources, but we'll only show a single 
-            // root definition node for it.  That node won't be navigable.
-            if (definition.Kind == SymbolKind.Namespace)
+            // The assembly this symbol came from as the Origination of the DefinitionItem.
+            var assemblyName = symbol.ContainingAssembly?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+            return string.IsNullOrWhiteSpace(assemblyName) ? default : [new TaggedText(TextTags.Assembly, assemblyName)];
+        }
+
+        internal static ImmutableArray<AssemblyLocation> GetMetadataLocations(ISymbol definition, Solution solution, out ProjectId? originatingProjectId)
+        {
+            originatingProjectId = null;
+
+            if (!definition.Locations.Any(static location => location.MetadataModule != null))
             {
                 return [];
             }
 
-            // If it's a namespace, don't create any normal location.  Namespaces
-            // come from many different sources, but we'll only show a single 
-            // root definition node for it.  That node won't be navigable.
-            using var sourceLocations = TemporaryArray<DocumentSpan>.Empty;
-
-            foreach (var location in locations)
+            var assembly = definition as IAssemblySymbol ?? definition.ContainingAssembly;
+            if (assembly != null)
             {
-                if (location.IsInMetadata)
-                {
-                    return default;
-                }
+                // symbol is defined within a single metadata assembly:
+                var info = solution.CompilationState.GetOriginatingProjectInfo(assembly);
+                Contract.ThrowIfNull(info);
+                Contract.ThrowIfNull(info.ReferencedThrough);
 
-                if (location.IsInSource)
+                originatingProjectId = info.ProjectId;
+                return [new AssemblyLocation(assembly.Identity.Name, assembly.Identity.Version, info.ReferencedThrough.Value.FilePath)];
+            }
+
+            if (definition is INamespaceSymbol namespaceSymbol)
+            {
+                using var metadataLocations = TemporaryArray<AssemblyLocation>.Empty;
+
+                // only shared namespace symbols don't have containing assembly:
+                Contract.ThrowIfTrue(namespaceSymbol.ConstituentNamespaces.IsEmpty);
+
+                foreach (var constituentNamespace in namespaceSymbol.ConstituentNamespaces)
                 {
-                    if (!location.IsVisibleSourceLocation() &&
-                        !includeHiddenLocations)
+                    // skip source namespace definitions:
+                    if (!constituentNamespace.Locations.Any(static location => location.MetadataModule != null))
                     {
                         continue;
                     }
 
-                    var document = solution.GetDocument(location.SourceTree);
-                    if (document != null)
-                    {
-                        sourceLocations.Add(new DocumentSpan(document, location.SourceSpan));
-                    }
+                    var containingAssembly = constituentNamespace.ContainingAssembly;
+                    Contract.ThrowIfNull(containingAssembly);
+
+                    var info = solution.CompilationState.GetOriginatingProjectInfo(containingAssembly);
+                    Contract.ThrowIfNull(info);
+                    Contract.ThrowIfNull(info.ReferencedThrough);
+                    Debug.Assert(originatingProjectId == null || originatingProjectId == info.ProjectId);
+
+                    originatingProjectId = info.ProjectId;
+                    metadataLocations.Add(new AssemblyLocation(containingAssembly.Identity.Name, containingAssembly.Identity.Version, info.ReferencedThrough.Value.FilePath));
+                }
+
+                return metadataLocations.ToImmutableAndClear();
+            }
+
+            return [];
+        }
+
+        private static ImmutableArray<DocumentSpan> GetSourceLocations(Solution solution, ImmutableArray<Location> locations, bool includeHiddenLocations)
+        {
+            using var source = TemporaryArray<DocumentSpan>.Empty;
+
+            foreach (var location in locations)
+            {
+                if (location.IsInSource &&
+                    (includeHiddenLocations || location.IsVisibleSourceLocation()) &&
+                    solution.GetDocument(location.SourceTree) is { } document)
+                {
+                    source.Add(new DocumentSpan(document, location.SourceSpan));
                 }
             }
 
-            return sourceLocations.ToImmutableAndClear();
+            return source.ToImmutableAndClear();
         }
 
         private static ValueTask<ImmutableArray<ClassifiedSpansAndHighlightSpan?>> ClassifyDocumentSpansAsync(OptionsProvider<ClassificationOptions> optionsProvider, ImmutableArray<DocumentSpan> unclassifiedSpans, CancellationToken cancellationToken)
-            => unclassifiedSpans.SelectAsArrayAsync(async (documentSpan, optionsProvider, cancellationToken) =>
+            => unclassifiedSpans.SelectAsArrayAsync(static async (documentSpan, optionsProvider, cancellationToken) =>
             {
                 var options = await optionsProvider.GetOptionsAsync(documentSpan.Document.Project.Services, cancellationToken).ConfigureAwait(false);
                 return (ClassifiedSpansAndHighlightSpan?)await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, classifiedSpans: null, options, cancellationToken).ConfigureAwait(false);

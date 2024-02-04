@@ -226,8 +226,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             // There will only be one 'definition' that all matching literal reference.
             // So just create it now and report to the context what it is.
             var definition = DefinitionItem.CreateNonNavigableItem(
-                [TextTags.StringLiteral],
-                [new TaggedText(TextTags.Text, searchTitle)]);
+                tags: [TextTags.StringLiteral],
+                displayParts: [new TaggedText(TextTags.Text, searchTitle)]);
 
             await context.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
 

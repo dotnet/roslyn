@@ -9,7 +9,7 @@ using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.Shell.TableManager;
 
@@ -17,24 +17,18 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     internal partial class StreamingFindUsagesPresenter
     {
-        private class MetadataDefinitionItemEntry : AbstractItemEntry, ISupportsNavigation
+        private class MetadataDefinitionItemEntry(
+            AbstractTableDataSourceFindUsagesContext context,
+            RoslynDefinitionBucket definitionBucket,
+            AssemblyLocation metadataLocation,
+            IThreadingContext threadingContext)
+            : AbstractItemEntry(definitionBucket, context.Presenter), ISupportsNavigation
         {
-            private readonly IThreadingContext _threadingContext;
-
-            public MetadataDefinitionItemEntry(
-                AbstractTableDataSourceFindUsagesContext context,
-                RoslynDefinitionBucket definitionBucket,
-                IThreadingContext threadingContext)
-                : base(definitionBucket, context.Presenter)
-            {
-                _threadingContext = threadingContext;
-            }
-
             protected override object? GetValueWorker(string keyName)
                 => keyName switch
                 {
-                    StandardTableKeyNames.ProjectName => DefinitionBucket.DefinitionItem.OriginationParts.JoinText(),
-                    StandardTableKeyNames.DocumentName => DefinitionBucket.DefinitionItem.Properties[AbstractReferenceFinder.ContainingTypeInfoPropertyName],
+                    StandardTableKeyNames.ProjectName => string.Format(ServicesVSResources.AssemblyNameAndVersionDisplay, metadataLocation.Name, metadataLocation.Version),
+                    StandardTableKeyNames.DisplayPath => metadataLocation.FilePath,
                     StandardTableKeyNames.Text => DefinitionBucket.DefinitionItem.DisplayParts.JoinText(),
                     StandardTableKeyNames.ItemOrigin => ItemOrigin.ExactMetadata,
                     _ => null,
@@ -47,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 var location = await DefinitionBucket.DefinitionItem.GetNavigableLocationAsync(
                     Presenter._workspace, cancellationToken).ConfigureAwait(false);
-                await location.TryNavigateToAsync(_threadingContext, options, cancellationToken).ConfigureAwait(false);
+                await location.TryNavigateToAsync(threadingContext, options, cancellationToken).ConfigureAwait(false);
             }
 
             protected override IList<Inline> CreateLineTextInlines()

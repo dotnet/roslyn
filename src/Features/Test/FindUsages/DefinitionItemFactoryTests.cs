@@ -29,11 +29,14 @@ public class DefinitionItemFactoryTests
     private static string Inspect(DocumentSpan span)
         => $"{span.Document.Name} {span.SourceSpan}";
 
+    private static string Inspect(AssemblyLocation location)
+        => $"{location.Name} {location.Version} '{location.FilePath}'";
+
     private static string InspectFlags<TEnum>(TEnum e) where TEnum : Enum
         => string.Join(" | ", e.ToString().Split(',').Select(s => $"{typeof(TEnum).Name}.{s.Trim()}"));
 
     private static string Inspect(string? str)
-        => (str == null) ? "null" : $"\"{str.Replace("\"", "\\\"")}\"";
+        => (str == null) ? "null" : $"\"{str.Replace(@"\", @"\\").Replace("\"", "\\\"")}\"";
 
     private static string InspectValueAsExpression(string? value, IReadOnlyDictionary<string, string> expressionMap)
         => value != null && expressionMap.TryGetValue(value, out var syntax) ? syntax : Inspect(value);
@@ -59,7 +62,7 @@ public class DefinitionItemFactoryTests
     private static void VerifyProperties(IEnumerable<(string key, string value)> expected, IReadOnlyDictionary<string, string> actual, string? propertyName, IReadOnlyDictionary<string, string> expressionMap)
         => AssertEx.SetEqual(
             expected,
-            actual.Select(item => (key: item.Key, value: item.Value)),
+            actual.Select(item => (key: item.Key, value: item.Value)).OrderBy(item => item.key),
             itemSeparator: "," + Environment.NewLine,
             itemInspector: item => $"({Inspect(item.key)}, {InspectValueAsExpression(item.value, expressionMap)})",
             message: PropertyMessage(propertyName));
@@ -75,6 +78,7 @@ public class DefinitionItemFactoryTests
         PartDescription[]? nameDisplayParts = null,
         PartDescription[]? originationParts = null,
         string[]? sourceSpans = null,
+        string[]? metadataLocations = null,
         string[]? tags = null,
         (string key, string value)[]? properties = null,
         (string key, string value)[]? displayableProperties = null)
@@ -87,6 +91,7 @@ public class DefinitionItemFactoryTests
         verify(() => VerifyParts(nameDisplayParts ?? [], item.NameDisplayParts, nameof(item.NameDisplayParts), expressionMap));
         verify(() => VerifyParts(originationParts ?? [], item.OriginationParts, nameof(item.OriginationParts), expressionMap));
         verify(() => VerifyItems(sourceSpans ?? [], item.SourceSpans.Select(Inspect), nameof(item.SourceSpans)));
+        verify(() => VerifyItems(metadataLocations ?? [], item.MetadataLocations.Select(Inspect), nameof(item.MetadataLocations)));
         verify(() => VerifyItems(tags ?? [], item.Tags, nameof(item.Tags)));
         verify(() => VerifyProperties(properties ?? [], item.Properties, nameof(item.Properties), expressionMap));
         verify(() => VerifyProperties(displayableProperties ?? [], item.DisplayableProperties, nameof(item.DisplayableProperties), expressionMap));
@@ -113,7 +118,7 @@ public class DefinitionItemFactoryTests
         => propertyName == null ? null : $"{Environment.NewLine}{nameof(DefinitionItem)}.{propertyName} does not match expected value.";
 
     [Fact]
-    public async Task ToClassifiedDefinitionItemAsync_Assembly()
+    public async Task ToClassifiedDefinitionItemAsync_Assembly_Source()
     {
         using var workspace = TestWorkspace.CreateCSharp("class C;");
 
@@ -140,21 +145,19 @@ public class DefinitionItemFactoryTests
             [
                 (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
-            sourceSpans:
-            [
-                "test1.cs [0..8)"
-            ],
+            sourceSpans: [],
             tags:
             [
                 "Assembly"
             ],
             properties:
             [
+                ("NonNavigable", ""),
                 ("Primary", ""),
             ]);
     }
 
-    [Fact(Skip = "NRE")]
+    [Fact]
     public async Task ToClassifiedDefinitionItemAsync_Assembly_Metadata()
     {
         using var workspace = TestWorkspace.CreateCSharp("");
@@ -180,6 +183,10 @@ public class DefinitionItemFactoryTests
             ],
             originationParts: [],
             sourceSpans: [],
+            metadataLocations:
+            [
+                "mscorlib 4.0.0.0 'Z:\\FxReferenceAssembliesUri'"
+            ],
             tags:
             [
                 "Assembly"
@@ -219,23 +226,21 @@ public class DefinitionItemFactoryTests
             ],
             originationParts:
             [
-                (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
+                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
-            sourceSpans:
-            [
-                "test1.cs [0..8)"
-            ],
+            sourceSpans: [],
             tags:
             [
                 "Assembly"
             ],
             properties:
             [
+                ("NonNavigable", ""),
                 ("Primary", ""),
             ]);
     }
 
-    [Fact(Skip = "NRE")]
+    [Fact]
     public async Task ToClassifiedDefinitionItemAsync_Module_Metadata()
     {
         using var workspace = TestWorkspace.CreateCSharp("");
@@ -264,6 +269,10 @@ public class DefinitionItemFactoryTests
                 (tag: "Assembly", text: "mscorlib", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans: [],
+            metadataLocations:
+            [
+                "mscorlib 4.0.0.0 'Z:\\FxReferenceAssembliesUri'"
+            ],
             tags:
             [
                 "Assembly"
@@ -293,6 +302,7 @@ public class DefinitionItemFactoryTests
         var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(symbol, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
 
         VerifyDefinitionItem(item, project,
+            // navigation target is generally not provided for namespaces
             displayParts:
             [
                 (tag: "Keyword", text: "namespace", TaggedTextStyle.None, target: null, hint: null),
@@ -301,15 +311,15 @@ public class DefinitionItemFactoryTests
             ],
             nameDisplayParts:
             [
-                (tag: "Keyword", text: "namespace", TaggedTextStyle.None, target: null, hint: null),
-                (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
                 (tag: "Namespace", text: "N", TaggedTextStyle.None, target: null, hint: null)
             ],
             originationParts:
             [
+                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
+                "test1.cs [10..11)"
             ],
             tags:
             [
@@ -318,7 +328,6 @@ public class DefinitionItemFactoryTests
             properties:
             [
                 ("Primary", ""),
-                ("NonNavigable", ""),
                 ("RQNameKey1", "Ns(NsName(N))")
             ]);
     }
@@ -348,22 +357,30 @@ public class DefinitionItemFactoryTests
             ],
             nameDisplayParts:
             [
-                (tag: "Keyword", text: "namespace", TaggedTextStyle.None, target: null, hint: null),
-                (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
                 (tag: "Namespace", text: "System", TaggedTextStyle.None, target: null, hint: null)
             ],
             // namespace spans multiple assemblies, so no originating project
             originationParts: [],
             sourceSpans: [],
+            metadataLocations:
+            [
+                "mscorlib 4.0.0.0 'Z:\\FxReferenceAssembliesUri'",
+                "System 4.0.0.0 ''",
+                "System.Core 4.0.0.0 ''",
+                "System.ValueTuple 4.0.1.0 ''",
+                "System.Runtime 4.0.10.0 ''"
+            ],
             tags:
             [
                 "Namespace"
             ],
             properties:
             [
+                ("MetadataSymbolKey", SymbolKey.CreateString(n)),
+                ("MetadataSymbolOriginatingProjectIdGuid", project.Id.Id.ToString()),
+                ("MetadataSymbolOriginatingProjectIdDebugName", "Test"),
                 ("Primary", ""),
-                ("NonNavigable", ""),
-                ("RQNameKey1", "Ns(NsName(System))")
+                ("RQNameKey1", "Ns(NsName(System))"),
             ]);
     }
 
@@ -395,15 +412,24 @@ public class DefinitionItemFactoryTests
             ],
             nameDisplayParts:
             [
-                (tag: "Keyword", text: "namespace", TaggedTextStyle.None, target: null, hint: null),
-                (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
                 (tag: "Namespace", text: "System", TaggedTextStyle.None, target: null, hint: null)
             ],
             originationParts:
             [
+                (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
+            ],
+            metadataLocations:
+            [
+                "mscorlib 4.0.0.0 'Z:\\FxReferenceAssembliesUri'",
+                "System 4.0.0.0 ''",
+                "System.Core 4.0.0.0 ''",
+                "System.ValueTuple 4.0.1.0 ''",
+                "System.Runtime 4.0.10.0 ''"
             ],
             sourceSpans:
             [
+                "test1.cs [10..16)",
+                "test1.cs [43..49)"
             ],
             tags:
             [
@@ -411,11 +437,15 @@ public class DefinitionItemFactoryTests
             ],
             properties:
             [
+                ("MetadataSymbolKey", SymbolKey.CreateString(n)),
+                ("MetadataSymbolOriginatingProjectIdDebugName", "Test"),
+                ("MetadataSymbolOriginatingProjectIdGuid", project.Id.Id.ToString()),
                 ("Primary", ""),
-                ("NonNavigable", ""),
-                ("RQNameKey1", "Ns(NsName(System))")
+                ("RQNameKey1", "Ns(NsName(System))"),
             ]);
     }
+
+    // TODO: Namespace in C#, VB, Meta
 
     [Fact]
     public async Task ToClassifiedDefinitionItemAsync_Class()
@@ -445,7 +475,7 @@ public class DefinitionItemFactoryTests
             ],
             originationParts:
             [
-                (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
+                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -494,6 +524,10 @@ public class DefinitionItemFactoryTests
                 (tag: "Assembly", text: "mscorlib", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans: [],
+            metadataLocations:
+            [
+                "mscorlib 4.0.0.0 'Z:\\FxReferenceAssembliesUri'"
+            ],
             tags:
             [
                 "Class",
@@ -501,12 +535,11 @@ public class DefinitionItemFactoryTests
             ],
             properties:
             [
-                ("ContainingTypeInfo", "Activator"),
-                ("Primary", ""),
-                ("RQNameKey1", "Agg(NsName(System),AggName(Activator,TypeVarCnt(0)))"),
-                ("MetadataSymbolOriginatingProjectIdGuid", project.Id.Id.ToString()),
                 ("MetadataSymbolKey", SymbolKey.CreateString(c)),
-                ("MetadataSymbolOriginatingProjectIdDebugName", "Test")
+                ("MetadataSymbolOriginatingProjectIdDebugName", "Test"),
+                ("MetadataSymbolOriginatingProjectIdGuid", project.Id.Id.ToString()),
+                ("Primary", ""),
+                ("RQNameKey1", "Agg(NsName(System),AggName(Activator,TypeVarCnt(0)))")
             ]);
     }
 
@@ -553,6 +586,10 @@ public class DefinitionItemFactoryTests
                 (tag: "Assembly", text: "P2", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans: [],
+            metadataLocations:
+            [
+                "P2 0.0.0.0 ''"
+            ],
             tags:
             [
                 "Class",
@@ -560,12 +597,11 @@ public class DefinitionItemFactoryTests
             ],
             properties:
             [
-                ("ContainingTypeInfo", "C"),
-                ("Primary", ""),
-                ("RQNameKey1", "Agg(AggName(C,TypeVarCnt(0)))"),
-                ("MetadataSymbolOriginatingProjectIdGuid", project.Id.Id.ToString()),
                 ("MetadataSymbolKey", SymbolKey.CreateString(c)),
-                ("MetadataSymbolOriginatingProjectIdDebugName", "P1")
+                ("MetadataSymbolOriginatingProjectIdDebugName", "P1"),
+                ("MetadataSymbolOriginatingProjectIdGuid", project.Id.Id.ToString()),
+                ("Primary", ""),
+                ("RQNameKey1", "Agg(AggName(C,TypeVarCnt(0)))")
             ]);
     }
 
@@ -641,7 +677,7 @@ public class DefinitionItemFactoryTests
             ],
             originationParts:
             [
-                (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
+                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -698,7 +734,7 @@ public class DefinitionItemFactoryTests
             ],
             originationParts:
             [
-                (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
+                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -754,7 +790,7 @@ public class DefinitionItemFactoryTests
             ],
             originationParts:
             [
-                (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
+                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -820,7 +856,7 @@ public class DefinitionItemFactoryTests
             ],
             originationParts:
             [
-                (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
+                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -882,7 +918,7 @@ public class DefinitionItemFactoryTests
             ],
             originationParts:
             [
-                (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
+                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -943,7 +979,7 @@ public class DefinitionItemFactoryTests
             ],
             originationParts:
             [
-                (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
+                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -1013,7 +1049,7 @@ public class DefinitionItemFactoryTests
             ],
             originationParts:
             [
-                (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
+                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -1078,7 +1114,7 @@ public class DefinitionItemFactoryTests
             ],
             originationParts:
             [
-                (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
+                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -1139,7 +1175,7 @@ public class DefinitionItemFactoryTests
             ],
             originationParts:
             [
-                (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
+                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -1199,7 +1235,7 @@ public class DefinitionItemFactoryTests
             ],
             originationParts:
             [
-                (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
+                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -1268,7 +1304,7 @@ public class DefinitionItemFactoryTests
             ],
             originationParts:
             [
-                (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
+                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -1343,7 +1379,7 @@ public class DefinitionItemFactoryTests
             ],
             originationParts:
             [
-                (tag: "Text", text: "CSharpAssembly1", TaggedTextStyle.None, target: null, hint: null)
+                (tag: "Assembly", text: "CSharpAssembly1", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [

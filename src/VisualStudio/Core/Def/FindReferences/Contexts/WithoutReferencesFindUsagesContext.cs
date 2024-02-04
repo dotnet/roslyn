@@ -86,12 +86,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     var entry = await TryCreateEntryAsync(definitionBucket, definition, cancellationToken).ConfigureAwait(false);
                     entries.AddIfNotNull(entry);
                 }
-                else if (definition.SourceSpans.Length == 0)
-                {
-                    // No source spans means metadata references.
-                    // Display it for Go to Base and try to navigate to metadata.
-                    entries.Add(new MetadataDefinitionItemEntry(this, definitionBucket, this.ThreadingContext));
-                }
                 else
                 {
                     // If we have multiple spans (i.e. for partial types), then create a 
@@ -112,6 +106,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                             additionalProperties: definition.DisplayableProperties,
                             cancellationToken).ConfigureAwait(false);
                         entries.AddIfNotNull(entry);
+                    }
+
+                    foreach (var metadataLocation in definition.MetadataLocations)
+                    {
+                        entries.Add(new MetadataDefinitionItemEntry(this, definitionBucket, metadataLocation, ThreadingContext));
                     }
                 }
 

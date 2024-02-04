@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         ImmutableArray<TaggedText> nameDisplayParts,
         ImmutableArray<TaggedText> originationParts,
         ImmutableArray<DocumentIdSpan> sourceSpans,
+        ImmutableArray<AssemblyLocation> metadataLocations,
         ImmutableDictionary<string, string> properties,
         ImmutableDictionary<string, string> displayableProperties,
         bool displayIfNoReferences) : IEquatable<DetachedDefinitionItem>
@@ -37,10 +38,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
         [DataMember(Order = 4)]
         public readonly ImmutableArray<DocumentIdSpan> SourceSpans = sourceSpans;
         [DataMember(Order = 5)]
-        public readonly ImmutableDictionary<string, string> Properties = properties;
+        public readonly ImmutableArray<AssemblyLocation> MetadataLocations = metadataLocations;
         [DataMember(Order = 6)]
-        public readonly ImmutableDictionary<string, string> DisplayableProperties = displayableProperties;
+        public readonly ImmutableDictionary<string, string> Properties = properties;
         [DataMember(Order = 7)]
+        public readonly ImmutableDictionary<string, string> DisplayableProperties = displayableProperties;
+        [DataMember(Order = 8)]
         public readonly bool DisplayIfNoReferences = displayIfNoReferences;
 
         private int _hashCode;
@@ -55,6 +58,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                this.DisplayParts.SequenceEqual(other.DisplayParts) &&
                this.OriginationParts.SequenceEqual(other.OriginationParts) &&
                this.SourceSpans.SequenceEqual(other.SourceSpans) &&
+               this.MetadataLocations.SequenceEqual(other.MetadataLocations) &&
                this.Properties.SetEquals(other.Properties) &&
                this.DisplayableProperties.SetEquals(other.DisplayableProperties);
 
@@ -93,6 +97,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             return new DefaultDefinitionItem(
                 Tags, DisplayParts, NameDisplayParts, OriginationParts,
                 converted.ToImmutableAndClear(), convertedClassifiedSpans.ToImmutableAndClear(),
+                MetadataLocations,
                 Properties, DisplayableProperties, DisplayIfNoReferences);
         }
     }

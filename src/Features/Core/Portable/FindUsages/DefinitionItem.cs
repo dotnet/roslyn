@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// metadata-as-source for metadata symbols.  We need to store the <see cref="SymbolKey"/>
         /// for the symbol and the project ID that originated the symbol.  With these we can correctly recover the symbol.
         /// </summary>
-        private const string MetadataSymbolKey = nameof(MetadataSymbolKey);
-        private const string MetadataSymbolOriginatingProjectIdGuid = nameof(MetadataSymbolOriginatingProjectIdGuid);
-        private const string MetadataSymbolOriginatingProjectIdDebugName = nameof(MetadataSymbolOriginatingProjectIdDebugName);
+        internal const string MetadataSymbolKey = nameof(MetadataSymbolKey);
+        internal const string MetadataSymbolOriginatingProjectIdGuid = nameof(MetadataSymbolOriginatingProjectIdGuid);
+        internal const string MetadataSymbolOriginatingProjectIdDebugName = nameof(MetadataSymbolOriginatingProjectIdDebugName);
 
         /// <summary>
         /// If this item is something that cannot be navigated to.  We store this in our
@@ -104,6 +104,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public ImmutableArray<ClassifiedSpansAndHighlightSpan?> ClassifiedSpans { get; }
 
         /// <summary>
+        /// Identities of assemblies that contain the metadata for this definition.
+        /// </summary>
+        public ImmutableArray<AssemblyLocation> MetadataLocations { get; }
+
+        /// <summary>
         /// Whether or not this definition should be presented if we never found any references to
         /// it.  For example, when searching for a property, the FindReferences engine will cascade
         /// to the accessors in case any code specifically called those accessors (can happen in 
@@ -134,6 +139,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 originationParts,
                 sourceSpans,
                 classifiedSpans,
+                ImmutableArray<AssemblyLocation>.Empty,
                 properties,
                 ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences)
@@ -147,6 +153,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
+            ImmutableArray<AssemblyLocation> metadataLocations,
             ImmutableDictionary<string, string>? properties,
             ImmutableDictionary<string, string>? displayableProperties,
             bool displayIfNoReferences)
@@ -157,6 +164,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             OriginationParts = originationParts.NullToEmpty();
             SourceSpans = sourceSpans.NullToEmpty();
             ClassifiedSpans = classifiedSpans.NullToEmpty();
+            MetadataLocations = metadataLocations.NullToEmpty();
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             DisplayableProperties = displayableProperties ?? ImmutableDictionary<string, string>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;
@@ -185,6 +193,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public abstract Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken);
 
         // Kept around for binary compat with TypeScript.
+        [Obsolete("TypeScript: Use external access APIs")]
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
@@ -199,6 +208,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 nameDisplayParts, displayIfNoReferences);
         }
 
+        [Obsolete("TypeScript: Use external access APIs")]
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
@@ -215,6 +225,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         // Kept around for binary compat with F#/TypeScript.
+        [Obsolete("TypeScript: Use external access APIs")]
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
@@ -224,10 +235,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
             bool displayIfNoReferences)
         {
             return Create(
-                tags, displayParts, sourceSpans, classifiedSpans, nameDisplayParts,
+                tags, displayParts, sourceSpans, classifiedSpans, ImmutableArray<AssemblyLocation>.Empty, nameDisplayParts,
                 properties: null, displayableProperties: ImmutableDictionary<string, string>.Empty, displayIfNoReferences: displayIfNoReferences);
         }
 
+        [Obsolete("TypeScript: Use external access APIs")]
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
@@ -237,7 +249,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableDictionary<string, string>? properties = null,
             bool displayIfNoReferences = true)
         {
-            return Create(tags, displayParts, sourceSpans, classifiedSpans, nameDisplayParts, properties, ImmutableDictionary<string, string>.Empty, displayIfNoReferences);
+            return Create(
+                tags, displayParts, sourceSpans, classifiedSpans,
+                ImmutableArray<AssemblyLocation>.Empty, nameDisplayParts, displayIfNoReferences: displayIfNoReferences);
         }
 
         public static DefinitionItem Create(
@@ -245,65 +259,28 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
+            ImmutableArray<AssemblyLocation> metadataLocations,
             ImmutableArray<TaggedText> nameDisplayParts = default,
+            ImmutableArray<TaggedText> originationParts = default,
             ImmutableDictionary<string, string>? properties = null,
             ImmutableDictionary<string, string>? displayableProperties = null,
             bool displayIfNoReferences = true)
         {
-            if (sourceSpans.Length == 0)
+            Contract.ThrowIfTrue(sourceSpans.IsDefault);
+            Contract.ThrowIfTrue(metadataLocations.IsDefault);
+
+            if (originationParts.IsDefault && !sourceSpans.IsEmpty)
             {
-                throw new ArgumentException($"{nameof(sourceSpans)} cannot be empty.");
+                originationParts = [new TaggedText(TextTags.Text, sourceSpans[0].Document.Project.Name)];
             }
 
-            var firstDocument = sourceSpans[0].Document;
-            var originationParts = ImmutableArray.Create(
-                new TaggedText(TextTags.Text, firstDocument.Project.Name));
-
             return new DefaultDefinitionItem(
                 tags, displayParts, nameDisplayParts, originationParts,
-                sourceSpans, classifiedSpans, properties, displayableProperties, displayIfNoReferences);
-        }
-
-        internal static DefinitionItem CreateMetadataDefinition(
-            ImmutableArray<string> tags,
-            ImmutableArray<TaggedText> displayParts,
-            ImmutableArray<TaggedText> nameDisplayParts,
-            Solution solution,
-            ISymbol symbol,
-            ImmutableDictionary<string, string>? properties = null,
-            bool displayIfNoReferences = true)
-        {
-            properties ??= ImmutableDictionary<string, string>.Empty;
-
-            var symbolKey = symbol.GetSymbolKey().ToString();
-
-            var projectId = solution.GetOriginatingProjectId(symbol);
-            Contract.ThrowIfNull(projectId);
-
-            properties = properties
-                .Add(MetadataSymbolKey, symbolKey)
-                .Add(MetadataSymbolOriginatingProjectIdGuid, projectId.Id.ToString())
-                .Add(MetadataSymbolOriginatingProjectIdDebugName, projectId.DebugName ?? "");
-
-            // Find the highest level containing type to show as the "file name". For metadata locations
-            // that come from embedded source or SourceLink this could be wrong, as there is no reason
-            // to assume a type is defined in a filename that matches, but its _way_ too expensive
-            // to try to find the right answer. For metadata-as-source locations though, it will be the same
-            // as the synthesized filename, so will make sense in the majority of cases.
-            var containingTypeName = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol).Name;
-            properties = properties.Add(AbstractReferenceFinder.ContainingTypeInfoPropertyName, containingTypeName);
-
-            var originationParts = GetOriginationParts(symbol);
-            return new DefaultDefinitionItem(
-                tags, displayParts, nameDisplayParts, originationParts,
-                sourceSpans: [],
-                classifiedSpans: [],
-                properties: properties,
-                displayableProperties: ImmutableDictionary<string, string>.Empty,
-                displayIfNoReferences: displayIfNoReferences);
+                sourceSpans, classifiedSpans, metadataLocations, properties, displayableProperties, displayIfNoReferences);
         }
 
         // Kept around for binary compat with F#/TypeScript.
+        [Obsolete("TypeScript: Use external access APIs")]
         public static DefinitionItem CreateNonNavigableItem(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
@@ -319,6 +296,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> originationParts = default,
+            ImmutableArray<TaggedText> nameDisplayParts = default,
+            ImmutableArray<AssemblyLocation> metadataLocations = default,
             ImmutableDictionary<string, string>? properties = null,
             bool displayIfNoReferences = true)
         {
@@ -330,33 +309,16 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 displayParts: displayParts,
                 nameDisplayParts: [],
                 originationParts: originationParts,
+                nameDisplayParts: nameDisplayParts,
                 sourceSpans: [],
                 classifiedSpans: [],
+                metadataLocations,
                 properties: properties,
                 displayableProperties: ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences: displayIfNoReferences);
         }
 
-        internal static ImmutableArray<TaggedText> GetOriginationParts(ISymbol symbol)
-        {
-            // We don't show an origination location for a namespace because it can span over
-            // both metadata assemblies and source projects.
-            //
-            // Otherwise show the assembly this symbol came from as the Origination of
-            // the DefinitionItem.
-            if (symbol.Kind != SymbolKind.Namespace)
-            {
-                var assemblyName = symbol.ContainingAssembly?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-                if (!string.IsNullOrWhiteSpace(assemblyName))
-                {
-                    return [new TaggedText(TextTags.Assembly, assemblyName)];
-                }
-            }
-
-            return [];
-        }
-
         public DetachedDefinitionItem Detach()
-            => new(Tags, DisplayParts, NameDisplayParts, OriginationParts, SourceSpans.SelectAsArray(ss => (DocumentIdSpan)ss), Properties, DisplayableProperties, DisplayIfNoReferences);
+            => new(Tags, DisplayParts, NameDisplayParts, OriginationParts, SourceSpans.SelectAsArray(ss => (DocumentIdSpan)ss), MetadataLocations, Properties, DisplayableProperties, DisplayIfNoReferences);
     }
 }

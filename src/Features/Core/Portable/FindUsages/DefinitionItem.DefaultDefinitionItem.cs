@@ -27,11 +27,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
+            ImmutableArray<AssemblyLocation> metadataLocations,
             ImmutableDictionary<string, string>? properties,
             ImmutableDictionary<string, string>? displayableProperties,
             bool displayIfNoReferences) : DefinitionItem(
                 tags, displayParts, nameDisplayParts, originationParts,
-                sourceSpans, classifiedSpans, properties, displayableProperties, displayIfNoReferences)
+                sourceSpans, classifiedSpans, metadataLocations, properties, displayableProperties, displayIfNoReferences)
         {
             internal sealed override bool IsExternal => false;
 

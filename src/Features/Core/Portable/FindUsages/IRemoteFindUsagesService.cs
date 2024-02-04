@@ -180,6 +180,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         ImmutableArray<TaggedText> nameDisplayParts,
         ImmutableArray<TaggedText> originationParts,
         ImmutableArray<SerializableDocumentSpan> sourceSpans,
+        ImmutableArray<AssemblyLocation> metadataLocations,
         ImmutableDictionary<string, string> properties,
         ImmutableDictionary<string, string> displayableProperties,
         bool displayIfNoReferences)
@@ -203,12 +204,15 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public readonly ImmutableArray<SerializableDocumentSpan> SourceSpans = sourceSpans;
 
         [DataMember(Order = 6)]
-        public readonly ImmutableDictionary<string, string> Properties = properties;
+        public readonly ImmutableArray<AssemblyLocation> MetadataLocations = metadataLocations;
 
         [DataMember(Order = 7)]
-        public readonly ImmutableDictionary<string, string> DisplayableProperties = displayableProperties;
+        public readonly ImmutableDictionary<string, string> Properties = properties;
 
         [DataMember(Order = 8)]
+        public readonly ImmutableDictionary<string, string> DisplayableProperties = displayableProperties;
+
+        [DataMember(Order = 9)]
         public readonly bool DisplayIfNoReferences = displayIfNoReferences;
 
         public static SerializableDefinitionItem Dehydrate(int id, DefinitionItem item)
@@ -218,6 +222,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                    item.NameDisplayParts,
                    item.OriginationParts,
                    item.SourceSpans.SelectAsArray(SerializableDocumentSpan.Dehydrate),
+                   item.MetadataLocations,
                    item.Properties,
                    item.DisplayableProperties,
                    item.DisplayIfNoReferences);
@@ -234,6 +239,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 sourceSpans,
                 // todo: consider serializing this over.
                 classifiedSpans: sourceSpans.SelectAsArray(ss => (ClassifiedSpansAndHighlightSpan?)null),
+                MetadataLocations,
                 Properties,
                 DisplayableProperties,
                 DisplayIfNoReferences);
