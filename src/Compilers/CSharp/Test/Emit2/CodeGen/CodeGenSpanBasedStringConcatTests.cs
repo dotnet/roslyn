@@ -597,7 +597,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
         var comp = CreateEmptyCompilation(source, [corlib]);
         comp.VerifyDiagnostics();
 
-        var verifier = CompileAndVerify(compilation: comp);
+        var verifier = CompileAndVerify(compilation: comp, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
         verifier.VerifyDiagnostics();
 
         // Even though we have all other members for span-based concatenation, `char` doesn't override `ToString`
@@ -1706,7 +1706,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
         var comp = CreateEmptyCompilation(source, [corlib]);
         comp.VerifyDiagnostics();
 
-        var verifier = CompileAndVerify(compilation: comp);
+        var verifier = CompileAndVerify(compilation: comp, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
         verifier.VerifyDiagnostics();
 
         // Even though we have all other members for span-based concatenation, `char` doesn't override `ToString`
@@ -3826,7 +3826,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
         var comp = CreateEmptyCompilation(source, [corlib]);
         comp.VerifyDiagnostics();
 
-        var verifier = CompileAndVerify(compilation: comp);
+        var verifier = CompileAndVerify(compilation: comp, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
         verifier.VerifyDiagnostics();
 
         // Even though we have all other members for span-based concatenation, `char` doesn't override `ToString`
