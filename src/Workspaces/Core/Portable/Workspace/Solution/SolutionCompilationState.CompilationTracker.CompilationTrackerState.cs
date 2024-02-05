@@ -58,8 +58,15 @@ namespace Microsoft.CodeAnalysis
                 public CompilationTrackerGeneratorInfo(
                     TextDocumentStates<SourceGeneratedDocumentState> documents,
                     GeneratorDriver? driver,
+                    bool documentsAreFinal) : this(documents, driver, documentsAreFinal, documentsAreFinalAndFrozen: false)
+                {
+                }
+
+                private CompilationTrackerGeneratorInfo(
+                    TextDocumentStates<SourceGeneratedDocumentState> documents,
+                    GeneratorDriver? driver,
                     bool documentsAreFinal,
-                    bool documentsAreFinalAndFrozen = false)
+                    bool documentsAreFinalAndFrozen)
                 {
                     Documents = documents;
                     Driver = driver;
