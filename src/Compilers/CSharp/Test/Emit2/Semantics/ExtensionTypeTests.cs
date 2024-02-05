@@ -4059,10 +4059,16 @@ public explicit extension One<T> for object : One<int>.Two
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,27): error CS9311: Base extension 'One<int>.Two' causes a cycle in the extension hierarchy of 'One<T>'.
+            // public explicit extension One<T> for object : One<int>.Two
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "One").WithArguments("One<T>", "One<int>.Two").WithLocation(1, 27)
+            );
 
         var one = comp.GlobalNamespace.GetTypeMember("One");
-        Assert.Empty(one.BaseExtensionsNoUseSiteDiagnostics);
+        var two = one.BaseExtensionsNoUseSiteDiagnostics.Single();
+        Assert.Equal("One<System.Int32>.Two", two.ToTestDisplayString());
+        Assert.True(two.IsErrorType());
     }
 
     [Fact]
@@ -4367,9 +4373,9 @@ explicit extension R2 for R2.Nested[] : R
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
         Assert.True(r2.IsExtension);
-        Assert.Null(r2.ExtendedTypeNoUseSiteDiagnostics);
-        Assert.Empty(r2.BaseExtensionsNoUseSiteDiagnostics);
-        Assert.Empty(r2.AllBaseExtensionsNoUseSiteDiagnostics);
+        Assert.Equal("R2.Nested[]", r2.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal(new[] { "R" }, r2.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+        Assert.Equal(new[] { "R" }, r2.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
     }
 
     [ConditionalFact(typeof(NoBaseExtensions))]
@@ -4390,9 +4396,9 @@ explicit extension R2 for (R2.Nested, int) : R
         Assert.Empty(r.AllBaseExtensionsNoUseSiteDiagnostics);
 
         var r2 = comp.GlobalNamespace.GetTypeMember("R2");
-        Assert.Null(r2.ExtendedTypeNoUseSiteDiagnostics);
-        Assert.Empty(r2.BaseExtensionsNoUseSiteDiagnostics);
-        Assert.Empty(r2.AllBaseExtensionsNoUseSiteDiagnostics);
+        Assert.Equal("(R2.Nested, System.Int32)", r2.ExtendedTypeNoUseSiteDiagnostics.ToTestDisplayString());
+        Assert.Equal(new[] { "R" }, r2.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+        Assert.Equal(new[] { "R" }, r2.AllBaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
     }
 
     [ConditionalFact(typeof(NoBaseExtensions))]
@@ -9382,16 +9388,35 @@ public explicit extension D for object : C.Base
     public explicit extension E for object : C.Base { }
 }
 """;
+
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,5): error CS0117: 'D.E' does not contain a definition for 'M'
+            // D.E.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("D.E", "M").WithLocation(1, 5),
+            // (2,9): error CS0117: 'D.E' does not contain a definition for 'Property'
+            // _ = D.E.Property;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("D.E", "Property").WithLocation(2, 9),
+            // (4,27): error CS9311: Base extension 'D.E' causes a cycle in the extension hierarchy of 'C'.
+            // public explicit extension C for object : D.E
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "C").WithArguments("C", "D.E").WithLocation(4, 27),
+            // (24,27): error CS9311: Base extension 'C.Base' causes a cycle in the extension hierarchy of 'D'.
+            // public explicit extension D for object : C.Base
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "D").WithArguments("D", "C.Base").WithLocation(24, 27),
+            // (26,31): error CS9311: Base extension 'C.Base' causes a cycle in the extension hierarchy of 'D.E'.
+            //     public explicit extension E for object : C.Base { }
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "E").WithArguments("D.E", "C.Base").WithLocation(26, 31)
+            );
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "D.E.M()");
-        Assert.Equal("void C.Base.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        Assert.Equal("D.E.M()", invocation.ToString());
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
 
-        var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "D.E.Property");
-        Assert.Equal("System.Int32 C.Base.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(2).First();
+        Assert.Equal("D.E.Property", property.ToString());
+        Assert.Null(model.GetSymbolInfo(property).Symbol);
     }
 
     [ConditionalFact(typeof(NoBaseExtensions), typeof(ClrOnly))]
@@ -9442,17 +9467,42 @@ public explicit extension D for object : C.Base
         var comp3 = CreateCompilation(src3, targetFramework: TargetFramework.Net70,
             references: new[] { comp2.ToMetadataReference() });
 
-        comp3.VerifyDiagnostics();
+        comp3.VerifyDiagnostics(
+            // (1,5): error CS0117: 'D.E' does not contain a definition for 'M'
+            // D.E.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("D.E", "M").WithLocation(1, 5),
+            // (2,9): error CS0117: 'D.E' does not contain a definition for 'Property'
+            // _ = D.E.Property;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("D.E", "Property").WithLocation(2, 9),
+            // (4,27): error CS9311: Base extension 'D.E' causes a cycle in the extension hierarchy of 'C'.
+            // public explicit extension C for object : D.E, B
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "C").WithArguments("C", "D.E").WithLocation(4, 27),
+            // (4,27): error CS8090: There is an error in a referenced assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // public explicit extension C for object : D.E, B
+            Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "C").WithArguments("missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 27),
+            // (10,13): error CS8090: There is an error in a referenced assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            //             System.Console.Write("Method ");
+            Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "System").WithArguments("missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 13),
+            // (17,17): error CS8090: There is an error in a referenced assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            //                 System.Console.Write("Property");
+            Diagnostic(ErrorCode.ERR_ErrorInReferencedAssembly, "System").WithArguments("missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(17, 17),
+            // (24,27): error CS9311: Base extension 'C.Base' causes a cycle in the extension hierarchy of 'D'.
+            // public explicit extension D for object : C.Base
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "D").WithArguments("D", "C.Base").WithLocation(24, 27),
+            // (26,31): error CS9311: Base extension 'C.Base' causes a cycle in the extension hierarchy of 'D.E'.
+            //     public explicit extension E for object : C.Base { }
+            Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "E").WithArguments("D.E", "C.Base").WithLocation(26, 31)
+            );
 
         var tree = comp3.SyntaxTrees.Single();
         var model = comp3.GetSemanticModel(tree);
         var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
         Assert.Equal("D.E.M()", invocation.ToString());
-        Assert.Equal("void C.Base.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
 
         var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(2).First();
         Assert.Equal("D.E.Property", property.ToString());
-        Assert.Equal("System.Int32 C.Base.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetSymbolInfo(property).Symbol);
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -9509,7 +9559,11 @@ explicit extension A<T> for object { }
 explicit extension B for object : A<B.Garbage> { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (2,39): error CS0426: The type name 'Garbage' does not exist in the type 'B'
+            // explicit extension B for object : A<B.Garbage> { }
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Garbage").WithArguments("Garbage", "B").WithLocation(2, 39)
+            );
     }
 
     [ConditionalFact(typeof(NoBaseExtensions))]
@@ -9599,23 +9653,18 @@ public explicit extension D for object : C<string>
     }
 
     [Fact]
-    public void MemberLookup_MethodsFromObject()
+    public void MemberLookup_MethodsFromObject_Static()
     {
         var src = """
-#pragma warning disable CS8321 // unused local function
-void M(A a)
-{
-    A.ToString();
-    a.ToString();
-}
+A.ToString();
 
 public explicit extension A for object { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (4,5): error CS0120: An object reference is required for the non-static field, method, or property 'object.ToString()'
-            //     A.ToString();
-            Diagnostic(ErrorCode.ERR_ObjectRequired, "A.ToString").WithArguments("object.ToString()").WithLocation(4, 5)
+            // (1,1): error CS0120: An object reference is required for the non-static field, method, or property 'object.ToString()'
+            // A.ToString();
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "A.ToString").WithArguments("object.ToString()").WithLocation(1, 1)
             );
 
         var tree = comp.SyntaxTrees.First();
@@ -9623,8 +9672,35 @@ public explicit extension A for object { }
         var typeInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "A.ToString()");
         Assert.Null(model.GetSymbolInfo(typeInvocation).Symbol);
         Assert.Empty(model.GetMemberGroup(typeInvocation));
+    }
 
-        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "a.ToString()");
+    [Fact]
+    public void MemberLookup_MethodsFromObject_Instance()
+    {
+        var src = """
+//E e = new object();
+//e.M(e);
+
+public explicit extension E for object
+{
+    void M(E e)
+    {
+        this.ToString();
+        e.ToString();
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE Execute when adding support for emitting non-static members
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.ToString()");
+        Assert.Equal("System.String? System.Object.ToString()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.ToString()");
         Assert.Equal("System.String? System.Object.ToString()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(instanceInvocation)); // PROTOTYPE need to fix the semantic model
     }
@@ -21665,6 +21741,7 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension EOuter for C
     public static void Method() => throw null;
 }
 """;
+        // PROTOTYPE should warn about hiding on EOuter.Method
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         var verifier = CompileAndVerify(comp, expectedOutput: "Method Method").VerifyDiagnostics();
         verifier.VerifyIL("EOuter.EInner.M", """
@@ -21732,6 +21809,106 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension EOuter for C
             //             C.MPrivate(); // 5
             Diagnostic(ErrorCode.ERR_BadAccess, "MPrivate").WithArguments("C.MPrivate()").WithLocation(18, 15)
             );
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Invocation_Interface(bool isExplicit)
+    {
+        var source = $$"""
+EOuter.EInner.M();
+
+interface I
+{
+    public static void Method() => throw null;
+}
+
+static {{(isExplicit ? "explicit" : "implicit")}} extension EOuter for I
+{
+    public interface I2
+    {
+        public static void Method() { System.Console.Write("Method "); }
+    }
+
+    public static {{(isExplicit ? "explicit" : "implicit")}} extension EInner for I2
+    {
+        public static void M() { Method(); EInner.Method(); }
+    }
+
+    public static void Method() => throw null;
+}
+""";
+        // PROTOTYPE should warn about hiding on EOuter.Method
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: "Method Method").VerifyDiagnostics();
+        verifier.VerifyIL("EOuter.EInner.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  0
+  IL_0000:  call       "void EOuter.I2.Method()"
+  IL_0005:  call       "void EOuter.I2.Method()"
+  IL_000a:  ret
+}
+""");
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "Method()");
+        Assert.Equal("void EOuter.I2.Method()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation)); // PROTOTYPE need to fix the semantic model
+
+        var typeReceiverInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "EInner.Method()");
+        Assert.Equal("void EOuter.I2.Method()", model.GetSymbolInfo(typeReceiverInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(typeReceiverInvocation)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Field_Interface(bool isExplicit)
+    {
+        var source = $$"""
+System.Console.Write(E.Field);
+
+public interface I
+{
+    public static int Field = 1;
+}
+
+public static {{(isExplicit ? "explicit" : "implicit")}} extension E for I { }
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var simpleInvocation = GetSyntax<IdentifierNameSyntax>(tree, "Field");
+        Assert.Equal("System.Int32 I.Field", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Field_Interface_AfterMemberFromExtension(bool isExplicit)
+    {
+        var source = $$"""
+System.Console.Write(E.Field);
+
+public interface I
+{
+    public static int Field = 0;
+}
+
+public static {{(isExplicit ? "explicit" : "implicit")}} extension E for I
+{
+    public static int Field = 1;
+}
+""";
+        // PROTOTYPE should warn about hiding
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var simpleInvocation = GetSyntax<IdentifierNameSyntax>(tree, "Field");
+        Assert.Equal("System.Int32 E.Field", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation)); // PROTOTYPE need to fix the semantic model
     }
 
     [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
