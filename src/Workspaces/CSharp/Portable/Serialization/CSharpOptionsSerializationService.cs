@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Serialization
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Serialization
             WriteCompilationOptionsTo(options, writer, cancellationToken);
 
             var csharpOptions = (CSharpCompilationOptions)options;
-            writer.WriteValue(csharpOptions.Usings.ToArray());
+            writer.WriteArray(csharpOptions.Usings, static (w, u) => w.WriteString(u));
             writer.WriteBoolean(csharpOptions.AllowUnsafe);
             writer.WriteByte((byte)csharpOptions.NullableContextOptions);
         }
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Serialization
 
             var csharpOptions = (CSharpParseOptions)options;
             writer.WriteInt32((int)csharpOptions.SpecifiedLanguageVersion);
-            writer.WriteValue(options.PreprocessorSymbolNames.ToArray());
+            writer.WriteArray(options.PreprocessorSymbolNames.ToImmutableArrayOrEmpty(), static (w, p) => w.WriteString(p));
         }
 
         public override CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken)
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Serialization
                 xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
                 strongNameProvider) = ReadCompilationOptionsPieces(reader, cancellationToken);
 
-            var usings = reader.ReadArray<string>();
+            var usings = reader.ReadArray(static r => r.ReadString());
             var allowUnsafe = reader.ReadBoolean();
             var nullableContextOptions = (NullableContextOptions)reader.ReadByte();
 
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Serialization
             var (kind, documentationMode, features) = ReadParseOptionsPieces(reader, cancellationToken);
 
             var languageVersion = (LanguageVersion)reader.ReadInt32();
-            var preprocessorSymbolNames = reader.ReadArray<string>();
+            var preprocessorSymbolNames = reader.ReadArray(static r => r.ReadString());
 
             var options = new CSharpParseOptions(languageVersion, documentationMode, kind, preprocessorSymbolNames);
             return options.WithFeatures(features);

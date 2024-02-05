@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -37,7 +35,7 @@ internal sealed partial class ObjectReader : IDisposable
     /// this version, just change VersionByte2.
     /// </summary>
     internal const byte VersionByte1 = 0b10101010;
-    internal const byte VersionByte2 = 0b00001100;
+    internal const byte VersionByte2 = 0b00001101;
 
     private readonly BinaryReader _reader;
     private readonly CancellationToken _cancellationToken;
@@ -45,7 +43,7 @@ internal sealed partial class ObjectReader : IDisposable
     /// <summary>
     /// Map of reference id's to deserialized strings.
     /// </summary>
-    private readonly ReaderReferenceMap<string> _stringReferenceMap;
+    private readonly ReaderReferenceMap _stringReferenceMap;
 
     /// <summary>
     /// Creates a new instance of a <see cref="ObjectReader"/>.
@@ -63,7 +61,7 @@ internal sealed partial class ObjectReader : IDisposable
         Debug.Assert(BitConverter.IsLittleEndian);
 
         _reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen);
-        _stringReferenceMap = ReaderReferenceMap<string>.Create();
+        _stringReferenceMap = ReaderReferenceMap.Create();
 
         _cancellationToken = cancellationToken;
     }
@@ -73,8 +71,8 @@ internal sealed partial class ObjectReader : IDisposable
     /// If the <paramref name="stream"/> does not start with a valid header, then <see langword="null"/> will
     /// be returned.
     /// </summary>
-    public static ObjectReader TryGetReader(
-        Stream stream,
+    public static ObjectReader? TryGetReader(
+        Stream? stream,
         bool leaveOpen = false,
         CancellationToken cancellationToken = default)
     {
@@ -161,7 +159,9 @@ internal sealed partial class ObjectReader : IDisposable
     public uint ReadUInt32() => _reader.ReadUInt32();
     public ulong ReadUInt64() => _reader.ReadUInt64();
     public ushort ReadUInt16() => _reader.ReadUInt16();
-    public string ReadString() => ReadStringValue();
+    public string? ReadString() => ReadStringValue();
+
+    public string ReadRequiredString() => ReadString() ?? throw ExceptionUtilities.Unreachable();
 
     public Guid ReadGuid()
     {
@@ -174,7 +174,7 @@ internal sealed partial class ObjectReader : IDisposable
         return accessor.Guid;
     }
 
-    public object ReadValue()
+    public object? ReadScalarValue()
     {
         var code = (TypeCode)ReadByte();
         switch (code)
@@ -232,15 +232,22 @@ internal sealed partial class ObjectReader : IDisposable
                 return ReadStringValue(code);
             case TypeCode.DateTime:
                 return DateTime.FromBinary(ReadInt64());
-            case TypeCode.Array:
-            case TypeCode.Array_0:
-            case TypeCode.Array_1:
-            case TypeCode.Array_2:
-            case TypeCode.Array_3:
-                return ReadArray(code);
+
+            default:
+                throw ExceptionUtilities.UnexpectedValue(code);
+        }
+    }
+
+    public Encoding? ReadEncoding()
+    {
+        var code = (TypeCode)ReadByte();
+        switch (code)
+        {
+            case TypeCode.Null:
+                return null;
 
             case TypeCode.EncodingName:
-                return Encoding.GetEncoding(ReadString());
+                return Encoding.GetEncoding(ReadRequiredString());
 
             case >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding:
                 return ObjectWriter.ToEncodingKind(code).GetEncoding();
@@ -253,56 +260,34 @@ internal sealed partial class ObjectReader : IDisposable
         }
     }
 
-    public (char[] array, int length) ReadCharArray(Func<int, char[]> getArray)
+    public byte[] ReadByteArray()
     {
-        var kind = (TypeCode)ReadByte();
-
-        (var length, _) = ReadArrayLengthAndElementKind(kind);
-        var array = getArray(length);
-
-        var charsRead = _reader.Read(array, 0, length);
-
-        return (array, charsRead);
+        var (result, _) = ReadRawArray<byte>(static (reader, array, length) => reader.Read(array, 0, length));
+        return result;
     }
 
-    /// <summary>
-    /// A reference-id to object map, that can share base data efficiently.
-    /// </summary>
-    private readonly struct ReaderReferenceMap<T> : IDisposable
-        where T : class
+    public char[] ReadCharArray()
     {
-        private readonly SegmentedList<T> _values;
+        var (result, _) = ReadCharArray(getArray: null);
+        return result;
+    }
 
-        private static readonly ObjectPool<SegmentedList<T>> s_objectListPool
-            = new(() => new SegmentedList<T>(20));
+    public (char[] array, int length) ReadCharArray(Func<int, char[]>? getArray)
+        => ReadRawArray(static (reader, array, length) => reader.Read(array, 0, length), getArray);
 
-        private ReaderReferenceMap(SegmentedList<T> values)
-            => _values = values;
+    public (T[] array, int length) ReadRawArray<T>(
+        Func<BinaryReader, T[], int, int> read,
+        Func<int, T[]>? getArray = null)
+    {
+        // Defer to caller provided getArray if provided.  Otherwise, we'll just allocate the array ourselves.
+        getArray ??= static length => length == 0 ? [] : new T[length];
 
-        public static ReaderReferenceMap<T> Create()
-            => new(s_objectListPool.Allocate());
+        var length = ReadArrayLength();
+        var array = getArray(length);
 
-        public void Dispose()
-        {
-            _values.Clear();
-            s_objectListPool.Free(_values);
-        }
+        var charsRead = read(_reader, array, length);
 
-        public int GetNextObjectId()
-        {
-            var id = _values.Count;
-            _values.Add(null);
-            return id;
-        }
-
-        public void AddValue(T value)
-            => _values.Add(value);
-
-        public void AddValue(int index, T value)
-            => _values[index] = value;
-
-        public T GetValue(int referenceId)
-            => _values[referenceId];
+        return (array, charsRead);
     }
 
     internal uint ReadCompressedUInt()
@@ -334,7 +319,7 @@ internal sealed partial class ObjectReader : IDisposable
         throw ExceptionUtilities.UnexpectedValue(marker);
     }
 
-    private string ReadStringValue()
+    private string? ReadStringValue()
     {
         var kind = (TypeCode)ReadByte();
         return kind == TypeCode.Null ? null : ReadStringValue(kind);
@@ -374,24 +359,8 @@ internal sealed partial class ObjectReader : IDisposable
         return value;
     }
 
-    private Array ReadArray(TypeCode kind)
-    {
-        var (length, elementKind) = ReadArrayLengthAndElementKind(kind);
-
-        var elementType = ObjectWriter.s_reverseTypeMap[(int)elementKind];
-        if (elementType != null)
-        {
-            return this.ReadPrimitiveTypeArrayElements(elementType, elementKind, length);
-        }
-        else
-        {
-            throw ExceptionUtilities.UnexpectedValue(elementKind);
-        }
-    }
-
-    private (int length, TypeCode elementKind) ReadArrayLengthAndElementKind(TypeCode kind)
-    {
-        var length = kind switch
+    private int ReadArrayLength()
+        => (TypeCode)ReadByte() switch
         {
             TypeCode.Array_0 => 0,
             TypeCode.Array_1 => 1,
@@ -399,186 +368,4 @@ internal sealed partial class ObjectReader : IDisposable
             TypeCode.Array_3 => 3,
             _ => (int)this.ReadCompressedUInt(),
         };
-
-        // SUBTLE: If it was a primitive array, only the EncodingKind byte of the element type was written, instead of encoding as a type.
-        var elementKind = (TypeCode)ReadByte();
-
-        return (length, elementKind);
-    }
-
-    private Array ReadPrimitiveTypeArrayElements(Type type, TypeCode kind, int length)
-    {
-        Debug.Assert(ObjectWriter.s_reverseTypeMap[(int)kind] == type);
-
-        // optimizations for supported array type by binary reader
-        if (type == typeof(byte))
-            return _reader.ReadBytes(length);
-        if (type == typeof(char))
-            return _reader.ReadChars(length);
-
-        // optimizations for string where object reader/writer has its own mechanism to
-        // reduce duplicated strings
-        if (type == typeof(string))
-            return ReadStringArrayElements(CreateArray<string>(length));
-        if (type == typeof(bool))
-            return ReadBooleanArrayElements(CreateArray<bool>(length));
-
-        // otherwise, read elements directly from underlying binary writer
-        return kind switch
-        {
-            TypeCode.Int8 => ReadInt8ArrayElements(CreateArray<sbyte>(length)),
-            TypeCode.Int16 => ReadInt16ArrayElements(CreateArray<short>(length)),
-            TypeCode.Int32 => ReadInt32ArrayElements(CreateArray<int>(length)),
-            TypeCode.Int64 => ReadInt64ArrayElements(CreateArray<long>(length)),
-            TypeCode.UInt16 => ReadUInt16ArrayElements(CreateArray<ushort>(length)),
-            TypeCode.UInt32 => ReadUInt32ArrayElements(CreateArray<uint>(length)),
-            TypeCode.UInt64 => ReadUInt64ArrayElements(CreateArray<ulong>(length)),
-            TypeCode.Float4 => ReadFloat4ArrayElements(CreateArray<float>(length)),
-            TypeCode.Float8 => ReadFloat8ArrayElements(CreateArray<double>(length)),
-            TypeCode.Decimal => ReadDecimalArrayElements(CreateArray<decimal>(length)),
-            _ => throw ExceptionUtilities.UnexpectedValue(kind),
-        };
-    }
-
-    private bool[] ReadBooleanArrayElements(bool[] array)
-    {
-        // Confirm the type to be read below is ulong
-        Debug.Assert(BitVector.BitsPerWord == 64);
-
-        var wordLength = BitVector.WordsRequired(array.Length);
-
-        var count = 0;
-        for (var i = 0; i < wordLength; i++)
-        {
-            var word = ReadUInt64();
-
-            for (var p = 0; p < BitVector.BitsPerWord; p++)
-            {
-                if (count >= array.Length)
-                {
-                    return array;
-                }
-
-                array[count++] = BitVector.IsTrue(word, p);
-            }
-        }
-
-        return array;
-    }
-
-    private static T[] CreateArray<T>(int length)
-    {
-        if (length == 0)
-        {
-            // quick check
-            return [];
-        }
-        else
-        {
-            return new T[length];
-        }
-    }
-
-    private string[] ReadStringArrayElements(string[] array)
-    {
-        for (var i = 0; i < array.Length; i++)
-            array[i] = this.ReadStringValue();
-
-        return array;
-    }
-
-    private sbyte[] ReadInt8ArrayElements(sbyte[] array)
-    {
-        for (var i = 0; i < array.Length; i++)
-            array[i] = ReadSByte();
-
-        return array;
-    }
-
-    private short[] ReadInt16ArrayElements(short[] array)
-    {
-        for (var i = 0; i < array.Length; i++)
-            array[i] = ReadInt16();
-
-        return array;
-    }
-
-    private int[] ReadInt32ArrayElements(int[] array)
-    {
-        for (var i = 0; i < array.Length; i++)
-            array[i] = ReadInt32();
-
-        return array;
-    }
-
-    private long[] ReadInt64ArrayElements(long[] array)
-    {
-        for (var i = 0; i < array.Length; i++)
-            array[i] = ReadInt64();
-
-        return array;
-    }
-
-    private ushort[] ReadUInt16ArrayElements(ushort[] array)
-    {
-        for (var i = 0; i < array.Length; i++)
-            array[i] = ReadUInt16();
-
-        return array;
-    }
-
-    private uint[] ReadUInt32ArrayElements(uint[] array)
-    {
-        for (var i = 0; i < array.Length; i++)
-            array[i] = ReadUInt32();
-
-        return array;
-    }
-
-    private ulong[] ReadUInt64ArrayElements(ulong[] array)
-    {
-        for (var i = 0; i < array.Length; i++)
-            array[i] = ReadUInt64();
-
-        return array;
-    }
-
-    private decimal[] ReadDecimalArrayElements(decimal[] array)
-    {
-        for (var i = 0; i < array.Length; i++)
-            array[i] = ReadDecimal();
-
-        return array;
-    }
-
-    private float[] ReadFloat4ArrayElements(float[] array)
-    {
-        for (var i = 0; i < array.Length; i++)
-            array[i] = ReadSingle();
-
-        return array;
-    }
-
-    private double[] ReadFloat8ArrayElements(double[] array)
-    {
-        for (var i = 0; i < array.Length; i++)
-            array[i] = ReadDouble();
-
-        return array;
-    }
-
-    private static Exception DeserializationReadIncorrectNumberOfValuesException(string typeName)
-    {
-        throw new InvalidOperationException(String.Format(Resources.Deserialization_reader_for_0_read_incorrect_number_of_values, typeName));
-    }
-
-    private static Exception NoSerializationTypeException(string typeName)
-    {
-        return new InvalidOperationException(string.Format(Resources.The_type_0_is_not_understood_by_the_serialization_binder, typeName));
-    }
-
-    private static Exception NoSerializationReaderException(string typeName)
-    {
-        return new InvalidOperationException(string.Format(Resources.Cannot_serialize_type_0, typeName));
-    }
 }

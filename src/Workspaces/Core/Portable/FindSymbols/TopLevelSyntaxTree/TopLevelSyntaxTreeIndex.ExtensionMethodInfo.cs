@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var count = reader.ReadInt32();
 
                     for (var i = 0; i < count; ++i)
-                        receiverTypeNameToExtensionMethodMapBuilder[reader.ReadString()] = reader.ReadArray(static r => r.ReadInt32());
+                        receiverTypeNameToExtensionMethodMapBuilder[reader.ReadRequiredString()] = reader.ReadArray(static r => r.ReadInt32());
 
                     return new ExtensionMethodInfo(receiverTypeNameToExtensionMethodMapBuilder.ToImmutable());
                 }
