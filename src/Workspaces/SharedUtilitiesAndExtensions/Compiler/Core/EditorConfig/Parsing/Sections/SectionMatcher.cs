@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                !pattern.Contains(DefaultVisualBasicExtensionWithoutDot);
 
         private static bool IsCSharpOrVisualBasicSuperSet(Language language, string pattern)
-            => language.HasFlag(Language.VisualBasic) && language.HasFlag(Language.VisualBasic) &&
+            => language.HasFlag(Language.VisualBasic) && language.HasFlag(Language.CSharp) &&
                !(pattern.Contains(DefaultCSharpExtensionWithoutDot) && pattern.Contains(DefaultVisualBasicExtensionWithoutDot));
 
         private bool IsPathMatch(string s)
