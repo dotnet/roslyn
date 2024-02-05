@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Tries to get the latest snapshot of the compilation without waiting for it to be fully built. This
             /// method takes advantage of the progress side-effect produced during <see
-            /// cref="BuildCompilationInfoAsync"/>. It will either return the already built compilation, any in-progress
+            /// cref="BuildFinalStateAsync"/>. It will either return the already built compilation, any in-progress
             /// compilation or any known old compilation in that order of preference. The compilation state that is
             /// returned will have a compilation that is retained so that it cannot disappear.
             /// </summary>
@@ -445,11 +445,11 @@ namespace Microsoft.CodeAnalysis
             private async Task<Compilation> GetCompilationSlowAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                var finalState = await GetOrBuildCompilationInfoAsync(compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var finalState = await GetOrBuildFinalStateAsync(compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return finalState.FinalCompilationWithGeneratedDocuments;
             }
 
-            private async Task<FinalState> GetOrBuildCompilationInfoAsync(
+            private async Task<FinalState> GetOrBuildFinalStateAsync(
                 SolutionCompilationState compilationState,
                 bool lockGate,
                 CancellationToken cancellationToken)
@@ -473,12 +473,12 @@ namespace Microsoft.CodeAnalysis
                         {
                             using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                             {
-                                return await BuildCompilationInfoAsync(compilationState, cancellationToken).ConfigureAwait(false);
+                                return await BuildFinalStateAsync(compilationState, cancellationToken).ConfigureAwait(false);
                             }
                         }
                         else
                         {
-                            return await BuildCompilationInfoAsync(compilationState, cancellationToken).ConfigureAwait(false);
+                            return await BuildFinalStateAsync(compilationState, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis
             /// Builds the compilation matching the project state. In the process of building, also
             /// produce in progress snapshots that can be accessed from other threads.
             /// </summary>
-            private async Task<FinalState> BuildCompilationInfoAsync(
+            private async Task<FinalState> BuildFinalStateAsync(
                 SolutionCompilationState compilationState,
                 CancellationToken cancellationToken)
             {
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis
                 if (compilation == null)
                 {
                     // We've got nothing.  Build it from scratch :(
-                    return await BuildCompilationInfoFromScratchAsync(
+                    return await BuildFinalStateFromScratchAsync(
                         compilationState,
                         state.GeneratorInfo,
                         cancellationToken).ConfigureAwait(false);
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private async Task<FinalState> BuildCompilationInfoFromScratchAsync(
+            private async Task<FinalState> BuildFinalStateFromScratchAsync(
                 SolutionCompilationState compilationState,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 CancellationToken cancellationToken)
@@ -860,9 +860,9 @@ namespace Microsoft.CodeAnalysis
             private async Task<bool> HasSuccessfullyLoadedSlowAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                var compilationInfo = await GetOrBuildCompilationInfoAsync(
+                var finalState = await GetOrBuildFinalStateAsync(
                     compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-                return compilationInfo.HasSuccessfullyLoaded;
+                return finalState.HasSuccessfullyLoaded;
             }
 
             public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
@@ -874,9 +874,9 @@ namespace Microsoft.CodeAnalysis
                     return TextDocumentStates<SourceGeneratedDocumentState>.Empty;
                 }
 
-                var compilationInfo = await GetOrBuildCompilationInfoAsync(
+                var finalState = await GetOrBuildFinalStateAsync(
                     compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-                return compilationInfo.GeneratorInfo.Documents;
+                return finalState.GeneratorInfo.Documents;
             }
 
             public async ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(
@@ -887,10 +887,10 @@ namespace Microsoft.CodeAnalysis
                     return [];
                 }
 
-                var compilationInfo = await GetOrBuildCompilationInfoAsync(
+                var finalState = await GetOrBuildFinalStateAsync(
                     compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                var driverRunResult = compilationInfo.GeneratorInfo.Driver?.GetRunResult();
+                var driverRunResult = finalState.GeneratorInfo.Driver?.GetRunResult();
                 if (driverRunResult is null)
                 {
                     return [];
