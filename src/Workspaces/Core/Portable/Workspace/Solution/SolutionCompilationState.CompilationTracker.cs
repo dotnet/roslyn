@@ -508,42 +508,38 @@ namespace Microsoft.CodeAnalysis
 
                 var state = ReadState();
 
-                // if we already have a compilation, we must be already done!  This can happen if two
-                // threads were waiting to build, and we came in after the other succeeded.
-                if (state is FinalState finalState)
-                    return finalState;
-
-                if (state is not WithCompilationState withCompilationState)
+                return state switch
                 {
-                    Contract.ThrowIfFalse(state is NoCompilationState);
+                    // if we already have a compilation, we must be already done!  This can happen if two
+                    // threads were waiting to build, and we came in after the other succeeded.
+                    FinalState finalState
+                        => finalState,
 
                     // We've got nothing.  Build it from scratch :(
-                    return await BuildFinalStateFromScratchAsync(
-                        compilationState,
-                        state.GeneratorInfo,
-                        cancellationToken).ConfigureAwait(false);
-                }
+                    NoCompilationState
+                        => await BuildFinalStateFromScratchAsync(
+                            compilationState,
+                            state.GeneratorInfo,
+                            cancellationToken).ConfigureAwait(false),
 
-                Contract.ThrowIfFalse(state is AllSyntaxTreesParsedState or InProgressState);
-
-                if (state is AllSyntaxTreesParsedState)
-                {
                     // We have a declaration compilation, use it to reconstruct the final compilation
-                    return await FinalizeCompilationAsync(
-                        compilationState,
-                        withCompilationState.CompilationWithoutGeneratedDocuments,
-                        withCompilationState.GeneratorInfo,
-                        compilationWithStaleGeneratedTrees: null,
-                        cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
+                    AllSyntaxTreesParsedState allSyntaxTreesParsedState
+                        => await FinalizeCompilationAsync(
+                            compilationState,
+                            allSyntaxTreesParsedState.CompilationWithoutGeneratedDocuments,
+                            allSyntaxTreesParsedState.GeneratorInfo,
+                            compilationWithStaleGeneratedTrees: null,
+                            cancellationToken).ConfigureAwait(false),
+
                     // We must have an in progress compilation. Build off of that.
-                    return await BuildFinalStateFromInProgressStateAsync(
-                        compilationState,
-                        (InProgressState)state,
-                        cancellationToken).ConfigureAwait(false);
-                }
+                    InProgressState inProgressState
+                        => await BuildFinalStateFromInProgressStateAsync(
+                            compilationState,
+                            inProgressState,
+                            cancellationToken).ConfigureAwait(false),
+
+                    _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
+                };
 
                 async Task<FinalState> BuildFinalStateFromScratchAsync(
                     SolutionCompilationState compilationState,
