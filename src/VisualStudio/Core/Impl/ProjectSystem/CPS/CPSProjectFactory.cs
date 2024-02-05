@@ -219,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
             if (!PathUtilities.IsAbsolute(path))
             {
-                path = Path.Combine(PathUtilities.GetDirectoryName(projectFilePath), path);
+                path = Path.Combine(PathUtilities.GetDirectoryName(projectFilePath), path); 
             }
 
             if (!PathUtilities.IsAbsolute(path))
@@ -227,7 +227,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 throw new InvalidProjectDataException(itemName, values[0], $"Item group '{itemName}' is required to specify an absolute path or a path relative to the directory containing the project: '{values[0]}'.");
             }
 
-            return path;
+            // normalize "." and ".." on the way out
+            return FileUtilities.TryNormalizeAbsolutePath(path) ?? path;
         }
     }
 }
