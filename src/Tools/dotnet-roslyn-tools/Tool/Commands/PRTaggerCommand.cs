@@ -38,9 +38,6 @@ internal static class PRTaggerCommand
         public async Task<int> InvokeAsync(InvocationContext context)
         {
             var logger = context.SetupLogging();
-
-            var vsBuild = context.ParseResult.GetValueForOption(VSBuild)!;
-            var vsCommitSha = context.ParseResult.GetValueForOption(CommitId)!;
             var settings = context.ParseResult.LoadSettings(logger);
 
             // if (string.IsNullOrEmpty(settings.GitHubToken) ||
@@ -54,13 +51,12 @@ internal static class PRTaggerCommand
             using var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
             var buildsAndCommits = await PRTagger.PRTagger.GetVSBuildsAndCommitsAsync(devdivConnection, logger).ConfigureAwait(false);
 
-            return 0;
-            // return await PRTagger.PRTagger.TagPRs(
-            //     vsBuild,
-            //     vsCommitSha,
-            //     settings,
-            //     logger,
-            //     CancellationToken.None).ConfigureAwait(false);
+            return await PRTagger.PRTagger.TagPRs(
+                vsBuildsAndCommitSha: buildsAndCommits,
+                settings,
+                devDivConnection,
+                logger,
+                CancellationToken.None).ConfigureAwait(false);
         }
     }
 }

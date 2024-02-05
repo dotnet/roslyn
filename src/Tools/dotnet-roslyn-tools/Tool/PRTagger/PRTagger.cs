@@ -34,13 +34,12 @@ internal static class PRTagger
     /// <param name="cancellationToken"></param>
     /// <returns>Exit code indicating whether issue was successfully created.</returns>
     public static async Task<int> TagPRs(
-        string vsBuild,
-        string vsCommitSha,
+        ImmutableArray<(string vsBuild, string vsCommitSha)> vsBuildsAndCommitSha,
         RoslynToolsSettings settings,
+        AzDOConnection devdivConnection,
         ILogger logger,
         CancellationToken cancellationToken)
     {
-        using var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
         using var dncengConnection = new AzDOConnection(settings.DncEngAzureDevOpsBaseUri, "internal", settings.DncEngAzureDevOpsToken);
         var connections = new AzDOConnection[] { devdivConnection, dncengConnection };
 
