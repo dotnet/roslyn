@@ -445,11 +445,11 @@ namespace Microsoft.CodeAnalysis
             private async Task<Compilation> GetCompilationSlowAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                var compilationInfo = await GetOrBuildCompilationInfoAsync(compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-                return compilationInfo.Compilation;
+                var finalState = await GetOrBuildCompilationInfoAsync(compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return finalState.FinalCompilationWithGeneratedDocuments;
             }
 
-            private async Task<CompilationInfo> GetOrBuildCompilationInfoAsync(
+            private async Task<FinalState> GetOrBuildCompilationInfoAsync(
                 SolutionCompilationState compilationState,
                 bool lockGate,
                 CancellationToken cancellationToken)
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis
 
                         // Try to get the built compilation.  If it exists, then we can just return that.
                         if (state is FinalState finalState)
-                            return new CompilationInfo(finalState.FinalCompilationWithGeneratedDocuments, finalState.HasSuccessfullyLoaded, state.GeneratorInfo);
+                            return finalState;
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
                         // build this compilation at a time.
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis
             /// Builds the compilation matching the project state. In the process of building, also
             /// produce in progress snapshots that can be accessed from other threads.
             /// </summary>
-            private async Task<CompilationInfo> BuildCompilationInfoAsync(
+            private async Task<FinalState> BuildCompilationInfoAsync(
                 SolutionCompilationState compilationState,
                 CancellationToken cancellationToken)
             {
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis
                 // if we already have a compilation, we must be already done!  This can happen if two
                 // threads were waiting to build, and we came in after the other succeeded.
                 if (state is FinalState finalState)
-                    return new CompilationInfo(finalState.FinalCompilationWithGeneratedDocuments, finalState.HasSuccessfullyLoaded, state.GeneratorInfo);
+                    return finalState;
 
                 var compilation = state.CompilationWithoutGeneratedDocuments;
                 if (compilation == null)
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private async Task<CompilationInfo> BuildCompilationInfoFromScratchAsync(
+            private async Task<FinalState> BuildCompilationInfoFromScratchAsync(
                 SolutionCompilationState compilationState,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 CancellationToken cancellationToken)
@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private async Task<CompilationInfo> BuildFinalStateFromInProgressStateAsync(
+            private async Task<FinalState> BuildFinalStateFromInProgressStateAsync(
                 SolutionCompilationState compilationState, InProgressState state, Compilation inProgressCompilation, CancellationToken cancellationToken)
             {
                 try
@@ -690,13 +690,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private readonly struct CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, CompilationTrackerGeneratorInfo generatorInfo)
-            {
-                public Compilation Compilation { get; } = compilation;
-                public bool HasSuccessfullyLoaded { get; } = hasSuccessfullyLoaded;
-                public CompilationTrackerGeneratorInfo GeneratorInfo { get; } = generatorInfo;
-            }
-
             /// <summary>
             /// Add all appropriate references to the compilation and set it as our final compilation
             /// state.
@@ -708,7 +701,7 @@ namespace Microsoft.CodeAnalysis
             /// the same set of generated documents as are in <paramref name="generatorInfo"/>, and we don't need to make any other
             /// changes to references, we can then use this compilation instead of re-adding source generated files again to the
             /// <paramref name="compilationWithoutGeneratedDocuments"/>.</param>
-            private async Task<CompilationInfo> FinalizeCompilationAsync(
+            private async Task<FinalState> FinalizeCompilationAsync(
                 SolutionCompilationState compilationState,
                 Compilation compilationWithoutGeneratedDocuments,
                 CompilationTrackerGeneratorInfo generatorInfo,
@@ -808,7 +801,7 @@ namespace Microsoft.CodeAnalysis
 
                     this.WriteState(finalState);
 
-                    return new CompilationInfo(compilationWithGeneratedDocuments, hasSuccessfullyLoaded, nextGeneratorInfo);
+                    return finalState;
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
