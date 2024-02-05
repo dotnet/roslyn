@@ -4,60 +4,51 @@
 
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal sealed partial class ObjectWriter
 {
-#if COMPILERCORE
-    using Resources = CodeAnalysisResources;
-#elif CODE_STYLE
-    using Resources = CodeStyleResources;
-#else
-#endif
-
-    internal sealed partial class ObjectWriter
+    /// <summary>
+    /// An object reference to reference-id map, that can share base data efficiently.
+    /// </summary>
+    private struct WriterReferenceMap
     {
-        /// <summary>
-        /// An object reference to reference-id map, that can share base data efficiently.
-        /// </summary>
-        private struct WriterReferenceMap
+        // PERF: Use segmented collection to avoid Large Object Heap allocations during serialization.
+        // https://github.com/dotnet/roslyn/issues/43401
+        private readonly SegmentedDictionary<string, int> _valueToIdMap;
+        private int _nextId;
+
+        private static readonly ObjectPool<SegmentedDictionary<string, int>> s_valueDictionaryPool = new(() => new(128));
+
+        public WriterReferenceMap()
         {
-            // PERF: Use segmented collection to avoid Large Object Heap allocations during serialization.
-            // https://github.com/dotnet/roslyn/issues/43401
-            private readonly SegmentedDictionary<string, int> _valueToIdMap;
-            private int _nextId;
+            _valueToIdMap = s_valueDictionaryPool.Allocate();
+            _nextId = 0;
+        }
 
-            private static readonly ObjectPool<SegmentedDictionary<string, int>> s_valueDictionaryPool = new(() => new(128));
-
-            public WriterReferenceMap()
+        public readonly void Dispose()
+        {
+            // If the map grew too big, don't return it to the pool.
+            // When testing with the Roslyn solution, this dropped only 2.5% of requests.
+            if (_valueToIdMap.Count > 1024)
             {
-                _valueToIdMap = s_valueDictionaryPool.Allocate();
-                _nextId = 0;
+                s_valueDictionaryPool.ForgetTrackedObject(_valueToIdMap);
             }
-
-            public readonly void Dispose()
+            else
             {
-                // If the map grew too big, don't return it to the pool.
-                // When testing with the Roslyn solution, this dropped only 2.5% of requests.
-                if (_valueToIdMap.Count > 1024)
-                {
-                    s_valueDictionaryPool.ForgetTrackedObject(_valueToIdMap);
-                }
-                else
-                {
-                    _valueToIdMap.Clear();
-                    s_valueDictionaryPool.Free(_valueToIdMap);
-                }
+                _valueToIdMap.Clear();
+                s_valueDictionaryPool.Free(_valueToIdMap);
             }
+        }
 
-            public bool TryGetReferenceId(string value, out int referenceId)
-                => _valueToIdMap.TryGetValue(value, out referenceId);
+        public bool TryGetReferenceId(string value, out int referenceId)
+            => _valueToIdMap.TryGetValue(value, out referenceId);
 
-            public void Add(string value)
-            {
-                var id = _nextId++;
-                _valueToIdMap.Add(value, id);
-            }
+        public void Add(string value)
+        {
+            var id = _nextId++;
+            _valueToIdMap.Add(value, id);
         }
     }
 }

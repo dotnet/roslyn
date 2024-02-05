@@ -14,9 +14,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities;
 
-#if COMPILERCORE
-using Resources = CodeAnalysisResources;
-#elif CODE_STYLE
+#if CODE_STYLE
 using Resources = CodeStyleResources;
 #else
 using Resources = WorkspacesResources;
@@ -262,7 +260,7 @@ internal sealed partial class ObjectReader : IDisposable
         static TextEncodingKind ToEncodingKind(TypeCode code)
         {
             Debug.Assert(code is >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding);
-            return EncodingExtensions.FirstTextEncodingKind + (byte)(code - TypeCode.FirstWellKnownTextEncoding);
+            return Microsoft.CodeAnalysis.EncodingExtensions.FirstTextEncodingKind + (byte)(code - TypeCode.FirstWellKnownTextEncoding);
         }
     }
 

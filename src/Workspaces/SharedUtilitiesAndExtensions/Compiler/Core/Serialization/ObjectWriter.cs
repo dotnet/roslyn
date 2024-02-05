@@ -15,9 +15,7 @@ using EncodingExtensions = Microsoft.CodeAnalysis.EncodingExtensions;
 
 namespace Roslyn.Utilities
 {
-#if COMPILERCORE
-    using Resources = CodeAnalysisResources;
-#elif CODE_STYLE
+#if CODE_STYLE
     using Resources = CodeStyleResources;
 #else
     using Resources = WorkspacesResources;
