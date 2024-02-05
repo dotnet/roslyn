@@ -74,7 +74,6 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
                 {
                     this.OnAdditionalDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity);
                 }
-                return ValueTask.CompletedTask;
             },
             cancellationToken);
     }
@@ -92,7 +91,6 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
                 {
                     this.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: false);
                 }
-                return ValueTask.CompletedTask;
             },
             cancellationToken);
     }
@@ -100,7 +98,7 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
     internal override ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)
     {
         return this.ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(
-            async w =>
+            w =>
             {
                 var textDocument = w.CurrentSolution.GetDocument(documentId) ?? w.CurrentSolution.GetAdditionalDocument(documentId);
 
@@ -113,7 +111,9 @@ internal class LanguageServerWorkspace : Workspace, ILspWorkspace
                         // Dynamic files don't exist on disk so if we were to use the FileTextLoader we'd effectively be emptying out the document.
                         // We also assume they're not user editable, and hence can't have "unsaved" changes that are expected to go away on close.
                         // Instead we just maintain their current state as per the LSP view of the world.
-                        var documentText = await textDocument.GetTextAsync(cancellationToken);
+
+                        // Since we know this is a dynamic file, the text is held in memory so GetTextSynchronously is safe to call.
+                        var documentText = document.GetTextSynchronously(cancellationToken);
                         loader = new SourceTextLoader(documentText, filePath);
                     }
                     else

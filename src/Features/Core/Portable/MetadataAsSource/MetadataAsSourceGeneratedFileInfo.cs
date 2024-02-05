@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     checksumAlgorithm: ChecksumAlgorithm),
                 compilationOptions: compilationOptions,
                 parseOptions: _parseOptions,
-                documents: new[] { assemblyInfoDocument, generatedDocument },
+                documents: [assemblyInfoDocument, generatedDocument],
                 metadataReferences: References);
 
             return (projectInfo, generatedDocumentId);

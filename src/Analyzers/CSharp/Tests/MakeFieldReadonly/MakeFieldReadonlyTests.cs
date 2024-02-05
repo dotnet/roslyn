@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
     public class MakeFieldReadonlyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
-        private static readonly ParseOptions s_strictFeatureFlag = CSharpParseOptions.Default.WithFeatures(new[] { new KeyValuePair<string, string>("strict", "true") });
+        private static readonly ParseOptions s_strictFeatureFlag = CSharpParseOptions.Default.WithFeatures([new KeyValuePair<string, string>("strict", "true")]);
 
         public MakeFieldReadonlyTests(ITestOutputHelper logger)
           : base(logger)

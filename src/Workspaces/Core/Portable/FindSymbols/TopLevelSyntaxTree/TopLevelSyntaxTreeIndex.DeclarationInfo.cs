@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -16,22 +17,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos { get; } = declaredSymbolInfos;
 
             public void WriteTo(ObjectWriter writer)
-            {
-                writer.WriteInt32(DeclaredSymbolInfos.Length);
-                foreach (var declaredSymbolInfo in DeclaredSymbolInfos)
-                    declaredSymbolInfo.WriteTo(writer);
-            }
+                => writer.WriteArray(DeclaredSymbolInfos, static (w, d) => d.WriteTo(w));
 
             public static DeclarationInfo? TryReadFrom(StringTable stringTable, ObjectReader reader)
             {
                 try
                 {
-                    var declaredSymbolCount = reader.ReadInt32();
-                    using var _ = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(declaredSymbolCount, out var builder);
-                    for (var i = 0; i < declaredSymbolCount; i++)
-                        builder.Add(DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, reader));
-
-                    return new DeclarationInfo(builder.ToImmutableAndClear());
+                    var infos = reader.ReadArray(static (r, stringTable) => DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, r), stringTable);
+                    return new DeclarationInfo(infos);
                 }
                 catch (Exception)
                 {

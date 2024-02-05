@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
                     }
                 }
                 """,
-new[] { CSharpAnalyzersResources.Use_is_null_check });
+[CSharpAnalyzersResources.Use_is_null_check]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58483")]
@@ -91,7 +91,7 @@ new[] { CSharpAnalyzersResources.Use_is_null_check });
                     }
                 }
                 """,
-new[] { CSharpAnalyzersResources.Use_is_object_check },
+[CSharpAnalyzersResources.Use_is_object_check],
 new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
         }
 
@@ -111,7 +111,7 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                     }
                 }
                 """,
-new[] { CSharpAnalyzersResources.Use_is_not_null_check },
+[CSharpAnalyzersResources.Use_is_not_null_check],
 new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
         }
 

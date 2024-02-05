@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 try
                 {
                     path = Path.Combine(_logDirectory, _traceLog._fileName);
-                    File.AppendAllLines(path, new[] { entry.GetDebuggerDisplay() });
+                    File.AppendAllLines(path, [entry.GetDebuggerDisplay()]);
                 }
                 catch (Exception e)
                 {

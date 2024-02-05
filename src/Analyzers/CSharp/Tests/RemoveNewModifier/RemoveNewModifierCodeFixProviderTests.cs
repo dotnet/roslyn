@@ -140,14 +140,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveNewModifier
         private Task TestRemoveNewModifierCodeFixAsync(string original, string expected)
         {
             return TestInRegularAndScript1Async(
-$@"class App
-{{
-    {original}
-}}",
-$@"class App
-{{
-    {expected}
-}}");
+                $$"""
+                class App
+                {
+                    {{original}}
+                }
+                """,
+                $$"""
+                class App
+                {
+                    {{expected}}
+                }
+                """);
         }
     }
 }

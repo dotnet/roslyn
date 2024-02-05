@@ -1203,7 +1203,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Lambda containing the active statement can't be found in the new source.
                         var oldLambda = oldEnclosingLambdaBody.GetLambda();
                         diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ActiveStatementLambdaRemoved, newSpan, oldLambda,
-                            new[] { GetDisplayName(oldLambda) }));
+                            [GetDisplayName(oldLambda)]));
                     }
                     else
                     {
@@ -1215,7 +1215,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             diagnostics.Add(
                                 new RudeEditDiagnostic(isNonLeaf ? RudeEditKind.DeleteActiveStatement : RudeEditKind.PartiallyExecutedActiveStatementDelete,
                                 GetDeletedNodeDiagnosticSpan(enclosingBodyMap.Forward, oldStatementSyntax),
-                                arguments: new[] { FeaturesResources.code }));
+                                arguments: [FeaturesResources.code]));
                         }
                     }
 
@@ -1271,11 +1271,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // it might throw another OOM here or later on.
                 if (e is OutOfMemoryException)
                 {
-                    diagnosticContext.Report(RudeEditKind.MemberBodyTooBig, cancellationToken, arguments: new[] { newMember.Name });
+                    diagnosticContext.Report(RudeEditKind.MemberBodyTooBig, cancellationToken, arguments: [newMember.Name]);
                 }
                 else
                 {
-                    diagnosticContext.Report(RudeEditKind.MemberBodyInternalError, cancellationToken, arguments: new[] { newMember.Name, e.ToString() });
+                    diagnosticContext.Report(RudeEditKind.MemberBodyInternalError, cancellationToken, arguments: [newMember.Name, e.ToString()]);
                 }
 
                 syntaxMaps = new SyntaxMaps(newModel.SyntaxTree);
@@ -1325,7 +1325,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     RudeEditKind.UpdateAroundActiveStatement,
                     newSpan,
                     LineDirectiveSyntaxKind,
-                    arguments: new[] { string.Format(FeaturesResources._0_directive, LineDirectiveKeyword) }));
+                    arguments: [string.Format(FeaturesResources._0_directive, LineDirectiveKeyword)]));
             }
 
             return oldStatement.Statement.WithFileSpan(mappedLineSpan);
@@ -1399,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (TryGetLambdaBodies(oldNode, out var oldLambdaBody1, out var oldLambdaBody2))
                     {
                         lambdaBodyMaps ??= ArrayBuilder<(DeclarationBodyMap, SyntaxNode?)>.GetInstance();
-                        lazyActiveOrMatchedLambdas ??= [];
+                        lazyActiveOrMatchedLambdas ??= new();
 
                         var newLambdaBody1 = oldLambdaBody1.TryGetPartnerLambdaBody(newNode);
                         if (newLambdaBody1 != null)
@@ -1771,7 +1771,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 RudeEditKind.UpdateAroundActiveStatement,
                 GetDiagnosticSpan(newNode, EditKind.Update),
                 newNode,
-                new[] { GetDisplayName(newNode, EditKind.Update) }));
+                [GetDisplayName(newNode, EditKind.Update)]));
         }
 
         protected void AddRudeInsertAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)
@@ -1780,7 +1780,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 RudeEditKind.InsertAroundActiveStatement,
                 GetDiagnosticSpan(newNode, EditKind.Insert),
                 newNode,
-                new[] { GetDisplayName(newNode, EditKind.Insert) }));
+                [GetDisplayName(newNode, EditKind.Insert)]));
         }
 
         protected void AddRudeDeleteAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, TextSpan newActiveStatementSpan)
@@ -1789,7 +1789,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 RudeEditKind.DeleteAroundActiveStatement,
                 newActiveStatementSpan,
                 oldNode,
-                new[] { GetDisplayName(oldNode, EditKind.Delete) }));
+                [GetDisplayName(oldNode, EditKind.Delete)]));
         }
 
         protected void ReportUnmatchedStatements<TSyntaxNode>(
@@ -2513,7 +2513,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         RudeEditKind.ChangingNamespace,
                                         GetDiagnosticSpan(newTypeDeclaration, EditKind.Update),
                                         newTypeDeclaration,
-                                        new[] { GetDisplayName(newTypeDeclaration), oldSymbol.ContainingNamespace.ToDisplayString(), newSymbol.ContainingNamespace.ToDisplayString() }));
+                                        [GetDisplayName(newTypeDeclaration), oldSymbol.ContainingNamespace.ToDisplayString(), newSymbol.ContainingNamespace.ToDisplayString()]));
                                 }
                                 else
                                 {
@@ -2674,7 +2674,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     // If we got here for a global statement then the actual edit is a delete of the synthesized Main method
                                     if (IsGlobalMain(oldSymbol))
                                     {
-                                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Delete, diagnosticSpan, edit.OldNode, new[] { GetDisplayName(edit.OldNode!, EditKind.Delete) }));
+                                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Delete, diagnosticSpan, edit.OldNode, [GetDisplayName(edit.OldNode!, EditKind.Delete)]));
                                         continue;
                                     }
 
@@ -2691,7 +2691,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             rudeEditKind,
                                             diagnosticSpan,
                                             oldDeclaration,
-                                            new[] { GetDisplayKindAndName(oldSymbol, GetDisplayName(oldDeclaration, EditKind.Delete), fullyQualify: diagnosticSpan.IsEmpty) }));
+                                            [GetDisplayKindAndName(oldSymbol, GetDisplayName(oldDeclaration, EditKind.Delete), fullyQualify: diagnosticSpan.IsEmpty)]));
 
                                         continue;
                                     }
@@ -2718,7 +2718,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             rudeEditKind,
                                             diagnosticSpan,
                                             oldDeclaration,
-                                            new[] { GetDisplayKindAndName(oldSymbol, GetDisplayName(oldDeclaration, EditKind.Delete), fullyQualify: diagnosticSpan.IsEmpty) }));
+                                            [GetDisplayKindAndName(oldSymbol, GetDisplayName(oldDeclaration, EditKind.Delete), fullyQualify: diagnosticSpan.IsEmpty)]));
 
                                         continue;
                                     }
@@ -2853,7 +2853,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                                 RudeEditKind.InsertNotSupportedByRuntime,
                                                 GetDiagnosticSpan(newDeclaration, EditKind.Insert),
                                                 newDeclaration,
-                                                arguments: new[] { GetDisplayName(newDeclaration, EditKind.Insert) }));
+                                                arguments: [GetDisplayName(newDeclaration, EditKind.Insert)]));
 
                                             continue;
                                         }
@@ -2895,7 +2895,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                                 RudeEditKind.InsertNotSupportedByRuntime,
                                                 GetDiagnosticSpan(newDeclaration, EditKind.Insert),
                                                 newDeclaration,
-                                                arguments: new[] { GetDisplayName(newDeclaration, EditKind.Insert) }));
+                                                arguments: [GetDisplayName(newDeclaration, EditKind.Insert)]));
                                         }
 
                                         oldContainingType = null;
@@ -4490,11 +4490,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (IsNonCustomAttribute(attributeData))
                 {
-                    diagnosticContext.Report(RudeEditKind.ChangingNonCustomAttribute, cancellationToken, arguments: new[]
-                    {
+                    diagnosticContext.Report(RudeEditKind.ChangingNonCustomAttribute, cancellationToken, arguments:
+                    [
                         attributeData.AttributeClass!.Name,
                         GetDisplayKind(diagnosticContext.RequiredNewSymbol)
-                    });
+                    ]);
 
                     return false;
                 }
@@ -4508,10 +4508,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace.IsGlobalNamespace: true
                     })
                 {
-                    diagnosticContext.Report(RudeEditKind.ChangingAttribute, cancellationToken, arguments: new[]
-                    {
+                    diagnosticContext.Report(RudeEditKind.ChangingAttribute, cancellationToken, arguments:
+                    [
                         attributeData.AttributeClass.Name,
-                    });
+                    ]);
 
                     return false;
                 }
@@ -4924,11 +4924,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Report(
                     (newSymbol.ContainingType.TypeKind == TypeKind.Struct) ? RudeEditKind.InsertIntoStruct : RudeEditKind.InsertIntoClassWithLayout,
                     cancellationToken,
-                    arguments: new[]
-                    {
+                    arguments:
+                    [
                         analyzer.GetDisplayKind(newSymbol),
                         analyzer.GetDisplayKind(newSymbol.ContainingType)
-                    });
+                    ]);
             }
 
             public DiagnosticContext WithSymbols(ISymbol oldSymbol, ISymbol newSymbol)
@@ -5630,7 +5630,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     if (!CanAddNewLambda(newLambda, newLambdaBody1, newLambdaBody2))
                     {
-                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertNotSupportedByRuntime, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda, new string[] { GetDisplayName(newLambda, EditKind.Insert) }));
+                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertNotSupportedByRuntime, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda, [GetDisplayName(newLambda, EditKind.Insert)]));
                     }
 
                     // TODO: https://github.com/dotnet/roslyn/issues/37128
@@ -5638,7 +5638,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Although local functions are non-virtual the Core CLR currently does not support adding any method to an interface.
                     if (isInInterface && IsLocalFunction(newLambda))
                     {
-                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda, new string[] { GetDisplayName(newLambda, EditKind.Insert) }));
+                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda, [GetDisplayName(newLambda, EditKind.Insert)]));
                     }
                 }
             }
@@ -5859,7 +5859,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         RudeEditKind.CapturingPrimaryConstructorParameter,
                         GetSymbolLocationSpan(newCapture, cancellationToken),
                         node: null,
-                        new[] { GetLayoutKindDisplay(newCapture), newCapture.Name }));
+                        [GetLayoutKindDisplay(newCapture), newCapture.Name]));
                 }
             }
 
@@ -5874,7 +5874,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         RudeEditKind.NotCapturingPrimaryConstructorParameter,
                         GetSymbolLocationSpan(newMember, cancellationToken),
                         node: null,
-                        new[] { GetLayoutKindDisplay(oldCapture), oldCapture.Name }));
+                        [GetLayoutKindDisplay(oldCapture), oldCapture.Name]));
                 }
             }
 
@@ -6338,7 +6338,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // since the attribute has been long defined in the BCL.
             if (oldCompilation.GetTypeByMetadataName(stateMachineAttributeQualifiedName) == null)
             {
-                diagnosticContext.Report(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, cancellationToken, arguments: new[] { stateMachineAttributeQualifiedName });
+                diagnosticContext.Report(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, cancellationToken, arguments: [stateMachineAttributeQualifiedName]);
             }
         }
 

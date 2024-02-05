@@ -57,7 +57,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
     private static XmlElementSyntax ConvertXmlElementName(XmlElementSyntax xmlElement, string name)
     {
         return xmlElement.ReplaceTokens(
-            new[] { xmlElement.StartTag.Name.LocalName, xmlElement.EndTag.Name.LocalName },
+            [xmlElement.StartTag.Name.LocalName, xmlElement.EndTag.Name.LocalName],
             (token, _) => Identifier(name).WithTriviaFrom(token));
     }
 

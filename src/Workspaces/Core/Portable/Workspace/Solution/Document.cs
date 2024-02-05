@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis
                 this.Project.SupportsCompilation)
             {
                 var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
-                return newSolution.GetDocument(this.Id)!;
+                return newSolution.GetRequiredDocument(this.Id);
             }
             else
             {
