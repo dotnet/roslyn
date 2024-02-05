@@ -554,34 +554,34 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw ExceptionUtilities.Unreachable();
                 }
-            }
 
-            [PerformanceSensitive(
-                "https://github.com/dotnet/roslyn/issues/23582",
-                Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
-            private async Task<Compilation> BuildDeclarationCompilationFromScratchAsync(
-                CompilationTrackerGeneratorInfo generatorInfo,
-                CancellationToken cancellationToken)
-            {
-                try
+                [PerformanceSensitive(
+                    "https://github.com/dotnet/roslyn/issues/23582",
+                    Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
+                async Task<Compilation> BuildDeclarationCompilationFromScratchAsync(
+                    CompilationTrackerGeneratorInfo generatorInfo,
+                    CancellationToken cancellationToken)
                 {
-                    var compilation = CreateEmptyCompilation();
-
-                    using var _ = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentStates.Count, out var trees);
-                    foreach (var documentState in ProjectState.DocumentStates.GetStatesInCompilationOrder())
+                    try
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        // Include the tree even if the content of the document failed to load.
-                        trees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-                    }
+                        var compilation = CreateEmptyCompilation();
 
-                    compilation = compilation.AddSyntaxTrees(trees);
-                    WriteState(new AllSyntaxTreesParsedState(compilation, generatorInfo));
-                    return compilation;
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-                {
-                    throw ExceptionUtilities.Unreachable();
+                        using var _ = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentStates.Count, out var trees);
+                        foreach (var documentState in ProjectState.DocumentStates.GetStatesInCompilationOrder())
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                            // Include the tree even if the content of the document failed to load.
+                            trees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                        }
+
+                        compilation = compilation.AddSyntaxTrees(trees);
+                        WriteState(new AllSyntaxTreesParsedState(compilation, generatorInfo));
+                        return compilation;
+                    }
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
                 }
             }
 
