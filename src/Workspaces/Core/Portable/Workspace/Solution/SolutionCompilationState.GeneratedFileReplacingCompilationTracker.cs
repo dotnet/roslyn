@@ -158,8 +158,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public async ValueTask<bool> HasSuccessfullyLoadedAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
-                => await UnderlyingTracker.HasSuccessfullyLoadedAsync(compilationState, cancellationToken).ConfigureAwait(false);
+            public Task<bool> HasSuccessfullyLoadedAsync(
+                SolutionCompilationState compilationState, CancellationToken cancellationToken)
+            {
+                return UnderlyingTracker.HasSuccessfullyLoadedAsync(compilationState, cancellationToken);
+            }
 
             public bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation)
             {
