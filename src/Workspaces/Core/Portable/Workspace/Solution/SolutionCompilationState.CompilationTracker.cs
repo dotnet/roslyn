@@ -129,8 +129,8 @@ namespace Microsoft.CodeAnalysis
                     CompilationTrackerState state,
                     CompilationAndGeneratorDriverTranslationAction? translate)
                 {
-                    var baseCompilation = state.CompilationWithoutGeneratedDocuments;
-                    if (baseCompilation != null)
+                    var compilationWithoutGeneratedDocuments = state.CompilationWithoutGeneratedDocuments;
+                    if (compilationWithoutGeneratedDocuments != null)
                     {
                         var intermediateProjects = state is InProgressState inProgressState
                             ? inProgressState.IntermediateProjects
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         var newState = CompilationTrackerState.Create(
-                            baseCompilation, state.GeneratorInfo, finalCompilationWithGeneratedDocuments, intermediateProjects);
+                            compilationWithoutGeneratedDocuments, state.GeneratorInfo, finalCompilationWithGeneratedDocuments, intermediateProjects);
                         return newState;
                     }
                     else
@@ -505,8 +505,8 @@ namespace Microsoft.CodeAnalysis
                 if (state is FinalState finalState)
                     return finalState;
 
-                var compilation = state.CompilationWithoutGeneratedDocuments;
-                if (compilation == null)
+                var compilationWithoutGeneratedDocuments = state.CompilationWithoutGeneratedDocuments;
+                if (compilationWithoutGeneratedDocuments == null)
                 {
                     // We've got nothing.  Build it from scratch :(
                     return await BuildFinalStateFromScratchAsync(
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis
                     // We have a declaration compilation, use it to reconstruct the final compilation
                     return await FinalizeCompilationAsync(
                         compilationState,
-                        compilation,
+                        compilationWithoutGeneratedDocuments,
                         state.GeneratorInfo,
                         compilationWithStaleGeneratedTrees: null,
                         cancellationToken).ConfigureAwait(false);
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // We must have an in progress compilation. Build off of that.
                     return await BuildFinalStateFromInProgressStateAsync(
-                        compilationState, (InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
+                        compilationState, (InProgressState)state, compilationWithoutGeneratedDocuments, cancellationToken).ConfigureAwait(false);
                 }
 
                 async Task<FinalState> BuildFinalStateFromScratchAsync(
@@ -585,12 +585,12 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 async Task<FinalState> BuildFinalStateFromInProgressStateAsync(
-                    SolutionCompilationState compilationState, InProgressState state, Compilation inProgressCompilation, CancellationToken cancellationToken)
+                    SolutionCompilationState compilationState, InProgressState state, Compilation compilationWithoutGeneratedDocuments, CancellationToken cancellationToken)
                 {
                     try
                     {
                         var (compilationWithoutGenerators, compilationWithGenerators, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(
-                            state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
+                            state, compilationWithoutGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
                         return await FinalizeCompilationAsync(
                             compilationState,
@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private async Task<(Compilation compilationWithoutGenerators, Compilation? compilationWithGenerators, GeneratorDriver? generatorDriver)> BuildDeclarationCompilationFromInProgressAsync(
-                InProgressState state, Compilation compilationWithoutGenerators, CancellationToken cancellationToken)
+                InProgressState state, Compilation compilationWithoutGeneratedDocuments, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis
                     // transformations of it multiple times. Otherwise the transformations below and in FinalizeCompilationAsync will try
                     // to update both at once, which is functionally fine but just unnecessary work. This function is always allowed to return
                     // null for compilationWithGenerators in the end, so there's no harm there.
-                    if (compilationWithGenerators == compilationWithoutGenerators)
+                    if (compilationWithGenerators == compilationWithoutGeneratedDocuments)
                     {
                         compilationWithGenerators = null;
                     }
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis
                         // We have a list of transformations to get to our final compilation; take the first transformation and apply it.
                         var intermediateProject = intermediateProjects[0];
 
-                        compilationWithoutGenerators = await intermediateProject.action.TransformCompilationAsync(compilationWithoutGenerators, cancellationToken).ConfigureAwait(false);
+                        compilationWithoutGeneratedDocuments = await intermediateProject.action.TransformCompilationAsync(compilationWithoutGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
                         if (compilationWithGenerators != null)
                         {
@@ -679,10 +679,10 @@ namespace Microsoft.CodeAnalysis
                         intermediateProjects = intermediateProjects.RemoveAt(0);
 
                         this.WriteState(CompilationTrackerState.Create(
-                            compilationWithoutGenerators, state.GeneratorInfo.WithDriver(generatorDriver), compilationWithGenerators, intermediateProjects));
+                            compilationWithoutGeneratedDocuments, state.GeneratorInfo.WithDriver(generatorDriver), compilationWithGenerators, intermediateProjects));
                     }
 
-                    return (compilationWithoutGenerators, compilationWithGenerators, generatorDriver);
+                    return (compilationWithoutGeneratedDocuments, compilationWithGenerators, generatorDriver);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
@@ -963,7 +963,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (state is InProgressState inProgressState)
                 {
-                    ValidateCompilationTreesMatchesProjectState(inProgressState.CompilationWithoutGeneratedDocuments!, inProgressState.IntermediateProjects[0].oldState, generatorInfo: null);
+                    ValidateCompilationTreesMatchesProjectState(inProgressState.CompilationWithoutGeneratedDocuments, inProgressState.IntermediateProjects[0].oldState, generatorInfo: null);
 
                     if (inProgressState.CompilationWithGeneratedDocuments != null)
                     {

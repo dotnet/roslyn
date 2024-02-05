@@ -139,8 +139,12 @@ namespace Microsoft.CodeAnalysis
 #endif
                 }
 
+                /// <summary>
+                /// Returns a <see cref="AllSyntaxTreesParsedState"/> if <paramref name="intermediateProjects"/> is
+                /// empty, otherwise a <see cref="InProgressState"/>.
+                /// </summary>
                 public static CompilationTrackerState Create(
-                    Compilation compilation,
+                    Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? compilationWithGeneratedDocuments,
                     ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
@@ -151,8 +155,8 @@ namespace Microsoft.CodeAnalysis
                     // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
                     // if our referenced projects are changing, so we'll have to rerun to consume changes.
                     return intermediateProjects.IsEmpty
-                        ? new AllSyntaxTreesParsedState(compilation, generatorInfo.WithDocumentsAreFinal(false))
-                        : new InProgressState(compilation, generatorInfo, compilationWithGeneratedDocuments, intermediateProjects);
+                        ? new AllSyntaxTreesParsedState(compilationWithoutGeneratedDocuments, generatorInfo.WithDocumentsAreFinal(false))
+                        : new InProgressState(compilationWithoutGeneratedDocuments, generatorInfo, compilationWithGeneratedDocuments, intermediateProjects);
                 }
             }
 
@@ -185,11 +189,11 @@ namespace Microsoft.CodeAnalysis
                 public Compilation? CompilationWithGeneratedDocuments { get; }
 
                 public InProgressState(
-                    Compilation inProgressCompilation,
+                    Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? compilationWithGeneratedDocuments,
                     ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
-                    : base(compilationWithoutGeneratedDocuments: inProgressCompilation,
+                    : base(compilationWithoutGeneratedDocuments,
                            generatorInfo.WithDocumentsAreFinal(false)) // since we have a set of transformations to make, we'll always have to run generators again
                 {
                     Contract.ThrowIfTrue(intermediateProjects is null);
@@ -198,6 +202,8 @@ namespace Microsoft.CodeAnalysis
                     this.IntermediateProjects = intermediateProjects;
                     this.CompilationWithGeneratedDocuments = compilationWithGeneratedDocuments;
                 }
+
+                public new Compilation CompilationWithoutGeneratedDocuments => base.CompilationWithoutGeneratedDocuments ?? throw ExceptionUtilities.Unreachable();
             }
 
             /// <summary>
@@ -205,10 +211,11 @@ namespace Microsoft.CodeAnalysis
             /// but may not have references initialized
             /// </summary>
             private sealed class AllSyntaxTreesParsedState(
-                Compilation declarationCompilation,
+                Compilation compilationWithoutGeneratedDocuments,
                 CompilationTrackerGeneratorInfo generatorInfo)
-                : CompilationTrackerState(declarationCompilation, generatorInfo)
+                : CompilationTrackerState(compilationWithoutGeneratedDocuments, generatorInfo)
             {
+                public new Compilation CompilationWithoutGeneratedDocuments => base.CompilationWithoutGeneratedDocuments ?? throw ExceptionUtilities.Unreachable();
             }
 
             /// <summary>
