@@ -178,6 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return VSConstants.S_OK;
             }
 
+            var newLineEndingType = EOLTYPE.eolNONE;
             string? newLineEnding = null;
             var lineData = new LINEDATAEX[1];
             if (pBuffer is IVsTextLayer layer
@@ -187,22 +188,27 @@ BeginningOfLineEndingsLoop:
                 switch (lineData[0].iEolType)
                 {
                     case EOLTYPE.eolCRLF:
+                        newLineEndingType = EOLTYPE.eolCRLF;
                         newLineEnding = "\r\n";
                         break;
 
                     case EOLTYPE.eolCR:
+                        newLineEndingType = EOLTYPE.eolCR;
                         newLineEnding = "\r";
                         break;
 
                     case EOLTYPE.eolLF:
+                        newLineEndingType = EOLTYPE.eolLF;
                         newLineEnding = "\n";
                         break;
 
                     case EOLTYPE.eolUNI_LINESEP:
+                        newLineEndingType = EOLTYPE.eolUNI_LINESEP;
                         newLineEnding = "\x2028";
                         break;
 
                     case (EOLTYPE)_EOLTYPE2.eolUNI_NEL:
+                        newLineEndingType = (EOLTYPE)_EOLTYPE2.eolUNI_NEL;
                         newLineEnding = "\x0085";
                         break;
 
@@ -210,6 +216,7 @@ BeginningOfLineEndingsLoop:
                         // See if there is a line above us, if not, just use CRLF
                         if (tsInSurfaceBuffer[0].iStartLine == 0)
                         {
+                            newLineEndingType = EOLTYPE.eolCRLF;
                             newLineEnding = "\r\n";
                         }
                         else
@@ -226,6 +233,7 @@ BeginningOfLineEndingsLoop:
                             }
 
                             // Default, just use CRLF
+                            newLineEndingType = EOLTYPE.eolCRLF;
                             newLineEnding = "\r\n";
                         }
 
@@ -284,40 +292,27 @@ BeginningOfLineEndingsLoop:
 
             // If the snippet spans more than one line and a specific line ending is expected, normalize the line
             // endings inside the snippet span before continuing.
-            if (newLineEnding is not null && tsInSurfaceBuffer[0].iEndLine > tsInSurfaceBuffer[0].iStartLine)
+            if (newLineEnding is not null && tsInSurfaceBuffer[0].iEndLine > tsInSurfaceBuffer[0].iStartLine && pBuffer is IVsTextLines lines)
             {
                 var totalOffset = 0;
-                var changes = new List<TextChange>();
-                var existingText = SubjectBuffer.CurrentSnapshot.GetText(formattingSpan.ToSpan());
-                for (var i = 0; i < existingText.Length; i++)
+                using var edit = SubjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
+                for (var currentLine = tsInSurfaceBuffer[0].iEndLine - 1; currentLine >= tsInSurfaceBuffer[0].iStartLine; currentLine--)
                 {
-                    var nextLineEnding = existingText.IndexOfAny(['\r', '\n'], i);
-                    if (nextLineEnding < 0)
-                        break;
-
-                    i = nextLineEnding;
-                    if (existingText[i] == '\r' && i < existingText.Length - 1 && existingText[i + 1] == '\n')
+                    if (ErrorHandler.Succeeded(lines.GetLineDataEx((int)GLDE_FLAGS.gldeDefault, currentLine, iStartIndex: 0, iEndIndex: 0, lineData, pMarkerData: null)))
                     {
-                        if (newLineEnding != "\r\n")
-                        {
-                            changes.Add(new TextChange(new TextSpan(formattingSpan.Start + i, 2), newLineEnding));
-                            totalOffset += newLineEnding.Length - 2;
-                        }
+                        var extractedLineData = (lineData[0].iEolType, lineData[0].iLength);
+                        lines.ReleaseLineDataEx(lineData);
 
-                        // Move to the \n, which is the last character of the currently-located line ending
-                        i++;
-                    }
-                    else if (existingText[i] is '\r' or '\n')
-                    {
-                        if (newLineEnding.Length > 1 || newLineEnding[0] != existingText[i])
+                        if (extractedLineData.iEolType != newLineEndingType && ErrorHandler.Succeeded(lines.GetPositionOfLine(currentLine, out var positionOfLine)))
                         {
-                            changes.Add(new TextChange(new TextSpan(formattingSpan.Start + i, 2), newLineEnding));
-                            totalOffset += newLineEnding.Length - 1;
+                            var actualLength = extractedLineData.iEolType == EOLTYPE.eolCRLF ? 2 : 1;
+                            edit.Replace(positionOfLine + extractedLineData.iLength, actualLength, newLineEnding);
+                            totalOffset += newLineEnding.Length - actualLength;
                         }
                     }
                 }
 
-                SubjectBuffer.ApplyChanges(changes);
+                edit.Apply();
                 formattingSpan = new TextSpan(formattingSpan.Start, formattingSpan.Length + totalOffset);
             }
 
