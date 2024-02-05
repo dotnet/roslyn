@@ -44,8 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private SmallDictionary<LocalFunctionSymbol, TLocalFunctionState>? _localFuncVarUsages = null;
 
-        protected int LocalFuncUsageCount { get; private set; }
-
         protected TLocalFunctionState GetOrCreateLocalFuncUsages(LocalFunctionSymbol localFunc)
         {
             _localFuncVarUsages ??= new SmallDictionary<LocalFunctionSymbol, TLocalFunctionState>();
@@ -54,12 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 usages = CreateLocalFunctionState(localFunc);
                 _localFuncVarUsages[localFunc] = usages;
-                LocalFuncUsageCount++;
             }
             return usages;
         }
 
-        protected bool HasLocalFuncUsage(LocalFunctionSymbol localFunc)
+        protected bool HasLocalFuncUsagesCreated(LocalFunctionSymbol localFunc)
         {
             return _localFuncVarUsages?.ContainsKey(localFunc) == true;
         }

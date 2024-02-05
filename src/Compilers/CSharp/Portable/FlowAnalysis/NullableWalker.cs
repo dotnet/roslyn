@@ -2996,15 +2996,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // local function, and then a pass where we visit the local functions. If there's no
             // recursion or calls between the local functions, the starting state of the local
             // function should be stable and we don't need a second pass.
-            if (!TrackingRegions && !block.LocalFunctions.IsDefaultOrEmpty)
+            if (!block.LocalFunctions.IsDefaultOrEmpty)
             {
+                Debug.Assert(!TrackingRegions);
+
                 // First visit everything else
-                var queue1 = ArrayBuilder<BoundLocalFunctionStatement>.GetInstance();
+                var localFuncs = ArrayBuilder<BoundLocalFunctionStatement>.GetInstance();
                 foreach (var stmt in block.Statements)
                 {
                     if (stmt is BoundLocalFunctionStatement localFunc)
                     {
-                        queue1.Add(localFunc);
+                        localFuncs.Add(localFunc);
                     }
                     else
                     {
@@ -3014,38 +3016,49 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Now visit the local function bodies.
                 // We first visit those we have seen called (hence we know their starting state),
-                // repeating this while seeing more call sites inside other local functions,
-                // and only then we visit the completely unreachable bodies.
-                // This avoids unnecessary passes and incorrect starting states.
-                var queue2 = ArrayBuilder<BoundLocalFunctionStatement>.GetInstance();
-                for (int c = 0; c != LocalFuncUsageCount;)
+                // repeating this while visiting new bodies (which might contain more call sites).
+                // This avoids unnecessary passes and incorrect starting states of reachable bodies
+                // (which could be captured in loop head state for example).
+                for (bool newBodiesVisited = true; newBodiesVisited;)
                 {
-                    c = LocalFuncUsageCount;
-                    foreach (var localFunc in queue1)
+                    newBodiesVisited = false;
+
+                    // We visit functions in reverse order, so deleting from the list has good perf in the common case.
+                    for (int i = localFuncs.Count - 1; i >= 0; i--)
                     {
-                        if (HasLocalFuncUsage(localFunc.Symbol))
+                        var localFunc = localFuncs[i];
+
+                        // We visit the body only if the function's usages state has been created
+                        // which happens when we visit the function's call site or its body.
+                        // In the first pass of the nullable walker, existence of usages here means that a call site has been visited.
+                        // In subsequent nullable walker passes, the starting state is preserved from previous passes.
+                        // In any case, existence of usages means that we have a good starting state.
+                        if (HasLocalFuncUsagesCreated(localFunc.Symbol))
                         {
+                            localFuncs.RemoveAt(i);
+
+                            // The body of this local function might contain calls to other local functions,
+                            // hence we will rerun the outer loop to visit bodies of newly-called functions if any.
+                            newBodiesVisited = true;
+
                             TakeIncrementalSnapshot(localFunc);
                             VisitLocalFunctionStatement(localFunc);
                         }
-                        else
-                        {
-                            queue2.Add(localFunc);
-                        }
                     }
 
-                    (queue1, queue2) = (queue2, queue1);
-                    queue2.Clear();
+                    // If we haven't visited new bodies in this iteration, visit an unreachable function if any.
+                    // This might make other functions reachable, so we will continue with the outer loop.
+                    if (!newBodiesVisited && localFuncs.Count != 0)
+                    {
+                        var localFunc = localFuncs[^1];
+                        localFuncs.RemoveLast();
+                        newBodiesVisited = true;
+                        TakeIncrementalSnapshot(localFunc);
+                        VisitLocalFunctionStatement(localFunc);
+                    }
                 }
 
-                foreach (var localFunc in queue1)
-                {
-                    TakeIncrementalSnapshot(localFunc);
-                    VisitLocalFunctionStatement(localFunc);
-                }
-
-                queue1.Free();
-                queue2.Free();
+                localFuncs.Free();
             }
             else
             {
@@ -3059,36 +3072,58 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             var localFunc = node.Symbol;
-            var reachable = HasLocalFuncUsage(localFunc);
+
+            // Usages state is created when we visit the function's call site or its body.
+            // In the first pass of the nullable walker, existence of usages here means that a call site has been visited.
+            // In subsequent nullable walker passes, the starting state is preserved from previous passes.
+            // In any case, existence of usages means that we have a good starting state.
+            var hasGoodStartingState = HasLocalFuncUsagesCreated(localFunc);
+
             var localFunctionState = GetOrCreateLocalFuncUsages(localFunc);
 
-            // The starting state (`state`) is the top state ("maybe null").
+            // The state for the function's body analysis starts as the top state ("maybe null").
             var state = TopState();
 
-            // Captured variables are joined with the state
-            // at all the local function use sites (`localFunctionState.StartingState`)
-            // which starts as the bottom state ("not null").
-            var startingState = localFunctionState.StartingState;
-            startingState.ForEach(
-                (slot, variables) =>
-                {
-                    if (reachable)
+            if (!hasGoodStartingState)
+            {
+                // For unreachable local functions, top-level captured variables are set to "not null",
+                // ignoring nested slots to avoid depending on slot allocation order
+                // (e.g., whether we have seen a class field or not already).
+                state.Normalize(this, _variables);
+                state.ForEach(
+                    (slot, variables) =>
+                    {
+                        if (variables[slot].ContainingSlot == 0) // top-level variables only
+                        {
+                            var symbol = variables[variables.RootSlot(slot)].Symbol;
+                            if (Symbol.IsCaptured(symbol, localFunc)) // captured variables only
+                            {
+                                SetState(ref state, slot, NullableFlowState.NotNull);
+                            }
+                        }
+                    },
+                    _variables);
+
+                // In subsequent passes, we will use the starting state,
+                // so make sure it's set correctly for unreachable functions from now on.
+                localFunctionState.StartingState = state.Clone();
+            }
+            else
+            {
+                // Captured variables are joined with the state
+                // from visited call sites of the local function.
+                var startingState = localFunctionState.StartingState;
+                startingState.ForEach(
+                    (slot, variables) =>
                     {
                         var symbol = variables[variables.RootSlot(slot)].Symbol;
                         if (Symbol.IsCaptured(symbol, localFunc))
                         {
                             SetState(ref state, slot, GetState(ref startingState, slot));
                         }
-                    }
-                    else if (variables[slot].ContainingSlot == 0)
-                    {
-                        // For unreachable local functions, top-level variables are set to "not null",
-                        // ignoring nested slots to avoid depending on slot allocation order
-                        // (e.g., whether we have seen a class field or not already).
-                        SetState(ref state, slot, NullableFlowState.NotNull);
-                    }
-                },
-                _variables);
+                    },
+                    _variables);
+            }
 
             localFunctionState.Visited = true;
 
@@ -12131,7 +12166,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             public LocalState StartingState;
 
             public LocalFunctionState(LocalState unreachableState)
-                : base(unreachableState.Clone(), unreachableState.Clone())
+                // Note: these states are not used in nullable analysis.
+                : base(stateFromBottom: unreachableState.Clone(), stateFromTop: unreachableState.Clone())
             {
                 StartingState = unreachableState;
             }
@@ -12141,7 +12177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var variables = (symbol.ContainingSymbol is MethodSymbol containingMethod ? _variables.GetVariablesForMethodScope(containingMethod) : null) ??
                 _variables.GetRootScope();
-            return new LocalFunctionState(LocalState.ReachableStateWithNotNulls(variables));
+            return new LocalFunctionState(LocalState.UnreachableState(variables));
         }
 
         private sealed class NullabilityInfoTypeComparer : IEqualityComparer<(NullabilityInfo info, TypeSymbol? type)>
