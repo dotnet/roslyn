@@ -4109,16 +4109,16 @@ class B : A
                 Assert.Equal(1, fooA.ParameterCount);
                 var parameterA = fooA.Parameters[0];
                 Assert.True(parameterA.IsParams, "Parameter is not ParameterArray");
-                Assert.True(parameterA.IsParamArray, "Parameter is not ParameterArray");
-                Assert.False(parameterA.IsParamCollection);
+                Assert.True(parameterA.IsParamsArray, "Parameter is not ParameterArray");
+                Assert.False(parameterA.IsParamsCollection);
                 Assert.False(parameterA.HasExplicitDefaultValue, "ParameterArray param has default value");
                 Assert.False(parameterA.IsOptional, "ParameterArray param cannot be optional");
 
                 Assert.Equal(1, fooB.ParameterCount);
                 var parameterB = fooB.Parameters[0];
                 Assert.True(parameterB.IsParams, "Parameter is not ParameterArray");
-                Assert.True(parameterB.IsParamArray, "Parameter is not ParameterArray");
-                Assert.False(parameterB.IsParamCollection);
+                Assert.True(parameterB.IsParamsArray, "Parameter is not ParameterArray");
+                Assert.False(parameterB.IsParamsCollection);
                 Assert.False(parameterB.HasExplicitDefaultValue, "ParameterArray param has default value");
                 Assert.Equal(ConstantValue.Null, parameterB.ExplicitDefaultConstantValue);
                 Assert.False(parameterB.IsOptional, "ParameterArray param cannot be optional");
@@ -4135,8 +4135,8 @@ class B : A
         private static void VerifyParamArrayAttribute(ParameterSymbol parameter, bool expected = true)
         {
             Assert.Equal(expected, parameter.IsParams);
-            Assert.Equal(expected, parameter.IsParamArray);
-            Assert.False(parameter.IsParamCollection);
+            Assert.Equal(expected, parameter.IsParamsArray);
+            Assert.False(parameter.IsParamsCollection);
 
             var peParameter = (PEParameterSymbol)parameter;
             var allAttributes = ((PEModuleSymbol)parameter.ContainingModule).GetCustomAttributesForToken(peParameter.Handle);

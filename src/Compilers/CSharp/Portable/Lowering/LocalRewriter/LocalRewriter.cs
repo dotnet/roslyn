@@ -317,10 +317,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (delegateType?.IsAnonymousType == true && delegateType.ContainingModule == _compilation.SourceModule &&
                 delegateType.DelegateInvokeMethod() is MethodSymbol delegateInvoke &&
-                delegateInvoke.Parameters.Any(static (p) => p.IsParamCollection))
+                delegateInvoke.Parameters.Any(static (p) => p.IsParamsCollection))
             {
                 Location location;
-                if (node.Symbol.Parameters.LastOrDefault(static (p) => p.IsParamCollection) is { } parameter)
+                if (node.Symbol.Parameters.LastOrDefault(static (p) => p.IsParamsCollection) is { } parameter)
                 {
                     location = ParameterHelpers.GetParameterLocation(parameter);
                 }

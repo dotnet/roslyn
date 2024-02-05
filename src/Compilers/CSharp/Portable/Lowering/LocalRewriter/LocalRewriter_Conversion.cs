@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (delegateType.IsAnonymousType && delegateType.ContainingModule == _compilation.SourceModule &&
                 delegateType.DelegateInvokeMethod() is MethodSymbol delegateInvoke &&
-                delegateInvoke.Parameters.Any(static (p) => p.IsParamCollection))
+                delegateInvoke.Parameters.Any(static (p) => p.IsParamsCollection))
             {
                 _factory.ModuleBuilderOpt.EnsureParamCollectionAttributeExists(_diagnostics, node.Location);
             }

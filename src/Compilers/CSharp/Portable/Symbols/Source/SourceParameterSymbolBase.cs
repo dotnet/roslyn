@@ -72,11 +72,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = this.DeclaringCompilation;
 
-            if (this.IsParamArray)
+            if (this.IsParamsArray)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
             }
-            else if (this.IsParamCollection)
+            else if (this.IsParamsCollection)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeParamCollectionAttribute(this));
             }
