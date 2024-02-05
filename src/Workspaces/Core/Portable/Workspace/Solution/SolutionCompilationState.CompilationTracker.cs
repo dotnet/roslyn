@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis
                         cancellationToken).ConfigureAwait(false);
                 }
 
-                if (state is AllSyntaxTreesParsedState or FinalState)
+                if (state is AllSyntaxTreesParsedState)
                 {
                     // We have a declaration compilation, use it to reconstruct the final compilation
                     return await FinalizeCompilationAsync(
