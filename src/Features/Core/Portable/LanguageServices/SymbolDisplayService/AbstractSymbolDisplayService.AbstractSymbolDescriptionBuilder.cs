@@ -99,7 +99,6 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 CancellationToken = cancellationToken;
                 _semanticModel = semanticModel;
                 _position = position;
-                _getNavigationHint = GetNavigationHint;
             }
 
             protected abstract void AddExtensionPrefix();
@@ -109,7 +108,6 @@ namespace Microsoft.CodeAnalysis.LanguageService
             protected abstract void AddEnumUnderlyingTypeSeparator();
             protected abstract Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(ISymbol symbol);
             protected abstract ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format);
-            protected abstract string? GetNavigationHint(ISymbol symbol);
 
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
@@ -428,7 +426,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 var result = new Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>(_documentationMap);
                 foreach (var (group, parts) in _groupMap)
                 {
-                    var taggedText = parts.ToTaggedText(_getNavigationHint, includeNavigationHints);
+                    var taggedText = parts.ToTaggedText(includeNavigationHints: includeNavigationHints);
                     if (group == SymbolDescriptionGroups.MainDescription)
                     {
                         // Mark the main description as a code block.

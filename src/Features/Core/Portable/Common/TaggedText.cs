@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,7 +9,6 @@ using System.Linq;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -46,14 +43,14 @@ namespace Microsoft.CodeAnalysis
         /// target.
         /// </summary>
         [DataMember(Order = 3)]
-        internal string NavigationTarget { get; }
+        internal string? NavigationTarget { get; }
 
         /// <summary>
         /// Gets the navigation hint for the text, or <see langword="null"/> if the text does not have a navigation
         /// hint.
         /// </summary>
         [DataMember(Order = 4)]
-        internal string NavigationHint { get; }
+        internal string? NavigationHint { get; }
 
         /// <summary>
         /// Creates a new instance of <see cref="TaggedText"/>
@@ -73,7 +70,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="style">The style(s) to apply to the text.</param>
         /// <param name="navigationTarget">The navigation target for the text, or <see langword="null"/> if the text does not have a navigation target.</param>
         /// <param name="navigationHint">The navigation hint for the text, or <see langword="null"/> if the text does not have a navigation hint.</param>
-        internal TaggedText(string tag, string text, TaggedTextStyle style, string navigationTarget, string navigationHint)
+        internal TaggedText(string tag, string text, TaggedTextStyle style, string? navigationTarget, string? navigationHint)
         {
             Tag = tag ?? throw new ArgumentNullException(nameof(tag));
             Text = text ?? throw new ArgumentNullException(nameof(text));
@@ -88,16 +85,11 @@ namespace Microsoft.CodeAnalysis
 
     internal static class TaggedTextExtensions
     {
-        public static ImmutableArray<TaggedText> ToTaggedText(this IEnumerable<SymbolDisplayPart> displayParts, Func<ISymbol, string> getNavigationHint = null, bool includeNavigationHints = true)
-            => displayParts.ToTaggedText(TaggedTextStyle.None, getNavigationHint, includeNavigationHints);
-
         public static ImmutableArray<TaggedText> ToTaggedText(
-            this IEnumerable<SymbolDisplayPart> displayParts, TaggedTextStyle style, Func<ISymbol, string> getNavigationHint = null, bool includeNavigationHints = true)
+            this IEnumerable<SymbolDisplayPart>? displayParts, TaggedTextStyle style = TaggedTextStyle.None, bool includeNavigationHints = true)
         {
             if (displayParts == null)
                 return [];
-
-            getNavigationHint ??= static symbol => symbol?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
 
             return displayParts.SelectAsArray(d =>
                 new TaggedText(
@@ -105,7 +97,7 @@ namespace Microsoft.CodeAnalysis
                     d.ToString(),
                     style,
                     includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? GetNavigationTarget(d.Symbol) : null,
-                    includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? getNavigationHint(d.Symbol) : null));
+                    includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? d.Symbol?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat) : null));
         }
 
         private static string GetTag(SymbolDisplayPart part)
@@ -123,27 +115,29 @@ namespace Microsoft.CodeAnalysis
             return SymbolDisplayPartKindTags.GetTag(part.Kind);
         }
 
-        private static string GetNavigationTarget(ISymbol symbol)
+        private static string? GetNavigationTarget(ISymbol? symbol)
             => symbol is null ? null : SymbolKey.CreateString(symbol);
 
         public static string JoinText(this ImmutableArray<TaggedText> values)
         {
+            if (values.IsDefaultOrEmpty)
+            {
+                return "";
+            }
 
-            return values.IsDefault
-                ? null
-                : Join(values);
-        }
+            if (values is [var value])
+            {
+                return value.Text;
+            }
 
-        private static string Join(ImmutableArray<TaggedText> values)
-        {
-            var pooled = PooledStringBuilder.GetInstance();
-            var builder = pooled.Builder;
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+            builder.EnsureCapacity(values.Sum(static value => value.Text.Length));
             foreach (var val in values)
             {
                 builder.Append(val.Text);
             }
 
-            return pooled.ToStringAndFree();
+            return builder.ToString();
         }
 
         public static string ToClassificationTypeName(this string taggedTextTag)
