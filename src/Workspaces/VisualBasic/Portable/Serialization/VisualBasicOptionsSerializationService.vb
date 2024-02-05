@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Serialization
 
             Dim vbOptions = DirectCast(options, VisualBasicCompilationOptions)
 
-            writer.WriteValue(vbOptions.GlobalImports.Select(Function(g) g.Name).ToArray())
+            writer.WriteArray(vbOptions.GlobalImports.SelectAsArray(Function(g) g.Name), Sub(w, n) w.WriteString(n))
             writer.WriteString(vbOptions.RootNamespace)
             writer.WriteInt32(vbOptions.OptionStrict)
             writer.WriteBoolean(vbOptions.OptionInfer)
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Serialization
                 writer.WriteString(kv.Key)
 
                 ' all value here should be primitive types
-                writer.WriteValue(kv.Value)
+                writer.WriteScalarValue(kv.Value)
             Next
         End Sub
 
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Serialization
             Dim assemblyIdentityComparer = tuple.assemblyIdentityComparer
             Dim strongNameProvider = tuple.strongNameProvider
 
-            Dim globalImports = GlobalImport.Parse(reader.ReadArray(Of String)())
+            Dim globalImports = GlobalImport.Parse(reader.ReadArray(Function(r) r.ReadString()))
             Dim rootNamespace = reader.ReadString()
             Dim optionStrict = CType(reader.ReadInt32(), OptionStrict)
             Dim optionInfer = reader.ReadBoolean()
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Serialization
             Dim builder = ImmutableArray.CreateBuilder(Of KeyValuePair(Of String, Object))(count)
             For i = 0 To count - 1
                 Dim key = reader.ReadString()
-                Dim value = reader.ReadValue()
+                Dim value = reader.ReadScalarValue()
                 builder.Add(KeyValuePairUtil.Create(key, value))
             Next
 
