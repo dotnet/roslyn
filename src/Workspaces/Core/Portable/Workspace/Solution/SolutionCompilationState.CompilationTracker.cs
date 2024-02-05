@@ -531,28 +531,28 @@ namespace Microsoft.CodeAnalysis
                     return await BuildFinalStateFromInProgressStateAsync(
                         compilationState, (InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
                 }
-            }
 
-            private async Task<FinalState> BuildFinalStateFromScratchAsync(
-                SolutionCompilationState compilationState,
-                CompilationTrackerGeneratorInfo generatorInfo,
-                CancellationToken cancellationToken)
-            {
-                try
+                async Task<FinalState> BuildFinalStateFromScratchAsync(
+                    SolutionCompilationState compilationState,
+                    CompilationTrackerGeneratorInfo generatorInfo,
+                    CancellationToken cancellationToken)
                 {
-                    var compilation = await BuildDeclarationCompilationFromScratchAsync(
-                        generatorInfo, cancellationToken).ConfigureAwait(false);
+                    try
+                    {
+                        var compilation = await BuildDeclarationCompilationFromScratchAsync(
+                            generatorInfo, cancellationToken).ConfigureAwait(false);
 
-                    return await FinalizeCompilationAsync(
-                        compilationState,
-                        compilation,
-                        generatorInfo,
-                        compilationWithStaleGeneratedTrees: null,
-                        cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-                {
-                    throw ExceptionUtilities.Unreachable();
+                        return await FinalizeCompilationAsync(
+                            compilationState,
+                            compilation,
+                            generatorInfo,
+                            compilationWithStaleGeneratedTrees: null,
+                            cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
                 }
 
                 [PerformanceSensitive(
@@ -583,6 +583,27 @@ namespace Microsoft.CodeAnalysis
                         throw ExceptionUtilities.Unreachable();
                     }
                 }
+
+                async Task<FinalState> BuildFinalStateFromInProgressStateAsync(
+                    SolutionCompilationState compilationState, InProgressState state, Compilation inProgressCompilation, CancellationToken cancellationToken)
+                {
+                    try
+                    {
+                        var (compilationWithoutGenerators, compilationWithGenerators, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(
+                            state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
+
+                        return await FinalizeCompilationAsync(
+                            compilationState,
+                            compilationWithoutGenerators,
+                            state.GeneratorInfo.WithDriver(generatorDriver),
+                            compilationWithGenerators,
+                            cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+                }
             }
 
             private Compilation CreateEmptyCompilation()
@@ -601,27 +622,6 @@ namespace Microsoft.CodeAnalysis
                     return compilationFactory.CreateCompilation(
                         this.ProjectState.AssemblyName,
                         this.ProjectState.CompilationOptions!);
-                }
-            }
-
-            private async Task<FinalState> BuildFinalStateFromInProgressStateAsync(
-                SolutionCompilationState compilationState, InProgressState state, Compilation inProgressCompilation, CancellationToken cancellationToken)
-            {
-                try
-                {
-                    var (compilationWithoutGenerators, compilationWithGenerators, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(
-                        state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
-
-                    return await FinalizeCompilationAsync(
-                        compilationState,
-                        compilationWithoutGenerators,
-                        state.GeneratorInfo.WithDriver(generatorDriver),
-                        compilationWithGenerators,
-                        cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-                {
-                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
