@@ -34,6 +34,26 @@ namespace Roslyn.Utilities
             public static ObjectPool<T[]> Shared = new(() => new T[32768], 512);
         }
 
+        /// <summary>
+        /// byte marker mask for encoding compressed uint
+        /// </summary>
+        public const byte ByteMarkerMask = 3 << 6;
+
+        /// <summary>
+        /// byte marker bits for uint encoded in 1 byte.
+        /// </summary>
+        public const byte Byte1Marker = 0;
+
+        /// <summary>
+        /// byte marker bits for uint encoded in 2 bytes.
+        /// </summary>
+        public const byte Byte2Marker = 1 << 6;
+
+        /// <summary>
+        /// byte marker bits for uint encoded in 4 bytes.
+        /// </summary>
+        public const byte Byte4Marker = 2 << 6;
+
         private readonly BinaryWriter _writer;
         private readonly CancellationToken _cancellationToken;
 
@@ -495,25 +515,5 @@ namespace Roslyn.Utilities
                 return TypeCode.FirstWellKnownTextEncoding + (byte)(kind - EncodingExtensions.FirstTextEncodingKind);
             }
         }
-
-        /// <summary>
-        /// byte marker mask for encoding compressed uint
-        /// </summary>
-        internal const byte ByteMarkerMask = 3 << 6;
-
-        /// <summary>
-        /// byte marker bits for uint encoded in 1 byte.
-        /// </summary>
-        internal const byte Byte1Marker = 0;
-
-        /// <summary>
-        /// byte marker bits for uint encoded in 2 bytes.
-        /// </summary>
-        internal const byte Byte2Marker = 1 << 6;
-
-        /// <summary>
-        /// byte marker bits for uint encoded in 4 bytes.
-        /// </summary>
-        internal const byte Byte4Marker = 2 << 6;
     }
 }
