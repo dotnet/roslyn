@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         public static string? GetDebugName(this ProjectId projectId)
             => projectId.DebugName;
 
-        public static Task<bool> HasSuccessfullyLoadedAsync(this Project project, CancellationToken cancellationToken)
-            => project.HasSuccessfullyLoadedAsync(cancellationToken);
+        public static async Task<bool> HasSuccessfullyLoadedAsync(this Project project, CancellationToken cancellationToken)
+            => await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
     }
 }

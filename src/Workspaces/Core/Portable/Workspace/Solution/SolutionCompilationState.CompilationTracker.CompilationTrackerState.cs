@@ -116,17 +116,6 @@ namespace Microsoft.CodeAnalysis
 
                 public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
 
-                /// <summary>
-                /// Specifies whether <see cref="FinalCompilationWithGeneratedDocuments"/> and all compilations it depends on contain full information or not. This can return
-                /// <see langword="null"/> if the state isn't at the point where it would know, and it's necessary to transition to <see cref="FinalState"/> to figure that out.
-                /// </summary>
-                public virtual bool? HasSuccessfullyLoaded => null;
-
-                /// <summary>
-                /// The final compilation is potentially available, otherwise <see langword="null"/>.
-                /// </summary>
-                public virtual Compilation? FinalCompilationWithGeneratedDocuments => null;
-
                 protected CompilationTrackerState(
                     Compilation? compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo)
@@ -215,23 +204,30 @@ namespace Microsoft.CodeAnalysis
             /// A built compilation for the tracker that contains the fully built DeclarationTable,
             /// but may not have references initialized
             /// </summary>
-            private sealed class AllSyntaxTreesParsedState(Compilation declarationCompilation, CompilationTrackerGeneratorInfo generatorInfo) : CompilationTrackerState(declarationCompilation, generatorInfo)
+            private sealed class AllSyntaxTreesParsedState(
+                Compilation declarationCompilation,
+                CompilationTrackerGeneratorInfo generatorInfo)
+                : CompilationTrackerState(declarationCompilation, generatorInfo)
             {
             }
 
             /// <summary>
-            /// The final state a compilation tracker reaches. The real <see cref="CompilationTrackerState.FinalCompilationWithGeneratedDocuments"/> is available. It is a
-            /// requirement that any <see cref="Compilation"/> provided to any clients of the <see cref="SolutionState"/>
-            /// (for example, through <see cref="Project.GetCompilationAsync"/> or <see
-            /// cref="Project.TryGetCompilation"/> must be from a <see cref="FinalState"/>.  This is because <see
-            /// cref="FinalState"/> stores extra information in it about that compilation that the <see
-            /// cref="SolutionState"/> can be queried for (for example: <see
+            /// The final state a compilation tracker reaches. At this point <see
+            /// cref="FinalCompilationWithGeneratedDocuments"/> is now available. It is a requirement that any <see
+            /// cref="Compilation"/> provided to any clients of the <see cref="SolutionState"/> (for example, through
+            /// <see cref="Project.GetCompilationAsync"/> or <see cref="Project.TryGetCompilation"/> must be from a <see
+            /// cref="FinalState"/>.  This is because <see cref="FinalState"/> stores extra information in it about that
+            /// compilation that the <see cref="SolutionState"/> can be queried for (for example: <see
             /// cref="Solution.GetOriginatingProject(ISymbol)"/>.  If <see cref="Compilation"/>s from other <see
             /// cref="CompilationTrackerState"/>s are passed out, then these other APIs will not function correctly.
             /// </summary>
             private sealed class FinalState : CompilationTrackerState
             {
-                public override bool? HasSuccessfullyLoaded { get; }
+                /// <summary>
+                /// Specifies whether <see cref="FinalCompilationWithGeneratedDocuments"/> and all compilations it
+                /// depends on contain full information or not.
+                /// </summary>
+                public readonly bool HasSuccessfullyLoaded;
 
                 /// <summary>
                 /// Weak set of the assembly, module and dynamic symbols that this compilation tracker has created.
@@ -249,7 +245,7 @@ namespace Microsoft.CodeAnalysis
                 /// already contains the output of other generators. If source generators are not active, this is equal
                 /// to <see cref="Compilation"/>.
                 /// </summary>
-                public override Compilation FinalCompilationWithGeneratedDocuments { get; }
+                public readonly Compilation FinalCompilationWithGeneratedDocuments;
 
                 private FinalState(
                     Compilation finalCompilationWithGeneratedDocuments,

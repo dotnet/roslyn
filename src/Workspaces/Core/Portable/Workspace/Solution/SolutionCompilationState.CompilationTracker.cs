@@ -135,6 +135,9 @@ namespace Microsoft.CodeAnalysis
                         var intermediateProjects = state is InProgressState inProgressState
                             ? inProgressState.IntermediateProjects
                             : [];
+                        var finalCompilationWithGeneratedDocuments = state is FinalState finalState
+                            ? finalState.FinalCompilationWithGeneratedDocuments
+                            : null;
 
                         if (translate is not null)
                         {
@@ -162,7 +165,7 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         var newState = CompilationTrackerState.Create(
-                            baseCompilation, state.GeneratorInfo, state.FinalCompilationWithGeneratedDocuments, intermediateProjects);
+                            baseCompilation, state.GeneratorInfo, finalCompilationWithGeneratedDocuments, intermediateProjects);
                         return newState;
                     }
                     else
@@ -407,8 +410,17 @@ namespace Microsoft.CodeAnalysis
             public bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation)
             {
                 var state = ReadState();
-                compilation = state.FinalCompilationWithGeneratedDocuments;
-                return compilation != null;
+                if (state is FinalState finalState)
+                {
+                    compilation = finalState.FinalCompilationWithGeneratedDocuments;
+                    Contract.ThrowIfNull(compilation);
+                    return true;
+                }
+                else
+                {
+                    compilation = null;
+                    return false;
+                }
             }
 
             public Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
@@ -452,12 +464,8 @@ namespace Microsoft.CodeAnalysis
                         var state = ReadState();
 
                         // Try to get the built compilation.  If it exists, then we can just return that.
-                        var finalCompilation = state.FinalCompilationWithGeneratedDocuments;
-                        if (finalCompilation != null)
-                        {
-                            RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                            return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value, state.GeneratorInfo);
-                        }
+                        if (state is FinalState finalState)
+                            return new CompilationInfo(finalState.FinalCompilationWithGeneratedDocuments, finalState.HasSuccessfullyLoaded, state.GeneratorInfo);
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
                         // build this compilation at a time.
@@ -494,15 +502,10 @@ namespace Microsoft.CodeAnalysis
 
                 // if we already have a compilation, we must be already done!  This can happen if two
                 // threads were waiting to build, and we came in after the other succeeded.
-                var compilation = state.FinalCompilationWithGeneratedDocuments;
-                if (compilation != null)
-                {
-                    RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                    return new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratorInfo);
-                }
+                if (state is FinalState finalState)
+                    return new CompilationInfo(finalState.FinalCompilationWithGeneratedDocuments, finalState.HasSuccessfullyLoaded, state.GeneratorInfo);
 
-                compilation = state.CompilationWithoutGeneratedDocuments;
-
+                var compilation = state.CompilationWithoutGeneratedDocuments;
                 if (compilation == null)
                 {
                     // We've got nothing.  Build it from scratch :(
@@ -853,19 +856,12 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            public Task<bool> HasSuccessfullyLoadedAsync(
+            public async ValueTask<bool> HasSuccessfullyLoadedAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                var state = this.ReadState();
-
-                if (state.HasSuccessfullyLoaded.HasValue)
-                {
-                    return state.HasSuccessfullyLoaded.Value ? SpecializedTasks.True : SpecializedTasks.False;
-                }
-                else
-                {
-                    return HasSuccessfullyLoadedSlowAsync(compilationState, cancellationToken);
-                }
+                return this.ReadState() is FinalState finalState
+                    ? finalState.HasSuccessfullyLoaded
+                    : await HasSuccessfullyLoadedSlowAsync(compilationState, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<bool> HasSuccessfullyLoadedSlowAsync(

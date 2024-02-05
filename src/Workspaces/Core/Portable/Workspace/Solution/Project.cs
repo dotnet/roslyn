@@ -485,8 +485,8 @@ namespace Microsoft.CodeAnalysis
         /// Determines if the compilation returned by <see cref="GetCompilationAsync"/> and all its referenced compilation are from fully loaded projects.
         /// </summary>
         // TODO: make this public
-        internal Task<bool> HasSuccessfullyLoadedAsync(CancellationToken cancellationToken = default)
-            => _solution.CompilationState.HasSuccessfullyLoadedAsync(_projectState, cancellationToken);
+        internal async ValueTask<bool> HasSuccessfullyLoadedAsync(CancellationToken cancellationToken)
+            => await _solution.CompilationState.HasSuccessfullyLoadedAsync(_projectState, cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// Gets an object that lists the added, changed and removed documents between this project and the specified project.
