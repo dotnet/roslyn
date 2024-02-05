@@ -2,6 +2,8 @@
 // The.NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
+using Microsoft.RoslynTools.Utilities;
+
 namespace Microsoft.RoslynTools.Commands;
 
 using System.CommandLine.Invocation;
@@ -22,9 +24,9 @@ internal static class PRTaggerCommand
         {
             VSBuild,
             CommitId,
-            CommonOptions.GitHubTokenOption,
+            //CommonOptions.GitHubTokenOption,
             CommonOptions.DevDivAzDOTokenOption,
-            CommonOptions.DncEngAzDOTokenOption
+            //CommonOptions.DncEngAzDOTokenOption
         };
 
         command.Handler = s_prTaggerCommandHandler;
@@ -41,20 +43,24 @@ internal static class PRTaggerCommand
             var vsCommitSha = context.ParseResult.GetValueForOption(CommitId)!;
             var settings = context.ParseResult.LoadSettings(logger);
 
-            if (string.IsNullOrEmpty(settings.GitHubToken) ||
-                string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) ||
-                string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken))
-            {
-                logger.LogError("Missing authentication token.");
-                return -1;
-            }
+            // if (string.IsNullOrEmpty(settings.GitHubToken) ||
+            //     string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) ||
+            //     string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken))
+            // {
+            //     logger.LogError("Missing authentication token.");
+            //     return -1;
+            // }
 
-            return await PRTagger.PRTagger.TagPRs(
-                vsBuild,
-                vsCommitSha,
-                settings,
-                logger,
-                CancellationToken.None).ConfigureAwait(false);
+            using var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
+            var buildsAndCommits = await PRTagger.PRTagger.GetVSBuildsAndCommitsAsync(devdivConnection, logger).ConfigureAwait(false);
+
+            return 0;
+            // return await PRTagger.PRTagger.TagPRs(
+            //     vsBuild,
+            //     vsCommitSha,
+            //     settings,
+            //     logger,
+            //     CancellationToken.None).ConfigureAwait(false);
         }
     }
 }

@@ -2,6 +2,11 @@
 // The.NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
+using System.Collections.Immutable;
+using Azure.Core;
+using Microsoft.TeamFoundation.Build.WebApi;
+using Microsoft.TeamFoundation.TestManagement.WebApi;
+
 namespace Microsoft.RoslynTools.PRTagger;
 
 using LibGit2Sharp;
@@ -13,10 +18,11 @@ using Microsoft.RoslynTools.Utilities;
 using Microsoft.RoslynTools.VS;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Newtonsoft.Json;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 
-internal class PRTagger
+internal static class PRTagger
 {
     /// <summary>
     /// Creates GitHub issues containing the PRs inserted into a given VS build.
@@ -129,6 +135,26 @@ internal class PRTagger
         }
 
         return 0;
+    }
+
+    public static async Task<ImmutableArray<(string vsBuild, string vsCommit)>> GetVSBuildsAndCommitsAsync(
+        AzDOConnection devDivConnection,
+        ILogger logger)
+    {
+        var builds = await devDivConnection.TryGetBuildsAsync(
+            "DD-CB-TestSignVS",
+            logger: logger,
+            maxBuildNumberFetch: 100,
+            resultsFilter: BuildResult.Succeeded,
+            buildQueryOrder: BuildQueryOrder.FinishTimeDescending).ConfigureAwait(false);
+        if (builds is not null)
+        {
+            return builds.Select(build => (build.BuildNumber, build.SourceVersion)).ToImmutableArray();
+        }
+        else
+        {
+            return ImmutableArray<(string vsBuild, string vsCommit)>.Empty;
+        }
     }
 
     private static async Task<GitRepository> GetVSRepositoryAsync(GitHttpClient gitClient)

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
+using Microsoft.TeamFoundation.TestManagement.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.FileContainer.Client;
 using Microsoft.VisualStudio.Services.WebApi;
@@ -39,12 +40,18 @@ internal sealed class AzDOConnection : IDisposable
         ProjectClient = Connection.GetClient<ProjectHttpClient>();
     }
 
-    public async Task<List<Build>?> TryGetBuildsAsync(string pipelineName, string buildNumber, ILogger? logger = null)
+    public async Task<List<Build>?> TryGetBuildsAsync(string pipelineName, string? buildNumber = null, ILogger? logger = null, int? maxBuildNumberFetch = null, BuildResult? resultsFilter = null, BuildQueryOrder? buildQueryOrder = null)
     {
         try
         {
             var buildDefinition = (await BuildClient.GetDefinitionsAsync(BuildProjectName, name: pipelineName)).Single();
-            var builds = await BuildClient.GetBuildsAsync(buildDefinition.Project.Id, definitions: new[] { buildDefinition.Id }, buildNumber: buildNumber);
+            var builds = await BuildClient.GetBuildsAsync(
+                buildDefinition.Project.Id,
+                definitions: new[] { buildDefinition.Id },
+                buildNumber: buildNumber,
+                resultFilter: resultsFilter,
+                queryOrder: buildQueryOrder,
+                top: maxBuildNumberFetch);
             return builds;
         }
         catch (VssUnauthorizedException ex)
