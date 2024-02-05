@@ -49,14 +49,13 @@ internal static class PRTaggerCommand
             // }
 
             using var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
-            var buildsAndCommits = await PRTagger.PRTagger.GetVSBuildsAndCommitsAsync(devdivConnection, logger).ConfigureAwait(false);
+            var buildsAndCommits = await PRTagger.PRTagger.GetVSBuildsAndCommitsAsync(devdivConnection, logger, CancellationToken.None).ConfigureAwait(false);
 
             return await PRTagger.PRTagger.TagPRs(
                 vsBuildsAndCommitSha: buildsAndCommits,
                 settings,
                 devdivConnection,
-                logger,
-                CancellationToken.None).ConfigureAwait(false);
+                logger).ConfigureAwait(false);
         }
     }
 }

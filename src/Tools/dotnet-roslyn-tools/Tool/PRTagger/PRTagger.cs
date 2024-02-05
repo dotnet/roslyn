@@ -31,32 +31,25 @@ internal static class PRTagger
     /// <param name="vsCommitSha">Commit SHA for VS build</param>
     /// <param name="settings">Authentication tokens</param>
     /// <param name="logger"></param>
-    /// <param name="cancellationToken"></param>
     /// <returns>Exit code indicating whether issue was successfully created.</returns>
     public static async Task<int> TagPRs(
         ImmutableArray<(string vsBuild, string vsCommitSha, string previousVsCommitSha)> vsBuildsAndCommitSha,
         RoslynToolsSettings settings,
         AzDOConnection devdivConnection,
-        ILogger logger,
-        CancellationToken cancellationToken)
+        ILogger logger)
     {
         using var dncengConnection = new AzDOConnection(settings.DncEngAzureDevOpsBaseUri, "internal", settings.DncEngAzureDevOpsToken);
-        // Retrieve VS repo
-
-        var vsRepository = await GetVSRepositoryAsync(devdivConnection.GitClient);
         foreach (var product in VSBranchInfo.AllProducts)
         {
             foreach (var (vsCommitSha, vsBuild, previousVsCommitSha) in vsBuildsAndCommitSha)
             {
-                // Find previous VS commit SHA
-                // var vsCommit = await devdivConnection.GitClient.GetCommitAsync(
-                //     vsCommitSha, vsRepository.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
-                // var previousVsCommitSha = vsCommit.Parents.First();
                 var succeed = await TagProductAsync(product, logger, vsCommitSha, vsBuild, previousVsCommitSha, settings, devdivConnection, dncengConnection).ConfigureAwait(false);
                 if (!succeed)
                     break;
             }
         }
+
+        return 0;
     }
 
     private static async Task<bool> TagProductAsync(IProduct product, ILogger logger, string vsCommitSha, string vsBuild, string previousVsCommitSha, RoslynToolsSettings settings, AzDOConnection devdivConnection, AzDOConnection dncengConnection)
@@ -143,23 +136,35 @@ internal static class PRTagger
         return true;
     }
 
-    public static async Task<ImmutableArray<(string vsBuild, string vsCommit)>> GetVSBuildsAndCommitsAsync(
-        AzDOConnection devDivConnection,
-        ILogger logger)
+    public static async Task<ImmutableArray<(string vsBuild, string vsCommit, string previousVsCommitSha)>> GetVSBuildsAndCommitsAsync(
+        AzDOConnection devdivConnection,
+        ILogger logger,
+        CancellationToken cancellationToken)
     {
-        var builds = await devDivConnection.TryGetBuildsAsync(
+        var builds = await devdivConnection.TryGetBuildsAsync(
             "DD-CB-TestSignVS",
             logger: logger,
-            maxBuildNumberFetch: 100,
+            maxBuildNumberFetch: 20,
             resultsFilter: BuildResult.Succeeded,
             buildQueryOrder: BuildQueryOrder.FinishTimeDescending).ConfigureAwait(false);
+        var vsRepository = await GetVSRepositoryAsync(devdivConnection.GitClient);
         if (builds is not null)
         {
-            return builds.Select(build => (build.BuildNumber, build.SourceVersion)).ToImmutableArray();
+            // Find previous VS commit SHA
+            var buildInfoTask = builds.Select(async build =>
+            {
+                var vsCommit = await devdivConnection.GitClient.GetCommitAsync(
+                    build.SourceVersion, vsRepository.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var previousVsCommitSha = vsCommit.Parents.First();
+                return (build.BuildNumber, build.SourceVersion, previousVsCommitSha);
+            });
+
+            var vsBuildAndCommitSha = await Task.WhenAll(buildInfoTask).ConfigureAwait(false);
+            return vsBuildAndCommitSha.ToImmutableArray();
         }
         else
         {
-            return ImmutableArray<(string vsBuild, string vsCommit)>.Empty;
+            return ImmutableArray<(string vsBuild, string vsCommit, string previousVsCommitSha)>.Empty;
         }
     }
 
