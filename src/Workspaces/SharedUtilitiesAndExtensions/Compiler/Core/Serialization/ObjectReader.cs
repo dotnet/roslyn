@@ -250,7 +250,7 @@ internal sealed partial class ObjectReader : IDisposable
                 return Encoding.GetEncoding(ReadRequiredString());
 
             case >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding:
-                return ObjectWriter.ToEncodingKind(code).GetEncoding();
+                return ToEncodingKind(code).GetEncoding();
 
             case TypeCode.EncodingCodePage:
                 return Encoding.GetEncoding(ReadInt32());
