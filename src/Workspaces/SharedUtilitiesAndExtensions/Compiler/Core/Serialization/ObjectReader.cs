@@ -258,6 +258,12 @@ internal sealed partial class ObjectReader : IDisposable
             default:
                 throw ExceptionUtilities.UnexpectedValue(code);
         }
+
+        static TextEncodingKind ToEncodingKind(TypeCode code)
+        {
+            Debug.Assert(code is >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding);
+            return EncodingExtensions.FirstTextEncodingKind + (byte)(code - TypeCode.FirstWellKnownTextEncoding);
+        }
     }
 
     public byte[] ReadByteArray()
