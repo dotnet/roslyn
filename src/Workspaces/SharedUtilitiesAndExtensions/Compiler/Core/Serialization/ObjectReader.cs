@@ -9,16 +9,8 @@ using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities;
-
-#if CODE_STYLE
-using Resources = CodeStyleResources;
-#else
-using Resources = WorkspacesResources;
-#endif
 
 using TypeCode = ObjectWriter.TypeCode;
 
