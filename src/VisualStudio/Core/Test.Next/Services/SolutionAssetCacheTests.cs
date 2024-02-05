@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -100,7 +101,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.False(gotChecksum2);
 
             // Now, add a project.  At this point, the original pinned object should go away.
-            workspace.SetCurrentSolution(solution => solution.AddProject("Project", "Assembly", LanguageNames.CSharp).Solution, WorkspaceChangeKind.ProjectAdded);
+            workspace.SetCurrentSolution(
+                solution => solution.AddProject("Project", "Assembly", LanguageNames.CSharp).Solution,
+                (oldSolution, newSolution) =>
+                {
+                    var addedProject = newSolution.GetChanges(oldSolution).GetAddedProjects().Single();
+                    return (WorkspaceChangeKind.ProjectAdded, addedProject.Id, null);
+                });
 
             for (var i = 0; i < 10; i++)
             {
