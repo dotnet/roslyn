@@ -445,13 +445,12 @@ namespace Microsoft.CodeAnalysis
             private async Task<Compilation> GetCompilationSlowAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                var finalState = await GetOrBuildFinalStateAsync(compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var finalState = await GetOrBuildFinalStateAsync(compilationState, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return finalState.FinalCompilationWithGeneratedDocuments;
             }
 
             private async Task<FinalState> GetOrBuildFinalStateAsync(
                 SolutionCompilationState compilationState,
-                bool lockGate,
                 CancellationToken cancellationToken)
             {
                 try
@@ -469,14 +468,7 @@ namespace Microsoft.CodeAnalysis
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
                         // build this compilation at a time.
-                        if (lockGate)
-                        {
-                            using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                            {
-                                return await BuildFinalStateAsync(compilationState, cancellationToken).ConfigureAwait(false);
-                            }
-                        }
-                        else
+                        using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                         {
                             return await BuildFinalStateAsync(compilationState, cancellationToken).ConfigureAwait(false);
                         }
@@ -861,7 +853,7 @@ namespace Microsoft.CodeAnalysis
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 var finalState = await GetOrBuildFinalStateAsync(
-                    compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    compilationState, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return finalState.HasSuccessfullyLoaded;
             }
 
@@ -875,7 +867,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var finalState = await GetOrBuildFinalStateAsync(
-                    compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    compilationState, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return finalState.GeneratorInfo.Documents;
             }
 
@@ -888,7 +880,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var finalState = await GetOrBuildFinalStateAsync(
-                    compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    compilationState, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var driverRunResult = finalState.GeneratorInfo.Driver?.GetRunResult();
                 if (driverRunResult is null)
