@@ -192,7 +192,7 @@ internal partial class SymbolTreeInfo
     }
 
     private static SymbolTreeInfo? TryReadSymbolTreeInfo(
-        ObjectReader reader, Checksum checksum)
+        ObjectReader? reader, Checksum checksum)
     {
         if (reader == null)
             return null;
@@ -204,7 +204,7 @@ internal partial class SymbolTreeInfo
 
             for (var i = 0; i < nodeCount; i++)
             {
-                var name = reader.ReadString();
+                var name = reader.ReadRequiredString();
                 var groupCount = reader.ReadInt32();
                 for (var j = 0; j < groupCount; j++)
                 {
@@ -240,13 +240,13 @@ internal partial class SymbolTreeInfo
 
                 for (var i = 0; i < keyCount; i++)
                 {
-                    var typeName = reader.ReadString();
+                    var typeName = reader.ReadRequiredString();
                     var valueCount = reader.ReadInt32();
 
                     for (var j = 0; j < valueCount; j++)
                     {
-                        var containerName = reader.ReadString();
-                        var name = reader.ReadString();
+                        var containerName = reader.ReadRequiredString();
+                        var name = reader.ReadRequiredString();
 
                         receiverTypeNameToExtensionMethodMap.Add(typeName, new ExtensionMethodInfo(containerName, name));
                     }
