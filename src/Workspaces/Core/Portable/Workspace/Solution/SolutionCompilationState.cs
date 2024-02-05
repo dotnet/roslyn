@@ -789,13 +789,13 @@ internal sealed partial class SolutionCompilationState
     /// <summary>
     /// Return reference completeness for the given project and all projects this references.
     /// </summary>
-    public async ValueTask<bool> HasSuccessfullyLoadedAsync(ProjectState project, CancellationToken cancellationToken)
+    public Task<bool> HasSuccessfullyLoadedAsync(ProjectState project, CancellationToken cancellationToken)
     {
         // return HasAllInformation when compilation is not supported.
         // regardless whether project support compilation or not, if projectInfo is not complete, we can't guarantee its reference completeness
         return project.SupportsCompilation
-            ? await this.GetCompilationTracker(project.Id).HasSuccessfullyLoadedAsync(this, cancellationToken).ConfigureAwait(false)
-            : project.HasAllInformation;
+            ? this.GetCompilationTracker(project.Id).HasSuccessfullyLoadedAsync(this, cancellationToken)
+            : project.HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;
     }
 
     /// <summary>

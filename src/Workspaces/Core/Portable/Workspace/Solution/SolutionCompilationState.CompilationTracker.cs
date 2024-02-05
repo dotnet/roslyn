@@ -863,12 +863,12 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            public async ValueTask<bool> HasSuccessfullyLoadedAsync(
+            public Task<bool> HasSuccessfullyLoadedAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 return this.ReadState() is FinalState finalState
-                    ? finalState.HasSuccessfullyLoaded
-                    : await HasSuccessfullyLoadedSlowAsync(compilationState, cancellationToken).ConfigureAwait(false);
+                    ? finalState.HasSuccessfullyLoaded ? SpecializedTasks.True : SpecializedTasks.False
+                    : HasSuccessfullyLoadedSlowAsync(compilationState, cancellationToken);
             }
 
             private async Task<bool> HasSuccessfullyLoadedSlowAsync(
