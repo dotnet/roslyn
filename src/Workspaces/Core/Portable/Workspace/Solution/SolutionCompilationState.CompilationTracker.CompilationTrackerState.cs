@@ -164,7 +164,8 @@ namespace Microsoft.CodeAnalysis
             /// State used when we potentially have some information (like prior generated documents)
             /// but no compilation.
             /// </summary>
-            private sealed class NoCompilationState(CompilationTrackerGeneratorInfo generatorInfo) : CompilationTrackerState(compilationWithoutGeneratedDocuments: null, generatorInfo)
+            private sealed class NoCompilationState(CompilationTrackerGeneratorInfo generatorInfo)
+                : CompilationTrackerState(compilationWithoutGeneratedDocuments: null, generatorInfo)
             {
             }
 
