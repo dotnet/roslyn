@@ -48,15 +48,6 @@ extends:
         - checkout: self
           clean: true
           fetchDepth: 1
-        - task: UseDotNet@2
-          displayName: ⚙️ Install .NET SDK
-          inputs:
-            packageType: sdk
-            version: 6.x
-        - task: NuGetAuthenticate@1
-          displayName: 🔏 Authenticate NuGet feeds
-          inputs:
-            forceReinstallCredentialProvider: true
         - download: current
           artifact: Variables-Windows
           displayName: 🔻 Download Variables-Windows artifact
@@ -65,9 +56,13 @@ extends:
         - download: current
           artifact: VSInsertion-Windows
           displayName: 🔻 Download VSInsertion-Windows artifact
-        - script: dotnet nuget push VSInsertion-windows\*.nupkg -s https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json -k azdo --skip-duplicate
+        - task: 1ES.PublishNuget@1
           displayName: 📦 Push CoreXT packages to VS feed
-          workingDirectory: $(Pipeline.Workspace)
+          inputs:
+            packagesToPush: '$(Pipeline.Workspace)/VSInsertion-Windows/*.nupkg'
+            packageParentPath: $(Pipeline.Workspace)/VSInsertion-Windows
+            allowPackageConflicts: true
+            publishVstsFeed: VS
         - task: MicroBuildInsertVsPayload@4
           displayName: 🏭 Insert VS Payload
           inputs:
