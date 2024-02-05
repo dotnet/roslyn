@@ -48,6 +48,12 @@ internal sealed class ExtensionAssemblyManager
     public static ExtensionAssemblyManager Create(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
     {
         var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
+        if (serverConfiguration.DevKitDependencyPath is not null)
+        {
+            // Ensure the Roslyn DevKit assemblies are loaded into the default ALC so that extensions can use them.
+            ResolveDevKitAssemblies(serverConfiguration.DevKitDependencyPath, loggerFactory);
+        }
+
         var directoryLoadContexts = new Dictionary<string, AssemblyLoadContext>(StringComparer.Ordinal);
         var assemblyFullNameToLoadContext = new Dictionary<string, AssemblyLoadContext>(StringComparer.Ordinal);
         using var _ = ArrayBuilder<string>.GetInstance(out var validExtensionAssemblies);
@@ -105,14 +111,12 @@ internal sealed class ExtensionAssemblyManager
                 return false;
             }
 
-            if (directoryLoadContexts.TryGetValue(directory, out var directoryContext))
+            if (!directoryLoadContexts.TryGetValue(directory, out var directoryContext))
             {
-                assemblyFullNameToLoadContext.Add(assemblyFullName, directoryContext);
-                return true;
+                directoryContext = GetOrCreateDirectoryContext(directory, assemblyFilePath);
             }
 
-            var loadContext = GetOrCreateDirectoryContext(directory, assemblyFilePath);
-            assemblyFullNameToLoadContext.Add(assemblyFullName, loadContext);
+            assemblyFullNameToLoadContext.Add(assemblyFullName, directoryContext);
             return true;
         }
 
@@ -130,6 +134,26 @@ internal sealed class ExtensionAssemblyManager
             directoryLoadContexts.Add(directory, loadContext);
             return loadContext;
         }
+    }
+
+    private static void ResolveDevKitAssemblies(string devKitDependencyPath, ILoggerFactory loggerFactory)
+    {
+        var devKitDependencyDirectory = Path.GetDirectoryName(devKitDependencyPath);
+        Contract.ThrowIfNull(devKitDependencyDirectory);
+        var logger = loggerFactory.CreateLogger("DevKitAssemblyResolver");
+
+        AssemblyLoadContext.Default.Resolving += (context, assemblyName) =>
+        {
+            var simpleName = assemblyName.Name!;
+            var assemblyPath = Path.Combine(devKitDependencyDirectory, simpleName + ".dll");
+            if (File.Exists(assemblyPath))
+            {
+                logger.LogTrace("Loading {assembly} from DevKit directory", simpleName);
+                return context.LoadFromAssemblyPath(assemblyPath);
+            }
+
+            return null;
+        };
     }
 
     /// <summary>

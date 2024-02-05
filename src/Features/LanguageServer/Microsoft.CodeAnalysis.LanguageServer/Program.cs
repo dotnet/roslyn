@@ -78,12 +78,6 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     }
 
     logger.LogTrace($".NET Runtime Version: {RuntimeInformation.FrameworkDescription}");
-
-    if (serverConfiguration.DevKitDependencyPath != null)
-    {
-        ResolveDevKitAssemblies(serverConfiguration.DevKitDependencyPath, loggerFactory);
-    }
-
     var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
 
     using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, serverConfiguration.DevKitDependencyPath, loggerFactory);
@@ -262,24 +256,4 @@ static string GetUnixTypePipeName(string pipeName)
 {
     // Unix-type pipes are actually writing to a file
     return Path.Combine(Path.GetTempPath(), pipeName + ".sock");
-}
-
-static void ResolveDevKitAssemblies(string devKitDependencyPath, ILoggerFactory loggerFactory)
-{
-    var devKitDependencyDirectory = Path.GetDirectoryName(devKitDependencyPath);
-    Contract.ThrowIfNull(devKitDependencyDirectory);
-    var logger = loggerFactory.CreateLogger("DevKitAssemblyResolver");
-
-    AssemblyLoadContext.Default.Resolving += (context, assemblyName) =>
-    {
-        var simpleName = assemblyName.Name!;
-        var assemblyPath = Path.Combine(devKitDependencyDirectory, simpleName + ".dll");
-        if (File.Exists(assemblyPath))
-        {
-            logger.LogTrace("Loading {assembly} from DevKit directory", simpleName);
-            return context.LoadFromAssemblyPath(assemblyPath);
-        }
-
-        return null;
-    };
 }

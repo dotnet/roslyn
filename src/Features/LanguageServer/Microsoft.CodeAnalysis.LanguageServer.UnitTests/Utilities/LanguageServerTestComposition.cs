@@ -25,15 +25,6 @@ internal sealed class LanguageServerTestComposition
     public static Task<ExportProvider> CreateExportProviderAsync(ILoggerFactory loggerFactory, bool includeDevKitComponents)
     {
         var devKitDependencyPath = includeDevKitComponents ? GetDevKitExtensionPath() : null;
-        // Preload the devkit assemblies - the normal process hooks the resolving event, but that doesn't run at this entrypoint.
-        if (devKitDependencyPath != null)
-        {
-            foreach (var assembly in Directory.EnumerateFiles(Path.GetDirectoryName(devKitDependencyPath)!, "*.dll"))
-            {
-                AssemblyLoadContext.Default.LoadFromAssemblyPath(assembly);
-            }
-        }
-
         var serverConfiguration = new ServerConfiguration(LaunchDebugger: false,
             MinimumLogLevel: LogLevel.Trace,
             StarredCompletionsPath: null,
