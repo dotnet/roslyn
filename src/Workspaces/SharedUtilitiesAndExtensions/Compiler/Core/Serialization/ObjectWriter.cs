@@ -80,8 +80,8 @@ namespace Roslyn.Utilities
 
         private void WriteVersion()
         {
-            _writer.Write(ObjectReader.VersionByte1);
-            _writer.Write(ObjectReader.VersionByte2);
+            WriteByte(ObjectReader.VersionByte1);
+            WriteByte(ObjectReader.VersionByte2);
         }
 
         public void Dispose()
@@ -128,13 +128,18 @@ namespace Roslyn.Utilities
             WriteInt64(accessor.High64);
         }
 
-        public void WriteValue(object? value)
+        /// <summary>
+        /// Only supports values of primitive scaler types.  This really should only be used to emit VB preprocessor
+        /// symbol values (which are scaler, but untyped as 'object').  Callers which know their value's type should
+        /// call into that directly.
+        /// </summary>
+        public void WriteScalarValue(object? value)
         {
             Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
 
             if (value == null)
             {
-                _writer.Write((byte)TypeCode.Null);
+                WriteByte((byte)TypeCode.Null);
                 return;
             }
 
@@ -145,61 +150,61 @@ namespace Roslyn.Utilities
             // Perf: Note that JIT optimizes each expression value.GetType() == typeof(T) to a single register comparison.
             // Also the checks are sorted by commonality of the checked types.
 
-            // The primitive types are
-            // Boolean, Byte, SByte, Int16, UInt16, Int32, UInt32,
-            // Int64, UInt64, IntPtr, UIntPtr, Char, Double, and Single.
+            // The list supported can be found in CConst.TryCreate.
+
+            // The primitive types are Boolean, Byte, SByte, Int16, UInt16, Int32, UInt32, Int64, UInt64, IntPtr,
+            // UIntPtr, Char, Double, and Single.
             if (typeInfo.IsPrimitive)
             {
-                // Note: int, double, bool, char, have been chosen to go first as they're they
-                // common values of literals in code, and so would be the likely hits if we do
-                // have a primitive type we're serializing out.
+                // Note: int, double, bool, char, have been chosen to go first as they're they common values of literals
+                // in code, and so would be the likely hits if we do have a primitive type we're serializing out.
                 if (value.GetType() == typeof(int))
                 {
                     WriteEncodedInt32((int)value);
                 }
                 else if (value.GetType() == typeof(double))
                 {
-                    _writer.Write((byte)TypeCode.Float8);
-                    _writer.Write((double)value);
+                    WriteByte((byte)TypeCode.Float8);
+                    WriteDouble((double)value);
                 }
                 else if (value.GetType() == typeof(bool))
                 {
-                    _writer.Write((byte)((bool)value ? TypeCode.Boolean_True : TypeCode.Boolean_False));
+                    WriteByte((byte)((bool)value ? TypeCode.Boolean_True : TypeCode.Boolean_False));
                 }
                 else if (value.GetType() == typeof(char))
                 {
-                    _writer.Write((byte)TypeCode.Char);
-                    _writer.Write((ushort)(char)value);  // written as ushort because BinaryWriter fails on chars that are unicode surrogates
+                    WriteByte((byte)TypeCode.Char);
+                    WriteChar((char)value);
                 }
                 else if (value.GetType() == typeof(byte))
                 {
-                    _writer.Write((byte)TypeCode.UInt8);
-                    _writer.Write((byte)value);
+                    WriteByte((byte)TypeCode.UInt8);
+                    WriteByte((byte)value);
                 }
                 else if (value.GetType() == typeof(short))
                 {
-                    _writer.Write((byte)TypeCode.Int16);
-                    _writer.Write((short)value);
+                    WriteByte((byte)TypeCode.Int16);
+                    WriteInt16((short)value);
                 }
                 else if (value.GetType() == typeof(long))
                 {
-                    _writer.Write((byte)TypeCode.Int64);
-                    _writer.Write((long)value);
+                    WriteByte((byte)TypeCode.Int64);
+                    WriteInt64((long)value);
                 }
                 else if (value.GetType() == typeof(sbyte))
                 {
-                    _writer.Write((byte)TypeCode.Int8);
-                    _writer.Write((sbyte)value);
+                    WriteByte((byte)TypeCode.Int8);
+                    WriteSByte((sbyte)value);
                 }
                 else if (value.GetType() == typeof(float))
                 {
-                    _writer.Write((byte)TypeCode.Float4);
-                    _writer.Write((float)value);
+                    WriteByte((byte)TypeCode.Float4);
+                    WriteSingle((float)value);
                 }
                 else if (value.GetType() == typeof(ushort))
                 {
-                    _writer.Write((byte)TypeCode.UInt16);
-                    _writer.Write((ushort)value);
+                    WriteByte((byte)TypeCode.UInt16);
+                    WriteUInt16((ushort)value);
                 }
                 else if (value.GetType() == typeof(uint))
                 {
@@ -207,8 +212,8 @@ namespace Roslyn.Utilities
                 }
                 else if (value.GetType() == typeof(ulong))
                 {
-                    _writer.Write((byte)TypeCode.UInt64);
-                    _writer.Write((ulong)value);
+                    WriteByte((byte)TypeCode.UInt64);
+                    WriteUInt64((ulong)value);
                 }
                 else
                 {
@@ -217,32 +222,17 @@ namespace Roslyn.Utilities
             }
             else if (value.GetType() == typeof(decimal))
             {
-                _writer.Write((byte)TypeCode.Decimal);
-                _writer.Write((decimal)value);
+                WriteByte((byte)TypeCode.Decimal);
+                WriteDecimal((decimal)value);
             }
             else if (value.GetType() == typeof(DateTime))
             {
-                _writer.Write((byte)TypeCode.DateTime);
+                WriteByte((byte)TypeCode.DateTime);
                 _writer.Write(((DateTime)value).ToBinary());
             }
             else if (value.GetType() == typeof(string))
             {
                 WriteStringValue((string)value);
-            }
-            else if (type.IsArray)
-            {
-                var instance = (Array)value;
-
-                if (instance.Rank > 1)
-                {
-                    throw new InvalidOperationException(Resources.Arrays_with_more_than_one_dimension_cannot_be_serialized);
-                }
-
-                WriteArray(instance);
-            }
-            else if (value is Encoding encoding)
-            {
-                WriteEncoding(encoding);
             }
             else
             {
@@ -250,38 +240,26 @@ namespace Roslyn.Utilities
             }
         }
 
+        public void WriteByteArray(byte[] array)
+        {
+            WriteArrayLength(array.Length);
+            _writer.Write(array);
+        }
+
+        public void WriteCharArray(char[] array)
+        {
+            WriteArrayLength(array.Length);
+            _writer.Write(array);
+        }
+
         /// <summary>
-        /// Write an array of bytes. The array data is provided as a
-        /// <see cref="ReadOnlySpan{T}">ReadOnlySpan</see>&lt;<see cref="byte"/>&gt;, and deserialized to a byte array.
+        /// Write an array of bytes. The array data is provided as a <see
+        /// cref="ReadOnlySpan{T}">ReadOnlySpan</see>&lt;<see cref="byte"/>&gt;, and deserialized to a byte array.
         /// </summary>
         /// <param name="span">The array data.</param>
-        public void WriteValue(ReadOnlySpan<byte> span)
+        public void WriteSpan(ReadOnlySpan<byte> span)
         {
-            var length = span.Length;
-            switch (length)
-            {
-                case 0:
-                    _writer.Write((byte)TypeCode.Array_0);
-                    break;
-                case 1:
-                    _writer.Write((byte)TypeCode.Array_1);
-                    break;
-                case 2:
-                    _writer.Write((byte)TypeCode.Array_2);
-                    break;
-                case 3:
-                    _writer.Write((byte)TypeCode.Array_3);
-                    break;
-                default:
-                    _writer.Write((byte)TypeCode.Array);
-                    WriteCompressedUInt((uint)length);
-                    break;
-            }
-
-            var elementType = typeof(byte);
-            Debug.Assert(s_typeMap[elementType] == TypeCode.UInt8);
-
-            WritePrimitiveType(elementType, TypeCode.UInt8);
+            WriteArrayLength(span.Length);
 
 #if NETCOREAPP
             _writer.Write(span);
@@ -289,36 +267,94 @@ namespace Roslyn.Utilities
             // BinaryWriter in .NET Framework does not support ReadOnlySpan<byte>, so we use a temporary buffer to write
             // arrays of data. The buffer is chosen to be no larger than 8K, which avoids allocations in the large
             // object heap.
-            var buffer = new byte[Math.Min(length, 8192)];
-            for (var offset = 0; offset < length; offset += buffer.Length)
-            {
-                var segmentLength = Math.Min(buffer.Length, length - offset);
-                span.Slice(offset, segmentLength).CopyTo(buffer.AsSpan());
-                _writer.Write(buffer, 0, segmentLength);
-            }
+            WriteSpanPieces(span, 8192, static (writer, buffer, length) => writer.Write(buffer, 0, length));
 #endif
+        }
+
+        /// <summary>
+        /// Write an array of bytes. The array data is provided as a <see
+        /// cref="ReadOnlySpan{T}">ReadOnlySpan</see>&lt;<see cref="char"/>&gt;, and deserialized to a char array.
+        /// </summary>
+        /// <param name="span">The array data.</param>
+        public void WriteSpan(ReadOnlySpan<char> span)
+        {
+            WriteArrayLength(span.Length);
+
+#if NETCOREAPP
+            _writer.Write(span);
+#else
+            // BinaryWriter in .NET Framework does not support ReadOnlySpan<char>, so we use a temporary buffer to write
+            // arrays of data. The buffer is chosen to be no larger than 4K chars, which avoids allocations in the large
+            // object heap.
+            WriteSpanPieces(span, 4096, static (writer, buffer, length) => writer.Write(buffer, 0, length));
+#endif
+        }
+
+        private void WriteArrayLength(int length)
+        {
+            switch (length)
+            {
+                case 0:
+                    WriteByte((byte)TypeCode.Array_0);
+                    break;
+                case 1:
+                    WriteByte((byte)TypeCode.Array_1);
+                    break;
+                case 2:
+                    WriteByte((byte)TypeCode.Array_2);
+                    break;
+                case 3:
+                    WriteByte((byte)TypeCode.Array_3);
+                    break;
+                default:
+                    WriteByte((byte)TypeCode.Array);
+                    WriteCompressedUInt((uint)length);
+                    break;
+            }
+        }
+
+        private void WriteSpanPieces<T>(
+            ReadOnlySpan<T> span,
+            int rentLength,
+            Action<BinaryWriter, T[], int> write)
+        {
+            var spanLength = span.Length;
+            var buffer = System.Buffers.ArrayPool<T>.Shared.Rent(Math.Min(spanLength, rentLength));
+            try
+            {
+                for (var offset = 0; offset < spanLength; offset += buffer.Length)
+                {
+                    var segmentLength = Math.Min(buffer.Length, spanLength - offset);
+                    span.Slice(offset, segmentLength).CopyTo(buffer.AsSpan());
+                    write(_writer, buffer, segmentLength);
+                }
+            }
+            finally
+            {
+                System.Buffers.ArrayPool<T>.Shared.Return(buffer);
+            }
         }
 
         private void WriteEncodedInt32(int v)
         {
             if (v >= 0 && v <= 10)
             {
-                _writer.Write((byte)((int)TypeCode.Int32_0 + v));
+                WriteByte((byte)((int)TypeCode.Int32_0 + v));
             }
             else if (v >= 0 && v < byte.MaxValue)
             {
-                _writer.Write((byte)TypeCode.Int32_1Byte);
-                _writer.Write((byte)v);
+                WriteByte((byte)TypeCode.Int32_1Byte);
+                WriteByte((byte)v);
             }
             else if (v >= 0 && v < ushort.MaxValue)
             {
-                _writer.Write((byte)TypeCode.Int32_2Bytes);
-                _writer.Write((ushort)v);
+                WriteByte((byte)TypeCode.Int32_2Bytes);
+                WriteUInt16((ushort)v);
             }
             else
             {
-                _writer.Write((byte)TypeCode.Int32);
-                _writer.Write(v);
+                WriteByte((byte)TypeCode.Int32);
+                WriteInt32(v);
             }
         }
 
@@ -326,66 +362,22 @@ namespace Roslyn.Utilities
         {
             if (v >= 0 && v <= 10)
             {
-                _writer.Write((byte)((int)TypeCode.UInt32_0 + v));
+                WriteByte((byte)((int)TypeCode.UInt32_0 + v));
             }
             else if (v >= 0 && v < byte.MaxValue)
             {
-                _writer.Write((byte)TypeCode.UInt32_1Byte);
-                _writer.Write((byte)v);
+                WriteByte((byte)TypeCode.UInt32_1Byte);
+                WriteByte((byte)v);
             }
             else if (v >= 0 && v < ushort.MaxValue)
             {
-                _writer.Write((byte)TypeCode.UInt32_2Bytes);
-                _writer.Write((ushort)v);
+                WriteByte((byte)TypeCode.UInt32_2Bytes);
+                WriteUInt16((ushort)v);
             }
             else
             {
-                _writer.Write((byte)TypeCode.UInt32);
-                _writer.Write(v);
-            }
-        }
-
-        /// <summary>
-        /// An object reference to reference-id map, that can share base data efficiently.
-        /// </summary>
-        private struct WriterReferenceMap
-        {
-            // PERF: Use segmented collection to avoid Large Object Heap allocations during serialization.
-            // https://github.com/dotnet/roslyn/issues/43401
-            private readonly SegmentedDictionary<object, int> _valueToIdMap;
-            private int _nextId;
-
-            private static readonly ObjectPool<SegmentedDictionary<object, int>> s_valueDictionaryPool =
-                new(() => new SegmentedDictionary<object, int>(128));
-
-            public WriterReferenceMap()
-            {
-                _valueToIdMap = s_valueDictionaryPool.Allocate();
-                _nextId = 0;
-            }
-
-            public void Dispose()
-            {
-                // If the map grew too big, don't return it to the pool.
-                // When testing with the Roslyn solution, this dropped only 2.5% of requests.
-                if (_valueToIdMap.Count > 1024)
-                {
-                    s_valueDictionaryPool.ForgetTrackedObject(_valueToIdMap);
-                }
-                else
-                {
-                    _valueToIdMap.Clear();
-                    s_valueDictionaryPool.Free(_valueToIdMap);
-                }
-            }
-
-            public bool TryGetReferenceId(object value, out int referenceId)
-                => _valueToIdMap.TryGetValue(value, out referenceId);
-
-            public void Add(object value)
-            {
-                var id = _nextId++;
-                _valueToIdMap.Add(value, id);
+                WriteByte((byte)TypeCode.UInt32);
+                WriteUInt32(v);
             }
         }
 
@@ -393,7 +385,7 @@ namespace Roslyn.Utilities
         {
             if (value <= (byte.MaxValue >> 2))
             {
-                _writer.Write((byte)value);
+                WriteByte((byte)value);
             }
             else if (value <= (ushort.MaxValue >> 2))
             {
@@ -401,8 +393,8 @@ namespace Roslyn.Utilities
                 var byte1 = (byte)(value & 0xFFu);
 
                 // high-bytes to low-bytes
-                _writer.Write(byte0);
-                _writer.Write(byte1);
+                WriteByte(byte0);
+                WriteByte(byte1);
             }
             else if (value <= (uint.MaxValue >> 2))
             {
@@ -412,10 +404,10 @@ namespace Roslyn.Utilities
                 var byte3 = (byte)(value & 0xFFu);
 
                 // high-bytes to low-bytes
-                _writer.Write(byte0);
-                _writer.Write(byte1);
-                _writer.Write(byte2);
-                _writer.Write(byte3);
+                WriteByte(byte0);
+                WriteByte(byte1);
+                WriteByte(byte2);
+                WriteByte(byte3);
             }
             else
             {
@@ -427,7 +419,7 @@ namespace Roslyn.Utilities
         {
             if (value == null)
             {
-                _writer.Write((byte)TypeCode.Null);
+                WriteByte((byte)TypeCode.Null);
             }
             else
             {
@@ -436,18 +428,18 @@ namespace Roslyn.Utilities
                     Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
                     {
-                        _writer.Write((byte)TypeCode.StringRef_1Byte);
-                        _writer.Write((byte)id);
+                        WriteByte((byte)TypeCode.StringRef_1Byte);
+                        WriteByte((byte)id);
                     }
                     else if (id <= ushort.MaxValue)
                     {
-                        _writer.Write((byte)TypeCode.StringRef_2Bytes);
-                        _writer.Write((ushort)id);
+                        WriteByte((byte)TypeCode.StringRef_2Bytes);
+                        WriteUInt16((ushort)id);
                     }
                     else
                     {
-                        _writer.Write((byte)TypeCode.StringRef_4Bytes);
-                        _writer.Write(id);
+                        WriteByte((byte)TypeCode.StringRef_4Bytes);
+                        WriteInt32(id);
                     }
                 }
                 else
@@ -459,12 +451,12 @@ namespace Roslyn.Utilities
                         // Usual case - the string can be encoded as UTF-8:
                         // We can use the UTF-8 encoding of the binary writer.
 
-                        _writer.Write((byte)TypeCode.StringUtf8);
+                        WriteByte((byte)TypeCode.StringUtf8);
                         _writer.Write(value);
                     }
                     else
                     {
-                        _writer.Write((byte)TypeCode.StringUtf16);
+                        WriteByte((byte)TypeCode.StringUtf16);
 
                         // This is rare, just allocate UTF16 bytes for simplicity.
                         var bytes = new byte[(uint)value.Length * sizeof(char)];
@@ -478,218 +470,6 @@ namespace Roslyn.Utilities
                     }
                 }
             }
-        }
-
-        private void WriteArray(Array array)
-        {
-            var length = array.GetLength(0);
-
-            switch (length)
-            {
-                case 0:
-                    _writer.Write((byte)TypeCode.Array_0);
-                    break;
-                case 1:
-                    _writer.Write((byte)TypeCode.Array_1);
-                    break;
-                case 2:
-                    _writer.Write((byte)TypeCode.Array_2);
-                    break;
-                case 3:
-                    _writer.Write((byte)TypeCode.Array_3);
-                    break;
-                default:
-                    _writer.Write((byte)TypeCode.Array);
-                    this.WriteCompressedUInt((uint)length);
-                    break;
-            }
-
-            var elementType = array.GetType().GetElementType()!;
-
-            if (s_typeMap.TryGetValue(elementType, out var elementKind))
-            {
-                this.WritePrimitiveType(elementType, elementKind);
-                this.WritePrimitiveTypeArrayElements(elementType, elementKind, array);
-            }
-            else
-            {
-                throw new InvalidOperationException($"Unsupported array element type: {elementType}");
-            }
-        }
-
-        private void WritePrimitiveTypeArrayElements(Type type, TypeCode kind, Array instance)
-        {
-            Debug.Assert(s_typeMap[type] == kind);
-
-            // optimization for type underlying binary writer knows about
-            if (type == typeof(byte))
-            {
-                _writer.Write((byte[])instance);
-            }
-            else if (type == typeof(char))
-            {
-                _writer.Write((char[])instance);
-            }
-            else if (type == typeof(string))
-            {
-                // optimization for string which object writer has
-                // its own optimization to reduce repeated string
-                WriteStringArrayElements((string[])instance);
-            }
-            else if (type == typeof(bool))
-            {
-                // optimization for bool array
-                WriteBooleanArrayElements((bool[])instance);
-            }
-            else
-            {
-                // otherwise, write elements directly to underlying binary writer
-                switch (kind)
-                {
-                    case TypeCode.Int8:
-                        WriteInt8ArrayElements((sbyte[])instance);
-                        return;
-                    case TypeCode.Int16:
-                        WriteInt16ArrayElements((short[])instance);
-                        return;
-                    case TypeCode.Int32:
-                        WriteInt32ArrayElements((int[])instance);
-                        return;
-                    case TypeCode.Int64:
-                        WriteInt64ArrayElements((long[])instance);
-                        return;
-                    case TypeCode.UInt16:
-                        WriteUInt16ArrayElements((ushort[])instance);
-                        return;
-                    case TypeCode.UInt32:
-                        WriteUInt32ArrayElements((uint[])instance);
-                        return;
-                    case TypeCode.UInt64:
-                        WriteUInt64ArrayElements((ulong[])instance);
-                        return;
-                    case TypeCode.Float4:
-                        WriteFloat4ArrayElements((float[])instance);
-                        return;
-                    case TypeCode.Float8:
-                        WriteFloat8ArrayElements((double[])instance);
-                        return;
-                    case TypeCode.Decimal:
-                        WriteDecimalArrayElements((decimal[])instance);
-                        return;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(kind);
-                }
-            }
-        }
-
-        private void WriteBooleanArrayElements(bool[] array)
-        {
-            // convert bool array to bit array
-            var bits = BitVector.Create(array.Length);
-            for (var i = 0; i < array.Length; i++)
-            {
-                bits[i] = array[i];
-            }
-
-            // send over bit array
-            foreach (var word in bits.Words())
-            {
-                _writer.Write(word);
-            }
-        }
-
-        private void WriteStringArrayElements(string[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-            {
-                WriteStringValue(array[i]);
-            }
-        }
-
-        private void WriteInt8ArrayElements(sbyte[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
-        }
-
-        private void WriteInt16ArrayElements(short[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
-        }
-
-        private void WriteInt32ArrayElements(int[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
-        }
-
-        private void WriteInt64ArrayElements(long[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
-        }
-
-        private void WriteUInt16ArrayElements(ushort[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
-        }
-
-        private void WriteUInt32ArrayElements(uint[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
-        }
-
-        private void WriteUInt64ArrayElements(ulong[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
-        }
-
-        private void WriteDecimalArrayElements(decimal[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
-        }
-
-        private void WriteFloat4ArrayElements(float[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
-        }
-
-        private void WriteFloat8ArrayElements(double[] array)
-        {
-            for (var i = 0; i < array.Length; i++)
-            {
-                _writer.Write(array[i]);
-            }
-        }
-
-        private void WritePrimitiveType(Type type, TypeCode kind)
-        {
-            Debug.Assert(s_typeMap[type] == kind);
-            _writer.Write((byte)kind);
         }
 
         public void WriteEncoding(Encoding? encoding)
@@ -712,46 +492,6 @@ namespace Roslyn.Utilities
                 WriteByte((byte)TypeCode.EncodingName);
                 WriteString(encoding.WebName);
             }
-        }
-
-        // we have s_typeMap and s_reversedTypeMap since there is no bidirectional map in compiler
-        // Note: s_typeMap is effectively immutable.  However, for maximum perf we use mutable types because
-        // they are used in hotspots.
-        internal static readonly Dictionary<Type, TypeCode> s_typeMap;
-
-        /// <summary>
-        /// Indexed by <see cref="TypeCode"/>.
-        /// </summary>
-        internal static readonly ImmutableArray<Type> s_reverseTypeMap;
-
-        static ObjectWriter()
-        {
-            s_typeMap = new Dictionary<Type, TypeCode>
-            {
-                { typeof(bool), TypeCode.BooleanType },
-                { typeof(char), TypeCode.Char },
-                { typeof(string), TypeCode.StringType },
-                { typeof(sbyte), TypeCode.Int8 },
-                { typeof(short), TypeCode.Int16 },
-                { typeof(int), TypeCode.Int32 },
-                { typeof(long), TypeCode.Int64 },
-                { typeof(byte), TypeCode.UInt8 },
-                { typeof(ushort), TypeCode.UInt16 },
-                { typeof(uint), TypeCode.UInt32 },
-                { typeof(ulong), TypeCode.UInt64 },
-                { typeof(float), TypeCode.Float4 },
-                { typeof(double), TypeCode.Float8 },
-                { typeof(decimal), TypeCode.Decimal },
-            };
-
-            var temp = new Type[(int)TypeCode.Last];
-
-            foreach (var kvp in s_typeMap)
-            {
-                temp[(int)kvp.Value] = kvp.Key;
-            }
-
-            s_reverseTypeMap = ImmutableArray.Create(temp);
         }
 
         /// <summary>

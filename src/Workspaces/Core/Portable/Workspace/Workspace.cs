@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis
         /// updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
         /// <returns>True if <see cref="CurrentSolution"/> was set to the transformed solution, false if the
         /// transformation did not change the solution.</returns>
-        private protected (bool updated, Solution newSolution) SetCurrentSolution(
+        internal (bool updated, Solution newSolution) SetCurrentSolution(
             Func<Solution, Solution> transformation,
             Func<Solution, Solution, (WorkspaceChangeKind changeKind, ProjectId? projectId, DocumentId? documentId)> changeKind,
             Action<Solution, Solution>? onBeforeUpdate = null,
