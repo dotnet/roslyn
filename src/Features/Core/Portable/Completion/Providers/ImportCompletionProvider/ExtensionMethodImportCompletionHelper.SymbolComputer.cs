@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             private readonly int _position;
             private readonly Document _originatingDocument;
+
+            /// <summary>
+            /// The semantic model provided for <see cref="_originatingDocument"/>. This may be a speculative semantic
+            /// model with limited validity based on the context surrounding <see cref="_position"/>.
+            /// </summary>
             private readonly SemanticModel _originatingSemanticModel;
             private readonly ITypeSymbol _receiverTypeSymbol;
             private readonly ImmutableArray<string> _receiverTypeNames;
@@ -178,6 +183,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 var originatingAssembly = _originatingSemanticModel.Compilation.Assembly;
                 var filter = CreateAggregatedFilter(cacheEntry);
+
+                // Avoid recalculating a compilation for the originating document, particularly for the case where the
+                // provided semantic model is a speculative semantic model.
                 var compilation = project == _originatingDocument.Project
                     ? _originatingSemanticModel.Compilation
                     : await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
