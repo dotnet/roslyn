@@ -11,7 +11,7 @@ internal readonly partial struct BKTree
 {
     internal void WriteTo(ObjectWriter writer)
     {
-        writer.WriteValue(_concatenatedLowerCaseWords);
+        writer.WriteCharArray(_concatenatedLowerCaseWords);
         writer.WriteArray(_nodes, static (w, n) => n.WriteTo(w));
         writer.WriteArray(_edges, static (w, n) => n.WriteTo(w));
     }
@@ -21,7 +21,7 @@ internal readonly partial struct BKTree
         try
         {
             return new BKTree(
-                (char[])reader.ReadValue(),
+                reader.ReadCharArray(),
                 reader.ReadArray(Node.ReadFrom),
                 reader.ReadArray(Edge.ReadFrom));
         }

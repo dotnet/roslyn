@@ -225,7 +225,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             var attributes = Generator.GetAttributes(Generator.AddAttributes(
                 Generator.NamespaceDeclaration("n"),
                 Generator.Attribute("Attr")));
-            Assert.True(attributes.Count == 1);
+            Assert.Single(attributes);
         }
 
         private static AttributeData GetAttributeData(string decl, string use)
