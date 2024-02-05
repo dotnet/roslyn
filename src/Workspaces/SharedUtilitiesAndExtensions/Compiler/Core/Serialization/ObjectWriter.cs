@@ -775,16 +775,6 @@ namespace Roslyn.Utilities
             Array_3,
 
             /// <summary>
-            /// The boolean type
-            /// </summary>
-            BooleanType,
-
-            /// <summary>
-            /// The string type
-            /// </summary>
-            StringType,
-
-            /// <summary>
             /// Encoding serialized as <see cref="Encoding.WebName"/>.
             /// </summary>
             EncodingName,
@@ -799,8 +789,6 @@ namespace Roslyn.Utilities
             /// Encoding serialized as <see cref="Encoding.CodePage"/>.
             /// </summary>
             EncodingCodePage,
-
-            Last,
         }
 
         internal static TypeCode ToTypeCode(TextEncodingKind kind)
