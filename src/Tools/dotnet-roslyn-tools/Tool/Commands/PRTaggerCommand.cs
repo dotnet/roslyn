@@ -54,7 +54,7 @@ internal static class PRTaggerCommand
             return await PRTagger.PRTagger.TagPRs(
                 vsBuildsAndCommitSha: buildsAndCommits,
                 settings,
-                devDivConnection,
+                devdivConnection,
                 logger,
                 CancellationToken.None).ConfigureAwait(false);
         }
