@@ -18,7 +18,7 @@ steps:
 - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
   - powershell: azure-pipelines/artifacts/_pipelines.ps1 -StageOnly -AvoidSymbolicLinks -ArtifactNameSuffix "-$(Agent.JobName)" -Verbose
     failOnStderr: true
-    displayName: 📢 Publish artifacts
+    displayName: 📢 Stage artifacts
     condition: succeededOrFailed()
 
 - ${{ if ne(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
