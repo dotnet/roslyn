@@ -456,6 +456,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 needsImplicitConversionFromStringToSpan = true;
             }
 
+            // It only makes sense to lower using span-based concat if at least one operand is a char.
+            // Because otherwise we will just wrap every string operand into span conversion and use span-based concat
+            // which is unnecessary IL bloat. Thus we require `needsSpanRefParamConstructor` to be true
+            if (!needsSpanRefParamConstructor)
+            {
+                result = null;
+                return false;
+            }
+
+            // Just direct consequence of a condition above since we capture `char` type and set `needsSpanRefParamConstructor` at the same time
+            Debug.Assert(charType is not null);
+
             var concatMember = preparedArgs.Count switch
             {
                 2 => WellKnownMember.System_String__Concat_2ReadOnlySpans,
@@ -464,12 +476,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => throw ExceptionUtilities.Unreachable(),
             };
 
-            // It only makes sense to lower using span-based concat if at least one operand is a char.
-            // Because otherwise we will just wrap every string operand into span conversion and use span-based concat
-            // which is unnecessary IL bloat. Thus we require `needsSpanRefParamConstructor` to be true
-            if (needsSpanRefParamConstructor &&
-                TryGetWellKnownTypeMember(syntax, concatMember, out MethodSymbol? spanConcat, isOptional: true) &&
-                tryGetNeededToSpanMembers(this, syntax, needsSpanRefParamConstructor, needsImplicitConversionFromStringToSpan, charType, out MethodSymbol? readOnlySpanCtorRefParamChar, out MethodSymbol? stringImplicitConversionToReadOnlySpan))
+            if (TryGetWellKnownTypeMember(syntax, concatMember, out MethodSymbol? spanConcat, isOptional: true) &&
+                tryGetNeededToSpanMembers(this, syntax, needsImplicitConversionFromStringToSpan, charType, out MethodSymbol? readOnlySpanCtorRefParamChar, out MethodSymbol? stringImplicitConversionToReadOnlySpan))
             {
                 result = rewriteStringConcatenationWithSpanBasedConcat(
                         syntax,
@@ -485,23 +493,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             result = null;
             return false;
 
-            static bool tryGetNeededToSpanMembers(LocalRewriter self, SyntaxNode syntax, bool needsSpanRefParamConstructor, bool needsImplicitConversionFromStringToSpan, NamedTypeSymbol? charType, out MethodSymbol? readOnlySpanCtorRefParamChar, out MethodSymbol? stringImplicitConversionToReadOnlySpan)
+            static bool tryGetNeededToSpanMembers(
+                LocalRewriter self,
+                SyntaxNode syntax,
+                bool needsImplicitConversionFromStringToSpan,
+                NamedTypeSymbol charType,
+                [NotNullWhen(true)] out MethodSymbol? readOnlySpanCtorRefParamChar,
+                out MethodSymbol? stringImplicitConversionToReadOnlySpan)
             {
                 readOnlySpanCtorRefParamChar = null;
                 stringImplicitConversionToReadOnlySpan = null;
 
-                if (needsSpanRefParamConstructor)
+                if (self.TryGetWellKnownTypeMember(syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol? readOnlySpanCtorRefParamGeneric, isOptional: true))
                 {
-                    if (self.TryGetWellKnownTypeMember(syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol? readOnlySpanCtorRefParamGeneric, isOptional: true))
-                    {
-                        Debug.Assert(charType is not null);
-                        var readOnlySpanOfChar = readOnlySpanCtorRefParamGeneric.ContainingType.Construct(charType);
-                        readOnlySpanCtorRefParamChar = readOnlySpanCtorRefParamGeneric.AsMember(readOnlySpanOfChar);
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    var readOnlySpanOfChar = readOnlySpanCtorRefParamGeneric.ContainingType.Construct(charType);
+                    readOnlySpanCtorRefParamChar = readOnlySpanCtorRefParamGeneric.AsMember(readOnlySpanOfChar);
+                }
+                else
+                {
+                    return false;
                 }
 
                 if (needsImplicitConversionFromStringToSpan)
@@ -517,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntheticBoundNodeFactory factory,
                 MethodSymbol spanConcat,
                 MethodSymbol? stringImplicitConversionToReadOnlySpan,
-                MethodSymbol? readOnlySpanCtorRefParamChar,
+                MethodSymbol readOnlySpanCtorRefParamChar,
                 ImmutableArray<BoundExpression> args)
             {
                 var preparedArgsBuilder = ArrayBuilder<BoundExpression>.GetInstance(capacity: args.Length);
@@ -529,8 +539,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (arg.Type.SpecialType == SpecialType.System_Char)
                     {
-                        Debug.Assert(readOnlySpanCtorRefParamChar is not null);
-
                         var temp = factory.StoreToTemp(arg, out var tempAssignment);
                         localsBuilder.Add(temp.LocalSymbol);
 
