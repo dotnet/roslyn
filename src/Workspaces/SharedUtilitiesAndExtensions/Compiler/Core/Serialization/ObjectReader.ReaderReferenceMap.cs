@@ -3,17 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities;
-#if COMPILERCORE
-using Resources = CodeAnalysisResources;
-#elif CODE_STYLE
-using Resources = CodeStyleResources;
-#else
-#endif
 
 internal sealed partial class ObjectReader
 {
