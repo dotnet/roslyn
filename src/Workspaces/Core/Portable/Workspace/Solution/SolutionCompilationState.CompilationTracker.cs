@@ -135,68 +135,88 @@ namespace Microsoft.CodeAnalysis
                     CompilationTrackerState state,
                     CompilationAndGeneratorDriverTranslationAction? translate)
                 {
-                    if (state is WithCompilationTrackerState withCompilationState)
+                    if (state is WithCompilationTrackerState withCompilationTrackerState)
                     {
-                        var intermediateProjects = state is InProgressState inProgressState
-                            ? inProgressState.IntermediateProjects
-                            : [];
-                        var finalCompilationWithGeneratedDocuments = state is FinalCompilationTrackerState finalState
-                            ? finalState.FinalCompilationWithGeneratedDocuments
-                            : null;
-
-                        if (translate is not null)
-                        {
-                            // We have a translation action; are we able to merge it with the prior one?
-                            var merged = false;
-                            if (!intermediateProjects.IsEmpty)
-                            {
-                                var (priorState, priorAction) = intermediateProjects.Last();
-                                var mergedTranslation = translate.TryMergeWithPrior(priorAction);
-                                if (mergedTranslation != null)
-                                {
-                                    // We can replace the prior action with this new one
-                                    intermediateProjects = intermediateProjects.SetItem(
-                                        intermediateProjects.Count - 1,
-                                        (oldState: priorState, mergedTranslation));
-                                    merged = true;
-                                }
-                            }
-
-                            if (!merged)
-                            {
-                                // Just add it to the end
-                                intermediateProjects = intermediateProjects.Add((oldProjectState, translate));
-                            }
-                        }
-
-                        var newState = CompilationTrackerState.Create(
-                            withCompilationState.IsFrozen,
-                            withCompilationState.CompilationWithoutGeneratedDocuments,
-                            withCompilationState.GeneratorInfo,
-                            finalCompilationWithGeneratedDocuments,
-                            intermediateProjects);
-                        return newState;
+                        return ForkWithCompilationTrackerState(oldProjectState, withCompilationTrackerState, translate);
                     }
-                    else if (state is NoCompilationState)
+                    else if (state is NoCompilationState noCompilationState)
                     {
-                        // We may still have a cached generator; we'll have to remember to run generators again since we are making some
-                        // change here. We'll also need to update the other state of the driver if appropriate.
-
-                        // The no compilation state can never be in the 'DocumentsAreFinal' state.  The only place where
-                        // we start with the NoCompilationState is the 'Empty' instance (where DocumentsAreFinal=false).
-                        // And then this is the only place where we get a NoCompilationState and create a new instance.
-                        // So there is no way to ever transition this to the DocumentsAreFinal=true state.
-                        Contract.ThrowIfTrue(state.GeneratorInfo.DocumentsAreFinal);
-                        var generatorInfo = state.GeneratorInfo;
-                        if (generatorInfo.Driver != null && translate != null)
-                            generatorInfo = generatorInfo.WithDriver(translate.TransformGeneratorDriver(generatorInfo.Driver));
-
-                        return new NoCompilationState(generatorInfo);
+                        return ForkNoCompilationState(noCompilationState, translate);
                     }
                     else
                     {
                         throw ExceptionUtilities.UnexpectedValue(state.GetType());
                     }
+                }
+
+                static NonFinalWithCompilationTrackerState ForkWithCompilationTrackerState(
+                    ProjectState oldProjectState,
+                    WithCompilationTrackerState state,
+                    CompilationAndGeneratorDriverTranslationAction? translate)
+                {
+                    var finalCompilationWithGeneratedDocuments = state is FinalCompilationTrackerState finalState
+                        ? finalState.FinalCompilationWithGeneratedDocuments
+                        : null;
+
+                    var intermediateProjects = UpdateIntermediateProjects(oldProjectState, state, translate);
+
+                    var newState = CompilationTrackerState.Create(
+                        state.IsFrozen,
+                        state.CompilationWithoutGeneratedDocuments,
+                        state.GeneratorInfo,
+                        finalCompilationWithGeneratedDocuments,
+                        intermediateProjects);
+                    return newState;
+                }
+
+                static NoCompilationState ForkNoCompilationState(
+                    NoCompilationState state,
+                    CompilationAndGeneratorDriverTranslationAction? translate)
+                {
+
+                    // We may still have a cached generator; we'll have to remember to run generators again since we are making some
+                    // change here. We'll also need to update the other state of the driver if appropriate.
+
+                    // The no compilation state can never be in the 'DocumentsAreFinal' state.  The only place where
+                    // we start with the NoCompilationState is the 'Empty' instance (where DocumentsAreFinal=false).
+                    // And then this is the only place where we get a NoCompilationState and create a new instance.
+                    // So there is no way to ever transition this to the DocumentsAreFinal=true state.
+                    Contract.ThrowIfTrue(state.GeneratorInfo.DocumentsAreFinal);
+                    var generatorInfo = state.GeneratorInfo;
+                    if (generatorInfo.Driver != null && translate != null)
+                        generatorInfo = generatorInfo.WithDriver(translate.TransformGeneratorDriver(generatorInfo.Driver));
+
+                    return new NoCompilationState(generatorInfo);
+                }
+
+                static ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> UpdateIntermediateProjects(
+                    ProjectState oldProjectState,
+                    WithCompilationTrackerState state,
+                    CompilationAndGeneratorDriverTranslationAction? translate)
+                {
+                    var intermediateProjects = state is InProgressState inProgressState
+                        ? inProgressState.IntermediateProjects
+                        : [];
+
+                    if (translate is null)
+                        return intermediateProjects;
+
+                    // We have a translation action; are we able to merge it with the prior one?
+                    if (!intermediateProjects.IsEmpty)
+                    {
+                        var (priorState, priorAction) = intermediateProjects.Last();
+                        var mergedTranslation = translate.TryMergeWithPrior(priorAction);
+                        if (mergedTranslation != null)
+                        {
+                            // We can replace the prior action with this new one
+                            return intermediateProjects.SetItem(
+                                intermediateProjects.Count - 1,
+                                (oldState: priorState, mergedTranslation));
+                        }
+                    }
+
+                    // Just add it to the end
+                    return intermediateProjects.Add((oldProjectState, translate));
                 }
             }
 
