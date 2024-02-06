@@ -652,7 +652,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If it's a struct which has overridden ToString, find that method. Note that we might fail to
             // find it, e.g. if object.ToString is missing
-            MethodSymbol? structToStringMethod = FindSpecificToStringOfStructType(expr.Type, objectToStringMethod);
+            MethodSymbol? structToStringMethod = null;
+            if (expr.Type.IsValueType && !expr.Type.IsTypeParameter())
+            {
+                var type = (NamedTypeSymbol)expr.Type;
+                var typeToStringMembers = type.GetMembers(objectToStringMethod.Name);
+                foreach (var member in typeToStringMembers)
+                {
+                    if (member is MethodSymbol toStringMethod &&
+                        toStringMethod.GetLeastOverriddenMethod(type) == (object)objectToStringMethod)
+                    {
+                        structToStringMethod = toStringMethod;
+                        break;
+                    }
+                }
+            }
 
             // If it's a special value type (and not a field of a MarshalByRef object), it should have its own ToString method (but we might fail to find
             // it if object.ToString is missing). Assume that this won't be removed, and emit a direct call rather
@@ -734,25 +748,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return false;
             }
-        }
-
-        private static MethodSymbol? FindSpecificToStringOfStructType(TypeSymbol exprType, MethodSymbol objectToStringMethod)
-        {
-            if (exprType.IsValueType && !exprType.IsTypeParameter())
-            {
-                var type = (NamedTypeSymbol)exprType;
-                var typeToStringMembers = type.GetMembers(objectToStringMethod.Name);
-                foreach (var member in typeToStringMembers)
-                {
-                    if (member is MethodSymbol toStringMethod &&
-                        toStringMethod.GetLeastOverriddenMethod(type) == (object)objectToStringMethod)
-                    {
-                        return toStringMethod;
-                    }
-                }
-            }
-
-            return null;
         }
     }
 }
