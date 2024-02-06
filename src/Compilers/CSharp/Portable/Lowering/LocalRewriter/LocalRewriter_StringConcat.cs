@@ -193,53 +193,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             }
                         }
-
-                        if ((object)method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_2ReadOnlySpans) ||
-                            (object)method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_3ReadOnlySpans) ||
-                            (object)method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_4ReadOnlySpans))
-                        {
-                            // Faced a span-based `string.Concat` call. Since we can produce such call on the previous iterations ourselves, we need to unwrap it.
-                            // The key thing is that we need not to only extract arguments, but also unwrap them from being spans and for chars also wrap them into `ToString` calls.
-                            var wrappedArgs = boundCall.Arguments;
-                            var unwrappedArgsBuilder = ArrayBuilder<BoundExpression>.GetInstance(capacity: wrappedArgs.Length);
-
-                            for (var i = 0; i < wrappedArgs.Length; i++)
-                            {
-                                var wrappedArg = wrappedArgs[i];
-
-                                // Check whether a call is an implicit `string -> ReadOnlySpan<char>` conversion
-                                if (wrappedArg is BoundCall { Method: var argMethod, Arguments: [var singleArgument] } &&
-                                    (object)argMethod == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar))
-                                {
-                                    unwrappedArgsBuilder.Add(singleArgument);
-                                }
-                                // This complicated check is for a sequence, which wraps a span around single char.
-                                // The sequence needs to have this shape: `{ locals: <none>, sideEffects: temp = <original char expression>, result: new ReadOnlySpan<char>(in temp) }`
-                                else if (wrappedArg is BoundSequence { Locals.Length: 0, SideEffects: [BoundAssignmentOperator { Right: var assignmentRight }], Value: BoundObjectCreationExpression { Constructor: var objectCreationConstructor, Arguments: [BoundLocal] } } &&
-                                         (object)objectCreationConstructor.OriginalDefinition == _compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference) &&
-                                         objectCreationConstructor.ReceiverType.IsReadOnlySpanChar())
-                                {
-                                    Debug.Assert(assignmentRight.Type?.IsCharType() == true);
-                                    var charToString = FindSpecificToStringOfStructType(assignmentRight.Type, UnsafeGetSpecialTypeMethod(wrappedArg.Syntax, SpecialMember.System_Object__ToString));
-                                    if (charToString is null)
-                                    {
-                                        unwrappedArgsBuilder.Free();
-                                        arguments = default;
-                                        return false;
-                                    }
-                                    unwrappedArgsBuilder.Add(BoundCall.Synthesized(wrappedArg.Syntax, assignmentRight, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, charToString));
-                                }
-                                else
-                                {
-                                    unwrappedArgsBuilder.Free();
-                                    arguments = default;
-                                    return false;
-                                }
-                            }
-
-                            arguments = unwrappedArgsBuilder.ToImmutableAndFree();
-                            return true;
-                        }
                     }
                     break;
 
@@ -261,8 +214,72 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     break;
 
-                case BoundSequence { SideEffects.Length: 0, Value: BoundCall sequenceCall }:
-                    return TryExtractStringConcatArgs(sequenceCall, out arguments);
+                case BoundSequence { SideEffects.Length: 0, Value: BoundCall sequenceCall } sequence:
+                    var locals = sequence.Locals;
+
+                    if ((object)sequenceCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_2ReadOnlySpans) ||
+                        (object)sequenceCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_3ReadOnlySpans) ||
+                        (object)sequenceCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_4ReadOnlySpans))
+                    {
+                        // Faced a span-based `string.Concat` call. Since we can produce such call on the previous iterations ourselves, we need to unwrap it.
+                        // The key thing is that we need not to only extract arguments, but also unwrap them from being spans and for chars also wrap them into `ToString` calls.
+                        var wrappedArgs = sequenceCall.Arguments;
+                        var unwrappedArgsBuilder = ArrayBuilder<BoundExpression>.GetInstance(capacity: wrappedArgs.Length);
+
+                        for (var i = 0; i < wrappedArgs.Length; i++)
+                        {
+                            var wrappedArg = wrappedArgs[i];
+
+                            // Check whether a call is an implicit `string -> ReadOnlySpan<char>` conversion
+                            if (wrappedArg is BoundCall { Method: var argMethod, Arguments: [var singleArgument] } &&
+                                (object)argMethod == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar))
+                            {
+                                unwrappedArgsBuilder.Add(singleArgument);
+                            }
+                            // This complicated check is for a sequence, which wraps a span around single char.
+                            // The sequence needs to have this shape: `{ locals: <none>, sideEffects: temp = <original char expression>, result: new ReadOnlySpan<char>(in temp) }`
+                            else if (wrappedArg is BoundSequence
+                            {
+                                Locals.Length: 0,
+                                SideEffects: [BoundAssignmentOperator { Right.Type.SpecialType: SpecialType.System_Char } assignment],
+                                Value: BoundObjectCreationExpression { Constructor: var objectCreationConstructor, Arguments: [BoundLocal constructorLocal] }
+                            } &&
+                                constructorLocal == assignment.Left &&
+                                locals.Contains(constructorLocal.LocalSymbol) &&
+                                (object)objectCreationConstructor.OriginalDefinition == _compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference) &&
+                                objectCreationConstructor.ReceiverType.IsReadOnlySpanChar())
+                            {
+                                Debug.Assert(assignment.Right.Type?.IsCharType() == true);
+                                var charToString = FindSpecificToStringOfStructType(assignment.Right.Type, UnsafeGetSpecialTypeMethod(wrappedArg.Syntax, SpecialMember.System_Object__ToString));
+                                if (charToString is null)
+                                {
+                                    unwrappedArgsBuilder.Free();
+                                    arguments = default;
+                                    return false;
+                                }
+                                unwrappedArgsBuilder.Add(BoundCall.Synthesized(wrappedArg.Syntax, assignment.Right, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, charToString));
+                                locals = locals.Remove(constructorLocal.LocalSymbol);
+                            }
+                            else
+                            {
+                                unwrappedArgsBuilder.Free();
+                                arguments = default;
+                                return false;
+                            }
+                        }
+
+                        if (locals.Length > 0)
+                        {
+                            // Not all locals are part of a known shape
+                            arguments = default;
+                            return false;
+                        }
+
+                        arguments = unwrappedArgsBuilder.ToImmutableAndFree();
+                        return true;
+                    }
+
+                    break;
             }
 
             arguments = default;
