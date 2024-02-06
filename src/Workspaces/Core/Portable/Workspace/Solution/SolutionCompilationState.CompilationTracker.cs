@@ -664,23 +664,26 @@ namespace Microsoft.CodeAnalysis
 
                     var intermediateProjects = state.IntermediateProjects;
 
+                    // This is guaranteed by an in progress state.  Which means we know we'll get into the while loop below.
+                    Contract.ThrowIfTrue(intermediateProjects.Count == 0);
+
                     while (!intermediateProjects.IsEmpty)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
                         // We have a list of transformations to get to our final compilation; take the first transformation and apply it.
-                        var intermediateProject = intermediateProjects[0];
+                        var (oldState, action) = intermediateProjects[0];
 
-                        compilationWithoutGeneratedDocuments = await intermediateProject.action.TransformCompilationAsync(compilationWithoutGeneratedDocuments, cancellationToken).ConfigureAwait(false);
+                        compilationWithoutGeneratedDocuments = await action.TransformCompilationAsync(compilationWithoutGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
                         if (compilationWithGeneratedDocuments != null)
                         {
                             // Also transform the compilation that has generated files; we won't do that though if the transformation either would cause problems with
                             // the generated documents, or if don't have any source generators in the first place.
-                            if (intermediateProject.action.CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput &&
-                                intermediateProject.oldState.SourceGenerators.Any())
+                            if (action.CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput &&
+                                oldState.SourceGenerators.Any())
                             {
-                                compilationWithGeneratedDocuments = await intermediateProject.action.TransformCompilationAsync(compilationWithGeneratedDocuments, cancellationToken).ConfigureAwait(false);
+                                compilationWithGeneratedDocuments = await action.TransformCompilationAsync(compilationWithGeneratedDocuments, cancellationToken).ConfigureAwait(false);
                             }
                             else
                             {
@@ -690,13 +693,15 @@ namespace Microsoft.CodeAnalysis
 
                         if (generatorDriver != null)
                         {
-                            generatorDriver = intermediateProject.action.TransformGeneratorDriver(generatorDriver);
+                            generatorDriver = action.TransformGeneratorDriver(generatorDriver);
                         }
 
                         // We have updated state, so store this new result; this allows us to drop the intermediate state we already processed
                         // even if we were to get cancelled at a later point.
                         intermediateProjects = intermediateProjects.RemoveAt(0);
 
+                        // As long as we have intermediate projects, we'll still keep creating InProgressStates.  But
+                        // once it becomes empty we'll produce an AllSyntaxTreesParsedState and we'll break the loop.
                         this.WriteState(CompilationTrackerState.Create(
                             compilationWithoutGeneratedDocuments, state.GeneratorInfo.WithDriver(generatorDriver), compilationWithGeneratedDocuments, intermediateProjects));
                     }
