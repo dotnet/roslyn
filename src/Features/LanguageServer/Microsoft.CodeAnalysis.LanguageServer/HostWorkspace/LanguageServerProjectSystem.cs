@@ -221,70 +221,68 @@ internal sealed class LanguageServerProjectSystem
 
             (var buildHost, preferredBuildHostKind) = await buildHostProcessManager!.GetBuildHostAsync(projectPath, cancellationToken);
 
-            if (_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
+            if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
+                return (null, null, false);
+
+            var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
+            var diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
+            if (diagnosticLogItems.Any(item => item.Kind is WorkspaceDiagnosticKind.Failure))
             {
-                var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
-                var diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
-                if (diagnosticLogItems.Any(item => item.Kind is WorkspaceDiagnosticKind.Failure))
-                {
-                    _ = LogDiagnostics(projectPath, diagnosticLogItems);
-                    // We have total failures in evaluation, no point in continuing.
-                    return (LSP.MessageType.Error, preferredBuildHostKind, false);
-                }
-
-                var loadedProjectInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken);
-
-                // The out-of-proc build host supports more languages than we may actually have Workspace binaries for, so ensure we can actually process that
-                // language.
-                var projectLanguage = loadedProjectInfos.FirstOrDefault()?.Language;
-                if (projectLanguage != null && _workspaceFactory.Workspace.Services.GetLanguageService<ICommandLineParserService>(projectLanguage) == null)
-                {
-                    return (null, null, false);
-                }
-
-                var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => new List<LoadedProject>());
-
-                Dictionary<ProjectFileInfo, (ImmutableArray<CommandLineReference> MetadataReferences, OutputKind OutputKind, bool NeedsRestore)> projectFileInfos = new();
-                foreach (var loadedProjectInfo in loadedProjectInfos)
-                {
-                    // If we already have the project, just update it
-                    var existingProject = existingProjects.Find(p => p.GetTargetFramework() == loadedProjectInfo.TargetFramework);
-
-                    if (existingProject != null)
-                    {
-                        projectFileInfos[loadedProjectInfo] = await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
-                    }
-                    else
-                    {
-                        var projectSystemName = $"{projectPath} (${loadedProjectInfo.TargetFramework})";
-                        var projectCreationInfo = new ProjectSystemProjectCreationInfo { AssemblyName = projectSystemName, FilePath = projectPath };
-
-                        var projectSystemProject = await _workspaceFactory.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
-                            projectSystemName,
-                            loadedProjectInfo.Language,
-                            projectCreationInfo,
-                            _workspaceFactory.ProjectSystemHostInfo);
-
-                        var loadedProject = new LoadedProject(projectSystemProject, _workspaceFactory.Workspace.Services.SolutionServices, _fileChangeWatcher, _workspaceFactory.TargetFrameworkManager);
-                        loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectToLoad);
-                        existingProjects.Add(loadedProject);
-
-                        projectFileInfos[loadedProjectInfo] = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
-                    }
-                }
-
-                await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(projectFileInfos, projectToLoad, cancellationToken);
-                diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
-                var errorLevel = LogDiagnostics(projectPath, diagnosticLogItems);
-                if (errorLevel == null)
-                {
-                    _logger.LogInformation(string.Format(LanguageServerResources.Successfully_completed_load_of_0, projectPath));
-                }
-
-                return (errorLevel, preferredBuildHostKind, projectFileInfos.Values.Any(info => info.NeedsRestore));
+                _ = LogDiagnostics(projectPath, diagnosticLogItems);
+                // We have total failures in evaluation, no point in continuing.
+                return (LSP.MessageType.Error, preferredBuildHostKind, false);
             }
 
-            return (null, null, false);
+            var loadedProjectInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken);
+
+            // The out-of-proc build host supports more languages than we may actually have Workspace binaries for, so ensure we can actually process that
+            // language.
+            var projectLanguage = loadedProjectInfos.FirstOrDefault()?.Language;
+            if (projectLanguage != null && _workspaceFactory.Workspace.Services.GetLanguageService<ICommandLineParserService>(projectLanguage) == null)
+            {
+                return (null, null, false);
+            }
+
+            var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => new List<LoadedProject>());
+
+            Dictionary<ProjectFileInfo, (ImmutableArray<CommandLineReference> MetadataReferences, OutputKind OutputKind, bool NeedsRestore)> projectFileInfos = new();
+            foreach (var loadedProjectInfo in loadedProjectInfos)
+            {
+                // If we already have the project, just update it
+                var existingProject = existingProjects.Find(p => p.GetTargetFramework() == loadedProjectInfo.TargetFramework);
+
+                if (existingProject != null)
+                {
+                    projectFileInfos[loadedProjectInfo] = await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
+                }
+                else
+                {
+                    var projectSystemName = $"{projectPath} (${loadedProjectInfo.TargetFramework})";
+                    var projectCreationInfo = new ProjectSystemProjectCreationInfo { AssemblyName = projectSystemName, FilePath = projectPath };
+
+                    var projectSystemProject = await _workspaceFactory.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
+                        projectSystemName,
+                        loadedProjectInfo.Language,
+                        projectCreationInfo,
+                        _workspaceFactory.ProjectSystemHostInfo);
+
+                    var loadedProject = new LoadedProject(projectSystemProject, _workspaceFactory.Workspace.Services.SolutionServices, _fileChangeWatcher, _workspaceFactory.TargetFrameworkManager);
+                    loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectToLoad);
+                    existingProjects.Add(loadedProject);
+
+                    projectFileInfos[loadedProjectInfo] = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
+                }
+            }
+
+            await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(projectFileInfos, projectToLoad, cancellationToken);
+            diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
+            var errorLevel = LogDiagnostics(projectPath, diagnosticLogItems);
+            if (errorLevel == null)
+            {
+                _logger.LogInformation(string.Format(LanguageServerResources.Successfully_completed_load_of_0, projectPath));
+            }
+
+            return (errorLevel, preferredBuildHostKind, projectFileInfos.Values.Any(info => info.NeedsRestore));
         }
         catch (Exception e)
         {
