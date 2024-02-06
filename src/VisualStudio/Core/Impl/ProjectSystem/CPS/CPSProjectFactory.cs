@@ -219,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
             if (!PathUtilities.IsAbsolute(path))
             {
-                path = Path.Combine(PathUtilities.GetDirectoryName(projectFilePath), path); 
+                path = Path.Combine(PathUtilities.GetDirectoryName(projectFilePath), path);
             }
 
             if (!PathUtilities.IsAbsolute(path))
