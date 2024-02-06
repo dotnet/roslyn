@@ -560,8 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             [],
                             [tempAssignment],
                             wrappedChar,
-                            wrappedChar.Type)
-                        { WasCompilerGenerated = true });
+                            wrappedChar.Type));
                     }
                     else
                     {
