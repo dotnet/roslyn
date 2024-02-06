@@ -3027,7 +3027,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     newBodiesVisited = false;
 
-                    for (int i = 0; unvisitedLocalFuncs > 0 && i < localFuncs.Count; i++)
+                    for (int i = 0; unvisitedLocalFuncs != 0 && i < localFuncs.Count; i++)
                     {
                         // We visit the body only if the function's usages state has been created
                         // which happens when we visit the function's call site or its body.
@@ -3050,7 +3050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // If we haven't visited new bodies in this iteration, visit an unreachable function if any.
                     // This might make other functions reachable, so we will continue with the outer loop.
-                    if (!newBodiesVisited && unvisitedLocalFuncs > 0)
+                    if (!newBodiesVisited && unvisitedLocalFuncs != 0)
                     {
                         for (int i = 0; i < localFuncs.Count; i++)
                         {
@@ -3104,13 +3104,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 state.ForEach(
                     (slot, variables) =>
                     {
-                        if (variables[slot].ContainingSlot == 0) // top-level variables only
+                        if (Symbol.IsCaptured(variables[slot].Symbol, localFunc))
                         {
-                            var symbol = variables[variables.RootSlot(slot)].Symbol;
-                            if (Symbol.IsCaptured(symbol, localFunc)) // captured variables only
-                            {
-                                SetState(ref state, slot, NullableFlowState.NotNull);
-                            }
+                            SetState(ref state, slot, NullableFlowState.NotNull);
                         }
                     },
                     _variables);
