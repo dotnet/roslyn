@@ -333,8 +333,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             ImmutableArray<TaggedText> INavigableItem.DisplayTaggedParts
-                => ImmutableArray.Create(new TaggedText(
-                    TextTags.Text, _item.DeclaredSymbolInfo.Name + _item.DeclaredSymbolInfo.NameSuffix));
+                => [new TaggedText(
+                    TextTags.Text, _item.DeclaredSymbolInfo.Name + _item.DeclaredSymbolInfo.NameSuffix)];
 
             bool INavigableItem.DisplayFileLocation => false;
 
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             bool INavigableItem.IsStale => _item.IsStale;
 
-            ImmutableArray<INavigableItem> INavigableItem.ChildItems => ImmutableArray<INavigableItem>.Empty;
+            ImmutableArray<INavigableItem> INavigableItem.ChildItems => [];
 
             #endregion
         }

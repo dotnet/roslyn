@@ -40,14 +40,14 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            extensions = ImmutableArray<TExtension>.Empty;
+            extensions = [];
             return false;
         }
 
         public static ImmutableArray<TExtension> GetExtensions(Project? project)
         {
             if (project is null)
-                return ImmutableArray<TExtension>.Empty;
+                return [];
 
             return GetExtensions(project.Language, project.AnalyzerReferences);
         }
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis
 
             // otherwise, see whether we can pick it up from reference itself
             if (this.Reference is not AnalyzerFileReference analyzerFileReference)
-                return ImmutableArray<TExtension>.Empty;
+                return [];
 
             using var _ = ArrayBuilder<TExtension>.GetInstance(out var builder);
 

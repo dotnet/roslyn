@@ -488,7 +488,12 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer()
 
                 // Left side looks good.  Now check the right side.  It cannot reference 'this' (as that is not
                 // legal once we move this to initialize the field/prop in the rewrite).
-                var rightOperation = semanticModel.GetOperation(assignmentExpression.Right);
+                //
+                // Note: we have to walk down suppressions as the IOp tree gives back nothing for them.
+                var rightOperation = semanticModel.GetOperation(assignmentExpression.Right.WalkDownSuppressions());
+                if (rightOperation is null)
+                    return false;
+
                 foreach (var operation in rightOperation.DescendantsAndSelf())
                 {
                     if (operation is IInstanceReferenceOperation)

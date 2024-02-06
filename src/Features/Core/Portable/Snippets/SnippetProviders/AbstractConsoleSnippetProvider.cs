@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         public override string Description => FeaturesResources.console_writeline;
 
-        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("WriteLine");
+        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ["WriteLine"];
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            return ImmutableArray<SnippetPlaceholder>.Empty;
+            return [];
         }
 
         private static SyntaxToken? GetOpenParenToken(SyntaxNode node, ISyntaxFacts syntaxFacts)

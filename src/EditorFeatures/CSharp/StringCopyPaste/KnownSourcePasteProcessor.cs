@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 }
             }
 
-            return ImmutableArray.Create(new TextChange(_selectionSpanBeforePaste, builder.ToString()));
+            return [new TextChange(_selectionSpanBeforePaste, builder.ToString())];
         }
 
         private ImmutableArray<TextChange> GetEditsForRawString()

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions
             if (directoryPathToCheck is null)
             {
                 // we have been given an invalid file path
-                return ImmutableArray<Project>.Empty;
+                return [];
             }
 
             var directoryInfoToCheck = new DirectoryInfo(directoryPathToCheck);

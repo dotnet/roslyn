@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 punctuationStripped: false,
                 result.IsCaseSensitive,
                 result.NameMatchSpans);
-            return ImmutableArray.Create(patternMatch);
+            return [patternMatch];
         }
 
         private static PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)

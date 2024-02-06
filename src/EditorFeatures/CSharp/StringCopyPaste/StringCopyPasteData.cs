@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         private static StringCopyPasteData? TryCreateForLiteral(IVirtualCharLanguageService virtualCharService, LiteralExpressionSyntax literal, TextSpan span)
             => TryGetContentForSpan(virtualCharService, literal.Token, span, out var content)
-                ? new StringCopyPasteData(ImmutableArray.Create(content))
+                ? new StringCopyPasteData([content])
                 : null;
 
         /// <summary>

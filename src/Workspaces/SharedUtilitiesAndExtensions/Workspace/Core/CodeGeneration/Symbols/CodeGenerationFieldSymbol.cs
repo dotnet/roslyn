@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public RefKind RefKind => RefKind.None;
 
-        public ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+        public ImmutableArray<CustomModifier> RefCustomModifiers => [];
 
         public ImmutableArray<CustomModifier> CustomModifiers
         {
             get
             {
-                return ImmutableArray.Create<CustomModifier>();
+                return [];
             }
         }
 

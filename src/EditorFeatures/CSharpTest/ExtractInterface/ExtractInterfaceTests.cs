@@ -1439,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ExtractInterfaceCommandDisabledInSubmission()
         {
-            using var workspace = TestWorkspace.Create(XElement.Parse("""
+            using var workspace = EditorTestWorkspace.Create(XElement.Parse("""
                 <Workspace>
                     <Submission Language="C#" CommonReferences="true">  
                         public class $$C
@@ -1452,7 +1452,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
                 workspaceKind: WorkspaceKind.Interactive,
                 composition: EditorTestCompositions.EditorFeaturesWpf);
             // Force initialization.
-            workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
+            workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id)!.GetTextView()).ToList();
 
             var textView = workspace.Documents.Single().GetTextView();
 
@@ -1969,6 +1969,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
             await TestExtractInterfaceCommandCSharpAsync(
                 markup,
                 expectedSuccess: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestStruct4()
+        {
+            var markup =
+                """
+                namespace Test
+                {
+                    struct $$Whatever
+                    {
+                        public int I { get; set; }
+                    }
+                }
+                """;
+
+            var expectedInterfaceCode =
+                """
+                namespace Test
+                {
+                    interface IWhatever
+                    {
+                        int I { get; set; }
+                    }
+                }
+                """;
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedInterfaceCode: expectedInterfaceCode);
         }
     }
 }

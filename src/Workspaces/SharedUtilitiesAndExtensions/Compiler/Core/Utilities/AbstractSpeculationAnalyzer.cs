@@ -55,6 +55,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private SyntaxNode? _lazySemanticRootOfReplacedExpression;
         private SemanticModel? _lazySpeculativeSemanticModel;
 
+        private static readonly SymbolEquivalenceComparer s_includeNullabilityComparer =
+            SymbolEquivalenceComparer.Create(distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false);
+
         /// <summary>
         /// Creates a semantic analyzer for speculative syntax replacement.
         /// </summary>
@@ -376,10 +379,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return CompareAcrossSemanticModels(symbol, newSymbol);
             }
 
-            if (symbol.Equals(newSymbol, SymbolEqualityComparer.IncludeNullability))
-            {
+            if (s_includeNullabilityComparer.Equals(symbol, newSymbol))
                 return true;
-            }
 
             if (symbol is IMethodSymbol methodSymbol && newSymbol is IMethodSymbol newMethodSymbol)
             {

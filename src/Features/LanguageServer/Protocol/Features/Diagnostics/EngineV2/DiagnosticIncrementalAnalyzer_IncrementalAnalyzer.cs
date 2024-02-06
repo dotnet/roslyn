@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private void AddDocumentDiagnosticsArgsIfNeeded(
             ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
             TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind, ImmutableArray<DiagnosticData> items)
-            => AddDocumentDiagnosticsArgsIfNeeded(ref builder, document, analyzer, kind, ImmutableArray<DiagnosticData>.Empty, items);
+            => AddDocumentDiagnosticsArgsIfNeeded(ref builder, document, analyzer, kind, [], items);
 
         private void AddDocumentDiagnosticsArgsIfNeeded(
             ref TemporaryArray<DiagnosticsUpdatedArgs> builder,

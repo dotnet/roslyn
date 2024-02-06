@@ -75,8 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Always_use_default_symbol_servers_for_navigation
             => ServicesVSResources.Always_use_default_symbol_servers_for_navigation;
 
-        public static string Option_Enable_pull_diagnostics_experimental_requires_restart
-            => ServicesVSResources.Enable_pull_diagnostics_experimental_requires_restart;
+        public static string Option_Enable_pull_diagnostics_requires_restart
+            => ServicesVSResources.Enable_pull_diagnostics_requires_restart;
 
         public static string Option_Enable_Razor_pull_diagnostics_experimental_requires_restart
             => ServicesVSResources.Enable_Razor_pull_diagnostics_experimental_requires_restart;

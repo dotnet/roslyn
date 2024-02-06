@@ -75,10 +75,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             => GetIsAsyncMethod(GetInfo(method));
 
         private static ImmutableArray<SyntaxNode> GetStatements(CodeGenerationMethodInfo info)
-            => info?._statements ?? ImmutableArray<SyntaxNode>.Empty;
+            => info?._statements ?? [];
 
         private static ImmutableArray<SyntaxNode> GetHandlesExpressions(CodeGenerationMethodInfo info)
-            => info?._handlesExpressions ?? ImmutableArray<SyntaxNode>.Empty;
+            => info?._handlesExpressions ?? [];
 
         private static bool GetIsNew(CodeGenerationMethodInfo info)
             => info != null && info._isNew;

@@ -152,6 +152,10 @@ internal partial class SerializerService : ISerializerService
                     SerializeSourceText(new SerializableSourceText((SourceText)value), writer, context, cancellationToken);
                     return;
 
+                case WellKnownSynchronizationKind.SolutionCompilationState:
+                    ((SolutionCompilationStateChecksums)value).Serialize(writer);
+                    return;
+
                 case WellKnownSynchronizationKind.SolutionState:
                     ((SolutionStateChecksums)value).Serialize(writer);
                     return;
@@ -176,52 +180,32 @@ internal partial class SerializerService : ISerializerService
         }
     }
 
-    public T Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
+    public object Deserialize(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Serializer_Deserialize, s_logKind, kind, cancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            switch (kind)
+            return kind switch
             {
-                case WellKnownSynchronizationKind.SolutionState:
-                    return (T)(object)SolutionStateChecksums.Deserialize(reader);
-
-                case WellKnownSynchronizationKind.ProjectState:
-                    return (T)(object)ProjectStateChecksums.Deserialize(reader);
-
-                case WellKnownSynchronizationKind.DocumentState:
-                    return (T)(object)DocumentStateChecksums.Deserialize(reader);
-
-                case WellKnownSynchronizationKind.ChecksumCollection:
-                    return (T)(object)ChecksumCollection.ReadFrom(reader);
-
-                case WellKnownSynchronizationKind.SolutionAttributes:
-                    return (T)(object)SolutionInfo.SolutionAttributes.ReadFrom(reader);
-                case WellKnownSynchronizationKind.ProjectAttributes:
-                    return (T)(object)ProjectInfo.ProjectAttributes.ReadFrom(reader);
-                case WellKnownSynchronizationKind.DocumentAttributes:
-                    return (T)(object)DocumentInfo.DocumentAttributes.ReadFrom(reader);
-                case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
-                    return (T)(object)SourceGeneratedDocumentIdentity.ReadFrom(reader);
-                case WellKnownSynchronizationKind.CompilationOptions:
-                    return (T)(object)DeserializeCompilationOptions(reader, cancellationToken);
-                case WellKnownSynchronizationKind.ParseOptions:
-                    return (T)(object)DeserializeParseOptions(reader, cancellationToken);
-                case WellKnownSynchronizationKind.ProjectReference:
-                    return (T)(object)DeserializeProjectReference(reader, cancellationToken);
-                case WellKnownSynchronizationKind.MetadataReference:
-                    return (T)(object)DeserializeMetadataReference(reader, cancellationToken);
-                case WellKnownSynchronizationKind.AnalyzerReference:
-                    return (T)(object)DeserializeAnalyzerReference(reader, cancellationToken);
-                case WellKnownSynchronizationKind.SerializableSourceText:
-                    return (T)(object)SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken);
-                case WellKnownSynchronizationKind.SourceText:
-                    return (T)(object)DeserializeSourceText(reader, cancellationToken);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
-            }
+                WellKnownSynchronizationKind.SolutionCompilationState => SolutionCompilationStateChecksums.Deserialize(reader),
+                WellKnownSynchronizationKind.SolutionState => SolutionStateChecksums.Deserialize(reader),
+                WellKnownSynchronizationKind.ProjectState => ProjectStateChecksums.Deserialize(reader),
+                WellKnownSynchronizationKind.DocumentState => DocumentStateChecksums.Deserialize(reader),
+                WellKnownSynchronizationKind.ChecksumCollection => ChecksumCollection.ReadFrom(reader),
+                WellKnownSynchronizationKind.SolutionAttributes => SolutionInfo.SolutionAttributes.ReadFrom(reader),
+                WellKnownSynchronizationKind.ProjectAttributes => ProjectInfo.ProjectAttributes.ReadFrom(reader),
+                WellKnownSynchronizationKind.DocumentAttributes => DocumentInfo.DocumentAttributes.ReadFrom(reader),
+                WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity => SourceGeneratedDocumentIdentity.ReadFrom(reader),
+                WellKnownSynchronizationKind.CompilationOptions => DeserializeCompilationOptions(reader, cancellationToken),
+                WellKnownSynchronizationKind.ParseOptions => DeserializeParseOptions(reader, cancellationToken),
+                WellKnownSynchronizationKind.ProjectReference => DeserializeProjectReference(reader, cancellationToken),
+                WellKnownSynchronizationKind.MetadataReference => DeserializeMetadataReference(reader, cancellationToken),
+                WellKnownSynchronizationKind.AnalyzerReference => DeserializeAnalyzerReference(reader, cancellationToken),
+                WellKnownSynchronizationKind.SerializableSourceText => SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken),
+                WellKnownSynchronizationKind.SourceText => DeserializeSourceText(reader, cancellationToken),
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            };
         }
     }
 
@@ -236,6 +220,5 @@ internal partial class SerializerService : ISerializerService
 internal enum SerializationKinds
 {
     Bits,
-    FilePath,
     MemoryMapFile
 }

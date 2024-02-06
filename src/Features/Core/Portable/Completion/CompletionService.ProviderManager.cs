@@ -93,28 +93,33 @@ namespace Microsoft.CodeAnalysis.Completion
                 return ValueTaskFactory.CompletedTask;
             }
 
-            public ImmutableArray<CompletionProvider> GetCachedProjectCompletionProvidersOrQueueLoadInBackground(Project? project)
+            public ImmutableArray<CompletionProvider> GetCachedProjectCompletionProvidersOrQueueLoadInBackground(Project? project, CompletionOptions options)
             {
                 if (project is null || project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
                 {
                     // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict completions in Interactive
-                    return ImmutableArray<CompletionProvider>.Empty;
+                    return [];
                 }
 
-                // Don't load providers if they are not already cached,
-                // return immediately and load them in background instead.
+                // On primary completion paths, don't load providers if they are not already cached,
+                // return immediately and load them in background instead. If the test hook
+                // 'ForceExpandedCompletionIndexCreation' is set, calculate the values immediately.
                 // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1620947
+                if (options.ForceExpandedCompletionIndexCreation)
+                {
+                    return ProjectCompletionProvider.GetExtensions(_service.Language, project.AnalyzerReferences);
+                }
 
                 if (ProjectCompletionProvider.TryGetCachedExtensions(project.AnalyzerReferences, out var providers))
                     return providers;
 
                 _projectProvidersWorkQueue.AddWork(project.AnalyzerReferences);
-                return ImmutableArray<CompletionProvider>.Empty;
+                return [];
             }
 
             private ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string>? roles)
             {
-                roles ??= ImmutableHashSet<string>.Empty;
+                roles ??= [];
 
                 lock (_gate)
                 {
@@ -129,18 +134,17 @@ namespace Microsoft.CodeAnalysis.Completion
 
                 ImmutableArray<CompletionProvider> GetImportedAndBuiltInProvidersWorker(ImmutableHashSet<string> roles)
                 {
-                    using var _ = ArrayBuilder<CompletionProvider>.GetInstance(out var providers);
-                    providers.AddRange(GetLazyImportedProviders()
-                        .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
-                        .Select(lz => lz.Value));
-
+                    return
+                    [
+                        .. GetLazyImportedProviders()
+                            .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
+                            .Select(lz => lz.Value),
+                        // We need to keep supporting built-in providers for a while longer since this is a public API.
+                        // https://github.com/dotnet/roslyn/issues/42367
 #pragma warning disable 0618
-                    // We need to keep supporting built-in providers for a while longer since this is a public API.
-                    // https://github.com/dotnet/roslyn/issues/42367
-                    providers.AddRange(_service.GetBuiltInProviders());
+                        .. _service.GetBuiltInProviders(),
 #pragma warning restore 0618
-
-                    return providers.ToImmutable();
+                    ];
                 }
             }
 
@@ -153,14 +157,17 @@ namespace Microsoft.CodeAnalysis.Completion
                     return provider;
 
                 using var _ = PooledDelegates.GetPooledFunction(static (p, n) => p.Name == n, item.ProviderName, out Func<CompletionProvider, bool> isNameMatchingProviderPredicate);
-                return GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project).FirstOrDefault(isNameMatchingProviderPredicate);
+
+                // Publicly available options will not impact this call, since the completion item must have already
+                // existed if it produced the input completion item.
+                return GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project, CompletionOptions.Default).FirstOrDefault(isNameMatchingProviderPredicate);
             }
 
             public ConcatImmutableArray<CompletionProvider> GetFilteredProviders(
                 Project? project, ImmutableHashSet<string>? roles, CompletionTrigger trigger, in CompletionOptions options)
             {
                 var allCompletionProviders = FilterProviders(GetImportedAndBuiltInProviders(roles), trigger, options);
-                var projectCompletionProviders = FilterProviders(GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project), trigger, options);
+                var projectCompletionProviders = FilterProviders(GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project, options), trigger, options);
                 return allCompletionProviders.ConcatFast(projectCompletionProviders);
             }
 
@@ -204,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     }
                 }
 
-                return ImmutableArray<CompletionProvider>.Empty;
+                return [];
             }
 
             public void LoadProviders()
@@ -250,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 : AbstractProjectExtensionProvider<ProjectCompletionProvider, CompletionProvider, ExportCompletionProviderAttribute>
             {
                 protected override ImmutableArray<string> GetLanguages(ExportCompletionProviderAttribute exportAttribute)
-                    => ImmutableArray.Create(exportAttribute.Language);
+                    => [exportAttribute.Language];
 
                 protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CompletionProvider> extensions)
                 {
@@ -278,12 +285,12 @@ namespace Microsoft.CodeAnalysis.Completion
                     return _providerManager.GetImportedAndBuiltInProviders(roles);
                 }
 
-                public async Task<ImmutableArray<CompletionProvider>> GetProjectProvidersAsync(Project project)
+                public ImmutableArray<CompletionProvider> GetProjectProviders(Project project)
                 {
-                    _providerManager._projectProvidersWorkQueue.AddWork(project.AnalyzerReferences);
-                    await _providerManager._projectProvidersWorkQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
-                    // Now the extension cache is guaranteed to be populated.
-                    return _providerManager.GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project);
+                    // Force-load the extension completion providers
+                    return _providerManager.GetCachedProjectCompletionProvidersOrQueueLoadInBackground(
+                        project,
+                        CompletionOptions.Default with { ForceExpandedCompletionIndexCreation = true });
                 }
             }
         }

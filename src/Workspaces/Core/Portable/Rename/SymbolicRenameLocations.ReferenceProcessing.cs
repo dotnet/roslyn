@@ -152,14 +152,14 @@ namespace Microsoft.CodeAnalysis.Rename
                 var shouldIncludeSymbol = await ShouldIncludeSymbolAsync(referencedSymbol, originalSymbol, solution, false, cancellationToken).ConfigureAwait(false);
                 if (!shouldIncludeSymbol)
                 {
-                    return ImmutableArray<RenameLocation>.Empty;
+                    return [];
                 }
 
                 // Namespaces are definitions and references all in one. Since every definition
                 // location is also a reference, we'll ignore it's definitions.
                 if (referencedSymbol.Kind == SymbolKind.Namespace)
                 {
-                    return ImmutableArray<RenameLocation>.Empty;
+                    return [];
                 }
 
                 var results = ArrayBuilder<RenameLocation>.GetInstance();
@@ -193,9 +193,11 @@ namespace Microsoft.CodeAnalysis.Rename
                     var namedType = (INamedTypeSymbol)referencedSymbol;
                     foreach (var method in namedType.GetMembers().OfType<IMethodSymbol>())
                     {
-                        if (!method.IsImplicitlyDeclared && (method.MethodKind == MethodKind.Constructor ||
-                                                      method.MethodKind == MethodKind.StaticConstructor ||
-                                                      method.MethodKind == MethodKind.Destructor))
+                        if (method is
+                            {
+                                IsImplicitlyDeclared: false,
+                                MethodKind: MethodKind.Constructor or MethodKind.StaticConstructor or MethodKind.Destructor,
+                            })
                         {
                             foreach (var location in method.Locations)
                             {

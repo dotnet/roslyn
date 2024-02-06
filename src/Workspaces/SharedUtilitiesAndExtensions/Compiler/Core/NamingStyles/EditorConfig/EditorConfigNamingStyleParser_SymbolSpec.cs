@@ -136,27 +136,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static readonly SymbolKindOrTypeKind _typeParameter = new(SymbolKind.TypeParameter);
         private static readonly SymbolKindOrTypeKind _local = new(SymbolKind.Local);
         private static readonly ImmutableArray<SymbolKindOrTypeKind> _all =
-            ImmutableArray.Create(
-                _namespace,
-                _class,
-                _struct,
-                _interface,
-                _enum,
-                _property,
-                _method,
-                _localFunction,
-                _field,
-                _event,
-                _delegate,
-                _parameter,
-                _typeParameter,
-                _local);
+            [_namespace, _class, _struct, _interface, _enum, _property, _method, _localFunction, _field, _event, _delegate, _parameter, _typeParameter, _local];
 
         private static ImmutableArray<SymbolKindOrTypeKind> ParseSymbolKindList(string symbolSpecApplicableKinds)
         {
             if (symbolSpecApplicableKinds == null)
             {
-                return ImmutableArray<SymbolKindOrTypeKind>.Empty;
+                return [];
             }
 
             if (symbolSpecApplicableKinds.Trim() == "*")
@@ -234,13 +220,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return (s_allAccessibility, defaultValue());
         }
 
-        private static readonly ImmutableArray<Accessibility> s_allAccessibility = ImmutableArray.Create(Accessibility.NotApplicable, Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedAndInternal, Accessibility.ProtectedOrInternal);
+        private static readonly ImmutableArray<Accessibility> s_allAccessibility =
+        [
+            Accessibility.NotApplicable,
+            Accessibility.Public,
+            Accessibility.Internal,
+            Accessibility.Private,
+            Accessibility.Protected,
+            Accessibility.ProtectedAndInternal,
+            Accessibility.ProtectedOrInternal,
+        ];
 
         private static ImmutableArray<Accessibility> ParseAccessibilityKindList(string symbolSpecApplicableAccessibilities)
         {
             if (symbolSpecApplicableAccessibilities == null)
             {
-                return ImmutableArray<Accessibility>.Empty;
+                return [];
             }
 
             if (symbolSpecApplicableAccessibilities.Trim() == "*")
@@ -304,13 +299,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static readonly ModifierKind s_constModifierKind = new(ModifierKindEnum.IsConst);
         private static readonly ModifierKind s_readonlyModifierKind = new(ModifierKindEnum.IsReadOnly);
         private static readonly ModifierKind s_staticModifierKind = new(ModifierKindEnum.IsStatic);
-        private static readonly ImmutableArray<ModifierKind> _allModifierKind = ImmutableArray.Create(s_abstractModifierKind, s_asyncModifierKind, s_constModifierKind, s_readonlyModifierKind, s_staticModifierKind);
+        private static readonly ImmutableArray<ModifierKind> _allModifierKind = [s_abstractModifierKind, s_asyncModifierKind, s_constModifierKind, s_readonlyModifierKind, s_staticModifierKind];
 
         private static ImmutableArray<ModifierKind> ParseModifiers(string symbolSpecRequiredModifiers)
         {
             if (symbolSpecRequiredModifiers == null)
             {
-                return ImmutableArray<ModifierKind>.Empty;
+                return [];
             }
 
             if (symbolSpecRequiredModifiers.Trim() == "*")

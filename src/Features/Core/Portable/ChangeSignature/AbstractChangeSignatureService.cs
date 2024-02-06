@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var context = await GetChangeSignatureContextAsync(document, span.Start, restrictToDeclarations: true, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             return context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext
-                ? ImmutableArray.Create(new ChangeSignatureCodeAction(this, changeSignatureAnalyzedSucceedContext))
+                ? [new ChangeSignatureCodeAction(this, changeSignatureAnalyzedSucceedContext)]
                 : ImmutableArray<ChangeSignatureCodeAction>.Empty;
         }
 
@@ -269,8 +269,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 var methodSymbol = symbol.Definition as IMethodSymbol;
 
-                if (methodSymbol != null &&
-                    (methodSymbol.MethodKind == MethodKind.PropertyGet || methodSymbol.MethodKind == MethodKind.PropertySet))
+                if (methodSymbol is { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet })
                 {
                     continue;
                 }

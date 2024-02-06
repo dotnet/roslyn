@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             var textChanges = Formatter.GetFormattedTextChanges(
                 root,
-                new[] { insertSpan },
+                [insertSpan],
                 services,
                 options: options,
                 rules: GetFormatRules(text),

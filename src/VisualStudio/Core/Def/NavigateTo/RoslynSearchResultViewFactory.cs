@@ -43,7 +43,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                     searchResult.NameMatchSpans.NullToEmpty().Select(m => m.ToSpan()).ToArray()),
                 new HighlightedText(
                     searchResult.AdditionalInformation,
-                    Array.Empty<VisualStudio.Text.Span>()),
+                    []),
                 primaryIcon: searchResult.NavigableItem.Glyph.GetImageId());
         }
 

@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             Debug.Assert(document.FilePath != null);
 
-            var result = await GetMappedSpanResultAsync(document, ImmutableArray.Create(textSpan), cancellationToken).ConfigureAwait(false);
+            var result = await GetMappedSpanResultAsync(document, [textSpan], cancellationToken).ConfigureAwait(false);
             if (result == null)
                 return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
 
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 CancellationToken cancellationToken)
             {
                 Debug.Assert(document.FilePath != null);
-                var uri = CreateAbsoluteUri(document.FilePath);
+                var uri = document.GetURI();
 
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 if (isStale)

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         result.Append(memberIndent);
                         result.Append(".class ");
                         MetadataSignatureHelper.AppendTypeAttributes(result, namedType.Flags);
-                        result.Append(" ");
+                        result.Append(' ');
                         result.Append(member);
 
                         if ((object)namedType.BaseType() != null)
@@ -110,10 +110,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         result.Append(".field ");
 
                         MetadataSignatureHelper.AppendFieldAttributes(result, field.Flags);
-                        result.Append(" ");
+                        result.Append(' ');
 
                         result.Append(field.TypeWithAnnotations);
-                        result.Append(" ");
+                        result.Append(' ');
                         result.Append(member.Name);
                         result.AppendLine();
 
@@ -131,11 +131,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         ((PEModuleSymbol)container.ContainingModule).Module.GetPropertyDefPropsOrThrow(property.Handle, out propertyName, out propertyAttrs);
                         if (MetadataSignatureHelper.AppendPropertyAttributes(result, propertyAttrs))
                         {
-                            result.Append(" ");
+                            result.Append(' ');
                         }
 
                         result.Append(property.TypeWithAnnotations);
-                        result.Append(" ");
+                        result.Append(' ');
                         result.Append(property.Name);
                         result.AppendLine();
 
@@ -175,16 +175,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 
                         if (MetadataSignatureHelper.AppendEventAttributes(result, eventAttrs))
                         {
-                            result.Append(" ");
+                            result.Append(' ');
                         }
 
                         result.Append(evnt.TypeWithAnnotations);
-                        result.Append(" ");
+                        result.Append(' ');
                         result.Append(evnt.Name);
                         result.AppendLine();
 
                         result.Append(memberIndent);
-                        result.Append("{");
+                        result.Append('{');
                         result.AppendLine();
 
                         AppendCustomAttributes(result, member, memberIndent, inBlock: true);
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                 {
                     result.Append("[Missing: ");
                     result.Append(attribute.AttributeClass);
-                    result.Append("]");
+                    result.Append(']');
                 }
                 else
                 {
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                     i++;
                 }
 
-                result.Append(")");
+                result.Append(')');
                 result.AppendLine();
             }
 
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
             switch (constant.Kind)
             {
                 case TypedConstantKind.Array:
-                    result.Append("{");
+                    result.Append('{');
                     int i = 0;
 
                     foreach (var item in constant.Values)
@@ -303,13 +303,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         AppendConstant(result, item);
                     }
 
-                    result.Append("}");
+                    result.Append('}');
                     break;
 
                 case TypedConstantKind.Type:
                     result.Append("typeof(");
                     result.Append(constant.Value);
-                    result.Append(")");
+                    result.Append(')');
                     break;
 
                 case TypedConstantKind.Enum:
@@ -317,9 +317,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                     var value = constant.Value;
                     if (value.GetType() == typeof(string))
                     {
-                        result.Append("\"");
+                        result.Append('"');
                         result.Append(value);
-                        result.Append("\"");
+                        result.Append('"');
                     }
                     else if (value.GetType() == typeof(bool))
                     {
@@ -339,9 +339,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
         private static void AppendMethod(StringBuilder result, PEMethodSymbol method, string indent, bool includeTypeName = false)
         {
             MetadataSignatureHelper.AppendMethodAttributes(result, method.Flags);
-            result.Append(" ");
+            result.Append(' ');
             AppendSignatureType(result, method.ReturnType, RefKind.None);
-            result.Append(" ");
+            result.Append(' ');
 
             if (includeTypeName)
             {
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 
             result.Append(method.Name);
 
-            result.Append("(");
+            result.Append('(');
 
             bool hasParameterAttributes = false;
             int i = 0;
@@ -369,11 +369,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 
                 if (MetadataSignatureHelper.AppendParameterAttributes(result, parameter.Flags, all: true))
                 {
-                    result.Append(" ");
+                    result.Append(' ');
                 }
 
                 AppendSignatureType(result, parameter.Type, parameter.RefKind);
-                result.Append(" ");
+                result.Append(' ');
                 result.Append(parameter.Name);
                 i++;
             }
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 
             if (refKind != RefKind.None)
             {
-                result.Append("&");
+                result.Append('&');
             }
         }
 

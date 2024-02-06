@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly InlineRenameSession _session;
         private readonly bool _registerOleComponent;
         private readonly IGlobalOptionService _globalOptionService;
-        private readonly IThreadingContext _threadingContext;
         private OleComponent? _oleComponent;
         private bool _disposedValue;
         private bool _isReplacementTextValid = true;
@@ -51,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session = session;
             _registerOleComponent = registerOleComponent;
             _globalOptionService = globalOptionService;
-            _threadingContext = threadingContext;
             _session.ReplacementTextChanged += OnReplacementTextChanged;
             _session.ReplacementsComputed += OnReplacementsComputed;
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
@@ -60,21 +58,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var smartRenameSession = smartRenameSessionFactory?.Value.CreateSmartRenameSession(_session.TriggerSpan);
             if (smartRenameSession is not null)
             {
-                SmartRenameViewModel = new SmartRenameViewModel(threadingContext, listenerProvider, smartRenameSession.Value);
-                SmartRenameViewModel.OnSelectedSuggestedNameChanged += OnSuggestedNameSelected;
+                SmartRenameViewModel = new SmartRenameViewModel(threadingContext, listenerProvider, smartRenameSession.Value, this);
             }
 
             RegisterOleComponent();
-        }
-
-        private void OnSuggestedNameSelected(object sender, string? selectedName)
-        {
-            // When user clicks one of the suggestions, update the IdentifierTextBox content to it.
-            _threadingContext.ThrowIfNotOnUIThread();
-            if (selectedName is not null)
-            {
-                IdentifierText = selectedName;
-            }
         }
 
         public SmartRenameViewModel? SmartRenameViewModel { get; }
@@ -327,7 +314,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     if (SmartRenameViewModel is not null)
                     {
-                        SmartRenameViewModel.OnSelectedSuggestedNameChanged -= OnSuggestedNameSelected;
                         SmartRenameViewModel.Dispose();
                     }
 

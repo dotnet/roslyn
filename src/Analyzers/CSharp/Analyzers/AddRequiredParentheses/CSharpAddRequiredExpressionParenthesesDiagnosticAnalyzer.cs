@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
         {
         }
 
-        private static readonly ImmutableArray<SyntaxKind> s_kinds = ImmutableArray.Create(
+        private static readonly ImmutableArray<SyntaxKind> s_kinds =
+        [
             SyntaxKind.AddExpression,
             SyntaxKind.SubtractExpression,
             SyntaxKind.MultiplyExpression,
@@ -45,7 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
             SyntaxKind.IsExpression,
             SyntaxKind.AsExpression,
             SyntaxKind.CoalesceExpression,
-            SyntaxKind.IsPatternExpression);
+            SyntaxKind.IsPatternExpression,
+        ];
 
         protected override ImmutableArray<SyntaxKind> GetSyntaxNodeKinds()
             => s_kinds;

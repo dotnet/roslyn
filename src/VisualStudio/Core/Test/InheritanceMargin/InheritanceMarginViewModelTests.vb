@@ -76,7 +76,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.InheritanceMargin
             </Workspace>
 
             Dim cancellationToken As CancellationToken = CancellationToken.None
-            Using workspace = TestWorkspace.Create(workspaceFile)
+            Using workspace = EditorTestWorkspace.Create(workspaceFile)
                 Dim testDocument = workspace.Documents.Single()
                 Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
                 Dim service = document.GetRequiredLanguageService(Of IInheritanceMarginService)

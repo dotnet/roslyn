@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var blockStructureService = document.GetRequiredLanguageService<BlockStructureService>();
             var blockStructure = await blockStructureService.GetBlockStructureAsync(document, options, cancellationToken).ConfigureAwait(false);
             if (blockStructure == null)
-                return Array.Empty<FoldingRange>();
+                return [];
 
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return GetFoldingRanges(blockStructure, text);
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             if (blockStructure.Spans.IsEmpty)
             {
-                return Array.Empty<FoldingRange>();
+                return [];
             }
 
             using var _ = ArrayBuilder<FoldingRange>.GetInstance(out var foldingRanges);
