@@ -132,6 +132,21 @@ internal sealed class LanguageServerProjectSystem
         }
     }
 
+    private sealed class ToastErrorReporter
+    {
+        private int _displayedToast = 0;
+
+        public async Task ReportErrorAsync(LSP.MessageType errorKind, string message, CancellationToken cancellationToken)
+        {
+            // We should display a toast when the value of displayedToast is 0.  This will also update the value to 1 meaning we won't send any more toasts.
+            var shouldShowToast = Interlocked.CompareExchange(ref _displayedToast, value: 1, comparand: 0) == 0;
+            if (shouldShowToast)
+            {
+                await ShowToastNotification.ShowToastNotificationAsync(errorKind, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
+            }
+        }
+    }
+
     private async ValueTask LoadOrReloadProjectsAsync(ImmutableSegmentedList<ProjectToLoad> projectPathsToLoadOrReload, CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -141,8 +156,7 @@ internal sealed class LanguageServerProjectSystem
         var binaryLogPath = GetMSBuildBinaryLogPath();
 
         await using var buildHostProcessManager = new BuildHostProcessManager(binaryLogPath: binaryLogPath, loggerFactory: _loggerFactory);
-
-        var displayedToast = 0;
+        var toastErrorReporter = new ToastErrorReporter();
 
         try
         {
@@ -153,25 +167,7 @@ internal sealed class LanguageServerProjectSystem
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var (errorKind, preferredBuildHostKind, projectNeedsRestore) = await LoadOrReloadProjectAsync(projectToLoad, buildHostProcessManager, cancellationToken);
-                    if (errorKind is LSP.MessageType.Error)
-                    {
-                        // We should display a toast when the value of displayedToast is 0.  This will also update the value to 1 meaning we won't send any more toasts.
-                        var shouldShowToast = Interlocked.CompareExchange(ref displayedToast, value: 1, comparand: 0) == 0;
-                        if (shouldShowToast)
-                        {
-                            string message;
-
-                            if (preferredBuildHostKind == BuildHostProcessKind.NetFramework)
-                                message = LanguageServerResources.Projects_failed_to_load_because_MSBuild_could_not_be_found;
-                            else if (preferredBuildHostKind == BuildHostProcessKind.Mono)
-                                message = LanguageServerResources.Projects_failed_to_load_because_Mono_could_not_be_found;
-                            else
-                                message = string.Format(LanguageServerResources.There_were_problems_loading_project_0_See_log_for_details, Path.GetFileName(projectToLoad.Path));
-
-                            await ShowToastNotification.ShowToastNotificationAsync(errorKind.Value, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
-                        }
-                    }
+                    var projectNeedsRestore = await LoadOrReloadProjectAsync(projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
 
                     if (projectNeedsRestore)
                     {
@@ -211,36 +207,37 @@ internal sealed class LanguageServerProjectSystem
         return binaryLogPath;
     }
 
-    private async Task<(LSP.MessageType? FailureType, BuildHostProcessKind? PreferredKind, bool HasUnresolvedDependencies)> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
+    /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
+    private async Task<bool> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
         BuildHostProcessKind? preferredBuildHostKind = null;
+        var projectPath = projectToLoad.Path;
 
         try
         {
-            var projectPath = projectToLoad.Path;
 
             (var buildHost, preferredBuildHostKind) = await buildHostProcessManager!.GetBuildHostAsync(projectPath, cancellationToken);
 
             if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
-                return (null, null, false);
+                return false;
 
             var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
             var diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
             if (diagnosticLogItems.Any(item => item.Kind is WorkspaceDiagnosticKind.Failure))
             {
-                _ = LogDiagnostics(projectPath, diagnosticLogItems);
+                await LogDiagnosticsAsync(diagnosticLogItems);
                 // We have total failures in evaluation, no point in continuing.
-                return (LSP.MessageType.Error, preferredBuildHostKind, false);
+                return false;
             }
 
             var loadedProjectInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken);
 
             // The out-of-proc build host supports more languages than we may actually have Workspace binaries for, so ensure we can actually process that
-            // language.
+            // language in-process.
             var projectLanguage = loadedProjectInfos.FirstOrDefault()?.Language;
             if (projectLanguage != null && _workspaceFactory.Workspace.Services.GetLanguageService<ICommandLineParserService>(projectLanguage) == null)
             {
-                return (null, null, false);
+                return false;
             }
 
             var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => new List<LoadedProject>());
@@ -276,34 +273,48 @@ internal sealed class LanguageServerProjectSystem
 
             await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(projectFileInfos, projectToLoad, cancellationToken);
             diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
-            var errorLevel = LogDiagnostics(projectPath, diagnosticLogItems);
-            if (errorLevel == null)
+            if (diagnosticLogItems.Any())
+            {
+                await LogDiagnosticsAsync(diagnosticLogItems);
+            }
+            else
             {
                 _logger.LogInformation(string.Format(LanguageServerResources.Successfully_completed_load_of_0, projectPath));
             }
 
-            return (errorLevel, preferredBuildHostKind, projectFileInfos.Values.Any(info => info.NeedsRestore));
+            return projectFileInfos.Values.Any(info => info.NeedsRestore);
+
         }
         catch (Exception e)
         {
-            _logger.LogError(e, string.Format(LanguageServerResources.Exception_thrown_while_loading_0, projectToLoad.Path));
-            return (LSP.MessageType.Error, preferredBuildHostKind, false);
+            // Since our LogDiagnosticsAsync helper takes DiagnosticLogItems, let's just make one for this
+            var message = string.Format(LanguageServerResources.Exception_thrown_0, e);
+            var diagnosticLogItem = new DiagnosticLogItem(WorkspaceDiagnosticKind.Failure, message, projectPath);
+            await LogDiagnosticsAsync([diagnosticLogItem]);
+
+            return false;
         }
 
-        LSP.MessageType? LogDiagnostics(string projectPath, ImmutableArray<DiagnosticLogItem> diagnosticLogItems)
+        async Task LogDiagnosticsAsync(ImmutableArray<DiagnosticLogItem> diagnosticLogItems)
         {
-            if (diagnosticLogItems.IsEmpty)
-            {
-                return null;
-            }
-
             foreach (var logItem in diagnosticLogItems)
             {
                 var projectName = Path.GetFileName(projectPath);
                 _logger.Log(logItem.Kind is WorkspaceDiagnosticKind.Failure ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
             }
 
-            return diagnosticLogItems.Any(logItem => logItem.Kind is WorkspaceDiagnosticKind.Failure) ? LSP.MessageType.Error : LSP.MessageType.Warning;
+            var worstLspMessageKind = diagnosticLogItems.Any(logItem => logItem.Kind is WorkspaceDiagnosticKind.Failure) ? LSP.MessageType.Error : LSP.MessageType.Warning;
+
+            string message;
+
+            if (preferredBuildHostKind == BuildHostProcessKind.NetFramework)
+                message = LanguageServerResources.Projects_failed_to_load_because_MSBuild_could_not_be_found;
+            else if (preferredBuildHostKind == BuildHostProcessKind.Mono)
+                message = LanguageServerResources.Projects_failed_to_load_because_Mono_could_not_be_found;
+            else
+                message = string.Format(LanguageServerResources.There_were_problems_loading_project_0_See_log_for_details, Path.GetFileName(projectPath));
+
+            await toastErrorReporter.ReportErrorAsync(worstLspMessageKind, message, cancellationToken);
         }
     }
 }
