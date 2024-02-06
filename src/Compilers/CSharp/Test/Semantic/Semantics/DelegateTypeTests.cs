@@ -6608,6 +6608,84 @@ class Program
         //[InlineData(CSharp.LanguageVersion.Preview)]
         [InlineData(LanguageVersionFacts.CSharpNext)] // uncomment the line above when this is replaced with C# 13
         [InlineData(CSharp.LanguageVersion.CSharp12)]
+        public void OverloadResolution_CandidateOrdering_DefaultValue_DifferentValues(LanguageVersion languageVersion)
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long a = 1) => Console.Write(a);
+                    static public void Test1(this object p, long a = 2) => Console.Write(a);
+
+                    static public void Test2(this object p, long a = 3) => Console.Write(a);
+                    static public void Test2(this Program p, long a = 4) => Console.Write(a);
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                // (7,18): error CS8917: The delegate type could not be inferred.
+                //         var x1 = new Program().Test1;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                // (8,18): error CS8917: The delegate type could not be inferred.
+                //         var x2 = new Program().Test2;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        //[InlineData(CSharp.LanguageVersion.Preview)]
+        [InlineData(LanguageVersionFacts.CSharpNext)] // uncomment the line above when this is replaced with C# 13
+        [InlineData(CSharp.LanguageVersion.CSharp12)]
+        public void OverloadResolution_CandidateOrdering_DefaultValue_SameValues(LanguageVersion languageVersion)
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long a = 1) => Console.Write(a);
+                    static public void Test1(this object p, long a = 1) => Console.Write(a);
+
+                    static public void Test2(this object p, long a = 2) => Console.Write(a);
+                    static public void Test2(this Program p, long a = 2) => Console.Write(a);
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                // (7,18): error CS8917: The delegate type could not be inferred.
+                //         var x1 = new Program().Test1;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                // (8,18): error CS8917: The delegate type could not be inferred.
+                //         var x2 = new Program().Test2;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        //[InlineData(CSharp.LanguageVersion.Preview)]
+        [InlineData(LanguageVersionFacts.CSharpNext)] // uncomment the line above when this is replaced with C# 13
+        [InlineData(CSharp.LanguageVersion.CSharp12)]
         public void OverloadResolution_CandidateOrdering_DefaultValue_CustomDelegateType(LanguageVersion languageVersion)
         {
             var source = """
@@ -6632,6 +6710,78 @@ class Program
 
                     static public void Test2(this object p, long a = 2) => Console.Write(a);
                     static public void Test2(this Program p, long a) => Console.Write(a);
+                }
+                
+                delegate void D(long a = 3);
+                """;
+            CompileAndVerify(source, expectedOutput: "33", verify: Verification.FailsILVerify,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        //[InlineData(CSharp.LanguageVersion.Preview)]
+        [InlineData(LanguageVersionFacts.CSharpNext)] // uncomment the line above when this is replaced with C# 13
+        [InlineData(CSharp.LanguageVersion.CSharp12)]
+        public void OverloadResolution_CandidateOrdering_DefaultValue_CustomDelegateType_DifferentValues(LanguageVersion languageVersion)
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        D x1 = new Program().Test1;
+                        D x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long a = 5) => Console.Write(a);
+                    static public void Test1(this object p, long a = 6) => Console.Write(a);
+
+                    static public void Test2(this object p, long a = 7) => Console.Write(a);
+                    static public void Test2(this Program p, long a = 8) => Console.Write(a);
+                }
+                
+                delegate void D(long a = 3);
+                """;
+            CompileAndVerify(source, expectedOutput: "33", verify: Verification.FailsILVerify,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        //[InlineData(CSharp.LanguageVersion.Preview)]
+        [InlineData(LanguageVersionFacts.CSharpNext)] // uncomment the line above when this is replaced with C# 13
+        [InlineData(CSharp.LanguageVersion.CSharp12)]
+        public void OverloadResolution_CandidateOrdering_DefaultValue_CustomDelegateType_SameValues(LanguageVersion languageVersion)
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        D x1 = new Program().Test1;
+                        D x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long a = 1) => Console.Write(a);
+                    static public void Test1(this object p, long a = 1) => Console.Write(a);
+
+                    static public void Test2(this object p, long a = 2) => Console.Write(a);
+                    static public void Test2(this Program p, long a = 2) => Console.Write(a);
                 }
                 
                 delegate void D(long a = 3);
