@@ -73,10 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     return;
                 }
 
-                if (convertedStatement is ReturnStatementSyntax convertedReturn &&
-                    convertedReturn.Expression is not null &&
+                if (convertedStatement is ReturnStatementSyntax { Expression: not null } convertedReturn &&
                     body is ArrowExpressionClauseSyntax arrowClause &&
-                    arrowClause.ArrowToken.TrailingTrivia.IndexOf(SyntaxKind.EndOfLineTrivia) == -1)
+                    arrowClause.ArrowToken.TrailingTrivia.IndexOf(SyntaxKind.EndOfLineTrivia) < 0)
                 {
                     var whiteSpaceTrivia = convertedReturn.Expression.DescendantTrivia().Where(static tr => tr.IsWhitespace() && !tr.IsElastic());
                     convertedStatement = convertedStatement.ReplaceTrivia(whiteSpaceTrivia, (_, tr) => tr.AsElastic());

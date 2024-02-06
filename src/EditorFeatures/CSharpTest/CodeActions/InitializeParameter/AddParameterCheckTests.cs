@@ -1122,6 +1122,167 @@ class C
                 """);
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71636")]
+        public async Task TestUpdateExpressionBody5()
+        {
+            await VerifyCS.VerifyRefactoringAsync(
+                """
+                using System;
+
+                class C
+                {
+                    int M(bool v, [||]string s) => v ? 0 : 1;
+                }
+                """,
+                """
+                using System;
+
+                class C
+                {
+                    int M(bool v, string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                
+                        return v ? 0 : 1;
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71636")]
+        public async Task TestUpdateExpressionBody6()
+        {
+            await VerifyCS.VerifyRefactoringAsync(
+                """
+                using System;
+
+                class C
+                {
+                    int M(bool v, [||]string s) => v ?
+                        0 :
+                        1;
+                }
+                """,
+                """
+                using System;
+
+                class C
+                {
+                    int M(bool v, string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                
+                        return v ? 0 : 1;
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71636")]
+        public async Task TestUpdateExpressionBody7()
+        {
+            await VerifyCS.VerifyRefactoringAsync(
+                """
+                using System;
+
+                class C
+                {
+                    int M(bool v, [||]string s) => v
+                        ? 0
+                        : 1;
+                }
+                """,
+                """
+                using System;
+
+                class C
+                {
+                    int M(bool v, string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                
+                        return v ? 0 : 1;
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71636")]
+        public async Task TestUpdateExpressionBody8()
+        {
+            await VerifyCS.VerifyRefactoringAsync(
+                """
+                using System;
+
+                class C
+                {
+                    int M(bool v, [||]string s) =>
+                        v ? 0 : 1;
+                }
+                """,
+                """
+                using System;
+
+                class C
+                {
+                    int M(bool v, string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                
+                        return v ? 0 : 1;
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71636")]
+        public async Task TestUpdateExpressionBody9()
+        {
+            await VerifyCS.VerifyRefactoringAsync(
+                """
+                using System;
+
+                class C
+                {
+                    int M(bool v, [||]string s)
+                        => v ? 0 : 1;
+                }
+                """,
+                """
+                using System;
+
+                class C
+                {
+                    int M(bool v, string s)
+                    {
+                        if (s is null)
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                
+                        return v ? 0 : 1;
+                    }
+                }
+                """);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
         public async Task TestUpdateLocalFunctionExpressionBody_NonVoid()
         {
