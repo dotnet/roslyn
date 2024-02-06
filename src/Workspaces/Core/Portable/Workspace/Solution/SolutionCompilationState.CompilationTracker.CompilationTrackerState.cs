@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis
                 /// Returns a <see cref="AllSyntaxTreesParsedState"/> if <paramref name="intermediateProjects"/> is
                 /// empty, otherwise a <see cref="InProgressState"/>.
                 /// </summary>
-                public static CompilationTrackerState Create(
+                public static WithCompilationTrackerState Create(
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? compilationWithGeneratedDocuments,
