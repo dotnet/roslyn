@@ -76,21 +76,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     return;
                 }
 
-                var project = _solution.Projects.FirstOrDefault(
-                    p => string.Equals(p.FilePath, projectPath.OriginalString, StringComparison.OrdinalIgnoreCase));
-                if (project == null)
+                var projectState = _solution.SolutionState.ProjectStates.FirstOrDefault(
+                    p => string.Equals(p.Value.FilePath, projectPath.OriginalString, StringComparison.OrdinalIgnoreCase));
+                if (projectState.Key == null)
                 {
                     return;
                 }
+
+                var project = _solution.GetRequiredProject(projectState.Key);
 
                 _nodeToContextProjectMap.Add(inputNode, project);
 
-                var document = project.Documents.FirstOrDefault(
-                    d => string.Equals(d.FilePath, filePath.OriginalString, StringComparison.OrdinalIgnoreCase));
-                if (document == null)
+                var documentState = project.State.DocumentStates.States.FirstOrDefault(
+                    d => string.Equals(d.Value.FilePath, filePath.OriginalString, StringComparison.OrdinalIgnoreCase));
+                if (documentState.Key == null)
                 {
                     return;
                 }
+
+                var document = project.GetRequiredDocument(documentState.Key);
 
                 _nodeToContextDocumentMap.Add(inputNode, document);
             }
