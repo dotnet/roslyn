@@ -1,0 +1,4 @@
+variables:
+  # These variables are required for MicroBuild tasks
+  TeamName: VS IDE
+  TeamEmail: vsidemicrobuild@microsoft.com

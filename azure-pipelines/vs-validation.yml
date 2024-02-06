@@ -12,6 +12,9 @@ resources:
     name: 1ESPipelineTemplates/MicroBuildTemplate
     ref: refs/tags/release
 
+variables:
+- template: GlobalVariables.yml
+
 extends:
   template: azure-pipelines/MicroBuild.1ES.Unofficial.yml@MicroBuildTemplate
   parameters:
@@ -66,8 +69,6 @@ extends:
         - task: MicroBuildInsertVsPayload@4
           displayName: 🏭 Insert VS Payload
           inputs:
-            TeamName: $(TeamName)
-            TeamEmail: $(TeamEmail)
             InsertionPayloadName: $(Build.Repository.Name) VALIDATION BUILD $(Build.BuildNumber) ($(Build.SourceBranch)) [Skip-SymbolCheck]
             InsertionDescription: |
               This PR is for **validation purposes only** for !$(System.PullRequest.PullRequestId). **Do not complete**.

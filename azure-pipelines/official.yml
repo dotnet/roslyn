@@ -49,6 +49,9 @@ resources:
     name: 1ESPipelineTemplates/MicroBuildTemplate
     ref: refs/tags/release
 
+variables:
+- template: GlobalVariables.yml
+
 extends:
   ${{ if parameters.EnableCompliance }}:
     template: azure-pipelines/MicroBuild.1ES.Official.yml@MicroBuildTemplate

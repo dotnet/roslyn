@@ -1,1 +1,0 @@
-'vsidemicrobuild@microsoft.com'
