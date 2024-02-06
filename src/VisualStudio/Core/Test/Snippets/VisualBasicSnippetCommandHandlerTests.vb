@@ -5,7 +5,9 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+Imports Microsoft.CodeAnalysis.[Shared].TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Roslyn.Test.Utilities
@@ -371,7 +373,7 @@ End Class
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Sub SnippetCommandHandler_Interactive_Tab()
+        Public Async Function SnippetCommandHandler_Interactive_Tab() As Task
             Dim markup = "for$$"
             Dim testState = SnippetTestState.CreateSubmissionTestState(markup, LanguageNames.VisualBasic)
             Using testState
@@ -380,8 +382,15 @@ End Class
 
                 Assert.False(testState.SnippetExpansionClient.TryInsertExpansionCalled)
                 Assert.Equal("for    ", testState.SubjectBuffer.CurrentSnapshot.GetText())
+
+                ' The workspace is going to fail to create a submission compilation as part of a background task. Wait
+                ' for that task to complete so we can explicitly mark it as a known/handled error.
+                Dim provider = testState.Workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
+                Await provider.WaitAllDispatcherOperationAndTasksAsync(testState.Workspace, FeatureAttribute.Workspace)
             End Using
-        End Sub
+
+            UseExportProviderAttribute.HandleExpectedNonFatalErrors(Function(exception) TypeOf exception Is NotImplementedException)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub SnippetCommandHandler_Interactive_InsertSnippetCommand()

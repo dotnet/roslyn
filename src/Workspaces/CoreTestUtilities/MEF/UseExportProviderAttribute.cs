@@ -11,12 +11,14 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -52,7 +54,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         private static readonly TimeSpan CleanupTimeout = TimeSpan.FromMinutes(1);
 
+        private static UseExportProviderAttribute? s_instance;
+
         private MefHostServices? _hostServices;
+        private ImmutableList<Exception> _fatalErrors = ImmutableList<Exception>.Empty;
+        private ImmutableList<Exception> _nonFatalErrors = ImmutableList<Exception>.Empty;
+        private readonly FatalError.ErrorReporterHandler _fatalErrorHandler;
+        private readonly FatalError.ErrorReporterHandler _nonFatalErrorHandler;
 
         static UseExportProviderAttribute()
         {
@@ -62,8 +70,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             RuntimeHelpers.RunModuleConstructor(typeof(TestBase).Module.ModuleHandle);
         }
 
+        public UseExportProviderAttribute()
+        {
+            _fatalErrorHandler = (exception, severity, forceDump) => ImmutableInterlocked.Update(ref _fatalErrors, static (errors, exception) => errors.Add(exception), exception);
+            _nonFatalErrorHandler = (exception, severity, forceDump) => ImmutableInterlocked.Update(ref _nonFatalErrors, static (errors, exception) => errors.Add(exception), exception);
+        }
+
         public override void Before(MethodInfo? methodUnderTest)
         {
+            s_instance = this;
+
+            FatalError.OverwriteHandlers(_fatalErrorHandler, _nonFatalErrorHandler);
+            FatalError.CopyHandlersTo(typeof(Compilation).Assembly);
+
             // Need to clear cached MefHostServices between test runs.
             MefHostServices.TestAccessor.HookServiceCreation(CreateMefHostServices);
 
@@ -86,10 +105,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </remarks>
         public override void After(MethodInfo? methodUnderTest)
         {
+            s_instance = null;
+
             try
             {
                 DisposeExportProvider(ExportProviderCache.LocalExportProviderForCleanup);
                 DisposeExportProvider(ExportProviderCache.RemoteExportProviderForCleanup);
+                if (_fatalErrors.Count > 0)
+                {
+                    throw new AggregateException("Unexpected fatal errors reported during test.", _fatalErrors);
+                }
+
+                if (_nonFatalErrors.Count > 0)
+                {
+                    throw new AggregateException("Unexpected non-fatal errors reported during test.", _nonFatalErrors);
+                }
             }
             finally
             {
@@ -101,6 +131,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _hostServices = null;
                 ExportProviderCache.SetEnabled_OnlyUseExportProviderAttributeCanCall(false);
             }
+        }
+
+        public static void HandleExpectedNonFatalErrors(Predicate<Exception> handler)
+        {
+            if (s_instance is not { } instance)
+                throw new InvalidOperationException("Cannot handle errors outside the context of a test.");
+
+            ImmutableInterlocked.Update(
+                ref instance._nonFatalErrors,
+                (errors, handler) => errors.RemoveAll(handler),
+                handler);
         }
 
         private static void DisposeExportProvider(ExportProvider? exportProvider)

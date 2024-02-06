@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -49,14 +50,13 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(newSolution));
             }
 
+            projectId ??= documentId?.ProjectId;
+            Debug.Assert(projectId is not null == IsProjectChangeEvent(kind));
+            Debug.Assert(documentId is not null == IsDocumentChangeEvent(kind));
+
             if (oldSolution == newSolution)
             {
                 return Task.CompletedTask;
-            }
-
-            if (projectId == null && documentId != null)
-            {
-                projectId = documentId.ProjectId;
             }
 
             var ev = GetEventHandlers<WorkspaceChangeEventArgs>(WorkspaceChangeEventName);
@@ -74,6 +74,39 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 return Task.CompletedTask;
+            }
+
+            static bool IsDocumentChangeEvent(WorkspaceChangeKind kind)
+            {
+                return kind switch
+                {
+                    WorkspaceChangeKind.DocumentAdded => true,
+                    WorkspaceChangeKind.DocumentRemoved => true,
+                    WorkspaceChangeKind.DocumentReloaded => true,
+                    WorkspaceChangeKind.DocumentChanged => true,
+                    WorkspaceChangeKind.AdditionalDocumentAdded => true,
+                    WorkspaceChangeKind.AdditionalDocumentRemoved => true,
+                    WorkspaceChangeKind.AdditionalDocumentReloaded => true,
+                    WorkspaceChangeKind.AdditionalDocumentChanged => true,
+                    WorkspaceChangeKind.DocumentInfoChanged => true,
+                    WorkspaceChangeKind.AnalyzerConfigDocumentAdded => true,
+                    WorkspaceChangeKind.AnalyzerConfigDocumentRemoved => true,
+                    WorkspaceChangeKind.AnalyzerConfigDocumentReloaded => true,
+                    WorkspaceChangeKind.AnalyzerConfigDocumentChanged => true,
+                    _ => false,
+                };
+            }
+
+            static bool IsProjectChangeEvent(WorkspaceChangeKind kind)
+            {
+                return kind switch
+                {
+                    WorkspaceChangeKind.ProjectAdded => true,
+                    WorkspaceChangeKind.ProjectRemoved => true,
+                    WorkspaceChangeKind.ProjectChanged => true,
+                    WorkspaceChangeKind.ProjectReloaded => true,
+                    _ => IsDocumentChangeEvent(kind),
+                };
             }
         }
 

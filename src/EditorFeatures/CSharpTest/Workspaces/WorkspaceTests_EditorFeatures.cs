@@ -134,7 +134,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
 
             var project = new EditorTestHostProject(workspace);
 
-            Assert.Throws<ArgumentException>(() => workspace.OnProjectRemoved(project.Id));
+            var exception = Assert.Throws<ArgumentException>(() => workspace.OnProjectRemoved(project.Id));
+
+            UseExportProviderAttribute.HandleExpectedNonFatalErrors(actualException => actualException == exception);
         }
 
         [Fact]
@@ -148,7 +150,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
 
             workspace.AddTestProject(project1);
 
-            Assert.Throws<ArgumentException>(() => workspace.OnProjectRemoved(project2.Id));
+            var exception = Assert.Throws<ArgumentException>(() => workspace.OnProjectRemoved(project2.Id));
+
+            UseExportProviderAttribute.HandleExpectedNonFatalErrors(actualException => actualException == exception);
         }
 
         [Fact]
@@ -265,7 +269,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
 
             workspace.AddTestProject(project1);
 
-            Assert.Throws<ArgumentException>(() => workspace.OnProjectReferenceAdded(project1.Id, new ProjectReference(project2.Id)));
+            var exception = Assert.Throws<ArgumentException>(() => workspace.OnProjectReferenceAdded(project1.Id, new ProjectReference(project2.Id)));
+
+            UseExportProviderAttribute.HandleExpectedNonFatalErrors(actualException => actualException == exception);
         }
 
         [Fact]
@@ -304,7 +310,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
 
             workspace.OnProjectReferenceAdded(project1.Id, new ProjectReference(project2.Id));
 
-            Assert.Throws<ArgumentException>(() => workspace.OnProjectReferenceAdded(project1.Id, new ProjectReference(project2.Id)));
+            var exception = Assert.Throws<ArgumentException>(() => workspace.OnProjectReferenceAdded(project1.Id, new ProjectReference(project2.Id)));
+
+            UseExportProviderAttribute.HandleExpectedNonFatalErrors(actualException => actualException == exception);
         }
 
         [Fact]
@@ -343,7 +351,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
 
             workspace.OnProjectReferenceAdded(project1.Id, new ProjectReference(project2.Id));
 
-            Assert.Throws<ArgumentException>(() => workspace.OnProjectReferenceAdded(project2.Id, new ProjectReference(project1.Id)));
+            var exception = Assert.Throws<ArgumentException>(() => workspace.OnProjectReferenceAdded(project2.Id, new ProjectReference(project1.Id)));
+
+            UseExportProviderAttribute.HandleExpectedNonFatalErrors(actualException => actualException == exception);
         }
 
         [Fact]

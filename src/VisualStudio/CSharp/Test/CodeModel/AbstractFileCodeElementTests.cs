@@ -6,8 +6,8 @@
 
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using EnvDTE;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Roslyn.Test.Utilities;
@@ -20,47 +20,42 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
     /// file.
     /// </summary>
     [UseExportProvider]
-    public abstract class AbstractFileCodeElementTests : IDisposable
+    public abstract class AbstractFileCodeElementTests
     {
+        private static readonly ConditionalWeakTable<EditorTestWorkspace, FileCodeModel> s_codeModelForWorkspace = new();
+
         private readonly string _contents;
-        private (EditorTestWorkspace workspace, FileCodeModel fileCodeModel)? _workspaceAndCodeModel;
 
         protected AbstractFileCodeElementTests(string contents)
         {
             _contents = contents;
         }
 
-        public (EditorTestWorkspace workspace, FileCodeModel fileCodeModel) WorkspaceAndCodeModel
+        protected static FileCodeModel GetCodeModel(EditorTestWorkspace workspace)
         {
-            get
-            {
-                return _workspaceAndCodeModel ??= CreateWorkspaceAndFileCodeModelAsync(_contents);
-            }
+            if (!s_codeModelForWorkspace.TryGetValue(workspace, out var codeModel))
+                throw new InvalidOperationException();
+
+            return codeModel;
         }
 
-        protected EditorTestWorkspace GetWorkspace()
+        protected Microsoft.CodeAnalysis.Solution GetCurrentSolution(EditorTestWorkspace workspace)
+            => workspace.CurrentSolution;
+
+        protected Microsoft.CodeAnalysis.Project GetCurrentProject(EditorTestWorkspace workspace)
+            => GetCurrentSolution(workspace).Projects.Single();
+
+        protected Microsoft.CodeAnalysis.Document GetCurrentDocument(EditorTestWorkspace workspace)
+            => GetCurrentProject(workspace).Documents.Single();
+
+        protected EditorTestWorkspace CreateWorkspaceAndFileCodeModel()
         {
-            return WorkspaceAndCodeModel.workspace;
+            var (workspace, codeModel) = FileCodeModelTestHelpers.CreateWorkspaceAndFileCodeModel(_contents);
+            s_codeModelForWorkspace.Add(workspace, codeModel);
+            return workspace;
         }
 
-        protected FileCodeModel GetCodeModel()
-        {
-            return WorkspaceAndCodeModel.fileCodeModel;
-        }
-
-        protected Microsoft.CodeAnalysis.Solution GetCurrentSolution()
-            => GetWorkspace().CurrentSolution;
-
-        protected Microsoft.CodeAnalysis.Project GetCurrentProject()
-            => GetCurrentSolution().Projects.Single();
-
-        protected Microsoft.CodeAnalysis.Document GetCurrentDocument()
-            => GetCurrentProject().Documents.Single();
-
-        protected static (EditorTestWorkspace workspace, FileCodeModel fileCodeModel) CreateWorkspaceAndFileCodeModelAsync(string file)
-            => FileCodeModelTestHelpers.CreateWorkspaceAndFileCodeModel(file);
-
-        protected CodeElement GetCodeElement(params object[] path)
+        protected CodeElement GetCodeElement(EditorTestWorkspace workspace, params object[] path)
         {
             WpfTestRunner.RequireWpfFact($"Tests create {nameof(CodeElement)}s which use the affinitized {nameof(CleanableWeakComHandleTable<SyntaxNodeKey, CodeElement>)}");
 
@@ -69,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
                 throw new ArgumentException("path must be non-empty.", nameof(path));
             }
 
-            var codeElement = (GetCodeModel()).CodeElements.Item(path[0]);
+            var codeElement = GetCodeModel(workspace).CodeElements.Item(path[0]);
 
             foreach (var pathElement in path.Skip(1))
             {
@@ -79,17 +74,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
             return codeElement;
         }
 
-        public void Dispose()
-        {
-            GetWorkspace().Dispose();
-        }
-
         /// <summary>
         /// Returns the current text of the test buffer.
         /// </summary>
-        protected string GetFileText()
+        protected string GetFileText(EditorTestWorkspace workspace)
         {
-            return (GetWorkspace()).Documents.Single().GetTextBuffer().CurrentSnapshot.GetText();
+            return workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText();
         }
     }
 }

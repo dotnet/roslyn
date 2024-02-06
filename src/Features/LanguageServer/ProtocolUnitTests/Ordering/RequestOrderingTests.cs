@@ -126,6 +126,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             Assert.Empty(responses.Where(r => r == null));
             Assert.Empty(responses.Where(r => r!.StartTime == default));
             Assert.All(responses, r => Assert.True(r!.EndTime > r!.StartTime));
+
+            UseExportProviderAttribute.HandleExpectedNonFatalErrors(
+                ex => ex is InvalidOperationException && ex.StackTrace.Contains("<HandleRequestAsync>"));
         }
 
         [Theory, CombinatorialData]
@@ -209,7 +212,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             Assert.Equal(expectedSolution, solution);
 
             // Apply some random change to the workspace that the LSP server doesn't "see"
-            testLspServer.TestWorkspace.SetCurrentSolution(s => s.WithProjectName(s.Projects.First().Id, "NewName"), WorkspaceChangeKind.ProjectChanged);
+            testLspServer.TestWorkspace.SetCurrentSolution(s => s.WithProjectName(s.Projects.First().Id, "NewName"), WorkspaceChangeKind.ProjectChanged, solution!.Projects.First().Id);
 
             expectedSolution = testLspServer.GetCurrentSolution();
 

@@ -334,7 +334,7 @@ namespace Roslyn.Utilities
         [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
         private static void ReportNonFatalErrorWorker(Task task, object? continuationFunction)
         {
-            var exception = task.Exception!;
+            var exception = task.Exception is { InnerExceptions.Count: 1 } ? task.Exception.InnerExceptions[0] : task.Exception!;
             var methodInfo = ((Delegate)continuationFunction!).GetMethodInfo();
             exception.Data["ContinuationFunction"] = (methodInfo?.DeclaringType?.FullName ?? "?") + "::" + (methodInfo?.Name ?? "?");
 
@@ -345,12 +345,17 @@ namespace Roslyn.Utilities
             //   ...
             // > ~67s     // switch to thread 67
             // > !dso     // dump stack objects
-            FatalError.ReportAndCatch(exception);
+            FatalError.ReportNonFatalErrorAndCatch(exception);
         }
 
         public static Task ReportNonFatalErrorAsync(this Task task)
         {
-            task.ContinueWith(p => FatalError.ReportAndCatchUnlessCanceled(p.Exception!),
+            task.ContinueWith(
+                static p =>
+                {
+                    var exception = p.Exception is { InnerExceptions.Count: 1 } ? p.Exception.InnerExceptions[0] : p.Exception!;
+                    return FatalError.ReportNonFatalErrorAndCatchUnlessCanceled(exception);
+                },
                 CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                 TaskScheduler.Default);
@@ -360,7 +365,12 @@ namespace Roslyn.Utilities
 
         public static Task ReportNonFatalErrorUnlessCancelledAsync(this Task task, CancellationToken cancellationToken)
         {
-            task.ContinueWith(p => FatalError.ReportAndCatchUnlessCanceled(p.Exception!, cancellationToken),
+            task.ContinueWith(
+                p =>
+                {
+                    var exception = p.Exception is { InnerExceptions.Count: 1 } ? p.Exception.InnerExceptions[0] : p.Exception!;
+                    return FatalError.ReportNonFatalErrorAndCatchUnlessCanceled(exception, cancellationToken);
+                },
                 CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                 TaskScheduler.Default);

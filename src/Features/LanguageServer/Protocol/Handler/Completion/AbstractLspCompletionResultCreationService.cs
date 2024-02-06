@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             {
                 return await completionService.GetChangeAsync(document, completionItem, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportNonFatalErrorAndCatchUnlessCanceled(e))
             {
                 // In case of exception, we simply return DisplayText with default span as the change.
                 return CompletionChange.Create(new TextChange(completionItem.Span, completionItem.DisplayText));

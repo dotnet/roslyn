@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis
                     WriteState(new AllSyntaxTreesParsedState(compilation, generatorInfo));
                     return compilation;
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+                catch (Exception e) when (FatalError.ReportNonFatalErrorAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
                     throw ExceptionUtilities.Unreachable();
                 }

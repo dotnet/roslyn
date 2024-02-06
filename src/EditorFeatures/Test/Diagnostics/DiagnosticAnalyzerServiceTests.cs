@@ -215,6 +215,13 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 foreach (var a in aCollection)
                 {
                     var diagnostics = a.Diagnostics;
+                    if (a.DocumentId is null)
+                    {
+                        // We do not expect any non-local project diagnostics for this test
+                        Assert.Empty(diagnostics);
+                        continue;
+                    }
+
                     var diagnostic = Assert.Single(diagnostics);
                     Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
 

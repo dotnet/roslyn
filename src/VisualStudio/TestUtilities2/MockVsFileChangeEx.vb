@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         Private ReadOnly _lock As New Object
         Private _watchedFiles As ImmutableList(Of WatchedEntity) = ImmutableList(Of WatchedEntity).Empty
         Private _watchedDirectories As ImmutableList(Of WatchedEntity) = ImmutableList(Of WatchedEntity).Empty
-        Private _nextCookie As UInteger
+        Private _nextCookie As UInteger = 1UI
 
         Public Function AdviseDirChange(pszDir As String, fWatchSubDir As Integer, pFCE As IVsFileChangeEvents, ByRef pvsCookie As UInteger) As Integer Implements IVsFileChangeEx.AdviseDirChange
             If fWatchSubDir = 0 Then
@@ -199,7 +199,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         Public Function UnadviseDirChangeAsync(cookie As UInteger, Optional cancellationToken As CancellationToken = Nothing) As Task(Of String) Implements IVsAsyncFileChangeEx.UnadviseDirChangeAsync
             SyncLock _lock
-                Dim path = _watchedFiles.FirstOrDefault(Function(t) t.Cookie = cookie).Path
+                Dim path = _watchedDirectories.FirstOrDefault(Function(t) t.Cookie = cookie).Path
 
                 Marshal.ThrowExceptionForHR(UnadviseFileChange(cookie))
 
@@ -212,7 +212,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
             SyncLock _lock
                 For Each cookie In cookies
-                    Dim path = _watchedFiles.FirstOrDefault(Function(t) t.Cookie = cookie).Path
+                    Dim path = _watchedDirectories.FirstOrDefault(Function(t) t.Cookie = cookie).Path
 
                     Marshal.ThrowExceptionForHR(UnadviseFileChange(cookie))
 

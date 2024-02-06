@@ -56,12 +56,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                     Dim expected = 1
                     AddHandler source.DiagnosticsUpdated, Sub(o, argsCollection)
-                                                              Dim args = argsCollection.Single()
-                                                              Dim diagnostics = args.Diagnostics
-                                                              Assert.Equal(expected, diagnostics.Length)
-                                                              If expected = 1 Then
-                                                                  Assert.Equal(diagnostics(0), diagnostic)
-                                                              End If
+                                                              For Each args In argsCollection
+                                                                  Dim diagnostics = args.Diagnostics
+                                                                  Assert.Equal(expected, diagnostics.Length)
+                                                                  If expected = 1 Then
+                                                                      Assert.Equal(diagnostics(0), diagnostic)
+                                                                  End If
+                                                              Next
                                                           End Sub
 
                     source.AddNewErrors(project.DocumentIds.First(), diagnostic)

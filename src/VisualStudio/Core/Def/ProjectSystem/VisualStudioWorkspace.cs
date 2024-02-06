@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -21,11 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// </summary>
     public abstract class VisualStudioWorkspace : Workspace
     {
-        static VisualStudioWorkspace()
-        {
-            FaultReporter.InitializeFatalErrorHandlers();
-        }
-
         internal VisualStudioWorkspace(HostServices hostServices)
             : base(hostServices, WorkspaceKind.Host)
         {

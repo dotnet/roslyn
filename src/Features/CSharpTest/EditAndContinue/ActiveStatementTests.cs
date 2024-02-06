@@ -12297,11 +12297,12 @@ class C
 
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
+            Exception exception = outOfMemory ? new OutOfMemoryException() : new SimpleToStringException();
             var validator = new CSharpEditAndContinueTestHelpers(faultInjector: node =>
             {
                 if (node.Parent is MethodDeclarationSyntax methodDecl && methodDecl.Identifier.Text == "G")
                 {
-                    throw outOfMemory ? new OutOfMemoryException() : new SimpleToStringException();
+                    throw exception;
                 }
             });
 
@@ -12313,6 +12314,8 @@ class C
                 [edits],
                 TargetFramework.NetCoreApp,
                 [DocumentResults(diagnostics: [expectedDiagnostic])]);
+
+            UseExportProviderAttribute.HandleExpectedNonFatalErrors(actualException => actualException == exception);
         }
 
         /// <summary>

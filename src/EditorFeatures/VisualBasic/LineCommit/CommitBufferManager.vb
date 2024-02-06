@@ -3,8 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.[Shared].TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Projection
@@ -19,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private ReadOnly _buffer As ITextBuffer
         Private ReadOnly _commitFormatter As ICommitFormatter
         Private ReadOnly _inlineRenameService As IInlineRenameService
+        Private ReadOnly _listener As IAsynchronousOperationListener
 
         Private _referencingViews As Integer
 
@@ -43,16 +44,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             buffer As ITextBuffer,
             commitFormatter As ICommitFormatter,
             inlineRenameService As IInlineRenameService,
-            threadingContext As IThreadingContext)
+            threadingContext As IThreadingContext,
+            listener As IAsynchronousOperationListener)
             MyBase.New(threadingContext, assertIsForeground:=False)
 
             Contract.ThrowIfNull(buffer)
             Contract.ThrowIfNull(commitFormatter)
             Contract.ThrowIfNull(inlineRenameService)
+            Contract.ThrowIfNull(listener)
 
             _buffer = buffer
             _commitFormatter = commitFormatter
             _inlineRenameService = inlineRenameService
+            _listener = listener
         End Sub
 
         Public Sub AddReferencingView()
@@ -267,9 +271,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     _documentBeforePreviousEdit = documentBeforePreviousEdit
                     ' Kick off a task to eagerly force compute InternalsVisibleTo semantics for all the references.
                     ' This provides a noticeable perf improvement when code cleanup is subsequently invoked on this document.
+                    Dim asyncToken = _listener.BeginAsyncOperation(NameOf(ForceComputeInternalsVisibleToAsync))
                     Task.Run(Async Function()
                                  Await ForceComputeInternalsVisibleToAsync(documentBeforePreviousEdit, CancellationToken.None).ConfigureAwait(False)
-                             End Function)
+                             End Function).CompletesAsyncOperation(asyncToken)
                 End If
             End If
         End Sub

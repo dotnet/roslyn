@@ -47,15 +47,17 @@ namespace A.B
         {
         }
 
-        private CodeNamespace GetCodeNamespace(params object[] path)
+        private CodeNamespace GetCodeNamespace(EditorTestWorkspace workspace, params object[] path)
         {
-            return (CodeNamespace)GetCodeElement(path);
+            return (CodeNamespace)GetCodeElement(workspace, path);
         }
 
         [WpfFact]
         public void Children()
         {
-            var testObject = GetCodeNamespace("Goo");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "Goo");
 
             Assert.Equal(3, testObject.Children.Count);
         }
@@ -63,7 +65,9 @@ namespace A.B
         [WpfFact]
         public void Members()
         {
-            var testObject = GetCodeNamespace("Goo");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "Goo");
 
             Assert.Equal(3, testObject.Members.Count);
         }
@@ -71,7 +75,9 @@ namespace A.B
         [WpfFact]
         public void Parent()
         {
-            var outer = GetCodeNamespace("Goo");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var outer = GetCodeNamespace(workspace, "Goo");
             var inner = outer.Members.Item("Bar") as CodeNamespace;
 
             Assert.Equal(outer.Name, ((CodeNamespace)inner.Parent).Name);
@@ -80,7 +86,9 @@ namespace A.B
         [WpfFact]
         public void Kind()
         {
-            var testObject = GetCodeNamespace("Goo");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "Goo");
 
             Assert.Equal(vsCMElement.vsCMElementNamespace, testObject.Kind);
         }
@@ -88,7 +96,9 @@ namespace A.B
         [WpfFact]
         public void Name()
         {
-            var testObject = GetCodeNamespace(2);
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, 2);
 
             Assert.Equal("Goo", testObject.Name);
         }
@@ -96,7 +106,9 @@ namespace A.B
         [WpfFact]
         public void Name_Dotted()
         {
-            var testObject = GetCodeNamespace(3);
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, 3);
 
             Assert.Equal("A.B", testObject.Name);
         }
@@ -104,21 +116,27 @@ namespace A.B
         [WpfFact]
         public void GetStartPoint_Attributes()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [WpfFact]
         public void GetStartPoint_AttributesWithDelimiter()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
             Assert.Throws<COMException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
         [WpfFact]
         public void GetStartPoint_Body()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
 
             var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartBody);
 
@@ -129,35 +147,45 @@ namespace A.B
         [WpfFact]
         public void GetStartPoint_BodyWithDelimiter()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [WpfFact]
         public void GetStartPoint_Header()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeader));
         }
 
         [WpfFact]
         public void GetStartPoint_HeaderWithAttributes()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [WpfFact]
         public void GetStartPoint_Name()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
         [WpfFact]
         public void GetStartPoint_Navigate()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
 
             var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartNavigate);
 
@@ -168,14 +196,18 @@ namespace A.B
         [WpfFact]
         public void GetStartPoint_Whole()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
         [WpfFact]
         public void GetStartPoint_WholeWithAttributes()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
             var startPoint = testObject.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
             Assert.Equal(18, startPoint.Line);
@@ -185,21 +217,27 @@ namespace A.B
         [WpfFact]
         public void GetEndPoint_Attributes()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [WpfFact]
         public void GetEndPoint_AttributesWithDelimiter()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
             Assert.Throws<COMException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
         [WpfFact]
         public void GetEndPoint_Body()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
 
             var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
@@ -210,35 +248,45 @@ namespace A.B
         [WpfFact]
         public void GetEndPoint_BodyWithDelimiter()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [WpfFact]
         public void GetEndPoint_Header()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
         [WpfFact]
         public void GetEndPoint_HeaderWithAttributes()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [WpfFact]
         public void GetEndPoint_Name()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
         [WpfFact]
         public void GetEndPoint_Navigate()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
 
             var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartNavigate);
 
@@ -249,14 +297,18 @@ namespace A.B
         [WpfFact]
         public void GetEndPoint_Whole()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
             Assert.Throws<NotImplementedException>(() => testObject.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
         [WpfFact]
         public void GetEndPoint_WholeWithAttributes()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
 
             var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -267,7 +319,9 @@ namespace A.B
         [WpfFact]
         public void StartPoint()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
 
             var startPoint = testObject.StartPoint;
 
@@ -278,7 +332,9 @@ namespace A.B
         [WpfFact]
         public void EndPoint()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
 
             var endPoint = testObject.EndPoint;
 
@@ -289,7 +345,9 @@ namespace A.B
         [WpfFact]
         public void Language()
         {
-            var testObject = GetCodeNamespace("A.B");
+            using var workspace = CreateWorkspaceAndFileCodeModel();
+
+            var testObject = GetCodeNamespace(workspace, "A.B");
 
             Assert.Equal(CodeModelLanguageConstants.vsCMLanguageCSharp, testObject.Language);
         }

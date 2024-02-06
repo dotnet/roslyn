@@ -748,11 +748,12 @@ class D
             var baseActiveStatements = AsyncLazy.Create(ActiveStatementsMap.Empty);
             var capabilities = AsyncLazy.Create(EditAndContinueTestHelpers.Net5RuntimeCapabilities);
 
+            Exception exception = outOfMemory ? new OutOfMemoryException() : new NullReferenceException("NullRef!");
             var analyzer = new CSharpEditAndContinueAnalyzer(node =>
             {
                 if (node is CompilationUnitSyntax)
                 {
-                    throw outOfMemory ? new OutOfMemoryException() : new NullReferenceException("NullRef!");
+                    throw exception;
                 }
             });
 
@@ -766,6 +767,8 @@ class D
 
             AssertEx.Equal(new[] { expectedDiagnostic }, result.RudeEditErrors.Select(d => d.ToDiagnostic(newSyntaxTree))
                 .Select(d => $"{d.Id}: {d.GetMessage().Split(new[] { Environment.NewLine }, StringSplitOptions.None).First()}"));
+
+            UseExportProviderAttribute.HandleExpectedNonFatalErrors(actualException => actualException == exception);
         }
 
         [Fact]
