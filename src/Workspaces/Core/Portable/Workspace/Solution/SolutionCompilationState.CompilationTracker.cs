@@ -267,6 +267,10 @@ namespace Microsoft.CodeAnalysis
                 // At this point, we now absolutely should have our tree in the compilation
                 Contract.ThrowIfFalse(compilationPair.CompilationWithoutGeneratedDocuments.ContainsSyntaxTree(tree));
 
+                // Mark whatever generator state we have as not only final, but frozen as well.  We'll want to keep
+                // whatever we have here through whatever future transformations occur.
+                generatorInfo = generatorInfo.WithDocumentsAreFinalAndFrozen();
+
                 // The user is asking for an in progress snap.  We don't want to create it and then
                 // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
                 // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
@@ -306,7 +310,7 @@ namespace Microsoft.CodeAnalysis
                 // check whether we can bail out quickly for typing case
                 var inProgressState = state as InProgressState;
 
-                generatorInfo = state.GeneratorInfo.WithDocumentsAreFinalAndFrozen();
+                generatorInfo = state.GeneratorInfo;
                 inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().oldState : this.ProjectState;
 
                 // all changes left for this document is modifying the given document; since the compilation is already fully up to date
@@ -803,6 +807,9 @@ namespace Microsoft.CodeAnalysis
                         generatorInfo,
                         compilationWithStaleGeneratedTrees,
                         cancellationToken).ConfigureAwait(false);
+
+                    // After producing the sg documents, we must always be in the final state for the generator data.
+                    Contract.ThrowIfFalse(nextGeneratorInfo.DocumentsAreFinal);
 
                     var finalState = FinalState.Create(
                         compilationWithGeneratedDocuments,
