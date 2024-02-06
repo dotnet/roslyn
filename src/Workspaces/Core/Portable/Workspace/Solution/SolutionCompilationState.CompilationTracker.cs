@@ -524,10 +524,10 @@ namespace Microsoft.CodeAnalysis
                         => finalState,
 
                     // We've got nothing.  Build it from scratch :(
-                    NoCompilationState
+                    NoCompilationState noCompilationState
                         => await BuildFinalStateFromScratchAsync(
                             compilationState,
-                            state.GeneratorInfo,
+                            noCompilationState,
                             cancellationToken).ConfigureAwait(false),
 
                     // We have a declaration compilation, use it to reconstruct the final compilation
@@ -551,18 +551,20 @@ namespace Microsoft.CodeAnalysis
 
                 async Task<FinalState> BuildFinalStateFromScratchAsync(
                     SolutionCompilationState compilationState,
-                    CompilationTrackerGeneratorInfo generatorInfo,
+                    NoCompilationState noCompilationState,
                     CancellationToken cancellationToken)
                 {
+                    Contract.ThrowIfTrue(noCompilationState.GeneratorInfo.DocumentsAreFinal);
+
                     try
                     {
-                        var compilation = await BuildDeclarationCompilationFromScratchAsync(
-                            generatorInfo, cancellationToken).ConfigureAwait(false);
+                        var allSyntaxTreesParsedState = await BuildAllSyntaxTreesParsedStateFromScratchAsync(
+                            noCompilationState, cancellationToken).ConfigureAwait(false);
 
                         return await FinalizeCompilationAsync(
                             compilationState,
-                            compilation,
-                            generatorInfo,
+                            allSyntaxTreesParsedState.CompilationWithoutGeneratedDocuments,
+                            allSyntaxTreesParsedState.GeneratorInfo,
                             compilationWithStaleGeneratedTrees: null,
                             cancellationToken).ConfigureAwait(false);
                     }
@@ -575,8 +577,8 @@ namespace Microsoft.CodeAnalysis
                 [PerformanceSensitive(
                     "https://github.com/dotnet/roslyn/issues/23582",
                     Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
-                async Task<Compilation> BuildDeclarationCompilationFromScratchAsync(
-                    CompilationTrackerGeneratorInfo generatorInfo,
+                async Task<AllSyntaxTreesParsedState> BuildAllSyntaxTreesParsedStateFromScratchAsync(
+                    NoCompilationState noCompilationState,
                     CancellationToken cancellationToken)
                 {
                     try
@@ -592,8 +594,9 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         compilation = compilation.AddSyntaxTrees(trees);
-                        WriteState(new AllSyntaxTreesParsedState(compilation, generatorInfo));
-                        return compilation;
+                        var allSyntaxTreesParsedState = new AllSyntaxTreesParsedState(compilation, noCompilationState.GeneratorInfo);
+                        WriteState(allSyntaxTreesParsedState);
+                        return allSyntaxTreesParsedState;
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                     {
