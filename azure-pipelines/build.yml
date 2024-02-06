@@ -97,10 +97,11 @@ jobs:
       outputParentDirectory: $(Build.ArtifactStagingDirectory)
       outputs:
       - ${{ each artifact_name in parameters.artifact_names }}:
-        - output: pipelineArtifact
-          displayName: 📢 Publish ${{ artifact_name }}-Linux
-          targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-Linux
-          artifactName: ${{ artifact_name }}-Linux
+        - ${{ if or(ne(artifact_name, 'testResults'), parameters.RunTests) }}:
+          - output: pipelineArtifact
+            displayName: 📢 Publish ${{ artifact_name }}-Linux
+            targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-Linux
+            artifactName: ${{ artifact_name }}-Linux
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
@@ -121,10 +122,11 @@ jobs:
       outputParentDirectory: $(Build.ArtifactStagingDirectory)
       outputs:
       - ${{ each artifact_name in parameters.artifact_names }}:
-        - output: pipelineArtifact
-          displayName: 📢 Publish ${{ artifact_name }}-macOS
-          targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-macOS
-          artifactName: ${{ artifact_name }}-macOS
+        - ${{ if or(ne(artifact_name, 'testResults'), parameters.RunTests) }}:
+          - output: pipelineArtifact
+            displayName: 📢 Publish ${{ artifact_name }}-macOS
+            targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-macOS
+            artifactName: ${{ artifact_name }}-macOS
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
