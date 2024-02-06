@@ -227,7 +227,6 @@ public class Class1
         // Verbatim strings
         [InlineData("$$ @\"Test\"")]
         [InlineData(" $$@\"Test\"")]
-        [InlineData(" @$$\"Test\"")]
         [InlineData("@\"Test\"$$ ")]
         [InlineData("@\"Test\" $$")]
 
@@ -241,7 +240,6 @@ public class Class1
         [InlineData("$$ \"Test\"u8")]
         [InlineData(" $$\"Test\"u8")]
         [InlineData("\"Test\"u8$$ ")]
-        [InlineData("\"Test\"$$u8 ")]
         [InlineData("\"Test\"u8 $$")]
         public void ArgumentListOfMethodInvocation_OutsideStringAsMethodArgument(string argument)
         {
@@ -256,10 +254,12 @@ public class Class1
         [WpfTheory]
         [InlineData("\"Test$$\"")]
         [InlineData("@\"Test$$\"")]
+        [InlineData(" @$$\"Test\"")]
         [InlineData("\"\"\"Test$$\"\"\"")]
         [InlineData("\"\"\"Test\"$$\"\"")]
         [InlineData("\"\"\"Test\"\"$$\"")]
         [InlineData("\"Test$$\"u8")]
+        [InlineData("\"Test\"$$u8 ")]
         public void ArgumentListOfMethodInvocation_InsideStringAsMethodArgument(string argument)
         {
             var code = CreateTestWithMethodCall($@"var test = Console.WriteLine({argument})");
@@ -4819,6 +4819,24 @@ class D
     }
 }";
             VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71933")]
+        [WpfFact]
+        public void InsideDisabledCode()
+        {
+            var code = CreateTestWithMethodCall("""
+
+                Console.WriteLine(
+                #if false
+                    // Comment$$
+                    "$$"$$
+                #endif
+                );
+
+                """);
+
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/917499")]

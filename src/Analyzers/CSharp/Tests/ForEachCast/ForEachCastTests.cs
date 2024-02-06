@@ -1083,19 +1083,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
         [Fact, WorkItem(63470, "https://github.com/dotnet/roslyn/issues/63470")]
         public async Task TestRegex_GoodCast()
         {
-            var test = @"
-using System.Text.RegularExpressions;
+            var test = """
+                using System.Text.RegularExpressions;
 
-public static class Program
-{   
-    public static void M(Regex regex, string text)
-    {
-        foreach (Match m in regex.Matches(text))
-        {
-        }
-    }
-}
-";
+                public static class Program
+                {   
+                    public static void M(Regex regex, string text)
+                    {
+                        foreach (Match m in regex.Matches(text))
+                        {
+                        }
+                    }
+                }
+                """;
             await TestAlwaysAsync(test, test, ReferenceAssemblies.Net.Net80);
             await TestWhenStronglyTypedAsync(test, test, ReferenceAssemblies.Net.Net80);
         }
@@ -1103,33 +1103,33 @@ public static class Program
         [Fact, WorkItem(63470, "https://github.com/dotnet/roslyn/issues/63470")]
         public async Task TestRegex_BadCast()
         {
-            var test = @"
-using System.Text.RegularExpressions;
+            var test = """
+                using System.Text.RegularExpressions;
 
-public static class Program
-{   
-    public static void M(Regex regex, string text)
-    {
-        [|foreach|] (string m in regex.Matches(text))
-        {
-        }
-    }
-}
-";
-            var code = @"
-using System.Linq;
-using System.Text.RegularExpressions;
+                public static class Program
+                {   
+                    public static void M(Regex regex, string text)
+                    {
+                        [|foreach|] (string m in regex.Matches(text))
+                        {
+                        }
+                    }
+                }
+                """;
+            var code = """
+                using System.Linq;
+                using System.Text.RegularExpressions;
 
-public static class Program
-{   
-    public static void M(Regex regex, string text)
-    {
-        foreach (string m in regex.Matches(text).Cast<string>())
-        {
-        }
-    }
-}
-";
+                public static class Program
+                {   
+                    public static void M(Regex regex, string text)
+                    {
+                        foreach (string m in regex.Matches(text).Cast<string>())
+                        {
+                        }
+                    }
+                }
+                """;
             await TestAlwaysAsync(test, code, ReferenceAssemblies.Net.Net80);
             await TestWhenStronglyTypedAsync(test, code, ReferenceAssemblies.Net.Net80);
         }
@@ -1137,44 +1137,44 @@ public static class Program
         [Fact, WorkItem(63470, "https://github.com/dotnet/roslyn/issues/63470")]
         public async Task WeaklyTypedGetEnumeratorWithIEnumerableOfT()
         {
-            var test = @"
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
+            var test = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Text.RegularExpressions;
 
-public class C : IEnumerable<Match>
-{
-    public IEnumerator GetEnumerator() => new Enumerator(); // compiler picks this for the foreach loop.
+                public class C : IEnumerable<Match>
+                {
+                    public IEnumerator GetEnumerator() => new Enumerator(); // compiler picks this for the foreach loop.
 
-    IEnumerator<Match> IEnumerable<Match>.GetEnumerator() => null; // compiler doesn't use this.
+                    IEnumerator<Match> IEnumerable<Match>.GetEnumerator() => null; // compiler doesn't use this.
 
-    public static void M(C c)
-    {
-        // The compiler adds a cast here from 'object' to 'Match',
-        // and it will fail at runtime because GetEnumerator().Current will return a string.
-        // This is due to badly implemented type 'C', and is rare enough. So, we don't report here
-        // to reduce false positives.
-        foreach (Match x in c)
-        {
-        }
-    }
+                    public static void M(C c)
+                    {
+                        // The compiler adds a cast here from 'object' to 'Match',
+                        // and it will fail at runtime because GetEnumerator().Current will return a string.
+                        // This is due to badly implemented type 'C', and is rare enough. So, we don't report here
+                        // to reduce false positives.
+                        foreach (Match x in c)
+                        {
+                        }
+                    }
 
-    private class Enumerator : IEnumerator
-    {
-        public object Current => ""String"";
+                    private class Enumerator : IEnumerator
+                    {
+                        public object Current => "String";
 
-        public bool MoveNext()
-        {
-            return true;
-        }
+                        public bool MoveNext()
+                        {
+                            return true;
+                        }
 
-        public void Reset()
-        {
-        }
-    }
-}
-";
+                        public void Reset()
+                        {
+                        }
+                    }
+                }
+                """;
             await TestAlwaysAsync(test, test);
             await TestWhenStronglyTypedAsync(test, test);
         }
@@ -1182,74 +1182,74 @@ public class C : IEnumerable<Match>
         [Fact, WorkItem(63470, "https://github.com/dotnet/roslyn/issues/63470")]
         public async Task WeaklyTypedGetEnumeratorWithIEnumerableOfT_DifferentTypeUsedInForEach()
         {
-            var code = @"
-using System;
-using System.Collections;
-using System.Collections.Generic;
+            var code = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
 
-public class C : IEnumerable<string>
-{
-    public IEnumerator GetEnumerator() => new Enumerator(); // compiler picks this for the foreach loop.
+                public class C : IEnumerable<string>
+                {
+                    public IEnumerator GetEnumerator() => new Enumerator(); // compiler picks this for the foreach loop.
 
-    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null; // compiler doesn't use this.
+                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null; // compiler doesn't use this.
 
-    public static void M(C c)
-    {
-        [|foreach|] (C x in c)
-        {
-        }
-    }
+                    public static void M(C c)
+                    {
+                        [|foreach|] (C x in c)
+                        {
+                        }
+                    }
 
-    private class Enumerator : IEnumerator
-    {
-        public object Current => ""String"";
+                    private class Enumerator : IEnumerator
+                    {
+                        public object Current => "String";
 
-        public bool MoveNext()
-        {
-            return true;
-        }
+                        public bool MoveNext()
+                        {
+                            return true;
+                        }
 
-        public void Reset()
-        {
-        }
-    }
-}
-";
+                        public void Reset()
+                        {
+                        }
+                    }
+                }
+                """;
 
-            var fixedCode = @"
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+            var fixedCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Linq;
 
-public class C : IEnumerable<string>
-{
-    public IEnumerator GetEnumerator() => new Enumerator(); // compiler picks this for the foreach loop.
+                public class C : IEnumerable<string>
+                {
+                    public IEnumerator GetEnumerator() => new Enumerator(); // compiler picks this for the foreach loop.
 
-    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null; // compiler doesn't use this.
+                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null; // compiler doesn't use this.
 
-    public static void M(C c)
-    {
-        foreach (C x in c.Cast<C>())
-        {
-        }
-    }
+                    public static void M(C c)
+                    {
+                        foreach (C x in c.Cast<C>())
+                        {
+                        }
+                    }
 
-    private class Enumerator : IEnumerator
-    {
-        public object Current => ""String"";
+                    private class Enumerator : IEnumerator
+                    {
+                        public object Current => "String";
 
-        public bool MoveNext()
-        {
-            return true;
-        }
+                        public bool MoveNext()
+                        {
+                            return true;
+                        }
 
-        public void Reset()
-        {
-        }
-    }
-}
-";
+                        public void Reset()
+                        {
+                        }
+                    }
+                }
+                """;
             await TestAlwaysAsync(code, fixedCode);
             await TestWhenStronglyTypedAsync(code, fixedCode);
         }
@@ -1259,58 +1259,58 @@ public class C : IEnumerable<string>
         {
             // NOTE: The analyzer only considers the first IEnumerable<T> implementation.
             // That is why the following tests produces a diagnostic for the implicit string cast, but not for the implicit int cast.
-            var test = @"
-using System;
-using System.Collections;
-using System.Collections.Generic;
+            var test = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
 
-public class C : IEnumerable<int>, IEnumerable<string>
-{
-    public IEnumerator GetEnumerator() => null;
+                public class C : IEnumerable<int>, IEnumerable<string>
+                {
+                    public IEnumerator GetEnumerator() => null;
 
-    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
 
-    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null;
+                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null;
 
-    public static void M(C c)
-    {
-        foreach (int x in c)
-        {
-        }
+                    public static void M(C c)
+                    {
+                        foreach (int x in c)
+                        {
+                        }
 
-        [|foreach|] (string x in c)
-        {
-        }
-    }
-}
-";
+                        [|foreach|] (string x in c)
+                        {
+                        }
+                    }
+                }
+                """;
 
-            var fixedCode = @"
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+            var fixedCode = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Linq;
 
-public class C : IEnumerable<int>, IEnumerable<string>
-{
-    public IEnumerator GetEnumerator() => null;
+                public class C : IEnumerable<int>, IEnumerable<string>
+                {
+                    public IEnumerator GetEnumerator() => null;
 
-    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => null;
 
-    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null;
+                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null;
 
-    public static void M(C c)
-    {
-        foreach (int x in c)
-        {
-        }
+                    public static void M(C c)
+                    {
+                        foreach (int x in c)
+                        {
+                        }
 
-        foreach (string x in c.Cast<string>())
-        {
-        }
-    }
-}
-";
+                        foreach (string x in c.Cast<string>())
+                        {
+                        }
+                    }
+                }
+                """;
             await TestAlwaysAsync(test, fixedCode);
             await TestWhenStronglyTypedAsync(test, fixedCode);
         }

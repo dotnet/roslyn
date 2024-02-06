@@ -478,6 +478,78 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70750")]
+        public async Task TestMissingWithChecked()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        [||]if (x < 0)
+                        {
+                            throw new System.Exception();
+                        }
+                        checked
+                        {
+                            return x - y;
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70750")]
+        public async Task TestMissingWithUnchecked()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        [||]if (x < 0)
+                        {
+                            throw new System.Exception();
+                        }
+                        unchecked
+                        {
+                            return x - y;
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70750")]
+        public async Task TestMissingWithUnsafe()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        [||]if (x < 0)
+                        {
+                            throw new System.Exception();
+                        }
+                        unsafe
+                        {
+                            return x - y;
+                        }
+                    }
+                }
+                """);
+        }
+
         [Fact]
         public async Task TestConversion1_CSharp8()
         {

@@ -117,13 +117,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             semanticModel ??= await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbolComputer = new SymbolComputer(
                 document, semanticModel, receiverTypeSymbol, position, namespaceInScope);
-            var (extentsionMethodSymbols, isPartialResult) = await symbolComputer.GetExtensionMethodSymbolsAsync(forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
+            var (extensionMethodSymbols, isPartialResult) = await symbolComputer.GetExtensionMethodSymbolsAsync(forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
 
             var getSymbolsTime = stopwatch.Elapsed;
             stopwatch = SharedStopwatch.StartNew();
 
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var items = ConvertSymbolsToCompletionItems(compilation, extentsionMethodSymbols, targetTypes, cancellationToken);
+            var items = ConvertSymbolsToCompletionItems(compilation, extensionMethodSymbols, targetTypes, cancellationToken);
 
             var createItemsTime = stopwatch.Elapsed;
 
