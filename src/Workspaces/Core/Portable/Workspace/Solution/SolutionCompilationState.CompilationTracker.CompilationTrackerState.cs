@@ -172,6 +172,8 @@ namespace Microsoft.CodeAnalysis
                     CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
 
 #if DEBUG
+                    // As a sanity check, we should never see the generated trees inside of the compilation that should
+                    // not have generated trees.
                     foreach (var generatedDocument in generatorInfo.Documents.States.Values)
                     {
                         Contract.ThrowIfTrue(compilationWithoutGeneratedDocuments.SyntaxTrees.Contains(generatedDocument.GetSyntaxTree(CancellationToken.None)));
