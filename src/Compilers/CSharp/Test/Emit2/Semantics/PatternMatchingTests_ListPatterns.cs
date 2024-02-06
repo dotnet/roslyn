@@ -9101,4 +9101,27 @@ class C : System.Collections.ICollection
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(13, 18)
             );
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_Subsumed()
+    {
+        var source = """
+using System.Collections;
+
+_ = (ICollection)null switch
+{
+    { Count: <0 or >0 } => 0,
+    IList { Count: >0 } => 1,
+    { Count: 0 } => 2,
+};
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+
+        CompileAndVerify(source, expectedOutput: "012").VerifyDiagnostics(
+            // (6,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //     IList { Count: >0 } => 1,
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "IList { Count: >0 }").WithLocation(6, 5)
+            );
+    }
 }
