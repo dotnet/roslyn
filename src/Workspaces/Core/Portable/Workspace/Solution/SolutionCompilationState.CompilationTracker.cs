@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Resources;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -164,8 +165,9 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         var newState = CompilationTrackerState.Create(
+                            withCompilationState.IsFrozen,
                             withCompilationState.CompilationWithoutGeneratedDocuments,
-                            state.GeneratorInfo,
+                            withCompilationState.GeneratorInfo,
                             finalCompilationWithGeneratedDocuments,
                             intermediateProjects);
                         return newState;
@@ -267,16 +269,16 @@ namespace Microsoft.CodeAnalysis
                 // At this point, we now absolutely should have our tree in the compilation
                 Contract.ThrowIfFalse(compilationPair.CompilationWithoutGeneratedDocuments.ContainsSyntaxTree(tree));
 
-                // Mark whatever generator state we have as not only final, but frozen as well.  We'll want to keep
-                // whatever we have here through whatever future transformations occur.
-                generatorInfo = generatorInfo.WithDocumentsAreFinalAndFrozen();
+                // Mark whatever generator state we have as not only final, and mark our FinalState as frozen as well.
+                // We'll want to keep whatever we have here through whatever future transformations occur.
+                generatorInfo = generatorInfo.WithDocumentsAreFinal(true);
 
-                // The user is asking for an in progress snap.  We don't want to create it and then
-                // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
-                // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
                 var finalState = FinalState.Create(
+                    isFrozen: true,
                     finalCompilationWithGeneratedDocuments: compilationPair.CompilationWithGeneratedDocuments,
                     compilationWithoutGeneratedDocuments: compilationPair.CompilationWithoutGeneratedDocuments,
+                    // As a policy, all partial-state projects are said to have incomplete references, since the state
+                    // has no guarantees.
                     hasSuccessfullyLoaded: false,
                     generatorInfo,
                     finalCompilation: compilationPair.CompilationWithGeneratedDocuments,
@@ -583,7 +585,13 @@ namespace Microsoft.CodeAnalysis
                             }
 
                             compilation = compilation.AddSyntaxTrees(trees);
-                            var allSyntaxTreesParsedState = new AllSyntaxTreesParsedState(compilation, noCompilationState.GeneratorInfo, compilationWithGeneratedDocuments: null);
+
+                            // We only got here when we had no compilation state at all.  So we couldn't have gotten
+                            // here from a frozen state (as a frozen state always ensures we have a
+                            // WithCompilationTrackerState).  As such, we can safely still preserve that we're not
+                            // frozen here.
+                            var allSyntaxTreesParsedState = new AllSyntaxTreesParsedState(
+                                isFrozen: false, compilation, noCompilationState.GeneratorInfo, compilationWithGeneratedDocuments: null);
                             WriteState(allSyntaxTreesParsedState);
                             return allSyntaxTreesParsedState;
                         }
@@ -656,7 +664,7 @@ namespace Microsoft.CodeAnalysis
                     var intermediateProjects = state.IntermediateProjects;
 
                     // This is guaranteed by an in progress state.  Which means we know we'll get into the while loop below.
-                    Contract.ThrowIfTrue(intermediateProjects.Count == 0);
+                    Contract.ThrowIfTrue(intermediateProjects.IsEmpty);
                     AllSyntaxTreesParsedState? resultState = null;
 
                     while (!intermediateProjects.IsEmpty)
@@ -694,8 +702,13 @@ namespace Microsoft.CodeAnalysis
 
                         // As long as we have intermediate projects, we'll still keep creating InProgressStates.  But
                         // once it becomes empty we'll produce an AllSyntaxTreesParsedState and we'll break the loop.
+                        //
+                        // Preserve the current frozen.  Specifically, once states become frozen, we continually make
+                        // all states forked from those states frozen as well.  This ensures we don't attempt to move
+                        // generator docs back to the uncomputed state from that point onwards.  We'll just keep
+                        // whateverZ generated docs we have.
                         var currentState = CompilationTrackerState.Create(
-                            compilationWithoutGeneratedDocuments, state.GeneratorInfo.WithDriver(generatorDriver), compilationWithGeneratedDocuments, intermediateProjects);
+                            state.IsFrozen, compilationWithoutGeneratedDocuments, state.GeneratorInfo.WithDriver(generatorDriver), compilationWithGeneratedDocuments, intermediateProjects);
                         this.WriteState(currentState);
 
                         Contract.ThrowIfTrue(intermediateProjects.Count > 0 && currentState is not InProgressState);
@@ -807,7 +820,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // We will finalize the compilation by adding full contents here.
-                    var (compilationWithGeneratedDocuments, nextGeneratorInfo) = await AddExistingOrComputeNewGeneratorInfoAsync(
+                    var (compilationWithGeneratedDocuments, generatedDocuments, generatorDriver) = await AddExistingOrComputeNewGeneratorInfoAsync(
                         compilationState,
                         compilationWithoutGeneratedDocuments,
                         generatorInfo,
@@ -815,9 +828,10 @@ namespace Microsoft.CodeAnalysis
                         cancellationToken).ConfigureAwait(false);
 
                     // After producing the sg documents, we must always be in the final state for the generator data.
-                    Contract.ThrowIfFalse(nextGeneratorInfo.DocumentsAreFinal);
+                    var nextGeneratorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorDriver).WithDocumentsAreFinal(true);
 
                     var finalState = FinalState.Create(
+                        isFrozen: false,
                         compilationWithGeneratedDocuments,
                         compilationWithoutGeneratedDocuments,
                         hasSuccessfullyLoaded,
