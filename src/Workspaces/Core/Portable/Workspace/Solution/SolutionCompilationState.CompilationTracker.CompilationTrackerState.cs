@@ -269,8 +269,7 @@ namespace Microsoft.CodeAnalysis
                     bool hasSuccessfullyLoaded,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     UnrootedSymbolSet unrootedSymbolSet)
-                    : base(compilationWithoutGeneratedDocuments,
-                           generatorInfo.WithDocumentsAreFinal(true)) // when we're in a final state, we've ran generators and should not run again
+                    : base(compilationWithoutGeneratedDocuments, generatorInfo)
                 {
                     Contract.ThrowIfNull(finalCompilationWithGeneratedDocuments);
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
@@ -298,6 +297,8 @@ namespace Microsoft.CodeAnalysis
                     ProjectId projectId,
                     Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
                 {
+                    Contract.ThrowIfFalse(generatorInfo.DocumentsAreFinal);
+
                     // Keep track of information about symbols from this Compilation.  This will help support other APIs
                     // the solution exposes that allows the user to map back from symbols to project information.
 
