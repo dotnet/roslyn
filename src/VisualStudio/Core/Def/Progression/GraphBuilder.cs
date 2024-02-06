@@ -76,6 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     return;
                 }
 
+                // Don't walk _solution.Projects as that will possibly create projects that don't match
+                // our criteria. Instead, walk the project states to find the appropriate project id.
                 var projectState = _solution.SolutionState.ProjectStates.FirstOrDefault(
                     p => string.Equals(p.Value.FilePath, projectPath.OriginalString, StringComparison.OrdinalIgnoreCase));
                 if (projectState.Key == null)
@@ -87,6 +89,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 _nodeToContextProjectMap.Add(inputNode, project);
 
+                // Don't walk project.Documents as that will possibly create documents that don't match
+                // our criteria. Instead, walk the document states to find the appropriate document id.
                 var documentState = project.State.DocumentStates.States.FirstOrDefault(
                     d => string.Equals(d.Value.FilePath, filePath.OriginalString, StringComparison.OrdinalIgnoreCase));
                 if (documentState.Key == null)
