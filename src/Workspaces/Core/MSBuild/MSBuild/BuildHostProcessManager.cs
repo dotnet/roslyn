@@ -40,38 +40,43 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Returns the best <see cref="RemoteBuildHost"/> to use for this project; if it picked a fallback option because the preferred kind was unavailable, that's returned too, otherwise null.
+    /// Determines the proper host for processing a project, and returns a <see cref="RemoteBuildHost"/> to service questions about that project; if a proper build host
+    /// cannot be created for it, another build host is returned to attempt to get useful results.
     /// </summary>
-    public async Task<(RemoteBuildHost, BuildHostProcessKind? PreferredKind)> GetBuildHostAsync(string projectFilePath, CancellationToken cancellationToken)
+    public async Task<RemoteBuildHost> GetBuildHostWithFallbackAsync(string projectFilePath, CancellationToken cancellationToken)
     {
-        var neededBuildHostKind = GetKindForProject(projectFilePath);
-        BuildHostProcessKind? preferredKind = null;
+        var (buildHost, _) = await GetBuildHostWithFallbackAsync(GetKindForProject(projectFilePath), projectFilePath, cancellationToken).ConfigureAwait(false);
+        return buildHost;
+    }
 
-        _logger?.LogTrace($"Choosing a build host of type {neededBuildHostKind} for {projectFilePath}.");
-
-        if (neededBuildHostKind == BuildHostProcessKind.Mono && MonoMSBuildDiscovery.GetMonoMSBuildDirectory() == null)
+    /// <summary>
+    /// Returns the type of build host requested, falling back to another type of build host if it cannot be created. The actual kind of the other build host is returned; the caller can
+    /// check if the kinds differ to know if a fallback was performed.
+    /// </summary>
+    public async Task<(RemoteBuildHost buildHost, BuildHostProcessKind actualKind)> GetBuildHostWithFallbackAsync(BuildHostProcessKind buildHostKind, string projectOrSolutionFilePath, CancellationToken cancellationToken)
+    {
+        if (buildHostKind == BuildHostProcessKind.Mono && MonoMSBuildDiscovery.GetMonoMSBuildDirectory() == null)
         {
-            _logger?.LogWarning($"An installation of Mono could not be found; {projectFilePath} will be loaded with the .NET Core SDK and may encounter errors.");
-            neededBuildHostKind = BuildHostProcessKind.NetCore;
-            preferredKind = BuildHostProcessKind.Mono;
+            _logger?.LogWarning($"An installation of Mono could not be found; {projectOrSolutionFilePath} will be loaded with the .NET Core SDK and may encounter errors.");
+            buildHostKind = BuildHostProcessKind.NetCore;
         }
 
-        var buildHost = await GetBuildHostAsync(neededBuildHostKind, cancellationToken).ConfigureAwait(false);
+        var buildHost = await GetBuildHostAsync(buildHostKind, cancellationToken).ConfigureAwait(false);
 
         // If this is a .NET Framework build host, we may not have have build tools installed and thus can't actually use it to build.
         // Check if this is the case. Unlike the mono case, we have to actually ask the other process since MSBuildLocator only allows
         // us to discover VS instances in .NET Framework hosts right now.
-        if (neededBuildHostKind == BuildHostProcessKind.NetFramework)
+        if (buildHostKind == BuildHostProcessKind.NetFramework)
         {
-            if (!await buildHost.HasUsableMSBuildAsync(projectFilePath, cancellationToken).ConfigureAwait(false))
+            if (!await buildHost.HasUsableMSBuildAsync(projectOrSolutionFilePath, cancellationToken).ConfigureAwait(false))
             {
                 // It's not usable, so we'll fall back to the .NET Core one.
-                _logger?.LogWarning($"An installation of Visual Studio or the Build Tools for Visual Studio could not be found; {projectFilePath} will be loaded with the .NET Core SDK and may encounter errors.");
-                return (await GetBuildHostAsync(BuildHostProcessKind.NetCore, cancellationToken).ConfigureAwait(false), PreferredKind: BuildHostProcessKind.NetFramework);
+                _logger?.LogWarning($"An installation of Visual Studio or the Build Tools for Visual Studio could not be found; {projectOrSolutionFilePath} will be loaded with the .NET Core SDK and may encounter errors.");
+                return (await GetBuildHostAsync(BuildHostProcessKind.NetCore, cancellationToken).ConfigureAwait(false), actualKind: BuildHostProcessKind.NetCore);
             }
         }
 
-        return (buildHost, preferredKind);
+        return (buildHost, buildHostKind);
     }
 
     public async Task<RemoteBuildHost> GetBuildHostAsync(BuildHostProcessKind buildHostKind, CancellationToken cancellationToken)
@@ -262,7 +267,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         DtdProcessing = DtdProcessing.Prohibit,
     };
 
-    private static BuildHostProcessKind GetKindForProject(string projectFilePath)
+    public static BuildHostProcessKind GetKindForProject(string projectFilePath)
     {
         // In Source Build builds, we don't have a net472 host at all, so the answer is simple. We unfortunately can't create a net472 build because there's no
         // reference assemblies to build against.

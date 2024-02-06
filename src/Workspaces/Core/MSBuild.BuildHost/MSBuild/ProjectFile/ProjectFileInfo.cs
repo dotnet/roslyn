@@ -122,21 +122,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public ImmutableArray<string> ContentFilePaths { get; }
 
         /// <summary>
-        /// Whether or not we believe this project is an SDK style project.
-        /// </summary>
-        [DataMember(Order = 16)]
-        public bool IsSdkStyle { get; }
-
-        /// <summary>
         /// The path to the project.assets.json path in obj/.
         /// </summary>
-        [DataMember(Order = 17)]
+        [DataMember(Order = 16)]
         public string? ProjectAssetsFilePath { get; }
 
         /// <summary>
         /// Any package references defined on the project.
         /// </summary>
-        [DataMember(Order = 18)]
+        [DataMember(Order = 17)]
         public ImmutableArray<PackageReference> PackageReferences { get; }
 
         public override string ToString()
@@ -162,8 +156,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<ProjectFileReference> projectReferences,
             ImmutableArray<PackageReference> packageReferences,
             ImmutableArray<string> projectCapabilities,
-            ImmutableArray<string> contentFilePaths,
-            bool isSdkStyle)
+            ImmutableArray<string> contentFilePaths)
         {
             RoslynDebug.Assert(filePath != null);
 
@@ -185,7 +178,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.PackageReferences = packageReferences;
             this.ProjectCapabilities = projectCapabilities;
             this.ContentFilePaths = contentFilePaths;
-            this.IsSdkStyle = isSdkStyle;
         }
 
         public static ProjectFileInfo Create(
@@ -205,8 +197,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<ProjectFileReference> projectReferences,
             ImmutableArray<PackageReference> packageReferences,
             ImmutableArray<string> projectCapabilities,
-            ImmutableArray<string> contentFilePaths,
-            bool isSdkStyle)
+            ImmutableArray<string> contentFilePaths)
             => new(
                 isEmpty: false,
                 language,
@@ -225,8 +216,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 projectReferences,
                 packageReferences,
                 projectCapabilities,
-                contentFilePaths,
-                isSdkStyle);
+                contentFilePaths);
 
         public static ProjectFileInfo CreateEmpty(string language, string? filePath)
             => new(
@@ -247,7 +237,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 projectReferences: [],
                 packageReferences: [],
                 projectCapabilities: [],
-                contentFilePaths: [],
-                isSdkStyle: false);
+                contentFilePaths: []);
     }
 }

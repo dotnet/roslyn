@@ -210,13 +210,15 @@ internal sealed class LanguageServerProjectSystem
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
     private async Task<bool> LoadOrReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
-        BuildHostProcessKind? preferredBuildHostKind = null;
+        BuildHostProcessKind? preferredBuildHostKindThatWeDidNotGet = null;
         var projectPath = projectToLoad.Path;
 
         try
         {
-
-            (var buildHost, preferredBuildHostKind) = await buildHostProcessManager!.GetBuildHostAsync(projectPath, cancellationToken);
+            var preferredBuildHostKind = GetKindForProject(projectPath);
+            var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
+            if (preferredBuildHostKind != actualBuildHostKind)
+                preferredBuildHostKindThatWeDidNotGet = preferredBuildHostKind;
 
             if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
                 return false;
@@ -242,15 +244,19 @@ internal sealed class LanguageServerProjectSystem
 
             var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => new List<LoadedProject>());
 
-            Dictionary<ProjectFileInfo, (ImmutableArray<CommandLineReference> MetadataReferences, OutputKind OutputKind, bool NeedsRestore)> projectFileInfos = new();
+            Dictionary<ProjectFileInfo, ProjectLoadTelemetryReporter.TelemetryInfo> telemetryInfos = new();
+            var needsRestore = false;
+
             foreach (var loadedProjectInfo in loadedProjectInfos)
             {
-                // If we already have the project, just update it
+                // If we already have the project with this same target framework, just update it
                 var existingProject = existingProjects.Find(p => p.GetTargetFramework() == loadedProjectInfo.TargetFramework);
+                bool targetNeedsRestore;
+                ProjectLoadTelemetryReporter.TelemetryInfo targetTelemetryInfo;
 
                 if (existingProject != null)
                 {
-                    projectFileInfos[loadedProjectInfo] = await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
+                    (targetTelemetryInfo, targetNeedsRestore) = await existingProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
                 }
                 else
                 {
@@ -267,11 +273,14 @@ internal sealed class LanguageServerProjectSystem
                     loadedProject.NeedsReload += (_, _) => _projectsToLoadAndReload.AddWork(projectToLoad);
                     existingProjects.Add(loadedProject);
 
-                    projectFileInfos[loadedProjectInfo] = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
+                    (targetTelemetryInfo, targetNeedsRestore) = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
+
+                    needsRestore |= targetNeedsRestore;
+                    telemetryInfos[loadedProjectInfo] = targetTelemetryInfo with { IsSdkStyle = preferredBuildHostKind == BuildHostProcessKind.NetCore };
                 }
             }
 
-            await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(projectFileInfos, projectToLoad, cancellationToken);
+            await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(telemetryInfos, projectToLoad, cancellationToken);
             diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
             if (diagnosticLogItems.Any())
             {
@@ -282,8 +291,7 @@ internal sealed class LanguageServerProjectSystem
                 _logger.LogInformation(string.Format(LanguageServerResources.Successfully_completed_load_of_0, projectPath));
             }
 
-            return projectFileInfos.Values.Any(info => info.NeedsRestore);
-
+            return needsRestore;
         }
         catch (Exception e)
         {
@@ -307,9 +315,9 @@ internal sealed class LanguageServerProjectSystem
 
             string message;
 
-            if (preferredBuildHostKind == BuildHostProcessKind.NetFramework)
+            if (preferredBuildHostKindThatWeDidNotGet == BuildHostProcessKind.NetFramework)
                 message = LanguageServerResources.Projects_failed_to_load_because_MSBuild_could_not_be_found;
-            else if (preferredBuildHostKind == BuildHostProcessKind.Mono)
+            else if (preferredBuildHostKindThatWeDidNotGet == BuildHostProcessKind.Mono)
                 message = LanguageServerResources.Projects_failed_to_load_because_Mono_could_not_be_found;
             else
                 message = string.Format(LanguageServerResources.There_were_problems_loading_project_0_See_log_for_details, Path.GetFileName(projectPath));
