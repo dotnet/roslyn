@@ -456,20 +456,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 needsImplicitConversionFromStringToSpan = true;
             }
 
-            WellKnownMember? concatMember = preparedArgs.Count switch
+            var concatMember = preparedArgs.Count switch
             {
                 2 => WellKnownMember.System_String__Concat_2ReadOnlySpans,
                 3 => WellKnownMember.System_String__Concat_3ReadOnlySpans,
                 4 => WellKnownMember.System_String__Concat_4ReadOnlySpans,
-                _ => null,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             // It only makes sense to lower using span-based concat if at least one operand is a char.
             // Because otherwise we will just wrap every string operand into span conversion and use span-based concat
             // which is unnecessary IL bloat. Thus we require `needsSpanRefParamConstructor` to be true
             if (needsSpanRefParamConstructor &&
-                concatMember.HasValue &&
-                TryGetWellKnownTypeMember(syntax, concatMember.Value, out MethodSymbol? spanConcat, isOptional: true) &&
+                TryGetWellKnownTypeMember(syntax, concatMember, out MethodSymbol? spanConcat, isOptional: true) &&
                 tryGetNeededToSpanMembers(this, syntax, needsSpanRefParamConstructor, needsImplicitConversionFromStringToSpan, charType, out MethodSymbol? readOnlySpanCtorRefParamChar, out MethodSymbol? stringImplicitConversionToReadOnlySpan))
             {
                 result = rewriteStringConcatenationWithSpanBasedConcat(
