@@ -3001,7 +3001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!TrackingRegions);
 
                 // First visit everything else
-                var localFuncs = ArrayBuilder<BoundLocalFunctionStatement>.GetInstance();
+                var localFuncs = ArrayBuilder<BoundLocalFunctionStatement?>.GetInstance();
                 foreach (var stmt in block.Statements)
                 {
                     if (stmt is BoundLocalFunctionStatement localFunc)
@@ -3014,6 +3014,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                // Visited local functions will be set to null.
+                // We keep count of unvisited (non-null) local functions.
+                var unvisitedLocalFuncs = localFuncs.Count;
+
                 // Now visit the local function bodies.
                 // We first visit those we have seen called (hence we know their starting state),
                 // repeating this while visiting new bodies (which might contain more call sites).
@@ -3023,19 +3027,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     newBodiesVisited = false;
 
-                    // We visit functions in reverse order, so deleting from the list has good perf in the common case.
-                    for (int i = localFuncs.Count - 1; i >= 0; i--)
+                    for (int i = 0; unvisitedLocalFuncs > 0 && i < localFuncs.Count; i++)
                     {
-                        var localFunc = localFuncs[i];
-
                         // We visit the body only if the function's usages state has been created
                         // which happens when we visit the function's call site or its body.
                         // In the first pass of the nullable walker, existence of usages here means that a call site has been visited.
                         // In subsequent nullable walker passes, the starting state is preserved from previous passes.
                         // In any case, existence of usages means that we have a good starting state.
-                        if (HasLocalFuncUsagesCreated(localFunc.Symbol))
+                        if (localFuncs[i] is { } localFunc && HasLocalFuncUsagesCreated(localFunc.Symbol))
                         {
-                            localFuncs.RemoveAt(i);
+                            localFuncs[i] = null;
+                            unvisitedLocalFuncs--;
 
                             // The body of this local function might contain calls to other local functions,
                             // hence we will rerun the outer loop to visit bodies of newly-called functions if any.
@@ -3048,13 +3050,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // If we haven't visited new bodies in this iteration, visit an unreachable function if any.
                     // This might make other functions reachable, so we will continue with the outer loop.
-                    if (!newBodiesVisited && localFuncs.Count != 0)
+                    if (!newBodiesVisited && unvisitedLocalFuncs > 0)
                     {
-                        var localFunc = localFuncs[^1];
-                        localFuncs.RemoveLast();
-                        newBodiesVisited = true;
-                        TakeIncrementalSnapshot(localFunc);
-                        VisitLocalFunctionStatement(localFunc);
+                        for (int i = 0; i < localFuncs.Count; i++)
+                        {
+                            if (localFuncs[i] is { } localFunc)
+                            {
+                                localFuncs[i] = null;
+                                unvisitedLocalFuncs--;
+                                newBodiesVisited = true;
+                                TakeIncrementalSnapshot(localFunc);
+                                VisitLocalFunctionStatement(localFunc);
+                                break;
+                            }
+                        }
+
+                        Debug.Assert(newBodiesVisited);
                     }
                 }
 
