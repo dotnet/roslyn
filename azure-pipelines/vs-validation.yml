@@ -26,13 +26,13 @@ extends:
       variables:
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
         NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
-        SignTypeSelection: Real
         BuildConfiguration: Release
         ValidationBuild: true
 
       jobs:
       - template: /azure-pipelines/build.yml@self
         parameters:
+          RealSign: true
           windowsPool: VSEngSS-MicroBuild2022-1ES
           includeMacOS: false
           RunTests: false
@@ -40,6 +40,7 @@ extends:
     - template: /azure-pipelines/prepare-insertion-stages.yml@self
       parameters:
         ArchiveSymbols: false
+        RealSign: ${{ parameters.RealSign }}
 
     - stage: insertion
       displayName: VS insertion

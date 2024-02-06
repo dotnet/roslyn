@@ -1,4 +1,7 @@
 parameters:
+- name: RealSign
+  type: boolean
+  default: false
 - name: windowsPool
   type: object
   default:
@@ -45,6 +48,13 @@ jobs:
   ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     templateContext:
       mb:
+        signing:
+          enabled: true
+          zipSources: false
+          ${{ if or(parameters.RealSign, eq(variables['Build.Reason'],'Schedule')) }}:
+            signType: real
+          ${{ else }}:
+            signType: test
         sbom:
           enabled: true
         localization:
@@ -101,6 +111,11 @@ jobs:
   pool: ${{ parameters.linuxPool }}
   ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     templateContext:
+      mb:
+        ${{ if or(parameters.RealSign, eq(variables['Build.Reason'],'Schedule')) }}:
+          signing:
+            enabled: false # enable when building unique artifacts on this agent that must be signed
+            signType: real
       outputParentDirectory: $(Build.ArtifactStagingDirectory)
       outputs:
       - ${{ each artifact_name in parameters.artifact_names }}:
@@ -126,6 +141,11 @@ jobs:
   pool: ${{ parameters.macOSPool }}
   ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     templateContext:
+      mb:
+        ${{ if or(parameters.RealSign, eq(variables['Build.Reason'],'Schedule')) }}:
+          signing:
+            enabled: false # enable when building unique artifacts on this agent that must be signed
+            signType: real
       outputParentDirectory: $(Build.ArtifactStagingDirectory)
       outputs:
       - ${{ each artifact_name in parameters.artifact_names }}:

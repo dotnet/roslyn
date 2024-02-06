@@ -20,11 +20,10 @@ trigger:
 #    - microbuild
 
 parameters:
-- name: SignTypeSelection
-  displayName: Sign type
-  type: string
-  default: Test
-  values: [ 'Test', 'Real' ]
+- name: RealSign
+  displayName: Real sign?
+  type: boolean
+  default: false
 - name: includeMacOS
   displayName: Build on macOS
   type: boolean
@@ -64,12 +63,12 @@ extends:
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
           BuildConfiguration: Release
           NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
-          SignTypeSelection: ${{ parameters.SignTypeSelection }}
           Packaging.EnableSBOMSigning: false
           Codeql.Enabled: true
         jobs:
         - template: /azure-pipelines/build.yml@self
           parameters:
+            RealSign: ${{ parameters.RealSign }}
             EnableCompliance: ${{ parameters.EnableCompliance }}
             EnableAPIScan: ${{ parameters.EnableAPIScan }}
             windowsPool: VSEngSS-MicroBuild2022-1ES
@@ -85,6 +84,8 @@ extends:
             includeMacOS: ${{ parameters.includeMacOS }}
             RunTests: ${{ parameters.RunTests }}
       - template: /azure-pipelines/prepare-insertion-stages.yml@self
+        parameters:
+          RealSign: ${{ parameters.RealSign }}
   ${{ else }}:
     template: azure-pipelines/MicroBuild.1ES.Unofficial.yml@MicroBuildTemplate
     parameters:
@@ -96,12 +97,12 @@ extends:
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
           BuildConfiguration: Release
           NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
-          SignTypeSelection: ${{ parameters.SignTypeSelection }}
           Packaging.EnableSBOMSigning: false
           Codeql.Enabled: true
         jobs:
         - template: /azure-pipelines/build.yml@self
           parameters:
+            RealSign: ${{ parameters.RealSign }}
             EnableCompliance: ${{ parameters.EnableCompliance }}
             EnableAPIScan: ${{ parameters.EnableAPIScan }}
             windowsPool: VSEngSS-MicroBuild2022-1ES
@@ -117,3 +118,5 @@ extends:
             includeMacOS: ${{ parameters.includeMacOS }}
             RunTests: ${{ parameters.RunTests }}
       - template: /azure-pipelines/prepare-insertion-stages.yml@self
+        parameters:
+          RealSign: ${{ parameters.RealSign }}

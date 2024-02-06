@@ -2,11 +2,14 @@ parameters:
 - name: ArchiveSymbols
   type: boolean
   default: true
+- name: RealSign
+  displayName: Real sign?
+  type: boolean
 
 stages:
 - stage: release
   displayName: Publish
-  condition: and(succeeded(), eq(dependencies.Build.outputs['Windows.SetPipelineVariables.SignType'], 'Real'))
+  condition: and(succeeded(), eq('${{ parameters.RealSign }}', 'true'))
   jobs:
   - ${{ if parameters.ArchiveSymbols }}:
     - job: symbol_archive
