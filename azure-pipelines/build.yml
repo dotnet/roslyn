@@ -47,6 +47,10 @@ jobs:
       mb:
         sbom:
           enabled: true
+        localization:
+          enabled: false
+          ${{ if eq(variables['Build.Reason'], 'pullRequest') }}:
+            languages: ENU,JPN
       outputParentDirectory: $(Build.ArtifactStagingDirectory)
       outputs:
       - ${{ each artifact_name in parameters.artifact_names }}:
