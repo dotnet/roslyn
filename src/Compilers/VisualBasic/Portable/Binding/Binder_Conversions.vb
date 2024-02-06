@@ -1732,7 +1732,7 @@ DoneWithDiagnostics:
             End If
         End Sub
 
-        Private Sub WarnOnLockConversion(sourceType As TypeSymbol, syntax As SyntaxNode, diagnostics As BindingDiagnosticBag)
+        Private Shared Sub WarnOnLockConversion(sourceType As TypeSymbol, syntax As SyntaxNode, diagnostics As BindingDiagnosticBag)
             If sourceType IsNot Nothing AndAlso sourceType.IsWellKnownTypeLock() Then
                 ReportDiagnostic(diagnostics, syntax, ERRID.WRN_ConvertingLock)
             End If
