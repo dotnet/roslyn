@@ -6532,7 +6532,7 @@ class Program
 
                 delegate void D(params long[] a);
                 """;
-            CompileAndVerify(source, expectedOutput: "00", verify: Verification.FailsILVerify,
+            CompileAndVerify(source, expectedOutput: "00",
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
         }
 
@@ -6685,7 +6685,7 @@ class Program
                 
                 delegate void D(long a = 3);
                 """;
-            CompileAndVerify(source, expectedOutput: "33", verify: Verification.FailsILVerify,
+            CompileAndVerify(source, expectedOutput: "33",
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
         }
 
@@ -6721,7 +6721,7 @@ class Program
                 
                 delegate void D(long a = 3);
                 """;
-            CompileAndVerify(source, expectedOutput: "33", verify: Verification.FailsILVerify,
+            CompileAndVerify(source, expectedOutput: "33",
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
         }
 
@@ -6757,7 +6757,7 @@ class Program
                 
                 delegate void D(long a = 3);
                 """;
-            CompileAndVerify(source, expectedOutput: "33", verify: Verification.FailsILVerify,
+            CompileAndVerify(source, expectedOutput: "33",
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
         }
 
