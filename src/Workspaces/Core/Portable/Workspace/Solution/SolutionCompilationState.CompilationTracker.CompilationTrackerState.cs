@@ -271,6 +271,7 @@ namespace Microsoft.CodeAnalysis
                     UnrootedSymbolSet unrootedSymbolSet)
                     : base(compilationWithoutGeneratedDocuments, generatorInfo)
                 {
+                    Contract.ThrowIfFalse(generatorInfo.DocumentsAreFinal);
                     Contract.ThrowIfNull(finalCompilationWithGeneratedDocuments);
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     FinalCompilationWithGeneratedDocuments = finalCompilationWithGeneratedDocuments;
