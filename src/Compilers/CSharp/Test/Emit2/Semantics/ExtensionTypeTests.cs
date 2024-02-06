@@ -9674,7 +9674,7 @@ public explicit extension A for object { }
         Assert.Empty(model.GetMemberGroup(typeInvocation));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable once we can lower/emit for non-static scenarios
     public void MemberLookup_MethodsFromObject_Instance()
     {
         var src = """
