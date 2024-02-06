@@ -5382,6 +5382,270 @@ class C
         }
 
         [Fact]
+        public void TestSemicolonAfterObjectInitializerMember5()
+        {
+            var text = "class c { void m() { var x = new C { a = b; if (true) return; }; var y = 5; } }";
+
+            UsingTree(text,
+                // (1,43): error CS1003: Syntax error, ',' expected
+                // class c { void m() { var x = new C { a = b; if (true) return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 43),
+                // (1,45): error CS1513: } expected
+                // class c { void m() { var x = new C { a = b; if (true) return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "if").WithLocation(1, 45),
+                // (1,45): error CS1002: ; expected
+                // class c { void m() { var x = new C { a = b; if (true) return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "if").WithLocation(1, 45),
+                // (1,64): error CS1597: Semicolon after method or accessor block is not valid
+                // class c { void m() { var x = new C { a = b; if (true) return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(1, 64),
+                // (1,79): error CS1022: Type or namespace definition, or end-of-file expected
+                // class c { void m() { var x = new C { a = b; if (true) return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 79));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "c");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "m");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.ObjectCreationExpression);
+                                            {
+                                                N(SyntaxKind.NewKeyword);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "C");
+                                                }
+                                                N(SyntaxKind.ObjectInitializerExpression);
+                                                {
+                                                    N(SyntaxKind.OpenBraceToken);
+                                                    N(SyntaxKind.SimpleAssignmentExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "a");
+                                                        }
+                                                        N(SyntaxKind.EqualsToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "b");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.SemicolonToken);
+                                                    M(SyntaxKind.CloseBraceToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.IfStatement);
+                            {
+                                N(SyntaxKind.IfKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.ReturnStatement);
+                                {
+                                    N(SyntaxKind.ReturnKeyword);
+                                    N(SyntaxKind.SemicolonToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestSemicolonAfterObjectInitializerMember6()
+        {
+            var text = "class c { void m() { var x = new C { a = b; return; }; var y = 5; } }";
+
+            UsingTree(text,
+                // (1,43): error CS1003: Syntax error, ',' expected
+                // class c { void m() { var x = new C { a = b; return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 43),
+                // (1,45): error CS1513: } expected
+                // class c { void m() { var x = new C { a = b; return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "return").WithLocation(1, 45),
+                // (1,45): error CS1002: ; expected
+                // class c { void m() { var x = new C { a = b; return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "return").WithLocation(1, 45),
+                // (1,54): error CS1597: Semicolon after method or accessor block is not valid
+                // class c { void m() { var x = new C { a = b; return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(1, 54),
+                // (1,69): error CS1022: Type or namespace definition, or end-of-file expected
+                // class c { void m() { var x = new C { a = b; return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 69));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "c");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "m");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.ObjectCreationExpression);
+                                            {
+                                                N(SyntaxKind.NewKeyword);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "C");
+                                                }
+                                                N(SyntaxKind.ObjectInitializerExpression);
+                                                {
+                                                    N(SyntaxKind.OpenBraceToken);
+                                                    N(SyntaxKind.SimpleAssignmentExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "a");
+                                                        }
+                                                        N(SyntaxKind.EqualsToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "b");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.SemicolonToken);
+                                                    M(SyntaxKind.CloseBraceToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.ReturnStatement);
+                            {
+                                N(SyntaxKind.ReturnKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestSemicolonAfterObjectInitializerMemberComma()
         {
             var text = "class c { void m() { var x = new C { a = b, ; } }";
