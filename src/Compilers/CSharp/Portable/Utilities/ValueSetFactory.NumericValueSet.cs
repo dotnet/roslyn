@@ -164,6 +164,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public IValueSet<T> Intersect(IValueSet<T> o)
             {
+                // We use non-negative integers for Count/Length on types that list-patterns can be used on (ie.countable and indexable ones).
+                // But we need to upgrade them to regular integers to perform operations against full integer sets.
+                if (this is NumericValueSet<int, NonNegativeIntTC> nonNegativeThis && o is NumericValueSet<int, IntTC>)
+                {
+                    return ((IValueSet<T>)ExpandToIntegerRange(nonNegativeThis)).Intersect(o);
+                }
+                else if (o is NumericValueSet<int, NonNegativeIntTC> nonNegativeOther && this is NumericValueSet<int, IntTC>)
+                {
+                    return ((IValueSet<T>)ExpandToIntegerRange(nonNegativeOther)).Intersect(this);
+                }
+
                 var other = (NumericValueSet<T, TTC>)o;
                 TTC tc = default;
                 var builder = ArrayBuilder<(T first, T last)>.GetInstance();
@@ -203,6 +214,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree());
+
+            }
+
+            private static IValueSet<int> ExpandToIntegerRange(NumericValueSet<int, NonNegativeIntTC> nonNegativeThis)
+            {
+                return new NumericValueSet<int, IntTC>(nonNegativeThis._intervals);
             }
 
             /// <summary>
@@ -243,6 +260,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public IValueSet<T> Union(IValueSet<T> o)
             {
+                // We use non-negative integers for Count/Length on types that list-patterns can be used on (ie.countable and indexable ones).
+                // But we need to upgrade them to regular integers to perform operations against full integer sets.
+                if (this is NumericValueSet<int, NonNegativeIntTC> nonNegativeThis && o is NumericValueSet<int, IntTC>)
+                {
+                    return ((IValueSet<T>)ExpandToIntegerRange(nonNegativeThis)).Union(o);
+                }
+                else if (o is NumericValueSet<int, NonNegativeIntTC> nonNegativeOther && this is NumericValueSet<int, IntTC>)
+                {
+                    return ((IValueSet<T>)ExpandToIntegerRange(nonNegativeOther)).Union(this);
+                }
+
                 var other = (NumericValueSet<T, TTC>)o;
                 TTC tc = default;
                 var builder = ArrayBuilder<(T first, T last)>.GetInstance();
