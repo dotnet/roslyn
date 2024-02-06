@@ -9116,9 +9116,7 @@ _ = (ICollection)null switch
 };
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics();
-
-        CompileAndVerify(source, expectedOutput: "012").VerifyDiagnostics(
+        comp.VerifyDiagnostics(
             // (6,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
             //     IList { Count: >0 } => 1,
             Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "IList { Count: >0 }").WithLocation(6, 5)
