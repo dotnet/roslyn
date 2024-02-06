@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Tries to get the latest snapshot of the compilation without waiting for it to be fully built. This
             /// method takes advantage of the progress side-effect produced during <see
-            /// cref="BuildFinalStateAsync"/>. It will either return the already built compilation, any in-progress
+            /// cref="GetOrBuildFinalStateAsync"/>. It will either return the already built compilation, any in-progress
             /// compilation or any known old compilation in that order of preference. The compilation state that is
             /// returned will have a compilation that is retained so that it cannot disappear.
             /// </summary>
@@ -445,13 +445,12 @@ namespace Microsoft.CodeAnalysis
             private async Task<Compilation> GetCompilationSlowAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                var finalState = await GetOrBuildFinalStateAsync(compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var finalState = await GetOrBuildFinalStateAsync(compilationState, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return finalState.FinalCompilationWithGeneratedDocuments;
             }
 
             private async Task<FinalState> GetOrBuildFinalStateAsync(
                 SolutionCompilationState compilationState,
-                bool lockGate,
                 CancellationToken cancellationToken)
             {
                 try
@@ -469,14 +468,7 @@ namespace Microsoft.CodeAnalysis
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
                         // build this compilation at a time.
-                        if (lockGate)
-                        {
-                            using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                            {
-                                return await BuildFinalStateAsync(compilationState, cancellationToken).ConfigureAwait(false);
-                            }
-                        }
-                        else
+                        using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                         {
                             return await BuildFinalStateAsync(compilationState, cancellationToken).ConfigureAwait(false);
                         }
@@ -486,50 +478,50 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw ExceptionUtilities.Unreachable();
                 }
-            }
 
-            /// <summary>
-            /// Builds the compilation matching the project state. In the process of building, also
-            /// produce in progress snapshots that can be accessed from other threads.
-            /// </summary>
-            private async Task<FinalState> BuildFinalStateAsync(
-                SolutionCompilationState compilationState,
-                CancellationToken cancellationToken)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var state = ReadState();
-
-                // if we already have a compilation, we must be already done!  This can happen if two
-                // threads were waiting to build, and we came in after the other succeeded.
-                if (state is FinalState finalState)
-                    return finalState;
-
-                var compilationWithoutGeneratedDocuments = state.CompilationWithoutGeneratedDocuments;
-                if (compilationWithoutGeneratedDocuments == null)
+                // <summary>
+                // Builds the compilation matching the project state. In the process of building, also
+                // produce in progress snapshots that can be accessed from other threads.
+                // </summary>
+                async Task<FinalState> BuildFinalStateAsync(
+                    SolutionCompilationState compilationState,
+                    CancellationToken cancellationToken)
                 {
-                    // We've got nothing.  Build it from scratch :(
-                    return await BuildFinalStateFromScratchAsync(
-                        compilationState,
-                        state.GeneratorInfo,
-                        cancellationToken).ConfigureAwait(false);
-                }
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                if (state is AllSyntaxTreesParsedState)
-                {
-                    // We have a declaration compilation, use it to reconstruct the final compilation
-                    return await FinalizeCompilationAsync(
-                        compilationState,
-                        compilationWithoutGeneratedDocuments,
-                        state.GeneratorInfo,
-                        compilationWithStaleGeneratedTrees: null,
-                        cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    // We must have an in progress compilation. Build off of that.
-                    return await BuildFinalStateFromInProgressStateAsync(
-                        compilationState, (InProgressState)state, compilationWithoutGeneratedDocuments, cancellationToken).ConfigureAwait(false);
+                    var state = ReadState();
+
+                    // if we already have a compilation, we must be already done!  This can happen if two
+                    // threads were waiting to build, and we came in after the other succeeded.
+                    if (state is FinalState finalState)
+                        return finalState;
+
+                    var compilationWithoutGeneratedDocuments = state.CompilationWithoutGeneratedDocuments;
+                    if (compilationWithoutGeneratedDocuments == null)
+                    {
+                        // We've got nothing.  Build it from scratch :(
+                        return await BuildFinalStateFromScratchAsync(
+                            compilationState,
+                            state.GeneratorInfo,
+                            cancellationToken).ConfigureAwait(false);
+                    }
+
+                    if (state is AllSyntaxTreesParsedState)
+                    {
+                        // We have a declaration compilation, use it to reconstruct the final compilation
+                        return await FinalizeCompilationAsync(
+                            compilationState,
+                            compilationWithoutGeneratedDocuments,
+                            state.GeneratorInfo,
+                            compilationWithStaleGeneratedTrees: null,
+                            cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // We must have an in progress compilation. Build off of that.
+                        return await BuildFinalStateFromInProgressStateAsync(
+                            compilationState, (InProgressState)state, compilationWithoutGeneratedDocuments, cancellationToken).ConfigureAwait(false);
+                    }
                 }
 
                 async Task<FinalState> BuildFinalStateFromScratchAsync(
@@ -861,7 +853,7 @@ namespace Microsoft.CodeAnalysis
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 var finalState = await GetOrBuildFinalStateAsync(
-                    compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    compilationState, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return finalState.HasSuccessfullyLoaded;
             }
 
@@ -875,7 +867,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var finalState = await GetOrBuildFinalStateAsync(
-                    compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    compilationState, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return finalState.GeneratorInfo.Documents;
             }
 
@@ -888,7 +880,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var finalState = await GetOrBuildFinalStateAsync(
-                    compilationState, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    compilationState, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var driverRunResult = finalState.GeneratorInfo.Driver?.GetRunResult();
                 if (driverRunResult is null)
