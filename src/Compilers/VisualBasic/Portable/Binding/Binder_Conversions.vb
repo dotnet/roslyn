@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 constantResult = Conversions.TryFoldNothingReferenceConversion(argument, conv, targetType)
             End If
 
-            WarnOnLockConversion(sourceType, argument.Syntax, diagnostics)
+            WarnOnLockConversion(sourceType, targetType, argument.Syntax, diagnostics)
 
             Return New BoundDirectCast(node, argument, conv, constantResult, targetType)
         End Function
@@ -259,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim constantResult = Conversions.TryFoldNothingReferenceConversion(argument, conv, targetType)
 
-            WarnOnLockConversion(sourceType, argument.Syntax, diagnostics)
+            WarnOnLockConversion(sourceType, targetType, argument.Syntax, diagnostics)
 
             Return New BoundTryCast(node, argument, conv, constantResult, targetType)
         End Function
@@ -1732,8 +1732,9 @@ DoneWithDiagnostics:
             End If
         End Sub
 
-        Private Shared Sub WarnOnLockConversion(sourceType As TypeSymbol, syntax As SyntaxNode, diagnostics As BindingDiagnosticBag)
-            If sourceType IsNot Nothing AndAlso sourceType.IsWellKnownTypeLock() Then
+        Private Shared Sub WarnOnLockConversion(sourceType As TypeSymbol, targetType As TypeSymbol, syntax As SyntaxNode, diagnostics As BindingDiagnosticBag)
+            If sourceType IsNot Nothing AndAlso sourceType.IsWellKnownTypeLock() AndAlso
+               targetType IsNot Nothing AndAlso Not targetType.IsWellKnownTypeLock() Then
                 ReportDiagnostic(diagnostics, syntax, ERRID.WRN_ConvertingLock)
             End If
         End Sub
