@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis
                     // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
                     // if our referenced projects are changing, so we'll have to rerun to consume changes.
                     return intermediateProjects.IsEmpty
-                        ? new AllSyntaxTreesParsedState(compilationWithoutGeneratedDocuments, generatorInfo.WithDocumentsAreFinal(false))
+                        ? new AllSyntaxTreesParsedState(compilationWithoutGeneratedDocuments, generatorInfo.WithDocumentsAreFinal(false), compilationWithGeneratedDocuments)
                         : new InProgressState(compilationWithoutGeneratedDocuments, generatorInfo, compilationWithGeneratedDocuments, intermediateProjects);
                 }
             }
@@ -222,9 +222,16 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class AllSyntaxTreesParsedState(
                 Compilation compilationWithoutGeneratedDocuments,
-                CompilationTrackerGeneratorInfo generatorInfo)
-                : WithCompilationTrackerState(compilationWithoutGeneratedDocuments, generatorInfo)
+                CompilationTrackerGeneratorInfo generatorInfo,
+                Compilation? compilationWithGeneratedDocuments) : WithCompilationTrackerState(compilationWithoutGeneratedDocuments, generatorInfo)
             {
+                /// <summary>
+                /// The result of taking the original completed compilation that had generated documents and updating them by
+                /// apply the <see cref="CompilationAndGeneratorDriverTranslationAction" />; this is not a correct snapshot in that
+                /// the generators have not been rerun, but may be reusable if the generators are later found to give the
+                /// same output.
+                /// </summary>
+                public Compilation? CompilationWithGeneratedDocuments { get; } = compilationWithGeneratedDocuments;
             }
 
             /// <summary>

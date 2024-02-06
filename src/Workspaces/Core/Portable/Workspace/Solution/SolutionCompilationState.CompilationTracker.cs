@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         compilation = compilation.AddSyntaxTrees(trees);
-                        var allSyntaxTreesParsedState = new AllSyntaxTreesParsedState(compilation, noCompilationState.GeneratorInfo);
+                        var allSyntaxTreesParsedState = new AllSyntaxTreesParsedState(compilation, noCompilationState.GeneratorInfo, compilationWithGeneratedDocuments: null);
                         WriteState(allSyntaxTreesParsedState);
                         return allSyntaxTreesParsedState;
                     }
@@ -603,18 +603,17 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 async Task<FinalState> BuildFinalStateFromInProgressStateAsync(
-                    SolutionCompilationState compilationState, InProgressState state, CancellationToken cancellationToken)
+                    SolutionCompilationState compilationState, InProgressState inProgressState, CancellationToken cancellationToken)
                 {
                     try
                     {
-                        var (compilationWithoutGenerators, compilationWithGenerators, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(
-                            state, cancellationToken).ConfigureAwait(false);
+                        var allSyntaxTreesParsedState = await BuildAllSyntaxTreesParsedStateFromInProgressStateAsync(
+                            inProgressState, cancellationToken).ConfigureAwait(false);
 
                         return await FinalizeCompilationAsync(
                             compilationState,
-                            compilationWithoutGenerators,
-                            state.GeneratorInfo.WithDriver(generatorDriver),
-                            compilationWithGenerators,
+                            allSyntaxTreesParsedState,
+                            allSyntaxTreesParsedState.CompilationWithGeneratedDocuments,
                             cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -643,7 +642,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private async Task<(Compilation compilationWithoutGenerators, Compilation? compilationWithGenerators, GeneratorDriver? generatorDriver)> BuildDeclarationCompilationFromInProgressAsync(
+            private async Task<AllSyntaxTreesParsedState> BuildAllSyntaxTreesParsedStateFromInProgressStateAsync(
                 InProgressState state, CancellationToken cancellationToken)
             {
                 try
@@ -666,6 +665,7 @@ namespace Microsoft.CodeAnalysis
 
                     // This is guaranteed by an in progress state.  Which means we know we'll get into the while loop below.
                     Contract.ThrowIfTrue(intermediateProjects.Count == 0);
+                    AllSyntaxTreesParsedState? resultState = null;
 
                     while (!intermediateProjects.IsEmpty)
                     {
@@ -702,11 +702,18 @@ namespace Microsoft.CodeAnalysis
 
                         // As long as we have intermediate projects, we'll still keep creating InProgressStates.  But
                         // once it becomes empty we'll produce an AllSyntaxTreesParsedState and we'll break the loop.
-                        this.WriteState(CompilationTrackerState.Create(
-                            compilationWithoutGeneratedDocuments, state.GeneratorInfo.WithDriver(generatorDriver), compilationWithGeneratedDocuments, intermediateProjects));
+                        var currentState = CompilationTrackerState.Create(
+                            compilationWithoutGeneratedDocuments, state.GeneratorInfo.WithDriver(generatorDriver), compilationWithGeneratedDocuments, intermediateProjects);
+                        this.WriteState(currentState);
+
+                        Contract.ThrowIfTrue(intermediateProjects.Count > 0 && currentState is not InProgressState);
+                        Contract.ThrowIfTrue(intermediateProjects.Count == 0 && currentState is not AllSyntaxTreesParsedState);
+
+                        resultState = currentState as AllSyntaxTreesParsedState;
                     }
 
-                    return (compilationWithoutGeneratedDocuments, compilationWithGeneratedDocuments, generatorDriver);
+                    Contract.ThrowIfNull(resultState);
+                    return resultState;
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
@@ -718,26 +725,22 @@ namespace Microsoft.CodeAnalysis
             /// Add all appropriate references to the compilation and set it as our final compilation
             /// state.
             /// </summary>
-            /// <param name="generatorInfo">The generator info that contains the last run of the documents, if any exists, as
-            /// well as the driver that can be used to run if need to.</param>
             /// <param name="compilationWithStaleGeneratedTrees">The compilation from a prior run that contains
-            /// generated trees, which match the states included in <paramref name="generatorInfo"/>. If a generator run
-            /// here produces the same set of generated documents as are in <paramref name="generatorInfo"/>, and we
-            /// don't need to make any other changes to references, we can then use this compilation instead of
-            /// re-adding source generated files again to the compilation that <paramref
-            /// name="withCompilationTrackerState"/> points to.</param>
+            /// generated trees, which match the states included in <paramref name="allSyntaxTreesParsedState"/>'s
+            /// generator info. If a generator run here produces the same set of generated documents as are in <paramref
+            /// name="allSyntaxTreesParsedState"/>'s generator info, and we don't need to make any other changes to
+            /// references, we can then use this compilation instead of re-adding source generated files again to the
+            /// compilation that <paramref name="allSyntaxTreesParsedState"/> points to.</param>
             private async Task<FinalState> FinalizeCompilationAsync(
                 SolutionCompilationState compilationState,
-                WithCompilationTrackerState withCompilationTrackerState,
+                AllSyntaxTreesParsedState allSyntaxTreesParsedState,
                 Compilation? compilationWithStaleGeneratedTrees,
                 CancellationToken cancellationToken)
             {
-                Contract.ThrowIfTrue(withCompilationTrackerState is FinalState);
-
                 try
                 {
-                    var generatorInfo = withCompilationTrackerState.GeneratorInfo;
-                    var compilationWithoutGeneratedDocuments = withCompilationTrackerState.CompilationWithoutGeneratedDocuments;
+                    var generatorInfo = allSyntaxTreesParsedState.GeneratorInfo;
+                    var compilationWithoutGeneratedDocuments = allSyntaxTreesParsedState.CompilationWithoutGeneratedDocuments;
 
                     // Project is complete only if the following are all true:
                     //  1. HasAllInformation flag is set for the project
