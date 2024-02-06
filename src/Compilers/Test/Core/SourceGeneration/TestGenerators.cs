@@ -77,6 +77,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
     }
 
+#pragma warning disable RS0062 // Do not implicitly capture primary constructor paramters
     internal class CallbackGenerator(
         Action<GeneratorInitializationContext> onInit,
         Action<GeneratorExecutionContext> onExecute,
@@ -113,6 +114,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
             }
         }
     }
+#pragma warning restore RS0062 // Do not implicitly capture primary constructor paramters
 
     internal class CallbackGenerator2 : CallbackGenerator
     {
