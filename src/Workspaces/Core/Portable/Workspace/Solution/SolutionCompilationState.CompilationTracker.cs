@@ -174,11 +174,15 @@ namespace Microsoft.CodeAnalysis
                     {
                         // We may still have a cached generator; we'll have to remember to run generators again since we are making some
                         // change here. We'll also need to update the other state of the driver if appropriate.
-                        var generatorInfo = state.GeneratorInfo.WithDocumentsAreFinal(false);
+
+                        // The no compilation state can never be in the 'DocumentsAreFinal' state.  The only place where
+                        // we start with the NoCompilationState is the 'Empty' instance (where DocumentsAreFinal=false).
+                        // And then this is the only place where we get a NoCompilationState and create a new instance.
+                        // So there is no way to ever transition this to the DocumentsAreFinal=true state.
+                        Contract.ThrowIfTrue(state.GeneratorInfo.DocumentsAreFinal);
+                        var generatorInfo = state.GeneratorInfo;
                         if (generatorInfo.Driver != null && translate != null)
-                        {
                             generatorInfo = generatorInfo.WithDriver(translate.TransformGeneratorDriver(generatorInfo.Driver));
-                        }
 
                         return new NoCompilationState(generatorInfo);
                     }

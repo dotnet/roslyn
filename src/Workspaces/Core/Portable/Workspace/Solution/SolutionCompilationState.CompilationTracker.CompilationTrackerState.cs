@@ -148,9 +148,14 @@ namespace Microsoft.CodeAnalysis
             /// State used when we potentially have some information (like prior generated documents)
             /// but no compilation.
             /// </summary>
-            private sealed class NoCompilationState(CompilationTrackerGeneratorInfo generatorInfo)
-                : CompilationTrackerState(generatorInfo)
+            private sealed class NoCompilationState : CompilationTrackerState
             {
+                public NoCompilationState(CompilationTrackerGeneratorInfo generatorInfo)
+                    : base(generatorInfo)
+                {
+                    // The no compilation state can never be in the 'DocumentsAreFinal' state.
+                    Contract.ThrowIfTrue(generatorInfo.DocumentsAreFinal);
+                }
             }
 
             private abstract class WithCompilationState : CompilationTrackerState
