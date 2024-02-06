@@ -444,7 +444,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(arg.HasAnyErrors || arg.Type?.IsStringType() == true);
 
                 if (arg is BoundCall { ReceiverOpt: { Type: NamedTypeSymbol { SpecialType: SpecialType.System_Char } receiverCharType } receiver } potentialToStringCall &&
-                    (object)potentialToStringCall.Method != _compilation.GetSpecialTypeMember(SpecialMember.System_Object__ToString) &&
                     (object)potentialToStringCall.Method.GetLeastOverriddenMethod(charType) == _compilation.GetSpecialTypeMember(SpecialMember.System_Object__ToString))
                 {
                     needsSpanRefParamConstructor = true;

@@ -600,18 +600,20 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
         var verifier = CompileAndVerify(compilation: comp, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
         verifier.VerifyDiagnostics();
 
-        // Even though we have all other members for span-based concatenation, `char` doesn't override `ToString`
-        // thus we cannot rely on its well-known behavior and emit string-based concat with a virtual `object.ToString()` call
+        // No matter whether `char` directly overrides `ToString` or not, we still produce span-based concat if we can
         verifier.VerifyIL("Test.M", """
             {
-              // Code size       20 (0x14)
+              // Code size       21 (0x15)
               .maxstack  2
+              .locals init (char V_0)
               IL_0000:  ldarg.0
-              IL_0001:  ldarga.s   V_1
-              IL_0003:  constrained. "char"
-              IL_0009:  callvirt   "string object.ToString()"
-              IL_000e:  call       "string string.Concat(string, string)"
-              IL_0013:  ret
+              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0006:  ldarg.1
+              IL_0007:  stloc.0
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_000f:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0014:  ret
             }
             """);
     }
@@ -1709,19 +1711,22 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
         var verifier = CompileAndVerify(compilation: comp, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
         verifier.VerifyDiagnostics();
 
-        // Even though we have all other members for span-based concatenation, `char` doesn't override `ToString`
-        // thus we cannot rely on its well-known behavior and emit string-based concat with a virtual `object.ToString()` call
+        // No matter whether `char` directly overrides `ToString` or not, we still produce span-based concat if we can
         verifier.VerifyIL("Test.M", """
             {
-              // Code size       21 (0x15)
+              // Code size       27 (0x1b)
               .maxstack  3
+              .locals init (char V_0)
               IL_0000:  ldarg.0
-              IL_0001:  ldarga.s   V_1
-              IL_0003:  constrained. "char"
-              IL_0009:  callvirt   "string object.ToString()"
-              IL_000e:  ldarg.0
-              IL_000f:  call       "string string.Concat(string, string, string)"
-              IL_0014:  ret
+              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0006:  ldarg.1
+              IL_0007:  stloc.0
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
+              IL_000f:  ldarg.0
+              IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0015:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_001a:  ret
             }
             """);
     }
@@ -3829,20 +3834,24 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
         var verifier = CompileAndVerify(compilation: comp, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
         verifier.VerifyDiagnostics();
 
-        // Even though we have all other members for span-based concatenation, `char` doesn't override `ToString`
-        // thus we cannot rely on its well-known behavior and emit string-based concat with a virtual `object.ToString()` call
+        // No matter whether `char` directly overrides `ToString` or not, we still produce span-based concat if we can
         verifier.VerifyIL("Test.M", """
             {
-              // Code size       22 (0x16)
+              // Code size       33 (0x21)
               .maxstack  4
+              .locals init (char V_0)
               IL_0000:  ldarg.0
-              IL_0001:  ldarga.s   V_1
-              IL_0003:  constrained. "char"
-              IL_0009:  callvirt   "string object.ToString()"
-              IL_000e:  ldarg.0
+              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0006:  ldarg.1
+              IL_0007:  stloc.0
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(ref readonly char)"
               IL_000f:  ldarg.0
-              IL_0010:  call       "string string.Concat(string, string, string, string)"
-              IL_0015:  ret
+              IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0015:  ldarg.0
+              IL_0016:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_001b:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0020:  ret
             }
             """);
     }
