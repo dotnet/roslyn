@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis
                         // As long as we have intermediate projects, we'll still keep creating InProgressStates.  But
                         // once it becomes empty we'll produce an AllSyntaxTreesParsedState and we'll break the loop.
                         //
-                        // Preserve the current frozen.  Specifically, once states become frozen, we continually make
+                        // Preserve the current frozen bit.  Specifically, once states become frozen, we continually make
                         // all states forked from those states frozen as well.  This ensures we don't attempt to move
                         // generator docs back to the uncomputed state from that point onwards.  We'll just keep
                         // whateverZ generated docs we have.
