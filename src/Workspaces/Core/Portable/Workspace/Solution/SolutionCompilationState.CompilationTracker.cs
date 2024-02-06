@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis
                     CompilationTrackerState state,
                     CompilationAndGeneratorDriverTranslationAction? translate)
                 {
-                    if (state is WithCompilationState withCompilationState)
+                    if (state is WithCompilationTrackerState withCompilationState)
                     {
                         var intermediateProjects = state is InProgressState inProgressState
                             ? inProgressState.IntermediateProjects
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis
                 CancellationToken cancellationToken)
             {
                 var state = ReadState();
-                var compilationWithoutGeneratedDocuments = state is WithCompilationState withCompilationState
+                var compilationWithoutGeneratedDocuments = state is WithCompilationTrackerState withCompilationState
                     ? withCompilationState.CompilationWithoutGeneratedDocuments
                     : null;
 
@@ -534,8 +534,7 @@ namespace Microsoft.CodeAnalysis
                     AllSyntaxTreesParsedState allSyntaxTreesParsedState
                         => await FinalizeCompilationAsync(
                             compilationState,
-                            allSyntaxTreesParsedState.CompilationWithoutGeneratedDocuments,
-                            allSyntaxTreesParsedState.GeneratorInfo,
+                            allSyntaxTreesParsedState,
                             compilationWithStaleGeneratedTrees: null,
                             cancellationToken).ConfigureAwait(false),
 
@@ -563,8 +562,7 @@ namespace Microsoft.CodeAnalysis
 
                         return await FinalizeCompilationAsync(
                             compilationState,
-                            allSyntaxTreesParsedState.CompilationWithoutGeneratedDocuments,
-                            allSyntaxTreesParsedState.GeneratorInfo,
+                            allSyntaxTreesParsedState,
                             compilationWithStaleGeneratedTrees: null,
                             cancellationToken).ConfigureAwait(false);
                     }
@@ -717,20 +715,25 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             /// <param name="generatorInfo">The generator info that contains the last run of the documents, if any exists, as
             /// well as the driver that can be used to run if need to.</param>
-            /// <param name="compilationWithStaleGeneratedTrees">The compilation from a prior run that contains generated trees, which
-            /// match the states included in <paramref name="generatorInfo"/>. If a generator run here produces
-            /// the same set of generated documents as are in <paramref name="generatorInfo"/>, and we don't need to make any other
-            /// changes to references, we can then use this compilation instead of re-adding source generated files again to the
-            /// <paramref name="compilationWithoutGeneratedDocuments"/>.</param>
+            /// <param name="compilationWithStaleGeneratedTrees">The compilation from a prior run that contains
+            /// generated trees, which match the states included in <paramref name="generatorInfo"/>. If a generator run
+            /// here produces the same set of generated documents as are in <paramref name="generatorInfo"/>, and we
+            /// don't need to make any other changes to references, we can then use this compilation instead of
+            /// re-adding source generated files again to the compilation that <paramref
+            /// name="withCompilationTrackerState"/> points to.</param>
             private async Task<FinalState> FinalizeCompilationAsync(
                 SolutionCompilationState compilationState,
-                Compilation compilationWithoutGeneratedDocuments,
-                CompilationTrackerGeneratorInfo generatorInfo,
+                WithCompilationTrackerState withCompilationTrackerState,
                 Compilation? compilationWithStaleGeneratedTrees,
                 CancellationToken cancellationToken)
             {
+                Contract.ThrowIfTrue(withCompilationTrackerState is FinalState);
+
                 try
                 {
+                    var generatorInfo = withCompilationTrackerState.GeneratorInfo;
+                    var compilationWithoutGeneratedDocuments = withCompilationTrackerState.CompilationWithoutGeneratedDocuments;
+
                     // Project is complete only if the following are all true:
                     //  1. HasAllInformation flag is set for the project
                     //  2. Either the project has non-zero metadata references OR this is the corlib project.
@@ -858,7 +861,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // if we have a compilation and its the correct language, use a simple compilation reference in any
                     // state it happens to be in right now
-                    if (state is WithCompilationState withCompilationState)
+                    if (state is WithCompilationTrackerState withCompilationState)
                         return withCompilationState.CompilationWithoutGeneratedDocuments.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
                 }
                 else
