@@ -1299,8 +1299,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension>
         Friend Function IsWellKnownTypeLock(typeSymbol As TypeSymbol) As Boolean
-            Return typeSymbol.Name = "Lock" AndAlso typeSymbol.ContainingType Is Nothing AndAlso
-                typeSymbol.IsContainedInNamespace("System", "Threading")
+            Dim namedTypeSymbol = TryCast(typeSymbol, NamedTypeSymbol)
+            Return namedTypeSymbol IsNot Nothing AndAlso
+                namedTypeSymbol.Name = "Lock" AndAlso
+                namedTypeSymbol.Arity = 0 AndAlso
+                namedTypeSymbol.ContainingType Is Nothing AndAlso
+                namedTypeSymbol.IsContainedInNamespace("System", "Threading")
         End Function
 
         <Extension>
