@@ -214,7 +214,7 @@
       "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.10 P2]"
     },
-    "dev/jorobich/fix-pr-val": {
+    "features/vscode_net8": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
