@@ -150,13 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Ensure the options persisters are loaded since we have to fetch options from the shell
-            LoadOptionPersistersAsync(this.ComponentModel, cancellationToken).Forget();
-
             await InitializeColorsAsync(cancellationToken).ConfigureAwait(true);
-
-            // load some services that have to be loaded in UI thread
-            LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
 
             // We are at the VS layer, so we know we must be able to get the IGlobalOperationNotificationService here.
             var globalNotificationService = this.ComponentModel.GetService<IGlobalOperationNotificationService>();
@@ -179,6 +173,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             serviceBrokerContainer.Proffer(
                 WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
                 (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
+        }
+
+        protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
+        {
+            await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(true);
+
+            // Ensure the options persisters are loaded since we have to fetch options from the shell.
+            //
+            // 🐉 Options persisters may call back to RoslynPackage.GetOrLoadAsync, so it's important this forced-load
+            // of the options persisters occur in OnAfterPackageLoadedAsync and not InitializeAsync (where it could
+            // cause a call to LoadPackageAsync to fail). https://github.com/dotnet/roslyn/issues/70740
+            LoadOptionPersistersAsync(this.ComponentModel, cancellationToken).Forget();
+
+            // load some services that have to be loaded in UI thread
+            LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
         }
 
         private async Task LoadOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
