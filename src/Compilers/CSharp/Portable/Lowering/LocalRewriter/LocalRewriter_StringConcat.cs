@@ -250,14 +250,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 objectCreationConstructor.ReceiverType.IsReadOnlySpanChar())
                             {
                                 Debug.Assert(assignment.Right.Type?.IsCharType() == true);
-                                var charToString = FindSpecificToStringOfStructType(assignment.Right.Type, UnsafeGetSpecialTypeMethod(wrappedArg.Syntax, SpecialMember.System_Object__ToString));
-                                if (charToString is null)
-                                {
-                                    unwrappedArgsBuilder.Free();
-                                    arguments = default;
-                                    return false;
-                                }
-                                unwrappedArgsBuilder.Add(BoundCall.Synthesized(wrappedArg.Syntax, assignment.Right, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, charToString));
+                                var wrappedExpr = ConvertConcatExprToString(assignment.Right);
+                                unwrappedArgsBuilder.Add(wrappedExpr);
                                 locals = locals.Remove(constructorLocal.LocalSymbol);
                             }
                             else
