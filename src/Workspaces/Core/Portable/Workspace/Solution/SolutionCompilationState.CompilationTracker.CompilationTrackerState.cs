@@ -100,9 +100,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// The base type of all <see cref="CompilationTracker"/> states. The state of a <see cref="CompilationTracker" />
-            /// starts at <see cref="Empty"/>, and then will progress through the other states until it finally reaches
-            /// <see cref="FinalState" />.
+            /// The base type of all <see cref="CompilationTracker"/> states. The state of a <see
+            /// cref="CompilationTracker" /> starts at <see cref="NoCompilationState"/>, and then will progress through
+            /// the other states until it finally reaches <see cref="FinalState" />.
             /// </summary>
             private abstract class CompilationTrackerState
             {
@@ -115,35 +115,12 @@ namespace Microsoft.CodeAnalysis
                         driver: null,
                         documentsAreFinal: false));
 
-                /// <summary>
-                /// The best compilation that is available that source generators have not ran on. May be an
-                /// in-progress, full declaration,  a final compilation, or <see langword="null"/>.
-                /// </summary>
-                public Compilation? CompilationWithoutGeneratedDocuments { get; }
-
                 public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
 
                 protected CompilationTrackerState(
-                    Compilation? compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo)
                 {
-                    CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
                     GeneratorInfo = generatorInfo;
-
-#if DEBUG
-
-                    // As a sanity check, we should never see the generated trees inside of the compilation that should not
-                    // have generated trees.
-                    var compilation = compilationWithoutGeneratedDocuments;
-
-                    if (compilation != null)
-                    {
-                        foreach (var generatedDocument in generatorInfo.Documents.States.Values)
-                        {
-                            Contract.ThrowIfTrue(compilation.SyntaxTrees.Contains(generatedDocument.GetSyntaxTree(CancellationToken.None)));
-                        }
-                    }
-#endif
                 }
 
                 /// <summary>
@@ -172,15 +149,37 @@ namespace Microsoft.CodeAnalysis
             /// but no compilation.
             /// </summary>
             private sealed class NoCompilationState(CompilationTrackerGeneratorInfo generatorInfo)
-                : CompilationTrackerState(compilationWithoutGeneratedDocuments: null, generatorInfo)
+                : CompilationTrackerState(generatorInfo)
             {
+            }
+
+            private abstract class WithCompilationState : CompilationTrackerState
+            {
+                /// <summary>
+                /// The best compilation that is available that source generators have not ran on. May be an
+                /// in-progress, full declaration, a final compilation.
+                /// </summary>
+                public Compilation CompilationWithoutGeneratedDocuments { get; }
+
+                public WithCompilationState(Compilation compilationWithoutGeneratedDocuments, CompilationTrackerGeneratorInfo generatorInfo)
+                    : base(generatorInfo)
+                {
+                    CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
+
+#if DEBUG
+                    foreach (var generatedDocument in generatorInfo.Documents.States.Values)
+                    {
+                        Contract.ThrowIfTrue(compilationWithoutGeneratedDocuments.SyntaxTrees.Contains(generatedDocument.GetSyntaxTree(CancellationToken.None)));
+                    }
+#endif
+                }
             }
 
             /// <summary>
             /// A state where we are holding onto a previously built compilation, and have a known set of transformations
             /// that could get us to a more final state.
             /// </summary>
-            private sealed class InProgressState : CompilationTrackerState
+            private sealed class InProgressState : WithCompilationState
             {
                 /// <summary>
                 /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
@@ -210,8 +209,6 @@ namespace Microsoft.CodeAnalysis
                     this.IntermediateProjects = intermediateProjects;
                     this.CompilationWithGeneratedDocuments = compilationWithGeneratedDocuments;
                 }
-
-                public new Compilation CompilationWithoutGeneratedDocuments => base.CompilationWithoutGeneratedDocuments ?? throw ExceptionUtilities.Unreachable();
             }
 
             /// <summary>
@@ -221,9 +218,8 @@ namespace Microsoft.CodeAnalysis
             private sealed class AllSyntaxTreesParsedState(
                 Compilation compilationWithoutGeneratedDocuments,
                 CompilationTrackerGeneratorInfo generatorInfo)
-                : CompilationTrackerState(compilationWithoutGeneratedDocuments, generatorInfo)
+                : WithCompilationState(compilationWithoutGeneratedDocuments, generatorInfo)
             {
-                public new Compilation CompilationWithoutGeneratedDocuments => base.CompilationWithoutGeneratedDocuments ?? throw ExceptionUtilities.Unreachable();
             }
 
             /// <summary>
@@ -236,7 +232,7 @@ namespace Microsoft.CodeAnalysis
             /// cref="Solution.GetOriginatingProject(ISymbol)"/>.  If <see cref="Compilation"/>s from other <see
             /// cref="CompilationTrackerState"/>s are passed out, then these other APIs will not function correctly.
             /// </summary>
-            private sealed class FinalState : CompilationTrackerState
+            private sealed class FinalState : WithCompilationState
             {
                 /// <summary>
                 /// Specifies whether <see cref="FinalCompilationWithGeneratedDocuments"/> and all compilations it
