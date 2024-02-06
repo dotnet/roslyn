@@ -56,18 +56,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 _cacheService = GetCacheService(document.Project);
             }
 
-            public static async Task<SymbolComputer> CreateAsync(
-                Document document,
-                int position,
-                ITypeSymbol receiverTypeSymbol,
-                ISet<string> namespaceInScope,
-                CancellationToken cancellationToken)
-            {
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                return new SymbolComputer(
-                    document, semanticModel, receiverTypeSymbol, position, namespaceInScope);
-            }
-
             private static IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object> GetCacheService(Project project)
                 => project.Solution.Services.GetRequiredService<IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object>>();
 
