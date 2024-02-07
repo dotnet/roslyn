@@ -558,6 +558,56 @@ End Namespace
         End Sub
 
         <Fact>
+        Public Sub LockType_WrongTypeName()
+            Dim source = "
+Module Program
+    Sub Main()
+        Dim l = New System.Threading.Lock1()
+        SyncLock l
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class Lock1
+    End Class
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics()
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub LockType_LowercaseTypeName(
+            <CombinatorialValues("Lock", "lock")> usage As String,
+            <CombinatorialValues("Lock", "lock")> declaration As String)
+            Dim source = $"
+Module Program
+    Sub Main()
+        Dim l = New System.Threading.{usage}()
+        SyncLock l
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class {declaration}
+    End Class
+End Namespace
+"
+            Dim comp = CreateCompilation(source)
+            If declaration = "Lock" Then
+                comp.AssertTheseDiagnostics(
+"BC42508: A value of type 'System.Threading.Lock' in SyncLock will use likely unintended monitor-based locking. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock l
+                 ~
+")
+            Else
+                Assert.Equal("lock", declaration)
+                comp.AssertTheseDiagnostics()
+            End If
+        End Sub
+
+        <Fact>
         Public Sub LockType_CastToObject()
             Dim source = "
 Imports System.Threading
