@@ -45,7 +45,7 @@ internal static class PRTagger
         // 3. If we found the issue with the same title has been created. It means the issue is created because the last run of the tagger.
         foreach (var product in VSBranchInfo.AllProducts)
         {
-            foreach (var (vsCommitSha, vsBuild, previousVsCommitSha) in vsBuildsAndCommitSha)
+            foreach (var (vsBuild, vsCommitSha, previousVsCommitSha) in vsBuildsAndCommitSha)
             {
                 var result = await TagProductAsync(product, logger, vsCommitSha, vsBuild, previousVsCommitSha, settings, devdivConnection, dncengConnection, gitHubClient).ConfigureAwait(false);
                 if (result is TagResult.Failed or TagResult.IssueAlreadyCreated)
