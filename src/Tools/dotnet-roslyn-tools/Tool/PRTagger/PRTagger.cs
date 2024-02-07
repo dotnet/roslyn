@@ -39,6 +39,7 @@ internal static class PRTagger
         ImmutableArray<(string vsBuild, string vsCommitSha, string previousVsCommitSha)> vsBuildsAndCommitSha,
         RoslynToolsSettings settings,
         AzDOConnection devdivConnection,
+        GitHubClient gitHubClient,
         ILogger logger)
     {
         using var dncengConnection = new AzDOConnection(settings.DncEngAzureDevOpsBaseUri, "internal", settings.DncEngAzureDevOpsToken);
@@ -46,22 +47,25 @@ internal static class PRTagger
         {
             foreach (var (vsCommitSha, vsBuild, previousVsCommitSha) in vsBuildsAndCommitSha)
             {
-                var succeed = await TagProductAsync(product, logger, vsCommitSha, vsBuild, previousVsCommitSha, settings, devdivConnection, dncengConnection).ConfigureAwait(false);
-                if (!succeed)
+                var result = await TagProductAsync(product, logger, vsCommitSha, vsBuild, previousVsCommitSha, settings, devdivConnection, dncengConnection, gitHubClient).ConfigureAwait(false);
+                if (result is TagResult.Failed or TagResult.IssueAlreadyCreated)
+                {
                     break;
+                }
             }
         }
 
         return 0;
     }
 
-    private static async Task<bool> TagProductAsync(IProduct product, ILogger logger, string vsCommitSha, string vsBuild, string previousVsCommitSha, RoslynToolsSettings settings, AzDOConnection devdivConnection, AzDOConnection dncengConnection)
+    private static async Task<TagResult> TagProductAsync(
+        IProduct product, ILogger logger, string vsCommitSha, string vsBuild, string previousVsCommitSha, RoslynToolsSettings settings, AzDOConnection devdivConnection, AzDOConnection dncengConnection, GitHubClient gitHubClient)
     {
         var connections = new[] { devdivConnection, dncengConnection };
         // We currently only support creating issues for GitHub repos
         if (!product.RepoHttpBaseUrl.Contains("github.com"))
         {
-            return false;
+            return TagResult.Failed;
         }
 
         var gitHubRepoName = product.RepoHttpBaseUrl.Split('/').Last();
@@ -74,20 +78,20 @@ internal static class PRTagger
         if (currentBuild is null)
         {
             logger.LogError($"{gitHubRepoName} build not found for VS commit SHA {currentBuild}.");
-            return false;
+            return TagResult.Failed;
         }
 
         if (previousBuild is null)
         {
             logger.LogError($"{gitHubRepoName} build not found for VS commit SHA {previousBuild}.");
-            return false;
+            return TagResult.Failed;
         }
 
         // If builds are the same, there are no PRs to tag
         if (currentBuild.Equals(previousBuild))
         {
             logger.LogInformation($"No PRs found to tag; {gitHubRepoName} build numbers are equal: {currentBuild}.");
-            return false;
+            return TagResult.Failed;
         }
 
         // Get commit SHAs for product builds
@@ -97,7 +101,7 @@ internal static class PRTagger
         if (previousProductCommitSha is null || currentProductCommitSha is null)
         {
             logger.LogError($"Error retrieving {gitHubRepoName} commit SHAs.");
-            return false;
+            return TagResult.Failed;
         }
 
         logger.LogInformation($"Finding PRs between {gitHubRepoName} commit SHAs {previousProductCommitSha} and {currentProductCommitSha}.");
@@ -120,7 +124,7 @@ internal static class PRTagger
         catch (Exception ex)
         {
             logger.LogError($"Exception while cloning repo: " + ex);
-            return false;
+            return TagResult.Failed;
         }
 
         // Find PRs between product commit SHAs
@@ -129,14 +133,22 @@ internal static class PRTagger
         if (isSuccess != 0)
         {
             // Error occurred; should be logged in FindPRs method
-            return false;
+            return TagResult.Failed;
+        }
+
+        var issueTitle = $"[Automated] PRs inserted in VS build {vsBuild}";
+        var hasIssueAlreadyCreated = await HasIssueAlreadyCreatedAsync(gitHubClient, gitHubRepoName, issueTitle).ConfigureAwait(false);
+        if (hasIssueAlreadyCreated)
+        {
+            logger.LogInformation($"Issue with name: {issueTitle} exists in repo: {gitHubRepoName}. Skip creation.");
+            return TagResult.IssueAlreadyCreated;
         }
 
         logger.LogInformation($"Creating issue...");
 
         // Create issue
-        await TryCreateIssueAsync(gitHubRepoName, vsBuild, prDescription.ToString(), settings.GitHubToken, logger).ConfigureAwait(false);
-        return true;
+        await TryCreateIssueAsync(gitHubClient, issueTitle, gitHubRepoName, prDescription.ToString(), logger).ConfigureAwait(false);
+        return TagResult.Succeed;
     }
 
     public static async Task<ImmutableArray<(string vsBuild, string vsCommit, string previousVsCommitSha)>> GetVSBuildsAndCommitsAsync(
@@ -229,51 +241,29 @@ internal static class PRTagger
     }
 
     private static async Task TryCreateIssueAsync(
+        GitHubClient gitHubClient,
+        string title,
         string gitHubRepoName,
-        string vsBuildNumber,
         string issueBody,
-        string gitHubToken,
         ILogger logger)
     {
-        var client = new HttpClient
+        await gitHubClient.Issue.Create(owner: "dotnet", name: gitHubRepoName, new NewIssue(title)
         {
-            BaseAddress = new("https://api.github.com/")
-        };
-
-        var authArray = Encoding.ASCII.GetBytes($"{gitHubToken}");
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Basic",
-            Convert.ToBase64String(authArray));
-        client.DefaultRequestHeaders.Add(
-            "user-agent",
-            "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2;)");
-
-        // https://docs.github.com/en/rest/issues/issues#create-an-issue
-        var response = await client.PostAsyncAsJson($"repos/dotnet/{gitHubRepoName}/issues", JsonConvert.SerializeObject(
-            new
-            {
-                title = $"[Automated] PRs inserted in VS build {vsBuildNumber}",
-                body = issueBody,
-                labels = new[] { InsertionLabel }
-            }));
-
-        if (!response.IsSuccessStatusCode)
-        {
-            logger.LogError($"Issue creation failed with status code: {response.StatusCode}");
-        }
+            Body = issueBody,
+            Labels = { InsertionLabel },
+        });
 
         logger.LogInformation("Successfully created issue.");
     }
 
-    public static async Task<bool> HasIssueAlreadyCreatedAsync(
+    /// <summary>
+    /// Check if the issue with <param name="title"/> exists in repo.
+    /// </summary>
+    private static async Task<bool> HasIssueAlreadyCreatedAsync(
+        GitHubClient client,
         string repoName,
-        string githubToken,
         string title)
     {
-        var client = new GitHubClient(new Octokit.ProductHeaderValue("roslyn-tool-pr-tagger"))
-        {
-            Credentials = new Octokit.Credentials(githubToken)
-        };
         var searchRequest = new SearchIssuesRequest(title)
         {
             Type = IssueTypeQualifier.Issue,
@@ -282,11 +272,7 @@ internal static class PRTagger
             In = new[] { IssueInQualifier.Title }
         };
 
-        if (!Debugger.IsAttached)
-            Debugger.Launch();
-
         var searchIssueResult = await client.Search.SearchIssues(searchRequest).ConfigureAwait(false);
-
         return searchIssueResult.TotalCount != 0;
     }
 }

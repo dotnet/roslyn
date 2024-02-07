@@ -3,6 +3,7 @@
 // See the License.txt file in the project root for more information.
 
 using Microsoft.RoslynTools.Utilities;
+using Octokit;
 
 namespace Microsoft.RoslynTools.Commands;
 
@@ -14,7 +15,6 @@ using Microsoft.RoslynTools.Products;
 internal static class PRTaggerCommand
 {
     private static readonly PRTaggerCommandDefaultHandler s_prTaggerCommandHandler = new();
-
 
     public static Symbol GetCommand()
     {
@@ -36,26 +36,28 @@ internal static class PRTaggerCommand
             var logger = context.SetupLogging();
             var settings = context.ParseResult.LoadSettings(logger);
 
-            // if (string.IsNullOrEmpty(settings.GitHubToken) ||
-            //     string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) ||
-            //     string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken))
-            // {
-            //     logger.LogError("Missing authentication token.");
-            //     return -1;
-            // }
+             if (string.IsNullOrEmpty(settings.GitHubToken) ||
+                 string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) ||
+                 string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken))
+             {
+                 logger.LogError("Missing authentication token.");
+                 return -1;
+             }
 
-            //using var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
-            //var buildsAndCommits = await PRTagger.PRTagger.GetVSBuildsAndCommitsAsync(devdivConnection, logger, CancellationToken.None).ConfigureAwait(false);
+            using var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
 
-            //return await PRTagger.PRTagger.TagPRs(
-            //    vsBuildsAndCommitSha: buildsAndCommits,
-            //    settings,
-            //    devdivConnection,
-            //    logger).ConfigureAwait(false);
-            var created = await PRTagger.PRTagger.HasIssueAlreadyCreatedAsync("roslyn", settings.GitHubToken,
-                "[Automated] PRs inserted in VS build main-34526.79");
+            var buildsAndCommits = await PRTagger.PRTagger.GetVSBuildsAndCommitsAsync(devdivConnection, logger, CancellationToken.None).ConfigureAwait(false);
 
-            return 0;
+            var client = new GitHubClient(new ProductHeaderValue("roslyn-tool-pr-tagger"))
+            {
+                Credentials = new Credentials(settings.GitHubToken)
+            };
+            return await PRTagger.PRTagger.TagPRs(
+                vsBuildsAndCommitSha: buildsAndCommits,
+                settings,
+                devdivConnection,
+                client,
+                logger).ConfigureAwait(false);
         }
     }
 }

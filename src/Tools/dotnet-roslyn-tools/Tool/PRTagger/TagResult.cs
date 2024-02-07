@@ -8,6 +8,7 @@ namespace Microsoft.RoslynTools.PRTagger
     {
         Succeed,
         Failed,
-        NoChange
+        NoChangeBetweenVSBuilds,
+        IssueAlreadyCreated
     }
 }
