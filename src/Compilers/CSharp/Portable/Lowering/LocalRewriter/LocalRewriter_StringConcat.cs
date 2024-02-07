@@ -231,34 +231,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var wrappedArg = wrappedArgs[i];
 
-                            // Check whether a call is an implicit `string -> ReadOnlySpan<char>` conversion
-                            if (wrappedArg is BoundCall { Method: var argMethod, Arguments: [var singleArgument] } &&
-                                (object)argMethod == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar))
+                            switch (wrappedArg)
                             {
-                                unwrappedArgsBuilder.Add(singleArgument);
-                            }
-                            // This complicated check is for a sequence, which wraps a span around single char.
-                            // The sequence needs to have this shape: `{ locals: <none>, sideEffects: temp = <original char expression>, result: new ReadOnlySpan<char>(in temp) }`
-                            else if (wrappedArg is BoundSequence
-                            {
-                                Locals.Length: 0,
-                                SideEffects: [BoundAssignmentOperator { Right.Type.SpecialType: SpecialType.System_Char } assignment],
-                                Value: BoundObjectCreationExpression { Constructor: var objectCreationConstructor, Arguments: [BoundLocal constructorLocal] }
-                            } &&
-                                constructorLocal == assignment.Left &&
-                                locals.Remove(constructorLocal.LocalSymbol) &&
-                                (object)objectCreationConstructor.OriginalDefinition == _compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference) &&
-                                objectCreationConstructor.ReceiverType.IsReadOnlySpanChar())
-                            {
-                                Debug.Assert(assignment.Right.Type?.IsCharType() == true);
-                                var wrappedExpr = ConvertConcatExprToString(assignment.Right);
-                                unwrappedArgsBuilder.Add(wrappedExpr);
-                            }
-                            else
-                            {
-                                unwrappedArgsBuilder.Free();
-                                arguments = default;
-                                return false;
+                                // Check whether a call is an implicit `string -> ReadOnlySpan<char>` conversion
+                                case BoundCall { Method: var argMethod, Arguments: [var singleArgument] } when (object)argMethod == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar):
+                                    unwrappedArgsBuilder.Add(singleArgument);
+                                    break;
+                                // This complicated check is for a sequence, which wraps a span around single char.
+                                // The sequence needs to have this shape: `{ locals: <none>, sideEffects: temp = <original char expression>, result: new ReadOnlySpan<char>(in temp) }`
+                                case BoundSequence
+                                {
+                                    Locals.Length: 0,
+                                    SideEffects: [BoundAssignmentOperator { Right.Type.SpecialType: SpecialType.System_Char } assignment],
+                                    Value: BoundObjectCreationExpression { Constructor: var objectCreationConstructor, Arguments: [BoundLocal constructorLocal] }
+                                } when constructorLocal == assignment.Left &&
+                                       locals.Remove(constructorLocal.LocalSymbol) &&
+                                       (object)objectCreationConstructor.OriginalDefinition == _compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference) &&
+                                       objectCreationConstructor.ReceiverType.IsReadOnlySpanChar():
+                                    Debug.Assert(assignment.Right.Type?.IsCharType() == true);
+                                    var wrappedExpr = ConvertConcatExprToString(assignment.Right);
+                                    unwrappedArgsBuilder.Add(wrappedExpr);
+                                    break;
+                                default:
+                                    unwrappedArgsBuilder.Free();
+                                    arguments = default;
+                                    return false;
                             }
                         }
 
