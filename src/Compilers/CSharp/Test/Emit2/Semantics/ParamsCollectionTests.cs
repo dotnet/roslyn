@@ -2015,7 +2015,52 @@ class Program
         }
 
         [Fact]
-        public void ImplementsIEnumerableT_01_AddIsNotAnExtension()
+        public void ImplementsIEnumerableT_20_LessAccessibleConstructorAndAdd_NoError_In_LambdaOrLocalFunction()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+public class MyCollection : IEnumerable<string>
+{
+    internal MyCollection() { }
+    internal void Add(string s) { }
+
+    IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+public class Program
+{
+    public void Test1()
+    {
+        local();
+        local("a");
+
+        void local(params MyCollection collection) { }
+
+        var x = (params MyCollection collection) => { };
+    }
+
+    public void Test2(params MyCollection collection)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (25,23): error CS9507: Method 'MyCollection.MyCollection()' cannot be less visible than the member with params collection 'Program.Test2(params MyCollection)'.
+                //     public void Test2(params MyCollection collection)
+                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection collection").WithArguments("MyCollection.MyCollection()", "Program.Test2(params MyCollection)").WithLocation(25, 23),
+                // (25,23): error CS9507: Method 'MyCollection.Add(string)' cannot be less visible than the member with params collection 'Program.Test2(params MyCollection)'.
+                //     public void Test2(params MyCollection collection)
+                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection collection").WithArguments("MyCollection.Add(string)", "Program.Test2(params MyCollection)").WithLocation(25, 23)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_21_AddIsNotAnExtension()
         {
             var src = """
 using System.Collections;
@@ -4935,7 +4980,6 @@ string
                 source,
                 targetFramework: TargetFramework.Net80);
 
-            // Inline collection expression results in an ambiguity.
             comp.VerifyEmitDiagnostics(
                 // (7,20): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //     static void F1(params string value) { WriteLine("F1(string)"); }
@@ -11186,6 +11230,140 @@ delegate void D(params int a);
                 // delegate void D(params int a);
                 Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(14, 17)
                 );
+        }
+
+        [Fact]
+        public void CollectionWithRequiredMember_01()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+public class MyCollection1 : IEnumerable<long>
+{
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(long l) => throw null;
+
+    public required int F;
+}
+
+public class MyCollection2 : IEnumerable<long>
+{
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(long l) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection1 a)
+    {
+    }
+
+    [System.Obsolete]
+    static void Test(MyCollection2 a)
+    {
+    }
+
+    static void Test2(MyCollection1 a)
+    {
+    }
+
+    static void Test2()
+    {
+        MyCollection1 b = [1];
+        Test([2, 3]);
+        Test2([2, 3]);
+    }
+}
+
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (24,9): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.
+                //         Test();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Test()").WithArguments("MyCollection1.F").WithLocation(24, 9),
+                // (25,9): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Test(1)").WithArguments("MyCollection1.F").WithLocation(25, 9),
+                // (26,9): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Test(2, 3)").WithArguments("MyCollection1.F").WithLocation(26, 9),
+
+                // PROTOTYPE(ParamsCollections): I am not sure if we really want an error to be reported for params parameter in this case.
+                //                               Need to confirm that. If we do, perhaps the error should have a wording tailored for 'params'.
+                //                               The current wording looks confusing. 
+
+                // (29,22): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.
+                //     static void Test(params MyCollection1 a)
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "params MyCollection1 a").WithArguments("MyCollection1.F").WithLocation(29, 22),
+
+                // (44,27): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.
+                //         MyCollection1 b = [1];
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "[1]").WithArguments("MyCollection1.F").WithLocation(44, 27),
+                // (45,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Test(params MyCollection1)' and 'Program.Test(MyCollection2)'
+                //         Test([2, 3]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Program.Test(params MyCollection1)", "Program.Test(MyCollection2)").WithLocation(45, 9),
+                // (46,15): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.
+                //         Test2([2, 3]);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "[2, 3]").WithArguments("MyCollection1.F").WithLocation(46, 15)
+                );
+        }
+
+        [Fact]
+        public void CollectionWithRequiredMember_02()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+
+public class MyCollection : IEnumerable<long>
+{
+    [SetsRequiredMembers]
+    public MyCollection(){}
+
+    public List<long> Array = new List<long>();
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(long l) => Array.Add(l);
+
+    public required int F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+
+    static void Test2()
+    {
+        Test([2, 3]);
+    }
+}
+
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

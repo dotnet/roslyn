@@ -1522,7 +1522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (state.NotePartComplete(CompletionPart.StartParamsValidation))
             {
-                if (IsParams)
+                if (IsParams && ParameterSyntax?.Modifiers.Any(SyntaxKind.ParamsKeyword) == true)
                 {
                     var diagnostics = BindingDiagnosticBag.GetInstance();
                     validateParamsType(diagnostics);
@@ -1639,24 +1639,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     MessageID.IDS_ParamsCollections.CheckFeatureAvailability(diagnostics, ParameterSyntax);
                 }
+            }
 
-                bool isAtLeastAsVisible(ParameterSyntax syntax, Binder binder, MethodSymbol method, BindingDiagnosticBag diagnostics)
+            bool isAtLeastAsVisible(ParameterSyntax syntax, Binder binder, MethodSymbol method, BindingDiagnosticBag diagnostics)
+            {
+                var useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+
+                bool result = method.IsAsRestrictive(ContainingSymbol, ref useSiteInfo) &&
+                              method.ContainingType.IsAtLeastAsVisibleAs(ContainingSymbol, ref useSiteInfo);
+
+                diagnostics.Add(syntax.Location, useSiteInfo);
+                return result;
+            }
+
+            void checkIsAtLeastAsVisible(ParameterSyntax syntax, Binder binder, MethodSymbol method, BindingDiagnosticBag diagnostics)
+            {
+                if (!isAtLeastAsVisible(syntax, binder, method, diagnostics))
                 {
-                    var useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
-
-                    bool result = method.IsAsRestrictive(ContainingSymbol, ref useSiteInfo) &&
-                                  method.ContainingType.IsAtLeastAsVisibleAs(ContainingSymbol, ref useSiteInfo);
-
-                    diagnostics.Add(syntax.Location, useSiteInfo);
-                    return result;
-                }
-
-                void checkIsAtLeastAsVisible(ParameterSyntax syntax, Binder binder, MethodSymbol method, BindingDiagnosticBag diagnostics)
-                {
-                    if (!isAtLeastAsVisible(syntax, binder, method, diagnostics))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, syntax, method, ContainingSymbol);
-                    }
+                    diagnostics.Add(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, syntax, method, ContainingSymbol);
                 }
             }
 

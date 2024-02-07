@@ -1187,7 +1187,8 @@ outerDefault:
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
                 case CollectionExpressionTypeKind.CollectionBuilder:
                     {
-                        binder.TryGetCollectionIterationType(CSharpSyntaxTree.Dummy.GetRoot(), type, out elementType);
+                        SyntaxNode syntax = CSharpSyntaxTree.Dummy.GetRoot();
+                        binder.TryGetCollectionIterationType(syntax, type, out elementType);
 
                         if (elementType.Type is null)
                         {
@@ -1196,12 +1197,12 @@ outerDefault:
 
                         if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                         {
-                            if (!binder.HasCollectionExpressionApplicableConstructor(CSharpSyntaxTree.Dummy.GetRoot(), type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
+                            if (!binder.HasCollectionExpressionApplicableConstructor(syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
                             {
                                 return false;
                             }
 
-                            if (!binder.HasCollectionExpressionApplicableAddMethod(CSharpSyntaxTree.Dummy.GetRoot(), type, elementType.Type, addMethods: out _, BindingDiagnosticBag.Discarded))
+                            if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, type, elementType.Type, addMethods: out _, BindingDiagnosticBag.Discarded))
                             {
                                 return false;
                             }

@@ -5917,14 +5917,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = bindCollectionInitializerElementAddMethod(elementInitializer, boundElementInitializerExpressions, collectionInitializerAddMethodBinder, diagnostics, implicitReceiver);
 
 #if DEBUG
-            if (boundElementInitializerExpressions.Length == 1 &&
+            if (!result.HasErrors &&
+                boundElementInitializerExpressions.Length == 1 &&
                 boundElementInitializerExpressions[0] is not
                     ({ Type: null } or BoundLiteral or BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true }) &&
                 !implicitReceiver.Type.IsDynamic())
             {
                 var d = BindingDiagnosticBag.GetInstance();
-                bool toCheck = collectionInitializerAddMethodBinder.HasCollectionExpressionApplicableAddMethod(elementInitializer, implicitReceiver.Type, boundElementInitializerExpressions[0].Type, addMethods: out _, d);
-                Debug.Assert(toCheck || result.HasErrors);
+
+                // This assert provides some validation that, if the real invocation binding succeeds, then the HasCollectionExpressionApplicableAddMethod helper succeeds as well.
+                Debug.Assert(collectionInitializerAddMethodBinder.HasCollectionExpressionApplicableAddMethod(elementInitializer, implicitReceiver.Type, boundElementInitializerExpressions[0].Type, addMethods: out _, d));
+
                 d.Free();
             }
 #endif 
