@@ -215,7 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundSequence { SideEffects.Length: 0, Value: BoundCall sequenceCall } sequence:
-                    var locals = sequence.Locals;
+                    var locals = PooledHashSet<LocalSymbol>.GetInstance();
+                    locals.AddAll(sequence.Locals);
 
                     if ((object)sequenceCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_2ReadOnlySpans) ||
                         (object)sequenceCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_3ReadOnlySpans) ||
@@ -245,14 +246,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Value: BoundObjectCreationExpression { Constructor: var objectCreationConstructor, Arguments: [BoundLocal constructorLocal] }
                             } &&
                                 constructorLocal == assignment.Left &&
-                                locals.Contains(constructorLocal.LocalSymbol) &&
+                                locals.Remove(constructorLocal.LocalSymbol) &&
                                 (object)objectCreationConstructor.OriginalDefinition == _compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference) &&
                                 objectCreationConstructor.ReceiverType.IsReadOnlySpanChar())
                             {
                                 Debug.Assert(assignment.Right.Type?.IsCharType() == true);
                                 var wrappedExpr = ConvertConcatExprToString(assignment.Right);
                                 unwrappedArgsBuilder.Add(wrappedExpr);
-                                locals = locals.Remove(constructorLocal.LocalSymbol);
                             }
                             else
                             {
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        if (locals.Length > 0)
+                        if (locals.Count > 0)
                         {
                             // Not all locals are part of a known shape
                             arguments = default;
