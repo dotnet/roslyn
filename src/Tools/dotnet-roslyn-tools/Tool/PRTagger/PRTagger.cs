@@ -3,8 +3,8 @@
 // See the License.txt file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json.Nodes;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Authentication;
@@ -15,7 +15,6 @@ using Microsoft.RoslynTools.VS;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Newtonsoft.Json;
-using Octokit;
 using Repository = LibGit2Sharp.Repository;
 
 namespace Microsoft.RoslynTools.PRTagger;
@@ -36,7 +35,7 @@ internal static class PRTagger
         ImmutableArray<(string vsBuild, string vsCommitSha, string previousVsCommitSha)> vsBuildsAndCommitSha,
         RoslynToolsSettings settings,
         AzDOConnection devdivConnection,
-        GitHubClient gitHubClient,
+        HttpClient gitHubClient,
         ILogger logger)
     {
         using var dncengConnection = new AzDOConnection(settings.DncEngAzureDevOpsBaseUri, "internal", settings.DncEngAzureDevOpsToken);
@@ -62,7 +61,7 @@ internal static class PRTagger
     }
 
     private static async Task<TagResult> TagProductAsync(
-        IProduct product, ILogger logger, string vsCommitSha, string vsBuild, string previousVsCommitSha, RoslynToolsSettings settings, AzDOConnection devdivConnection, AzDOConnection dncengConnection, GitHubClient gitHubClient)
+        IProduct product, ILogger logger, string vsCommitSha, string vsBuild, string previousVsCommitSha, RoslynToolsSettings settings, AzDOConnection devdivConnection, AzDOConnection dncengConnection, HttpClient gitHubClient)
     {
         var connections = new[] { devdivConnection, dncengConnection };
         // We currently only support creating issues for GitHub repos
@@ -140,7 +139,7 @@ internal static class PRTagger
         }
 
         var issueTitle = $"[Automated] PRs inserted in VS build {vsBuild}";
-        var hasIssueAlreadyCreated = await HasIssueAlreadyCreatedAsync(gitHubClient, gitHubRepoName, issueTitle).ConfigureAwait(false);
+        var hasIssueAlreadyCreated = await HasIssueAlreadyCreatedAsync(gitHubClient, gitHubRepoName, issueTitle, logger).ConfigureAwait(false);
         if (hasIssueAlreadyCreated)
         {
             logger.LogInformation($"Issue with name: {issueTitle} exists in repo: {gitHubRepoName}. Skip creation.");
@@ -150,8 +149,7 @@ internal static class PRTagger
         logger.LogInformation($"Creating issue...");
 
         // Create issue
-        await TryCreateIssueAsync(gitHubClient, issueTitle, gitHubRepoName, prDescription.ToString(), logger).ConfigureAwait(false);
-        return TagResult.Succeed;
+        return await TryCreateIssueAsync(gitHubClient, issueTitle, gitHubRepoName, prDescription.ToString(), logger).ConfigureAwait(false);
     }
 
     public static async Task<ImmutableArray<(string vsBuild, string vsCommit, string previousVsCommitSha)>> GetVSBuildsAndCommitsAsync(
@@ -244,25 +242,13 @@ internal static class PRTagger
         return null;
     }
 
-    private static async Task TryCreateIssueAsync(
+    private static async Task<TagResult> TryCreateIssueAsync(
+        HttpClient client,
         string title,
         string gitHubRepoName,
         string issueBody,
-        string gitHubToken,
         ILogger logger)
     {
-        var client = new HttpClient
-        {
-            BaseAddress = new("https://api.github.com/")
-        };
-
-        var authArray = Encoding.ASCII.GetBytes($"{gitHubToken}");
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Basic",
-            Convert.ToBase64String(authArray));
-        client.DefaultRequestHeaders.Add(
-            "user-agent",
-            "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2;)");
 
         // https://docs.github.com/en/rest/issues/issues#create-an-issue
         var response = await client.PostAsyncAsJson($"repos/dotnet/{gitHubRepoName}/issues", JsonConvert.SerializeObject(
@@ -276,28 +262,34 @@ internal static class PRTagger
         if (!response.IsSuccessStatusCode)
         {
             logger.LogError($"Issue creation failed with status code: {response.StatusCode}");
+            return TagResult.Failed;
         }
 
         logger.LogInformation("Successfully created issue.");
+        return TagResult.Succeed;
     }
 
     /// <summary>
     /// Check if the issue with <param name="title"/> exists in repo.
     /// </summary>
     private static async Task<bool> HasIssueAlreadyCreatedAsync(
-        GitHubClient client,
+        HttpClient client,
         string repoName,
-        string title)
+        string title,
+        ILogger logger)
     {
-        var searchRequest = new SearchIssuesRequest(title)
+        var response = await client.GetAsync($"search/issues?q={title}+repo:dotnet/{repoName}+label:{InsertionLabel}").ConfigureAwait(false);
+        if (!response.IsSuccessStatusCode)
         {
-            Type = IssueTypeQualifier.Issue,
-            Labels = new[] { InsertionLabel },
-            Repos = new RepositoryCollection{ {"dotnet", repoName} },
-            In = new[] { IssueInQualifier.Title }
-        };
+            logger.LogError("Failed to search on GitHub");
+            throw new Exception($"Error happens when try to search {title} in {repoName}.");
+        }
 
-        var searchIssueResult = await client.Search.SearchIssues(searchRequest).ConfigureAwait(false);
-        return searchIssueResult.TotalCount != 0;
+        var content = await response.Content.ReadAsStringAsync();
+        var jsonResponseContent = JsonObject.Parse(content);
+        // https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28
+        // total_count is required in response schema
+        var issueNumber = int.Parse(jsonResponseContent["total_count"].ToString());
+        return issueNumber != 0;
     }
 }

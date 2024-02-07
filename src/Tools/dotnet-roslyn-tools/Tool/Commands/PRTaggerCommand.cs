@@ -4,6 +4,7 @@
 
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.Net.Http.Headers;
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Utilities;
 
@@ -49,10 +50,18 @@ internal static class PRTaggerCommand
             using var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
             var buildsAndCommits = await PRTagger.PRTagger.GetVSBuildsAndCommitsAsync(devdivConnection, logger, vsBuildNumber, CancellationToken.None).ConfigureAwait(false);
 
-            var client = new GitHubClient(new ProductHeaderValue("roslyn-tool-pr-tagger"))
+            var client = new HttpClient
             {
-                Credentials = new Credentials(settings.GitHubToken)
+                BaseAddress = new("https://api.github.com/")
             };
+
+            client.DefaultRequestHeaders.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
+            client.DefaultRequestHeaders.Add("User-Agent", "roslyn-tool-tagger");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+                "Bearer",
+                settings.GitHubToken);
+
             return await PRTagger.PRTagger.TagPRs(
                 vsBuildsAndCommitSha: buildsAndCommits,
                 settings,
