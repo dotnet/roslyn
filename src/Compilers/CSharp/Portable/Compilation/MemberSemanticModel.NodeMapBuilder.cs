@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (CSharpSyntaxNode key in additionMap.Keys)
                 {
-                    var added = additionMap.GetAsOneOrMany(key);
-                    if (!map.TryAdd(key, added))
+                    var nodesToAdd = additionMap.GetAsOneOrMany(key);
+                    if (!map.TryAdd(key, nodesToAdd))
                     {
 #if DEBUG
                         // It's possible that AddToMap was previously called with a subtree of root.  If this is the case,
@@ -79,34 +79,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // have the same structure as the original map entries, but will not be ReferenceEquals.
 
                         var existing = map[key];
-                        Debug.Assert(existing.Count == added.Count, "existing.Count == added.Length");
+                        Debug.Assert(existing.Count == nodesToAdd.Count, "existing.Count == nodesToAdd.Length");
                         for (int i = 0; i < existing.Count; i++)
                         {
-                            // TODO: it would be great if we could check !ReferenceEquals(existing[i], added[i]) (DevDiv #11584).
+                            // TODO: it would be great if we could check !ReferenceEquals(existing[i], nodesToAdd[i]) (DevDiv #11584).
                             // Known impediments include:
                             //   1) Field initializers aren't cached because they're not in statements.
                             //   2) Single local declarations (e.g. "int x = 1;" vs "int x = 1, y = 2;") aren't found in the cache
                             //      since nothing is cached for the statement syntax.
-                            if (existing[i].Kind != added[i].Kind)
+                            if (existing[i].Kind != nodesToAdd[i].Kind)
                             {
                                 Debug.Assert(!(key is StatementSyntax), "!(key is StatementSyntax)");
 
                                 // This also seems to be happening when we get equivalent BoundTypeExpression and BoundTypeOrValueExpression nodes.
-                                if (existing[i].Kind == BoundKind.TypeExpression && added[i].Kind == BoundKind.TypeOrValueExpression)
+                                if (existing[i].Kind == BoundKind.TypeExpression && nodesToAdd[i].Kind == BoundKind.TypeOrValueExpression)
                                 {
                                     Debug.Assert(
-                                        TypeSymbol.Equals(((BoundTypeExpression)existing[i]).Type, ((BoundTypeOrValueExpression)added[i]).Type, TypeCompareKind.ConsiderEverything2),
+                                        TypeSymbol.Equals(((BoundTypeExpression)existing[i]).Type, ((BoundTypeOrValueExpression)nodesToAdd[i]).Type, TypeCompareKind.ConsiderEverything2),
                                         string.Format(
                                             System.Globalization.CultureInfo.InvariantCulture,
-                                            "((BoundTypeExpression)existing[{0}]).Type == ((BoundTypeOrValueExpression)added[{0}]).Type", i));
+                                            "((BoundTypeExpression)existing[{0}]).Type == ((BoundTypeOrValueExpression)nodesToAdd[{0}]).Type", i));
                                 }
-                                else if (existing[i].Kind == BoundKind.TypeOrValueExpression && added[i].Kind == BoundKind.TypeExpression)
+                                else if (existing[i].Kind == BoundKind.TypeOrValueExpression && nodesToAdd[i].Kind == BoundKind.TypeExpression)
                                 {
                                     Debug.Assert(
-                                        TypeSymbol.Equals(((BoundTypeOrValueExpression)existing[i]).Type, ((BoundTypeExpression)added[i]).Type, TypeCompareKind.ConsiderEverything2),
+                                        TypeSymbol.Equals(((BoundTypeOrValueExpression)existing[i]).Type, ((BoundTypeExpression)nodesToAdd[i]).Type, TypeCompareKind.ConsiderEverything2),
                                         string.Format(
                                             System.Globalization.CultureInfo.InvariantCulture,
-                                            "((BoundTypeOrValueExpression)existing[{0}]).Type == ((BoundTypeExpression)added[{0}]).Type", i));
+                                            "((BoundTypeOrValueExpression)existing[{0}]).Type == ((BoundTypeExpression)nodesToAdd[{0}]).Type", i));
                                 }
                                 else
                                 {
@@ -116,10 +116,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 Debug.Assert(
-                                    (object)existing[i] == added[i] || !(key is StatementSyntax),
+                                    (object)existing[i] == nodesToAdd[i] || !(key is StatementSyntax),
                                     string.Format(
                                         System.Globalization.CultureInfo.InvariantCulture,
-                                        "(object)existing[{0}] == added[{0}] || !(key is StatementSyntax)", i));
+                                        "(object)existing[{0}] == nodesToAdd[{0}] || !(key is StatementSyntax)", i));
                             }
                         }
 #endif
