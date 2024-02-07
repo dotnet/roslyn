@@ -40,6 +40,17 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether the server provides support for sending diagnostics requests for all project contexts.
+        /// </summary>
+        [DataMember(Name = "_vs_supportsMultipleContextDiagnostics")]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public bool SupportsMultipleContextsDiagnostics
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.
         /// </summary>
         [DataMember(Name = "_vs_workDoneProgress")]

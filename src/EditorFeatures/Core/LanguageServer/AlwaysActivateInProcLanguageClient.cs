@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             serverCapabilities.BreakableRangeProvider = true;
 
             serverCapabilities.SupportsDiagnosticRequests = true;
-            serverCapabilities.MultipleContextSupportProvider = new VSInternalMultipleContextFeatures { SupportsMultipleContextsDiagnostics = true };
             serverCapabilities.DiagnosticProvider ??= new();
+            serverCapabilities.DiagnosticProvider.SupportsMultipleContextsDiagnostics = true;
             serverCapabilities.DiagnosticProvider.DiagnosticKinds =
             [
                 // Support a specialized requests dedicated to task-list items.  This way the client can ask just
@@ -88,10 +88,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 new(PullDiagnosticCategories.DocumentAnalyzerSyntax),
                 new(PullDiagnosticCategories.DocumentAnalyzerSemantic),
             ];
-
-            serverCapabilities.DiagnosticProvider.BuildOnlyDiagnosticIds = [.. _buildOnlyDiagnostics
+            serverCapabilities.DiagnosticProvider.BuildOnlyDiagnosticIds = _buildOnlyDiagnostics
                 .SelectMany(lazy => lazy.Metadata.BuildOnlyDiagnostics)
-                .Distinct()];
+                .Distinct()
+                .ToArray();
 
             // This capability is always enabled as we provide cntrl+Q VS search only via LSP in ever scenario.
             serverCapabilities.WorkspaceSymbolProvider = true;
