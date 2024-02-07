@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             if (isPullDiagnostics)
             {
                 serverCapabilities.SupportsDiagnosticRequests = true;
-                serverCapabilities.MultipleContextSupportProvider = new VSInternalMultipleContextFeatures { SupportsMultipleContextsDiagnostics = true };
                 serverCapabilities.DiagnosticProvider ??= new();
+                serverCapabilities.DiagnosticProvider.SupportsMultipleContextsDiagnostics = true;
                 serverCapabilities.DiagnosticProvider.DiagnosticKinds =
                 [
                     // Support a specialized requests dedicated to task-list items.  This way the client can ask just
