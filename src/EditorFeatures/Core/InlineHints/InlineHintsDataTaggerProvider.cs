@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             // The LSP client will handle producing tags when running under the LSP editor.
             // Our tagger implementation should return nothing to prevent conflicts.
             var workspaceContextService = document.Project.Solution.Services.GetRequiredService<IWorkspaceContextService>();
-            if (workspaceContextService?.IsInLspEditorContext() is true)
+            if (workspaceContextService.IsInLspEditorContext())
                 return;
 
             var service = document.GetLanguageService<IInlineHintsService>();
