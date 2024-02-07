@@ -3,10 +3,8 @@
 // See the License.txt file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Text;
 using System.Text.Json.Nodes;
-using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Authentication;
 using Microsoft.RoslynTools.Extensions;
