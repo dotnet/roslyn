@@ -78,6 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 var docIdsWithPath = _solution.GetDocumentIdsWithFilePath(filePath.OriginalString);
                 Document? document = null;
+                Project? project = null;
 
                 foreach (var docIdWithPath in docIdsWithPath)
                 {
@@ -85,16 +86,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     if (projectState != null &&
                         string.Equals(projectState.FilePath, projectPath.OriginalString))
                     {
-                        document = _solution.GetDocument(docIdWithPath);
+                        project = _solution.GetRequiredProject(projectState.Id);
+                        document = project.GetRequiredDocument(docIdWithPath);
                         break;
                     }
                 }
 
-                if (document == null)
+                if (document == null || project == null)
                 {
                     return;
                 }
 
+                _nodeToContextProjectMap.Add(inputNode, project);
                 _nodeToContextDocumentMap.Add(inputNode, document);
             }
         }
