@@ -564,83 +564,83 @@ namespace Microsoft.CodeAnalysis
 
                         _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
                     };
+                }
 
-                    async Task<FinalCompilationTrackerState> BuildFinalStateFromScratchAsync(
-                        SolutionCompilationState compilationState,
-                        NoCompilationState noCompilationState,
-                        CancellationToken cancellationToken)
+                async Task<FinalCompilationTrackerState> BuildFinalStateFromScratchAsync(
+                    SolutionCompilationState compilationState,
+                    NoCompilationState noCompilationState,
+                    CancellationToken cancellationToken)
+                {
+                    Contract.ThrowIfTrue(noCompilationState.GeneratorInfo.DocumentsAreFinal);
+
+                    try
                     {
-                        Contract.ThrowIfTrue(noCompilationState.GeneratorInfo.DocumentsAreFinal);
+                        var allSyntaxTreesParsedState = await BuildAllSyntaxTreesParsedStateFromScratchAsync(
+                            noCompilationState, cancellationToken).ConfigureAwait(false);
 
-                        try
-                        {
-                            var allSyntaxTreesParsedState = await BuildAllSyntaxTreesParsedStateFromScratchAsync(
-                                noCompilationState, cancellationToken).ConfigureAwait(false);
-
-                            return await FinalizeCompilationAsync(
-                                compilationState,
-                                allSyntaxTreesParsedState,
-                                cancellationToken).ConfigureAwait(false);
-                        }
-                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-                        {
-                            throw ExceptionUtilities.Unreachable();
-                        }
+                        return await FinalizeCompilationAsync(
+                            compilationState,
+                            allSyntaxTreesParsedState,
+                            cancellationToken).ConfigureAwait(false);
                     }
-
-                    [PerformanceSensitive(
-                        "https://github.com/dotnet/roslyn/issues/23582",
-                        Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
-                    async Task<AllSyntaxTreesParsedState> BuildAllSyntaxTreesParsedStateFromScratchAsync(
-                        NoCompilationState noCompilationState,
-                        CancellationToken cancellationToken)
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                     {
-                        try
-                        {
-                            var compilation = CreateEmptyCompilation();
-
-                            using var _ = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentStates.Count, out var trees);
-                            foreach (var documentState in ProjectState.DocumentStates.GetStatesInCompilationOrder())
-                            {
-                                cancellationToken.ThrowIfCancellationRequested();
-                                // Include the tree even if the content of the document failed to load.
-                                trees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-                            }
-
-                            compilation = compilation.AddSyntaxTrees(trees);
-
-                            // We only got here when we had no compilation state at all.  So we couldn't have gotten
-                            // here from a frozen state (as a frozen state always ensures we have a
-                            // WithCompilationTrackerState).  As such, we can safely still preserve that we're not
-                            // frozen here.
-                            var allSyntaxTreesParsedState = new AllSyntaxTreesParsedState(
-                                isFrozen: false, compilation, noCompilationState.GeneratorInfo, staleCompilationWithGeneratedDocuments: null);
-                            WriteState(allSyntaxTreesParsedState);
-                            return allSyntaxTreesParsedState;
-                        }
-                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-                        {
-                            throw ExceptionUtilities.Unreachable();
-                        }
+                        throw ExceptionUtilities.Unreachable();
                     }
+                }
 
-                    async Task<FinalCompilationTrackerState> BuildFinalStateFromInProgressStateAsync(
-                        SolutionCompilationState compilationState, InProgressState inProgressState, CancellationToken cancellationToken)
+                [PerformanceSensitive(
+                    "https://github.com/dotnet/roslyn/issues/23582",
+                    Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
+                async Task<AllSyntaxTreesParsedState> BuildAllSyntaxTreesParsedStateFromScratchAsync(
+                    NoCompilationState noCompilationState,
+                    CancellationToken cancellationToken)
+                {
+                    try
                     {
-                        try
-                        {
-                            var allSyntaxTreesParsedState = await BuildAllSyntaxTreesParsedStateFromInProgressStateAsync(
-                                inProgressState, cancellationToken).ConfigureAwait(false);
+                        var compilation = CreateEmptyCompilation();
 
-                            return await FinalizeCompilationAsync(
-                                compilationState,
-                                allSyntaxTreesParsedState,
-                                cancellationToken).ConfigureAwait(false);
-                        }
-                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                        using var _ = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentStates.Count, out var trees);
+                        foreach (var documentState in ProjectState.DocumentStates.GetStatesInCompilationOrder())
                         {
-                            throw ExceptionUtilities.Unreachable();
+                            cancellationToken.ThrowIfCancellationRequested();
+                            // Include the tree even if the content of the document failed to load.
+                            trees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
                         }
+
+                        compilation = compilation.AddSyntaxTrees(trees);
+
+                        // We only got here when we had no compilation state at all.  So we couldn't have gotten
+                        // here from a frozen state (as a frozen state always ensures we have a
+                        // WithCompilationTrackerState).  As such, we can safely still preserve that we're not
+                        // frozen here.
+                        var allSyntaxTreesParsedState = new AllSyntaxTreesParsedState(
+                            isFrozen: false, compilation, noCompilationState.GeneratorInfo, staleCompilationWithGeneratedDocuments: null);
+                        WriteState(allSyntaxTreesParsedState);
+                        return allSyntaxTreesParsedState;
+                    }
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+                }
+
+                async Task<FinalCompilationTrackerState> BuildFinalStateFromInProgressStateAsync(
+                    SolutionCompilationState compilationState, InProgressState inProgressState, CancellationToken cancellationToken)
+                {
+                    try
+                    {
+                        var allSyntaxTreesParsedState = await BuildAllSyntaxTreesParsedStateFromInProgressStateAsync(
+                            inProgressState, cancellationToken).ConfigureAwait(false);
+
+                        return await FinalizeCompilationAsync(
+                            compilationState,
+                            allSyntaxTreesParsedState,
+                            cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                    {
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }
             }
