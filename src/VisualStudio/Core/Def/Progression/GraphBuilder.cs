@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -83,11 +84,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 foreach (var docIdWithPath in docIdsWithPath)
                 {
                     var projectState = _solution.GetProjectState(docIdWithPath.ProjectId);
-                    if (projectState != null &&
-                        string.Equals(projectState.FilePath, projectPath.OriginalString))
+                    if (projectState == null)
+                    {
+                        FatalError.ReportAndCatch(new Exception("GetDocumentIdsWithFilePath returned a document in a project that does not exist."));
+                        continue;
+                    }
+
+                    if (string.Equals(projectState.FilePath, projectPath.OriginalString))
                     {
                         project = _solution.GetRequiredProject(projectState.Id);
-                        document = project.GetRequiredDocument(docIdWithPath);
+                        document = project.GetDocument(docIdWithPath);
                         break;
                     }
                 }
