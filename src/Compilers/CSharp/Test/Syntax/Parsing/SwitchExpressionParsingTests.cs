@@ -460,6 +460,8 @@ public class SwitchExpressionParsingTests : ParsingTests
     [InlineData("// leading\r\ncase")]
     [InlineData("/*leading*/ case")]
     [InlineData("case // trailing")]
+    [InlineData("case /* trailing */")]
+    [InlineData("case /* trailing\r\n*/")]
     [InlineData("/*leading*/ case // trailing")]
     [InlineData("/*leading*/ case /* trailing */")]
     public void TestErrantCaseInSwitchExpression4(string caseString)
