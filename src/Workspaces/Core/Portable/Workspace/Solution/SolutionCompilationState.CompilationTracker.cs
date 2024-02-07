@@ -532,51 +532,33 @@ namespace Microsoft.CodeAnalysis
 
                     var state = ReadState();
 
-                    return state switch
-                    {
-                        // if we already have a compilation, we must be already done!  This can happen if two
-                        // threads were waiting to build, and we came in after the other succeeded.
-                        FinalCompilationTrackerState finalState
-                            => finalState,
+                    // if we already have a compilation, we must be already done!  This can happen if two
+                    // threads were waiting to build, and we came in after the other succeeded.
+                    if (state is FinalCompilationTrackerState finalState)
+                        return finalState;
 
+                    // Transition from wherever we're currently at to the 'all trees parsed' state.
+                    var allSyntaxTreesParsedState = state switch
+                    {
+                        // If we're already there, then there's nothing to do.
+                        AllSyntaxTreesParsedState allParsedState
+                            => allParsedState,
                         // We've got nothing.  Build it from scratch :(
                         NoCompilationState noCompilationState
-                            => await BuildFinalStateFromScratchAsync(noCompilationState).ConfigureAwait(false),
-
-                        // We have a declaration compilation, use it to reconstruct the final compilation
-                        AllSyntaxTreesParsedState allSyntaxTreesParsedState
-                            => await FinalizeCompilationAsync(allSyntaxTreesParsedState).ConfigureAwait(false),
-
-                        // We must have an in progress compilation. Build off of that.
+                            => await BuildAllSyntaxTreesParsedStateFromNoCompilationStateAsync(noCompilationState).ConfigureAwait(false),
                         InProgressState inProgressState
-                            => await BuildFinalStateFromInProgressStateAsync(inProgressState).ConfigureAwait(false),
-
-                        _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
+                            => await BuildAllSyntaxTreesParsedStateFromInProgressStateAsync(inProgressState).ConfigureAwait(false),
+                        _ => throw ExceptionUtilities.UnexpectedValue(state.GetType())
                     };
-                }
 
-                async Task<FinalCompilationTrackerState> BuildFinalStateFromScratchAsync(
-                    NoCompilationState noCompilationState)
-                {
-                    Contract.ThrowIfTrue(noCompilationState.GeneratorInfo.DocumentsAreFinal);
-
-                    try
-                    {
-                        var allSyntaxTreesParsedState = await BuildAllSyntaxTreesParsedStateFromScratchAsync(noCompilationState).ConfigureAwait(false);
-
-                        return await FinalizeCompilationAsync(allSyntaxTreesParsedState).ConfigureAwait(false);
-                    }
-                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-                    {
-                        throw ExceptionUtilities.Unreachable();
-                    }
+                    // Now do the final step of transitioning from the 'all trees parsed' state to the final state.
+                    return await FinalizeCompilationAsync(allSyntaxTreesParsedState).ConfigureAwait(false);
                 }
 
                 [PerformanceSensitive(
                     "https://github.com/dotnet/roslyn/issues/23582",
                     Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
-                async Task<AllSyntaxTreesParsedState> BuildAllSyntaxTreesParsedStateFromScratchAsync(
-                    NoCompilationState noCompilationState)
+                async Task<AllSyntaxTreesParsedState> BuildAllSyntaxTreesParsedStateFromNoCompilationStateAsync(NoCompilationState noCompilationState)
                 {
                     try
                     {
@@ -607,16 +589,90 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                async Task<FinalCompilationTrackerState> BuildFinalStateFromInProgressStateAsync(InProgressState inProgressState)
+                async Task<AllSyntaxTreesParsedState> BuildAllSyntaxTreesParsedStateFromInProgressStateAsync(InProgressState state)
                 {
                     try
                     {
-                        var allSyntaxTreesParsedState = await BuildAllSyntaxTreesParsedStateFromInProgressStateAsync(
-                            inProgressState, cancellationToken).ConfigureAwait(false);
+                        var compilationWithoutGeneratedDocuments = state.CompilationWithoutGeneratedDocuments;
+                        var staleCompilationWithGeneratedDocuments = state.StaleCompilationWithGeneratedDocuments;
+                        var generatorDriver = state.GeneratorInfo.Driver;
 
-                        return await FinalizeCompilationAsync(allSyntaxTreesParsedState).ConfigureAwait(false);
+                        // If staleCompilationWithGeneratedDocuments is the same as compilationWithoutGeneratedDocuments,
+                        // then it means a prior run of generators didn't produce any files. In that case, we'll just make
+                        // staleCompilationWithGeneratedDocuments null so we avoid doing any transformations of it multiple
+                        // times. Otherwise the transformations below and in FinalizeCompilationAsync will try to update
+                        // both at once, which is functionally fine but just unnecessary work. This function is always
+                        // allowed to return null for AllSyntaxTreesParsedState.StaleCompilationWithGeneratedDocuments in
+                        // the end, so there's no harm there.
+                        if (staleCompilationWithGeneratedDocuments == compilationWithoutGeneratedDocuments)
+                        {
+                            staleCompilationWithGeneratedDocuments = null;
+                        }
+
+                        var intermediateProjects = state.IntermediateProjects;
+
+                        // This is guaranteed by an in progress state.  Which means we know we'll get into the while loop below.
+                        Contract.ThrowIfTrue(intermediateProjects.IsEmpty);
+                        AllSyntaxTreesParsedState? resultState = null;
+
+                        while (!intermediateProjects.IsEmpty)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            // We have a list of transformations to get to our final compilation; take the first transformation and apply it.
+                            var (oldState, action) = intermediateProjects[0];
+
+                            compilationWithoutGeneratedDocuments = await action.TransformCompilationAsync(compilationWithoutGeneratedDocuments, cancellationToken).ConfigureAwait(false);
+
+                            if (staleCompilationWithGeneratedDocuments != null)
+                            {
+                                // Also transform the compilation that has generated files; we won't do that though if the transformation either would cause problems with
+                                // the generated documents, or if don't have any source generators in the first place.
+                                if (action.CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput &&
+                                    oldState.SourceGenerators.Any())
+                                {
+                                    staleCompilationWithGeneratedDocuments = await action.TransformCompilationAsync(staleCompilationWithGeneratedDocuments, cancellationToken).ConfigureAwait(false);
+                                }
+                                else
+                                {
+                                    staleCompilationWithGeneratedDocuments = null;
+                                }
+                            }
+
+                            if (generatorDriver != null)
+                            {
+                                generatorDriver = action.TransformGeneratorDriver(generatorDriver);
+                            }
+
+                            // We have updated state, so store this new result; this allows us to drop the intermediate state we already processed
+                            // even if we were to get cancelled at a later point.
+                            intermediateProjects = intermediateProjects.RemoveAt(0);
+
+                            // As long as we have intermediate projects, we'll still keep creating InProgressStates.  But
+                            // once it becomes empty we'll produce an AllSyntaxTreesParsedState and we'll break the loop.
+                            //
+                            // Preserve the current frozen bit.  Specifically, once states become frozen, we continually make
+                            // all states forked from those states frozen as well.  This ensures we don't attempt to move
+                            // generator docs back to the uncomputed state from that point onwards.  We'll just keep
+                            // whateverZ generated docs we have.
+                            var currentState = CompilationTrackerState.Create(
+                                state.IsFrozen,
+                                compilationWithoutGeneratedDocuments,
+                                state.GeneratorInfo.WithDriver(generatorDriver),
+                                staleCompilationWithGeneratedDocuments,
+                                intermediateProjects);
+                            this.WriteState(currentState);
+
+                            Contract.ThrowIfTrue(intermediateProjects.Count > 0 && currentState is not InProgressState);
+                            Contract.ThrowIfTrue(intermediateProjects.Count == 0 && currentState is not AllSyntaxTreesParsedState);
+
+                            resultState = currentState as AllSyntaxTreesParsedState;
+                        }
+
+                        Contract.ThrowIfNull(resultState);
+                        return resultState;
                     }
-                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                     {
                         throw ExceptionUtilities.Unreachable();
                     }
@@ -768,96 +824,6 @@ namespace Microsoft.CodeAnalysis
                     return compilationFactory.CreateCompilation(
                         this.ProjectState.AssemblyName,
                         this.ProjectState.CompilationOptions!);
-                }
-            }
-
-            private async Task<AllSyntaxTreesParsedState> BuildAllSyntaxTreesParsedStateFromInProgressStateAsync(
-                InProgressState state, CancellationToken cancellationToken)
-            {
-                try
-                {
-                    var compilationWithoutGeneratedDocuments = state.CompilationWithoutGeneratedDocuments;
-                    var staleCompilationWithGeneratedDocuments = state.StaleCompilationWithGeneratedDocuments;
-                    var generatorDriver = state.GeneratorInfo.Driver;
-
-                    // If staleCompilationWithGeneratedDocuments is the same as compilationWithoutGeneratedDocuments,
-                    // then it means a prior run of generators didn't produce any files. In that case, we'll just make
-                    // staleCompilationWithGeneratedDocuments null so we avoid doing any transformations of it multiple
-                    // times. Otherwise the transformations below and in FinalizeCompilationAsync will try to update
-                    // both at once, which is functionally fine but just unnecessary work. This function is always
-                    // allowed to return null for AllSyntaxTreesParsedState.StaleCompilationWithGeneratedDocuments in
-                    // the end, so there's no harm there.
-                    if (staleCompilationWithGeneratedDocuments == compilationWithoutGeneratedDocuments)
-                    {
-                        staleCompilationWithGeneratedDocuments = null;
-                    }
-
-                    var intermediateProjects = state.IntermediateProjects;
-
-                    // This is guaranteed by an in progress state.  Which means we know we'll get into the while loop below.
-                    Contract.ThrowIfTrue(intermediateProjects.IsEmpty);
-                    AllSyntaxTreesParsedState? resultState = null;
-
-                    while (!intermediateProjects.IsEmpty)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        // We have a list of transformations to get to our final compilation; take the first transformation and apply it.
-                        var (oldState, action) = intermediateProjects[0];
-
-                        compilationWithoutGeneratedDocuments = await action.TransformCompilationAsync(compilationWithoutGeneratedDocuments, cancellationToken).ConfigureAwait(false);
-
-                        if (staleCompilationWithGeneratedDocuments != null)
-                        {
-                            // Also transform the compilation that has generated files; we won't do that though if the transformation either would cause problems with
-                            // the generated documents, or if don't have any source generators in the first place.
-                            if (action.CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput &&
-                                oldState.SourceGenerators.Any())
-                            {
-                                staleCompilationWithGeneratedDocuments = await action.TransformCompilationAsync(staleCompilationWithGeneratedDocuments, cancellationToken).ConfigureAwait(false);
-                            }
-                            else
-                            {
-                                staleCompilationWithGeneratedDocuments = null;
-                            }
-                        }
-
-                        if (generatorDriver != null)
-                        {
-                            generatorDriver = action.TransformGeneratorDriver(generatorDriver);
-                        }
-
-                        // We have updated state, so store this new result; this allows us to drop the intermediate state we already processed
-                        // even if we were to get cancelled at a later point.
-                        intermediateProjects = intermediateProjects.RemoveAt(0);
-
-                        // As long as we have intermediate projects, we'll still keep creating InProgressStates.  But
-                        // once it becomes empty we'll produce an AllSyntaxTreesParsedState and we'll break the loop.
-                        //
-                        // Preserve the current frozen bit.  Specifically, once states become frozen, we continually make
-                        // all states forked from those states frozen as well.  This ensures we don't attempt to move
-                        // generator docs back to the uncomputed state from that point onwards.  We'll just keep
-                        // whateverZ generated docs we have.
-                        var currentState = CompilationTrackerState.Create(
-                            state.IsFrozen,
-                            compilationWithoutGeneratedDocuments,
-                            state.GeneratorInfo.WithDriver(generatorDriver),
-                            staleCompilationWithGeneratedDocuments,
-                            intermediateProjects);
-                        this.WriteState(currentState);
-
-                        Contract.ThrowIfTrue(intermediateProjects.Count > 0 && currentState is not InProgressState);
-                        Contract.ThrowIfTrue(intermediateProjects.Count == 0 && currentState is not AllSyntaxTreesParsedState);
-
-                        resultState = currentState as AllSyntaxTreesParsedState;
-                    }
-
-                    Contract.ThrowIfNull(resultState);
-                    return resultState;
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-                {
-                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
