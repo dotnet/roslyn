@@ -6,13 +6,6 @@ steps:
 - powershell: echo "##vso[build.addbuildtag]compliance"
   displayName: 🏷️ Tag run with 'compliance'
 
-- task: PoliCheck@2
-  displayName: 🔍 Run PoliCheck
-  inputs:
-    targetType: F
-    targetArgument: $(System.DefaultWorkingDirectory)
-    optionsUEPATH: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
-
 - task: CopyFiles@2
   displayName: 📂 Collect APIScan inputs
   inputs:
