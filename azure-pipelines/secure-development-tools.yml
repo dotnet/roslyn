@@ -37,3 +37,11 @@ steps:
   condition: and(succeeded(), ${{ parameters.EnableAPIScan }}, ne(variables.ApiScanClientId, ''))
   env:
     AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
+
+# File bugs when APIScan finds issues
+- task: TSAUpload@2
+  displayName: 🪳 TSA upload
+  inputs:
+    GdnPublishTsaOnboard: True
+    GdnPublishTsaConfigFile: $(Build.SourcesDirectory)\azure-pipelines\TSAOptions.json
+  condition: false # enable in individual repos only AFTER updating TSAOptions.json with your own values
