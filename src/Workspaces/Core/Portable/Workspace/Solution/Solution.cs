@@ -30,6 +30,12 @@ namespace Microsoft.CodeAnalysis
         // Values for all these are created on demand.
         private ImmutableHashMap<ProjectId, Project> _projectIdToProjectMap;
 
+        /// <summary>
+        /// Mapping of DocumentId to the frozen solution we produced for it the last time we were queried.
+        /// </summary>
+        private readonly Dictionary<DocumentId, Solution> _cachedFrozenDocumentState = new();
+        private readonly SemaphoreSlim _cachedFrozenDocumentStateGate = new(initialCount: 1);
+
         private Solution(SolutionCompilationState compilationState)
         {
             _projectIdToProjectMap = [];
@@ -1450,8 +1456,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
-            var newCompilationState = this.CompilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
-            return new Solution(newCompilationState);
+            using (_cachedFrozenDocumentStateGate.DisposableWait(cancellationToken))
+            {
+                if (!_cachedFrozenDocumentState.TryGetValue(documentId, out var frozenSolution))
+                {
+                    var newCompilationState = this.CompilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
+                    frozenSolution = new Solution(newCompilationState);
+                    _cachedFrozenDocumentState.Add(documentId, frozenSolution);
+                }
+
+                return frozenSolution;
+            }
         }
 
         internal async Task<Solution> WithMergedLinkedFileChangesAsync(
