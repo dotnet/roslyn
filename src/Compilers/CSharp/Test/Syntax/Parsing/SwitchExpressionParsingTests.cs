@@ -455,31 +455,37 @@ public class SwitchExpressionParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
-    public void TestErrantCaseInSwitchExpression4()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    [InlineData("case")]
+    [InlineData("// leading\r\ncase")]
+    [InlineData("/*leading*/ case")]
+    [InlineData("case // trailing")]
+    [InlineData("/*leading*/ case // trailing")]
+    [InlineData("/*leading*/ case /* trailing */")]
+    public void TestErrantCaseInSwitchExpression4(string caseString)
     {
-        UsingTree("""
+        UsingTree($$"""
             class C
             {
                 public static int X()
                     => 5 switch
                     {
-                        case
+                        {{caseString}}
                     };
             }
             """,
             // (6,13): error CS9134: A switch expression arm does not begin with a 'case' keyword.
             //             case
-            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(6, 13),
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case"),
             // (6,17): error CS8504: Pattern missing
             //             case
-            Diagnostic(ErrorCode.ERR_MissingPattern, "").WithLocation(6, 17),
+            Diagnostic(ErrorCode.ERR_MissingPattern, ""),
             // (6,17): error CS1003: Syntax error, '=>' expected
             //             case
-            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>").WithLocation(6, 17),
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>"),
             // (6,17): error CS1525: Invalid expression term '}'
             //             case
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}"));
 
         N(SyntaxKind.CompilationUnit);
         {
