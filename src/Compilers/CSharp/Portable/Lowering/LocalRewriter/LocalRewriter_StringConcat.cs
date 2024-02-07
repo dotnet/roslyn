@@ -416,12 +416,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryRewriteStringConcatenationWithSpanBasedConcat(SyntaxNode syntax, ArrayBuilder<BoundExpression> args, [NotNullWhen(true)] out BoundExpression? result)
         {
-            // There are span-based `string.Concat` overloads only for 2, 3 or 4 arguments
-            if (args.Count is not (>= 2 and <= 4))
-            {
-                result = null;
-                return false;
-            }
+            // We should have called this only for 2, 3 or 4 arguments
+            Debug.Assert(args.Count is >= 2 and <= 4);
 
             var preparedArgs = ArrayBuilder<BoundExpression>.GetInstance(capacity: args.Count);
 
