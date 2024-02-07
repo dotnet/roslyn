@@ -3,6 +3,7 @@
 // See the License.txt file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json.Nodes;
 using LibGit2Sharp;
@@ -256,7 +257,7 @@ internal static class PRTagger
             {
                 title = title,
                 body = issueBody,
-                labels = new string[] { "vs-insertion" }
+                labels = new string[] { InsertionLabel }
             }));
 
         if (!response.IsSuccessStatusCode)
@@ -278,7 +279,7 @@ internal static class PRTagger
         string title,
         ILogger logger)
     {
-        var response = await client.GetAsync($"search/issues?q={title}+repo:dotnet/{repoName}+label:{InsertionLabel}").ConfigureAwait(false);
+        var response = await client.GetAsync($"search/issues?q={title}+repo:dotnet/{repoName}+is:issue+label:{InsertionLabel}").ConfigureAwait(false);
         if (!response.IsSuccessStatusCode)
         {
             logger.LogError("Failed to search on GitHub");
@@ -286,10 +287,10 @@ internal static class PRTagger
         }
 
         var content = await response.Content.ReadAsStringAsync();
-        var jsonResponseContent = JsonObject.Parse(content);
+        var jsonResponseContent = JsonObject.Parse(content)!;
         // https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28
         // total_count is required in response schema
-        var issueNumber = int.Parse(jsonResponseContent["total_count"].ToString());
+        var issueNumber = int.Parse(jsonResponseContent["total_count"]!.ToString());
         return issueNumber != 0;
     }
 }
