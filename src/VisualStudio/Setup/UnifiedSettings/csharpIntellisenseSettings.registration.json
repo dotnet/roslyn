@@ -220,6 +220,7 @@
       "type": "boolean",
       "default": false,
       "alternateDefault": {
+        // CompletionOptionsStorage.ShowNewSnippetExperienceFeatureFlag
         "flagName": "Roslyn.SnippetCompletion",
         "default": true
       },
