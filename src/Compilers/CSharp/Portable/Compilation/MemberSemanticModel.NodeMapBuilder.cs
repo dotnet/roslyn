@@ -52,9 +52,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var builder = new NodeMapBuilder(additionMap, tree, node);
                 builder.Visit(root);
 
+#if NETCOREAPP
+                // Ensure map is large enough to hold found nodes.
+                map.EnsureCapacity(map.Count + additionMap.Keys.Count);
+#endif
+
                 foreach (CSharpSyntaxNode key in additionMap.Keys)
                 {
-                    if (map.ContainsKey(key))
+                    var added = additionMap.GetAsOneOrMany(key);
+                    if (!map.TryAdd(key, added))
                     {
 #if DEBUG
                         // It's possible that AddToMap was previously called with a subtree of root.  If this is the case,
@@ -73,8 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // have the same structure as the original map entries, but will not be ReferenceEquals.
 
                         var existing = map[key];
-                        var added = additionMap[key];
-                        Debug.Assert(existing.Count == added.Length, "existing.Count == added.Length");
+                        Debug.Assert(existing.Count == added.Count, "existing.Count == added.Length");
                         for (int i = 0; i < existing.Count; i++)
                         {
                             // TODO: it would be great if we could check !ReferenceEquals(existing[i], added[i]) (DevDiv #11584).
@@ -118,10 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 #endif
-                    }
-                    else
-                    {
-                        map[key] = additionMap.GetAsOneOrMany(key);
                     }
                 }
 
