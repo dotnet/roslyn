@@ -267,6 +267,11 @@
         <target state="translated">위치 매개 변수 '{0}'과(와) 일치하려면 레코드 멤버 '{1}'이(가) 유형 '{2}'의 읽을 수 있는 인스턴스 속성 또는 필드여야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefLock">
+        <source>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
         <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
         <target state="translated">'{0}' 형식의 using 문 리소스는 비동기 메서드 또는 비동기 람다 식에 사용할 수 없습니다.</target>
@@ -2322,6 +2327,11 @@
         <target state="translated">암시적 인덱서 이니셜라이저</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_LockObject">
+        <source>Lock object</source>
+        <target state="new">Lock object</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
@@ -2560,6 +2570,16 @@
       <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
         <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
         <target state="translated">작업이 런타임에 오버플로될 수 있습니다('선택되지 않은' 구문을 사용하여 재정의).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
+        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
+        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">

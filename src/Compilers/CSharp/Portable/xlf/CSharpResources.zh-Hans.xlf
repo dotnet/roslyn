@@ -267,6 +267,11 @@
         <target state="translated">记录成员 '{0}' 必须为类型 '{1}' 的可读实例属性或字段，以匹配位置参数 '{2}'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefLock">
+        <source>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
         <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
         <target state="translated">无法在异步方法或异步 lambda 表达式中使用类型为“{0}”的 using 语句资源。</target>
@@ -2322,6 +2327,11 @@
         <target state="translated">隐式索引器初始值设定项</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_LockObject">
+        <source>Lock object</source>
+        <target state="new">Lock object</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
@@ -2560,6 +2570,16 @@
       <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
         <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
         <target state="translated">操作可能在运行时溢出(请使用“unchecked”语法替代)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
+        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
+        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
