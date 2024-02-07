@@ -7872,4 +7872,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_DynamicDispatchToParamsCollectionConstructor_Title" xml:space="preserve">
     <value>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
   </data>
+  <data name="ERR_ParamsCollectionInfiniteChainOfConstructorCalls" xml:space="preserve">
+    <value>Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</value>
+  </data>
+  <data name="ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember" xml:space="preserve">
+    <value>Method '{0}' cannot be less visible than the member with params collection '{1}'.</value>
+  </data>
 </root>

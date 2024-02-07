@@ -2290,6 +2290,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_DynamicDispatchToParamsCollectionMethod = 9503,
         WRN_DynamicDispatchToParamsCollectionIndexer = 9504,
         WRN_DynamicDispatchToParamsCollectionConstructor = 9505,
+        ERR_ParamsCollectionInfiniteChainOfConstructorCalls = 9506,
+        ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember = 9507,
 
         #endregion
 

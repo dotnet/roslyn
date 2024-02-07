@@ -5889,6 +5889,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver)
         {
+            //
+            // !!! ATTENTION !!!
+            //
+            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
+            // this function should be kept in sync with local function
+            // HasCollectionExpressionApplicableAddMethod.bindCollectionInitializerElementAddMethod
+            //
+
             // SPEC:    For each specified element in order, the collection initializer invokes an Add method on the target object
             // SPEC:    with the expression list of the element initializer as argument list, applying normal overload resolution for each invocation.
             // SPEC:    Thus, the collection object must contain an applicable Add method for each element initializer.
@@ -5906,77 +5914,104 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(elementInitializer, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, boundElementInitializerExpressions);
             }
 
-            Debug.Assert(collectionInitializerAddMethodBinder != null);
-            Debug.Assert(collectionInitializerAddMethodBinder.Flags.Includes(BinderFlags.CollectionInitializerAddMethod));
-            Debug.Assert(implicitReceiver != null);
-            Debug.Assert((object)implicitReceiver.Type != null);
+            var result = bindCollectionInitializerElementAddMethod(elementInitializer, boundElementInitializerExpressions, collectionInitializerAddMethodBinder, diagnostics, implicitReceiver);
 
-            if (implicitReceiver.Type.IsDynamic())
+#if DEBUG
+            if (!result.HasErrors &&
+                boundElementInitializerExpressions.Length == 1 &&
+                boundElementInitializerExpressions[0] is not
+                    ({ Type: null } or BoundLiteral or BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true }) &&
+                !implicitReceiver.Type.IsDynamic())
             {
-                var hasErrors = ReportBadDynamicArguments(elementInitializer, boundElementInitializerExpressions, refKinds: default, diagnostics, queryClause: null);
+                var d = BindingDiagnosticBag.GetInstance();
 
-                return new BoundDynamicCollectionElementInitializer(
-                    elementInitializer,
-                    applicableMethods: ImmutableArray<MethodSymbol>.Empty,
-                    implicitReceiver,
-                    arguments: boundElementInitializerExpressions.SelectAsArray(e => BindToNaturalType(e, diagnostics)),
-                    type: GetSpecialType(SpecialType.System_Void, diagnostics, elementInitializer),
-                    hasErrors: hasErrors);
+                // This assert provides some validation that, if the real invocation binding succeeds, then the HasCollectionExpressionApplicableAddMethod helper succeeds as well.
+                Debug.Assert(collectionInitializerAddMethodBinder.HasCollectionExpressionApplicableAddMethod(elementInitializer, implicitReceiver.Type, boundElementInitializerExpressions[0].Type, addMethods: out _, d));
+
+                d.Free();
             }
+#endif 
+            return result;
 
-            // Receiver is early bound, find method Add and invoke it (may still be a dynamic invocation):
-
-            var addMethodDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
-            var addMethodInvocation = collectionInitializerAddMethodBinder.MakeInvocationExpression(
-                elementInitializer,
-                implicitReceiver,
-                methodName: WellKnownMemberNames.CollectionInitializerAddMethodName,
-                args: boundElementInitializerExpressions,
-                diagnostics: addMethodDiagnostics);
-            copyRelevantAddMethodDiagnostics(addMethodDiagnostics, diagnostics);
-
-            if (addMethodInvocation.Kind == BoundKind.DynamicInvocation)
+            BoundExpression bindCollectionInitializerElementAddMethod(
+                SyntaxNode elementInitializer,
+                ImmutableArray<BoundExpression> boundElementInitializerExpressions,
+                Binder collectionInitializerAddMethodBinder,
+                BindingDiagnosticBag diagnostics,
+                BoundObjectOrCollectionValuePlaceholder implicitReceiver)
             {
-                var dynamicInvocation = (BoundDynamicInvocation)addMethodInvocation;
-                return new BoundDynamicCollectionElementInitializer(
-                    elementInitializer,
-                    dynamicInvocation.ApplicableMethods,
-                    implicitReceiver,
-                    dynamicInvocation.Arguments,
-                    dynamicInvocation.Type,
-                    hasErrors: dynamicInvocation.HasAnyErrors);
-            }
-            else if (addMethodInvocation.Kind == BoundKind.Call)
-            {
-                var boundCall = (BoundCall)addMethodInvocation;
+                Debug.Assert(collectionInitializerAddMethodBinder != null);
+                Debug.Assert(collectionInitializerAddMethodBinder.Flags.Includes(BinderFlags.CollectionInitializerAddMethod));
+                Debug.Assert(implicitReceiver != null);
+                Debug.Assert((object)implicitReceiver.Type != null);
 
-                // Either overload resolution succeeded for this call or it did not. If it
-                // did not succeed then we've stashed the original method symbols from the
-                // method group, and we should use those as the symbols displayed for the
-                // call. If it did succeed then we did not stash any symbols.
-                if (boundCall.HasErrors && !boundCall.OriginalMethodsOpt.IsDefault)
+                if (implicitReceiver.Type.IsDynamic())
                 {
-                    return boundCall;
+                    var hasErrors = ReportBadDynamicArguments(elementInitializer, boundElementInitializerExpressions, refKinds: default, diagnostics, queryClause: null);
+
+                    return new BoundDynamicCollectionElementInitializer(
+                        elementInitializer,
+                        applicableMethods: ImmutableArray<MethodSymbol>.Empty,
+                        implicitReceiver,
+                        arguments: boundElementInitializerExpressions.SelectAsArray(e => BindToNaturalType(e, diagnostics)),
+                        type: GetSpecialType(SpecialType.System_Void, diagnostics, elementInitializer),
+                        hasErrors: hasErrors);
                 }
 
-                return new BoundCollectionElementInitializer(
+                // Receiver is early bound, find method Add and invoke it (may still be a dynamic invocation):
+
+                var addMethodDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
+                var addMethodInvocation = collectionInitializerAddMethodBinder.MakeInvocationExpression(
                     elementInitializer,
-                    boundCall.Method,
-                    boundCall.Arguments,
-                    boundCall.ReceiverOpt,
-                    boundCall.Expanded,
-                    boundCall.ArgsToParamsOpt,
-                    boundCall.DefaultArguments,
-                    boundCall.InvokedAsExtensionMethod,
-                    boundCall.ResultKind,
-                    boundCall.Type,
-                    boundCall.HasAnyErrors)
-                { WasCompilerGenerated = true };
-            }
-            else
-            {
-                Debug.Assert(addMethodInvocation.Kind == BoundKind.BadExpression);
-                return addMethodInvocation;
+                    implicitReceiver,
+                    methodName: WellKnownMemberNames.CollectionInitializerAddMethodName,
+                    args: boundElementInitializerExpressions,
+                    diagnostics: addMethodDiagnostics);
+                copyRelevantAddMethodDiagnostics(addMethodDiagnostics, diagnostics);
+
+                if (addMethodInvocation.Kind == BoundKind.DynamicInvocation)
+                {
+                    var dynamicInvocation = (BoundDynamicInvocation)addMethodInvocation;
+                    return new BoundDynamicCollectionElementInitializer(
+                        elementInitializer,
+                        dynamicInvocation.ApplicableMethods,
+                        implicitReceiver,
+                        dynamicInvocation.Arguments,
+                        dynamicInvocation.Type,
+                        hasErrors: dynamicInvocation.HasAnyErrors);
+                }
+                else if (addMethodInvocation.Kind == BoundKind.Call)
+                {
+                    var boundCall = (BoundCall)addMethodInvocation;
+
+                    // Either overload resolution succeeded for this call or it did not. If it
+                    // did not succeed then we've stashed the original method symbols from the
+                    // method group, and we should use those as the symbols displayed for the
+                    // call. If it did succeed then we did not stash any symbols.
+                    if (boundCall.HasErrors && !boundCall.OriginalMethodsOpt.IsDefault)
+                    {
+                        return boundCall;
+                    }
+
+                    return new BoundCollectionElementInitializer(
+                        elementInitializer,
+                        boundCall.Method,
+                        boundCall.Arguments,
+                        boundCall.ReceiverOpt,
+                        boundCall.Expanded,
+                        boundCall.ArgsToParamsOpt,
+                        boundCall.DefaultArguments,
+                        boundCall.InvokedAsExtensionMethod,
+                        boundCall.ResultKind,
+                        boundCall.Type,
+                        boundCall.HasAnyErrors)
+                    { WasCompilerGenerated = true };
+                }
+                else
+                {
+                    Debug.Assert(addMethodInvocation.Kind == BoundKind.BadExpression);
+                    return addMethodInvocation;
+                }
             }
 
             static void copyRelevantAddMethodDiagnostics(BindingDiagnosticBag source, BindingDiagnosticBag target)
@@ -6111,6 +6146,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol initializerTypeOpt = null,
             bool wasTargetTyped = false)
         {
+            //
+            // !!! ATTENTION !!!
+            //
+            // In terms of errors relevant for HasCollectionExpressionApplicableConstructor check
+            // this function should be kept in sync with HasCollectionExpressionApplicableConstructor.
+            //
+
             BoundExpression result = null;
             bool hasErrors = type.IsErrorType();
             if (type.IsAbstract)
@@ -6244,6 +6286,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             in CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo,
             BindingDiagnosticBag diagnostics)
         {
+            //
+            // !!! ATTENTION !!!
+            //
+            // In terms of errors relevant for HasCollectionExpressionApplicableConstructor check
+            // this function should be kept in sync with local function
+            // HasCollectionExpressionApplicableConstructor.bindClassCreationExpressionContinued,
+            // assuming that it only needs to cover scenario with no explicit arguments and no initializers.
+            //
+
             ReportConstructorUseSiteDiagnostics(typeNode.Location, diagnostics, suppressUnsupportedRequiredMembersError: false, in overloadResolutionUseSiteInfo);
 
             if (memberResolutionResult.IsNotNull)
@@ -6314,6 +6365,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             in CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo,
             BindingDiagnosticBag diagnostics)
         {
+            //
+            // !!! ATTENTION !!!
+            //
+            // In terms of reported errors this function should be kept in sync with local function
+            // HasCollectionExpressionApplicableConstructor.reportAdditionalDiagnosticsForOverloadResolutionFailure,
+            // assuming that it only needs to cover scenario with no explicit arguments and no initializers.
+            // 
+
             ReportConstructorUseSiteDiagnostics(typeNode.Location, diagnostics, suppressUnsupportedRequiredMembersError: false, in overloadResolutionUseSiteInfo);
 
             if (memberResolutionResult.IsNotNull)
@@ -6535,29 +6594,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private BoundExpression BindTypeParameterCreationExpression(
-            SyntaxNode node, TypeParameterSymbol typeParameter, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax? initializerOpt,
-            SyntaxNode typeSyntax, bool wasTargetTyped, BindingDiagnosticBag diagnostics)
+        private static bool TypeParameterHasParameterlessConstructor(SyntaxNode node, TypeParameterSymbol typeParameter, BindingDiagnosticBag diagnostics)
         {
             if (!typeParameter.HasConstructorConstraint && !typeParameter.IsValueType)
             {
                 diagnostics.Add(ErrorCode.ERR_NoNewTyvar, node.Location, typeParameter);
+                return false;
             }
-            else if (analyzedArguments.Arguments.Count > 0)
+
+            return true;
+        }
+
+        private BoundExpression BindTypeParameterCreationExpression(
+            SyntaxNode node, TypeParameterSymbol typeParameter, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax? initializerOpt,
+            SyntaxNode typeSyntax, bool wasTargetTyped, BindingDiagnosticBag diagnostics)
+        {
+            if (TypeParameterHasParameterlessConstructor(node, typeParameter, diagnostics))
             {
-                diagnostics.Add(ErrorCode.ERR_NewTyvarWithArgs, node.Location, typeParameter);
-            }
-            else
-            {
-                var boundInitializerOpt = initializerOpt == null ?
-                     null :
-                     BindInitializerExpression(
-                        syntax: initializerOpt,
-                        type: typeParameter,
-                        typeSyntax: typeSyntax,
-                        isForNewInstance: true,
-                        diagnostics: diagnostics);
-                return new BoundNewT(node, boundInitializerOpt, wasTargetTyped, typeParameter);
+                if (analyzedArguments.Arguments.Count > 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_NewTyvarWithArgs, node.Location, typeParameter);
+                }
+                else
+                {
+                    var boundInitializerOpt = initializerOpt == null ?
+                         null :
+                         BindInitializerExpression(
+                            syntax: initializerOpt,
+                            type: typeParameter,
+                            typeSyntax: typeSyntax,
+                            isForNewInstance: true,
+                            diagnostics: diagnostics);
+                    return new BoundNewT(node, boundInitializerOpt, wasTargetTyped, typeParameter);
+                }
             }
 
             return MakeBadExpressionForObjectCreation(node, typeParameter, analyzedArguments, initializerOpt, typeSyntax, diagnostics);

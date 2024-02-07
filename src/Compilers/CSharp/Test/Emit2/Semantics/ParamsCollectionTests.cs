@@ -367,7 +367,7 @@ class Test : System.Attribute
             }
         }
 
-        [Fact(Skip = "Yes")] // PROTOTYPE(ParamsCollections): adjust for updated collection expression conversion rules]
+        [Fact]
         public void String()
         {
             var src = @"
@@ -387,35 +387,23 @@ class Program
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
-            // PROTOTYPE(ParamsCollections): Note, there is no error at the declaration site, because
-            //                               according to https://github.com/dotnet/csharplang/blob/main/proposals/csharp-12.0/collection-expressions.md#conversions,
-            //                               there is a conversion from a collection expression consisting of `char`s to a `string` type.
-            //                               Even though `string` lacks APIs needed to perform the conversion.
-            //                               Similar situation can happen with other types. Are we fine with this behavior, or should we
-            //                               enforce existence of at least some APIs at the declaration site?
             comp.VerifyDiagnostics(
-                // (6,9): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Program.Test(params string)'
                 //         Test();
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test()").WithArguments("string", "0").WithLocation(6, 9),
-                // (7,9): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("a", "Program.Test(params string)").WithLocation(6, 9),
+                // (7,14): error CS1503: Argument 1: cannot convert from 'char' to 'params string'
                 //         Test('a');
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test('a')").WithArguments("string", "0").WithLocation(7, 9),
-                // (7,14): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         Test('a');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'a'").WithArguments("string", "Add").WithLocation(7, 14),
-                // (8,9): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadArgType, "'a'").WithArguments("1", "char", "params string").WithLocation(7, 14),
+                // (8,9): error CS1501: No overload for method 'Test' takes 2 arguments
                 //         Test('b', 'c');
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test('b', 'c')").WithArguments("string", "0").WithLocation(8, 9),
-                // (8,14): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         Test('b', 'c');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'b'").WithArguments("string", "Add").WithLocation(8, 14),
-                // (8,19): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         Test('b', 'c');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'c'").WithArguments("string", "Add").WithLocation(8, 19)
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(8, 9),
+                // (11,22): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //     static void Test(params string a)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "params string a").WithArguments("string", "0").WithLocation(11, 22)
                 );
         }
 
-        [Fact(Skip = "Yes")] // PROTOTYPE(ParamsCollections): adjust for updated collection expression conversion rules]
+        [Fact]
         public void String_InAttribute()
         {
             var src = @"
@@ -436,24 +424,18 @@ class Test : System.Attribute
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (2,2): error CS1729: 'string' does not contain a constructor that takes 0 arguments
-                // [Test()]
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test()").WithArguments("string", "0").WithLocation(2, 2),
-                // (5,2): error CS1729: 'string' does not contain a constructor that takes 0 arguments
-                // [Test('1')]
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test('1')").WithArguments("string", "0").WithLocation(5, 2),
-                // (5,7): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                // [Test('1')]
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'1'").WithArguments("string", "Add").WithLocation(5, 7),
-                // (8,2): error CS1729: 'string' does not contain a constructor that takes 0 arguments
-                // [Test('2', '3')]
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test('2', '3')").WithArguments("string", "0").WithLocation(8, 2),
-                // (8,7): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                // [Test('2', '3')]
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'2'").WithArguments("string", "Add").WithLocation(8, 7),
-                // (8,12): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                // [Test('2', '3')]
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'3'").WithArguments("string", "Add").WithLocation(8, 12)
+                    // (2,2): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Test.Test(params string)'
+                    // [Test()]
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test()").WithArguments("a", "Test.Test(params string)").WithLocation(2, 2),
+                    // (5,7): error CS1503: Argument 1: cannot convert from 'char' to 'params string'
+                    // [Test('1')]
+                    Diagnostic(ErrorCode.ERR_BadArgType, "'1'").WithArguments("1", "char", "params string").WithLocation(5, 7),
+                    // (8,2): error CS1729: 'Test' does not contain a constructor that takes 2 arguments
+                    // [Test('2', '3')]
+                    Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test('2', '3')").WithArguments("Test", "2").WithLocation(8, 2),
+                    // (13,17): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                    //     public Test(params string a) {}
+                    Diagnostic(ErrorCode.ERR_BadCtorArgCount, "params string a").WithArguments("string", "0").WithLocation(13, 17)
                 );
 
             assertAttributeData("C1");
@@ -484,17 +466,12 @@ class Test : System.Attribute
             {
                 var attributeData1 = comp.GetTypeByMetadataName(name).GetAttributes().Single();
                 Assert.True(attributeData1.HasErrors);
-
-                var c1Arg = attributeData1.ConstructorArguments.Single();
-                Assert.Equal(TypedConstantKind.Error, c1Arg.Kind);
-                Assert.Equal("System.String", c1Arg.Type.ToTestDisplayString());
-                Assert.Null(c1Arg.Value);
-                Assert.Throws<System.InvalidOperationException>(() => c1Arg.Values);
+                Assert.Empty(attributeData1.ConstructorArguments);
             }
         }
 
         [Fact]
-        public void CreateMethod()
+        public void CreateMethod_01()
         {
             var src = """
 using System;
@@ -561,7 +538,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void CreateMethod_InAttribute(bool asStruct)
+        public void CreateMethod_02_InAttribute(bool asStruct)
         {
             var src = @"
 using System;
@@ -641,6 +618,465 @@ class Test : System.Attribute
                 Assert.Null(c1Arg.Value);
                 Assert.Throws<System.InvalidOperationException>(() => c1Arg.Values);
             }
+        }
+
+        [Fact]
+        public void CreateMethod_03_NoElementType()
+        {
+            var src = """
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection
+{
+}
+class MyCollectionBuilder
+{
+    public static MyCollection Create(ReadOnlySpan<long> items) => null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (18,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Program.Test(params MyCollection)'
+                //         Test();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("a", "Program.Test(params MyCollection)").WithLocation(18, 9),
+                // (19,14): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection'
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params MyCollection").WithLocation(19, 14),
+                // (20,9): error CS1501: No overload for method 'Test' takes 2 arguments
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(20, 9),
+                // (23,22): error CS0225: The params parameter must have a valid collection type
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(23, 22)
+                );
+        }
+
+        [Fact]
+        public void CreateMethod_04_NoElementType()
+        {
+            var src = """
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection
+{
+}
+class MyCollectionBuilder
+{
+    public static MyCollection Create(ReadOnlySpan<long> items) => null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+        new MyCollection().GetEnumerator();
+    }
+    static void Test(params MyCollection a)
+    {
+    }
+}
+
+static class Ext
+{
+    public static IEnumerator<long> GetEnumerator(this MyCollection x) => throw null;
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (18,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Program.Test(params MyCollection)'
+                //         Test();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("a", "Program.Test(params MyCollection)").WithLocation(18, 9),
+                // (19,14): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection'
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params MyCollection").WithLocation(19, 14),
+                // (20,9): error CS1501: No overload for method 'Test' takes 2 arguments
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(20, 9),
+                // (23,22): error CS0225: The params parameter must have a valid collection type
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(23, 22)
+                );
+        }
+
+        [Fact]
+        public void CreateMethod_05_Missing()
+        {
+            var src = """
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+public class MyCollection
+{
+    public IEnumerator<long> GetEnumerator() => throw null;
+}
+public class MyCollectionBuilder
+{
+}
+
+public class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    public static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (18,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                //         Test();
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test()").WithArguments("Create", "long", "MyCollection").WithLocation(18, 9),
+                // (19,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(1)").WithArguments("Create", "long", "MyCollection").WithLocation(19, 9),
+                // (20,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(2, 3)").WithArguments("Create", "long", "MyCollection").WithLocation(20, 9),
+                // (23,29): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                //     public static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection a").WithArguments("Create", "long", "MyCollection").WithLocation(23, 29)
+                );
+        }
+
+        [Fact]
+        public void CreateMethod_06_InconsistentAccessibility()
+        {
+            var src = """
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public class MyCollection
+{
+    public IEnumerator<long> GetEnumerator() => throw null;
+}
+public class MyCollectionBuilder
+{
+    internal static MyCollection Create(ReadOnlySpan<long> items) => null;
+}
+
+public class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    public static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (24,29): error CS9507: Method 'MyCollectionBuilder.Create(ReadOnlySpan<long>)' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
+                //     public static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection a").WithArguments("MyCollectionBuilder.Create(System.ReadOnlySpan<long>)", "Program.Test(params MyCollection)").WithLocation(24, 29)
+                );
+        }
+
+        [Fact]
+        public void CreateMethod_07_InconsistentAccessibility()
+        {
+            var src = """
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[CollectionBuilder(typeof(MyCollectionBuilder1), nameof(MyCollectionBuilder1.Create))]
+public class MyCollection1
+{
+    public IEnumerator<long> GetEnumerator() => throw null;
+}
+internal class MyCollectionBuilder1
+{
+    public static MyCollection1 Create(ReadOnlySpan<long> items) => null;
+}
+
+[CollectionBuilder(typeof(MyCollectionBuilder2), nameof(MyCollectionBuilder2.Create))]
+public class MyCollection2
+{
+    public IEnumerator<long> GetEnumerator() => throw null;
+}
+internal class MyCollectionBuilder2
+{
+    public static MyCollection2 Create(ReadOnlySpan<long> items) => null;
+}
+
+public class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test1(1);
+        Test1(2, 3);
+
+        Test2();
+        Test2(1);
+        Test2(2, 3);
+    }
+
+    public static void Test1(params MyCollection1 a)
+    {
+    }
+
+    internal static void Test2(params MyCollection2 a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (38,30): error CS9507: Method 'MyCollectionBuilder1.Create(ReadOnlySpan<long>)' cannot be less visible than the member with params collection 'Program.Test1(params MyCollection1)'.
+                //     public static void Test1(params MyCollection1 a)
+                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection1 a").WithArguments("MyCollectionBuilder1.Create(System.ReadOnlySpan<long>)", "Program.Test1(params MyCollection1)").WithLocation(38, 30)
+                );
+        }
+
+        [Fact]
+        public void CreateMethod_08_Inaccessible()
+        {
+            var src = """
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+public class MyCollection
+{
+    public IEnumerator<long> GetEnumerator() => throw null;
+}
+public class MyCollectionBuilder
+{
+    protected static MyCollection Create(ReadOnlySpan<long> items) => null;
+}
+
+public class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    public static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (19,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                //         Test();
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test()").WithArguments("Create", "long", "MyCollection").WithLocation(19, 9),
+                // (20,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(1)").WithArguments("Create", "long", "MyCollection").WithLocation(20, 9),
+                // (21,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(2, 3)").WithArguments("Create", "long", "MyCollection").WithLocation(21, 9),
+                // (24,29): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                //     public static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection a").WithArguments("Create", "long", "MyCollection").WithLocation(24, 29)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71854")]
+        public void CreateMethod_09_InDifferentAssembly()
+        {
+            var myCollection_v0Source = """
+using System.Collections.Generic;
+
+public class MyCollection
+{
+    public long[] Array;
+    public IEnumerator<long> GetEnumerator() => throw null;
+}
+""";
+
+            var myCollection_v0 = CreateCompilation(myCollection_v0Source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, assemblyName: "Collection");
+            myCollection_v0.VerifyDiagnostics();
+
+            var builderSource = """
+using System;
+
+public class MyCollectionBuilder
+{
+    public static MyCollection Create(ReadOnlySpan<long> items) => new MyCollection() { Array = items.ToArray() };
+}
+""";
+
+            var builder = CreateCompilation(builderSource, references: [myCollection_v0.ToMetadataReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            builder.VerifyDiagnostics();
+
+            var myCollectionSource = """
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public class MyCollection
+{
+    public long[] Array;
+    public IEnumerator<long> GetEnumerator() => throw null;
+}
+""";
+
+            var myCollection = CreateCompilation(myCollectionSource, references: [builder.ToMetadataReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, assemblyName: "Collection");
+            myCollection.VerifyDiagnostics();
+            var myCollectionRef = myCollection.EmitToImageReference();
+
+            var src = """
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+        if (a.Array.Length == 0)
+        {
+            System.Console.WriteLine(a.Array.Length);
+        }
+        else
+        {
+            System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Length, a.Array[0], a.Array[^1]);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, references: [myCollectionRef, builder.EmitToImageReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: ExpectedOutput(@"
+0
+1: 1 ... 1
+2: 2 ... 3
+")).VerifyDiagnostics();
+
+            comp = CreateCompilation(src, references: [myCollectionRef], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            // The error improvement is tracked by https://github.com/dotnet/roslyn/issues/71854
+            comp.VerifyDiagnostics(
+                // (5,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                //         Test();
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test()").WithArguments("Create", "long", "MyCollection").WithLocation(5, 9),
+                // (6,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(1)").WithArguments("Create", "long", "MyCollection").WithLocation(6, 9),
+                // (7,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Test(2, 3)").WithArguments("Create", "long", "MyCollection").WithLocation(7, 9),
+                // (10,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<long>' and return type 'MyCollection'.
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection a").WithArguments("Create", "long", "MyCollection").WithLocation(10, 22)
+                );
+        }
+
+        [Fact]
+        public void CreateMethod_10_NotExtensionGetEnumerator()
+        {
+            var src = """
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection
+{
+}
+
+static class Ext
+{
+    public static IEnumerator<long> GetEnumerator(this MyCollection c) => throw null;
+}
+
+class MyCollectionBuilder
+{
+    public static MyCollection Create(ReadOnlySpan<long> items) => null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+        foreach (var x in a)
+        {
+            long y = x;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (24,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Program.Test(params MyCollection)'
+                //         Test();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("a", "Program.Test(params MyCollection)").WithLocation(24, 9),
+                // (25,14): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection'
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params MyCollection").WithLocation(25, 14),
+                // (26,9): error CS1501: No overload for method 'Test' takes 2 arguments
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(26, 9),
+                // (29,22): error CS0225: The params parameter must have a valid collection type
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(29, 22)
+                );
         }
 
         [Fact]
@@ -845,6 +1281,834 @@ class Test : System.Attribute
                 Assert.Null(c1Arg.Value);
                 Assert.Throws<System.InvalidOperationException>(() => c1Arg.Values);
             }
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_04_MissingConstructor()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable<long>
+{
+    public MyCollection(int x){}
+    public List<long> Array = new List<long>();
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(long l) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (18,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Program.Test(params MyCollection)'
+                //         Test();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("a", "Program.Test(params MyCollection)").WithLocation(18, 9),
+                // (19,14): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection'
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params MyCollection").WithLocation(19, 14),
+                // (20,9): error CS1501: No overload for method 'Test' takes 2 arguments
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(20, 9),
+
+                // PROTOTYPE(ParamsCollections): Reword to include params collection?
+
+                // (23,22): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "params MyCollection a").WithLocation(23, 22)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_05_InaccessibleConstructor()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable<long>
+{
+    protected MyCollection(){}
+    public List<long> Array = new List<long>();
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(long l) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (18,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Program.Test(params MyCollection)'
+                //         Test();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("a", "Program.Test(params MyCollection)").WithLocation(18, 9),
+                // (19,14): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection'
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params MyCollection").WithLocation(19, 14),
+                // (20,9): error CS1501: No overload for method 'Test' takes 2 arguments
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(20, 9),
+                // (23,22): error CS0122: 'MyCollection.MyCollection()' is inaccessible due to its protection level
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_BadAccess, "params MyCollection a").WithArguments("MyCollection.MyCollection()").WithLocation(23, 22)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_06_LessAccessibleConstructor()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+public class MyCollection : IEnumerable<long>
+{
+    internal MyCollection(){}
+    public List<long> Array = new List<long>();
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(long l) => Array.Add(l);
+}
+
+public class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    public static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (23,29): error CS9507: Method 'MyCollection.MyCollection()' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
+                //     public static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection a").WithArguments("MyCollection.MyCollection()", "Program.Test(params MyCollection)").WithLocation(23, 29)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_07_MissingAdd()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable<long>
+{
+    public List<long> Array = new List<long>();
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (15,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Program.Test(params MyCollection)'
+                //         Test();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("a", "Program.Test(params MyCollection)").WithLocation(15, 9),
+                // (16,14): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection'
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params MyCollection").WithLocation(16, 14),
+                // (17,9): error CS1501: No overload for method 'Test' takes 2 arguments
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(17, 9),
+
+                // PROTOTYPE(ParamsCollections): The error looks somewhat confusing. It can be interpreted as though an addition of an extension method might help.
+
+                // (20,22): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "params MyCollection a").WithArguments("MyCollection", "Add").WithLocation(20, 22)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_08_InaccessibleAdd()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable<long>
+{
+    public List<long> Array = new List<long>();
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    protected void Add(long l) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (17,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Program.Test(params MyCollection)'
+                //         Test();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("a", "Program.Test(params MyCollection)").WithLocation(17, 9),
+                // (18,14): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection'
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params MyCollection").WithLocation(18, 14),
+                // (19,9): error CS1501: No overload for method 'Test' takes 2 arguments
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(19, 9),
+                // (22,22): error CS0122: 'MyCollection.Add(long)' is inaccessible due to its protection level
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_BadAccess, "params MyCollection a").WithArguments("MyCollection.Add(long)").WithLocation(22, 22)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_09_LessAccessibleAdd()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+public class MyCollection : IEnumerable<long>
+{
+    public List<long> Array = new List<long>();
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    internal void Add(long l) => Array.Add(l);
+}
+
+public class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    public static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (22,29): error CS9507: Method 'MyCollection.Add(long)' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
+                //     public static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection a").WithArguments("MyCollection.Add(long)", "Program.Test(params MyCollection)").WithLocation(22, 29)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_10_MissingAdd_Dynamic()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable
+{
+    public Enumerator GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public class Enumerator
+    {
+        public bool MoveNext() => throw null;
+        public dynamic Current => null;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (20,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Program.Test(params MyCollection)'
+                //         Test();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("a", "Program.Test(params MyCollection)").WithLocation(20, 9),
+                // (21,14): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection'
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params MyCollection").WithLocation(21, 14),
+                // (22,9): error CS1501: No overload for method 'Test' takes 2 arguments
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(22, 9),
+                // (25,22): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "params MyCollection a").WithArguments("MyCollection", "Add").WithLocation(25, 22)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_11_InaccessibleAdd_Dynamic()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable
+{
+    public Enumerator GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    protected void Add(long x){}
+
+    public class Enumerator
+    {
+        public bool MoveNext() => throw null;
+        public dynamic Current => null;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (22,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Program.Test(params MyCollection)'
+                //         Test();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("a", "Program.Test(params MyCollection)").WithLocation(22, 9),
+                // (23,14): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection'
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params MyCollection").WithLocation(23, 14),
+                // (24,9): error CS1501: No overload for method 'Test' takes 2 arguments
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(24, 9),
+                // (27,22): error CS0122: 'MyCollection.Add(long)' is inaccessible due to its protection level
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_BadAccess, "params MyCollection a").WithArguments("MyCollection.Add(long)").WithLocation(27, 22)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_12_InaccessibleAdd_Dynamic()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable
+{
+    public Enumerator GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    protected void Add(long x){}
+    protected void Add(int x){}
+
+    public class Enumerator
+    {
+        public bool MoveNext() => throw null;
+        public dynamic Current => null;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (23,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Program.Test(params MyCollection)'
+                //         Test();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("a", "Program.Test(params MyCollection)").WithLocation(23, 9),
+                // (24,14): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection'
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params MyCollection").WithLocation(24, 14),
+                // (25,9): error CS1501: No overload for method 'Test' takes 2 arguments
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(25, 9),
+                // (28,22): error CS0122: 'MyCollection.Add(long)' is inaccessible due to its protection level
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_BadAccess, "params MyCollection a").WithArguments("MyCollection.Add(long)").WithLocation(28, 22)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_13_LessAccessibleAdd_Dynamic()
+        {
+            var src = """
+using System.Collections;
+
+public class MyCollection : IEnumerable
+{
+    public Enumerator GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    internal void Add(long x){}
+
+    public class Enumerator
+    {
+        public bool MoveNext() => throw null;
+        public dynamic Current => null;
+    }
+}
+
+public class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    public static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (26,29): error CS9507: Method 'MyCollection.Add(long)' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
+                //     public static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection a").WithArguments("MyCollection.Add(long)", "Program.Test(params MyCollection)").WithLocation(26, 29)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_14_LessAccessibleAdd_Dynamic()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+public class MyCollection : IEnumerable
+{
+    public Enumerator GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    protected void Add(long x){}
+    internal void Add(int x){}
+
+    public class Enumerator
+    {
+        public bool MoveNext() => throw null;
+        public dynamic Current => null;
+    }
+}
+
+public class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    public static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (28,29): error CS9507: Method 'MyCollection.Add(int)' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
+                //     public static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection a").WithArguments("MyCollection.Add(int)", "Program.Test(params MyCollection)").WithLocation(28, 29)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_15_LessAccessibleAdd_Dynamic()
+        {
+            var src = """
+using System.Collections;
+
+public class MyCollection : IEnumerable
+{
+    public Enumerator GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    internal void Add(long x){}
+    internal void Add(int x){}
+
+    public class Enumerator
+    {
+        public bool MoveNext() => throw null;
+        public dynamic Current => null;
+    }
+}
+
+public class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    public static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (27,29): error CS9507: Method 'MyCollection.Add(long)' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
+                //     public static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection a").WithArguments("MyCollection.Add(long)", "Program.Test(params MyCollection)").WithLocation(27, 29)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_16_LessAccessibleAdd_Dynamic()
+        {
+            var src = """
+using System.Collections;
+
+public class MyCollection : IEnumerable
+{
+    public Enumerator GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(long x){}
+    internal void Add(int x){}
+
+    public class Enumerator
+    {
+        public bool MoveNext() => throw null;
+        public dynamic Current => null;
+    }
+}
+
+public class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    public static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_17_LessAccessibleAdd_Dynamic()
+        {
+            var src = """
+using System.Collections;
+
+public class MyCollection : IEnumerable
+{
+    public Enumerator GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    internal void Add(long x){}
+    public void Add(int x){}
+
+    public class Enumerator
+    {
+        public bool MoveNext() => throw null;
+        public dynamic Current => null;
+    }
+}
+
+public class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    public static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_18_LessAccessibleAdd_Dynamic()
+        {
+            var src = """
+using System.Collections;
+
+public class MyCollection : IEnumerable
+{
+    public Enumerator GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    internal void Add(long x){}
+    public void Add(int x){}
+    internal void Add(byte x){}
+
+    public class Enumerator
+    {
+        public bool MoveNext() => throw null;
+        public dynamic Current => null;
+    }
+}
+
+public class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    public static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_19_NoElementType()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable<long>, IEnumerable<int>
+{
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(long l) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (17,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Program.Test(params MyCollection)'
+                //         Test();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("a", "Program.Test(params MyCollection)").WithLocation(17, 9),
+                // (18,14): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection'
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params MyCollection").WithLocation(18, 14),
+                // (19,9): error CS1501: No overload for method 'Test' takes 2 arguments
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(19, 9),
+                // (22,22): error CS0225: The params parameter must have a valid collection type
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(22, 22)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_20_LessAccessibleConstructorAndAdd_NoError_In_LambdaOrLocalFunction()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+public class MyCollection : IEnumerable<string>
+{
+    internal MyCollection() { }
+    internal void Add(string s) { }
+
+    IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+public class Program
+{
+    public void Test1()
+    {
+        local();
+        local("a");
+
+        void local(params MyCollection collection) { }
+
+        var x = (params MyCollection collection) => { };
+    }
+
+    public void Test2(params MyCollection collection)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (25,23): error CS9507: Method 'MyCollection.MyCollection()' cannot be less visible than the member with params collection 'Program.Test2(params MyCollection)'.
+                //     public void Test2(params MyCollection collection)
+                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection collection").WithArguments("MyCollection.MyCollection()", "Program.Test2(params MyCollection)").WithLocation(25, 23),
+                // (25,23): error CS9507: Method 'MyCollection.Add(string)' cannot be less visible than the member with params collection 'Program.Test2(params MyCollection)'.
+                //     public void Test2(params MyCollection collection)
+                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection collection").WithArguments("MyCollection.Add(string)", "Program.Test2(params MyCollection)").WithLocation(25, 23)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_21_AddIsNotAnExtension()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable<long>
+{
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+static class Ext
+{
+    public static void Add(this MyCollection c, long l) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+
+    static void Test2()
+    {
+        Test([2, 3]);
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            // PROTOTYPE(ParamsCollections): Report more specific error saying that extension methods are ignored? 
+            comp.VerifyDiagnostics(
+                // (24,22): error CS0117: 'MyCollection' does not contain a definition for 'Add'
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "params MyCollection a").WithArguments("MyCollection", "Add").WithLocation(24, 22)
+                );
         }
 
         [Fact]
@@ -1178,6 +2442,7 @@ class Program
 {
     static void Test(params IEnumerable a)
     {
+        Test(new object());
     }
 }
 """;
@@ -1186,7 +2451,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (5,22): error CS0225: The params parameter must have a valid collection type
                 //     static void Test(params IEnumerable a)
-                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(5, 22)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(5, 22),
+                // (7,14): error CS1503: Argument 1: cannot convert from 'object' to 'params System.Collections.IEnumerable'
+                //         Test(new object());
+                Diagnostic(ErrorCode.ERR_BadArgType, "new object()").WithArguments("1", "object", "params System.Collections.IEnumerable").WithLocation(7, 14)
                 );
         }
 
@@ -2867,7 +4135,7 @@ C2
 C2")).VerifyDiagnostics();
         }
 
-        [Fact(Skip = "Yes")] // PROTOTYPE(ParamsCollections): adjust for updated collection expression conversion rules]
+        [Fact]
         public void BetterNess_03_ElementType()
         {
             var src = @"
@@ -2900,12 +4168,9 @@ class C1 : IEnumerable<char>
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
 
             comp.VerifyDiagnostics(
-                // (16,12): error CS1061: 'C1' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'C1' could be found (are you missing a using directive or an assembly reference?)
-                //         M1('a', 'b');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'a'").WithArguments("C1", "Add").WithLocation(16, 12),
-                // (16,17): error CS1061: 'C1' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'C1' could be found (are you missing a using directive or an assembly reference?)
-                //         M1('a', 'b');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'b'").WithArguments("C1", "Add").WithLocation(16, 17)
+                // (7,27): error CS1061: 'C1' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'C1' could be found (are you missing a using directive or an assembly reference?)
+                //     public static void M1(params C1 x)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "params C1 x").WithArguments("C1", "Add").WithLocation(7, 27)
                 );
         }
 
@@ -3608,7 +4873,7 @@ string
             CompileAndVerify(source, expectedOutput: "string[]");
         }
 
-        [Theory(Skip = "Yes")] // PROTOTYPE(ParamsCollections): adjust for updated collection expression conversion rules
+        [Theory]
         [InlineData("System.ReadOnlySpan<char>")]
         [InlineData("System.Span<char>")]
         public void BetterConversionFromExpression_String_01(string spanType) // This is a clone of a unit-test from CollectionExpressionTests.cs
@@ -3637,12 +4902,14 @@ string
                 source,
                 targetFramework: TargetFramework.Net80,
                 options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: ExpectedOutput($$"""
-                F1({{spanType}})
-                F2({{spanType}})
-                F1({{spanType}})
-                F2({{spanType}})
-                """));
+            comp.VerifyEmitDiagnostics(
+                // (7,20): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //     static void F1(params string value) { WriteLine("F1(string)"); }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "params string value").WithArguments("string", "0").WithLocation(7, 20),
+                // (8,20): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //     static void F2(params string value) { WriteLine("F2(string)"); }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "params string value").WithArguments("string", "0").WithLocation(8, 20)
+                );
         }
 
         [Theory]
@@ -3674,15 +4941,23 @@ string
                 source,
                 targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(params ReadOnlySpan<int>)' and 'Program.F1(params string)'
-                //         F1();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments($"Program.F1(params {spanType})", "Program.F1(params string)").WithLocation(13, 9),
-                // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(params string)' and 'Program.F2(params ReadOnlySpan<int>)'
-                //         F2();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(params string)", $"Program.F2(params {spanType})").WithLocation(14, 9));
+                // (7,20): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //     static void F1(params string value) { WriteLine("F1(string)"); }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "params string value").WithArguments("string", "0").WithLocation(7, 20),
+                // (8,20): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //     static void F2(params string value) { WriteLine("F2(string)"); }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "params string value").WithArguments("string", "0").WithLocation(8, 20)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var f1 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "F1").Single();
+            Assert.NotEqual(SpecialType.System_String, model.GetSymbolInfo(f1).Symbol.GetParameters().Single().Type.SpecialType);
+            var f2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "F2").Single();
+            Assert.NotEqual(SpecialType.System_String, model.GetSymbolInfo(f2).Symbol.GetParameters().Single().Type.SpecialType);
         }
 
-        [Theory(Skip = "Yes")] // PROTOTYPE(ParamsCollections): adjust for updated collection expression conversion rules
+        [Theory]
         [InlineData("System.ReadOnlySpan<int>")]
         [InlineData("System.Span<int>")]
         [InlineData("System.ReadOnlySpan<object>")]
@@ -3711,32 +4986,13 @@ string
                 source,
                 targetFramework: TargetFramework.Net80);
 
-            // Inline collection expression results in an ambiguity.
             comp.VerifyEmitDiagnostics(
-                // (13,9): error CS1729: 'string' does not contain a constructor that takes 0 arguments
-                //         F1('a', 'b', 'c');
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "F1('a', 'b', 'c')").WithArguments("string", "0").WithLocation(13, 9),
-                // (13,12): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         F1('a', 'b', 'c');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'a'").WithArguments("string", "Add").WithLocation(13, 12),
-                // (13,17): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         F1('a', 'b', 'c');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'b'").WithArguments("string", "Add").WithLocation(13, 17),
-                // (13,22): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         F1('a', 'b', 'c');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'c'").WithArguments("string", "Add").WithLocation(13, 22),
-                // (14,9): error CS1729: 'string' does not contain a constructor that takes 0 arguments
-                //         F2('1', '2', '3');
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "F2('1', '2', '3')").WithArguments("string", "0").WithLocation(14, 9),
-                // (14,12): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         F2('1', '2', '3');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'1'").WithArguments("string", "Add").WithLocation(14, 12),
-                // (14,17): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         F2('1', '2', '3');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'2'").WithArguments("string", "Add").WithLocation(14, 17),
-                // (14,22): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         F2('1', '2', '3');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'3'").WithArguments("string", "Add").WithLocation(14, 22)
+                // (7,20): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //     static void F1(params string value) { WriteLine("F1(string)"); }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "params string value").WithArguments("string", "0").WithLocation(7, 20),
+                // (8,20): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //     static void F2(params string value) { WriteLine("F2(string)"); }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "params string value").WithArguments("string", "0").WithLocation(8, 20)
                 );
         }
 
@@ -3767,15 +5023,23 @@ string
                 source,
                 targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(params ReadOnlySpan<byte>)' and 'Program.F1(params string)'
-                //         F1();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments($"Program.F1(params {spanType})", $"Program.F1(params string)").WithLocation(13, 9),
-                // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(params string)' and 'Program.F2(params ReadOnlySpan<byte>)'
-                //         F2();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments($"Program.F2(params string)", $"Program.F2(params {spanType})").WithLocation(14, 9));
+                // (7,20): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //     static void F1(params string value) { WriteLine("F1(string)"); }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "params string value").WithArguments("string", "0").WithLocation(7, 20),
+                // (8,20): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //     static void F2(params string value) { WriteLine("F2(string)"); }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "params string value").WithArguments("string", "0").WithLocation(8, 20)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var f1 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "F1").Single();
+            Assert.NotEqual(SpecialType.System_String, model.GetSymbolInfo(f1).Symbol.GetParameters().Single().Type.SpecialType);
+            var f2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "F2").Single();
+            Assert.NotEqual(SpecialType.System_String, model.GetSymbolInfo(f2).Symbol.GetParameters().Single().Type.SpecialType);
         }
 
-        [Theory(Skip = "Yes")] // PROTOTYPE(ParamsCollections): adjust for updated collection expression conversion rules
+        [Theory]
         [InlineData("System.ReadOnlySpan<MyChar>")]
         [InlineData("System.Span<MyChar>")]
         public void BetterConversionFromExpression_String_04_Empty(string spanType) // This is a clone of a unit-test from CollectionExpressionTests.cs
@@ -3810,13 +5074,17 @@ string
                 source,
                 targetFramework: TargetFramework.Net80,
                 options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: ExpectedOutput($$"""
-                F1({{spanType}})
-                F2({{spanType}})
-                """));
+            comp.VerifyEmitDiagnostics(
+                // (15,20): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //     static void F1(params string value) { WriteLine("F1(string)"); }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "params string value").WithArguments("string", "0").WithLocation(15, 20),
+                // (16,20): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //     static void F2(params string value) { WriteLine("F2(string)"); }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "params string value").WithArguments("string", "0").WithLocation(16, 20)
+                );
         }
 
-        [Theory(Skip = "Yes")] // PROTOTYPE(ParamsCollections): adjust for updated collection expression conversion rules
+        [Theory]
         [InlineData("System.ReadOnlySpan<MyChar>")]
         [InlineData("System.Span<MyChar>")]
         public void BetterConversionFromExpression_String_04_NotEmpty(string spanType) // This is a clone of a unit-test from CollectionExpressionTests.cs
@@ -3851,36 +5119,17 @@ string
                 targetFramework: TargetFramework.Net80,
                 options: TestOptions.ReleaseExe);
 
-            // PROTOTYPE(ParamsCollections): Inline collection expression picks a different overload and succeeds.
             comp.VerifyDiagnostics(
-                // (20,9): error CS1729: 'string' does not contain a constructor that takes 0 arguments
-                //         F1('a', 'b', 'c');
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "F1('a', 'b', 'c')").WithArguments("string", "0").WithLocation(20, 9),
-                // (20,12): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         F1('a', 'b', 'c');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'a'").WithArguments("string", "Add").WithLocation(20, 12),
-                // (20,17): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         F1('a', 'b', 'c');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'b'").WithArguments("string", "Add").WithLocation(20, 17),
-                // (20,22): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         F1('a', 'b', 'c');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'c'").WithArguments("string", "Add").WithLocation(20, 22),
-                // (21,9): error CS1729: 'string' does not contain a constructor that takes 0 arguments
-                //         F2('1', '2', '3');
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "F2('1', '2', '3')").WithArguments("string", "0").WithLocation(21, 9),
-                // (21,12): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         F2('1', '2', '3');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'1'").WithArguments("string", "Add").WithLocation(21, 12),
-                // (21,17): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         F2('1', '2', '3');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'2'").WithArguments("string", "Add").WithLocation(21, 17),
-                // (21,22): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         F2('1', '2', '3');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'3'").WithArguments("string", "Add").WithLocation(21, 22)
+                // (14,20): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //     static void F1(params string value) { WriteLine("F1(string)"); }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "params string value").WithArguments("string", "0").WithLocation(14, 20),
+                // (15,20): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //     static void F2(params string value) { WriteLine("F2(string)"); }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "params string value").WithArguments("string", "0").WithLocation(15, 20)
                 );
         }
 
-        [Fact(Skip = "Yes")] // PROTOTYPE(ParamsCollections): adjust for updated collection expression conversion rules
+        [Fact]
         public void BetterConversionFromExpression_String_05() // This is a clone of a unit-test from CollectionExpressionTests.cs
         {
             string source = $$"""
@@ -3902,15 +5151,10 @@ string
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (12,9): error CS1729: 'string' does not contain a constructor that takes 0 arguments
-                //         F();
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "F()").WithArguments("string", "0").WithLocation(12, 9),
-                // (13,9): error CS1729: 'string' does not contain a constructor that takes 0 arguments
-                //         F('a');
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "F('a')").WithArguments("string", "0").WithLocation(13, 9),
-                // (13,11): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
-                //         F('a');
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'a'").WithArguments("string", "Add").WithLocation(13, 11));
+                // (8,19): error CS1729: 'string' does not contain a constructor that takes 0 arguments
+                //     static void F(params string value) { WriteLine("F(string)"); }
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "params string value").WithArguments("string", "0").WithLocation(8, 19)
+                );
         }
 
         [Fact]
@@ -8985,6 +10229,1147 @@ class Program
 2: 2 ... 3
 ")).VerifyDiagnostics();
             }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71840")]
+        public void UnsafeContext_01_Constructor()
+        {
+            string source1 = """
+using System.Collections;
+using System.Collections.Generic;
+                            
+public class MyCollectionOfInt : IEnumerable<int>
+{
+    unsafe public MyCollectionOfInt(void* dummy = null){}
+
+    public List<int> Array = new List<int>();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                            
+    public void Add(int l) => Array.Add(l);
+}
+""";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll);
+            var comp1Ref = comp1.EmitToImageReference();
+
+            string source2 = """
+class Program
+{
+    unsafe public static void Test(params MyCollectionOfInt a)
+    {
+    }
+}
+""";
+
+            var comp2 = CreateCompilation(source2, references: [comp1Ref], options: TestOptions.UnsafeDebugDll);
+            comp2.VerifyEmitDiagnostics();
+
+            string source3 = """
+public class Params
+{
+    public static void Test(params MyCollectionOfInt a)
+    {
+        if (a.Array.Count == 0)
+        {
+            System.Console.WriteLine(a.Array.Count);
+        }
+        else
+        {
+            System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Count, a.Array[0], a.Array[a.Array.Count - 1]);
+        }
+    }
+}
+""";
+
+            var comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.DebugDll);
+            comp3.VerifyEmitDiagnostics();
+
+            string source4 = """
+class Program
+{
+    static void Main()
+    {
+        Params.Test();
+        Params.Test(1);
+        Params.Test(2, 3);
+    }
+}
+""";
+
+            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics(
+                // (5,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         Params.Test();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Params.Test()").WithLocation(5, 9),
+                // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         Params.Test(1);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Params.Test(1)").WithLocation(6, 9),
+                // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         Params.Test(2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Params.Test(2, 3)").WithLocation(7, 9)
+                );
+
+            string source5 = """
+class Program
+{
+    static unsafe void Main()
+    {
+        Params.Test();
+        Params.Test(1);
+        Params.Test(2, 3);
+    }
+}
+""";
+
+            var comp5 = CreateCompilation(source5, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.UnsafeReleaseExe);
+            CompileAndVerify(
+                comp5,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: @"
+0
+1: 1 ... 1
+2: 2 ... 3
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71840")]
+        public void UnsafeContext_02_Add()
+        {
+            string source1 = """
+using System.Collections;
+using System.Collections.Generic;
+                            
+public class MyCollectionOfInt : IEnumerable<int>
+{
+    public List<int> Array = new List<int>();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                            
+    unsafe public void Add(int l, void* dummy = null) => Array.Add(l);
+}
+""";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll);
+            var comp1Ref = comp1.EmitToImageReference();
+
+            string source2 = """
+class Program
+{
+    unsafe public static void Test(params MyCollectionOfInt a)
+    {
+    }
+}
+""";
+
+            var comp2 = CreateCompilation(source2, references: [comp1Ref], options: TestOptions.UnsafeDebugDll);
+            comp2.VerifyEmitDiagnostics();
+
+            string source3 = """
+public class Params
+{
+    public static void Test(params MyCollectionOfInt a)
+    {
+        if (a.Array.Count == 0)
+        {
+            System.Console.WriteLine(a.Array.Count);
+        }
+        else
+        {
+            System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Count, a.Array[0], a.Array[a.Array.Count - 1]);
+        }
+    }
+}
+""";
+
+            var comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.DebugDll);
+            comp3.VerifyEmitDiagnostics();
+
+            string source4 = """
+class Program
+{
+    static void Main()
+    {
+        Params.Test();
+        Params.Test(1);
+        Params.Test(2, 3);
+    }
+}
+""";
+
+            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics(
+                // (6,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         Params.Test(1);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "1").WithLocation(6, 21),
+                // (7,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         Params.Test(2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "2").WithLocation(7, 21),
+                // (7,24): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         Params.Test(2, 3);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "3").WithLocation(7, 24)
+                );
+
+            string source5 = """
+class Program
+{
+    static unsafe void Main()
+    {
+        Params.Test();
+        Params.Test(1);
+        Params.Test(2, 3);
+    }
+}
+""";
+
+            var comp5 = CreateCompilation(source5, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.UnsafeReleaseExe);
+            CompileAndVerify(
+                comp5,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: @"
+0
+1: 1 ... 1
+2: 2 ... 3
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Cycle_01()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection(params MyCollection p)
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l, params MyCollection p) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (20,9): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                //         Test();
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test()").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(20, 9),
+                // (21,9): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(1)").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(21, 9),
+                // (22,9): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(2, 3)").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(22, 9)
+                );
+        }
+
+        [Fact]
+        public void Cycle_02()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection(params MyCollection p)
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (20,9): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                //         Test();
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test()").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(20, 9),
+                // (21,9): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(1)").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(21, 9),
+                // (22,9): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(2, 3)").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(22, 9)
+                );
+        }
+
+        [Fact]
+        public void Cycle_03()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection()
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l, params MyCollection p) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+        if (a.Array.Count == 0)
+        {
+            System.Console.WriteLine(a.Array.Count);
+        }
+        else
+        {
+            System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Count, a.Array[0], a.Array[a.Array.Count - 1]);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"
+0
+1: 1 ... 1
+2: 2 ... 3
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Cycle_04()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection(params MyCollection p)
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l, params MyCollection p) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test([]);
+        Test([1]);
+        Test([2, 3]);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (20,14): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                //         Test([]);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[]").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(20, 14),
+                // (21,14): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                //         Test([1]);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[1]").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(21, 14),
+                // (21,15): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                //         Test([1]);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "1").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(21, 15),
+                // (22,14): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                //         Test([2, 3]);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[2, 3]").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(22, 14),
+                // (22,15): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                //         Test([2, 3]);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "2").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(22, 15),
+                // (22,18): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                //         Test([2, 3]);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "3").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(22, 18)
+                );
+        }
+
+        [Fact]
+        public void Cycle_05()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection(params MyCollection p)
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test([]);
+        Test([1]);
+        Test([2, 3]);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (20,14): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                //         Test([]);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[]").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(20, 14),
+                // (21,14): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                //         Test([1]);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[1]").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(21, 14),
+                // (22,14): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                //         Test([2, 3]);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[2, 3]").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(22, 14)
+                );
+        }
+
+        [Fact]
+        public void Cycle_06()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection()
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l, params MyCollection p) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test([]);
+        Test([1]);
+        Test([2, 3]);
+    }
+
+    static void Test(params MyCollection a)
+    {
+        if (a.Array.Count == 0)
+        {
+            System.Console.WriteLine(a.Array.Count);
+        }
+        else
+        {
+            System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Count, a.Array[0], a.Array[a.Array.Count - 1]);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"
+0
+1: 1 ... 1
+2: 2 ... 3
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Cycle_07()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection<T> : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection(params MyCollection<MyCollection<T>> p)
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l, params MyCollection<MyCollection<T>> p) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection<int> a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (20,9): error CS9506: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
+                //         Test();
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test()").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)").WithLocation(20, 9),
+                // (21,9): error CS9506: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(1)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)").WithLocation(21, 9),
+                // (22,9): error CS9506: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(2, 3)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)").WithLocation(22, 9)
+                );
+        }
+
+        [Fact]
+        public void Cycle_08()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection<T> : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection()
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l, params MyCollection<MyCollection<T>> p) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection<int> a)
+    {
+        if (a.Array.Count == 0)
+        {
+            System.Console.WriteLine(a.Array.Count);
+        }
+        else
+        {
+            System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Count, a.Array[0], a.Array[a.Array.Count - 1]);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"
+0
+1: 1 ... 1
+2: 2 ... 3
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Cycle_09()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection<T> : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection(params MyCollection<MyCollection<T>> p)
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection<int> a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (20,9): error CS9506: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
+                //         Test();
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test()").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)").WithLocation(20, 9),
+                // (21,9): error CS9506: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(1)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)").WithLocation(21, 9),
+                // (22,9): error CS9506: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(2, 3)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)").WithLocation(22, 9)
+                );
+        }
+
+        [Fact]
+        public void Cycle_10()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection1 : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection1(params MyCollection2 p)
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l) => Array.Add(l);
+}
+
+class MyCollection2 : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection2(params MyCollection1 p)
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l) => Array.Add(l);
+}
+
+class MyCollection3 : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection3(params MyCollection2 p)
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection3 a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (44,9): error CS9506: Creation of params collection 'MyCollection3' results in an infinite chain of invocation of constructor 'MyCollection2.MyCollection2(params MyCollection1)'.
+                //         Test();
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test()").WithArguments("MyCollection3", "MyCollection2.MyCollection2(params MyCollection1)").WithLocation(44, 9),
+                // (45,9): error CS9506: Creation of params collection 'MyCollection3' results in an infinite chain of invocation of constructor 'MyCollection2.MyCollection2(params MyCollection1)'.
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(1)").WithArguments("MyCollection3", "MyCollection2.MyCollection2(params MyCollection1)").WithLocation(45, 9),
+                // (46,9): error CS9506: Creation of params collection 'MyCollection3' results in an infinite chain of invocation of constructor 'MyCollection2.MyCollection2(params MyCollection1)'.
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(2, 3)").WithArguments("MyCollection3", "MyCollection2.MyCollection2(params MyCollection1)").WithLocation(46, 9)
+                );
+        }
+
+        [Fact]
+        public void Cycle_11()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection1 : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection1(params int[] p)
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l) => Array.Add(l);
+}
+
+class MyCollection2 : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection2(params MyCollection1 p)
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l) => Array.Add(l);
+}
+
+class MyCollection3 : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection3(params MyCollection2 p)
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection3 a)
+    {
+        if (a.Array.Count == 0)
+        {
+            System.Console.WriteLine(a.Array.Count);
+        }
+        else
+        {
+            System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Count, a.Array[0], a.Array[a.Array.Count - 1]);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"
+0
+1: 1 ... 1
+2: 2 ... 3
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Cycle_12()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection1 : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection1()
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l) => Array.Add(l);
+}
+
+class MyCollection2 : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection2(params MyCollection1 p)
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l) => Array.Add(l);
+}
+
+class MyCollection3 : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection3(params MyCollection2 p)
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection3 a)
+    {
+        if (a.Array.Count == 0)
+        {
+            System.Console.WriteLine(a.Array.Count);
+        }
+        else
+        {
+            System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Count, a.Array[0], a.Array[a.Array.Count - 1]);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"
+0
+1: 1 ... 1
+2: 2 ... 3
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Cycle_13()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable
+{
+    public List<object> Array;
+    public MyCollection(params int[] p)
+    {
+        Array = new List<object>();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(object l) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+        if (a.Array.Count == 0)
+        {
+            System.Console.WriteLine(a.Array.Count);
+        }
+        else
+        {
+            System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Count, a.Array[0], a.Array[a.Array.Count - 1]);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: @"
+0
+1: 1 ... 1
+2: 2 ... 3
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InvalidParamsTypeInPartialMethod()
+        {
+            var src = """
+partial class Program
+{
+    partial void Test1(params int a);
+
+    partial void Test1(params int a)
+    {
+    }
+
+    partial void Test2(int a);
+
+    partial void Test2(params int a)
+    {
+    }
+
+    partial void Test3(params int a);
+
+    partial void Test3(int a)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (3,24): error CS0225: The params parameter must have a valid collection type
+                //     partial void Test1(params int a);
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(3, 24),
+                // (5,24): error CS0225: The params parameter must have a valid collection type
+                //     partial void Test1(params int a)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(5, 24),
+                // (11,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                //     partial void Test2(params int a)
+                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test2").WithLocation(11, 18),
+                // (11,24): error CS0225: The params parameter must have a valid collection type
+                //     partial void Test2(params int a)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(11, 24),
+                // (15,24): error CS0225: The params parameter must have a valid collection type
+                //     partial void Test3(params int a);
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(15, 24),
+                // (17,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                //     partial void Test3(int a)
+                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test3").WithLocation(17, 18)
+                );
+        }
+
+        [Fact]
+        public void InvalidParamsType()
+        {
+            var src = """
+partial class Program
+{
+    int this[params int a] => a;
+
+    void Test()
+    {
+        var x = (params int a) => a;
+        local (0);
+
+        int local(params int a) => a; 
+    }
+}
+
+delegate void D(params int a);
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (3,14): error CS0225: The params parameter must have a valid collection type
+                //     int this[params int a] => a;
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(3, 14),
+                // (7,18): error CS0225: The params parameter must have a valid collection type
+                //         var x = (params int a) => a;
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(7, 18),
+                // (10,19): error CS0225: The params parameter must have a valid collection type
+                //         int local(params int a) => a; 
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(10, 19),
+                // (14,17): error CS0225: The params parameter must have a valid collection type
+                // delegate void D(params int a);
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(14, 17)
+                );
+        }
+
+        [Fact]
+        public void CollectionWithRequiredMember_01()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+public class MyCollection1 : IEnumerable<long>
+{
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(long l) => throw null;
+
+    public required int F;
+}
+
+public class MyCollection2 : IEnumerable<long>
+{
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(long l) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection1 a)
+    {
+    }
+
+    [System.Obsolete]
+    static void Test(MyCollection2 a)
+    {
+    }
+
+    static void Test2(MyCollection1 a)
+    {
+    }
+
+    static void Test2()
+    {
+        MyCollection1 b = [1];
+        Test([2, 3]);
+        Test2([2, 3]);
+    }
+}
+
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (24,9): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.
+                //         Test();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Test()").WithArguments("MyCollection1.F").WithLocation(24, 9),
+                // (25,9): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Test(1)").WithArguments("MyCollection1.F").WithLocation(25, 9),
+                // (26,9): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Test(2, 3)").WithArguments("MyCollection1.F").WithLocation(26, 9),
+
+                // PROTOTYPE(ParamsCollections): I am not sure if we really want an error to be reported for params parameter in this case.
+                //                               Need to confirm that. If we do, perhaps the error should have a wording tailored for 'params'.
+                //                               The current wording looks confusing. 
+
+                // (29,22): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.
+                //     static void Test(params MyCollection1 a)
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "params MyCollection1 a").WithArguments("MyCollection1.F").WithLocation(29, 22),
+
+                // (44,27): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.
+                //         MyCollection1 b = [1];
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "[1]").WithArguments("MyCollection1.F").WithLocation(44, 27),
+                // (45,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Test(params MyCollection1)' and 'Program.Test(MyCollection2)'
+                //         Test([2, 3]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Program.Test(params MyCollection1)", "Program.Test(MyCollection2)").WithLocation(45, 9),
+                // (46,15): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.
+                //         Test2([2, 3]);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "[2, 3]").WithArguments("MyCollection1.F").WithLocation(46, 15)
+                );
+        }
+
+        [Fact]
+        public void CollectionWithRequiredMember_02()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+
+public class MyCollection : IEnumerable<long>
+{
+    [SetsRequiredMembers]
+    public MyCollection(){}
+
+    public List<long> Array = new List<long>();
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(long l) => Array.Add(l);
+
+    public required int F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+
+    static void Test2()
+    {
+        Test([2, 3]);
+    }
+}
+
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics();
         }
     }
 }
