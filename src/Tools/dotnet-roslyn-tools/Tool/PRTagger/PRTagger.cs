@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using Azure.Core;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.TestManagement.WebApi;
+using Octokit;
 
 namespace Microsoft.RoslynTools.PRTagger;
 
@@ -24,6 +25,8 @@ using System.Text;
 
 internal static class PRTagger
 {
+    private const string InsertionLabel = "vs-insertion";
+
     /// <summary>
     /// Creates GitHub issues containing the PRs inserted into a given VS build.
     /// </summary>
@@ -251,7 +254,7 @@ internal static class PRTagger
             {
                 title = $"[Automated] PRs inserted in VS build {vsBuildNumber}",
                 body = issueBody,
-                labels = new string[] { "vs-insertion" }
+                labels = new[] { InsertionLabel }
             }));
 
         if (!response.IsSuccessStatusCode)
@@ -260,5 +263,30 @@ internal static class PRTagger
         }
 
         logger.LogInformation("Successfully created issue.");
+    }
+
+    public static async Task<bool> HasIssueAlreadyCreatedAsync(
+        string repoName,
+        string githubToken,
+        string title)
+    {
+        var client = new GitHubClient(new Octokit.ProductHeaderValue("roslyn-tool-pr-tagger"))
+        {
+            Credentials = new Octokit.Credentials(githubToken)
+        };
+        var searchRequest = new SearchIssuesRequest(title)
+        {
+            Type = IssueTypeQualifier.Issue,
+            Labels = new[] { InsertionLabel },
+            Repos = new RepositoryCollection{ {"dotnet", repoName} },
+            In = new[] { IssueInQualifier.Title }
+        };
+
+        if (!Debugger.IsAttached)
+            Debugger.Launch();
+
+        var searchIssueResult = await client.Search.SearchIssues(searchRequest).ConfigureAwait(false);
+
+        return searchIssueResult.TotalCount != 0;
     }
 }

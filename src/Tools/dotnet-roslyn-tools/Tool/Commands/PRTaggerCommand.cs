@@ -15,18 +15,14 @@ internal static class PRTaggerCommand
 {
     private static readonly PRTaggerCommandDefaultHandler s_prTaggerCommandHandler = new();
 
-    private static readonly Option<string> VSBuild = new(new[] { "--build", "-b" }, "VS build number") { IsRequired = true };
-    private static readonly Option<string> CommitId = new(new[] { "--commit", "-c" }, "VS build commit") { IsRequired = true };
 
     public static Symbol GetCommand()
     {
         var command = new Command("pr-tagger", "Tags PRs inserted in a given VS build.")
         {
-            VSBuild,
-            CommitId,
-            //CommonOptions.GitHubTokenOption,
+            CommonOptions.GitHubTokenOption,
             CommonOptions.DevDivAzDOTokenOption,
-            //CommonOptions.DncEngAzDOTokenOption
+            CommonOptions.DncEngAzDOTokenOption
         };
 
         command.Handler = s_prTaggerCommandHandler;
@@ -48,14 +44,18 @@ internal static class PRTaggerCommand
             //     return -1;
             // }
 
-            using var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
-            var buildsAndCommits = await PRTagger.PRTagger.GetVSBuildsAndCommitsAsync(devdivConnection, logger, CancellationToken.None).ConfigureAwait(false);
+            //using var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
+            //var buildsAndCommits = await PRTagger.PRTagger.GetVSBuildsAndCommitsAsync(devdivConnection, logger, CancellationToken.None).ConfigureAwait(false);
 
-            return await PRTagger.PRTagger.TagPRs(
-                vsBuildsAndCommitSha: buildsAndCommits,
-                settings,
-                devdivConnection,
-                logger).ConfigureAwait(false);
+            //return await PRTagger.PRTagger.TagPRs(
+            //    vsBuildsAndCommitSha: buildsAndCommits,
+            //    settings,
+            //    devdivConnection,
+            //    logger).ConfigureAwait(false);
+            var created = await PRTagger.PRTagger.HasIssueAlreadyCreatedAsync("roslyn", settings.GitHubToken,
+                "[Automated] PRs inserted in VS build main-34526.79");
+
+            return 0;
         }
     }
 }
