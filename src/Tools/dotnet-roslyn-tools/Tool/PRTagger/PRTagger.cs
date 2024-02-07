@@ -3,25 +3,19 @@
 // See the License.txt file in the project root for more information.
 
 using System.Collections.Immutable;
-using Azure.Core;
-using Microsoft.TeamFoundation.Build.WebApi;
-using Microsoft.TeamFoundation.TestManagement.WebApi;
-using Octokit;
-
-namespace Microsoft.RoslynTools.PRTagger;
-
+using System.Text;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Authentication;
-using Microsoft.RoslynTools.Extensions;
 using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
 using Microsoft.RoslynTools.VS;
+using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
-using Newtonsoft.Json;
-using System.Diagnostics;
-using System.Net.Http.Headers;
-using System.Text;
+using Octokit;
+using Repository = LibGit2Sharp.Repository;
+
+namespace Microsoft.RoslynTools.PRTagger;
 
 internal static class PRTagger
 {
@@ -154,12 +148,13 @@ internal static class PRTagger
     public static async Task<ImmutableArray<(string vsBuild, string vsCommit, string previousVsCommitSha)>> GetVSBuildsAndCommitsAsync(
         AzDOConnection devdivConnection,
         ILogger logger,
+        int vsBuildNumber,
         CancellationToken cancellationToken)
     {
         var builds = await devdivConnection.TryGetBuildsAsync(
             "DD-CB-TestSignVS",
             logger: logger,
-            maxBuildNumberFetch: 20,
+            maxBuildNumberFetch: vsBuildNumber,
             resultsFilter: BuildResult.Succeeded,
             buildQueryOrder: BuildQueryOrder.FinishTimeDescending).ConfigureAwait(false);
         var vsRepository = await GetVSRepositoryAsync(devdivConnection.GitClient);
@@ -267,9 +262,9 @@ internal static class PRTagger
         var searchRequest = new SearchIssuesRequest(title)
         {
             Type = IssueTypeQualifier.Issue,
-            Labels = new[] { InsertionLabel },
+            Labels = [InsertionLabel],
             Repos = new RepositoryCollection{ {"dotnet", repoName} },
-            In = new[] { IssueInQualifier.Title }
+            In = [IssueInQualifier.Title]
         };
 
         var searchIssueResult = await client.Search.SearchIssues(searchRequest).ConfigureAwait(false);
