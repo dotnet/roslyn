@@ -657,15 +657,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var refKind = RefKind(i);
                 var scope = DeclaredScope(i);
                 var type = ParameterTypeWithAnnotations(i);
-                if (scope == ScopedKind.None &&
-                    ParameterHelpers.IsRefScopedByDefault(Binder.UseUpdatedEscapeRules, refKind))
+
+                if (scope == ScopedKind.None)
                 {
-                    scope = ScopedKind.ScopedRef;
-                    if (_unboundLambda.ParameterAttributes(i).Any())
+                    if (ParameterHelpers.IsRefScopedByDefault(Binder.UseUpdatedEscapeRules, refKind))
                     {
-                        getEffectiveScopeFromSymbol = true;
+                        scope = ScopedKind.ScopedRef;
+                        if (_unboundLambda.ParameterAttributes(i).Any())
+                        {
+                            getEffectiveScopeFromSymbol = true;
+                        }
+                    }
+                    else if (type.IsRefLikeType() && ParameterSyntax(i)?.Modifiers.Any(SyntaxKind.ParamsKeyword) == true)
+                    {
+                        scope = ScopedKind.ScopedValue;
+                        if (_unboundLambda.ParameterAttributes(i).Any())
+                        {
+                            getEffectiveScopeFromSymbol = true;
+                        }
                     }
                 }
+                else if (scope == ScopedKind.ScopedValue && _unboundLambda.ParameterAttributes(i).Any())
+                {
+                    getEffectiveScopeFromSymbol = true;
+                }
+
                 parameterRefKindsBuilder.Add(refKind);
                 parameterScopesBuilder.Add(scope);
                 parameterTypesBuilder.Add(type);
@@ -724,7 +740,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int i = 0; i < ParameterCount; i++)
                 {
-                    if (DeclaredScope(i) == ScopedKind.None && parameterScopesBuilder[i] == ScopedKind.ScopedRef && _unboundLambda.ParameterAttributes(i).Any())
+                    if (((DeclaredScope(i) == ScopedKind.None && parameterScopesBuilder[i] == ScopedKind.ScopedRef) ||
+                         DeclaredScope(i) == ScopedKind.ScopedValue || parameterScopesBuilder[i] == ScopedKind.ScopedValue) &&
+                        _unboundLambda.ParameterAttributes(i).Any())
                     {
                         Debug.Assert(getEffectiveScopeFromSymbol);
                         parameterScopesBuilder[i] = lambdaSymbol.Parameters[i].EffectiveScope;
