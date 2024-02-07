@@ -262,9 +262,9 @@ internal static class PRTagger
         var searchRequest = new SearchIssuesRequest(title)
         {
             Type = IssueTypeQualifier.Issue,
-            Labels = [InsertionLabel],
+            Labels = new[] { InsertionLabel },
             Repos = new RepositoryCollection{ {"dotnet", repoName} },
-            In = [IssueInQualifier.Title]
+            In = new[] { IssueInQualifier.Title }
         };
 
         var searchIssueResult = await client.Search.SearchIssues(searchRequest).ConfigureAwait(false);
