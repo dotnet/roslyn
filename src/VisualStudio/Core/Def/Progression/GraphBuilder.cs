@@ -76,29 +76,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     return;
                 }
 
-                // Don't walk _solution.Projects as that will possibly create projects that don't match
-                // our criteria. Instead, walk the project states to find the appropriate project id.
-                var projectState = _solution.SolutionState.ProjectStates.FirstOrDefault(
-                    p => string.Equals(p.Value.FilePath, projectPath.OriginalString, StringComparison.OrdinalIgnoreCase));
-                if (projectState.Key == null)
+                var docIdsWithPath = _solution.GetDocumentIdsWithFilePath(filePath.OriginalString);
+                Document? document = null;
+
+                foreach (var docIdWithPath in docIdsWithPath)
+                {
+                    var projectState = _solution.GetProjectState(docIdWithPath.ProjectId);
+                    if (projectState != null &&
+                        string.Equals(projectState.FilePath, projectPath.OriginalString))
+                    {
+                        document = _solution.GetDocument(docIdWithPath);
+                        break;
+                    }
+                }
+
+                if (document == null)
                 {
                     return;
                 }
-
-                var project = _solution.GetRequiredProject(projectState.Key);
-
-                _nodeToContextProjectMap.Add(inputNode, project);
-
-                // Don't walk project.Documents as that will possibly create documents that don't match
-                // our criteria. Instead, walk the document states to find the appropriate document id.
-                var documentState = project.State.DocumentStates.States.FirstOrDefault(
-                    d => string.Equals(d.Value.FilePath, filePath.OriginalString, StringComparison.OrdinalIgnoreCase));
-                if (documentState.Key == null)
-                {
-                    return;
-                }
-
-                var document = project.GetRequiredDocument(documentState.Key);
 
                 _nodeToContextDocumentMap.Add(inputNode, document);
             }
