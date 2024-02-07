@@ -37,6 +37,12 @@ internal static class PRTagger
         ILogger logger)
     {
         using var dncengConnection = new AzDOConnection(settings.DncEngAzureDevOpsBaseUri, "internal", settings.DncEngAzureDevOpsToken);
+        // vsBuildsAndCommitSha is ordered from new to old.
+        // For each of the product, check if the product is changed from the newest build, keep creating issues if the product has change.
+        // Stop when
+        // 1. All the VS build has been checked.
+        // 2. If some errors happens.
+        // 3. If we found the issue with the same title has been created. It means the issue is created because the last run of the tagger.
         foreach (var product in VSBranchInfo.AllProducts)
         {
             foreach (var (vsCommitSha, vsBuild, previousVsCommitSha) in vsBuildsAndCommitSha)
@@ -85,7 +91,7 @@ internal static class PRTagger
         if (currentBuild.Equals(previousBuild))
         {
             logger.LogInformation($"No PRs found to tag; {gitHubRepoName} build numbers are equal: {currentBuild}.");
-            return TagResult.Failed;
+            return TagResult.NoChangeBetweenVSBuilds;
         }
 
         // Get commit SHAs for product builds
