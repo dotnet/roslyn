@@ -1251,8 +1251,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case SpecialType.System_UInt64 : castMember = SpecialMember.System_Decimal__op_Explicit_ToUInt64
                     End Select
                     If castMember <> SpecialMember.Count Then
-                        Dim castMemberSymbol = DirectCast(ContainingAssembly.GetSpecialTypeMember(castMember), MethodSymbol)
-                        If Not ReportMissingOrBadRuntimeHelper(target, castMember, castMemberSymbol) Then
+                        Dim castMemberSymbol As MethodSymbol = Nothing
+                        If TryGetSpecialMember(castMemberSymbol, castMember, node.Syntax, True) Then
                             Return New BoundCall(node.Syntax, castMemberSymbol, Nothing, Nothing, ImmutableArray.Create(target), Nothing, underlyingTypeTo)
                         End If
                     End If

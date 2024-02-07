@@ -7515,5 +7515,183 @@ done
 }
 ]]>)
         End Sub
+        <Fact, WorkItem(71819, "https://github.com/dotnet/roslyn/issues/71819")>
+        Public Sub CIntRound_CastMissing01()
+            Dim source =
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Option Strict Off
+
+Imports System
+Imports Microsoft.VisualBasic
+
+Class C1
+    Public Shared Function DecimalToSByte(number as Decimal) As SByte
+        Return Math.Round(number, MidpointRounding.AwayFromZero)
+    End Function
+    Public Shared Function DecimalToByte(number as Decimal) As Byte
+        Return Math.Round(number, MidpointRounding.AwayFromZero)
+    End Function
+    Public Shared Function DecimalToShort(number as Decimal) As Short
+        Return Math.Round(number, MidpointRounding.AwayFromZero)
+    End Function
+    Public Shared Function DecimalToUShort(number as Decimal) As UShort
+        Return Math.Round(number, MidpointRounding.AwayFromZero)
+    End Function
+    Public Shared Function DecimalToInteger(number as Decimal) As Integer
+        Return Math.Round(number, MidpointRounding.AwayFromZero)
+    End Function
+    Public Shared Function DecimalToUInteger(number as Decimal) As UInteger
+        Return Math.Round(number, MidpointRounding.AwayFromZero)
+    End Function
+    Public Shared Function DecimalToLong(number as Decimal) As Long
+        Return Math.Round(number, MidpointRounding.AwayFromZero)
+    End Function
+    Public Shared Function DecimalToULong(number as Decimal) As ULong
+        Return Math.Round(number, MidpointRounding.AwayFromZero)
+    End Function
+    Public Shared Sub Main()
+        CheckDecimal(Integer.MinValue - 1D)  ' overflow
+        CheckDecimal(Integer.MinValue - 0.01D, Integer.MinValue)
+        CheckDecimal(Integer.MinValue + 0D, Integer.MinValue)
+        CheckDecimal(Integer.MinValue + 1D, -2147483647)
+        CheckDecimal(1.99D, 2)
+        CheckDecimal(Integer.MaxValue - 1D, 2147483646)
+        CheckDecimal(Integer.MaxValue - 0.01D, Integer.MaxValue)
+        CheckDecimal(Integer.MaxValue + 0D, Integer.MaxValue)
+        CheckDecimal(Integer.MaxValue + 0.01D, Integer.MaxValue)
+        CheckDecimal(Integer.MaxValue + 0.99D)  ' overflow
+        CheckDecimal(Integer.MaxValue + 1D)  ' overflow
+        CheckDecimal(Integer.MaxValue + 2D)  ' overflow
+
+        Console.WriteLine("done")
+    End Sub
+
+    Public Shared Sub CheckDecimal(s As Decimal, expected As Integer)
+        Dim result As Integer = DecimalToInteger(s)
+        If result <> expected
+            Throw New Exception("Error on " & s & " " & expected)
+        End If
+    End Sub
+    Public Shared Sub CheckDecimal(s As Decimal)
+        Try
+            Dim result As Integer = DecimalToInteger(s)
+        Catch ex As OverflowException
+            Return
+        End Try
+        Throw New Exception("Error on " & s)
+    End Sub
+End Class
+]]>
+        </file>
+    </compilation>
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(False))
+            ' Intentionally omits cast members from decimals to integers
+            For Each castMember In {
+                SpecialMember.System_Decimal__op_Explicit_ToSByte,
+                SpecialMember.System_Decimal__op_Explicit_ToByte,
+                SpecialMember.System_Decimal__op_Explicit_ToInt16,
+                SpecialMember.System_Decimal__op_Explicit_ToUInt16,
+                SpecialMember.System_Decimal__op_Explicit_ToInt32,
+                SpecialMember.System_Decimal__op_Explicit_ToUInt32,
+                SpecialMember.System_Decimal__op_Explicit_ToInt64,
+                SpecialMember.System_Decimal__op_Explicit_ToUInt64
+            }
+                compilation.MakeMemberMissing(castMember)
+            Next
+            Dim cv = CompileAndVerify(compilation,
+                            expectedOutput:=<![CDATA[
+done
+]]>)
+            ' Fallback to System.Convert.To(S)Byte/To(U)Int{16,32,64}, which have been used before
+            cv.VerifyIL("C1.DecimalToSByte", <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       "Function System.Math.Round(Decimal, System.MidpointRounding) As Decimal"
+  IL_0007:  call       "Function System.Convert.ToSByte(Decimal) As SByte"
+  IL_000c:  ret
+}
+]]>)
+            cv.VerifyIL("C1.DecimalToByte", <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       "Function System.Math.Round(Decimal, System.MidpointRounding) As Decimal"
+  IL_0007:  call       "Function System.Convert.ToByte(Decimal) As Byte"
+  IL_000c:  ret
+}
+]]>)
+            cv.VerifyIL("C1.DecimalToShort", <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       "Function System.Math.Round(Decimal, System.MidpointRounding) As Decimal"
+  IL_0007:  call       "Function System.Convert.ToInt16(Decimal) As Short"
+  IL_000c:  ret
+}
+]]>)
+            cv.VerifyIL("C1.DecimalToUShort", <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       "Function System.Math.Round(Decimal, System.MidpointRounding) As Decimal"
+  IL_0007:  call       "Function System.Convert.ToUInt16(Decimal) As UShort"
+  IL_000c:  ret
+}
+]]>)
+            cv.VerifyIL("C1.DecimalToInteger", <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       "Function System.Math.Round(Decimal, System.MidpointRounding) As Decimal"
+  IL_0007:  call       "Function System.Convert.ToInt32(Decimal) As Integer"
+  IL_000c:  ret
+}
+]]>)
+            cv.VerifyIL("C1.DecimalToUInteger", <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       "Function System.Math.Round(Decimal, System.MidpointRounding) As Decimal"
+  IL_0007:  call       "Function System.Convert.ToUInt32(Decimal) As UInteger"
+  IL_000c:  ret
+}
+]]>)
+            cv.VerifyIL("C1.DecimalToLong", <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       "Function System.Math.Round(Decimal, System.MidpointRounding) As Decimal"
+  IL_0007:  call       "Function System.Convert.ToInt64(Decimal) As Long"
+  IL_000c:  ret
+}
+]]>)
+            cv.VerifyIL("C1.DecimalToULong", <![CDATA[
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       "Function System.Math.Round(Decimal, System.MidpointRounding) As Decimal"
+  IL_0007:  call       "Function System.Convert.ToUInt64(Decimal) As ULong"
+  IL_000c:  ret
+}
+]]>)
+        End Sub
     End Class
 End Namespace
