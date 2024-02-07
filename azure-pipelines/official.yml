@@ -58,7 +58,7 @@ extends:
       sdl:
         sourceAnalysisPool: VSEngSS-MicroBuild2022-1ES
         policheck:
-          enabled: ${{ parameters.EnableCompliance }}
+          enabled: true
           exclusionsFile: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
         suppression:
           suppressionFile: $(System.DefaultWorkingDirectory)\azure-pipelines\falsepositives.gdnsuppress
@@ -95,9 +95,6 @@ extends:
     parameters:
       sdl:
         sourceAnalysisPool: VSEngSS-MicroBuild2022-1ES
-        policheck:
-          enabled: ${{ parameters.EnableCompliance }}
-          exclusionsFile: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
         suppression:
           suppressionFile: $(System.DefaultWorkingDirectory)\azure-pipelines\falsepositives.gdnsuppress
       stages:
