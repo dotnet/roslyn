@@ -11037,4 +11037,57 @@ new TestParameters(Options.Regular));
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71980")]
+    public async Task AssignToTuple7()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async Task<int> M()
+                {
+                    var ([|NewExpr|]) = await G();
+                }
+
+                Task<(int, string)> G() => default;
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71980")]
+    public async Task AssignToTuple8()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                int M()
+                {
+                    var (x) = [|NewExpr()|];
+                }
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                int M()
+                {
+                    var (x) = NewExpr();
+                }
+            
+                private (object x, object) NewExpr()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
 }
