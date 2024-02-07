@@ -3,15 +3,18 @@
 // See the License.txt file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Net.Http.Headers;
 using System.Text;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Authentication;
+using Microsoft.RoslynTools.Extensions;
 using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
 using Microsoft.RoslynTools.VS;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
+using Newtonsoft.Json;
 using Octokit;
 using Repository = LibGit2Sharp.Repository;
 
@@ -242,17 +245,38 @@ internal static class PRTagger
     }
 
     private static async Task TryCreateIssueAsync(
-        GitHubClient gitHubClient,
         string title,
         string gitHubRepoName,
         string issueBody,
+        string gitHubToken,
         ILogger logger)
     {
-        await gitHubClient.Issue.Create(owner: "dotnet", name: gitHubRepoName, new NewIssue(title)
+        var client = new HttpClient
         {
-            Body = issueBody,
-            Labels = { InsertionLabel },
-        });
+            BaseAddress = new("https://api.github.com/")
+        };
+
+        var authArray = Encoding.ASCII.GetBytes($"{gitHubToken}");
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Basic",
+            Convert.ToBase64String(authArray));
+        client.DefaultRequestHeaders.Add(
+            "user-agent",
+            "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2;)");
+
+        // https://docs.github.com/en/rest/issues/issues#create-an-issue
+        var response = await client.PostAsyncAsJson($"repos/dotnet/{gitHubRepoName}/issues", JsonConvert.SerializeObject(
+            new
+            {
+                title = title,
+                body = issueBody,
+                labels = new string[] { "vs-insertion" }
+            }));
+
+        if (!response.IsSuccessStatusCode)
+        {
+            logger.LogError($"Issue creation failed with status code: {response.StatusCode}");
+        }
 
         logger.LogInformation("Successfully created issue.");
     }

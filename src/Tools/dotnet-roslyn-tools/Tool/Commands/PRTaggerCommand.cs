@@ -6,7 +6,6 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Utilities;
-using Octokit;
 
 namespace Microsoft.RoslynTools.Commands;
 
