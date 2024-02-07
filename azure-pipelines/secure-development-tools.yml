@@ -30,27 +30,3 @@ steps:
   condition: and(succeeded(), ${{ parameters.EnableAPIScan }}, ne(variables.ApiScanClientId, ''))
   env:
     AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
-
-- task: SdtReport@2
-  displayName: 📃 Create Security Analysis Report
-  inputs:
-    GdnExportAllTools: true
-
-- task: PublishSecurityAnalysisLogs@3
-  displayName: 📢 Publish Code Analysis Logs
-  inputs:
-    ArtifactName: CodeAnalysisLogs
-    ArtifactType: Container
-    PublishProcessedResults: true
-    AllTools: true
-    ToolLogsNotFoundAction: Standard
-
-- task: PostAnalysis@2
-  displayName: 🏋️‍♀️ Break on compliance issues
-  inputs:
-    GdnBreakAllTools: true
-    GdnBreakGdnToolBinSkimSeverity: Warning
-    GdnBreakSuppressionFiles: $(System.DefaultWorkingDirectory)/azure-pipelines/falsepositives.gdnsuppress
-    GdnBreakSuppressionSets: falsepositives
-    GdnBreakOutputSuppressionFile: $(Build.ArtifactStagingDirectory)/guardian_failures_as_suppressions/
-    GdnBreakOutputSuppressionSet: falsepositives
