@@ -23,9 +23,23 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal
             new(HotReloadSessionNotificationServiceInfo.Moniker, new Version(HotReloadSessionNotificationServiceInfo.Version)),
         clientInterface: null);
 
+        // ManagedHotReloadService
+        private static readonly ServiceRpcDescriptor ManagedHotReloadAgentManagerServiceDescriptor = CreateDescriptor(
+            new(ManagedHotReloadAgentManagerServiceInfo.Moniker, new Version(ManagedHotReloadAgentManagerServiceInfo.Version)),
+            clientInterface: null);
+
+        private const string ManagedHotReloadServiceInfo_Moniker = "Microsoft.VisualStudio.Debugger.ManagedHotReloadService";
+        private const string ManagedHotReloadServiceInfo_Version = "0.1";
+        private static readonly ServiceRpcDescriptor ManagedHotReloadServiceDescriptor = CreateDescriptor(
+            new(ManagedHotReloadServiceInfo_Moniker, new Version(ManagedHotReloadServiceInfo_Version)),
+            clientInterface: null);
+
         private CancellationToken _serviceBrokerToken = new CancellationToken();
+
         private readonly IServiceBroker _serviceBroker;
         private IHotReloadSessionNotificationService? _hotReloadSessionNotificationService;
+        private IManagedHotReloadAgentManagerService? _ManagedHotReloadAgentManagerService;
+        private IManagedHotReloadService? _managedHotReloadService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -34,42 +48,43 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal
         IServiceBroker serviceBroker)
         {
             _serviceBroker = serviceBroker;
-            _ = InitializeAsync();
         }
 
-        public ValueTask<IHotReloadSessionNotificationService> HotReloadSessionNotificationService
+        public async Task<IHotReloadSessionNotificationService?> HotReloadSessionNotificationServiceAsync()
         {
-            get
+            if (_hotReloadSessionNotificationService == null)
             {
-                if (_hotReloadSessionNotificationService == null)
-                {
-                    InitializeAsync().ConfigureAwait(true);
-                }
-
-                if (_hotReloadSessionNotificationService != null)
-                {
-                    return new ValueTask<IHotReloadSessionNotificationService>(_hotReloadSessionNotificationService);
-                }
-
-                return new ValueTask<IHotReloadSessionNotificationService>();
+                _hotReloadSessionNotificationService = await _serviceBroker.GetProxyAsync<IHotReloadSessionNotificationService>(HotReloadSessionNotificationServiceDescriptor, _serviceBrokerToken).ConfigureAwait(false);
             }
+
+            return _hotReloadSessionNotificationService;
         }
 
-        private async Task InitializeAsync()
+        public async Task<IManagedHotReloadAgentManagerService?> ManagedHotReloadAgentManagerServiceAsync()
         {
-            if (_serviceBroker == null)
+            if (_ManagedHotReloadAgentManagerService == null)
             {
-                return;
+                _ManagedHotReloadAgentManagerService = await _serviceBroker.GetProxyAsync<IManagedHotReloadAgentManagerService>(ManagedHotReloadAgentManagerServiceDescriptor, _serviceBrokerToken).ConfigureAwait(false);
             }
 
-            (_hotReloadSessionNotificationService as IDisposable)?.Dispose();
+            return _ManagedHotReloadAgentManagerService;
+        }
 
-            _hotReloadSessionNotificationService = await _serviceBroker.GetProxyAsync<IHotReloadSessionNotificationService>(HotReloadSessionNotificationServiceDescriptor, _serviceBrokerToken).ConfigureAwait(false);
+        public async Task<IManagedHotReloadService?> ManagedHotReloadServiceAsync()
+        {
+            if (_managedHotReloadService == null)
+            {
+                _managedHotReloadService = await _serviceBroker.GetProxyAsync<IManagedHotReloadService>(ManagedHotReloadServiceDescriptor, _serviceBrokerToken).ConfigureAwait(false);
+            }
+
+            return _managedHotReloadService;
         }
 
         public void Dispose()
         {
             (_hotReloadSessionNotificationService as IDisposable)?.Dispose();
+            (_ManagedHotReloadAgentManagerService as IDisposable)?.Dispose();
+            (_managedHotReloadService as IDisposable)?.Dispose();
         }
 
         private static ServiceJsonRpcDescriptor CreateDescriptor(ServiceMoniker moniker, Type? clientInterface) => new ServiceJsonRpcDescriptor(

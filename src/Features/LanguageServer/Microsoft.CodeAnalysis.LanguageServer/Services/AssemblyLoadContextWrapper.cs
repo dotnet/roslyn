@@ -19,6 +19,80 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services
         private readonly ImmutableDictionary<string, Assembly> _loadedAssemblies;
         private readonly ILogger? _logger;
 
+        // WORKAROUND for Roslyn bugs 71100 and 71101
+        private static class AssemblyLoadHelper
+        {
+            private static readonly ConcurrentDictionary<string, Assembly?> loadedAssemblies = new(StringComparer.OrdinalIgnoreCase);
+            static AssemblyLoadHelper()
+            {
+                // We might need to load System.Xaml for extensibility *.DesignTools.dll
+                Assembly? ResolveAssembly(object sender, ResolveEventArgs args)
+                {
+                    string name = new AssemblyName(args.Name).Name;
+                    if (name.EndsWith(".resources", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return null;
+                    }
+
+                    if (name.Equals("System.Xaml", StringComparison.OrdinalIgnoreCase) ||
+                        name.Equals("Microsoft.VisualStudio.Telemetry", StringComparison.OrdinalIgnoreCase) ||
+                        name.StartsWith("Microsoft.VisualStudio.DesignTools.", StringComparison.OrdinalIgnoreCase) ||
+                        name.StartsWith("Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Assembly? assembly = loadedAssemblies.GetOrAdd(name, AssemblyLoadHelper.EnsureAssembly);
+                        return assembly;
+                    }
+
+                    return null;
+                }
+
+                AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
+            }
+
+            private static Assembly? EnsureAssembly(string name)
+            {
+                if (AssemblyLoadHelper.GetLoadedAssembly(name) is not Assembly assembly)
+                {
+                    string path = Assembly.GetExecutingAssembly().Location;
+                    string folder = Path.GetDirectoryName(path);
+                    string assemblyPath = Path.Combine(folder, name + ".dll");
+                    if (File.Exists(assemblyPath))
+                    {
+                        assembly = Assembly.LoadFrom(assemblyPath);
+                    }
+                    else
+                    {
+                        Debug.Fail($"Missing {assemblyPath}");
+                        return null;
+                    }
+                }
+
+                return assembly;
+            }
+
+            private static Assembly? GetLoadedAssembly(string name)
+            {
+                // Find existing assembly
+                Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                foreach (Assembly loadedAssembly in assemblies)
+                {
+                    AssemblyName loadedAssemblyName = loadedAssembly.GetName();
+                    if (string.Equals(loadedAssemblyName.Name, name, StringComparison.Ordinal))
+                    {
+                        return loadedAssembly;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        static AssemblyLoadContextWrapper()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(AssemblyLoadHelper).TypeHandle);
+        }
+        // WORKAROUND - END
+
         private AssemblyLoadContextWrapper(AssemblyLoadContext assemblyLoadContext, ImmutableDictionary<string, Assembly> loadedFiles, ILogger? logger)
         {
             _assemblyLoadContext = assemblyLoadContext;

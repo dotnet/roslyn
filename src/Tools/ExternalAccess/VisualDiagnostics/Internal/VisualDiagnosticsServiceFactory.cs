@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,13 +47,41 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
         private readonly LspWorkspaceManager _lspWorkspaceManager;
         private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
         private readonly Lazy<IBrokeredDebuggerServices> _brokeredDebuggerServices;
- 
+        private System.Timers.Timer _timer;
+
+
         public OnInitializedService(LspServices lspServices, LspWorkspaceManager lspWorkspaceManager, LspWorkspaceRegistrationService lspWorkspaceRegistrationService, Lazy<IBrokeredDebuggerServices> brokeredDebuggerServices)
         {
             _lspServices = lspServices;
             _lspWorkspaceManager = lspWorkspaceManager;
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _brokeredDebuggerServices = brokeredDebuggerServices;
+            _timer = new System.Timers.Timer();
+            _timer.Interval = 1000;
+            _timer.Elapsed += _timer_Elapsed;
+        }
+
+        private async void _timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            IManagedHotReloadService? manageHotReloadService = await _brokeredDebuggerServices.Value.ManagedHotReloadServiceAsync().ConfigureAwait(false);
+            if (manageHotReloadService != null)
+            {
+                Debug.WriteLine("IManagedHotReloadService Broker Proxy Available");
+            }
+            else
+            {
+                Debug.WriteLine("IManagedHotReloadService Broker Proxy Not Yet Available");
+            }
+
+            IHotReloadSessionNotificationService? hotReloadSessionNotificationService = await _brokeredDebuggerServices.Value.HotReloadSessionNotificationServiceAsync().ConfigureAwait(false);
+            if (hotReloadSessionNotificationService != null)
+            {
+                Debug.WriteLine("hotReloadSessionNotificationService Broker Proxy Available");
+            }
+            else
+            {
+                Debug.WriteLine("hotReloadSessionNotificationService Broker Proxy Not Yet Available");
+            }
         }
 
         public void Dispose()
@@ -65,7 +94,8 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
 
         public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
-            _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
+            // _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
+            _timer.Start();
             return Task.CompletedTask;
         }
 
@@ -73,12 +103,26 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
         {
             if (e.DocumentId is not null && e.Kind is WorkspaceChangeKind.DocumentChanged)
             {
-                IHotReloadSessionNotificationService notificationService = await _brokeredDebuggerServices.Value.HotReloadSessionNotificationService.ConfigureAwait(false);
-                if(notificationService != null)
+                IHotReloadSessionNotificationService? notificationService = await _brokeredDebuggerServices.Value.HotReloadSessionNotificationServiceAsync().ConfigureAwait(false);
+                if (notificationService != null)
                 {
                     CancellationToken token = new CancellationToken();
-                    HotReloadSessionInfo info = await notificationService.FetchHotReloadSessionInfoAsync(token);
+                    HotReloadSessionInfo info = await notificationService.FetchHotReloadSessionInfoAsync(token).ConfigureAwait(false);
                 }
+
+                IManagedHotReloadAgentManagerService? managedHotReloadAgentManagerService = await _brokeredDebuggerServices.Value.ManagedHotReloadAgentManagerServiceAsync().ConfigureAwait(false);
+                if(managedHotReloadAgentManagerService != null)
+                {
+                    CancellationToken token = new CancellationToken();
+                }
+
+                IManagedHotReloadService? manageHotReloadService = await _brokeredDebuggerServices.Value.ManagedHotReloadServiceAsync().ConfigureAwait(false);
+                if (manageHotReloadService != null)
+                {
+                    CancellationToken token = new CancellationToken();
+                }
+
+
                 Workspace workspace = this._lspWorkspaceRegistrationService.GetAllRegistrations().Where(w => w.Kind == WorkspaceKind.Host).FirstOrDefault();
                 if (workspace != null)
                 {
@@ -87,6 +131,11 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
                     visualDiagnosticsLanguageService?.CreateDiagnosticsSessionAsync(Guid.NewGuid());
                 }
             }
+        }
+
+        private Task InitializeHotReloadSessionNotificationService()
+        {
+            return Task.CompletedTask;
         }
     }
 }
