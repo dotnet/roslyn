@@ -46,6 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         protected override IAttachedCollectionSource? CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
         {
             if (item != null &&
+                !item.IsDisposed &&
                 item.HierarchyIdentity != null &&
                 item.HierarchyIdentity.NestedHierarchy != null &&
                 relationshipName == KnownRelationships.Contains)
