@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-    public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHelper logger)
           : base(logger)
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 class [|Derived|] : Base
                 {
                 }
-                """, new[] { FeaturesResources.Implement_abstract_class });
+                """, [FeaturesResources.Implement_abstract_class]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 class [|Derived|] : Base
                 {
                 }
-                """, new[] { FeaturesResources.Implement_abstract_class });
+                """, [FeaturesResources.Implement_abstract_class]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -125,6 +125,69 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                     {
                         inner.Method();
                     }
+                }
+                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+        }
+
+        [Fact]
+        public async Task RefParameters_Method()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                abstract class Base
+                {
+                    public abstract void Method(int a, ref int b, in int c, ref readonly int d, out int e);
+                }
+
+                class [|Derived|] : Base
+                {
+                    Derived inner;
+                }
+                """,
+                """
+                abstract class Base
+                {
+                    public abstract void Method(int a, ref int b, in int c, ref readonly int d, out int e);
+                }
+
+                class Derived : Base
+                {
+                    Derived inner;
+
+                    public override void Method(int a, ref int b, in int c, ref readonly int d, out int e)
+                    {
+                        inner.Method(a, ref b, c, in d, out e);
+                    }
+                }
+                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+        }
+
+        [Fact]
+        public async Task RefParameters_Indexer()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                abstract class Base
+                {
+                    public abstract int this[int a, in int b, ref readonly int c, out int d] { get; }
+                }
+
+                class [|Derived|] : Base
+                {
+                    Derived inner;
+                }
+                """,
+                """
+                abstract class Base
+                {
+                    public abstract int this[int a, in int b, ref readonly int c, out int d] { get; }
+                }
+
+                class Derived : Base
+                {
+                    Derived inner;
+
+                    public override int this[int a, in int b, ref readonly int c, out int d] => inner[a, b, in c, out d];
                 }
                 """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
         }
@@ -282,12 +345,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 
                     Base IInterface.Inner { get; }
                 }
-                """, new[]
-{
+                """,
+[
     FeaturesResources.Implement_abstract_class,
     string.Format(FeaturesResources.Implement_through_0, "Inner"),
     string.Format(FeaturesResources.Implement_through_0, "IInterface.Inner"),
-});
+]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -304,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 {
                     dynamic inner;
                 }
-                """, new[] { FeaturesResources.Implement_abstract_class });
+                """, [FeaturesResources.Implement_abstract_class]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -587,7 +650,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 {
                     Base inner;
                 }
-                """, new[] { FeaturesResources.Implement_abstract_class });
+                """, [FeaturesResources.Implement_abstract_class]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -703,7 +766,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 {
                     Base inner;
                 }
-                """, new[] { FeaturesResources.Implement_abstract_class });
+                """, [FeaturesResources.Implement_abstract_class]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -824,6 +887,141 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                         </Document>
                     </Project>
                 </Workspace>
+                """, index: 1);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+        public async Task TestImplementThroughPrimaryConstructorParam1()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                abstract class Base
+                {
+                    public abstract int Method();
+                }
+
+                class [|Program|](Base base1) : Base
+                {
+                }
+                """,
+                """
+                abstract class Base
+                {
+                    public abstract int Method();
+                }
+
+                class Program(Base base1) : Base
+                {
+                    public override int Method()
+                    {
+                        return base1.Method();
+                    }
+                }
+                """, index: 1);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+        public async Task TestImplementThroughPrimaryConstructorParam2()
+        {
+            // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
+            await TestExactActionSetOfferedAsync(
+                """
+                abstract class Base
+                {
+                    public abstract int Method();
+                }
+
+                class [|Program|](Base base1) : Base
+                {
+                    private Base _base = base1;
+                }
+                """, [FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "_base")]);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+        public async Task TestImplementThroughPrimaryConstructorParam2_B()
+        {
+            // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
+            await TestExactActionSetOfferedAsync(
+                """
+                abstract class Base
+                {
+                    public abstract int Method();
+                }
+
+                class [|Program|](Base base1) : Base
+                {
+                    private Base _base = (base1);
+                }
+                """, [FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "_base")]);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+        public async Task TestImplementThroughPrimaryConstructorParam3()
+        {
+            // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
+            await TestExactActionSetOfferedAsync(
+                """
+                abstract class Base
+                {
+                    public abstract int Method();
+                }
+
+                class [|Program|](Base base1) : Base
+                {
+                    private Base B { get; } = base1;
+                }
+                """, [FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "B")]);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+        public async Task TestImplementThroughPrimaryConstructorParam3_B()
+        {
+            // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
+            await TestExactActionSetOfferedAsync(
+                """
+                abstract class Base
+                {
+                    public abstract int Method();
+                }
+
+                class [|Program|](Base base1) : Base
+                {
+                    private Base B { get; } = (base1);
+                }
+                """, [FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "B")]);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+        public async Task TestImplementThroughPrimaryConstructorParam4()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                abstract class Base
+                {
+                    public abstract int Method();
+                }
+
+                class [|Program|](Base base1) : Base
+                {
+                    private readonly int base1Hash = base1.GetHashCode();
+                }
+                """,
+                """
+                abstract class Base
+                {
+                    public abstract int Method();
+                }
+
+                class Program(Base base1) : Base
+                {
+                    private readonly int base1Hash = base1.GetHashCode();
+
+                    public override int Method()
+                    {
+                        return base1.Method();
+                    }
+                }
                 """, index: 1);
         }
     }

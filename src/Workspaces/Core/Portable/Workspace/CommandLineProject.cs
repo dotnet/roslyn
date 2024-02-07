@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis
                     .WithAssemblyIdentityComparer(assemblyIdentityComparer)
                     .WithStrongNameProvider(strongNameProvider)
                     // TODO (https://github.com/dotnet/roslyn/issues/4967): 
-                    .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, projectDirectory))),
+                    .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver([], projectDirectory))),
                 parseOptions: commandLineArguments.ParseOptions,
                 documents: CreateDocuments(commandLineArguments.SourceFiles),
                 projectReferences: null,
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis
             return CreateProjectInfo(projectName, language, args, baseDirectory, workspace);
         }
 
-        private static readonly char[] s_folderSplitters = new char[] { Path.DirectorySeparatorChar };
+        private static readonly char[] s_folderSplitters = [Path.DirectorySeparatorChar];
 
         private static IList<string> GetFolders(string path)
         {

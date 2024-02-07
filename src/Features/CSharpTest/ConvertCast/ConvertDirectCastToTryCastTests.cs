@@ -450,8 +450,7 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64466")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64466")]
         public async Task ConvertFromExplicitToAs_NullableValueType()
         {
             const string InitialMarkup = """

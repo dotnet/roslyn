@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             // Verify registered configuration code actions do not have duplicates.
             var fixCollections = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, CancellationToken.None);
-            var codeActions = fixCollections.SelectMany(c => c.Fixes.Select(f => f.Action)).ToImmutableArray();
+            var codeActions = fixCollections.SelectManyAsArray(c => c.Fixes.Select(f => f.Action));
             Assert.Equal(7, codeActions.Length);
             var uniqueTitles = new HashSet<string>();
             foreach (var codeAction in codeActions)
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             // Verify only analyzerWithFix is executed when GetFixesAsync is invoked with 'CodeActionRequestPriority.Normal'.
             _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
-                priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Normal), CodeActionOptions.DefaultProvider,
+                priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Default), CodeActionOptions.DefaultProvider,
                 addOperationScope: _ => null, cancellationToken: CancellationToken.None);
             Assert.True(analyzerWithFix.ReceivedCallback);
             Assert.False(analyzerWithoutFix.ReceivedCallback);
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             // Verify both analyzers are executed when GetFixesAsync is invoked with 'CodeActionRequestPriority.Normal'.
             _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
-                priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Normal), CodeActionOptions.DefaultProvider,
+                priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Default), CodeActionOptions.DefaultProvider,
                 addOperationScope: _ => null, cancellationToken: CancellationToken.None);
             Assert.True(documentDiagnosticAnalyzer.ReceivedCallback);
         }
@@ -218,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             Assert.False(codeFix.Called);
             var fixCollectionSet = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
-                priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Normal), CodeActionOptions.DefaultProvider,
+                priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Default), CodeActionOptions.DefaultProvider,
                 addOperationScope: _ => null, cancellationToken: CancellationToken.None);
             Assert.True(codeFix.Called);
             var fixCollection = Assert.Single(fixCollectionSet);
@@ -337,19 +338,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.True(errorReported);
         }
 
-        private static (TestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+        private static (EditorTestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
             CodeFixProvider codefix,
             bool includeConfigurationFixProviders = false,
             bool throwExceptionInFixerCreation = false,
-            TestHostDocument? additionalDocument = null,
+            EditorTestHostDocument? additionalDocument = null,
             string code = "class Program { }")
             => ServiceSetup(ImmutableArray.Create(codefix), includeConfigurationFixProviders, throwExceptionInFixerCreation, additionalDocument, code);
 
-        private static (TestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+        private static (EditorTestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
             ImmutableArray<CodeFixProvider> codefixers,
             bool includeConfigurationFixProviders = false,
             bool throwExceptionInFixerCreation = false,
-            TestHostDocument? additionalDocument = null,
+            EditorTestHostDocument? additionalDocument = null,
             string code = "class Program { }")
         {
             var fixers = codefixers.Select(codefix =>
@@ -357,7 +358,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 () => throwExceptionInFixerCreation ? throw new Exception() : codefix,
                 new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
 
-            var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
+            var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             if (additionalDocument != null)
             {
                 workspace.Projects.Single().AddAdditionalDocument(additionalDocument);
@@ -388,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         private static void GetDocumentAndExtensionManager(
             DiagnosticAnalyzerService diagnosticService,
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             out TextDocument document,
             out EditorLayerExtensionManager.ExtensionManager extensionManager,
             MockAnalyzerReference? analyzerReference = null,
@@ -397,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         private static void GetDocumentAndExtensionManager(
             DiagnosticAnalyzerService diagnosticService,
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             out TextDocument document,
             out EditorLayerExtensionManager.ExtensionManager extensionManager,
             out DiagnosticIncrementalAnalyzer diagnosticIncrementalAnalyzer,
@@ -900,7 +904,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var analyzerReference = new MockAnalyzerReference(fixers, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
 
             // Verify available code fixes for .txt additional document
-            var tuple = ServiceSetup(fixers, additionalDocument: new TestHostDocument("Additional Document", filePath: "test.txt"));
+            var tuple = ServiceSetup(fixers, additionalDocument: new EditorTestHostDocument("Additional Document", filePath: "test.txt"));
             using var workspace = tuple.workspace;
             GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var txtDocument, out var extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
             var txtDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(txtDocument, TextSpan.FromBounds(0, 1), CodeActionOptions.DefaultProvider, CancellationToken.None);
@@ -911,13 +915,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             // Verify code fix application
             var codeAction = txtDocumentCodeFixes.Single(s => s.Fixes.Single().Action.Title == fixer1.Title).Fixes.Single().Action;
-            var solution = await codeAction.GetChangedSolutionInternalAsync(txtDocument.Project.Solution);
+            var solution = await codeAction.GetChangedSolutionInternalAsync(txtDocument.Project.Solution, CodeAnalysisProgress.None);
             var changedtxtDocument = solution!.Projects.Single().AdditionalDocuments.Single(t => t.Id == txtDocument.Id);
             Assert.Equal("Additional Document", txtDocument.GetTextSynchronously(CancellationToken.None).ToString());
             Assert.Equal($"Additional Document{fixer1.Title}", changedtxtDocument.GetTextSynchronously(CancellationToken.None).ToString());
 
             // Verify available code fixes for .log additional document
-            tuple = ServiceSetup(fixers, additionalDocument: new TestHostDocument("Additional Document", filePath: "test.log"));
+            tuple = ServiceSetup(fixers, additionalDocument: new EditorTestHostDocument("Additional Document", filePath: "test.log"));
             using var workspace2 = tuple.workspace;
             GetDocumentAndExtensionManager(tuple.analyzerService, workspace2, out var logDocument, out extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
             var logDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(logDocument, TextSpan.FromBounds(0, 1), CodeActionOptions.DefaultProvider, CancellationToken.None);
@@ -981,8 +985,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 #pragma warning disable RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
         [ExportCodeFixProvider(
             LanguageNames.CSharp,
-            DocumentKinds = new[] { nameof(TextDocumentKind.AdditionalDocument) },
-            DocumentExtensions = new[] { ".txt" })]
+            DocumentKinds = [nameof(TextDocumentKind.AdditionalDocument)],
+            DocumentExtensions = [".txt"])]
         [Shared]
         internal sealed class AdditionalFileFixerWithDocumentKindsAndExtensions : AbstractAdditionalFileCodeFixProvider
         {
@@ -991,7 +995,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         [ExportCodeFixProvider(
             LanguageNames.CSharp,
-            DocumentKinds = new[] { nameof(TextDocumentKind.AdditionalDocument) })]
+            DocumentKinds = [nameof(TextDocumentKind.AdditionalDocument)])]
         [Shared]
         internal sealed class AdditionalFileFixerWithDocumentKinds : AbstractAdditionalFileCodeFixProvider
         {
@@ -1000,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         [ExportCodeFixProvider(
             LanguageNames.CSharp,
-            DocumentExtensions = new[] { ".txt" })]
+            DocumentExtensions = [".txt"])]
         [Shared]
         internal sealed class AdditionalFileFixerWithDocumentExtensions : AbstractAdditionalFileCodeFixProvider
         {
@@ -1107,7 +1111,7 @@ class C
             }
 
             var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
-            var priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Normal, lowPriorityAnalyzers);
+            var priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Default, lowPriorityAnalyzers);
             var normalPriFixes = await tuple.codeFixService.GetFixesAsync(sourceDocument, testSpan, priorityProvider, CodeActionOptions.DefaultProvider, addOperationScope: _ => null, CancellationToken.None);
             priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Low, lowPriorityAnalyzers);
             var lowPriFixes = await tuple.codeFixService.GetFixesAsync(sourceDocument, testSpan, priorityProvider, CodeActionOptions.DefaultProvider, addOperationScope: _ => null, CancellationToken.None);
@@ -1171,7 +1175,7 @@ class C
             static async Task VerifyCachedDiagnosticsAsync(Document sourceDocument, bool expectedCachedDiagnostic, TextSpan testSpan, DiagnosticIncrementalAnalyzer diagnosticIncrementalAnalyzer)
             {
                 var cachedDiagnostics = await diagnosticIncrementalAnalyzer.GetCachedDiagnosticsAsync(sourceDocument.Project.Solution, sourceDocument.Project.Id, sourceDocument.Id,
-                    includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+                    includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
                 if (!expectedCachedDiagnostic)
                 {
                     Assert.Empty(cachedDiagnostics);

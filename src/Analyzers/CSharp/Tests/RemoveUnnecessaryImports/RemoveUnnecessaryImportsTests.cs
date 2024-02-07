@@ -730,7 +730,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 """
                 #if true
 
-
                 #endif
 
                 class Program
@@ -805,7 +804,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
                 namespace N
                 {
                 #if true
-
 
                 #endif
 

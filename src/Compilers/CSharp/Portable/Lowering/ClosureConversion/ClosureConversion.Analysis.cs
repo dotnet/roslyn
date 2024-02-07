@@ -4,12 +4,13 @@
 
 #nullable disable
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal sealed partial class Analysis
         {
+#nullable enable
             /// <summary>
             /// If a local function is in the set, at some point in the code it is converted to a delegate and should then not be optimized to a struct closure.
             /// Also contains all lambdas (as they are converted to delegates implicitly).
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private readonly MethodSymbol _topLevelMethod;
             private readonly int _topLevelMethodOrdinal;
-            private readonly VariableSlotAllocator _slotAllocatorOpt;
+            private readonly VariableSlotAllocator? _slotAllocator;
             private readonly TypeCompilationState _compilationState;
 
             private Analysis(
@@ -52,16 +54,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PooledHashSet<MethodSymbol> methodsConvertedToDelegates,
                 MethodSymbol topLevelMethod,
                 int topLevelMethodOrdinal,
-                VariableSlotAllocator slotAllocatorOpt,
+                VariableSlotAllocator? slotAllocator,
                 TypeCompilationState compilationState)
             {
                 ScopeTree = scopeTree;
                 MethodsConvertedToDelegates = methodsConvertedToDelegates;
                 _topLevelMethod = topLevelMethod;
                 _topLevelMethodOrdinal = topLevelMethodOrdinal;
-                _slotAllocatorOpt = slotAllocatorOpt;
+                _slotAllocator = slotAllocator;
                 _compilationState = compilationState;
             }
+#nullable disable
 
             public static Analysis Analyze(
                 BoundNode node,
@@ -175,7 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (!env.IsStruct)
                                 {
                                     Debug.Assert(!oldEnv.IsStruct);
-                                    oldEnv.CapturesParent = true;
+                                    Debug.Assert(oldEnv.Parent == null || oldEnv.Parent == env);
+                                    oldEnv.Parent = env;
                                     oldEnv = env;
                                 }
                                 capturedEnvs.Remove(env);
@@ -517,16 +521,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal DebugId GetTopLevelMethodId()
             {
-                return _slotAllocatorOpt?.MethodId ?? new DebugId(_topLevelMethodOrdinal, _compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
+                return _slotAllocator?.MethodId ?? new DebugId(_topLevelMethodOrdinal, _compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
             }
 
-            internal DebugId GetClosureId(SyntaxNode syntax, ArrayBuilder<ClosureDebugInfo> closureDebugInfo)
+            internal DebugId GetClosureId(ClosureEnvironment environment, SyntaxNode syntax, ArrayBuilder<EncClosureInfo> closureDebugInfo, out RuntimeRudeEdit? rudeEdit)
             {
                 Debug.Assert(syntax != null);
 
+                var parentClosure = environment.Parent?.SynthesizedEnvironment;
+
+                // Frames are created and assigned top-down, so the parent scope's environment has to be assigned at this point.
+                // This may not be true if environments are merged in release build.
+                Debug.Assert(_slotAllocator == null || environment.Parent is null || parentClosure is not null);
+
+                rudeEdit = parentClosure?.RudeEdit;
+                var parentClosureId = parentClosure?.ClosureId;
+
+                var structCaptures = _slotAllocator != null && environment.IsStruct
+                    ? environment.CapturedVariables.SelectAsArray(v => v is ThisParameterSymbol ? GeneratedNames.ThisProxyFieldName() : v.Name)
+                    : default;
+
                 DebugId closureId;
-                DebugId previousClosureId;
-                if (_slotAllocatorOpt != null && _slotAllocatorOpt.TryGetPreviousClosure(syntax, out previousClosureId))
+                if (rudeEdit == null &&
+                    _slotAllocator != null &&
+                    _slotAllocator.TryGetPreviousClosure(syntax, parentClosureId, structCaptures, out var previousClosureId, out rudeEdit) &&
+                    rudeEdit == null)
                 {
                     closureId = previousClosureId;
                 }
@@ -536,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 int syntaxOffset = _topLevelMethod.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(syntax), syntax.SyntaxTree);
-                closureDebugInfo.Add(new ClosureDebugInfo(syntaxOffset, closureId));
+                closureDebugInfo.Add(new EncClosureInfo(new ClosureDebugInfo(syntaxOffset, closureId), parentClosureId, structCaptures));
 
                 return closureId;
             }

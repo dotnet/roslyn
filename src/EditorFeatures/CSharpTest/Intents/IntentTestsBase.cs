@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
             OptionsCollection? options = null,
             string? intentData = null)
         {
-            using var workspace = TestWorkspace.CreateCSharp(priorDocumentText, composition: EditorTestCompositions.EditorFeatures);
+            using var workspace = EditorTestWorkspace.CreateCSharp(priorDocumentText, composition: EditorTestCompositions.EditorFeatures);
             var results = await GetIntentsAsync(workspace, intentName, currentDocumentText, options, intentData).ConfigureAwait(false);
             Assert.Empty(results);
         }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
             OptionsCollection? options = null,
             string? intentData = null)
         {
-            return VerifyExpectedTextAsync(intentName, priorDocumentText, currentDocumentText, Array.Empty<string>(), new string[] { expectedText }, options, intentData);
+            return VerifyExpectedTextAsync(intentName, priorDocumentText, currentDocumentText, [], [expectedText], options, intentData);
         }
 
         internal static async Task VerifyExpectedTextAsync(
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
         {
             // Create the workspace from the prior document + any additional documents.
             var documentSet = additionalDocuments.Prepend(priorDocumentText).ToArray();
-            using var workspace = TestWorkspace.CreateCSharp(documentSet, composition: EditorTestCompositions.EditorFeatures);
+            using var workspace = EditorTestWorkspace.CreateCSharp(documentSet, composition: EditorTestCompositions.EditorFeatures);
             var results = await GetIntentsAsync(workspace, intentName, currentDocumentText, options, intentData).ConfigureAwait(false);
 
             // For now, we're just taking the first result to match intellicode behavior.
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
             foreach (var documentChange in result.DocumentChanges)
             {
                 // Get the document and open it.  Since we're modifying the text buffer we don't care about linked documents.
-                var documentBuffer = workspace.GetTestDocument(documentChange.Key).GetTextBuffer();
+                var documentBuffer = workspace.GetTestDocument(documentChange.Key)!.GetTextBuffer();
 
                 using var edit = documentBuffer.CreateEdit();
                 foreach (var change in documentChange.Value)
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
         }
 
         internal static async Task<ImmutableArray<IntentSource>> GetIntentsAsync(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             string intentName,
             string currentDocumentText,
             OptionsCollection? options = null,

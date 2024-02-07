@@ -444,10 +444,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (containingType == null)
             {
-                return ImmutableArray<T>.Empty;
+                return [];
             }
 
             return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(within).ToImmutableArray();
+        }
+
+        public static ImmutableArray<T> GetAccessibleMembersInThisAndBaseTypes<T>(this ITypeSymbol? containingType, string memberName, ISymbol within) where T : class, ISymbol
+        {
+            if (containingType == null)
+            {
+                return ImmutableArray<T>.Empty;
+            }
+
+            return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(memberName, within).ToImmutableArray();
         }
 
         public static bool? AreMoreSpecificThan(this IList<ITypeSymbol> t1, IList<ITypeSymbol> t2)
@@ -489,7 +499,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (types == null)
             {
-                return ImmutableArray<T>.Empty;
+                return [];
             }
 
             return types.SelectMany(x => x.GetMembers().OfType<T>().Where(m => m.IsAccessibleWithin(within)));
@@ -499,7 +509,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (types == null)
             {
-                return ImmutableArray<T>.Empty;
+                return [];
             }
 
             return types.SelectMany(x => x.GetMembers(memberName).OfType<T>().Where(m => m.IsAccessibleWithin(within)));
@@ -729,5 +739,28 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return symbol;
         }
+
+        public static bool IsSpanOrReadOnlySpan([NotNullWhen(true)] this ITypeSymbol? type)
+            => type.IsSpan() || type.IsReadOnlySpan();
+
+        public static bool IsSpan([NotNullWhen(true)] this ITypeSymbol? type)
+            => type is INamedTypeSymbol
+            {
+                Name: nameof(Span<int>),
+                TypeArguments.Length: 1,
+                ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
+            };
+
+        public static bool IsReadOnlySpan([NotNullWhen(true)] this ITypeSymbol? type)
+            => type is INamedTypeSymbol
+            {
+                Name: nameof(ReadOnlySpan<int>),
+                TypeArguments.Length: 1,
+                ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
+            };
+
+        public static bool IsInlineArray([NotNullWhen(true)] this ITypeSymbol? type)
+            => type is INamedTypeSymbol namedType &&
+               namedType.OriginalDefinition.GetAttributes().Any(static a => a.AttributeClass?.SpecialType == SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute);
     }
 }

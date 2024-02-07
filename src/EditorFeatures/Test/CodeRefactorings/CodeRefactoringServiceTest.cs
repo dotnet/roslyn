@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 
             // Verify code refactoring application
             var codeAction = txtRefactorings.Single(s => s.CodeActions.Single().action.Title == refactoring1.Title).CodeActions.Single().action;
-            var solution = await codeAction.GetChangedSolutionInternalAsync(project.Solution);
+            var solution = await codeAction.GetChangedSolutionInternalAsync(project.Solution, CodeAnalysisProgress.None);
             var changedtxtDocument = solution.Projects.Single().AdditionalDocuments.Single(t => t.Id == txtAdditionalDocument.Id);
             Assert.Empty(txtAdditionalDocument.GetTextSynchronously(CancellationToken.None).ToString());
             Assert.Equal(refactoring1.Title, changedtxtDocument.GetTextSynchronously(CancellationToken.None).ToString());
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 
             // Verify code refactoring application
             var codeAction = editorConfigRefactorings.Single(s => s.CodeActions.Single().action.Title == refactoring1.Title).CodeActions.Single().action;
-            var solution = await codeAction.GetChangedSolutionInternalAsync(project.Solution);
+            var solution = await codeAction.GetChangedSolutionInternalAsync(project.Solution, CodeAnalysisProgress.None);
             var changedEditorConfig = solution.Projects.Single().AnalyzerConfigDocuments.Single(t => t.Id == editorConfig.Id);
             Assert.Empty(editorConfig.GetTextSynchronously(CancellationToken.None).ToString());
             Assert.Equal(refactoring1.Title, changedEditorConfig.GetTextSynchronously(CancellationToken.None).ToString());

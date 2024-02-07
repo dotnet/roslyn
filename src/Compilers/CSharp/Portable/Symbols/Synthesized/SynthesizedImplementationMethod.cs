@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SynthesizedImplementationMethod : SynthesizedInstanceMethodSymbol
     {
         //inputs
-        private readonly MethodSymbol _interfaceMethod;
+        protected readonly MethodSymbol _interfaceMethod;
         private readonly NamedTypeSymbol _implementingType;
         private readonly bool _generateDebugInfo;
         private readonly PropertySymbol _associatedProperty;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return GetTypeParametersAsTypeArguments(); }
         }
 
-        public override RefKind RefKind
+        public sealed override RefKind RefKind
         {
             get { return _interfaceMethod.RefKind; }
         }
@@ -107,17 +107,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
-        public override ImmutableArray<ParameterSymbol> Parameters
+        public sealed override ImmutableArray<ParameterSymbol> Parameters
         {
             get { return _parameters; }
         }
 
-        public override Symbol ContainingSymbol
+        public sealed override Symbol ContainingSymbol
         {
             get { return _implementingType; }
         }
 
-        public override NamedTypeSymbol ContainingType
+        public sealed override NamedTypeSymbol ContainingType
         {
             get
             {
@@ -125,12 +125,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsExplicitInterfaceImplementation
+        internal sealed override bool IsExplicitInterfaceImplementation
         {
             get { return true; }
         }
 
-        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
+        public sealed override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
             get { return _explicitInterfaceImplementations; }
         }
@@ -143,22 +143,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Accessibility DeclaredAccessibility
+        public sealed override Accessibility DeclaredAccessibility
         {
             get { return Accessibility.Private; }
         }
 
-        public override Symbol AssociatedSymbol
+        public sealed override Symbol AssociatedSymbol
         {
             get { return _associatedProperty; }
         }
 
-        public override bool HidesBaseMethodsByName
+        public sealed override bool HidesBaseMethodsByName
         {
             get { return false; }
         }
 
-        public override ImmutableArray<Location> Locations
+        public sealed override ImmutableArray<Location> Locations
         {
             get { return ImmutableArray<Location>.Empty; }
         }
@@ -168,42 +168,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        public override bool IsAsync
+        public sealed override bool IsAsync
         {
             get { return false; }
         }
 
-        public override bool IsVirtual
+        public sealed override bool IsVirtual
         {
             get { return false; }
         }
 
-        public override bool IsOverride
+        public sealed override bool IsOverride
         {
             get { return false; }
         }
 
-        public override bool IsAbstract
+        public sealed override bool IsAbstract
         {
             get { return false; }
         }
 
-        public override bool IsSealed
+        public sealed override bool IsSealed
         {
             get { return false; }
         }
 
-        public override bool IsExtern
+        public sealed override bool IsExtern
         {
             get { return false; }
         }
 
-        public override bool IsExtensionMethod
+        public sealed override bool IsExtensionMethod
         {
             get { return false; }
         }
 
-        public override string Name
+        public sealed override string Name
         {
             get { return _name; }
         }
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return !IsStatic;
         }
 
-        internal override bool IsMetadataFinal
+        internal sealed override bool IsMetadataFinal
         {
             get
             {
@@ -241,27 +241,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return !IsStatic;
         }
 
-        public override DllImportData GetDllImportData()
+        public sealed override DllImportData GetDllImportData()
         {
             return null;
         }
 
-        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
+        internal sealed override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {
             get { return null; }
         }
 
-        internal override bool HasDeclarativeSecurity
+        internal sealed override bool HasDeclarativeSecurity
         {
             get { return false; }
         }
 
-        internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
+        internal sealed override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
         {
             throw ExceptionUtilities.Unreachable();
         }
 
-        internal override ImmutableArray<string> GetAppliedConditionalSymbols()
+        internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
             return ImmutableArray<string>.Empty;
         }

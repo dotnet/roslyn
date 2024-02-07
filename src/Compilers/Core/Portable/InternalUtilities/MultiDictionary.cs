@@ -236,6 +236,13 @@ namespace Roslyn.Utilities
             _dictionary = new Dictionary<K, ValueSet>(comparer);
         }
 
+        public void EnsureCapacity(int capacity)
+        {
+#if NETCOREAPP
+            _dictionary.EnsureCapacity(capacity);
+#endif
+        }
+
         public MultiDictionary(int capacity, IEqualityComparer<K> comparer, IEqualityComparer<V>? valueComparer = null)
         {
             _dictionary = new Dictionary<K, ValueSet>(capacity, comparer);

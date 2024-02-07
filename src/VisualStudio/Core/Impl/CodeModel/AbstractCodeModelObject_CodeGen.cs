@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     name: "get_" + name,
                     typeParameters: default,
                     parameters: default,
-                    statements: ImmutableArray.Create(CodeModelService.CreateReturnDefaultValueStatement(type)));
+                    statements: [CodeModelService.CreateReturnDefaultValueStatement(type)]);
             }
 
             IMethodSymbol? setMethod = null;

@@ -91,6 +91,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             var ch = CurrentChar;
             if (!UnicodeCharacterUtilities.IsIdentifierStartCharacter((char)ch.Value))
             {
+                var ctor = TryScanConstructor();
+                if (ctor.HasValue)
+                {
+                    return ctor.Value;
+                }
+
                 // If we scan only trivia but don't get an identifier, we want to make sure
                 // to reset back to this original position to let the trivia be consumed
                 // in some other fashion if necessary 
@@ -397,16 +403,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             => ch.Value is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z');
 
         public static StackFrameToken CreateToken(StackFrameKind kind, VirtualCharSequence virtualChars)
-            => CreateToken(kind, ImmutableArray<StackFrameTrivia>.Empty, virtualChars);
+            => CreateToken(kind, [], virtualChars);
 
         public static StackFrameToken CreateToken(StackFrameKind kind, ImmutableArray<StackFrameTrivia> leadingTrivia, VirtualCharSequence virtualChars)
-            => new(kind, leadingTrivia, virtualChars, ImmutableArray<StackFrameTrivia>.Empty, ImmutableArray<EmbeddedDiagnostic>.Empty, value: null!);
+            => new(kind, leadingTrivia, virtualChars, [], [], value: null!);
 
         public static StackFrameToken CreateToken(StackFrameKind kind, ImmutableArray<StackFrameTrivia> leadingTrivia, VirtualCharSequence virtualChars, ImmutableArray<StackFrameTrivia> trailingTrivia)
-            => new(kind, leadingTrivia, virtualChars, trailingTrivia, ImmutableArray<EmbeddedDiagnostic>.Empty, value: null!);
+            => new(kind, leadingTrivia, virtualChars, trailingTrivia, [], value: null!);
 
         private static StackFrameTrivia CreateTrivia(StackFrameKind kind, VirtualCharSequence virtualChars)
-            => CreateTrivia(kind, virtualChars, ImmutableArray<EmbeddedDiagnostic>.Empty);
+            => CreateTrivia(kind, virtualChars, []);
 
         private static StackFrameTrivia CreateTrivia(StackFrameKind kind, VirtualCharSequence virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
         {
@@ -459,6 +465,19 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             return null;
         }
 
+        private StackFrameToken? TryScanStringToken(string valueToLookFor, StackFrameKind tokenKind)
+        {
+            if (IsStringAtPosition(valueToLookFor))
+            {
+                var start = Position;
+                Position += valueToLookFor.Length;
+
+                return CreateToken(tokenKind, GetSubSequenceToCurrentPos(start));
+            }
+
+            return null;
+        }
+
         private StackFrameTrivia? TryScanWhiteSpace()
         {
             var startPosition = Position;
@@ -474,6 +493,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             }
 
             return CreateTrivia(StackFrameKind.WhitespaceTrivia, GetSubSequenceToCurrentPos(startPosition));
+        }
+
+        /// <summary>
+        /// Scans for .ctor or .cctor as a ConstructorToken
+        /// </summary>
+        private StackFrameToken? TryScanConstructor()
+        {
+            return TryScanStringToken(".ctor", StackFrameKind.ConstructorToken) ??
+                   TryScanStringToken(".cctor", StackFrameKind.ConstructorToken);
         }
 
         private static StackFrameKind GetKind(VirtualChar ch)
@@ -511,20 +539,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             => ch.Value is >= '0' and <= '9';
 
         private readonly record struct Language(string At, string In, string Line);
-        private static readonly ImmutableArray<Language> s_languages = ImmutableArray.Create(
-            new Language("at ", " in ", "line "), // en
-            new Language("v ", " v ", "řádek "), // cs
-            new Language("bei ", " in ", "Zeile "), // de
-            new Language("en ", " en ", "línea "), // es
-            new Language("à ", " dans ", "ligne "), // fr
-            new Language("in ", " in ", "riga "), // it
-            new Language("場所 ", " 場所 ", "行 "), // ja
-            new Language("위치: ", " 파일 ", "줄 "), // ko
-            new Language("w ", " w ", "wiersz "), // pl
-            new Language("em ", " na ", "linha "), // pt-BR
-            new Language("в ", " в ", "строка "), // ru
-            new Language("在 ", " 位置 ", "行号 "), // zh-Hans
-            new Language("於 ", " 於 ", " 行 ") // zh-Hant
-            );
+        private static readonly ImmutableArray<Language> s_languages =
+        [
+            new Language("at ", " in ", "line "),
+            new Language("v ", " v ", "řádek "),
+            new Language("bei ", " in ", "Zeile "),
+            new Language("en ", " en ", "línea "),
+            new Language("à ", " dans ", "ligne "),
+            new Language("in ", " in ", "riga "),
+            new Language("場所 ", " 場所 ", "行 "),
+            new Language("위치: ", " 파일 ", "줄 "),
+            new Language("w ", " w ", "wiersz "),
+            new Language("em ", " na ", "linha "),
+            new Language("в ", " в ", "строка "),
+            new Language("在 ", " 位置 ", "行号 "),
+            new Language("於 ", " 於 ", " 行 ")
+, // zh-Hant
+        ];
     }
 }

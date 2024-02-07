@@ -17,12 +17,11 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveStaticMembers
 {
-    internal class MoveStaticMembersWithDialogCodeAction(
+    internal sealed class MoveStaticMembersWithDialogCodeAction(
         Document document,
         IMoveStaticMembersOptionsService service,
         INamedTypeSymbol selectedType,
@@ -42,7 +41,8 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             return _service.GetMoveMembersToTypeOptions(_document, _selectedType, _selectedMembers);
         }
 
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+            object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             if (options is not MoveStaticMembersOptions moveOptions || moveOptions.IsCancelled)
             {
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                     sourceDoc.Project.Solution,
                     moveOptions.Destination!,
                     // TODO: Find a way to merge/change generic type args for classes, or change PullMembersUp to handle instead
-                    typeArgIndices: ImmutableArray<int>.Empty,
+                    typeArgIndices: [],
                     sourceDoc.Id,
                     destinationDocId,
                     cancellationToken).ConfigureAwait(false);
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 
             // even though we can move members here, we will move them by calling PullMembersUp
             var newType = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                ImmutableArray.Create<AttributeData>(),
+                [],
                 Accessibility.NotApplicable,
                 DeclarationModifiers.Static,
                 GetNewTypeKind(_selectedType),

@@ -14,11 +14,29 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly IReadOnlyDictionary<T, T> Forward;
         public readonly IReadOnlyDictionary<T, T> Reverse;
 
+        public static readonly BidirectionalMap<T> Empty = new(SpecializedCollections.EmptyReadOnlyDictionary<T, T>(), SpecializedCollections.EmptyReadOnlyDictionary<T, T>());
+
         public BidirectionalMap(IReadOnlyDictionary<T, T> forward, IReadOnlyDictionary<T, T> reverse)
         {
             Contract.ThrowIfFalse(forward.Count == reverse.Count);
             Forward = forward;
             Reverse = reverse;
+        }
+
+        public BidirectionalMap<T> With(T source, T target)
+        {
+            var forward = new Dictionary<T, T>(Forward.Count + 1);
+            var reverse = new Dictionary<T, T>(Reverse.Count + 1);
+
+            foreach (var entry in Forward)
+            {
+                forward.Add(entry.Key, entry.Value);
+                reverse.Add(entry.Value, entry.Key);
+            }
+
+            forward.Add(source, target);
+            reverse.Add(target, source);
+            return new(forward, reverse);
         }
 
         public BidirectionalMap<T> With(BidirectionalMap<T> map)

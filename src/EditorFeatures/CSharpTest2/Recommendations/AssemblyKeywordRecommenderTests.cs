@@ -23,24 +23,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -68,56 +74,68 @@ $$");
         public async Task TestNotInAttributeInsideClass()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    [$$");
+                """
+                class C {
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInAttributeAfterAttributeInsideClass()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    [Goo]
-    [$$");
+                """
+                class C {
+                    [Goo]
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInAttributeAfterMethod()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    void Goo() {
-    }
-    [$$");
+                """
+                class C {
+                    void Goo() {
+                    }
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInAttributeAfterProperty()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    int Goo {
-        get;
-    }
-    [$$");
+                """
+                class C {
+                    int Goo {
+                        get;
+                    }
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInAttributeAfterField()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    int Goo;
-    [$$");
+                """
+                class C {
+                    int Goo;
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInAttributeAfterEvent()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    event Action<int> Goo;
-    [$$");
+                """
+                class C {
+                    event Action<int> Goo;
+                    [$$
+                """);
         }
 
         [Fact]
@@ -131,234 +149,268 @@ $$");
         public async Task TestNotInAttributeNestClass()
         {
             await VerifyAbsenceAsync(
-@"class A
-{
-    [$$
-    class B
-    {
-    }
-}");
+                """
+                class A
+                {
+                    [$$
+                    class B
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeNamespace()
         {
             await VerifyKeywordAsync(
-@"[$$
-namespace Goo {");
+                """
+                [$$
+                namespace Goo {
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeFileScopedNamespace()
         {
             await VerifyKeywordAsync(
-@"[$$
-namespace Goo;");
+                """
+                [$$
+                namespace Goo;
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestNotInAttributeBeforeNamespaceWithoutOpenBracket()
         {
             await VerifyAbsenceAsync(
-@"$$
-namespace Goo {}");
+                """
+                $$
+                namespace Goo {}
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestNotInAttributeBeforeNamespaceAndAfterUsingWithNoOpenBracket()
         {
             await VerifyAbsenceAsync(
-@"
-using System;
+                """
+                using System;
 
-$$
-namespace Goo {}");
+                $$
+                namespace Goo {}
+                """);
         }
 
         [Fact]
         public async Task TestNotInAttributeBeforeNamespaceAndAfterGlobalUsingWithNoOpenBracket()
         {
             await VerifyAbsenceAsync(
-@"
-global using System;
+                """
+                global using System;
 
-$$
-namespace Goo {}");
+                $$
+                namespace Goo {}
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeNamespaceAndAfterUsingWithOpenBracket()
         {
             await VerifyKeywordAsync(
-@"
-using System;
+                """
+                using System;
 
-[$$
-namespace Goo {}");
+                [$$
+                namespace Goo {}
+                """);
         }
 
         [Fact]
         public async Task TestInAttributeBeforeNamespaceAndAfterGlobalUsingWithOpenBracket()
         {
             await VerifyKeywordAsync(
-@"
-global using System;
+                """
+                global using System;
 
-[$$
-namespace Goo {}");
+                [$$
+                namespace Goo {}
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeAssemblyWithOpenBracket()
         {
             await VerifyKeywordAsync(
-@"
-[$$
-[assembly: Whatever]
-namespace Goo {}");
+                """
+                [$$
+                [assembly: Whatever]
+                namespace Goo {}
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeClass()
         {
             await VerifyKeywordAsync(
-@"
-[$$
-class Goo {}");
+                """
+                [$$
+                class Goo {}
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeInterface()
         {
             await VerifyKeywordAsync(
-@"
-[$$
-interface IGoo {}");
+                """
+                [$$
+                interface IGoo {}
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeStruct()
         {
             await VerifyKeywordAsync(
-@"
-[$$
-struct Goo {}");
+                """
+                [$$
+                struct Goo {}
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInAttributeBeforeEnum()
         {
             await VerifyKeywordAsync(
-@"
-[$$
-enum Goo {}");
+                """
+                [$$
+                enum Goo {}
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestNotInAttributeBeforeOtherAttributeWithoutOpenBracket()
         {
             await VerifyAbsenceAsync(
-@"
-$$
-[assembly: Whatever]
-namespace Goo {}");
+                """
+                $$
+                [assembly: Whatever]
+                namespace Goo {}
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestNotInAttributeBeforeAssemblyAttributeAndAfterUsingWithoutOpenBracket()
         {
             await VerifyAbsenceAsync(
-@"
-using System;
+                """
+                using System;
 
-$$
-[assembly: Whatever]
-namespace Goo {}");
+                $$
+                [assembly: Whatever]
+                namespace Goo {}
+                """);
         }
 
         [Fact]
         public async Task TestNotInAttributeBeforeAssemblyAttributeAndAfterGlobalUsingWithoutOpenBracket()
         {
             await VerifyAbsenceAsync(
-@"
-global using System;
+                """
+                global using System;
 
-$$
-[assembly: Whatever]
-namespace Goo {}");
+                $$
+                [assembly: Whatever]
+                namespace Goo {}
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestInBeforeAttributeAssemblyAttributeAndAfterUsingWithoutOpenBracket()
         {
             await VerifyKeywordAsync(
-@"
-using System;
+                """
+                using System;
 
-[$$
-[assembly: Whatever]
-namespace Goo {}");
+                [$$
+                [assembly: Whatever]
+                namespace Goo {}
+                """);
         }
 
         [Fact]
         public async Task TestInBeforeAttributeAssemblyAttributeAndAfterGlobalUsingWithoutOpenBracket()
         {
             await VerifyKeywordAsync(
-@"
-global using System;
+                """
+                global using System;
 
-[$$
-[assembly: Whatever]
-namespace Goo {}");
+                [$$
+                [assembly: Whatever]
+                namespace Goo {}
+                """);
         }
 
         [Fact]
         public async Task TestNotInOuterAttributeInNamespace()
         {
             await VerifyAbsenceAsync(
-@"namespace Goo {
-     [$$");
+                """
+                namespace Goo {
+                     [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInParameterAttribute()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    void Goo([$$");
+                """
+                class C {
+                    void Goo([$$
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestNotInElementAccess()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    void Goo(string[] array) {
-        array[$$");
+                """
+                class C {
+                    void Goo(string[] array) {
+                        array[$$
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/362")]
         public async Task TestNotInIndex()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    public int this[$$");
+                """
+                class C {
+                    public int this[$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInPropertyAttribute()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    int Goo { [$$");
+                """
+                class C {
+                    int Goo { [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInEventAttribute()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    event Action<int> Goo { [$$");
+                """
+                class C {
+                    event Action<int> Goo { [$$
+                """);
         }
 
         [Fact]
@@ -379,32 +431,40 @@ namespace Goo {}");
         public async Task TestNotInMethodAssemblyParameters()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    void M<[$$");
+                """
+                class C {
+                    void M<[$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInInterface()
         {
             await VerifyAbsenceAsync(
-@"interface I {
-    [$$");
+                """
+                interface I {
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInStruct()
         {
             await VerifyAbsenceAsync(
-@"struct S {
-    [$$");
+                """
+                struct S {
+                    [$$
+                """);
         }
 
         [Fact]
         public async Task TestNotInEnum()
         {
             await VerifyAbsenceAsync(
-@"enum E {
-    [$$");
+                """
+                enum E {
+                    [$$
+                """);
         }
     }
 }

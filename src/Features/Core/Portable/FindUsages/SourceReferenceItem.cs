@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Classification;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
@@ -23,6 +24,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// The location of the source item.
         /// </summary>
         public DocumentSpan SourceSpan { get; }
+
+        /// <summary>
+        /// Precomputed classified spans for the corresponding <see cref="SourceSpan"/>.
+        /// </summary>
+        public ClassifiedSpansAndHighlightSpan? ClassifiedSpans { get; }
 
         /// <summary>
         /// If this reference is a location where the definition is written to.
@@ -45,31 +51,33 @@ namespace Microsoft.CodeAnalysis.FindUsages
         private SourceReferenceItem(
             DefinitionItem definition,
             DocumentSpan sourceSpan,
+            ClassifiedSpansAndHighlightSpan? classifiedSpans,
             SymbolUsageInfo symbolUsageInfo,
             ImmutableDictionary<string, string> additionalProperties,
             bool isWrittenTo)
         {
             Definition = definition;
             SourceSpan = sourceSpan;
+            ClassifiedSpans = classifiedSpans;
             SymbolUsageInfo = symbolUsageInfo;
             IsWrittenTo = isWrittenTo;
             AdditionalProperties = additionalProperties ?? ImmutableDictionary<string, string>.Empty;
         }
 
         // Used by F#
-        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan)
-            : this(definition, sourceSpan, SymbolUsageInfo.None)
+        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans)
+            : this(definition, sourceSpan, classifiedSpans, SymbolUsageInfo.None)
         {
         }
 
         // Used by TypeScript
-        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo)
-            : this(definition, sourceSpan, symbolUsageInfo, additionalProperties: ImmutableDictionary<string, string>.Empty)
+        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, SymbolUsageInfo symbolUsageInfo)
+            : this(definition, sourceSpan, classifiedSpans, symbolUsageInfo, additionalProperties: ImmutableDictionary<string, string>.Empty)
         {
         }
 
-        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties)
-            : this(definition, sourceSpan, symbolUsageInfo, additionalProperties, isWrittenTo: symbolUsageInfo.IsWrittenTo())
+        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties)
+            : this(definition, sourceSpan, classifiedSpans, symbolUsageInfo, additionalProperties, isWrittenTo: symbolUsageInfo.IsWrittenTo())
         {
         }
     }

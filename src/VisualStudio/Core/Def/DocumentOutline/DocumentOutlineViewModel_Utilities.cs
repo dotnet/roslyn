@@ -13,15 +13,18 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json.Linq;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     using LspDocumentSymbol = DocumentSymbol;
-    using Range = LanguageServer.Protocol.Range;
+    using Range = Roslyn.LanguageServer.Protocol.Range;
+
+    internal delegate Task<ManualInvocationResponse?> LanguageServiceBrokerCallback(
+        ITextBuffer textBuffer, Func<JToken, bool> capabilitiesFilter, string languageServerName, string method, Func<ITextSnapshot, JToken> parameterFactory, CancellationToken cancellationToken);
 
     internal sealed partial class DocumentOutlineViewModel
     {
@@ -31,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         public static async Task<(JToken response, ITextSnapshot snapshot)?> DocumentSymbolsRequestAsync(
             ITextBuffer textBuffer,
-            ILanguageServiceBroker2 languageServiceBroker,
+            LanguageServiceBrokerCallback callbackAsync,
             string textViewFilePath,
             CancellationToken cancellationToken)
         {
@@ -44,12 +47,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     UseHierarchicalSymbols = true,
                     TextDocument = new TextDocumentIdentifier()
                     {
-                        Uri = new Uri(textViewFilePath)
+                        Uri = ProtocolConversions.CreateAbsoluteUri(textViewFilePath)
                     }
                 });
             }
 
-            var manualResponse = await languageServiceBroker.RequestAsync(
+            var manualResponse = await callbackAsync(
                 textBuffer: textBuffer,
                 method: Methods.TextDocumentDocumentSymbolName,
                 capabilitiesFilter: _ => true,
@@ -101,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             // If we get no value results back, treat that as empty results.  That way we don't keep showing stale
             // results if the server starts returning nothing.
-            var documentSymbols = token.ToObject<RoslynDocumentSymbol[]>() ?? Array.Empty<RoslynDocumentSymbol>();
+            var documentSymbols = token.ToObject<RoslynDocumentSymbol[]>() ?? [];
 
             // Obtain a flat list of all the document symbols sorted by location in the document.
             var allSymbols = documentSymbols

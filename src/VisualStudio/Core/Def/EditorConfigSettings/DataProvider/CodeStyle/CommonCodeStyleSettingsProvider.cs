@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.VisualStudio.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeStyle
@@ -47,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
 
             var parenthesesSettings = GetParenthesesCodeStyleOptions(options, SettingsUpdater);
             AddRange(parenthesesSettings);
+
+            AddRange(GetCollectionExpressionCodeStyleOptions(options, SettingsUpdater));
 
             var experimentalSettings = GetExperimentalCodeStyleOptions(options, SettingsUpdater);
             AddRange(experimentalSettings);
@@ -86,8 +89,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
                 ServicesVSResources.Require_accessibility_modifiers,
                 options,
                 updater,
-                enumValues: new[] { AccessibilityModifiersRequired.Always, AccessibilityModifiersRequired.ForNonInterfaceMembers, AccessibilityModifiersRequired.Never, AccessibilityModifiersRequired.OmitIfDefault },
-                valueDescriptions: new[] { ServicesVSResources.Always, ServicesVSResources.For_non_interface_members, ServicesVSResources.Never, ServicesVSResources.Omit_if_default });
+                enumValues: [AccessibilityModifiersRequired.Always, AccessibilityModifiersRequired.ForNonInterfaceMembers, AccessibilityModifiersRequired.Never, AccessibilityModifiersRequired.OmitIfDefault],
+                valueDescriptions: [ServicesVSResources.Always, ServicesVSResources.For_non_interface_members, ServicesVSResources.Never, ServicesVSResources.Omit_if_default]);
 
             yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferReadonly, ServicesVSResources.Prefer_readonly_fields, options, updater);
         }
@@ -120,6 +123,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
             yield return CodeStyleSetting.Create(CodeStyleOptions2.OtherBinaryParentheses, EditorFeaturesResources.In_other_binary_operators, options, updater, enumValues, valueDescriptions);
             yield return CodeStyleSetting.Create(CodeStyleOptions2.RelationalBinaryParentheses, EditorFeaturesResources.In_relational_binary_operators, options, updater, enumValues, valueDescriptions);
             yield return CodeStyleSetting.Create(CodeStyleOptions2.OtherParentheses, ServicesVSResources.In_other_operators, options, updater, enumValues, valueDescriptions);
+        }
+
+        private static IEnumerable<CodeStyleSetting> GetCollectionExpressionCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)
+        {
+            var enumValues = new[] { CollectionExpressionPreference.Never, CollectionExpressionPreference.WhenTypesExactlyMatch, CollectionExpressionPreference.WhenTypesLooselyMatch };
+            var valueDescriptions = new string[] { ServicesVSResources.Never, ServicesVSResources.When_types_exactly_match, ServicesVSResources.When_types_loosely_match };
+
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferCollectionExpression, ServicesVSResources.Prefer_collection_expression, options, updater, enumValues, valueDescriptions);
         }
 
         private static IEnumerable<CodeStyleSetting> GetParameterCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)

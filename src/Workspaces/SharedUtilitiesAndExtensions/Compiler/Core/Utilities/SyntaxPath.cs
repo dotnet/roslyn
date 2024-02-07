@@ -20,13 +20,13 @@ namespace Roslyn.Utilities
     /// the member to at least be able to descend into the same member.  We could apply the same sort
     /// of logic here.
     /// </summary>
-    internal class SyntaxPath
+    internal sealed record class SyntaxPath
     {
         // A path is made up of 'segments' that lead from root all the way down to the node. The
         // segment contains the index of the node in its parent, as well as the kind of the node.
         // The latter is not strictly necessary.  However, it ensures that resolving the path against
         // a different tree will either return the same type of node as the original, or will fail.  
-        protected readonly struct PathSegment
+        private readonly struct PathSegment
         {
             public int Ordinal { get; }
             public int Kind { get; }
@@ -154,23 +154,6 @@ namespace Roslyn.Utilities
             return false;
         }
 
-        public static bool operator ==(SyntaxPath? left, SyntaxPath? right)
-            => object.Equals(left, right);
-
-        public static bool operator !=(SyntaxPath? left, SyntaxPath? right)
-            => !object.Equals(left, right);
-
-        public override bool Equals(object? obj)
-        {
-            var path = obj as SyntaxPath;
-            if (path == null)
-            {
-                return false;
-            }
-
-            return Equals(path);
-        }
-
         public bool Equals(SyntaxPath? other)
         {
             if (other == null)
@@ -186,7 +169,7 @@ namespace Roslyn.Utilities
             return
                 _trackKinds == other._trackKinds &&
                 _kind == other._kind &&
-                _segments.SequenceEqual(other._segments, (x, y) => x.Equals(y));
+                _segments.SequenceEqual(other._segments, static (x, y) => x.Equals(y));
         }
 
         public override int GetHashCode()
@@ -196,11 +179,8 @@ namespace Roslyn.Utilities
         {
             var hash = 1;
 
-            for (var i = 0; i < _segments.Count; i++)
-            {
-                var segment = _segments[i];
+            foreach (var segment in _segments)
                 hash = Hash.Combine(Hash.Combine(segment.Kind, segment.Ordinal), hash);
-            }
 
             return hash;
         }

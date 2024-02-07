@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private static bool IsValidContext(CSharpSyntaxContext context)
         {
             if (context.IsTaskLikeTypeContext ||
-                context.IsGenericConstraintContext)
+                context.IsGenericConstraintContext ||
+                context.IsAttributeNameContext)
             {
                 return false;
             }
@@ -35,6 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         }
 
         public ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-            => IsValidContext(context) ? ImmutableArray.Create(Keyword) : ImmutableArray<RecommendedKeyword>.Empty;
+            => IsValidContext(context) ? [Keyword] : [];
     }
 }

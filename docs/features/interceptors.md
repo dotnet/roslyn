@@ -3,7 +3,7 @@
 ## Summary
 [summary]: #summary
 
-*Interceptors* are an experimental compiler feature planned to ship in .NET 8. The feature may be subject to breaking changes or removal in a future release.
+*Interceptors* are an experimental compiler feature planned to ship in .NET 8 (with support for C# only). The feature may be subject to breaking changes or removal in a future release.
 
 An *interceptor* is a method which can declaratively substitute a call to an *interceptable* method with a call to itself at compile time. This substitution occurs by having the interceptor declare the source locations of the calls that it intercepts. This provides a limited facility to change the semantics of existing code by adding new code to a compilation (e.g. in a source generator).
 
@@ -191,7 +191,12 @@ Interceptors are treated like a post-compilation step in this design. Diagnostic
 
 ### User opt-in
 
-Interceptors will require a feature flag during the experimental phase. The flag can be enabled with `/features=InterceptorsPreview` on the command line or `<Features>InterceptorsPreview</Features>` in msbuild.
+To use interceptors, the user project must specify the property `<InterceptorsPreviewNamespaces>`. This is a list of namespaces which are allowed to contain interceptors.
+```xml
+<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Microsoft.AspNetCore.Http.Generated;MyLibrary.Generated</InterceptorsPreviewNamespaces>
+```
+
+It's expected that each entry in the `InterceptorsPreviewNamespaces` list roughly corresponds to one source generator. Well-behaved components are expected to not insert interceptors into namespaces they do not own.
 
 ### Implementation strategy
 

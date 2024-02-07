@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseCollectionInitializer
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
     Public Class UseCollectionInitializerTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicUseCollectionInitializerDiagnosticAnalyzer(),
@@ -34,6 +34,19 @@ Class C
         Dim c = New List(Of Integer) From {
             1
         }
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70015")>
+        Public Async Function TestNotParenthesized() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        Dim c = [||](New List(Of Integer)())
+        c.Add(1)
     End Sub
 End Class")
         End Function
@@ -333,6 +346,18 @@ Class C
         Dim obj As IDictionary(Of String, Object) = [||]New ExpandoObject()
         obj.Add(""string"", ""v"")
         obj.Add(""int"", 1)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69106")>
+        Public Async Function TestNotWithCollectionInitializerArgument() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Imports System.Collections.Generic
+Class C
+    Sub M()
+        Dim Data As [||]New List(Of IEnumerable(Of String))
+        Data.Add({""Goo"", ""Bar"", ""Baz"", ""Buzz""})
     End Sub
 End Class")
         End Function

@@ -9,19 +9,18 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 {
@@ -44,6 +43,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
 
+            Assert.Empty(results);
+
+            // Verify document pull diagnostics are unaffected by running code analysis.
+            await testLspServer.RunCodeAnalysisAsync(document.Project.Id);
+            results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
             Assert.Empty(results);
         }
 
@@ -68,13 +72,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             Assert.NotNull(results.Single().Diagnostics.Single().CodeDescription!.Href);
         }
 
-        [Theory, CombinatorialData]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/fsharp/issues/15972")]
         public async Task TestDocumentDiagnosticsForOpenFilesWithFSAOff_Categories(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A : B {";
+
+            var additionalAnalyzers = new DiagnosticAnalyzer[] { new CSharpSyntaxAnalyzer(), new CSharpSemanticAnalyzer() };
             await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-                markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics: true);
+                markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics: true, additionalAnalyzers: additionalAnalyzers);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -99,6 +105,52 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             Assert.Equal(syntaxResults.Single().ResultId, syntaxResults2.Single().ResultId);
             Assert.Equal(semanticResults.Single().ResultId, semanticResults2.Single().ResultId);
+
+            var syntaxAnalyzerResults = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics: true, category: PullDiagnosticCategories.DocumentAnalyzerSyntax);
+
+            var semanticAnalyzerResults = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics: true, category: PullDiagnosticCategories.DocumentAnalyzerSemantic);
+
+            Assert.Equal(CSharpSyntaxAnalyzer.RuleId, syntaxAnalyzerResults.Single().Diagnostics.Single().Code);
+            Assert.Equal(CSharpSemanticAnalyzer.RuleId, semanticAnalyzerResults.Single().Diagnostics.Single().Code);
+
+            var syntaxAnalyzerResults2 = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics: true, previousResultId: syntaxAnalyzerResults.Single().ResultId, category: PullDiagnosticCategories.DocumentAnalyzerSyntax);
+            var semanticAnalyzerResults2 = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics: true, previousResultId: semanticAnalyzerResults.Single().ResultId, category: PullDiagnosticCategories.DocumentAnalyzerSemantic);
+
+            Assert.Equal(syntaxAnalyzerResults.Single().ResultId, syntaxAnalyzerResults2.Single().ResultId);
+            Assert.Equal(semanticAnalyzerResults.Single().ResultId, semanticAnalyzerResults2.Single().ResultId);
+        }
+
+        private sealed class CSharpSyntaxAnalyzer : DiagnosticAnalyzer
+        {
+            public const string RuleId = "SYN0001";
+            private readonly DiagnosticDescriptor _descriptor = new(RuleId, "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxTreeAction(context =>
+                    context.ReportDiagnostic(Diagnostic.Create(_descriptor, context.Tree.GetRoot(context.CancellationToken).GetLocation())));
+            }
+        }
+
+        private sealed class CSharpSemanticAnalyzer : DiagnosticAnalyzer
+        {
+            public const string RuleId = "SEM0001";
+            private readonly DiagnosticDescriptor _descriptor = new(RuleId, "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(context =>
+                    context.ReportDiagnostic(Diagnostic.Create(_descriptor, context.Node.GetLocation())),
+                    CSharp.SyntaxKind.CompilationUnit);
+            }
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65172")]
@@ -213,7 +265,7 @@ class A {
             await OpenDocumentAsync(testLspServer, document);
 
             // Ensure we get no diagnostics when feature flag is off.
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag, false);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, false);
 
             await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics));
         }
@@ -231,7 +283,7 @@ class A {
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
             await OpenDocumentAsync(testLspServer, document);
 
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag, true);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, true);
 
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
             Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
@@ -265,7 +317,7 @@ class A {
 
             results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics, results.Single().ResultId).ConfigureAwait(false);
 
-            Assert.Equal(useVSDiagnostics ? null : Array.Empty<LSP.Diagnostic>(), results.Single().Diagnostics);
+            Assert.Equal(useVSDiagnostics ? null : [], results.Single().Diagnostics);
             Assert.Null(results.Single().ResultId);
         }
 
@@ -447,7 +499,7 @@ class B {";
             await OpenDocumentAsync(testLspServer, csproj1Document);
 
             // This opens all documents in the workspace and ensures buffers are created.
-            testLspServer.TestWorkspace.GetTestDocument(csproj1Document.Id).GetTextBuffer();
+            testLspServer.TestWorkspace.GetTestDocument(csproj1Document.Id)!.GetTextBuffer();
 
             // Set CSProj2 as the active context and get diagnostics.
             testLspServer.TestWorkspace.SetDocumentContext(csproj2Document.Id);
@@ -842,6 +894,54 @@ class C
             Assert.Empty(results.Single().Diagnostics);
         }
 
+        [Theory, CombinatorialData]
+        public async Task TestInfoDiagnosticsAreReportedAsInformationInVS(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class A
+{
+    public A SomeA = new A();
+}";
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics: true);
+
+            // Calling GetTextBuffer will effectively open the file.
+            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(testLspServer, document);
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics: true);
+
+            Assert.Equal("IDE0090", results.Single().Diagnostics.Single().Code);
+            Assert.Equal(LSP.DiagnosticSeverity.Information, results.Single().Diagnostics.Single().Severity);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestInfoDiagnosticsAreReportedAsHintInVSCode(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class A
+{
+    public A SomeA = new A();
+}";
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics: false);
+
+            // Calling GetTextBuffer will effectively open the file.
+            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(testLspServer, document);
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics: false);
+
+            Assert.Equal("IDE0090", results.Single().Diagnostics.Single().Code);
+            Assert.Equal(LSP.DiagnosticSeverity.Hint, results.Single().Diagnostics.Single().Severity);
+        }
+
         #endregion
 
         #region Workspace Diagnostics
@@ -875,6 +975,101 @@ class C
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Empty(results[1].Diagnostics);
             Assert.Empty(results[2].Diagnostics);
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65967")]
+        public async Task TestWorkspaceDiagnosticsForClosedFilesWithRunCodeAnalysisAndFSAOff(bool useVSDiagnostics, bool mutatingLspWorkspace, bool scopeRunCodeAnalysisToProject)
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+
+            var projectId = scopeRunCodeAnalysisToProject ? testLspServer.GetCurrentSolution().Projects.Single().Id : null;
+            await testLspServer.RunCodeAnalysisAsync(projectId);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+
+            Assert.Equal(3, results.Length);
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            // this should be considered a build-error, since it was produced by the last code-analysis run.
+            Assert.Contains(VSDiagnosticTags.BuildError, results[0].Diagnostics.Single().Tags);
+            Assert.Empty(results[1].Diagnostics);
+            Assert.Empty(results[2].Diagnostics);
+
+            // Now fix the compiler error, but don't re-execute code analysis.
+            // Verify that we still get the workspace diagnostics from the prior snapshot on which code analysis was executed.
+            var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
+            buffer.Insert(buffer.CurrentSnapshot.Length, "}");
+
+            var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+
+            Assert.Equal(results.Length, results2.Length);
+
+            Assert.Equal(results[0].Diagnostics, results2[0].Diagnostics);
+            // this should be considered a build-error, since it was produced by the last code-analysis run.
+            Assert.Contains(VSDiagnosticTags.BuildError, results2[0].Diagnostics.Single().Tags);
+            Assert.Equal(results[1].Diagnostics, results2[1].Diagnostics);
+            Assert.Equal(results[2].Diagnostics, results2[2].Diagnostics);
+
+            // Re-run code analysis and verify up-to-date diagnostics are returned now, i.e. there are no compiler errors.
+            await testLspServer.RunCodeAnalysisAsync(projectId);
+
+            var results3 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results2));
+
+            Assert.Equal(results.Length, results3.Length);
+            Assert.Empty(results3[0].Diagnostics);
+            Assert.Empty(results3[1].Diagnostics);
+            Assert.Empty(results3[2].Diagnostics);
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65967")]
+        public async Task TestWorkspaceDiagnosticsForClosedFilesWithWithRunCodeAnalysisFSAOn(bool useVSDiagnostics, bool mutatingLspWorkspace, bool scopeRunCodeAnalysisToProject)
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+
+            // Run code analysis on the initial project snapshot with compiler error.
+            var projectId = scopeRunCodeAnalysisToProject ? testLspServer.GetCurrentSolution().Projects.Single().Id : null;
+            await testLspServer.RunCodeAnalysisAsync(projectId);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+
+            Assert.Equal(3, results.Length);
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            // this should *not* be considered a build-error, since it was produced by the live workspace results.
+            Assert.DoesNotContain(VSDiagnosticTags.BuildError, results[0].Diagnostics.Single().Tags);
+            Assert.Empty(results[1].Diagnostics);
+            Assert.Empty(results[2].Diagnostics);
+
+            // Now fix the compiler error, but don't rerun code analysis.
+            // Verify that we get up-to-date workspace diagnostics, i.e. no compiler errors, from the current snapshot because FSA is enabled.
+            var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
+            buffer.Insert(buffer.CurrentSnapshot.Length, "}");
+
+            var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+
+            Assert.Equal(results.Length, results2.Length);
+
+            Assert.Equal(results.Length, results2.Length);
+            Assert.Empty(results2[0].Diagnostics);
+            Assert.Empty(results2[1].Diagnostics);
+            Assert.Empty(results2[2].Diagnostics);
+
+            // Now rerun code analysis and verify we still get up-to-date workspace diagnostics.
+            await testLspServer.RunCodeAnalysisAsync(projectId);
+
+            var results3 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results2));
+
+            Assert.Equal(results2.Length, results3.Length);
+
+            Assert.Equal(results2[0].Diagnostics, results3[0].Diagnostics);
+            Assert.Equal(results2[1].Diagnostics, results3[1].Diagnostics);
+            Assert.Equal(results2[2].Diagnostics, results3[2].Diagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -920,15 +1115,16 @@ class A {
         }
 
         [Theory]
-        [InlineData("1", VSDiagnosticRank.Low, false)]
-        [InlineData("1", VSDiagnosticRank.Low, true)]
-        [InlineData("2", VSDiagnosticRank.Default, false)]
-        [InlineData("2", VSDiagnosticRank.Default, true)]
-        [InlineData("3", VSDiagnosticRank.High, false)]
-        [InlineData("3", VSDiagnosticRank.High, true)]
+        [InlineData("1", (int)VSDiagnosticRank.Low, false)]
+        [InlineData("1", (int)VSDiagnosticRank.Low, true)]
+        [InlineData("2", (int)VSDiagnosticRank.Default, false)]
+        [InlineData("2", (int)VSDiagnosticRank.Default, true)]
+        [InlineData("3", (int)VSDiagnosticRank.High, false)]
+        [InlineData("3", (int)VSDiagnosticRank.High, true)]
         public async Task TestWorkspaceTodoForClosedFilesWithFSAOffAndTodoOn_Priorities(
-            string priString, VSDiagnosticRank rank, bool mutatingLspWorkspace)
+            string priString, int intRank, bool mutatingLspWorkspace)
         {
+            var rank = (VSDiagnosticRank)intRank;
             var markup1 =
 @"
 // todo: goo
@@ -1131,8 +1327,8 @@ class A {
 @"class A {";
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync(
-                markups: Array.Empty<string>(), mutatingLspWorkspace,
-                GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics, DiagnosticMode.LspPull, sourceGeneratedMarkups: new[] { markup1, markup2 }));
+                markups: [], mutatingLspWorkspace,
+                GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics, DiagnosticMode.LspPull, sourceGeneratedMarkups: [markup1, markup2]));
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
@@ -1170,7 +1366,7 @@ class A {
 
             // First doc should show up as removed.
             Assert.Equal(3, results2.Length);
-            Assert.Equal(useVSDiagnostics ? null : Array.Empty<LSP.Diagnostic>(), results2[0].Diagnostics);
+            Assert.Equal(useVSDiagnostics ? null : [], results2[0].Diagnostics);
             Assert.Null(results2[0].ResultId);
 
             // Second and third doc should be changed as the project has changed.
@@ -1313,7 +1509,7 @@ class A {";
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
             Assert.Equal(3, results.Length);
-            Assert.Equal(new Uri("C:/test1.cs"), results[0].TextDocument!.Uri);
+            Assert.Equal(ProtocolConversions.CreateAbsoluteUri(@"C:\test1.cs"), results[0].TextDocument!.Uri);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Equal(1, results[0].Diagnostics.Single().Range.Start.Line);
             Assert.Empty(results[1].Diagnostics);
@@ -1716,15 +1912,15 @@ class A {";
         }
 
         [Theory, CombinatorialData]
-        public async Task TestPublicWorkspaceDiagnosticsWaitsForLspTextChanges(bool mutatingLspWorkspace)
+        public async Task TestWorkspaceDiagnosticsWaitsForLspTextChanges(bool useVSDiagnostics, bool mutatingLspWorkspace)
         {
             var markup1 =
 @"class A {";
             var markup2 = "";
             await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-                new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: false);
+                new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
-            var resultTask = RunPublicGetWorkspacePullDiagnosticsAsync(testLspServer, useProgress: true, triggerConnectionClose: false);
+            var resultTask = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, triggerConnectionClose: false);
 
             // Assert that the connection isn't closed and task doesn't complete even after some delay.
             await Task.Delay(TimeSpan.FromSeconds(5));
@@ -1740,15 +1936,15 @@ class A {";
         }
 
         [Theory, CombinatorialData]
-        public async Task TestPublicWorkspaceDiagnosticsWaitsForLspSolutionChanges(bool mutatingLspWorkspace)
+        public async Task TestWorkspaceDiagnosticsWaitsForLspSolutionChanges(bool useVSDiagnostics, bool mutatingLspWorkspace)
         {
             var markup1 =
 @"class A {";
             var markup2 = "";
             await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-                new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: false);
+                new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
-            var resultTask = RunPublicGetWorkspacePullDiagnosticsAsync(testLspServer, useProgress: true, triggerConnectionClose: false);
+            var resultTask = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, triggerConnectionClose: false);
 
             // Assert that the connection isn't closed and task doesn't complete even after some delay.
             await Task.Delay(TimeSpan.FromSeconds(5));

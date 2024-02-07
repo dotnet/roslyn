@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal interface IRemoteDiagnosticAnalyzerService
     {
         ValueTask<SerializableDiagnosticAnalysisResults> CalculateDiagnosticsAsync(Checksum solutionChecksum, DiagnosticArguments arguments, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<DiagnosticData>> GetSourceGeneratorDiagnosticsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
         ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis, CancellationToken cancellationToken);
         ValueTask StartSolutionCrawlerAsync(CancellationToken cancellationToken);
     }

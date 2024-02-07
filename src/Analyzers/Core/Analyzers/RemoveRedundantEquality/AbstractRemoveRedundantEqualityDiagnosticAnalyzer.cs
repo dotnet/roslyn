@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 
         private void AnalyzeBinaryOperator(OperationAnalysisContext context)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             var operation = (IBinaryOperation)context.Operation;
             if (operation.OperatorMethod is not null)
             {
@@ -79,7 +82,7 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
             {
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor,
                     operatorToken.GetLocation(),
-                    additionalLocations: new[] { operation.Syntax.GetLocation() },
+                    additionalLocations: [operation.Syntax.GetLocation()],
                     properties: properties.ToImmutable()));
             }
 

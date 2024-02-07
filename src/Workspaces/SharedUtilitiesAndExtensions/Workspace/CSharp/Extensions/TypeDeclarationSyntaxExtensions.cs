@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -70,29 +72,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             Contract.ThrowIfNull(typeNode);
 
-            var baseListTypes = SpecializedCollections.EmptyEnumerable<BaseTypeSyntax>();
-
-            var isPartialType = typeNode.Modifiers.Any(m => m.Kind() == SyntaxKind.PartialKeyword);
-            if (isPartialType)
+            if (typeNode.Modifiers.Any(SyntaxKind.PartialKeyword))
             {
-                var typeSymbol = model.GetDeclaredSymbol(typeNode, cancellationToken);
-                if (typeSymbol != null)
+                var typeSymbol = model.GetRequiredDeclaredSymbol(typeNode, cancellationToken);
+                if (typeSymbol.DeclaringSyntaxReferences.Length >= 2)
                 {
+                    using var _ = ArrayBuilder<BaseTypeSyntax>.GetInstance(out var baseListTypes);
+
                     foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
                     {
-                        if (syntaxRef.GetSyntax(cancellationToken) is TypeDeclarationSyntax typeDecl && typeDecl.BaseList != null)
-                        {
-                            baseListTypes = baseListTypes.Concat(typeDecl.BaseList.Types);
-                        }
+                        if (syntaxRef.GetSyntax(cancellationToken) is TypeDeclarationSyntax { BaseList.Types: var baseTypes })
+                            baseListTypes.AddRange(baseTypes);
                     }
+
+                    return baseListTypes.ToImmutable();
                 }
             }
-            else if (typeNode.BaseList != null)
-            {
-                return typeNode.BaseList.Types;
-            }
 
-            return baseListTypes;
+            if (typeNode.BaseList != null)
+                return typeNode.BaseList.Types;
+
+            return SpecializedCollections.EmptyEnumerable<BaseTypeSyntax>();
         }
 
         private static SyntaxToken EnsureToken(SyntaxToken token, SyntaxKind kind, bool prependNewLineIfMissing = false, bool appendNewLineIfMissing = false)
@@ -112,10 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var openBrace = EnsureToken(typeDeclaration.OpenBraceToken, SyntaxKind.OpenBraceToken);
             var closeBrace = EnsureToken(typeDeclaration.CloseBraceToken, SyntaxKind.CloseBraceToken, appendNewLineIfMissing: true);
 
-            if (typeDeclaration.SemicolonToken.IsKind(SyntaxKind.SemicolonToken))
-            {
+            // If we are adding braces, then remove any semicolon to we convert something like `record class X();` to
+            // `record class X { }`
+            var addedBraces = openBrace != typeDeclaration.OpenBraceToken || closeBrace != typeDeclaration.CloseBraceToken;
+            if (addedBraces && typeDeclaration.SemicolonToken.IsKind(SyntaxKind.SemicolonToken))
                 typeDeclaration = typeDeclaration.WithSemicolonToken(default).WithTrailingTrivia(typeDeclaration.SemicolonToken.TrailingTrivia);
-            }
 
             if (!hasMembers)
             {

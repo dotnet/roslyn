@@ -19,11 +19,11 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Definitions;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Definitions
 {
@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             if (sourceDefinition.Span != null)
             {
                 // If the Span is not null, use the span.
-                var document = context.Solution?.GetDocuments(ProtocolConversions.GetUriFromFilePath(sourceDefinition.FilePath)).FirstOrDefault();
+                var document = context.Solution?.GetDocuments(ProtocolConversions.CreateAbsoluteUri(sourceDefinition.FilePath)).FirstOrDefault();
                 if (document != null)
                 {
                     return await ProtocolConversions.TextSpanToLocationAsync(

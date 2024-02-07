@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ImplicitlyTypeArraysTests : SemanticModelTestBase
     {
-        #region "Functionality tests"
-
         [Fact]
         public void ImplicitlyTypedArrayLocal()
         {
@@ -102,7 +100,5 @@ class C
             Assert.NotNull(typeInfo.Type);
             Assert.NotNull(typeInfo.ConvertedType);
         }
-
-        #endregion
     }
 }

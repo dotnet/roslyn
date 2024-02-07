@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <summary>
             ''' The set of local variables and parameters that were hoisted and need a proxy.
             ''' </summary>
-            Private ReadOnly _hoistedVariables As Roslyn.Utilities.IReadOnlySet(Of Symbol) = Nothing
+            Private ReadOnly _hoistedVariables As IReadOnlySet(Of Symbol) = Nothing
 
             ''' <summary>
             ''' EnC support: the rewriter stores debug info for each await/yield in this builder.
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Sub New(F As SyntheticBoundNodeFactory,
                            stateField As FieldSymbol,
-                           hoistedVariables As Roslyn.Utilities.IReadOnlySet(Of Symbol),
+                           hoistedVariables As IReadOnlySet(Of Symbol),
                            initialProxies As Dictionary(Of Symbol, TProxy),
                            stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                            slotAllocatorOpt As VariableSlotAllocator,
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If _tryBlockSyntaxForNextFinalizerState IsNot Nothing Then
                     If SlotAllocatorOpt Is Nothing OrElse
-                       Not SlotAllocatorOpt.TryGetPreviousStateMachineState(_tryBlockSyntaxForNextFinalizerState, _currentFinalizerState) Then
+                       Not SlotAllocatorOpt.TryGetPreviousStateMachineState(_tryBlockSyntaxForNextFinalizerState, awaitId:=Nothing, _currentFinalizerState) Then
                         _currentFinalizerState = _nextFinalizerState
                         _nextFinalizerState = CType(_nextFinalizerState - 1, StateMachineState)
                     End If
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                              SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}")
 
                 Dim syntaxOffset = CurrentMethod.CalculateLocalSyntaxOffset(node.SpanStart, node.SyntaxTree)
-                _stateDebugInfoBuilder.Add(New StateMachineStateDebugInfo(syntaxOffset, state))
+                _stateDebugInfoBuilder.Add(New StateMachineStateDebugInfo(syntaxOffset, awaitId:=Nothing, state))
             End Sub
 
             Protected Sub AddState(stateNumber As Integer, <Out> ByRef resumeLabel As GeneratedLabelSymbol)

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractClass;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -287,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             await new Test
             {
                 TestCode = input,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
                 FixedState =
                 {
@@ -408,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             await new Test
             {
                 TestCode = input,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
                 FixedState =
                 {
@@ -453,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             {
                 TestCode = input,
                 FixedCode = input,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
         }
@@ -469,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             {
                 TestCode = input,
                 FixedCode = input,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
         }
@@ -487,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             {
                 TestCode = input,
                 FixedCode = input,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
         }
@@ -503,7 +504,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             {
                 TestCode = input,
                 FixedCode = input,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
         }
@@ -545,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             {
                 TestCode = input,
                 FixedCode = input,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
         }
@@ -2903,8 +2904,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63315")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63315")]
         public async Task TestMethodInsideNamespace_NoException()
         {
             var code = """
@@ -2936,8 +2936,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55610")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55610")]
         public async Task TestMultipleMethodsSelected_WithTypeContainingBaseClass()
         {
             var code = """
@@ -2959,8 +2958,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55610")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55610")]
         public async Task TestClassSelected_WithTypeContainingBaseClass()
         {
             var code = """
@@ -3024,8 +3022,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55402")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55402")]
         public async Task TestMemberKeyword()
         {
             var code = """

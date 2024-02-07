@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     internal abstract class AbstractReferenceDirectiveCompletionProvider : AbstractDirectivePathCompletionProvider
     {
         private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(
-            filterCharacterRules: ImmutableArray<CharacterSetModificationRule>.Empty,
-            commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, GetCommitCharacters())),
+            filterCharacterRules: [],
+            commitCharacterRules: [CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, GetCommitCharacters())],
             enterKeyRule: EnterKeyRule.Never,
             selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
-        private static readonly char[] s_pathIndicators = new char[] { '/', '\\', ':' };
+        private static readonly char[] s_pathIndicators = ['/', '\\', ':'];
 
         private static ImmutableArray<char> GetCommitCharacters()
         {

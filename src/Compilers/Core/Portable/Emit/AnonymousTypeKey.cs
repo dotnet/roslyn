@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 if (i > 0)
                 {
-                    builder.Append("|");
+                    builder.Append('|');
                 }
                 builder.Append(this.Fields[i].Name);
             }

@@ -3,14 +3,14 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.InlineRename
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.[Shared].TestHooks
 Imports Microsoft.VisualStudio.Language.Intellisense
+Imports Microsoft.VisualStudio.Text.Classification
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
@@ -619,12 +619,16 @@ class D : B
 
                 Dim TestQuickInfoBroker = New TestQuickInfoBroker()
                 Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
+                Dim editorFormatMapService = workspace.ExportProvider.GetExport(Of IEditorFormatMapService)().Value
+                Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext)().Value
 
                 Using flyout = New RenameFlyout(
-                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                    New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, Nothing), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                     textView:=cursorDocument.GetTextView(),
                     themeService:=Nothing,
                     TestQuickInfoBroker,
+                    editorFormatMapService,
+                    threadingContext,
                     listenerProvider)
 
                     Await WaitForRename(workspace)
@@ -706,12 +710,15 @@ class D : B
                 Dim sessionInfo = renameService.StartInlineSession(
                     document, document.GetSyntaxTreeAsync().Result.GetRoot().FindToken(cursorPosition).Span, CancellationToken.None)
 
-                Dim vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
+                Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext)().Value
+
+                Dim vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, Nothing) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                 Assert.False(vm.IsCollapsed)
                 Assert.True(vm.IsExpanded)
                 vm.IsCollapsed = True
 
-                vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
+                vm = New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, Nothing) ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                 Assert.True(vm.IsCollapsed)
                 Assert.False(vm.IsExpanded)
 

@@ -4,10 +4,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 
@@ -25,9 +23,8 @@ internal static class ExtractMethodOptionsStorage
         => new()
         {
             CodeGenerationOptions = globalOptions.GetCodeGenerationOptions(languageServices),
+            CodeCleanupOptions = globalOptions.GetCodeCleanupOptions(languageServices),
             ExtractOptions = globalOptions.GetExtractMethodOptions(languageServices.Language),
-            AddImportOptions = globalOptions.GetAddImportPlacementOptions(languageServices),
-            LineFormattingOptions = globalOptions.GetLineFormattingOptions(languageServices.Language)
         };
 
     public static ValueTask<ExtractMethodGenerationOptions> GetExtractMethodGenerationOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)

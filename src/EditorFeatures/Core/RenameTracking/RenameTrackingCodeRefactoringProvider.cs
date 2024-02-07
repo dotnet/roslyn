@@ -14,14 +14,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeRefactoringProviderNames.RenameTracking), Shared]
-    [method: ImportingConstructor]
-    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    internal class RenameTrackingCodeRefactoringProvider(
-        ITextUndoHistoryRegistry undoHistoryRegistry,
-        [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices) : CodeRefactoringProvider
+    internal class RenameTrackingCodeRefactoringProvider : CodeRefactoringProvider
     {
-        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
-        private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices = refactorNotifyServices;
+        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
+        private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
+
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public RenameTrackingCodeRefactoringProvider(
+            ITextUndoHistoryRegistry undoHistoryRegistry,
+            [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices)
+        {
+            _undoHistoryRegistry = undoHistoryRegistry;
+            _refactorNotifyServices = refactorNotifyServices;
+
+            // Backdoor that allows this provider to use the high-priority bucket.
+            this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
+        }
 
         public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -41,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         /// change the name of something and pop up the lightbulb without having to wait for the rest to
         /// compute.
         /// </summary>
-        private protected override CodeActionRequestPriority ComputeRequestPriority()
+        protected override CodeActionRequestPriority ComputeRequestPriority()
             => CodeActionRequestPriority.High;
     }
 }

@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 namedStringArguments = builder.ToImmutableAndFree();
             }
 
-            return new SynthesizedAttributeData(ctorSymbol, arguments, namedStringArguments);
+            return SynthesizedAttributeData.Create(this, ctorSymbol, arguments, namedStringArguments);
         }
 
         internal SynthesizedAttributeData? TrySynthesizeAttribute(
@@ -443,7 +443,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            return new SynthesizedAttributeData(
+            return SynthesizedAttributeData.Create(
+                this,
                 ctorSymbol,
                 arguments: ImmutableArray<TypedConstant>.Empty,
                 namedArguments: ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -524,6 +525,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void EnsureIsReadOnlyAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute, diagnostics, location, modifyCompilation);
+        }
+
+        internal void EnsureRequiresLocationAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresLocationAttribute, diagnostics, location, modifyCompilation);
         }
 
         internal void EnsureIsByRefLikeAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
@@ -628,6 +634,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         locationOpt,
                         WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor);
+
+                case EmbeddableAttributes.RequiresLocationAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attribute);

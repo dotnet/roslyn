@@ -9,10 +9,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class SymbolDisplayVisitor
         Protected Overrides Function ShouldRestrictMinimallyQualifyLookupToNamespacesAndTypes() As Boolean
-            Dim token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt)
+            Dim token = SemanticModelOpt.SyntaxTree.GetRoot().FindToken(PositionOpt)
             Dim startNode = token.Parent
 
-            Return SyntaxFacts.IsInNamespaceOrTypeContext(TryCast(startNode, ExpressionSyntax)) OrElse Me.inNamespaceOrType
+            Return SyntaxFacts.IsInNamespaceOrTypeContext(TryCast(startNode, ExpressionSyntax)) OrElse Me.InNamespaceOrType
         End Function
 
         Private Sub MinimallyQualify(symbol As INamespaceSymbol, emittedName As String, parentsEmittedName As String)
@@ -33,8 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' version of our parent, and then add ourselves to that.
             Dim symbols = If(
                 ShouldRestrictMinimallyQualifyLookupToNamespacesAndTypes(),
-                semanticModelOpt.LookupNamespacesAndTypes(positionOpt, name:=symbol.Name),
-                semanticModelOpt.LookupSymbols(positionOpt, name:=symbol.Name))
+                SemanticModelOpt.LookupNamespacesAndTypes(PositionOpt, name:=symbol.Name),
+                SemanticModelOpt.LookupSymbols(PositionOpt, name:=symbol.Name))
             Dim lookupResult As NamespaceSymbol = Nothing
 
             If symbols.Length = 1 Then
@@ -63,11 +63,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If containingNamespace IsNot Nothing Then
                     If containingNamespace.IsGlobalNamespace Then
 
-                        Debug.Assert(format.GlobalNamespaceStyle = SymbolDisplayGlobalNamespaceStyle.Included OrElse
-                                          format.GlobalNamespaceStyle = SymbolDisplayGlobalNamespaceStyle.Omitted OrElse
-                                          format.GlobalNamespaceStyle = SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining)
+                        Debug.Assert(Format.GlobalNamespaceStyle = SymbolDisplayGlobalNamespaceStyle.Included OrElse
+                                          Format.GlobalNamespaceStyle = SymbolDisplayGlobalNamespaceStyle.Omitted OrElse
+                                          Format.GlobalNamespaceStyle = SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining)
 
-                        If format.GlobalNamespaceStyle = SymbolDisplayGlobalNamespaceStyle.Included Then
+                        If Format.GlobalNamespaceStyle = SymbolDisplayGlobalNamespaceStyle.Included Then
                             AddGlobalNamespace(containingNamespace)
                             AddOperator(SyntaxKind.DotToken)
 
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            builder.Add(CreatePart(SymbolDisplayPartKind.NamespaceName, symbol, emittedName, visitedParent))
+            Builder.Add(CreatePart(SymbolDisplayPartKind.NamespaceName, symbol, emittedName, visitedParent))
         End Sub
 
         Private Sub MinimallyQualify(symbol As INamedTypeSymbol)
@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' possible there's another symbol with the same name as the alias that binds first
 
                 Dim aliasName = [alias].Name
-                Dim boundSymbols = semanticModelOpt.LookupNamespacesAndTypes(positionOpt, name:=aliasName)
+                Dim boundSymbols = SemanticModelOpt.LookupNamespacesAndTypes(PositionOpt, name:=aliasName)
 
                 If boundSymbols.Length = 1 Then
                     Dim boundAlias = TryCast(boundSymbols(0), IAliasSymbol)
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt)
+            Dim token = SemanticModelOpt.SyntaxTree.GetRoot().FindToken(PositionOpt)
             Dim startNode = token.Parent
 
             ' NOTE(cyrusn): If we're in an imports clause, we can't use aliases.
@@ -159,10 +159,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim compilation = semanticModelOpt.Compilation
+            Dim compilation = SemanticModelOpt.Compilation
 
             Dim sourceModule = DirectCast(compilation.SourceModule, SourceModuleSymbol)
-            Dim sourceFile = sourceModule.TryGetSourceFile(DirectCast(GetSyntaxTree(DirectCast(semanticModelOpt, SemanticModel)), VisualBasicSyntaxTree))
+            Dim sourceFile = sourceModule.TryGetSourceFile(DirectCast(GetSyntaxTree(SemanticModelOpt), VisualBasicSyntaxTree))
             Debug.Assert(sourceFile IsNot Nothing)
 
             If Not sourceFile.AliasImportsOpt Is Nothing Then
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function RemoveAttributeSuffixIfNecessary(symbol As INamedTypeSymbol, symbolName As String) As String
-            If format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.RemoveAttributeSuffix) AndAlso IsDerivedFromAttributeType(symbol) Then
+            If Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.RemoveAttributeSuffix) AndAlso IsDerivedFromAttributeType(symbol) Then
 
                 Dim nameWithoutAttributeSuffix As String = Nothing
                 If symbolName.TryGetWithoutAttributeSuffix(False, nameWithoutAttributeSuffix) Then
@@ -202,9 +202,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function IsDerivedFromAttributeType(ByVal derivedType As INamedTypeSymbol) As Boolean
-            Return semanticModelOpt IsNot Nothing AndAlso
+            Return SemanticModelOpt IsNot Nothing AndAlso
                 DirectCast(derivedType, NamedTypeSymbol).IsOrDerivedFromWellKnownClass(WellKnownType.System_Attribute,
-                                                                                       DirectCast(semanticModelOpt.Compilation, VisualBasicCompilation),
+                                                                                       DirectCast(SemanticModelOpt.Compilation, VisualBasicCompilation),
                                                                                        useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
         End Function
     End Class

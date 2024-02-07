@@ -27,9 +27,8 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         public readonly string Input;
 
-        public readonly SyntaxTree Tree;
         public readonly ImmutableArray<MarkedSpan> MarkedSpans;
-        public readonly ImmutableArray<ValueTuple<TextSpan, int, int>> SpansAndKindsAndIds;
+        public readonly SyntaxNode Root;
 
         /// <summary>
         /// Parses source code with markers for further processing
@@ -43,11 +42,12 @@ namespace Roslyn.Test.Utilities
         {
             Source = removeTags ? RemoveTags(markedSource) : ClearTags(markedSource);
             Input = markedSource;
-            Tree = parser(Source);
+            Root = parser(Source).GetRoot();
 
             MarkedSpans = ImmutableArray.CreateRange(GetSpansRecursive(markedSource, 0, getSyntaxKind));
-            SpansAndKindsAndIds = ImmutableArray.CreateRange(MarkedSpans.Select(s => (s.MarkedSyntax, s.SyntaxKind, s.Id)));
         }
+
+        public SyntaxTree Tree => Root.SyntaxTree;
 
         private static IEnumerable<MarkedSpan> GetSpansRecursive(string markedSource, int offset, Func<string, int> getSyntaxKind)
         {
@@ -105,41 +105,29 @@ namespace Roslyn.Test.Utilities
             RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
 
         public ImmutableDictionary<SyntaxNode, int> MapSyntaxNodesToMarks()
-        {
-            var root = Tree.GetRoot();
-            var builder = ImmutableDictionary.CreateBuilder<SyntaxNode, int>();
-            for (int i = 0; i < SpansAndKindsAndIds.Length; i++)
-            {
-                var node = GetNode(root, SpansAndKindsAndIds[i]);
-                builder.Add(node, SpansAndKindsAndIds[i].Item3);
-            }
+            => MarkedSpans.ToImmutableDictionary(
+                keySelector: marker => GetNode(Root, marker),
+                elementSelector: marker => marker.Id);
 
-            return builder.ToImmutableDictionary();
-        }
+        public ImmutableDictionary<int, SyntaxNode> MapMarksToSyntaxNodes()
+            => MarkedSpans.ToImmutableDictionary(
+                keySelector: marker => marker.Id,
+                elementSelector: marker => GetNode(Root, marker));
 
-        private SyntaxNode GetNode(SyntaxNode root, ValueTuple<TextSpan, int, int> spanAndKindAndId)
+        public SyntaxNode GetNode(string tag, int id)
+            => GetNode(Root, MarkedSpans.Single(s => s.TagName == tag && s.Id == id));
+
+        private static SyntaxNode GetNode(SyntaxNode root, MarkedSpan marker)
         {
-            var node = root.FindNode(spanAndKindAndId.Item1, getInnermostNodeForTie: true);
-            if (spanAndKindAndId.Item2 == 0)
+            var node = root.FindNode(marker.MarkedSyntax, getInnermostNodeForTie: true);
+            if (marker.SyntaxKind == 0)
             {
                 return node;
             }
 
-            var nodeOfKind = node.FirstAncestorOrSelf<SyntaxNode>(n => n.RawKind == spanAndKindAndId.Item2);
+            var nodeOfKind = node.FirstAncestorOrSelf<SyntaxNode>(n => n.RawKind == marker.SyntaxKind);
             Assert.NotNull(nodeOfKind);
             return nodeOfKind;
-        }
-
-        public ImmutableDictionary<int, SyntaxNode> MapMarksToSyntaxNodes()
-        {
-            var root = Tree.GetRoot();
-            var builder = ImmutableDictionary.CreateBuilder<int, SyntaxNode>();
-            for (int i = 0; i < SpansAndKindsAndIds.Length; i++)
-            {
-                builder.Add(SpansAndKindsAndIds[i].Item3, GetNode(root, SpansAndKindsAndIds[i]));
-            }
-
-            return builder.ToImmutableDictionary();
         }
 
         public static Func<SyntaxNode, SyntaxNode> GetSyntaxMap(SourceWithMarkedNodes source0, SourceWithMarkedNodes source1, List<SyntaxNode> unmappedNodes = null)

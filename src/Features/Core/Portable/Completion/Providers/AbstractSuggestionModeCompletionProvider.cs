@@ -23,6 +23,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected static CompletionItem CreateEmptySuggestionModeItem()
             => CreateSuggestionModeItem(displayText: null, description: null);
 
-        public override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet<char>.Empty;
+        public override ImmutableHashSet<char> TriggerCharacters => [];
     }
 }

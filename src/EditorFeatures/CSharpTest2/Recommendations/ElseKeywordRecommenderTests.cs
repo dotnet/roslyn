@@ -23,24 +23,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -61,18 +67,21 @@ $$");
         public async Task TestNotInPreprocessor1()
         {
             await VerifyAbsenceAsync(
-@"class C {
-#if $$");
+                """
+                class C {
+                #if $$
+                """);
         }
 
         [Fact]
         public async Task TestInPreprocessorFollowedBySkippedTokens()
         {
             await VerifyKeywordAsync(
-@"#if GOO
-#$$
-dasd
-");
+                """
+                #if GOO
+                #$$
+                dasd
+                """);
         }
 
         [Fact]
@@ -100,8 +109,10 @@ dasd
         public async Task TestNotAfterIf()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"if (true)
-$$"));
+                """
+                if (true)
+                $$
+                """));
         }
 
         [Theory]
@@ -432,18 +443,21 @@ else"));
         public async Task TestNotInsideStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"if (true)
-    Console.WriteLine()$$; // Complete statement, but we're not at the end of it.
-"));
+                """
+                if (true)
+                    Console.WriteLine()$$; // Complete statement, but we're not at the end of it.
+                """));
         }
 
         [Fact]
         public async Task TestNotAfterSkippedToken()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"if (true)
-    Console.WriteLine();,
-$$"));
+                """
+                if (true)
+                    Console.WriteLine();,
+                $$
+                """));
         }
     }
 }

@@ -34,37 +34,39 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => AnalyzeSyntaxTree(treeContext, context.Compilation.Options)));
 
         protected abstract CodeStyleOption2<string> GetPreferredOrderStyle(SyntaxTreeAnalysisContext context);
 
-        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
+        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
             var option = GetPreferredOrderStyle(context);
-            if (!_helpers.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
+            if (ShouldSkipAnalysis(context, compilationOptions, option.Notification)
+                || !_helpers.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
             {
                 return;
             }
 
-            Recurse(context, preferredOrder, option.Notification.Severity, context.GetAnalysisRoot(findInTrivia: false));
+            Recurse(context, preferredOrder, option.Notification, context.GetAnalysisRoot(findInTrivia: false));
         }
 
         protected abstract void Recurse(
             SyntaxTreeAnalysisContext context,
             Dictionary<int, int> preferredOrder,
-            ReportDiagnostic severity,
+            NotificationOption2 notificationOption,
             SyntaxNode root);
 
         protected void CheckModifiers(
             SyntaxTreeAnalysisContext context,
             Dictionary<int, int> preferredOrder,
-            ReportDiagnostic severity,
+            NotificationOption2 notificationOption,
             SyntaxNode memberDeclaration)
         {
             var modifiers = _syntaxFacts.GetModifiers(memberDeclaration);
             if (!AbstractOrderModifiersHelpers.IsOrdered(preferredOrder, modifiers))
             {
-                if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden)
+                if (notificationOption.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden)
                 {
                     // If the severity is hidden, put the marker on all the modifiers so that the
                     // user can bring up the fix anywhere in the modifier list.
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
                     // If the Severity is not hidden, then just put the user visible portion on the
                     // first token.  That way we don't 
                     context.ReportDiagnostic(
-                        DiagnosticHelper.Create(Descriptor, modifiers.First().GetLocation(), severity, additionalLocations: null, properties: null));
+                        DiagnosticHelper.Create(Descriptor, modifiers.First().GetLocation(), notificationOption, additionalLocations: null, properties: null));
                 }
             }
         }

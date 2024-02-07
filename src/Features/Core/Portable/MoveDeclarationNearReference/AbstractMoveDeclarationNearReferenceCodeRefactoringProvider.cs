@@ -43,11 +43,11 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             }
 
             context.RegisterRefactoring(
-                CodeAction.CreateWithPriority(
-                    CodeActionPriority.Low,
+                CodeAction.Create(
                     FeaturesResources.Move_declaration_near_reference,
                     c => MoveDeclarationNearReferenceAsync(document, declaration, c),
-                    nameof(FeaturesResources.Move_declaration_near_reference)),
+                    nameof(FeaturesResources.Move_declaration_near_reference),
+                    CodeActionPriority.Low),
                 declaration.Span);
         }
 

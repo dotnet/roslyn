@@ -26,22 +26,27 @@ namespace Microsoft.CodeAnalysis.CommandLine
         // Spend up to 20s connecting to a new process, to allow time for it to start.
         internal const int TimeOutMsNewProcess = 20000;
 
+        // To share a mutex between processes the name should have the Global prefix
+        private const string GlobalMutexPrefix = "Global\\";
+
         /// <summary>
         /// Determines if the compiler server is supported in this environment.
         /// </summary>
         internal static bool IsCompilerServerSupported => GetPipeName("") is object;
 
+        /// <summary>
+        /// Create a build request for processing on the server. 
+        /// </summary>
         internal static BuildRequest CreateBuildRequest(
             Guid requestId,
             RequestLanguage language,
             List<string> arguments,
             string workingDirectory,
-            string tempDirectory,
+            string? tempDirectory,
             string? keepAlive,
             string? libDirectory)
         {
             Debug.Assert(workingDirectory is object);
-            Debug.Assert(tempDirectory is object);
 
             return BuildRequest.Create(
                 language,
@@ -160,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return new IncorrectHashBuildResponse();
             }
 
-            using var pipe = await tryConnectToServer(pipeName, timeoutOverride, logger, tryCreateServerFunc, cancellationToken).ConfigureAwait(false);
+            using var pipe = await tryConnectToServerAsync(pipeName, timeoutOverride, logger, tryCreateServerFunc, cancellationToken).ConfigureAwait(false);
             if (pipe is null)
             {
                 return new CannotConnectResponse();
@@ -173,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             // This code uses a Mutex.WaitOne / ReleaseMutex pairing. Both of these calls must occur on the same thread 
             // or an exception will be thrown. This code lives in a separate non-async function to help ensure this 
             // invariant doesn't get invalidated in the future by an `await` being inserted. 
-            static Task<NamedPipeClientStream?> tryConnectToServer(
+            static Task<NamedPipeClientStream?> tryConnectToServerAsync(
                 string pipeName,
                 int? timeoutOverride,
                 ICompilerServerLogger logger,
@@ -579,60 +584,71 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static string GetServerMutexName(string pipeName)
         {
-            return $"{pipeName}.server";
+            return $"{GlobalMutexPrefix}{pipeName}.server";
         }
 
         internal static string GetClientMutexName(string pipeName)
         {
-            return $"{pipeName}.client";
+            return $"{GlobalMutexPrefix}{pipeName}.client";
         }
 
         /// <summary>
-        /// Gets the value of the temporary path for the current environment assuming the working directory
-        /// is <paramref name="workingDir"/>.  This function must emulate <see cref="Path.GetTempPath"/> as 
-        /// closely as possible.
+        /// Gets the value of the temporary path for the provided environment settings. This behavior
+        /// is OS specific.
+        ///   - On Windows it seeks to emulate Path.GetTempPath as closely as possible with 
+        ///     provided working directory.
         /// </summary>
         internal static string? GetTempPath(string? workingDir)
         {
-            if (PlatformInformation.IsUnix)
+            return PlatformInformation.IsUnix
+                ? getTempPathLinux()
+                : getTempPathWindows(workingDir);
+
+            static string? getTempPathLinux()
             {
                 // Unix temp path is fine: it does not use the working directory
                 // (it uses ${TMPDIR} if set, otherwise, it returns /tmp)
+                //
+                // https://github.com/dotnet/roslyn/issues/65415 tracks moving to a directory 
+                // to a per user location.
                 return Path.GetTempPath();
             }
 
-            var tmp = Environment.GetEnvironmentVariable("TMP");
-            if (Path.IsPathRooted(tmp))
+            static string? getTempPathWindows(string? workingDir)
             {
-                return tmp;
-            }
-
-            var temp = Environment.GetEnvironmentVariable("TEMP");
-            if (Path.IsPathRooted(temp))
-            {
-                return temp;
-            }
-
-            if (!string.IsNullOrEmpty(workingDir))
-            {
-                if (!string.IsNullOrEmpty(tmp))
+                var tmp = Environment.GetEnvironmentVariable("TMP");
+                if (Path.IsPathRooted(tmp))
                 {
-                    return Path.Combine(workingDir, tmp);
+                    return tmp;
                 }
 
-                if (!string.IsNullOrEmpty(temp))
+                var temp = Environment.GetEnvironmentVariable("TEMP");
+                if (Path.IsPathRooted(temp))
                 {
-                    return Path.Combine(workingDir, temp);
+                    return temp;
                 }
-            }
 
-            var userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
-            if (Path.IsPathRooted(userProfile))
-            {
-                return userProfile;
-            }
+                if (!string.IsNullOrEmpty(workingDir))
+                {
+                    if (!string.IsNullOrEmpty(tmp))
+                    {
+                        return Path.Combine(workingDir, tmp);
+                    }
 
-            return Environment.GetEnvironmentVariable("SYSTEMROOT");
+                    if (!string.IsNullOrEmpty(temp))
+                    {
+                        return Path.Combine(workingDir, temp);
+                    }
+                }
+
+                var userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
+                if (Path.IsPathRooted(userProfile))
+                {
+                    return userProfile;
+                }
+
+                return Environment.GetEnvironmentVariable("SYSTEMROOT");
+            }
         }
     }
 

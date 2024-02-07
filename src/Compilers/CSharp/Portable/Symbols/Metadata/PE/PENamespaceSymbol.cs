@@ -64,6 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             EnsureAllMembersLoaded();
 
             var memberTypes = GetMemberTypesPrivate();
+
+            if (lazyNamespaces.Count == 0)
+                return StaticCast<Symbol>.From(memberTypes);
+
             var builder = ArrayBuilder<Symbol>.GetInstance(memberTypes.Length + lazyNamespaces.Count);
 
             builder.AddRange(memberTypes);
@@ -85,6 +89,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return StaticCast<NamedTypeSymbol>.From(_lazyFlattenedTypes);
+        }
+
+        internal override NamespaceSymbol GetNestedNamespace(ReadOnlyMemory<char> name)
+        {
+            EnsureAllMembersLoaded();
+
+            if (lazyNamespaces.TryGetValue(name, out var ns))
+            {
+                return ns;
+            }
+
+            return null;
         }
 
         public sealed override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)

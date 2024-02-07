@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
             var formatter = CSharpSyntaxFormatting.Instance;
             var result = formatter.GetFormattingResult(
-                _root, new[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, _options.FormattingOptions, smartTokenformattingRules, cancellationToken);
+                _root, [TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End)], _options.FormattingOptions, smartTokenformattingRules, cancellationToken);
             return result.GetTextChanges(cancellationToken);
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         {
             return endToken.IsKind(SyntaxKind.CloseBraceToken) &&
                 endToken.Parent.IsKind(SyntaxKind.Block) &&
-                (endToken.Parent.IsParentKind(SyntaxKind.TryStatement) || endToken.Parent.IsParentKind(SyntaxKind.DoStatement));
+                endToken.Parent.Parent?.Kind() is SyntaxKind.TryStatement or SyntaxKind.DoStatement;
         }
 
         public IList<TextChange> FormatToken(SyntaxToken token, CancellationToken cancellationToken)
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
             var formatter = CSharpSyntaxFormatting.Instance;
             var result = formatter.GetFormattingResult(
-                _root, new[] { TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition) }, _options.FormattingOptions, smartTokenformattingRules, cancellationToken);
+                _root, [TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition)], _options.FormattingOptions, smartTokenformattingRules, cancellationToken);
             return result.GetTextChanges(cancellationToken);
         }
 

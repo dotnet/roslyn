@@ -22,24 +22,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterClass_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalStatement_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -81,8 +87,10 @@ $$");
         public async Task TestAfterHashFollowedBySkippedTokens()
         {
             await VerifyKeywordAsync(
-@"#$$
-aeu");
+                """
+                #$$
+                aeu
+                """);
         }
 
         [Fact]
@@ -103,25 +111,31 @@ aeu");
         public async Task TestBeforeStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"$$
-return true;"));
+                """
+                $$
+                return true;
+                """));
         }
 
         [Fact]
         public async Task TestAfterStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"return true;
-$$"));
+                """
+                return true;
+                $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterBlock()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"if (true) {
-}
-$$"));
+                """
+                if (true) {
+                }
+                $$
+                """));
         }
 
         [Fact]
@@ -135,84 +149,102 @@ $$"));
         public async Task TestInCase()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"switch (true) {
-  case 0:
-    $$
-}"));
+                """
+                switch (true) {
+                  case 0:
+                    $$
+                }
+                """));
         }
 
         [Fact]
         public async Task TestInCaseBlock()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"switch (true) {
-  case 0: {
-    $$
-  }
-}"));
+                """
+                switch (true) {
+                  case 0: {
+                    $$
+                  }
+                }
+                """));
         }
 
         [Fact]
         public async Task TestInDefaultCase()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"switch (true) {
-  default:
-    $$
-}"));
+                """
+                switch (true) {
+                  default:
+                    $$
+                }
+                """));
         }
 
         [Fact]
         public async Task TestInDefaultCaseBlock()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"switch (true) {
-  default: {
-    $$
-  }
-}"));
+                """
+                switch (true) {
+                  default: {
+                    $$
+                  }
+                }
+                """));
         }
 
         [Fact]
         public async Task TestAfterLabel()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"label:
-  $$"));
+                """
+                label:
+                  $$
+                """));
         }
 
         [Fact]
         public async Task TestNotAfterDoBlock()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"do {
-}
-$$"));
+                """
+                do {
+                }
+                $$
+                """));
         }
 
         [Fact]
         public async Task TestInActiveRegion1()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"#if true
-$$"));
+                """
+                #if true
+                $$
+                """));
         }
 
         [Fact]
         public async Task TestInActiveRegion2()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"#if true
+                """
+                #if true
 
-$$"));
+                $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterElse()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"if (goo) {
-} else $$"));
+                """
+                if (goo) {
+                } else $$
+                """));
         }
 
         [Fact]

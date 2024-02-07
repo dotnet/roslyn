@@ -21,7 +21,7 @@ using static Roslyn.Test.Utilities.TestHelpers;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
-    public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public RemoveUnusedParametersTests(ITestOutputHelper logger)
           : base(logger)
@@ -83,12 +83,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         public async Task Parameter_Unused_NonPrivate_NotApplicable(string typeAccessibility, string methodAccessibility)
         {
             await TestDiagnosticMissingAsync(
-$@"{typeAccessibility} class C
-{{
-    {methodAccessibility} void M(int [|p|])
-    {{
-    }}
-}}", NonPublicMethodsOnly);
+                $$"""
+                {{typeAccessibility}} class C
+                {
+                    {{methodAccessibility}} void M(int [|p|])
+                    {
+                    }
+                }
+                """, NonPublicMethodsOnly);
         }
 
         [Theory]
@@ -101,12 +103,14 @@ $@"{typeAccessibility} class C
         public async Task Parameter_Unused_NonPublicMethod(string typeAccessibility, string methodAccessibility)
         {
             await TestDiagnosticsAsync(
-$@"{typeAccessibility} class C
-{{
-    {methodAccessibility} void M(int [|p|])
-    {{
-    }}
-}}", NonPublicMethodsOnly,
+                $$"""
+                {{typeAccessibility}} class C
+                {
+                    {{methodAccessibility}} void M(int [|p|])
+                    {
+                    }
+                }
+                """, NonPublicMethodsOnly,
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
@@ -1123,13 +1127,15 @@ $@"{typeAccessibility} class C
         public async Task Parameter_MethodsWithSpecialAttributes(string attribute)
         {
             await TestDiagnosticMissingAsync(
-$@"class C
-{{
-    {attribute}
-    void M(int [|p|])
-    {{
-    }}
-}}");
+                $$"""
+                class C
+                {
+                    {{attribute}}
+                    void M(int [|p|])
+                    {
+                    }
+                }
+                """);
         }
 
         [Theory]
@@ -1138,19 +1144,20 @@ $@"class C
         public async Task Parameter_ConstructorsWithSpecialAttributes(string attributeNamespace, string attributeName)
         {
             await TestDiagnosticMissingAsync(
-$@"
-namespace {attributeNamespace}
-{{
-    public class {attributeName} : System.Attribute {{ }}
-}}
+                $$"""
+                namespace {{attributeNamespace}}
+                {
+                    public class {{attributeName}} : System.Attribute { }
+                }
 
-class C
-{{
-    [{attributeNamespace}.{attributeName}()]
-    public C(int [|p|])
-    {{
-    }}
-}}");
+                class C
+                {
+                    [{{attributeNamespace}}.{{attributeName}}()]
+                    public C(int [|p|])
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32133")]
@@ -1877,23 +1884,41 @@ class C
         public async Task Test_PrimaryConstructor1()
         {
             await TestDiagnosticMissingAsync(
-@"using System;
+                """
+                using System;
 
-class C(int [|a100|])
-{
-}");
+                class C(int [|a100|])
+                {
+                }
+                """);
         }
 
         [Fact, WorkItem(67013, "https://github.com/dotnet/roslyn/issues/67013")]
         public async Task Test_PrimaryConstructor2()
         {
             await TestDiagnosticMissingAsync(
-@"using System;
+                """
+                using System;
 
-class C(int [|a100|]) : Object()
-{
-    int M1() => a100;
-}");
+                class C(int [|a100|]) : Object()
+                {
+                    int M1() => a100;
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70276")]
+        public async Task TestMethodWithNameOf()
+        {
+            await TestDiagnosticsAsync("""
+                class C
+                {
+                    void M(int [|x|])
+                    {
+                        const string y = nameof(C);
+                    }
+                }
+                """, Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
     }
 }

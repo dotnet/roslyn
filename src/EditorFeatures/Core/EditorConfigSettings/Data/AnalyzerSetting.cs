@@ -24,19 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         {
             _descriptor = descriptor;
             _settingsUpdater = settingsUpdater;
-            DiagnosticSeverity severity = default;
             if (effectiveSeverity == ReportDiagnostic.Default)
             {
-                severity = descriptor.DefaultSeverity;
-            }
-            else if (effectiveSeverity.ToDiagnosticSeverity() is DiagnosticSeverity severity1)
-            {
-                severity = severity1;
+                effectiveSeverity = descriptor.DefaultSeverity.ToReportDiagnostic();
             }
 
             var enabled = effectiveSeverity != ReportDiagnostic.Suppress;
             IsEnabled = enabled;
-            Severity = severity;
+            Severity = effectiveSeverity;
             Language = language;
             IsNotConfigurable = descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.NotConfigurable);
             Location = location;
@@ -46,13 +41,13 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public string Title => _descriptor.Title.ToString(CultureInfo.CurrentUICulture);
         public string Description => _descriptor.Description.ToString(CultureInfo.CurrentUICulture);
         public string Category => _descriptor.Category;
-        public DiagnosticSeverity Severity { get; private set; }
+        public ReportDiagnostic Severity { get; private set; }
         public bool IsEnabled { get; private set; }
         public Language Language { get; }
         public bool IsNotConfigurable { get; set; }
         public SettingLocation Location { get; }
 
-        internal void ChangeSeverity(DiagnosticSeverity severity)
+        internal void ChangeSeverity(ReportDiagnostic severity)
         {
             if (severity == Severity)
                 return;

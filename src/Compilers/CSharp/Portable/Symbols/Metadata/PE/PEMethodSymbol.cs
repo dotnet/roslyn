@@ -860,6 +860,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return InterlockedOperations.Initialize(ref _lazySignature, signature);
         }
 
+        public override BlobHandle MetadataSignatureHandle
+        {
+            get
+            {
+                try
+                {
+                    return _containingType.ContainingPEModule.Module.GetMethodSignatureOrThrow(_handle);
+                }
+                catch (BadImageFormatException)
+                {
+                    return default;
+                }
+            }
+        }
+
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get
@@ -1084,6 +1099,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case RefKind.None:
                 case RefKind.Ref:
                 case RefKind.In:
+                case RefKind.RefReadOnlyParameter:
                     return !parameter.IsParams;
                 default:
                     return false;
@@ -1111,6 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         continue;
                     case RefKind.Out:
                     case RefKind.Ref:
+                    case RefKind.RefReadOnlyParameter:
                         return false;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(kind);
@@ -1399,7 +1416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
                     Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
-                    if (CheckAndReportValidUnmanagedCallersOnlyTarget(location: null, diagnostics: null))
+                    if (CheckAndReportValidUnmanagedCallersOnlyTarget(node: null, diagnostics: null))
                     {
                         diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
                     }
@@ -1549,7 +1566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     var result = uncommonFields._lazyObsoleteAttributeData;
                     return ReferenceEquals(result, ObsoleteAttributeData.Uninitialized)
-                        ? InterlockedOperations.Initialize(ref uncommonFields._lazyObsoleteAttributeData, null, ObsoleteAttributeData.Uninitialized)
+                        ? InterlockedOperations.Initialize(ref uncommonFields._lazyObsoleteAttributeData, initializedValue: null, ObsoleteAttributeData.Uninitialized)
                         : result;
                 }
             }
@@ -1650,5 +1667,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
+        internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = _containingType.ContainingPEModule.TryDecodeAttributeWithTypeArgument(this.Handle, AttributeDescription.AsyncMethodBuilderAttribute);
+            return builderArgument is not null;
+        }
     }
 }

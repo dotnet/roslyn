@@ -14,7 +14,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Text.Classification;

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -21,26 +22,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
     /// the corresponding assembly in another. Assumes that only
     /// one assembly has changed between the two compilations.
     /// </summary>
-    internal sealed partial class CSharpDefinitionMap : DefinitionMap
+    internal sealed class CSharpDefinitionMap(
+        IEnumerable<SemanticEdit> edits,
+        MetadataDecoder metadataDecoder,
+        CSharpSymbolMatcher previousSourceToMetadata,
+        CSharpSymbolMatcher sourceToMetadata,
+        CSharpSymbolMatcher? previousSourceToCurrentSource,
+        EmitBaseline baseline) : DefinitionMap(edits, baseline)
     {
-        private readonly MetadataDecoder _metadataDecoder;
-        private readonly CSharpSymbolMatcher _mapToMetadata;
-        private readonly CSharpSymbolMatcher _mapToPrevious;
+        private readonly MetadataDecoder _metadataDecoder = metadataDecoder;
+        private readonly CSharpSymbolMatcher _sourceToPrevious = previousSourceToCurrentSource ?? sourceToMetadata;
 
-        public CSharpDefinitionMap(
-            IEnumerable<SemanticEdit> edits,
-            MetadataDecoder metadataDecoder,
-            CSharpSymbolMatcher mapToMetadata,
-            CSharpSymbolMatcher? mapToPrevious)
-            : base(edits)
-        {
-            _metadataDecoder = metadataDecoder;
-            _mapToMetadata = mapToMetadata;
-            _mapToPrevious = mapToPrevious ?? mapToMetadata;
-        }
-
-        protected override SymbolMatcher MapToMetadataSymbolMatcher => _mapToMetadata;
-        protected override SymbolMatcher MapToPreviousSymbolMatcher => _mapToPrevious;
+        public override SymbolMatcher SourceToMetadataSymbolMatcher { get; } = sourceToMetadata;
+        public override SymbolMatcher SourceToPreviousSymbolMatcher => _sourceToPrevious;
+        public override SymbolMatcher PreviousSourceToMetadataSymbolMatcher { get; } = previousSourceToMetadata;
 
         protected override ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol)
         {
@@ -53,68 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         protected override LambdaSyntaxFacts GetLambdaSyntaxFacts()
             => CSharpLambdaSyntaxFacts.Instance;
 
-        internal bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, [NotNullWhen(true)] out string? name, out int index)
-            => _mapToPrevious.TryGetAnonymousTypeName(template, out name, out index);
-
-        internal override bool TryGetTypeHandle(Cci.ITypeDefinition def, out TypeDefinitionHandle handle)
-        {
-            if (_mapToMetadata.MapDefinition(def)?.GetInternalSymbol() is PENamedTypeSymbol other)
-            {
-                handle = other.Handle;
-                return true;
-            }
-
-            handle = default;
-            return false;
-        }
-
-        internal override bool TryGetEventHandle(Cci.IEventDefinition def, out EventDefinitionHandle handle)
-        {
-            if (_mapToMetadata.MapDefinition(def)?.GetInternalSymbol() is PEEventSymbol other)
-            {
-                handle = other.Handle;
-                return true;
-            }
-
-            handle = default;
-            return false;
-        }
-
-        internal override bool TryGetFieldHandle(Cci.IFieldDefinition def, out FieldDefinitionHandle handle)
-        {
-            if (_mapToMetadata.MapDefinition(def)?.GetInternalSymbol() is PEFieldSymbol other)
-            {
-                handle = other.Handle;
-                return true;
-            }
-
-            handle = default;
-            return false;
-        }
-
-        internal override bool TryGetMethodHandle(Cci.IMethodDefinition def, out MethodDefinitionHandle handle)
-        {
-            if (_mapToMetadata.MapDefinition(def)?.GetInternalSymbol() is PEMethodSymbol other)
-            {
-                handle = other.Handle;
-                return true;
-            }
-
-            handle = default;
-            return false;
-        }
-
-        internal override bool TryGetPropertyHandle(Cci.IPropertyDefinition def, out PropertyDefinitionHandle handle)
-        {
-            if (_mapToMetadata.MapDefinition(def)?.GetInternalSymbol() is PEPropertySymbol other)
-            {
-                handle = other.Handle;
-                return true;
-            }
-
-            handle = default;
-            return false;
-        }
+        internal bool TryGetAnonymousTypeValue(AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol template, out AnonymousTypeValue typeValue)
+            => _sourceToPrevious.TryGetAnonymousTypeValue(template, out typeValue);
 
         protected override void GetStateMachineFieldMapFromMetadata(
             ITypeSymbolInternal stateMachineType,
@@ -196,6 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         protected override ITypeSymbolInternal? TryGetStateMachineType(MethodDefinitionHandle methodHandle)
             => _metadataDecoder.Module.HasStateMachineAttribute(methodHandle, out var typeName) ? _metadataDecoder.GetTypeSymbolForSerializedType(typeName) : null;
 
+        protected override IMethodSymbolInternal GetMethodSymbol(MethodDefinitionHandle methodHandle)
+            => (IMethodSymbolInternal)_metadataDecoder.GetSymbolForILToken(methodHandle);
+
         /// <summary>
         /// Match local declarations to names to generate a map from
         /// declaration to local slot. The names are indexed by slot and the
@@ -249,6 +187,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             return ImmutableArray.Create(result);
+        }
+
+        protected override bool TryParseDisplayClassOrLambdaName(
+            string name,
+            out int suffixIndex,
+            out char idSeparator,
+            out bool isDisplayClass,
+            out bool isDisplayClassParentField,
+            out bool hasDebugIds)
+        {
+            suffixIndex = 0;
+            isDisplayClass = false;
+            isDisplayClassParentField = false;
+            hasDebugIds = false;
+            idSeparator = GeneratedNameConstants.IdSeparator;
+
+            if (!GeneratedNameParser.TryParseGeneratedName(name, out var generatedKind, out _, out var closeBracketOffset))
+            {
+                return false;
+            }
+
+            if (generatedKind is not (GeneratedNameKind.LambdaDisplayClass or GeneratedNameKind.LambdaMethod or GeneratedNameKind.LocalFunction or GeneratedNameKind.DisplayClassLocalOrField))
+            {
+                return false;
+            }
+
+            // close bracket is followed by kind character:
+            Debug.Assert(name.Length >= closeBracketOffset + 1);
+
+            isDisplayClass = generatedKind == GeneratedNameKind.LambdaDisplayClass;
+            isDisplayClassParentField = generatedKind == GeneratedNameKind.DisplayClassLocalOrField;
+
+            suffixIndex = closeBracketOffset + 2;
+            hasDebugIds = !isDisplayClassParentField && name.AsSpan(suffixIndex).StartsWith(GeneratedNameConstants.SuffixSeparator.AsSpan(), StringComparison.Ordinal);
+
+            if (hasDebugIds)
+            {
+                suffixIndex += GeneratedNameConstants.SuffixSeparator.Length;
+            }
+
+            return true;
         }
     }
 }

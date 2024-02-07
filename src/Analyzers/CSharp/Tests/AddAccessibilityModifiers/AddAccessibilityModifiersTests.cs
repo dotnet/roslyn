@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -227,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
             };
 
             await test.RunAsync();
@@ -594,7 +595,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
             };
 
             await test.RunAsync();
@@ -622,7 +623,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             {
                 TestCode = source,
                 FixedCode = source,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = Testing.ReferenceAssemblies.Net.Net60
             };
 
@@ -645,7 +646,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             {
                 TestCode = source,
                 FixedCode = source,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
             }.RunAsync();
         }
 
@@ -658,7 +659,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             {
                 TestCode = source,
                 FixedCode = source,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
             }.RunAsync();
         }
 
@@ -690,7 +691,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
             }.RunAsync();
         }
 
@@ -714,7 +715,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 CodeActionEquivalenceKey = nameof(AnalyzersResources.Add_accessibility_modifiers),
             };
 
@@ -741,7 +742,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 CodeActionEquivalenceKey = nameof(AnalyzersResources.Remove_accessibility_modifiers),
                 Options =
                 {

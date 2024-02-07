@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             => OpeningBrace == brace && IsPositionInInterpolatedStringContext(document, openingPosition, cancellationToken);
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken leftToken)
-            => leftToken.IsKind(SyntaxKind.InterpolatedStringStartToken) || leftToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
+            => leftToken.Kind() is SyntaxKind.InterpolatedStringStartToken or SyntaxKind.InterpolatedVerbatimStringStartToken;
 
         protected override bool IsValidClosingBraceToken(SyntaxToken rightToken)
             => rightToken.IsKind(SyntaxKind.InterpolatedStringEndToken);

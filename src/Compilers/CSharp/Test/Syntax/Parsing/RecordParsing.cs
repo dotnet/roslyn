@@ -2604,9 +2604,9 @@ class C(int X, int Y)
                 // (1,8): error CS1002: ; expected
                 // record struct C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8),
-                // (1,16): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,16): error CS8400: Feature 'primary constructors' is not available in C# 8.0. Please use language version 12.0 or greater.
                 // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int X, int Y)").WithArguments("primary constructors").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int X, int Y)").WithArguments("primary constructors", "12.0").WithLocation(1, 16),
                 // (1,21): warning CS9113: Parameter 'X' is unread.
                 // record struct C(int X, int Y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "X").WithArguments("X").WithLocation(1, 21),
@@ -2790,9 +2790,9 @@ class C(int X, int Y)
                 // (1,8): error CS1002: ; expected
                 // record class C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 8),
-                // (1,15): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,15): error CS8400: Feature 'primary constructors' is not available in C# 8.0. Please use language version 12.0 or greater.
                 // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int X, int Y)").WithArguments("primary constructors").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int X, int Y)").WithArguments("primary constructors", "12.0").WithLocation(1, 15),
                 // (1,20): warning CS9113: Parameter 'X' is unread.
                 // record class C(int X, int Y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "X").WithArguments("X").WithLocation(1, 20),
@@ -3651,9 +3651,9 @@ class C(int X, int Y)
                 // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // ref record struct S;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 5),
-                // (1,20): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,20): error CS8400: Feature 'primary constructors' is not available in C# 8.0. Please use language version 12.0 or greater.
                 // ref record struct S;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ";").WithArguments("primary constructors").WithLocation(1, 20)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, ";").WithArguments("primary constructors", "12.0").WithLocation(1, 20)
                 );
             UsingTree(text, options: TestOptions.Regular8,
                 // (1,5): error CS0116: A namespace cannot directly contain members such as fields or methods

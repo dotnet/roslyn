@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis
                     return SpecializedCollections.EmptyEnumerable<DocumentId>();
                 }
 
-                return _projectToOpenDocumentsMap.SelectMany(kvp => kvp.Value).ToImmutableArray();
+                return _projectToOpenDocumentsMap.SelectManyAsArray(kvp => kvp.Value);
             }
         }
 
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis
             var documentId = GetDocumentIdInCurrentContext(container);
             if (documentId == null)
             {
-                return ImmutableArray<DocumentId>.Empty;
+                return [];
             }
 
             return CurrentSolution.GetRelatedDocumentIds(documentId);
@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis
             docIds = docIds.RemoveAll(closedDocumentId);
 
             // Remove the entry if there are no more documents attached to given textContainer.
-            if (docIds.Equals(default(OneOrMany<DocumentId>)))
+            if (docIds.IsEmpty)
             {
                 _bufferToAssociatedDocumentsMap.Remove(textContainer);
                 _bufferToDocumentInCurrentContextMap.Remove(textContainer);

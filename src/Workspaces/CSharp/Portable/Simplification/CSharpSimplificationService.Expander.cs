@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                             var parenthesizedLambda = SyntaxFactory.ParenthesizedLambdaExpression(
                                 simpleLambda.AsyncKeyword,
-                                SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(newSimpleLambdaParameter))
+                                SyntaxFactory.ParameterList([newSimpleLambdaParameter])
                                     .WithTrailingTrivia(simpleLambda.Parameter.GetTrailingTrivia())
                                     .WithLeadingTrivia(simpleLambda.Parameter.GetLeadingTrivia()),
                                 simpleLambda.ArrowToken,
@@ -748,8 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             var genericName = SyntaxFactory.GenericName(
                                             ((IdentifierNameSyntax)newNode).Identifier,
                                             SyntaxFactory.TypeArgumentList(
-                                                SyntaxFactory.SeparatedList(
-                                                    typeArguments.Select(p => SyntaxFactory.ParseTypeName(p.ToDisplayParts(s_typeNameFormatWithGenerics).ToDisplayString())))))
+                                                [.. typeArguments.Select(p => SyntaxFactory.ParseTypeName(p.ToDisplayString(s_typeNameFormatWithGenerics)))]))
                                             .WithLeadingTrivia(newNode.GetLeadingTrivia())
                                             .WithTrailingTrivia(newNode.GetTrailingTrivia())
                                             .WithAdditionalAnnotations(Simplifier.Annotation);
@@ -908,8 +907,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 // only if this symbol has a containing type or namespace there is work for us to do.
                 if (replaceNode || symbol.ContainingType != null || symbol.ContainingNamespace != null)
                 {
-                    ImmutableArray<SymbolDisplayPart> displayParts;
-
                     // we either need to create an AliasQualifiedName if the symbol is directly contained in the global namespace,
                     // otherwise it a QualifiedName.
                     if (!replaceNode && symbol.ContainingType == null && symbol.ContainingNamespace.IsGlobalNamespace)
@@ -921,10 +918,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                     .WithLeadingTrivia(rewrittenNode.GetLeadingTrivia()));
                     }
 
-                    displayParts = replaceNode
-                        ? symbol.ToDisplayParts(s_typeNameFormatWithGenerics)
-                        : (symbol.ContainingType ?? (ISymbol)symbol.ContainingNamespace).ToDisplayParts(s_typeNameFormatWithGenerics);
-
                     rewrittenNode = TryAddTypeArgumentToIdentifierName(rewrittenNode, symbol);
 
                     // Replaces the '<' token with the '{' token since we are inside crefs
@@ -933,7 +926,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                     if (!omitLeftHandSide)
                     {
-                        ExpressionSyntax left = SyntaxFactory.ParseTypeName(displayParts.ToDisplayString());
+                        var displaySymbol = replaceNode
+                            ? symbol
+                            : (symbol.ContainingType ?? (ISymbol)symbol.ContainingNamespace);
+
+                        var displayString = displaySymbol.ToDisplayString(s_typeNameFormatWithGenerics);
+
+                        ExpressionSyntax left = SyntaxFactory.ParseTypeName(displayString);
 
                         // Replaces the '<' token with the '{' token since we are inside crefs
                         left = TryReplaceAngleBracesWithCurlyBraces(left, isInsideCref);

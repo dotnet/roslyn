@@ -58,7 +58,7 @@ build_property.RootNamespace = {DefaultNamespace}
             foreach (var (fileName, content) in originalSources)
                 testState.TestState.Sources.Add((fileName, content));
 
-            fixedSources ??= Array.Empty<(string, string)>();
+            fixedSources ??= [];
             foreach (var (fileName, content) in fixedSources)
                 testState.FixedState.Sources.Add((fileName, content));
 
@@ -79,7 +79,7 @@ build_property.RootNamespace = {DefaultNamespace}
         public Task InvalidFolderName1_NoDiagnostic()
         {
             // No change namespace action because the folder name is not valid identifier
-            var folder = CreateFolderPath(new[] { "3B", "C" });
+            var folder = CreateFolderPath(["3B", "C"]);
             var code =
                 """
                 namespace A.B
@@ -100,7 +100,7 @@ build_property.RootNamespace = {DefaultNamespace}
         public Task InvalidFolderName1_NoDiagnostic_FileScopedNamespace()
         {
             // No change namespace action because the folder name is not valid identifier
-            var folder = CreateFolderPath(new[] { "3B", "C" });
+            var folder = CreateFolderPath(["3B", "C"]);
             var code =
                 """
                 namespace A.B;
@@ -120,7 +120,7 @@ build_property.RootNamespace = {DefaultNamespace}
         public Task InvalidFolderName2_NoDiagnostic()
         {
             // No change namespace action because the folder name is not valid identifier
-            var folder = CreateFolderPath(new[] { "B.3C", "D" });
+            var folder = CreateFolderPath(["B.3C", "D"]);
             var code =
                 """
                 namespace A.B
@@ -141,7 +141,7 @@ build_property.RootNamespace = {DefaultNamespace}
         public Task InvalidFolderName3_NoDiagnostic()
         {
             // No change namespace action because the folder name is not valid identifier
-            var folder = CreateFolderPath(new[] { ".folder", "..subfolder", "name" });
+            var folder = CreateFolderPath([".folder", "..subfolder", "name"]);
             var code =
                 """
                 namespace A.B
@@ -161,7 +161,7 @@ build_property.RootNamespace = {DefaultNamespace}
         [Fact]
         public Task CaseInsensitiveMatch_NoDiagnostic()
         {
-            var folder = CreateFolderPath(new[] { "A", "B" });
+            var folder = CreateFolderPath(["A", "B"]);
             var code =
 @$"
 namespace {DefaultNamespace}.a.b
@@ -943,7 +943,7 @@ build_property.ProjectDir = {Directory}
 build_property.RootNamespace = {defaultNamespace}
 ";
 
-            var folder = CreateFolderPath(new[] { "B", "C" });
+            var folder = CreateFolderPath(["B", "C"]);
             var code =
                 """
                 namespace [|A.B|]

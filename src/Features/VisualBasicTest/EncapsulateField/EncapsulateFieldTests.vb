@@ -5,15 +5,16 @@
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.EncapsulateField
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.EncapsulateField
     <Trait(Traits.Feature, Traits.Features.EncapsulateField)>
     Public Class EncapsulateFieldTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New EncapsulateFieldRefactoringProvider()
         End Function
 
@@ -347,7 +348,7 @@ End Class</File>.ConvertTestSourceTag()
                 }, testHost:=host)
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function TestEncapsulateFieldNamedValue(host As TestHost) As Task
             Dim text = <File>
 Class C
@@ -617,7 +618,7 @@ End Enum
         End Function
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/7090")>
-        <WpfTheory, CombinatorialData>
+        <Theory, CombinatorialData>
         Public Async Function ApplyCurrentMePrefixStyle(host As TestHost) As Task
             Await TestInRegularAndScriptAsync("
 Class C

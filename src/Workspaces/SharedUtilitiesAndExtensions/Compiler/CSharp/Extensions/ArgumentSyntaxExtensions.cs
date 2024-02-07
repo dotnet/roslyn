@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (argument.RefKindKeyword != default)
             {
-                return SyntaxFactory.TokenList(SyntaxFactory.Token(argument.RefKindKeyword.Kind()));
+                return [SyntaxFactory.Token(argument.RefKindKeyword.Kind())];
             }
 
             return default;

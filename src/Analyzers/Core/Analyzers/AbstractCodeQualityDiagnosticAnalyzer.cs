@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Simplification;
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
             _generatedCodeAnalysisFlags = generatedCodeAnalysisFlags;
         }
 
-        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+        public bool IsHighPriority => false;
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         public sealed override void Initialize(AnalysisContext context)
@@ -45,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
             EnforceOnBuild enforceOnBuild,
             LocalizableString title,
             LocalizableString messageFormat,
+            bool hasAnyCodeStyleOption,
             bool isUnnecessary,
             bool isEnabledByDefault = true,
             bool isConfigurable = true,
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
                     isEnabledByDefault,
                     description,
                     helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(id),
-                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, enforceOnBuild));
+                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, isCustomConfigurable: hasAnyCodeStyleOption, enforceOnBuild));
 #pragma warning restore RS0030 // Do not use banned APIs
     }
 }

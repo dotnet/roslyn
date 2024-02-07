@@ -5,12 +5,15 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
     internal readonly struct EmbeddedLanguageClassificationContext
     {
+        internal readonly SolutionServices SolutionServices;
+
         private readonly SegmentedList<ClassifiedSpan> _result;
 
         public Project Project { get; }
@@ -31,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Classification
         internal readonly IVirtualCharService VirtualCharService;
 
         internal EmbeddedLanguageClassificationContext(
+            SolutionServices solutionServices,
             Project project,
             SemanticModel semanticModel,
             SyntaxToken syntaxToken,
@@ -39,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Classification
             SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
+            SolutionServices = solutionServices;
             Project = project;
             SemanticModel = semanticModel;
             SyntaxToken = syntaxToken;

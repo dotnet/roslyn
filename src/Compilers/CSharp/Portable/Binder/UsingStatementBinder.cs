@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hasAwait)
             {
                 // even if we don't have a proper value to await, we'll still report bad usages of `await`
-                originalBinder.ReportBadAwaitDiagnostics(syntax, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+                originalBinder.ReportBadAwaitDiagnostics(awaitKeyword, diagnostics, ref hasErrors);
 
                 if (awaitableTypeOpt is null)
                 {
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
                         ImmutableArray<int> argsToParams = default;
                         bool expanded = disposeMethod.HasParamsParameter();
-                        originalBinder.BindDefaultArguments(
+                        originalBinder.BindDefaultArgumentsAndParamsArray(
                             // If this is a using statement, then we want to use the whole `using (expr) { }` as the argument location. These arguments
                             // will be represented in the IOperation tree and the "correct" node for them, given that they are an implicit invocation
                             // at the end of the using statement, is on the whole using statement, not on the current expression.
@@ -233,13 +233,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             disposeMethod.Parameters,
                             argumentsBuilder,
                             argumentRefKindsBuilder: null,
+                            namesBuilder: null,
                             ref argsToParams,
                             out BitVector defaultArguments,
                             expanded,
                             enableCallerInfo: true,
                             patternDiagnostics);
 
-                        patternDisposeInfo = new MethodArgumentInfo(disposeMethod, argumentsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments, expanded);
+                        Debug.Assert(argsToParams.IsDefault);
+                        patternDisposeInfo = new MethodArgumentInfo(disposeMethod, argumentsBuilder.ToImmutableAndFree(), defaultArguments, expanded);
                         if (hasAwait)
                         {
                             awaitableType = disposeMethod.ReturnType;

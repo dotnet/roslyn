@@ -167,10 +167,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             => (Type is null) ? MessageID.IDS_FeatureTargetTypedConditional.Localize() : base.Display;
     }
 
-    internal partial class BoundUnconvertedCollectionLiteralExpression
+    internal partial class BoundUnconvertedCollectionExpression
     {
         public override object Display
-            => (Type is null) ? MessageID.IDS_FeatureCollectionLiterals.Localize() : base.Display;
+            => (Type is null) ? MessageID.IDS_FeatureCollectionExpressions.Localize() : base.Display;
     }
 
     internal partial class BoundPassByCopy

@@ -84,9 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
             // explicit conversion cases: 
             //      (type)expr, expr is type, expr as type
-            if (initializerExpression.IsKind(SyntaxKind.CastExpression) ||
-                initializerExpression.IsKind(SyntaxKind.IsExpression) ||
-                initializerExpression.IsKind(SyntaxKind.AsExpression))
+            if (initializerExpression.Kind() is SyntaxKind.CastExpression or SyntaxKind.IsExpression or SyntaxKind.AsExpression)
             {
                 return true;
             }

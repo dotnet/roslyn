@@ -20,10 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
     {
         private const string _statementPrefix = "var v = ";
 
-        private static IEnumerable<SyntaxToken>? GetStringTokens(string text, bool allowFailure)
+        private static IEnumerable<SyntaxToken>? GetStringTokens(
+            string text, bool allowFailure, ParseOptions? options = null)
         {
             var statement = _statementPrefix + text;
-            var parsedStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(statement);
+            var parsedStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(statement, options: options);
             var expression = parsedStatement.Declaration.Variables[0].Initializer!.Value;
 
             if (expression is LiteralExpressionSyntax literal)
@@ -44,9 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
             }
         }
 
-        private static void Test(string stringText, string expected)
+        private static void Test(string stringText, string expected, ParseOptions? options = null)
         {
-            var tokens = GetStringTokens(stringText, allowFailure: false);
+            var tokens = GetStringTokens(stringText, allowFailure: false, options);
             Contract.ThrowIfNull(tokens);
             foreach (var token in tokens)
                 Assert.False(token.ContainsDiagnostics);
@@ -161,6 +162,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         [Fact]
         public void TestEscapeInInterpolatedSimpleString()
             => Test("$\"\\n\"", @"['\u000A',[2,4]]");
+
+        [Fact]
+        public void TestEscapeInInterpolatedSimpleString_E()
+            => TestFailure("$\"\\e\"");
+
+        [Fact]
+        public void TestEscapeInInterpolatedSimpleString_E_Preview()
+            => Test("$\"\\e\"", @"['\u001B',[2,4]]", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
 
         [Fact]
         public void TestEscapeInInterpolatedVerbatimSimpleString()

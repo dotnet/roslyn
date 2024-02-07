@@ -4,18 +4,16 @@
 
 #nullable disable
 
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public class CSharpTestWorkspaceFixture : TestWorkspaceFixture
     {
-        protected override TestWorkspace CreateWorkspace(TestComposition composition = null)
+        protected override EditorTestWorkspace CreateWorkspace(TestComposition composition = null)
         {
-            return TestWorkspace.CreateWithSingleEmptySourceFile(
+            return EditorTestWorkspace.CreateWithSingleEmptySourceFile(
                 LanguageNames.CSharp,
                 compilationOptions: null,
                 parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Regular),

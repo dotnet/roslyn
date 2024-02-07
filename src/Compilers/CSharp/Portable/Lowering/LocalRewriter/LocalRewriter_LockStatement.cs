@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 exitCallExpr = BoundCall.Synthesized(
                     lockSyntax,
                     receiverOpt: null,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     exitMethod,
                     boundLockTemp);
             }
@@ -109,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundCall.Synthesized(
                         lockSyntax,
                         receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         enterMethod,
                         boundLockTemp,
                         boundLockTakenTemp));
@@ -158,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     enterCallExpr = BoundCall.Synthesized(
                         lockSyntax,
                         receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         enterMethod,
                         boundLockTemp);
                 }

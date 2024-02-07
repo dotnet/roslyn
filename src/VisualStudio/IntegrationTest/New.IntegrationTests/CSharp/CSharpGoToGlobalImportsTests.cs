@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -40,7 +36,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
             // Navigate to 'System'
             await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.InheritanceMargin }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.InheritanceMargin], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"global using global::System;$$", assertCaretPosition: true);
 
             var document = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);

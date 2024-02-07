@@ -147,6 +147,10 @@ file_header_template = Licensed to the .NET Foundation under one or more agreeme
 # RS0016: Only enable if API files are present
 dotnet_public_api_analyzer.require_api_files = true
 
+# IDE0055: Fix formatting
+# Workaround for https://github.com/dotnet/roslyn/issues/70570
+dotnet_diagnostic.IDE0055.severity = warning
+
 # CSharp code style settings:
 [*.cs]
 # Newline settings

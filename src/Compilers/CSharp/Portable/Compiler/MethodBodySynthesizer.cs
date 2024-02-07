@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundExpressionStatement(syntax,
                     new BoundCall(syntax,
                         receiverOpt: receiver,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         method: objectType.InstanceConstructors[0],
                         arguments: ImmutableArray<BoundExpression>.Empty,
                         argumentNamesOpt: ImmutableArray<string>.Empty,
@@ -285,6 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundCall getOrCreateCall = BoundCall.Synthesized(
                 syntax,
                 receiverOpt: null,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: getOrCreateMethod,
                 arg0: fieldAccess);
 
@@ -297,6 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundCall processHandlerCall = BoundCall.Synthesized(
                 syntax,
                 receiverOpt: getOrCreateCall,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: processHandlerMethod,
                 arg0: parameterAccess);
 
@@ -394,6 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 delegateUpdate = BoundConversion.SynthesizedNonUserDefined(syntax,
                     operand: BoundCall.Synthesized(syntax,
                         receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         method: updateMethod,
                         arguments: ImmutableArray.Create<BoundExpression>(boundBackingField, boundParameter)),
                     conversion: Conversion.ExplicitReference,
@@ -458,6 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             delegateUpdate = BoundConversion.SynthesizedNonUserDefined(syntax,
                 operand: BoundCall.Synthesized(syntax,
                     receiverOpt: null,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method: updateMethod,
                     arguments: ImmutableArray.Create<BoundExpression>(boundTmps[1], boundParameter)),
                 conversion: Conversion.ExplicitReference,
@@ -475,6 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Interlocked.CompareExchange<DelegateType>(ref _event, tmp2, tmp1)
             BoundExpression compareExchange = BoundCall.Synthesized(syntax,
                 receiverOpt: null,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: compareExchangeMethod,
                 arguments: ImmutableArray.Create<BoundExpression>(boundBackingField, boundTmps[2], boundTmps[1]));
 
@@ -541,6 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntax,
                             method.ContainingType)
                         { WasCompilerGenerated = true },
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                         baseTypeFinalize))
                 { WasCompilerGenerated = true };
 

@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
@@ -30,6 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static SyntaxTrivia? GetLastCommentOrWhitespace(this SyntaxTriviaList triviaList)
         {
+            if (triviaList.Count == 0)
+                return null;
+
             return triviaList
                 .Where(t => t is (kind: SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia or SyntaxKind.WhitespaceTrivia))
                 .LastOrNull();

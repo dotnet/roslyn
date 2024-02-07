@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
     <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
     Public Class ImplementInterfaceCommandHandlerTests
 
-        Private Shared Sub Test(code As XElement, expectedText As XElement, nextHandler As Action(Of IWpfTextView, TestWorkspace), assertion As Action(Of String, String, IWpfTextView))
+        Private Shared Sub Test(code As XElement, expectedText As XElement, nextHandler As Action(Of IWpfTextView, EditorTestWorkspace), assertion As Action(Of String, String, IWpfTextView))
             Using workspace = GetWorkspace(code.NormalizedValue)
                 Dim commandHandler = MoveCaretAndCreateCommandHandler(workspace)
                 Dim view = workspace.Documents.Single().GetTextView()
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
             End Using
         End Sub
 
-        Private Shared Function MoveCaretAndCreateCommandHandler(workspace As TestWorkspace) As ICommandHandler(Of ReturnKeyCommandArgs)
+        Private Shared Function MoveCaretAndCreateCommandHandler(workspace As EditorTestWorkspace) As ICommandHandler(Of ReturnKeyCommandArgs)
             Dim document = workspace.Documents.Single()
             Dim view = document.GetTextView()
             Dim cursorPosition = document.CursorPosition.Value
@@ -42,8 +42,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
             Return New ImplementInterfaceCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService), workspace.GetService(Of IGlobalOptionService))
         End Function
 
-        Private Shared Function GetWorkspace(code As String) As TestWorkspace
-            Return TestWorkspace.Create(
+        Private Shared Function GetWorkspace(code As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.Create(
 <Workspace>
     <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
         <Document>

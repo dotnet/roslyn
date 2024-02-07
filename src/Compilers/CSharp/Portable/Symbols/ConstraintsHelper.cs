@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var constraintTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var interfacesBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                var conversions = new TypeConversions(corLibrary);
+                var conversions = corLibrary.TypeConversions;
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(template);
 
                 // Resolve base types, determine the effective base class and

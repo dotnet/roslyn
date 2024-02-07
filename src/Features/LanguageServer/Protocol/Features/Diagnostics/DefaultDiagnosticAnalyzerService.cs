@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
         }
 
-        public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+        public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>> DiagnosticsUpdated;
         public event EventHandler DiagnosticsCleared { add { } remove { } }
 
         // this only support push model, pull model will be provided by DiagnosticService by caching everything this one pushed
@@ -58,10 +58,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             // pull model not supported
-            return new ValueTask<ImmutableArray<DiagnosticData>>(ImmutableArray<DiagnosticData>.Empty);
+            return new ValueTask<ImmutableArray<DiagnosticData>>([]);
         }
 
-        internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
+        internal void RaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> state)
             => DiagnosticsUpdated?.Invoke(this, state);
 
         private sealed class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
@@ -129,9 +129,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var diagnosticData = await GetDiagnosticsAsync(document, kind, cancellationToken).ConfigureAwait(false);
 
-                _service.RaiseDiagnosticsUpdated(
-                    DiagnosticsUpdatedArgs.DiagnosticsCreated(new DefaultUpdateArgsId(_workspace.Kind, kind, document.Id),
-                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
+                // TODO: Consider raising these with a batching work queue to aggregate results from analyzers that
+                // complete quickly.
+                _service.RaiseDiagnosticsUpdated([DiagnosticsUpdatedArgs.DiagnosticsCreated(new DefaultUpdateArgsId(_workspace.Kind, kind, document.Id),
+                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData)]);
             }
 
             /// <summary>
@@ -151,12 +152,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
                 if (loadDiagnostic != null)
-                    return ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document));
+                    return [DiagnosticData.Create(loadDiagnostic, document)];
 
                 var project = document.Project;
-                var analyzers = GetAnalyzers(project.Solution.State.Analyzers, project);
+                var analyzers = GetAnalyzers(project.Solution.SolutionState.Analyzers, project);
                 if (analyzers.IsEmpty)
-                    return ImmutableArray<DiagnosticData>.Empty;
+                    return [];
 
                 var ideOptions = _service._globalOptions.GetIdeAnalyzerOptions(project);
 
@@ -179,11 +180,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var compilerAnalyzer = hostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
                 if (compilerAnalyzer != null)
                 {
-                    return ImmutableArray.Create(compilerAnalyzer);
+                    return [compilerAnalyzer];
                 }
 
                 // document that doesn't support compiler diagnostics such as FSharp or TypeScript
-                return hostAnalyzers.CreateDiagnosticAnalyzersPerReference(project).Values.SelectMany(v => v).ToImmutableArrayOrEmpty();
+                return hostAnalyzers.CreateDiagnosticAnalyzersPerReference(project).Values.SelectManyAsArray(v => v);
             }
 
             public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
@@ -220,8 +221,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private void RaiseEmptyDiagnosticUpdated(AnalysisKind kind, DocumentId documentId)
             {
-                _service.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                    new DefaultUpdateArgsId(_workspace.Kind, kind, documentId), _workspace, null, documentId.ProjectId, documentId));
+                // TODO: Consider raising these with a batching work queue to aggregate results from analyzers that
+                // complete quickly.
+                _service.RaiseDiagnosticsUpdated([DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+                    new DefaultUpdateArgsId(_workspace.Kind, kind, documentId), _workspace, null, documentId.ProjectId, documentId)]);
             }
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)

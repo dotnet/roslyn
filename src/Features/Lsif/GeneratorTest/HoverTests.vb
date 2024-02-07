@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.LanguageServer.Protocol
+Imports Roslyn.LanguageServer.Protocol
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     <UseExportProvider>
@@ -75,7 +75,7 @@ class C
 void C.M()
 ```
   
-Doc&nbsp;Comment  "
+Doc Comment  "
                 Case Else
                     Throw TestExceptionUtilities.UnexpectedValue(code)
             End Select

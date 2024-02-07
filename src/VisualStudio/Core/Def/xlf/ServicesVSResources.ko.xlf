@@ -247,6 +247,11 @@
         <target state="translated">솔루션 완료 전에 코드 분석이 종료되었습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
+        <source>Collapse local functions when collapsing to definitions</source>
+        <target state="translated">정의로 축소할 때 로컬 함수 축소</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_metadata_signature_files_on_open">
         <source>Collapse metadata signature files to definitions on file open</source>
         <target state="translated">파일을 열 때 메타데이터 서명 파일을 정의로 축소</target>
@@ -417,9 +422,9 @@
         <target state="translated">Source Link 및 포함된 소스 탐색 사용</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
-        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="translated">'풀' 진단 사용(실험적, 다시 시작 필요)</target>
+      <trans-unit id="Enable_pull_diagnostics_requires_restart">
+        <source>Enable 'pull' diagnostics (requires restart)</source>
+        <target state="new">Enable 'pull' diagnostics (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enabled">
@@ -962,6 +967,11 @@
         <target state="translated">None</target>
         <note />
       </trans-unit>
+      <trans-unit id="Not_applicable">
+        <source>Not applicable</source>
+        <target state="translated">해당 사항 없음</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Omit_if_default">
         <source>Omit if default</source>
         <target state="translated">기본값인 경우 생략</target>
@@ -1090,6 +1100,11 @@
       <trans-unit id="Prefer_Utf8_string_literals">
         <source>Prefer UTF-8 string literals</source>
         <target state="translated">UTF-8 문자열 리터럴 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_collection_expression">
+        <source>Prefer collection expression</source>
+        <target state="translated">컬렉션 식 선호</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
@@ -1482,6 +1497,11 @@
         <target state="translated">동기화 네임스페이스 변경 내용</target>
         <note />
       </trans-unit>
+      <trans-unit id="SystemVoid_is_not_a_valid_type_for_a_parameter">
+        <source>'System.Void' is not a valid type for a parameter</source>
+        <target state="translated">'System.Void'는 매개 변수에 유효한 형식이 아닙니다.</target>
+        <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
         <target state="translated">두 번 탭하여 인수 삽입(실험적)</target>
@@ -1660,6 +1680,16 @@
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">이 작업 영역은 Visual Basic 컴파일 옵션 업데이트를 지원하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_types_exactly_match">
+        <source>When types exactly match</source>
+        <target state="translated">형식이 정확히 일치하는 경우</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_types_loosely_match">
+        <source>When types loosely match</source>
+        <target state="translated">형식이 느슨하게 일치하는 경우</target>
         <note />
       </trans-unit>
       <trans-unit id="Where_should_the_rename_UI_be_shown">

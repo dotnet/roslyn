@@ -316,7 +316,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 length = ~length;
             }
 
-            return new Range(start, start + length);
+            while (start > 0 && startPositionComparer(spans[start - 1], spanStart) == 0)
+            {
+                start--;
+            }
+
+            var end = start + length;
+            while (end < spans.Length && startPositionComparer(spans[end], spanStart) == 0)
+            {
+                end++;
+            }
+
+            return new Range(start, end);
         }
     }
 }

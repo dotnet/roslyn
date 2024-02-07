@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -123,7 +124,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxNode FieldDeclaration(IFieldSymbol field)
         {
-            var initializer = field.HasConstantValue ? this.LiteralExpression(field.ConstantValue) : null;
+            // don't use field references in initializers for fields in certain special types -  since those might reference the field being declared.
+            var canUseFieldReference = !LiteralSpecialValues.HasSpecialValues(field.ContainingType.SpecialType);
+            var initializer = field.HasConstantValue ? this.LiteralExpression(field.ConstantValue, canUseFieldReference) : null;
             return FieldDeclaration(field, initializer);
         }
 
@@ -316,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Editing
             SyntaxNode? initializer = null,
             RefKind refKind = RefKind.None)
         {
-            return ParameterDeclaration(name, type, initializer, refKind, isExtension: false, isParams: false);
+            return ParameterDeclaration(name, type, initializer, refKind, isExtension: false, isParams: false, isScoped: false);
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -326,7 +329,8 @@ namespace Microsoft.CodeAnalysis.Editing
             SyntaxNode? initializer,
             RefKind refKind,
             bool isExtension,
-            bool isParams);
+            bool isParams,
+            bool isScoped);
 
         /// <summary>
         /// Creates a parameter declaration matching an existing parameter symbol.
@@ -340,7 +344,9 @@ namespace Microsoft.CodeAnalysis.Editing
                 symbol.HasExplicitDefaultValue ? GenerateExpression(symbol.Type, symbol.ExplicitDefaultValue, canUseFieldReference: true) : null,
                 symbol.RefKind,
                 isExtension: symbol is { Ordinal: 0, ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } },
-                symbol.IsParams);
+                symbol.IsParams,
+                isScoped: symbol is { RefKind: RefKind.Ref or RefKind.In or RefKind.RefReadOnlyParameter, ScopedKind: ScopedKind.ScopedRef }
+                    or { RefKind: RefKind.None, Type.IsRefLikeType: true, ScopedKind: ScopedKind.ScopedValue });
         }
 
         private protected abstract SyntaxNode TypeParameter(ITypeParameterSymbol typeParameter);
@@ -1658,7 +1664,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="trueStatements">The statements that are executed if the condition is true.</param>
         /// <param name="falseStatement">A single statement that is executed if the condition is false.</param>
         public SyntaxNode IfStatement(SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, SyntaxNode falseStatement)
-            => IfStatement(condition, trueStatements, new[] { falseStatement });
+            => IfStatement(condition, trueStatements, [falseStatement]);
 
         /// <summary>
         /// Creates a switch statement that branches to individual sections based on the value of the specified expression.
@@ -1682,7 +1688,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a single-case section a switch statement.
         /// </summary>
         public SyntaxNode SwitchSection(SyntaxNode caseExpression, IEnumerable<SyntaxNode> statements)
-            => SwitchSection(new[] { caseExpression }, statements);
+            => SwitchSection([caseExpression], statements);
 
         /// <summary>
         /// Creates a default section for a switch statement.
@@ -1795,7 +1801,13 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a literal expression. This is typically numeric primitives, strings or chars.
         /// </summary>
         public SyntaxNode LiteralExpression(object? value)
-            => GenerateExpression(type: null, value, canUseFieldReference: true);
+            => LiteralExpression(value, canUseFieldReference: true);
+
+        /// <summary>
+        /// Creates a literal expression. This is typically numeric primitives, strings or chars.
+        /// </summary>
+        private SyntaxNode LiteralExpression(object? value, bool canUseFieldReference)
+            => GenerateExpression(type: null, value, canUseFieldReference);
 
         /// <summary>
         /// Creates an expression for a typed constant.
@@ -1911,7 +1923,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return name;
         }
 
-        private static readonly char[] s_dotSeparator = new char[] { '.' };
+        private static readonly char[] s_dotSeparator = ['.'];
 
         /// <summary>
         /// Creates a name that denotes a type or namespace.

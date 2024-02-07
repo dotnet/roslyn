@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var original = model.GetOriginalSemanticModel();
             if (!original.SyntaxTree.HasCompilationUnitRoot)
             {
-                return ImmutableHashSet.Create<string>();
+                return [];
             }
 
             var root = original.SyntaxTree.GetCompilationUnitRoot(cancellationToken);
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return builder.ToImmutableAndClear();
             }
 
-            return ImmutableArray<IMethodSymbol>.Empty;
+            return [];
         }
 
         public ImmutableArray<IMethodSymbol> GetDeconstructionForEachMethods(SemanticModel semanticModel, SyntaxNode node)
@@ -217,27 +217,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return builder.ToImmutableAndClear();
             }
 
-            return ImmutableArray<IMethodSymbol>.Empty;
+            return [];
         }
 
         private static void FlattenDeconstructionMethods(DeconstructionInfo deconstruction, ref TemporaryArray<IMethodSymbol> builder)
         {
             var method = deconstruction.Method;
-            if (method != null)
-            {
-                builder.Add(method);
-            }
+            builder.AddIfNotNull(method);
 
             foreach (var nested in deconstruction.Nested)
-            {
                 FlattenDeconstructionMethods(nested, ref builder);
-            }
         }
 
-        public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
+        public bool IsPartial(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken)
         {
             var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
-            return syntaxRefs.Any(static (n, cancellationToken) => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword), cancellationToken);
+            foreach (var syntaxRef in syntaxRefs)
+            {
+                var node = syntaxRef.GetSyntax(cancellationToken);
+                if (node is BaseTypeDeclarationSyntax { Modifiers: { } modifiers } &&
+                    modifiers.Any(SyntaxKind.PartialKeyword))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public IEnumerable<ISymbol> GetDeclaredSymbols(
@@ -277,14 +282,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode? node, SyntaxToken token, CancellationToken cancellationToken)
         {
             if (node == null)
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             return node switch
             {
                 AssignmentExpressionSyntax _ when token.Kind() == SyntaxKind.EqualsToken => GetDeconstructionAssignmentMethods(semanticModel, node).As<ISymbol>(),
                 ForEachVariableStatementSyntax _ when token.Kind() == SyntaxKind.InKeyword => GetDeconstructionForEachMethods(semanticModel, node).As<ISymbol>(),
+                FunctionPointerUnmanagedCallingConventionSyntax syntax => GetCallingConventionSymbols(semanticModel, syntax),
                 _ => GetSymbolInfo(semanticModel, node, token, cancellationToken),
             };
+
+            static ImmutableArray<ISymbol> GetCallingConventionSymbols(SemanticModel model, FunctionPointerUnmanagedCallingConventionSyntax syntax)
+            {
+                var type = model.Compilation.TryGetCallingConventionSymbol(syntax.Name.ValueText);
+                return type is null ? [] : ImmutableArray.Create<ISymbol>(type);
+            }
         }
 
         /// <summary>
@@ -343,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //Only in the orderby clause a comma can bind to a symbol.
             if (token.IsKind(SyntaxKind.CommaToken))
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             // If we're on 'var' then asking for the symbol-info will get us the symbol *without* nullability
             // information. Check for that, and try to return the type with nullability info if it has it.

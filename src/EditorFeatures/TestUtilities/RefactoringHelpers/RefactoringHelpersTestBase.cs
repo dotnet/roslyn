@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -71,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
 
         private static string GetSelectionSpan(string text, out TextSpan selection)
         {
-            MarkupTestFile.GetSpans(text.NormalizeLineEndings(), out text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+            MarkupTestFile.GetSpans(text, out text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
             if (spans.Count != 1 ||
                 !spans.TryGetValue(string.Empty, out var selections) || selections.Length != 1)
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
 
         private static string GetSelectionAndResultSpans(string text, out TextSpan selection, out TextSpan result)
         {
-            MarkupTestFile.GetSpans(text.NormalizeLineEndings(), out text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+            MarkupTestFile.GetSpans(text, out text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
             if (spans.Count != 2 ||
                 !spans.TryGetValue(string.Empty, out var selections) || selections.Length != 1 ||

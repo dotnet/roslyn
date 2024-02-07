@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (defaultArguments[n - 1], defaultArguments[n - 2]) = (defaultArguments[n - 2], defaultArguments[n - 1]);
 
             return result.Update(
-                result.ReceiverOpt, result.Method, arguments.ToImmutableAndFree(), argumentNamesOpt: default,
+                result.ReceiverOpt, result.InitialBindingReceiverIsSubjectToCloning, result.Method, arguments.ToImmutableAndFree(), argumentNamesOpt: default,
                 argumentRefKindsOpt: default, result.IsDelegateCall, result.Expanded, result.InvokedAsExtensionMethod,
                 argsToParams.ToImmutableAndFree(), defaultArguments, result.ResultKind, result.OriginalMethodsOpt, result.Type);
         }
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var arguments = invocation.Arguments;
                     arguments = arguments.SetItem(arguments.Length - 1, MakeQueryClause(join.Into, arguments[arguments.Length - 1], g));
 
-                    invocation = invocation.Update(invocation.ReceiverOpt, invocation.Method, arguments);
+                    invocation = invocation.Update(invocation.ReceiverOpt, invocation.InitialBindingReceiverIsSubjectToCloning, invocation.Method, arguments);
                 }
 
                 state.Clear(); // this completes the whole query
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var arguments = invocation.Arguments;
                     arguments = arguments.SetItem(arguments.Length - 1, MakeQueryClause(join.Into, arguments[arguments.Length - 1], g));
 
-                    invocation = invocation.Update(invocation.ReceiverOpt, invocation.Method, arguments);
+                    invocation = invocation.Update(invocation.ReceiverOpt, invocation.InitialBindingReceiverIsSubjectToCloning, invocation.Method, arguments);
                 }
 
                 state.fromExpression = MakeQueryClause(join, invocation, x2, invocation, castInvocation);
@@ -628,6 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var arguments = invocation.Arguments;
                 invocation = invocation.Update(
                     invocation.ReceiverOpt,
+                    invocation.InitialBindingReceiverIsSubjectToCloning,
                     invocation.Method,
                     arguments.SetItem(arguments.Length - 2, MakeQueryClause(from, arguments[arguments.Length - 2], x2, invocation, castInvocation)));
 

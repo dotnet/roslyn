@@ -4999,9 +4999,9 @@ class C
 ";
 
             CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (2,18): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // 0.cs(2,18): error CS9058: Feature 'using type alias' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // global using X = int;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("using type alias").WithLocation(2, 18));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "int").WithArguments("using type alias", "12.0").WithLocation(2, 18));
 
             CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
@@ -5042,9 +5042,9 @@ class C
 ";
 
             CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (2,14): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // 0.cs(2,14): error CS9058: Feature 'using type alias' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // global using unsafe X = int*;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 14));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "unsafe").WithArguments("using type alias", "12.0").WithLocation(2, 14));
         }
 
         [Fact]

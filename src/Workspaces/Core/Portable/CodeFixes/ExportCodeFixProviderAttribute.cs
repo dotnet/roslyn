@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// Use this attribute to declare a <see cref="CodeFixProvider"/> implementation so that it can be discovered by the host.
     /// </summary>
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public sealed class ExportCodeFixProviderAttribute : ExportAttribute
     {
-        private static readonly string[] s_defaultDocumentKinds = new[] { nameof(TextDocumentKind.Document) };
+        private static readonly string[] s_defaultDocumentKinds = [nameof(TextDocumentKind.Document)];
         private static readonly string[] s_documentKindNames = Enum.GetNames(typeof(TextDocumentKind));
 
         private string[] _documentKinds;

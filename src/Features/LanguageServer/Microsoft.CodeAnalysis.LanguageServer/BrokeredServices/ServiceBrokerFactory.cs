@@ -3,13 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
-using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.HelloWorld;
-using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
-using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
@@ -78,8 +72,6 @@ internal class ServiceBrokerFactory
 
         var bridgeProvider = _exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
         _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, _container!, _cancellationTokenSource.Token);
-
-        await _exportProvider.GetExportedValue<RemoteHelloWorldProvider>().SayHelloToRemoteServerAsync(_cancellationTokenSource.Token);
     }
 
     public Task ShutdownAndWaitForCompletionAsync()

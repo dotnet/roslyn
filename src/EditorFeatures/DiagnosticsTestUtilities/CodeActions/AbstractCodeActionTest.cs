@@ -15,13 +15,11 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
@@ -32,10 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserDiagnosticTest
     {
         protected abstract CodeRefactoringProvider CreateCodeRefactoringProvider(
-            Workspace workspace, TestParameters parameters);
+            EditorTestWorkspace workspace, TestParameters parameters);
 
         protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
-            TestWorkspace workspace, TestParameters parameters = null)
+            EditorTestWorkspace workspace, TestParameters parameters = null)
         {
             parameters ??= TestParameters.Default;
 
@@ -85,15 +83,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 return null;
 
             var fixAllState = new FixAllState(fixAllProvider, document, selectionSpan, provider, optionsProvider, scope, originalCodeAction);
-            var fixAllContext = new FixAllContext(fixAllState, new ProgressTracker(), CancellationToken.None);
+            var fixAllContext = new FixAllContext(fixAllState, CodeAnalysisProgress.None, CancellationToken.None);
             return await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
         }
 
-        protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TestWorkspace workspace, TestParameters parameters)
+        protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(EditorTestWorkspace workspace, TestParameters parameters)
             => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
 
         internal override async Task<CodeRefactoring> GetCodeRefactoringAsync(
-            TestWorkspace workspace, TestParameters parameters)
+            EditorTestWorkspace workspace, TestParameters parameters)
         {
             GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out _);
             return await GetCodeRefactoringAsync(document, span, workspace, parameters).ConfigureAwait(false);
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
             Document document,
             TextSpan selectedOrAnnotatedSpan,
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             TestParameters parameters)
         {
             var provider = CreateCodeRefactoringProvider(workspace, parameters);
@@ -121,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected async Task TestActionOnLinkedFiles(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             string expectedText,
             CodeAction action,
             string expectedPreviewContents = null)
@@ -131,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
 
             var applyChangesOperation = operations.OfType<ApplyChangesOperation>().First();
-            await applyChangesOperation.TryApplyAsync(workspace, workspace.CurrentSolution, new ProgressTracker(), CancellationToken.None);
+            await applyChangesOperation.TryApplyAsync(workspace, workspace.CurrentSolution, CodeAnalysisProgress.None, CancellationToken.None);
 
             foreach (var document in workspace.Documents)
             {
@@ -142,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         private static async Task VerifyPreviewContents(
-            TestWorkspace workspace, string expectedPreviewContents,
+            EditorTestWorkspace workspace, string expectedPreviewContents,
             ImmutableArray<CodeActionOperation> operations)
         {
             if (expectedPreviewContents != null)
@@ -159,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected static Document GetDocument(TestWorkspace workspace)
+        protected static Document GetDocument(EditorTestWorkspace workspace)
             => workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
         internal static void EnableOptions(
@@ -195,44 +193,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 initialMarkup, expectedMarkup,
                 index,
                 ps.WithFixProviderData(pickMembersService));
-        }
-    }
-
-    [ExportWorkspaceService(typeof(IPickMembersService), ServiceLayer.Host), Shared, PartNotDiscoverable]
-    internal class TestPickMembersService : IPickMembersService
-    {
-        public ImmutableArray<string> MemberNames;
-        public Action<ImmutableArray<PickMembersOption>> OptionsCallback;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestPickMembersService()
-        {
-        }
-
-#pragma warning disable RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
-        public TestPickMembersService(
-            ImmutableArray<string> memberNames,
-            Action<ImmutableArray<PickMembersOption>> optionsCallback)
-        {
-            MemberNames = memberNames;
-            OptionsCallback = optionsCallback;
-        }
-#pragma warning restore RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
-
-        public PickMembersResult PickMembers(
-            string title,
-            ImmutableArray<ISymbol> members,
-            ImmutableArray<PickMembersOption> options,
-            bool selectAll)
-        {
-            OptionsCallback?.Invoke(options);
-            return new PickMembersResult(
-                MemberNames.IsDefault
-                    ? members
-                    : MemberNames.SelectAsArray(n => members.Single(m => m.Name == n)),
-                options,
-                selectAll);
         }
     }
 }

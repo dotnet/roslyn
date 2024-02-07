@@ -81,6 +81,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private _lazyCachedCompilerFeatureRequiredDiagnosticInfo As DiagnosticInfo = ErrorFactory.EmptyDiagnosticInfo
 
+        Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
+
         Friend Sub New(assemblySymbol As PEAssemblySymbol, [module] As PEModule, importOptions As MetadataImportOptions, ordinal As Integer)
             Me.New(DirectCast(assemblySymbol, AssemblySymbol), [module], importOptions, ordinal)
             Debug.Assert(ordinal >= 0)
@@ -384,15 +386,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides ReadOnly Property HasAssemblyCompilationRelaxationsAttribute As Boolean
             Get
-                Dim assemblyAttributes = GetAssemblyAttributes()
-                Return assemblyAttributes.IndexOfAttribute(Me, AttributeDescription.CompilationRelaxationsAttribute) >= 0
+                ' This API is called only for added modules. Assembly level attributes from added modules are 
+                ' copied to the resulting assembly and that is done by using VisualBasicAttributeData for them.
+                ' Therefore, it is acceptable to implement this property by using the same VisualBasicAttributeData
+                ' objects rather than trying to avoid creating them and going to metadata directly.
+                Dim assemblyAttributes As ImmutableArray(Of VisualBasicAttributeData) = GetAssemblyAttributes()
+                Return assemblyAttributes.IndexOfAttribute(AttributeDescription.CompilationRelaxationsAttribute) >= 0
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasAssemblyRuntimeCompatibilityAttribute As Boolean
             Get
-                Dim assemblyAttributes = GetAssemblyAttributes()
-                Return assemblyAttributes.IndexOfAttribute(Me, AttributeDescription.RuntimeCompatibilityAttribute) >= 0
+                ' This API is called only for added modules. Assembly level attributes from added modules are 
+                ' copied to the resulting assembly and that is done by using VisualBasicAttributeData for them.
+                ' Therefore, it is acceptable to implement this property by using the same VisualBasicAttributeData
+                ' objects rather than trying to avoid creating them and going to metadata directly.
+                Dim assemblyAttributes As ImmutableArray(Of VisualBasicAttributeData) = GetAssemblyAttributes()
+                Return assemblyAttributes.IndexOfAttribute(AttributeDescription.RuntimeCompatibilityAttribute) >= 0
             End Get
         End Property
 
@@ -507,5 +517,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return MyBase.HasUnsupportedMetadata
             End Get
         End Property
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                If _lazyObsoleteAttributeData Is ObsoleteAttributeData.Uninitialized Then
+                    Dim experimentalData = _module.TryDecodeExperimentalAttributeData(EntityHandle.ModuleDefinition, New MetadataDecoder(Me))
+                    Interlocked.CompareExchange(_lazyObsoleteAttributeData, experimentalData, ObsoleteAttributeData.Uninitialized)
+                End If
+
+                Return _lazyObsoleteAttributeData
+            End Get
+        End Property
+
     End Class
 End Namespace

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var diagnostics = compilation.GetAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer }, options);
 
             Assert.Equal(1, diagnostics.Length);
-            Assert.True(diagnostics[0].Descriptor.Description.ToString().IndexOf(analyzer.Info.GetContext()) >= 0);
+            Assert.True(diagnostics[0].ToString().IndexOf(analyzer.Info.GetContext()) >= 0);
         }
 
         private class Analyzer : DiagnosticAnalyzer

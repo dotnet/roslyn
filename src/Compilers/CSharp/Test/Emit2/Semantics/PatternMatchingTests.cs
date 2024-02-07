@@ -7684,7 +7684,7 @@ class C
   .locals init (int V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ComputeReadOnlySpanHash(System.ReadOnlySpan<char>)""
+  IL_0001:  call       ""uint <PrivateImplementationDetails>.ComputeReadOnlySpanHash(System.ReadOnlySpan<char>)""
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x75b03721
@@ -8000,7 +8000,7 @@ class C
   .maxstack  2
   .locals init (uint V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ComputeReadOnlySpanHash(System.ReadOnlySpan<char>)""
+  IL_0001:  call       ""uint <PrivateImplementationDetails>.ComputeReadOnlySpanHash(System.ReadOnlySpan<char>)""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldc.i4     0x75b03721
@@ -9282,7 +9282,7 @@ class C
   .locals init (int V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ComputeSpanHash(System.Span<char>)""
+  IL_0001:  call       ""uint <PrivateImplementationDetails>.ComputeSpanHash(System.Span<char>)""
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x75b03721
@@ -9599,7 +9599,7 @@ class C
   .maxstack  2
   .locals init (uint V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ComputeSpanHash(System.Span<char>)""
+  IL_0001:  call       ""uint <PrivateImplementationDetails>.ComputeSpanHash(System.Span<char>)""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldc.i4     0x75b03721

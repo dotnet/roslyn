@@ -58,11 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 return;
             }
 
-            context.RegisterRefactoring(CodeAction.CreateWithPriority(
-                CodeActionPriority.Low,
+            context.RegisterRefactoring(CodeAction.Create(
                 CSharpAnalyzersResources.Convert_to_top_level_statements,
                 c => ConvertToTopLevelStatementsAsync(document, methodDeclaration, context.Options, c),
-                nameof(CSharpAnalyzersResources.Convert_to_top_level_statements)));
+                nameof(CSharpAnalyzersResources.Convert_to_top_level_statements),
+                CodeActionPriority.Low));
         }
     }
 }

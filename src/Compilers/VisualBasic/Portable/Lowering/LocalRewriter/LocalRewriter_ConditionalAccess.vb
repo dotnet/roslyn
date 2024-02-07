@@ -98,11 +98,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     ' if( receiver IsNot Nothing, receiver. ... -> to Nullable, Nothing) 
                     receiverOrCondition = rewrittenReceiver
-                    captureReceiver = ShouldCaptureConditionalAccessReceiver(rewrittenReceiver)
+
+                    ' we need a copy if we deal with nonlocal value (to capture the value)
+                    ' Or if we have a ref-constrained T (to do box just once)
+                    captureReceiver = (Not receiverType.IsReferenceType AndAlso
+                                       Not receiverType.IsValueType AndAlso
+                                       Not DirectCast(receiverType, TypeParameterSymbol).HasInterfaceConstraint) OrElse ' This could be a nullable value type, which must be copied in order to not mutate the original value
+                                      (receiverType.IsReferenceType AndAlso receiverType.TypeKind = TypeKind.TypeParameter) OrElse
+                                      ShouldCaptureConditionalAccessReceiver(rewrittenReceiver)
+
                     Me._conditionalAccessReceiverPlaceholderId += 1
                     newPlaceholderId = Me._conditionalAccessReceiverPlaceholderId
                     Debug.Assert(newPlaceholderId <> 0)
-                    newPlaceHolder = New BoundConditionalAccessReceiverPlaceholder(node.Placeholder.Syntax, newPlaceholderId, node.Placeholder.Type)
+                    newPlaceHolder = New BoundConditionalAccessReceiverPlaceholder(node.Placeholder.Syntax, newPlaceholderId, captureReceiver, node.Placeholder.Type)
                     placeholderReplacement = newPlaceHolder
                 End If
             End If

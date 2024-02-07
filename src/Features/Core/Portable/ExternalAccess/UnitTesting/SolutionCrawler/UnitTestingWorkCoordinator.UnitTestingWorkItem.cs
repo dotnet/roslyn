@@ -52,20 +52,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 // common
                 public readonly IAsyncToken AsyncToken;
 
-#if false // Not used in unit testing crawling
-                public bool MustRefresh
-                {
-                    get
-                    {
-                        // in current design, we need to re-run all incremental analyzer on document open and close
-                        // so that incremental analyzer who only cares about opened document can have a chance to clean up
-                        // its state.
-                        return InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.DocumentOpened) ||
-                               InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.DocumentClosed);
-                    }
-                }
-#endif
-
                 private UnitTestingWorkItem(
                     DocumentId? documentId,
                     ProjectId projectId,
@@ -94,13 +80,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
 
                 public UnitTestingWorkItem(DocumentId documentId, string language, UnitTestingInvocationReasons invocationReasons, bool isLowPriority, SyntaxPath? activeMember, IAsyncToken asyncToken)
-                    : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember, ImmutableHashSet.Create<IUnitTestingIncrementalAnalyzer>(), retry: false, asyncToken)
+                    : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember, [], retry: false, asyncToken)
                 {
                 }
 
                 public UnitTestingWorkItem(DocumentId documentId, string language, UnitTestingInvocationReasons invocationReasons, bool isLowPriority, IUnitTestingIncrementalAnalyzer? analyzer, IAsyncToken asyncToken)
                     : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember: null,
-                           analyzer == null ? ImmutableHashSet.Create<IUnitTestingIncrementalAnalyzer>() : ImmutableHashSet.Create(analyzer),
+                           analyzer == null ? [] : [analyzer],
                            retry: false, asyncToken)
                 {
                 }

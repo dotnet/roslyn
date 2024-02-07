@@ -30,12 +30,12 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.Workspaces
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(WorkspacesNetCore), HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddCustomProjectAsync(ProjectName, ".csproj", @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 </Project>", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class1.cs", contents: string.Empty, open: true, cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
             await TestServices.Workspace.SetFullSolutionAnalysisAsync(true, HangMitigatingCancellationToken);
 
             await base.MetadataReference();

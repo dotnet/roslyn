@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System.Reflection;
+using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
-using Microsoft.Extensions.Logging;
-using Roslyn.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -33,6 +32,15 @@ public sealed class TelemetryReporterTests : AbstractLanguageServerHostTests
     private static string GetEventName(string name) => $"test/event/{name}";
 
     [Fact]
+    public async Task TestVSTelemetryLoadedIntoDefaultAlc()
+    {
+        var service = await CreateReporterAsync();
+        var assembly = Assembly.GetAssembly(service.GetType());
+        Assert.Contains(AssemblyLoadContext.Default.Assemblies, a => a == assembly);
+        Assert.Contains(AssemblyLoadContext.Default.Assemblies, a => a.GetName().Name == "Microsoft.VisualStudio.Telemetry");
+    }
+
+    [Fact]
     public async Task TestFault()
     {
         var service = await CreateReporterAsync();
@@ -44,13 +52,13 @@ public sealed class TelemetryReporterTests : AbstractLanguageServerHostTests
     {
         var service = await CreateReporterAsync();
         service.LogBlockStart(GetEventName(nameof(TestBlockLogging)), kind: 0, blockId: 0);
-        service.LogBlockEnd(blockId: 0, ImmutableDictionary<string, object?>.Empty, CancellationToken.None);
+        service.LogBlockEnd(blockId: 0, [], CancellationToken.None);
     }
 
     [Fact]
     public async Task TestLog()
     {
         var service = await CreateReporterAsync();
-        service.Log(GetEventName(nameof(TestLog)), ImmutableDictionary<string, object?>.Empty);
+        service.Log(GetEventName(nameof(TestLog)), []);
     }
 }

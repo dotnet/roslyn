@@ -53,11 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             GreenStats.NoteGreen(this);
         }
 
-        internal CSharpSyntaxNode(ObjectReader reader)
-            : base(reader)
-        {
-        }
-
         public override string Language
         {
             get { return LanguageNames.CSharp; }
@@ -252,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return flags;
         }
 
-        public override CodeAnalysis.SyntaxToken CreateSeparator<TNode>(SyntaxNode element)
+        public sealed override CodeAnalysis.SyntaxToken CreateSeparator(SyntaxNode element)
         {
             return CSharp.SyntaxFactory.Token(SyntaxKind.CommaToken);
         }

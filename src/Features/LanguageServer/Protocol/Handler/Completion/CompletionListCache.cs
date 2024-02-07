@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.Completion;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.Completion.CompletionListCache;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 {

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseLocalFunctionDiagnosticId);
+            => [IDEDiagnosticIds.UseLocalFunctionDiagnosticId];
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.IsSuppressed;
@@ -252,8 +252,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             return parameterList != null
                 ? parameterList.ReplaceNodes(parameterList.Parameters, (parameterNode, _) => PromoteParameter(generator, parameterNode, delegateMethod.Parameters.ElementAtOrDefault(i++)))
-                : SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(delegateMethod.Parameters.Select(parameter =>
-                    PromoteParameter(generator, SyntaxFactory.Parameter(parameter.Name.ToIdentifierToken()), parameter))));
+                : SyntaxFactory.ParameterList([.. delegateMethod.Parameters.Select(parameter =>
+                    PromoteParameter(generator, SyntaxFactory.Parameter(parameter.Name.ToIdentifierToken()), parameter))]);
 
             static ParameterSyntax PromoteParameter(SyntaxGenerator generator, ParameterSyntax parameterNode, IParameterSymbol delegateParameter)
             {
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             switch (anonymousFunction)
             {
                 case SimpleLambdaExpressionSyntax simpleLambda:
-                    return SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(simpleLambda.Parameter));
+                    return SyntaxFactory.ParameterList([simpleLambda.Parameter]);
                 case ParenthesizedLambdaExpressionSyntax parenthesizedLambda:
                     return parenthesizedLambda.ParameterList;
                 case AnonymousMethodExpressionSyntax anonymousMethod:

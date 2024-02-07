@@ -197,35 +197,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+            private void OnDiagnosticsUpdated(object sender, ImmutableArray<DiagnosticsUpdatedArgs> argsCollection)
             {
-                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, static e => GetDiagnosticUpdatedMessage(e), e, CancellationToken.None))
+                foreach (var e in argsCollection)
                 {
-                    if (_workspace != e.Workspace)
+                    using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, static e => GetDiagnosticUpdatedMessage(e), e, CancellationToken.None))
                     {
-                        return;
+                        if (_workspace != e.Workspace)
+                        {
+                            continue;
+                        }
+
+                        // if we're in lsp mode we never respond to any diagnostics we hear about, lsp client is fully
+                        // responsible for populating the error list.
+                        var diagnostics = GlobalOptions.IsLspPullDiagnostics()
+                            ? ImmutableArray<DiagnosticData>.Empty
+                            : e.Diagnostics;
+
+                        if (diagnostics.Length == 0)
+                        {
+                            OnDataRemoved(e);
+                            continue;
+                        }
+
+                        var count = diagnostics.Where(ShouldInclude).Count();
+                        if (count <= 0)
+                        {
+                            OnDataRemoved(e);
+                            continue;
+                        }
+
+                        OnDataAddedOrChanged(e);
                     }
-
-                    // if we're in lsp mode we never respond to any diagnostics we hear about, lsp client is fully
-                    // responsible for populating the error list.
-                    var diagnostics = GlobalOptions.IsLspPullDiagnostics()
-                        ? ImmutableArray<DiagnosticData>.Empty
-                        : e.Diagnostics;
-
-                    if (diagnostics.Length == 0)
-                    {
-                        OnDataRemoved(e);
-                        return;
-                    }
-
-                    var count = diagnostics.Where(ShouldInclude).Count();
-                    if (count <= 0)
-                    {
-                        OnDataRemoved(e);
-                        return;
-                    }
-
-                    OnDataAddedOrChanged(e);
                 }
             }
 

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
         // C# doesn't have global imports.
         protected override ImmutableArray<SyntaxNode> GetGlobalImports(Compilation compilation, SyntaxGenerator generator)
-            => ImmutableArray<SyntaxNode>.Empty;
+            => [];
 
         protected override SyntaxNode? GetAlias(UsingDirectiveSyntax usingOrAlias)
             => usingOrAlias.Alias;

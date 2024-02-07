@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal abstract partial class SyntaxEditorBasedCodeFixProvider : CodeFixProvider
     {
         private static readonly ImmutableArray<FixAllScope> s_defaultSupportedFixAllScopes =
-            ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution,
-                FixAllScope.ContainingMember, FixAllScope.ContainingType);
+            [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType];
 
         private readonly bool _supportsFixAll;
 
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             => context.RegisterCodeFix(CodeAction.Create(title, GetDocumentUpdater(context, diagnostic), equivalenceKey), context.Diagnostics);
 
         protected void RegisterCodeFix(CodeFixContext context, string title, string equivalenceKey, CodeActionPriority priority, Diagnostic? diagnostic = null)
-            => context.RegisterCodeFix(new CustomCodeActions.DocumentChangeAction(title, GetDocumentUpdater(context, diagnostic), equivalenceKey, priority), context.Diagnostics);
+            => context.RegisterCodeFix(CodeAction.Create(title, GetDocumentUpdater(context, diagnostic), equivalenceKey, priority), context.Diagnostics);
 
         protected Func<CancellationToken, Task<Document>> GetDocumentUpdater(CodeFixContext context, Diagnostic? diagnostic = null)
         {

@@ -5,16 +5,11 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.EditorConfig;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 {
@@ -23,7 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
-            var editorService = (EditorConfigOptionsGenerator)serviceProvider.GetService(typeof(EditorConfigOptionsGenerator));
+            var editorService = serviceProvider.GetMefService<EditorConfigOptionsGenerator>();
+
             return new GridOptionPreviewControl(
                 serviceProvider,
                 optionStore,

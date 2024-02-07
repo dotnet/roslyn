@@ -15,11 +15,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
     internal readonly struct EmbeddedLanguageDetector(
         EmbeddedLanguageInfo info,
-        ImmutableArray<string> languageIdentifiers)
+        ImmutableArray<string> languageIdentifiers,
+        EmbeddedLanguageCommentDetector commentDetector)
     {
         private readonly EmbeddedLanguageInfo Info = info;
-        private readonly HashSet<string> LanguageIdentifiers = new HashSet<string>(languageIdentifiers, StringComparer.OrdinalIgnoreCase);
-        private readonly EmbeddedLanguageCommentDetector _commentDetector = new EmbeddedLanguageCommentDetector(languageIdentifiers);
+        private readonly HashSet<string> LanguageIdentifiers = new(languageIdentifiers, StringComparer.OrdinalIgnoreCase);
+        private readonly EmbeddedLanguageCommentDetector _commentDetector = commentDetector;
 
         /// <summary>
         /// Determines if <paramref name="token"/> is an embedded language token.  If the token is, the specific
@@ -201,6 +202,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             else if (syntaxFacts.IsAttributeArgument(container.Parent))
             {
                 if (IsAttributeArgumentWithMatchingStringSyntaxAttribute(semanticModel, container.Parent, cancellationToken, out identifier))
+                    return true;
+            }
+            else if (syntaxFacts.IsNamedMemberInitializer(container.Parent))
+            {
+                syntaxFacts.GetPartsOfNamedMemberInitializer(container.Parent, out var name, out _);
+                if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(semanticModel, name, cancellationToken, out identifier))
                     return true;
             }
             else

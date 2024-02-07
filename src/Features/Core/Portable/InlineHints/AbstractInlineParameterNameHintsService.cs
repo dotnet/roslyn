@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.InlineHints
         {
             var enabledForParameters = displayAllOverride || options.EnabledForParameters;
             if (!enabledForParameters)
-                return ImmutableArray<InlineHint>.Empty;
+                return [];
 
             var literalParameters = displayAllOverride || options.ForLiteralParameters;
             var objectCreationParameters = displayAllOverride || options.ForObjectCreationParameters;
             var otherParameters = displayAllOverride || options.ForOtherParameters;
             if (!literalParameters && !objectCreationParameters && !otherParameters)
-                return ImmutableArray<InlineHint>.Empty;
+                return [];
 
             var indexerParameters = displayAllOverride || options.ForIndexerParameters;
             var suppressForParametersThatDifferOnlyBySuffix = !displayAllOverride && options.SuppressForParametersThatDifferOnlyBySuffix;
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
                         result.Add(new InlineHint(
                             textSpan,
-                            ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
+                            [new TaggedText(TextTags.Text, parameter.Name + ": ")],
                             replacementTextChange,
                             ranking: InlineHintsConstants.ParameterRanking,
                             InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));

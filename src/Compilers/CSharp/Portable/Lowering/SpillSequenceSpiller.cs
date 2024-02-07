@@ -451,6 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Debug.Assert(call.Arguments.Length == 1);
                                 return call.Update(Spill(builder, call.ReceiverOpt, ReceiverSpillRefKind(call.ReceiverOpt)),
+                                                   initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                                                    call.Method,
                                                    ImmutableArray.Create(Spill(builder, call.Arguments[0])));
                             }
@@ -464,6 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(call.Arguments.Length == 2);
                             return call.Update(Spill(builder, call.ReceiverOpt, ReceiverSpillRefKind(call.ReceiverOpt)),
+                                               initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                                                call.Method,
                                                ImmutableArray.Create(Spill(builder, call.Arguments[0]), Spill(builder, call.Arguments[1])));
                         }
@@ -720,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the spilling will occur in the enclosing node.
             BoundSpillSequenceBuilder builder = null;
             var expr = VisitExpression(ref builder, node.Expression);
-            return UpdateExpression(builder, node.Update(expr, node.AwaitableInfo, node.Type));
+            return UpdateExpression(builder, node.Update(expr, node.AwaitableInfo, node.DebugInfo, node.Type));
         }
 
         public override BoundNode VisitSpillSequence(BoundSpillSequence node)
@@ -1042,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder = receiverBuilder;
             }
 
-            return UpdateExpression(builder, node.Update(receiver, node.Method, arguments));
+            return UpdateExpression(builder, node.Update(receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, node.Method, arguments));
         }
 
         private static RefKind ReceiverSpillRefKind(BoundExpression receiver)

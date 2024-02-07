@@ -61,19 +61,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 body: hasNoBody ? null : GenerateBlock(constructor),
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
 
-            declaration = UseExpressionBodyIfDesired(info, declaration);
+            declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 
             return AddFormatterAndCodeGeneratorAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(declaration, constructor, info, cancellationToken));
         }
 
         private static ConstructorDeclarationSyntax UseExpressionBodyIfDesired(
-            CSharpCodeGenerationContextInfo info, ConstructorDeclarationSyntax declaration)
+            CSharpCodeGenerationContextInfo info, ConstructorDeclarationSyntax declaration, CancellationToken cancellationToken)
         {
             if (declaration.ExpressionBody == null)
             {
                 if (declaration.Body?.TryConvertToArrowExpressionBody(
-                    declaration.Kind(), info.LanguageVersion, info.Options.PreferExpressionBodiedConstructors.Value,
+                    declaration.Kind(), info.LanguageVersion, info.Options.PreferExpressionBodiedConstructors.Value, cancellationToken,
                     out var expressionBody, out var semicolonToken) == true)
                 {
                     return declaration.WithBody(null)
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static ArgumentListSyntax GenerateArgumentList(ImmutableArray<SyntaxNode> arguments)
-            => SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments.Select(ArgumentGenerator.GenerateArgument)));
+            => SyntaxFactory.ArgumentList([.. arguments.Select(ArgumentGenerator.GenerateArgument)]);
 
         private static BlockSyntax GenerateBlock(
             IMethodSymbol constructor)

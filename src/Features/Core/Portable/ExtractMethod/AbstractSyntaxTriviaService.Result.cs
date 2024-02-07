@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return GetTrailingAndLeadingTrivia(trivia);
             }
 
-            private static IEnumerable<Tuple<PreviousNextTokenPair, LeadingTrailingTriviaPair>> CreateUniqueTokenTriviaPairs(
+            private static IEnumerable<(PreviousNextTokenPair, LeadingTrailingTriviaPair)> CreateUniqueTokenTriviaPairs(
                 Dictionary<TriviaLocation, PreviousNextTokenPair> tokenPairs,
                 Dictionary<TriviaLocation, LeadingTrailingTriviaPair> triviaPairs)
             {
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    yield return Tuple.Create(key, triviaPairs[location]);
+                    yield return (key, triviaPairs[location]);
                     set.Add(key);
                 }
             }

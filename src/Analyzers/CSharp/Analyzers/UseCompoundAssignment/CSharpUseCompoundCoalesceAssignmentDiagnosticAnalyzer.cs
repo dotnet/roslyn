@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             var option = context.GetAnalyzerOptions().PreferCompoundAssignment;
 
             // Bail immediately if the user has disabled this feature.
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             var coalesceLeft = coalesceExpression.Left;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 coalesceExpression.OperatorToken.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: ImmutableArray.Create(coalesceExpression.GetLocation()),
                 properties: null));
         }
@@ -126,13 +126,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             var option = context.GetAnalyzerOptions().PreferCompoundAssignment;
 
             // Bail immediately if the user has disabled this feature.
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             if (ifStatement.Else != null)
                 return;
 
-            if (!GetWhenTrueAssignment(ifStatement, out _, out var assignment))
+            if (!GetWhenTrueAssignment(ifStatement, out var whenTrue, out var assignment))
                 return;
 
             if (!IsReferenceEqualsNullCheck(semanticModel, ifStatement.Condition, cancellationToken, out var testedExpression))
@@ -153,30 +153,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
                 return;
             }
 
-            if (ifStatement.Statement is BlockSyntax block)
-            {
-                // Single is safe here as GetWhenTrueAssignment will return null if we have a block without a single
-                // statement in it.
-                var firstStatement = block.Statements.Single();
-
-                // Don't want to offer anything if our if-statement body has any conditional directives in it.  That
-                // means there's some other code that may run under some other conditions, that we do not want to now
-                // run conditionally outside of the 'if' statement itself.
-                if (firstStatement.GetLeadingTrivia().Any(t => t.HasStructure && t.GetStructure() is ConditionalDirectiveTriviaSyntax))
-                    return;
-            }
-
-            if (semanticModel.GetTypeInfo(testedExpression, cancellationToken).Type is IPointerTypeSymbol or IFunctionPointerTypeSymbol)
-            {
-                // pointers cannot use ??=
+            // Don't want to offer anything if our if-statement body has any conditional directives in it.  That
+            // means there's some other code that may run under some other conditions, that we do not want to now
+            // run conditionally outside of the 'if' statement itself.
+            if (whenTrue.GetLeadingTrivia().Any(static t => t.GetStructure() is ConditionalDirectiveTriviaSyntax))
                 return;
-            }
+
+            // pointers cannot use ??=
+            if (semanticModel.GetTypeInfo(testedExpression, cancellationToken).Type is IPointerTypeSymbol or IFunctionPointerTypeSymbol)
+                return;
 
             // Good match.
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 ifStatement.IfKeyword.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: ImmutableArray.Create(ifStatement.GetLocation()),
                 properties: null));
         }

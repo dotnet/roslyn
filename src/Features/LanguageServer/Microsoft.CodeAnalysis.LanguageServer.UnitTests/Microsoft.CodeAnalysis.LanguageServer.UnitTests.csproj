@@ -1,17 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>$(NetVSCode)</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RoslynProjectType>UnitTest</RoslynProjectType>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Nerdbank.Streams" Version="$(NerdbankStreamsVersion)" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
@@ -27,7 +23,7 @@
   -->
   <Target Name="_CopyDevKitExtensionFiles" AfterTargets="ResolveProjectReferences">
     <MSBuild Projects="..\..\..\VisualStudio\DevKit\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj"
-             Targets="CollectNpmInputs">
+             Targets="CollectPackInputs">
       <Output TaskParameter="TargetOutputs" ItemName="_DevKitExtensionFile"/>
     </MSBuild>
 

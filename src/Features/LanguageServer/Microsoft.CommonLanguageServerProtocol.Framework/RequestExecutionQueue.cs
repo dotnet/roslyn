@@ -230,7 +230,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                             }
 
                             // wait for all pending tasks to complete their cancellation, ignoring any exceptions
-                            await Task.WhenAll(concurrentlyExecutingTasksArray.Select(kvp => kvp.Key)).NoThrowAwaitableInternal(captureContext: false);
+                            await Task.WhenAll(concurrentlyExecutingTasksArray.Select(kvp => kvp.Key)).NoThrowAwaitable(captureContext: false);
                         }
 
                         Debug.Assert(!concurrentlyExecutingTasks.Any(), "The tasks should have all been drained before continuing");

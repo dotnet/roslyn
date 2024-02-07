@@ -12,8 +12,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class OrKeywordRecommenderTests : KeywordRecommenderTests
     {
-        private const string InitializeObjectE = @"var e = new object();
-";
+        private const string InitializeObjectE = """
+            var e = new object();
+            """;
 
         [Fact]
         public async Task TestAfterConstant()
@@ -47,391 +48,446 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterGenericType()
         {
             await VerifyKeywordAsync(
-@"class C<T>
-{
-    void M()
-    {
-        var e = new object();
-        if (e is T $$");
+                """
+                class C<T>
+                {
+                    void M()
+                    {
+                        var e = new object();
+                        if (e is T $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterArrayType()
         {
             await VerifyKeywordAsync(
-@"class C
-{
-    void M()
-    {
-        var e = new object();
-        if (e is int[] $$");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var e = new object();
+                        if (e is int[] $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterListType()
         {
             await VerifyKeywordAsync(
-@"using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class C
-{
-    void M()
-    {
-        var e = new object();
-        if (e is List<int> $$");
+                class C
+                {
+                    void M()
+                    {
+                        var e = new object();
+                        if (e is List<int> $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterListType_FullyQualified()
         {
             await VerifyKeywordAsync(
-@"class C
-{
-    void M()
-    {
-        var e = new object();
-        if (e is System.Collections.Generic.List<int> $$");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        var e = new object();
+                        if (e is System.Collections.Generic.List<int> $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterRecursivePattern()
         {
             await VerifyKeywordAsync(
-@"class C
-{
-    int P { get; }
+                """
+                class C
+                {
+                    int P { get; }
 
-    void M(C test)
-    {
-        if (test is { P: 1 } $$");
+                    void M(C test)
+                    {
+                        if (test is { P: 1 } $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideSubpattern()
         {
             await VerifyKeywordAsync(
-@"class C
-{
-    public int P { get; }
+                """
+                class C
+                {
+                    public int P { get; }
 
-    void M(C test)
-    {
-        if (test is { P: 1 $$");
+                    void M(C test)
+                    {
+                        if (test is { P: 1 $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideSubpattern_ComplexConstant()
         {
             await VerifyKeywordAsync(
-@"namespace N
-{
-    class C
-    {
-        const int P = 1;
+                """
+                namespace N
+                {
+                    class C
+                    {
+                        const int P = 1;
 
-        int Prop { get; }
+                        int Prop { get; }
 
-        void M(C test)
-        {
-            if (test is { Prop: N.C.P $$");
+                        void M(C test)
+                        {
+                            if (test is { Prop: N.C.P $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideSubpattern_AfterOpenParen()
         {
             await VerifyKeywordAsync(
-@"class C
-{
-    int P { get; }
+                """
+                class C
+                {
+                    int P { get; }
 
-    void M()
-    {
-        var C2 = new C();
-        if (C2 is { P: (1 $$");
+                    void M()
+                    {
+                        var C2 = new C();
+                        if (C2 is { P: (1 $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideSubpattern_AfterOpenParen_ComplexConstant()
         {
             await VerifyKeywordAsync(
-@"namespace N
-{
-    class C
-    {
-        const int P = 1;
+                """
+                namespace N
+                {
+                    class C
+                    {
+                        const int P = 1;
 
-        int Prop { get; }
+                        int Prop { get; }
 
-        void M(C test)
-        {
-            if (test is { Prop: (N.C.P $$");
+                        void M(C test)
+                        {
+                            if (test is { Prop: (N.C.P $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideSubpattern_AfterMultipleOpenParens()
         {
             await VerifyKeywordAsync(
-@"class C
-{
-    int P { get; }
+                """
+                class C
+                {
+                    int P { get; }
 
-    void M()
-    {
-        var C2 = new C();
-        if (C2 is { P: (((1 $$");
+                    void M()
+                    {
+                        var C2 = new C();
+                        if (C2 is { P: (((1 $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideSubpattern_AfterMultipleOpenParens_ComplexConstant()
         {
             await VerifyKeywordAsync(
-@"namespace N
-{
-    class C
-    {
-        const int P = 1;
+                """
+                namespace N
+                {
+                    class C
+                    {
+                        const int P = 1;
 
-        int Prop { get; }
+                        int Prop { get; }
 
-        void M(C test)
-        {
-            if (test is { Prop: (((N.C.P $$");
+                        void M(C test)
+                        {
+                            if (test is { Prop: (((N.C.P $$
+                """);
         }
 
         [Fact]
         public async Task TestAtBeginningOfSwitchStatement_AfterMultipleOpenParens_MemberAccessExpression()
         {
             await VerifyKeywordAsync(
-@"namespace N
-{
-    class C
-    {
-        const int P = 1;
+                """
+                namespace N
+                {
+                    class C
+                    {
+                        const int P = 1;
 
-        void M()
-        {
-            var e = new object();
-            switch (e)
-            {
-                case (((N.C.P $$");
+                        void M()
+                        {
+                            var e = new object();
+                            switch (e)
+                            {
+                                case (((N.C.P $$
+                """);
         }
 
         [Fact]
         public async Task TestAtBeginningOfSwitchStatement_AfterMultipleOpenParens_MemberAccessExpression2()
         {
             await VerifyKeywordAsync(
-@"namespace N
-{
-    class C
-    {
-        void M()
-        {
-            var e = new object();
-            switch (e)
-            {
-                case (((N.C $$");
+                """
+                namespace N
+                {
+                    class C
+                    {
+                        void M()
+                        {
+                            var e = new object();
+                            switch (e)
+                            {
+                                case (((N.C $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideSubpattern_AfterParenPair()
         {
             await VerifyKeywordAsync(
-@"class C
-{
-    int P { get; }
+                """
+                class C
+                {
+                    int P { get; }
 
-    void M()
-    {
-        var C2 = new C();
-        if (C2 is { P: (1) $$");
+                    void M()
+                    {
+                        var C2 = new C();
+                        if (C2 is { P: (1) $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideSubpattern_AfterParenPair_ComplexConstant()
         {
             await VerifyKeywordAsync(
-@"namespace N
-{
-    class C
-    {
-        const int P = 1;
+                """
+                namespace N
+                {
+                    class C
+                    {
+                        const int P = 1;
 
-        int Prop { get; }
+                        int Prop { get; }
 
-        void M(C test)
-        {
-            if (test is { Prop: (N.C.P + 1) $$");
+                        void M(C test)
+                        {
+                            if (test is { Prop: (N.C.P + 1) $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideSubpattern_AfterMultipleParenPairs()
         {
             await VerifyKeywordAsync(
-@"class C
-{
-    int P { get; }
+                """
+                class C
+                {
+                    int P { get; }
 
-    void M()
-    {
-        var C2 = new C();
-        if (C2 is { P: (((1))) $$");
+                    void M()
+                    {
+                        var C2 = new C();
+                        if (C2 is { P: (((1))) $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideSubpattern_AfterMultipleParenPairs_ComplexConstant()
         {
             await VerifyKeywordAsync(
-@"namespace N
-{
-    class C
-    {
-        const int P = 1;
+                """
+                namespace N
+                {
+                    class C
+                    {
+                        const int P = 1;
 
-        int Prop { get; }
+                        int Prop { get; }
 
-        void M(C test)
-        {
-            if (test is { Prop: (((N.C.P))) $$");
+                        void M(C test)
+                        {
+                            if (test is { Prop: (((N.C.P))) $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterQualifiedName()
         {
             await VerifyKeywordAsync(
-@"class C
-{
-    int P { get; }
+                """
+                class C
+                {
+                    int P { get; }
 
-    void M()
-    {
-        var C2 = new C();
-        var e = new object();
-        if (e is C2.P $$");
+                    void M()
+                    {
+                        var C2 = new C();
+                        var e = new object();
+                        if (e is C2.P $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterQualifiedName2()
         {
             await VerifyKeywordAsync(
-@"
-namespace N
-{
-    class C
-    {
-        const int P = 1;
+                """
+                namespace N
+                {
+                    class C
+                    {
+                        const int P = 1;
 
-        void M()
-        {
-            var e = new object();
-            if (e is N.C.P $$");
+                        void M()
+                        {
+                            var e = new object();
+                            if (e is N.C.P $$
+                """);
         }
 
         [Fact]
         public async Task TestAtBeginningOfSwitchExpression()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
-@"var result = e switch
-{
-    1 $$"));
+                """
+                var result = e switch
+                {
+                    1 $$
+                """));
         }
 
         [Fact]
         public async Task TestAtBeginningOfSwitchExpression_Complex()
         {
             await VerifyKeywordAsync(
-@"namespace N
-{
-    class C
-    {
-        const int P = 1;
+                """
+                namespace N
+                {
+                    class C
+                    {
+                        const int P = 1;
 
-        void M()
-        {
-            var e = new object();
-            var result = e switch
-            {
-                N.C.P $$");
+                        void M()
+                        {
+                            var e = new object();
+                            var result = e switch
+                            {
+                                N.C.P $$
+                """);
         }
 
         [Fact]
         public async Task TestAtBeginningOfSwitchStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
-@"switch (e)
-{
-    case 1 $$"));
+                """
+                switch (e)
+                {
+                    case 1 $$
+                """));
         }
 
         [Fact]
         public async Task TestAtBeginningOfSwitchExpression_AfterOpenParen()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
-@"var result = e switch
-{
-    (1 $$"));
+                """
+                var result = e switch
+                {
+                    (1 $$
+                """));
         }
 
         [Fact]
         public async Task TestAtBeginningOfSwitchExpression_AfterOpenParen_Complex()
         {
             await VerifyKeywordAsync(
-@"namespace N
-{
-    class C
-    {
-        const int P = 1;
+                """
+                namespace N
+                {
+                    class C
+                    {
+                        const int P = 1;
 
-        void M()
-        {
-            var e = new object();
-            var result = e switch
-            {
-                (N.C.P $$");
+                        void M()
+                        {
+                            var e = new object();
+                            var result = e switch
+                            {
+                                (N.C.P $$
+                """);
         }
 
         [Fact]
         public async Task TestAtBeginningOfSwitchExpression_AfterMultipleOpenParens()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
-@"var result = e switch
-{
-    (((1 $$"));
+                """
+                var result = e switch
+                {
+                    (((1 $$
+                """));
         }
 
         [Fact]
         public async Task TestAtBeginningOfSwitchExpression_AfterMultipleOpenParens_Complex()
         {
             await VerifyKeywordAsync(
-@"namespace N
-{
-    class C
-    {
-        const int P = 1;
+                """
+                namespace N
+                {
+                    class C
+                    {
+                        const int P = 1;
 
-        void M()
-        {
-            var e = new object();
-            var result = e switch
-            {
-                (((N.C.P $$");
+                        void M()
+                        {
+                            var e = new object();
+                            var result = e switch
+                            {
+                                (((N.C.P $$
+                """);
         }
 
         [Fact]
         public async Task TestAtBeginningOfSwitchStatement_AfterOpenParen()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
-@"switch (e)
-{
-    case (1 $$"));
+                """
+                switch (e)
+                {
+                    case (1 $$
+                """));
         }
 
         [Fact]
         public async Task TestAtBeginningOfSwitchStatement_AfterMultipleOpenParens()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
-@"switch (e)
-{
-    case (((1 $$"));
+                """
+                switch (e)
+                {
+                    case (((1 $$
+                """));
         }
 
         [Fact]
@@ -487,18 +543,22 @@ namespace N
         public async Task TestMissingAtBeginningOfSwitchExpression()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
-@"var result = e switch
-{
-    $$"));
+                """
+                var result = e switch
+                {
+                    $$
+                """));
         }
 
         [Fact]
         public async Task TestMissingAtBeginningOfSwitchStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
-@"switch (e)
-{
-    case $$"));
+                """
+                switch (e)
+                {
+                    case $$
+                """));
         }
 
         [Fact]
@@ -526,10 +586,30 @@ namespace N
         public async Task TestMissingAfterColonColonPatternSyntax_SwitchExpression()
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
-@"var x = false;
-x = e switch
-{
-    global::$$"));
+                """
+                var x = false;
+                x = e switch
+                {
+                    global::$$
+                """));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70045")]
+        public async Task TestNotInMemberAccessInPattern1()
+        {
+            await VerifyAbsenceAsync("""
+                int v = 0;
+                if (v is var a and a.$$)
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70045")]
+        public async Task TestNotInMemberAccessInPattern2()
+        {
+            await VerifyAbsenceAsync("""
+                int* v = null;
+                if (v is var a and a->$$)
+                """);
         }
     }
 }

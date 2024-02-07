@@ -56,14 +56,19 @@ namespace Microsoft.CodeAnalysis
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _transitiveReferencesMap;
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _reverseTransitiveReferencesMap;
 
+        /// <remarks>
+        ///   Intentionally created with a null reverseReferencesMap. Doing so indicates _lazyReverseReferencesMap
+        ///    shouldn't be calculated until reverse reference information is requested. Once this information
+        ///    has been calculated, forks of this PDG will calculate their new reverse references in a non-lazy fashion.
+        /// </remarks>
         internal static readonly ProjectDependencyGraph Empty = new(
-            ImmutableHashSet<ProjectId>.Empty,
+            [],
+            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
+            reverseReferencesMap: null,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
-            ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
-            ImmutableArray<ProjectId>.Empty,
-            ImmutableArray<IEnumerable<ProjectId>>.Empty);
+            [],
+            []);
 
         internal ProjectDependencyGraph(
             ImmutableHashSet<ProjectId> projectIds,
@@ -143,7 +148,7 @@ namespace Microsoft.CodeAnalysis
             // The only thing we can reuse is our actual map of project references for all the other projects, so we'll do that.
 
             // only include projects contained in the solution:
-            var referencedProjectIds = projectReferences.IsEmpty() ? ImmutableHashSet<ProjectId>.Empty :
+            var referencedProjectIds = projectReferences.IsEmpty() ? [] :
                 projectReferences
                     .Where(r => _projectIds.Contains(r.ProjectId))
                     .Select(r => r.ProjectId)
@@ -165,7 +170,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(projectId));
             }
 
-            return _referencesMap.GetValueOrDefault(projectId, ImmutableHashSet<ProjectId>.Empty);
+            return _referencesMap.GetValueOrDefault(projectId, []);
         }
 
         /// <summary>
@@ -200,7 +205,7 @@ namespace Microsoft.CodeAnalysis
                 ValidateReverseReferences(_projectIds, _referencesMap, _lazyReverseReferencesMap);
             }
 
-            return _lazyReverseReferencesMap.GetValueOrDefault(projectId, ImmutableHashSet<ProjectId>.Empty);
+            return _lazyReverseReferencesMap.GetValueOrDefault(projectId, []);
         }
 
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeReverseReferencesMap()

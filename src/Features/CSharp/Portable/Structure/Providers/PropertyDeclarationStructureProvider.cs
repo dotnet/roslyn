@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             //
             // Properties are grouped together with indexers in Metadata as Source.
             var compressEmptyLines = options.IsMetadataAsSource
-                && (!nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.PropertyDeclaration) || nextSibling.IsKind(SyntaxKind.IndexerDeclaration));
+                && (!nextSibling.IsNode || nextSibling.Kind() is SyntaxKind.PropertyDeclaration or SyntaxKind.IndexerDeclaration);
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 propertyDeclaration,

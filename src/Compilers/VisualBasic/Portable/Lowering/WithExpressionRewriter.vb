@@ -289,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return value
             End If
 
-            If type.IsReferenceType AndAlso Not type.IsTypeParameter() Then ' Skip type parameters to enforce Dev12 behavior
+            If type.IsReferenceType Then
                 ' Expressions of reference type are to be captured using a simple local
                 Dim result As BoundLocal = CaptureInATemp(value, state)
 

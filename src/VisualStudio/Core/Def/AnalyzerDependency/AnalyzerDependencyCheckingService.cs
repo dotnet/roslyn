@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
 
@@ -24,13 +25,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal sealed class AnalyzerDependencyCheckingService
     {
         /// <summary>
-        /// Object given as key for <see cref="HostDiagnosticUpdateSource.UpdateDiagnosticsForProject(ProjectId, object, IEnumerable{DiagnosticData})"/>.
+        /// Object given as key for <see cref="HostDiagnosticUpdateSource.UpdateAndAddDiagnosticsArgsForProject"/>.
         /// </summary>
         private static readonly object s_dependencyConflictErrorId = new();
         private static readonly IIgnorableAssemblyList s_systemPrefixList = new IgnorableAssemblyNamePrefixList("System");
         private static readonly IIgnorableAssemblyList s_codeAnalysisPrefixList = new IgnorableAssemblyNamePrefixList("Microsoft.CodeAnalysis");
         private static readonly IIgnorableAssemblyList s_explicitlyIgnoredAssemblyList = new IgnorableAssemblyIdentityList(GetExplicitlyIgnoredAssemblyIdentities());
-        private static readonly IIgnorableAssemblyList s_assembliesIgnoredByNameList = new IgnorableAssemblyNameList(ImmutableHashSet.Create("mscorlib"));
+        private static readonly IIgnorableAssemblyList s_assembliesIgnoredByNameList = new IgnorableAssemblyNameList(["mscorlib"]);
         private static readonly IBindingRedirectionService s_bindingRedirectionService = new BindingRedirectionService();
 
         private readonly VisualStudioWorkspace _workspace;
@@ -130,6 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var conflicts = results.Conflicts;
             var missingDependencies = results.MissingDependencies;
 
+            using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
             foreach (var project in solution.Projects)
             {
                 builder.Clear();
@@ -169,8 +171,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     }
                 }
 
-                hostDiagnosticUpdateSource.UpdateDiagnosticsForProject(project.Id, s_dependencyConflictErrorId, builder.ToImmutable());
+                hostDiagnosticUpdateSource.UpdateAndAddDiagnosticsArgsForProject(ref argsBuilder.AsRef(), project.Id, s_dependencyConflictErrorId, builder.ToImmutable());
             }
+
+            hostDiagnosticUpdateSource.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
 
             foreach (var conflict in conflicts)
             {

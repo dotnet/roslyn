@@ -48,7 +48,6 @@ internal sealed class LanguageServerHost
 
     public void Start()
     {
-        _logger.LogInformation("Starting server...");
         _jsonRpc.StartListening();
 
         // Now that the server is started, update the our instance reference

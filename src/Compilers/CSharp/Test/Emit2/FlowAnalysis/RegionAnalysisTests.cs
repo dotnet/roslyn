@@ -9691,9 +9691,9 @@ struct B
     B(string x) {}
     public int y;
 }
-"));
+"), thisIsAssignedOnEntry: false);
 
-            static void verify(DataFlowAnalysis analysis)
+            static void verify(DataFlowAnalysis analysis, bool thisIsAssignedOnEntry = true)
             {
                 Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
                 Assert.Equal("x", GetSymbolNamesJoined(analysis.Captured));
@@ -9704,8 +9704,8 @@ struct B
                 Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
                 Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
 
-                Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry, sort: true));
-                Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit, sort: true));
+                Assert.Equal((thisIsAssignedOnEntry ? "this, " : "") + "x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry, sort: true));
+                Assert.Equal((thisIsAssignedOnEntry ? "this, " : "") + "x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit, sort: true));
 
                 Assert.Equal("x", GetSymbolNamesJoined(analysis.ReadInside));
                 Assert.Equal("this", GetSymbolNamesJoined(analysis.ReadOutside));
@@ -10804,7 +10804,7 @@ class B
         int X() => /*<bind>*/x = 1/*</bind>*/;
     }
 }
-"));
+"), xIsAssignedOnEntry: false);
 
             verify(CompileAndAnalyzeDataFlowExpression(@"
 class B
@@ -10816,7 +10816,7 @@ class B
         static int X() => /*<bind>*/x = 1/*</bind>*/;
     }
 }
-"));
+"), xIsAssignedOnEntry: false);
 
             verify(CompileAndAnalyzeDataFlowExpression(@"
 class B
@@ -10865,7 +10865,7 @@ class B
         int X() => /*<bind>*/x = 1/*</bind>*/;
     }
 }
-"));
+"), xIsAssignedOnEntry: false);
 
             verify(CompileAndAnalyzeDataFlowExpression(@"
 class B
@@ -10877,7 +10877,7 @@ class B
         static int X() => /*<bind>*/x = 1/*</bind>*/;
     }
 }
-"));
+"), xIsAssignedOnEntry: false);
 
             verify(CompileAndAnalyzeDataFlowExpression(@"
 class B
@@ -10938,7 +10938,7 @@ class B
 }
 "));
 
-            static void verify(DataFlowAnalysis analysis)
+            static void verify(DataFlowAnalysis analysis, bool xIsAssignedOnEntry = true)
             {
                 Assert.Equal("x", GetSymbolNamesJoined(analysis.AlwaysAssigned));
                 Assert.Equal("x", GetSymbolNamesJoined(analysis.Captured));
@@ -10949,7 +10949,7 @@ class B
                 Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
                 Assert.Equal("x", GetSymbolNamesJoined(analysis.DataFlowsOut));
 
-                Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry, sort: true));
+                Assert.Equal("this" + (xIsAssignedOnEntry ? ", x" : ""), GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry, sort: true));
                 Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit, sort: true));
 
                 Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
@@ -14095,6 +14095,54 @@ class B
 
             Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.WrittenOutside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
+        public void RefField_Assignment()
+        {
+            var comp = CreateCompilation("""
+                ref struct RS
+                {
+                    ref int ri;
+                    public RS() => ri = 0;
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyEmitDiagnostics(
+                // (4,20): warning CS9201: Ref field 'ri' should be ref-assigned before use.
+                //     public RS() => ri = 0;
+                Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(4, 20));
+
+            var tree = comp.CommonSyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var flowAnalysis = model.AnalyzeDataFlow(assignment);
+            Assert.Equal("this", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+            Assert.Equal("this", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69148")]
+        public void RefField_RefAssignment()
+        {
+            var comp = CreateCompilation("""
+                ref struct RS
+                {
+                    ref int ri;
+                    public unsafe RS() => ri = ref *default(int*);
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp,
+                options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.CommonSyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var flowAnalysis = model.AnalyzeDataFlow(assignment);
+            Assert.Null(GetSymbolNamesJoined(flowAnalysis.ReadInside));
+            Assert.Equal("this", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
         }
     }
 }

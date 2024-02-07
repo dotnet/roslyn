@@ -841,23 +841,28 @@ namespace Microsoft.CodeAnalysis
         internal IList<TDirective> GetDirectives<TDirective>(Func<TDirective, bool>? filter = null)
             where TDirective : SyntaxNode
         {
-            List<TDirective>? directives = null;
-            GetDirectives(this, filter, ref directives);
-            return directives ?? SpecializedCollections.EmptyList<TDirective>();
+            GetDirectives(this, filter, out var directives);
+            return directives;
         }
 
-        private static void GetDirectives<TDirective>(in SyntaxNodeOrToken node, Func<TDirective, bool>? filter, ref List<TDirective>? directives)
+        private static void GetDirectives<TDirective>(in SyntaxNodeOrToken node, Func<TDirective, bool>? filter, out IList<TDirective> directives)
             where TDirective : SyntaxNode
         {
-            if (node._token != null && node.AsToken() is var token && token.ContainsDirectives)
+            List<TDirective>? buffer = null;
+            if (node._token != null)
             {
-                GetDirectives(token.LeadingTrivia, filter, ref directives);
-                GetDirectives(token.TrailingTrivia, filter, ref directives);
+                if (node._token.ContainsDirectives)
+                {
+                    foreach (var trivia in node.AsToken().LeadingTrivia)
+                        GetDirectivesInTrivia(trivia, filter, ref buffer);
+                }
             }
             else if (node._nodeOrParent != null)
             {
-                GetDirectives(node._nodeOrParent, filter, ref directives);
+                GetDirectives(node._nodeOrParent, filter, ref buffer);
             }
+
+            directives = buffer ?? SpecializedCollections.EmptyList<TDirective>();
         }
 
         private static void GetDirectives<TDirective>(SyntaxNode node, Func<TDirective, bool>? filter, ref List<TDirective>? directives)
@@ -865,11 +870,11 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var trivia in node.DescendantTrivia(node => node.ContainsDirectives, descendIntoTrivia: true))
             {
-                _ = GetDirectivesInTrivia(trivia, filter, ref directives);
+                GetDirectivesInTrivia(trivia, filter, ref directives);
             }
         }
 
-        private static bool GetDirectivesInTrivia<TDirective>(in SyntaxTrivia trivia, Func<TDirective, bool>? filter, ref List<TDirective>? directives)
+        private static void GetDirectivesInTrivia<TDirective>(in SyntaxTrivia trivia, Func<TDirective, bool>? filter, ref List<TDirective>? directives)
             where TDirective : SyntaxNode
         {
             if (trivia.IsDirective)
@@ -877,27 +882,8 @@ namespace Microsoft.CodeAnalysis
                 if (trivia.GetStructure() is TDirective directive &&
                     filter?.Invoke(directive) != false)
                 {
-                    if (directives == null)
-                    {
-                        directives = new List<TDirective>();
-                    }
-
+                    directives ??= [];
                     directives.Add(directive);
-                }
-
-                return true;
-            }
-            return false;
-        }
-
-        private static void GetDirectives<TDirective>(in SyntaxTriviaList trivia, Func<TDirective, bool>? filter, ref List<TDirective>? directives)
-            where TDirective : SyntaxNode
-        {
-            foreach (var tr in trivia)
-            {
-                if (!GetDirectivesInTrivia(tr, filter, ref directives) && tr.GetStructure() is SyntaxNode node)
-                {
-                    GetDirectives(node, filter, ref directives);
                 }
             }
         }

@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -17,7 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // put these first for better packing
         public readonly ImmutableArray<Conversion> ConversionsOpt;
-        public readonly ImmutableArray<int> BadArgumentsOpt;
+
+        /// <summary>
+        /// A bit vector representing whose true bits indicate indices of bad arguments
+        /// </summary>
+        /// <remarks>
+        /// The capacity of this BitVector might not match the parameter count of the method overload being resolved.
+        /// For example, if a method overload has 5 parameters and the second parameter is the only bad parameter, then this
+        /// BitVector could end up with Capacity being 2 where BadArguments[0] is false and BadArguments[1] is true.
+        /// </remarks>
+        public readonly BitVector BadArgumentsOpt;
         public readonly ImmutableArray<int> ArgsToParamsOpt;
         public readonly ImmutableArray<TypeParameterDiagnosticInfo> ConstraintFailureDiagnostics;
 
@@ -32,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private MemberAnalysisResult(
             MemberResolutionKind kind,
-            ImmutableArray<int> badArgumentsOpt = default,
+            BitVector badArgumentsOpt = default,
             ImmutableArray<int> argsToParamsOpt = default,
             ImmutableArray<Conversion> conversionsOpt = default,
             int missingParameter = -1,
@@ -78,6 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(arg < ArgsToParamsOpt.Length);
             return ArgsToParamsOpt[arg];
         }
+
+        public int FirstBadArgument => BadArgumentsOpt.TrueBits().First();
 
         // A method may be applicable, but worse than another method.
         public bool IsApplicable
@@ -170,35 +182,42 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.NameUsedForPositional,
-                badArgumentsOpt: ImmutableArray.Create<int>(argumentPosition));
+                badArgumentsOpt: CreateBadArgumentsWithPosition(argumentPosition));
         }
 
         public static MemberAnalysisResult BadNonTrailingNamedArgument(int argumentPosition)
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.BadNonTrailingNamedArgument,
-                badArgumentsOpt: ImmutableArray.Create<int>(argumentPosition));
+                badArgumentsOpt: CreateBadArgumentsWithPosition(argumentPosition));
         }
 
         public static MemberAnalysisResult NoCorrespondingParameter(int argumentPosition)
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.NoCorrespondingParameter,
-                badArgumentsOpt: ImmutableArray.Create<int>(argumentPosition));
+                badArgumentsOpt: CreateBadArgumentsWithPosition(argumentPosition));
         }
 
         public static MemberAnalysisResult NoCorrespondingNamedParameter(int argumentPosition)
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.NoCorrespondingNamedParameter,
-                badArgumentsOpt: ImmutableArray.Create<int>(argumentPosition));
+                badArgumentsOpt: CreateBadArgumentsWithPosition(argumentPosition));
         }
 
         public static MemberAnalysisResult DuplicateNamedArgument(int argumentPosition)
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.DuplicateNamedArgument,
-                badArgumentsOpt: ImmutableArray.Create<int>(argumentPosition));
+                badArgumentsOpt: CreateBadArgumentsWithPosition(argumentPosition));
+        }
+
+        internal static BitVector CreateBadArgumentsWithPosition(int argumentPosition)
+        {
+            var badArguments = BitVector.Create(argumentPosition + 1);
+            badArguments[argumentPosition] = true;
+            return badArguments;
         }
 
         public static MemberAnalysisResult RequiredParameterMissing(int parameterPosition)
@@ -218,10 +237,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new MemberAnalysisResult(MemberResolutionKind.UnsupportedMetadata);
         }
 
-        public static MemberAnalysisResult BadArgumentConversions(ImmutableArray<int> argsToParamsOpt, ImmutableArray<int> badArguments, ImmutableArray<Conversion> conversions)
+        public static MemberAnalysisResult BadArgumentConversions(ImmutableArray<int> argsToParamsOpt, BitVector badArguments, ImmutableArray<Conversion> conversions)
         {
             Debug.Assert(conversions.Length != 0);
-            Debug.Assert(badArguments.Length != 0);
+            Debug.Assert(badArguments.TrueBits().Any());
             return new MemberAnalysisResult(
                 MemberResolutionKind.BadArgumentConversion,
                 badArguments,
@@ -273,12 +292,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static MemberAnalysisResult NormalForm(ImmutableArray<int> argsToParamsOpt, ImmutableArray<Conversion> conversions, bool hasAnyRefOmittedArgument)
         {
-            return new MemberAnalysisResult(MemberResolutionKind.ApplicableInNormalForm, default(ImmutableArray<int>), argsToParamsOpt, conversions, hasAnyRefOmittedArgument: hasAnyRefOmittedArgument);
+            return new MemberAnalysisResult(MemberResolutionKind.ApplicableInNormalForm, BitVector.Null, argsToParamsOpt, conversions, hasAnyRefOmittedArgument: hasAnyRefOmittedArgument);
         }
 
         public static MemberAnalysisResult ExpandedForm(ImmutableArray<int> argsToParamsOpt, ImmutableArray<Conversion> conversions, bool hasAnyRefOmittedArgument)
         {
-            return new MemberAnalysisResult(MemberResolutionKind.ApplicableInExpandedForm, default(ImmutableArray<int>), argsToParamsOpt, conversions, hasAnyRefOmittedArgument: hasAnyRefOmittedArgument);
+            return new MemberAnalysisResult(MemberResolutionKind.ApplicableInExpandedForm, BitVector.Null, argsToParamsOpt, conversions, hasAnyRefOmittedArgument: hasAnyRefOmittedArgument);
         }
 
         public static MemberAnalysisResult Worse()

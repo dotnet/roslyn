@@ -8,9 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
     /// Custom fix all provider for namespace sync. Does fix all on per document level. Since
     /// multiple documents may be updated when changing a single namespace, it happens 
     /// on a sequential level instead of batch fixing and merging the changes. This prevents
-    /// collissions that the batch fixer won't handle correctly but is slower.
+    /// collisions that the batch fixer won't handle correctly but is slower.
     /// </summary>
     internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvider
     {
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                     cancellationToken => FixAllByDocumentAsync(
                         fixAllContext.Project.Solution,
                         diagnostics,
-                        fixAllContext.GetProgressTracker(),
+                        fixAllContext.Progress,
 #if CODE_STYLE
                         CodeActionOptions.DefaultProvider,
 #else
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
             private static async Task<Solution> FixAllByDocumentAsync(
                 Solution solution,
                 ImmutableArray<Diagnostic> diagnostics,
-                IProgressTracker progressTracker,
+                IProgress<CodeAnalysisProgress> progressTracker,
                 CodeActionOptionsProvider options,
                 CancellationToken cancellationToken)
             {
@@ -85,11 +83,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                 var documentIdToDiagnosticsMap = diagnostics
                     .GroupBy(diagnostic => diagnostic.Location.SourceTree)
                     .Where(group => group.Key is not null)
-                    .ToImmutableDictionary(group => solution.GetRequiredDocument(group.Key!).Id, group => group.ToImmutableArray());
+                    .SelectAsArray(group => (id: solution.GetRequiredDocument(group.Key!).Id, diagnostics: group.ToImmutableArray()));
 
                 var newSolution = solution;
 
-                progressTracker.AddItems(documentIdToDiagnosticsMap.Count);
+                progressTracker.AddItems(documentIdToDiagnosticsMap.Length);
 
                 foreach (var (documentId, diagnosticsInTree) in documentIdToDiagnosticsMap)
                 {

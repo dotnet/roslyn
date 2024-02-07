@@ -182,18 +182,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             if (!IsEndToken(endToken))
             {
-                return ImmutableArray<TextChange>.Empty;
+                return [];
             }
 
             var tokenRange = FormattingRangeHelper.FindAppropriateRange(endToken);
             if (tokenRange == null || tokenRange.Value.Item1.Equals(tokenRange.Value.Item2))
             {
-                return ImmutableArray<TextChange>.Empty;
+                return [];
             }
 
             if (IsInvalidTokenKind(tokenRange.Value.Item1) || IsInvalidTokenKind(tokenRange.Value.Item2))
             {
-                return ImmutableArray<TextChange>.Empty;
+                return [];
             }
 
             var formatter = new CSharpSmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)document.Root, document.Text);
@@ -309,9 +309,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private static bool IsInvalidTokenKind(SyntaxToken token)
         {
             // invalid token to be formatted
-            return token.IsKind(SyntaxKind.None) ||
-                   token.IsKind(SyntaxKind.EndOfDirectiveToken) ||
-                   token.IsKind(SyntaxKind.EndOfFileToken);
+            return token.Kind()
+                    is SyntaxKind.None
+                    or SyntaxKind.EndOfDirectiveToken
+                    or SyntaxKind.EndOfFileToken;
         }
 
         private ImmutableArray<AbstractFormattingRule> GetFormattingRules(ParsedDocument document, int position, SyntaxToken tokenBeforeCaret)

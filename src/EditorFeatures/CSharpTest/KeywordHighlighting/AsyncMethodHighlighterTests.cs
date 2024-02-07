@@ -22,58 +22,62 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         public async Task TestExample1_1()
         {
             await TestAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class AsyncExample
-{
-    {|Cursor:[|async|]|} Task<int> AsyncMethod()
-    {
-        int hours = 24;
-        return hours;
-    }
+                class AsyncExample
+                {
+                    {|Cursor:[|async|]|} Task<int> AsyncMethod()
+                    {
+                        int hours = 24;
+                        return hours;
+                    }
 
-    async Task UseAsync()
-    {
-        Func<Task<int>> lambda = async () =>
-        {
-            return await AsyncMethod();
-        };
-        int result = await AsyncMethod();
-        Task<int> resultTask = AsyncMethod();
-        result = await resultTask;
-        result = await lambda();
-    }
-}");
+                    async Task UseAsync()
+                    {
+                        Func<Task<int>> lambda = async () =>
+                        {
+                            return await AsyncMethod();
+                        };
+                        int result = await AsyncMethod();
+                        Task<int> resultTask = AsyncMethod();
+                        result = await resultTask;
+                        result = await lambda();
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestExample2_1()
         {
             await TestAsync(
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class AsyncExample
-{
-    async Task<int> AsyncMethod()
-    {
-        int hours = 24;
-        return hours;
-    }
+                class AsyncExample
+                {
+                    async Task<int> AsyncMethod()
+                    {
+                        int hours = 24;
+                        return hours;
+                    }
 
-    {|Cursor:[|async|]|} Task UseAsync()
-    {
-        Func<Task<int>> lambda = async () =>
-        {
-            return await AsyncMethod();
-        };
-        int result = [|await|] AsyncMethod();
-        Task<int> resultTask = AsyncMethod();
-        result = [|await|] resultTask;
-        result = [|await|] lambda();
-    }
-}");
+                    {|Cursor:[|async|]|} Task UseAsync()
+                    {
+                        Func<Task<int>> lambda = async () =>
+                        {
+                            return await AsyncMethod();
+                        };
+                        int result = [|await|] AsyncMethod();
+                        Task<int> resultTask = AsyncMethod();
+                        result = [|await|] resultTask;
+                        result = [|await|] lambda();
+                    }
+                }
+                """);
         }
     }
 }

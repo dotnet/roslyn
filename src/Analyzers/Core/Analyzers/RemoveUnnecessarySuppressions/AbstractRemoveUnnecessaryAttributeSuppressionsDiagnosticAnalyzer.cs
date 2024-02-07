@@ -27,11 +27,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         private static readonly DiagnosticDescriptor s_invalidScopeDescriptor = CreateDescriptor(
             IDEDiagnosticIds.InvalidSuppressMessageAttributeDiagnosticId,
             EnforceOnBuildValues.InvalidSuppressMessageAttribute,
-            s_localizableTitle, s_localizableInvalidScopeMessage, isUnnecessary: true);
+            s_localizableTitle, s_localizableInvalidScopeMessage,
+            hasAnyCodeStyleOption: false, isUnnecessary: true);
         private static readonly DiagnosticDescriptor s_invalidOrMissingTargetDescriptor = CreateDescriptor(
             IDEDiagnosticIds.InvalidSuppressMessageAttributeDiagnosticId,
             EnforceOnBuildValues.InvalidSuppressMessageAttribute,
-            s_localizableTitle, s_localizableInvalidOrMissingTargetMessage, isUnnecessary: true);
+            s_localizableTitle, s_localizableInvalidOrMissingTargetMessage,
+            hasAnyCodeStyleOption: false, isUnnecessary: true);
 
         private static readonly LocalizableResourceString s_localizableLegacyFormatTitle = new(
            nameof(AnalyzersResources.Avoid_legacy_format_target_in_SuppressMessageAttribute), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
@@ -40,10 +42,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         internal static readonly DiagnosticDescriptor LegacyFormatTargetDescriptor = CreateDescriptor(
             IDEDiagnosticIds.LegacyFormatSuppressMessageAttributeDiagnosticId,
             EnforceOnBuildValues.LegacyFormatSuppressMessageAttribute,
-            s_localizableLegacyFormatTitle, s_localizableLegacyFormatMessage, isUnnecessary: false);
+            s_localizableLegacyFormatTitle, s_localizableLegacyFormatMessage,
+            hasAnyCodeStyleOption: false, isUnnecessary: false);
 
         protected AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_invalidScopeDescriptor, s_invalidOrMissingTargetDescriptor, LegacyFormatTargetDescriptor), GeneratedCodeAnalysisFlags.None)
+            : base([s_invalidScopeDescriptor, s_invalidOrMissingTargetDescriptor, LegacyFormatTargetDescriptor], GeneratedCodeAnalysisFlags.None)
         {
         }
 
@@ -95,10 +98,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                     RoslynDebug.Assert(targetValueOperation != null);
 
                     var properties = ImmutableDictionary<string, string?>.Empty;
-                    if (resolvedSymbols.Length == 1)
+                    if (resolvedSymbols is [var resolvedSymbol])
                     {
                         // We provide a code fix for the case where the target resolved to a single symbol.
-                        var docCommentId = DocumentationCommentId.CreateDeclarationId(resolvedSymbols[0]);
+                        var docCommentId = DocumentationCommentId.CreateDeclarationId(resolvedSymbol);
                         if (!string.IsNullOrEmpty(docCommentId))
                         {
                             // Suppression target has an optional "~" prefix to distinguish it from legacy FxCop suppressions.

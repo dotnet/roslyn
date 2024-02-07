@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
@@ -16,11 +17,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// are in their search.
         /// </summary>
         IStreamingProgressTracker ProgressTracker { get; }
-
-        /// <summary>
-        /// Get <see cref="FindUsagesOptions"/> for specified language.
-        /// </summary>
-        ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken);
 
         /// <summary>
         /// Report a failure message to be displayed to the user.  This will be reported if the find operation returns

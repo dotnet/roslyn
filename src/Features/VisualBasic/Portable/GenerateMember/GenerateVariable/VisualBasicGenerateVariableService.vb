@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateVariable
                 simpleNameOrMemberAccessExpression = identifierName
             End If
 
-            Dim semanticModel = DirectCast(document.SemanticModel, SemanticModel)
+            Dim semanticModel = document.SemanticModel
             If Not IsLegal(semanticModel, simpleNameOrMemberAccessExpression, cancellationToken) AndAlso
                Not simpleNameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.NameOfExpression, SyntaxKind.NamedFieldInitializer) Then
                 identifierToken = Nothing

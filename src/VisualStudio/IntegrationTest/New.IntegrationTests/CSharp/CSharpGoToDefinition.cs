@@ -9,8 +9,10 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Shell.TableControl;
+using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
@@ -133,8 +135,8 @@ class C
             var actual = await TestServices.Editor.GetOutliningSpansAsync(HangMitigatingCancellationToken);
 
             // When collapsing, not everything is collapsed (eg, namespace and class aren't), but most things are
-            Assert.Equal(32, actual.Length);
-            Assert.Equal(8, actual.Count(s => !s.Collapsed));
+            Assert.Equal(31, actual.Length);
+            Assert.Equal(7, actual.Count(s => !s.Collapsed));
         }
 
         [IdeFact]
@@ -163,11 +165,11 @@ class C
 
             var actual = await TestServices.Editor.GetOutliningSpansAsync(HangMitigatingCancellationToken);
 
-            Assert.Equal(32, actual.Length);
+            Assert.Equal(31, actual.Length);
             Assert.Equal(1, actual.Count(s => s.Collapsed));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/70376")]
         public async Task GoToDefinitionFromMetadataSecondHop()
         {
             await TestServices.SolutionExplorer.AddDllReferenceAsync(ProjectName, typeof(CSharpGoToDefinition).Assembly.Location, HangMitigatingCancellationToken);
@@ -203,6 +205,40 @@ class C
             await TestServices.Editor.PlaceCaretAsync("AbstractEditorTest", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
             Assert.Equal("AbstractEditorTest.cs [embedded] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+        }
+
+        [IdeTheory]
+        [InlineData("ValueTuple<int> valueTuple1;")]
+        [InlineData("ValueTuple<int, int> valueTuple2;")]
+        [InlineData("ValueTuple<int, int, int> valueTuple3;")]
+        [InlineData("ValueTuple<int, int, int, int> valueTuple4;")]
+        [InlineData("ValueTuple<int, int, int, int, int> valueTuple5;")]
+        [InlineData("ValueTuple<int, int, int, int, int, int> valueTuple6;")]
+        [InlineData("ValueTuple<int, int, int, int, int, int, int> valueTuple7;")]
+        [InlineData("ValueTuple<int, int, int, int, int, int, int, int> valueTuple8;")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71680")]
+        public async Task TestGotoDefinitionWithValueTuple(string expression)
+        {
+            var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, language: LanguageName, false);
+
+            await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync(
+@$"using System;
+
+class C
+{{
+    void M()
+    {{
+        {expression}
+    }}
+}}", HangMitigatingCancellationToken);
+
+            await TestServices.Editor.PlaceCaretAsync("ValueTuple", charsOffset: -1, HangMitigatingCancellationToken);
+
+            await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
+            Assert.Equal($"ValueTuple [{FeaturesResources.Decompiled}] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
         }
     }
 }

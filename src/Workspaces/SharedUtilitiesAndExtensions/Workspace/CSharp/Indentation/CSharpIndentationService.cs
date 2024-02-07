@@ -107,9 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         private static bool IsInvalidToken(SyntaxToken token)
         {
             // invalid token to be formatted
-            return token.IsKind(SyntaxKind.None) ||
-                   token.IsKind(SyntaxKind.EndOfDirectiveToken) ||
-                   token.IsKind(SyntaxKind.EndOfFileToken);
+            return token.Kind() is SyntaxKind.None or SyntaxKind.EndOfDirectiveToken or SyntaxKind.EndOfFileToken;
         }
 
         private class CSharpIndentationFormattingRule : AbstractFormattingRule

@@ -4,52 +4,26 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.VisualStudio.IntegrationTest.Setup
+namespace Microsoft.VisualStudio.IntegrationTest.Setup;
+
+/// <summary>This class causes a crash if an exception is encountered inside lightbulb extension points such as code fixes and code refactorings.</summary>
+/// <remarks>
+/// This class is exported as a workspace service with layer: <see cref="ServiceLayer.Host"/>. This ensures that TestExtensionManager
+/// is preferred over EditorLayerExtensionManager (which has layer: <see cref="ServiceLayer.Editor"/>) when running VS integration tests.
+/// </remarks>
+[Shared, ExportWorkspaceService(typeof(IExtensionManager), ServiceLayer.Host)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class TestExtensionManager(
+    [Import] TestExtensionErrorHandler errorHandler) : AbstractExtensionManager
 {
-    /// <summary>This class causes a crash if an exception is encountered inside lightbulb extension points such as code fixes and code refactorings.</summary>
-    /// <remarks>
-    /// This class is exported as a workspace service with layer: <see cref="ServiceLayer.Host"/>. This ensures that TestExtensionManager
-    /// is preferred over EditorLayerExtensionManager (which has layer: <see cref="ServiceLayer.Editor"/>) when running VS integration tests.
-    /// </remarks>
-    [Shared, ExportWorkspaceServiceFactory(typeof(IExtensionManager), ServiceLayer.Host)]
-    internal class TestExtensionManager : IWorkspaceServiceFactory
+    protected override void HandleNonCancellationException(object provider, Exception exception)
     {
-        private readonly TestExtensionErrorHandler _errorHandler;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestExtensionManager([Import] TestExtensionErrorHandler errorHandler)
-        {
-            _errorHandler = errorHandler;
-        }
-
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new ExtensionManager(_errorHandler);
-
-        private class ExtensionManager : AbstractExtensionManager
-        {
-            private readonly TestExtensionErrorHandler _errorHandler;
-
-            public ExtensionManager(TestExtensionErrorHandler errorHandler)
-            {
-                _errorHandler = errorHandler;
-            }
-
-            public override bool CanHandleException(object provider, Exception exception)
-            {
-                // This method will be called from within the 'when' clause in an exception filter. Therefore calling HandleException()
-                // below will ensure that VS will crash with a more actionable dump as opposed to a dump that gets created after the
-                // exception has already been caught.
-                HandleException(provider, exception);
-                return true;
-            }
-
-            public override void HandleException(object provider, Exception exception)
-                => _errorHandler.HandleError(provider, exception);
-        }
+        Debug.Assert(exception is not OperationCanceledException);
+        errorHandler.HandleError(provider, exception);
     }
 }

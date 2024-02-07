@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return diagnostics;
                     }
 
-                    return ImmutableArray<DiagnosticData>.Empty;
+                    return [];
                 }
             }
 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return diagnostics;
                     }
 
-                    return ImmutableArray<DiagnosticData>.Empty;
+                    return [];
                 }
             }
         }

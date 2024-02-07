@@ -33,10 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
+            var preference = context.GetCSharpAnalyzerOptions().PreferSimpleDefaultExpression;
+            if (ShouldSkipAnalysis(context, preference.Notification))
+                return;
+
             var cancellationToken = context.CancellationToken;
             var syntaxTree = context.Node.SyntaxTree;
-            var preference = context.GetCSharpAnalyzerOptions().PreferSimpleDefaultExpression;
-
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var defaultExpression = (DefaultExpressionSyntax)context.Node;
             if (!defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, preference.Value, context.SemanticModel, cancellationToken))
@@ -49,9 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
                 DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     defaultExpression.GetLocation(),
-                    preference.Notification.Severity,
-                    additionalLocations: ImmutableArray<Location>.Empty,
-                    additionalUnnecessaryLocations: ImmutableArray.Create(defaultExpression.SyntaxTree.GetLocation(fadeSpan))));
+                    preference.Notification,
+                    additionalLocations: [],
+                    additionalUnnecessaryLocations: [defaultExpression.SyntaxTree.GetLocation(fadeSpan)]));
         }
     }
 }

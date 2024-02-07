@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Get
         End Property
 
-        Public Overrides ReadOnly Property Envelope As ActiveStatementEnvelope
+        Public Overrides ReadOnly Property Envelope As TextSpan
             Get
                 Return TextSpan.FromBounds(PropertyStatement.Identifier.Span.Start, PropertyStatement.AsClause.Span.End)
             End Get

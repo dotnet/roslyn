@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             UnderlyingType = underlyingType;
         }
 
+        bool IDefinition.IsEncDeleted => false;
+
         ushort ITypeDefinition.Alignment => UnderlyingType.Alignment;
 
         IGenericMethodParameterReference ITypeReference.AsGenericMethodParameterReference => UnderlyingType.AsGenericMethodParameterReference;

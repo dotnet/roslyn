@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)]
         [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747226")]
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)]
         [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)]
         [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)]
         [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)]
         [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)]
         [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)]
         [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)]
         [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)]
         [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
@@ -271,8 +271,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
@@ -299,8 +299,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
@@ -327,8 +327,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
@@ -357,8 +357,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
@@ -385,8 +385,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
@@ -413,8 +413,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
@@ -441,8 +441,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             MakeFirstDocumentActive(workspace.CurrentSolution.Projects.First());
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            Assert.Equal(BackgroundAnalysisScope.ActiveFile, workspace.GlobalOptions.GetBackgroundAnalysisScope(LanguageNames.CSharp));
+            Assert.Equal(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, workspace.GlobalOptions.GetBackgroundAnalysisScope(LanguageNames.CSharp));
 
             var newAnalysisScope = BackgroundAnalysisScope.OpenFiles;
             var worker = await ExecuteOperationAsync(workspace, w => w.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope));
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             workspace.OnSolutionAdded(solutionInfo);
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            Assert.Equal(BackgroundAnalysisScope.ActiveFile, workspace.GlobalOptions.GetBackgroundAnalysisScope(LanguageNames.CSharp));
+            Assert.Equal(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, workspace.GlobalOptions.GetBackgroundAnalysisScope(LanguageNames.CSharp));
 
             var newAnalysisScope = BackgroundAnalysisScope.FullSolution;
             var worker = await ExecuteOperationAsync(workspace, w => w.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope));
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)]
         [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
@@ -549,8 +549,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
@@ -583,8 +583,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
@@ -613,8 +613,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
@@ -639,8 +639,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
@@ -685,8 +685,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
@@ -711,8 +711,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
@@ -754,8 +754,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
@@ -794,8 +794,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
@@ -849,8 +849,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
@@ -957,8 +957,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [InlineData(BackgroundAnalysisScope.None, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
-        [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, false)]
+        [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, true)]
         [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
@@ -980,14 +980,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedSyntaxDocumentEvents = (analysisScope, hasActiveDocumentBefore) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, _) => 1,
+                (BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, _) => 1,
                 (BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution or BackgroundAnalysisScope.None, _) => 0,
                 _ => throw ExceptionUtilities.Unreachable(),
             };
 
             var expectedDocumentEvents = (analysisScope, hasActiveDocumentBefore) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, _) => 1,
+                (BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, _) => 1,
                 (BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution or BackgroundAnalysisScope.None, _) => 0,
                 _ => throw ExceptionUtilities.Unreachable(),
             };
@@ -1016,8 +1016,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
 
-            var document = new TestHostDocument();
-            var project = new TestHostProject(workspace, document);
+            var document = new EditorTestHostDocument();
+            var project = new EditorTestHostProject(workspace, document);
             workspace.AddTestProject(project);
 
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -1051,8 +1051,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
 
-            var document = new TestHostDocument();
-            var project = new TestHostProject(workspace, additionalDocuments: new[] { document });
+            var document = new EditorTestHostDocument();
+            var project = new EditorTestHostProject(workspace, additionalDocuments: new[] { document });
             workspace.AddTestProject(project);
 
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -1079,8 +1079,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
 
-            var document = new TestHostDocument();
-            var project = new TestHostProject(workspace, analyzerConfigDocuments: new[] { document });
+            var document = new EditorTestHostDocument();
+            var project = new EditorTestHostProject(workspace, analyzerConfigDocuments: new[] { document });
             workspace.AddTestProject(project);
 
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -1522,11 +1522,11 @@ class C
 
         private static async Task InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
         {
-            using var workspace = TestWorkspace.Create(
+            using var workspace = EditorTestWorkspace.Create(
                 language,
                 compilationOptions: null,
                 parseOptions: null,
-                new[] { code },
+                [code],
                 composition: EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(IIncrementalAnalyzerProvider)).AddParts(typeof(AnalyzerProviderNoWaitNoBlock)),
                 workspaceKind: SolutionCrawlerWorkspaceKind);
 
@@ -1558,14 +1558,14 @@ class C
             Assert.Equal(expectDocumentAnalysis ? 1 : 0, analyzer.DocumentIds.Count);
         }
 
-        private static Task<Analyzer> ExecuteOperationAsync(TestWorkspace workspace, Action<TestWorkspace> operation)
+        private static Task<Analyzer> ExecuteOperationAsync(EditorTestWorkspace workspace, Action<EditorTestWorkspace> operation)
             => ExecuteOperationAsync(workspace, w =>
             {
                 operation(w);
                 return Task.CompletedTask;
             });
 
-        private static async Task<Analyzer> ExecuteOperationAsync(TestWorkspace workspace, Func<TestWorkspace, Task> operation)
+        private static async Task<Analyzer> ExecuteOperationAsync(EditorTestWorkspace workspace, Func<EditorTestWorkspace, Task> operation)
         {
             var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
             Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
@@ -1602,7 +1602,7 @@ class C
             }
         }
 
-        private static async Task WaitAsync(SolutionCrawlerRegistrationService service, TestWorkspace workspace)
+        private static async Task WaitAsync(SolutionCrawlerRegistrationService service, EditorTestWorkspace workspace)
         {
             await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -1688,7 +1688,7 @@ class C
             documentTrackingService.SetActiveDocument(null);
         }
 
-        private class WorkCoordinatorWorkspace : TestWorkspace
+        private class WorkCoordinatorWorkspace : EditorTestWorkspace
         {
             private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures
                 .AddParts(typeof(TestDocumentTrackingService))
@@ -1902,7 +1902,7 @@ class C
 
             public async Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
             {
-                if (_globalOptions.GetBackgroundAnalysisScope(document.Project.Language) != BackgroundAnalysisScope.ActiveFile)
+                if (_globalOptions.GetBackgroundAnalysisScope(document.Project.Language) != BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)
                 {
                     return;
                 }

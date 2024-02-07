@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Fakes;
 using Microsoft.CodeAnalysis.UnitTests.Remote;
 using Microsoft.VisualStudio.InteractiveWindow;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
@@ -52,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             .AddParts(
                 typeof(TestSerializerService.Factory),
                 typeof(TestExportJoinableTaskContext),
+                typeof(WpfDispatcherTaskJoiner),
                 typeof(StubStreamingFindUsagesPresenter), // actual implementation is in VS layer
                 typeof(EditorNotificationServiceFactory), // TODO: use mock INotificationService instead (https://github.com/dotnet/roslyn/issues/46045)
                 typeof(TestObscuringTipManager));         // TODO: https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(EditorFeaturesResources).Assembly,
                 typeof(CSharp.CSharpEditorResources).Assembly,
                 typeof(VisualBasic.VBEditorResources).Assembly,
-                typeof(LanguageServerResources).Assembly);
+                typeof(LanguageServerProtocolResources).Assembly);
 
         public static readonly TestComposition EditorFeaturesWpf = EditorFeatures
             .AddAssemblies(
@@ -77,9 +79,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(TestInteractiveWindowEditorFactoryService));
 
         public static readonly TestComposition LanguageServerProtocol = FeaturesTestCompositions.Features
-            .AddAssemblies(typeof(LanguageServerResources).Assembly);
+            .AddAssemblies(typeof(LanguageServerProtocolResources).Assembly);
 
         public static readonly TestComposition LanguageServerProtocolEditorFeatures = EditorFeatures
-            .AddAssemblies(typeof(LanguageServerResources).Assembly);
+            .AddAssemblies(typeof(LanguageServerProtocolResources).Assembly);
     }
 }

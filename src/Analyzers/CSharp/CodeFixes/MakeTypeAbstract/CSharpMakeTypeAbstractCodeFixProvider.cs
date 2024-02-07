@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-               ImmutableArray.Create(
-                   "CS0513" // 'C.M()' is abstract but it is contained in non-abstract type 'C'
-               );
+               ["CS0513"];
 
         protected override bool IsValidRefactoringContext(SyntaxNode? node, [NotNullWhen(true)] out TypeDeclarationSyntax? typeDeclaration)
         {
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
             }
 
             var enclosingType = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
-            if ((enclosingType.IsKind(SyntaxKind.ClassDeclaration) || enclosingType.IsKind(SyntaxKind.RecordDeclaration)) &&
+            if (enclosingType?.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration &&
                 !enclosingType.Modifiers.Any(SyntaxKind.AbstractKeyword) && !enclosingType.Modifiers.Any(SyntaxKind.StaticKeyword))
             {
                 typeDeclaration = enclosingType;

@@ -1573,6 +1573,7 @@ unsafe struct S
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
 using System;
+using System.Globalization;
 using System.Runtime.InteropServices;
 
 struct IntWrapper
@@ -1654,7 +1655,7 @@ unsafe class C
         s.i = 2;
         var returnWrapper = UnmanagedFunctionPointer.GetFuncPtrMultipleParams(out var del)(&s, 3.5f);
         Console.Write(returnWrapper.i1);
-        Console.Write(returnWrapper.f2);
+        Console.Write(returnWrapper.f2.ToString(CultureInfo.InvariantCulture));
         GC.KeepAlive(del);
     }
 }", expectedOutput: @"
@@ -1689,35 +1690,41 @@ unsafe class C
 }
 ");
 
-            verifier.VerifyIL("C.TestMultiple()", @"
+            verifier.VerifyIL("C.TestMultiple()", """
 {
-  // Code size       66 (0x42)
+  // Code size       79 (0x4f)
   .maxstack  3
   .locals init (S V_0, //s
-                UnmanagedFunctionPointer.MultipleParams V_1, //del
-                delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> V_2)
+                ReturnWrapper V_1, //returnWrapper
+                UnmanagedFunctionPointer.MultipleParams V_2, //del
+                delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> V_3)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""S""
+  IL_0002:  initobj    "S"
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.2
-  IL_000b:  stfld      ""int S.i""
-  IL_0010:  ldloca.s   V_1
-  IL_0012:  call       ""delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> UnmanagedFunctionPointer.GetFuncPtrMultipleParams(out UnmanagedFunctionPointer.MultipleParams)""
-  IL_0017:  stloc.2
+  IL_000b:  stfld      "int S.i"
+  IL_0010:  ldloca.s   V_2
+  IL_0012:  call       "delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> UnmanagedFunctionPointer.GetFuncPtrMultipleParams(out UnmanagedFunctionPointer.MultipleParams)"
+  IL_0017:  stloc.3
   IL_0018:  ldloca.s   V_0
   IL_001a:  conv.u
   IL_001b:  ldc.r4     3.5
-  IL_0020:  ldloc.2
-  IL_0021:  calli      ""delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper>""
-  IL_0026:  dup
-  IL_0027:  ldfld      ""int ReturnWrapper.i1""
-  IL_002c:  call       ""void System.Console.Write(int)""
-  IL_0031:  ldfld      ""float ReturnWrapper.f2""
-  IL_0036:  call       ""void System.Console.Write(float)""
-  IL_003b:  ldloc.1
-  IL_003c:  call       ""void System.GC.KeepAlive(object)""
-  IL_0041:  ret
-}");
+  IL_0020:  ldloc.3
+  IL_0021:  calli      "delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper>"
+  IL_0026:  stloc.1
+  IL_0027:  ldloc.1
+  IL_0028:  ldfld      "int ReturnWrapper.i1"
+  IL_002d:  call       "void System.Console.Write(int)"
+  IL_0032:  ldloca.s   V_1
+  IL_0034:  ldflda     "float ReturnWrapper.f2"
+  IL_0039:  call       "System.Globalization.CultureInfo System.Globalization.CultureInfo.InvariantCulture.get"
+  IL_003e:  call       "string float.ToString(System.IFormatProvider)"
+  IL_0043:  call       "void System.Console.Write(string)"
+  IL_0048:  ldloc.2
+  IL_0049:  call       "void System.GC.KeepAlive(object)"
+  IL_004e:  ret
+}
+""");
         }
 
         [Fact]
@@ -3202,9 +3209,9 @@ unsafe class C
                 // (15,40): error CS8757: No overload for 'M3' matches function pointer 'delegate*<object, void>'
                 //         delegate*<object, void> ptr3 = &M3;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<object, void>").WithLocation(15, 40),
-                // (16,44): error CS8757: No overload for 'M2' matches function pointer 'delegate*<ref object, void>'
+                // (16,45): error CS8759: Cannot create a function pointer for 'C.M2(in object)' because it is not a static method
                 //         delegate*<ref object, void> ptr4 = &M2;
-                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M2").WithArguments("M2", "delegate*<ref object, void>").WithLocation(16, 44),
+                Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "M2").WithArguments("C.M2(in object)").WithLocation(16, 45),
                 // (17,44): error CS8757: No overload for 'M3' matches function pointer 'delegate*<ref object, void>'
                 //         delegate*<ref object, void> ptr5 = &M3;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<ref object, void>").WithLocation(17, 44),
@@ -6080,11 +6087,10 @@ Ref");
 ");
         }
 
-        [Theory]
-        [InlineData("ref", "out")]
-        [InlineData("ref", "in")]
-        [InlineData("out", "in")]
-        public void Overloading_InvalidParameterRefness(string refKind1, string refKind2)
+        [Theory, CombinatorialData]
+        public void Overloading_InvalidParameterRefness(
+            [CombinatorialValues("ref", "in", "out", "ref readonly")] string refKind1,
+            [CombinatorialValues("ref", "in", "out", "ref readonly")] string refKind2)
         {
             var comp = CreateCompilationWithFunctionPointers($@"
 unsafe class C<T>
@@ -6094,6 +6100,13 @@ unsafe class C<T>
 
     static void M2(C<delegate*<{refKind1} object, void>[]> c) => throw null;
     static void M2(C<delegate*<{refKind2} object, void>[]> c) => throw null;
+}}
+
+namespace System.Runtime.CompilerServices
+{{
+    class RequiresLocationAttribute : System.Attribute
+    {{
+    }}
 }}
 ");
 
@@ -7355,9 +7368,9 @@ unsafe class Test
                 // (14,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         param2(out var l);
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var l").WithArguments("1", "out").WithLocation(14, 20),
-                // (17,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                // (17,20): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
                 //         param2(ref s);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "ref").WithLocation(17, 20),
+                Diagnostic(ErrorCode.WRN_BadArgRef, "s").WithArguments("1").WithLocation(17, 20),
                 // (23,16): error CS1620: Argument 1 must be passed with the 'out' keyword
                 //         param3(s);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "out").WithLocation(23, 16),
@@ -7392,10 +7405,9 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (6,15): error CS1593: Delegate 'Func<string>' does not take 1 arguments
+                // (6,17): error CS1593: Delegate 'Func<string>' does not take 1 arguments
                 //         param(a => a);
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "a => a").WithArguments("System.Func<string>", "1").WithLocation(6, 15)
-            );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Func<string>", "1").WithLocation(6, 17));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -11623,7 +11635,11 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.Empty(attr.ConstructorArguments);
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(0, arg.Value);
+                Assert.Equal("B<delegate*<System.Void>[]>.E", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }
@@ -11676,7 +11692,11 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.Empty(attr.ConstructorArguments);
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(0, arg.Value);
+                Assert.Equal("B<delegate*<System.Void>[]>.E", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }
@@ -11729,8 +11749,10 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.Empty(attr.ConstructorArguments);
+                Assert.False(attr.HasErrors);
                 Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(0, arg.Value);
             });
             verifier.VerifyDiagnostics();
         }
@@ -11786,6 +11808,8 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
                 var arg = attr.ConstructorArguments.Single();
                 Assert.True(arg.IsNull);
             });
@@ -11818,6 +11842,8 @@ class C<T> {}
                 {
                     var c = module.GlobalNamespace.GetTypeMember("C");
                     var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                    Assert.False(attr.HasErrors);
+                    Assert.Empty(attr.NamedArguments);
                     var arg = attr.ConstructorArguments.Single();
                     Assert.True(arg.IsNull);
                 });
@@ -12051,7 +12077,11 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.True(attr.HasErrors); // https://github.com/dotnet/roslyn/issues/66370
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("B<delegate*<System.Void>[]>.E", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }
@@ -12184,7 +12214,11 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.True(attr.HasErrors); // https://github.com/dotnet/roslyn/issues/66370
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("B<delegate*<System.Void>[]>.E", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }
@@ -12212,7 +12246,11 @@ class C<T> {}
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.True(attr.HasErrors); // https://github.com/dotnet/roslyn/issues/66370
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.True(arg.Values.IsEmpty);
+                Assert.Equal("B<delegate*<System.Void>[]>.E[]", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }
@@ -12238,11 +12276,23 @@ class C<T> {}
                 """;
 
             // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: static module =>
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
-                Assert.True(attr.HasErrors); // https://github.com/dotnet/roslyn/issues/66370
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                if (initializer == "()")
+                {
+                    var item = arg.Values.Single();
+                    Assert.Equal(0, item.Value);
+                }
+                else
+                {
+                    Assert.True(arg.Values.IsEmpty);
+                }
+                Assert.Equal("B<delegate*<System.Void>[]>.E[]", arg.Type.ToTestDisplayString());
             });
             verifier.VerifyDiagnostics();
         }

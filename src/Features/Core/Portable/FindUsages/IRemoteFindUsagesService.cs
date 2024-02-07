@@ -9,11 +9,11 @@ using System.Composition;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -21,9 +21,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal interface IRemoteFindUsagesService
     {
-        internal interface ICallback
+        internal interface ICallback : IRemoteOptionsCallback<ClassificationOptions>
         {
-            ValueTask<FindUsagesOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
             ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
             ValueTask ItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
             ValueTask ReportMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken);
@@ -59,8 +58,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
         private new FindUsagesServerCallback GetCallback(RemoteServiceCallbackId callbackId)
             => (FindUsagesServerCallback)base.GetCallback(callbackId);
 
-        public ValueTask<FindUsagesOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
-            => GetCallback(callbackId).GetOptionsAsync(language, cancellationToken);
+        public ValueTask<ClassificationOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
+            => GetCallback(callbackId).GetClassificationOptionsAsync(language, cancellationToken);
 
         public ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken)
             => GetCallback(callbackId).AddItemsAsync(count, cancellationToken);
@@ -84,14 +83,15 @@ namespace Microsoft.CodeAnalysis.FindUsages
             => GetCallback(callbackId).SetSearchTitleAsync(title, cancellationToken);
     }
 
-    internal sealed class FindUsagesServerCallback(Solution solution, IFindUsagesContext context)
+    internal sealed class FindUsagesServerCallback(Solution solution, IFindUsagesContext context, OptionsProvider<ClassificationOptions> classificationOptions)
     {
         private readonly Solution _solution = solution;
         private readonly IFindUsagesContext _context = context;
         private readonly Dictionary<int, DefinitionItem> _idToDefinition = new();
+        private readonly OptionsProvider<ClassificationOptions> _classificationOptions = classificationOptions;
 
-        public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-            => _context.GetOptionsAsync(language, cancellationToken);
+        internal ValueTask<ClassificationOptions> GetClassificationOptionsAsync(string language, CancellationToken cancellationToken)
+            => _classificationOptions.GetOptionsAsync(_solution.Services.GetLanguageServices(language), cancellationToken);
 
         public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
             => _context.ProgressTracker.AddItemsAsync(count, cancellationToken);
@@ -232,6 +232,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 NameDisplayParts,
                 OriginationParts,
                 sourceSpans,
+                // todo: consider serializing this over.
+                classifiedSpans: sourceSpans.SelectAsArray(ss => (ClassifiedSpansAndHighlightSpan?)null),
                 Properties,
                 DisplayableProperties,
                 DisplayIfNoReferences);
@@ -266,6 +268,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public async Task<SourceReferenceItem> RehydrateAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
             => new(definition,
                    await SourceSpan.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false),
+                   // Todo: consider serializing this over.
+                   classifiedSpans: null,
                    SymbolUsageInfo,
                    AdditionalProperties.ToImmutableDictionary(t => t.Key, t => t.Value));
     }

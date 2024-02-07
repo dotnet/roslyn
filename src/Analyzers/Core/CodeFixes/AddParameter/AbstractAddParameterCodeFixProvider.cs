@@ -262,12 +262,13 @@ namespace Microsoft.CodeAnalysis.AddParameter
                                                              includeParameters: true);
                         codeAction = CodeAction.Create(
                             title: titleForNesting,
-                            ImmutableArray.Create(
+                            [
                                 codeAction,
                                 CodeAction.Create(
                                     titleCascading,
                                     data.CreateChangedSolutionCascading,
-                                    equivalenceKey: titleCascading)),
+                                    equivalenceKey: titleCascading),
+                            ],
                             isInlinable: true);
                     }
 

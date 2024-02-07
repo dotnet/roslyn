@@ -470,7 +470,7 @@ True
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
             verifier.VerifyIL("Program.Barney", expectedBarneyIL);
-            verifier.VerifyIL(".cctor", expectedPIDStaticConstructorIL);
+            verifier.VerifyIL("<PrivateImplementationDetails>..cctor", expectedPIDStaticConstructorIL);
             verifier.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(16, 9));
         }
 

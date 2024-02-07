@@ -27,7 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
     internal abstract partial class VsInteractiveWindowPackage<TVsInteractiveWindowProvider> : AsyncPackage, IVsToolWindowFactory
         where TVsInteractiveWindowProvider : VsInteractiveWindowProvider
     {
-        protected abstract void InitializeMenuCommands(OleMenuCommandService menuCommandService);
+        protected virtual void InitializeMenuCommands(OleMenuCommandService menuCommandService)
+        {
+        }
 
         protected abstract Guid LanguageServiceGuid { get; }
         protected abstract Guid ToolWindowId { get; }
@@ -52,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             // Set both handlers to non-fatal Watson. Never fail-fast the VS process.
             // Any exception that is not recovered from shall be propagated.
             FaultReporter.InitializeFatalErrorHandlers();
-            FatalError.CopyHandlerTo(typeof(InteractiveHostFatalError).Assembly);
+            FatalError.CopyHandlersTo(typeof(InteractiveHostFatalError).Assembly);
 
             // Explicitly set up FatalError handlers for the InteractiveWindowPackage.
             Action<Exception> fatalHandler = e => FaultReporter.ReportFault(e, VisualStudio.Telemetry.FaultSeverity.Critical, forceDump: false);
@@ -73,8 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             var handlerSetter = type.GetDeclaredMethod("set_Handler");
             var nonFatalHandlerSetter = type.GetDeclaredMethod("set_NonFatalHandler");
 
-            handlerSetter.Invoke(null, new object[] { fatalHandler });
-            nonFatalHandlerSetter.Invoke(null, new object[] { nonFatalHandler });
+            handlerSetter.Invoke(null, [fatalHandler]);
+            nonFatalHandlerSetter.Invoke(null, [nonFatalHandler]);
         }
 
         protected TVsInteractiveWindowProvider InteractiveWindowProvider

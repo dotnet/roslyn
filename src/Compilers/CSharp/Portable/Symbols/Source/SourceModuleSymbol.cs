@@ -221,7 +221,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+#nullable enable
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
             while (true)
             {
@@ -235,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.StartValidatingReferencedAssemblies:
                         {
-                            BindingDiagnosticBag diagnostics = null;
+                            BindingDiagnosticBag? diagnostics = null;
 
                             if (AnyReferencedAssembliesAreLinked)
                             {
@@ -268,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.MembersCompleted:
-                        this.GlobalNamespace.ForceComplete(locationOpt, cancellationToken);
+                        this.GlobalNamespace.ForceComplete(locationOpt, filter, cancellationToken);
 
                         if (this.GlobalNamespace.HasComplete(CompletionPart.MembersCompleted))
                         {
@@ -276,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else
                         {
-                            Debug.Assert(locationOpt != null, "If no location was specified, then the namespace members should be completed");
+                            Debug.Assert(locationOpt != null || filter != null, "If no location or filter was specified, then the namespace members should be completed");
                             return;
                         }
 
@@ -294,6 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _state.SpinWaitComplete(incompletePart, cancellationToken);
             }
         }
+#nullable disable
 
         private void ValidateLinkedAssemblies(BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
@@ -303,47 +305,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!a.IsMissing && a.IsLinked)
                 {
-                    bool hasGuidAttribute = false;
-                    bool hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = false;
-
-                    foreach (var attrData in a.GetAttributes())
-                    {
-                        if (attrData.IsTargetAttribute(a, AttributeDescription.GuidAttribute))
-                        {
-                            string guidString;
-                            if (attrData.TryGetGuidAttributeValue(out guidString))
-                            {
-                                hasGuidAttribute = true;
-                            }
-                        }
-                        else if (attrData.IsTargetAttribute(a, AttributeDescription.ImportedFromTypeLibAttribute))
-                        {
-                            if (attrData.CommonConstructorArguments.Length == 1)
-                            {
-                                hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = true;
-                            }
-                        }
-                        else if (attrData.IsTargetAttribute(a, AttributeDescription.PrimaryInteropAssemblyAttribute))
-                        {
-                            if (attrData.CommonConstructorArguments.Length == 2)
-                            {
-                                hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = true;
-                            }
-                        }
-
-                        if (hasGuidAttribute && hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute)
-                        {
-                            break;
-                        }
-                    }
-
-                    if (!hasGuidAttribute)
+                    if (!a.GetGuidString(out _))
                     {
                         // ERRID_PIAHasNoAssemblyGuid1/ERR_NoPIAAssemblyMissingAttribute
                         diagnostics.Add(ErrorCode.ERR_NoPIAAssemblyMissingAttribute, NoLocation.Singleton, a, AttributeDescription.GuidAttribute.FullName);
                     }
 
-                    if (!hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute)
+                    if (!a.HasImportedFromTypeLibAttribute && !a.HasPrimaryInteropAssemblyAttribute)
                     {
                         // ERRID_PIAHasNoTypeLibAttribute1/ERR_NoPIAAssemblyMissingAttributes
                         diagnostics.Add(ErrorCode.ERR_NoPIAAssemblyMissingAttributes, NoLocation.Singleton, a,
@@ -510,13 +478,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
-            if (attribute.IsTargetAttribute(this, AttributeDescription.DefaultCharSetAttribute))
+            if (attribute.IsTargetAttribute(AttributeDescription.DefaultCharSetAttribute))
             {
                 CharSet charSet = attribute.GetConstructorArgument<CharSet>(0, SpecialType.System_Enum);
                 if (!ModuleWellKnownAttributeData.IsValidCharSet(charSet))
                 {
-                    CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, arguments.AttributeSyntaxOpt);
-                    ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
+                    ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_InvalidAttributeArgument, attribute.GetAttributeArgumentLocation(0), arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
                 else
                 {
@@ -527,9 +494,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.NullableContextAttribute | ReservedAttributes.NullablePublicOnlyAttribute | ReservedAttributes.RefSafetyRulesAttribute))
             {
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SkipLocalsInitAttribute))
             {
                 CSharpAttributeData.DecodeSkipLocalsInitAttribute<ModuleWellKnownAttributeData>(DeclaringCompilation, ref arguments);
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.ExperimentalAttribute))
+            {
+                arguments.GetOrCreateData<ModuleWellKnownAttributeData>().ExperimentalAttributeData = attribute.DecodeExperimentalAttribute();
             }
         }
 
@@ -650,6 +621,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _lazyUseUpdatedEscapeRules = value.ToThreeState();
                 }
                 return _lazyUseUpdatedEscapeRules == ThreeState.True;
+            }
+        }
+
+        /// <summary>
+        /// Returns data decoded from <see cref="ObsoleteAttribute"/> attribute or null if there is no <see cref="ObsoleteAttribute"/> attribute.
+        /// This property returns <see cref="Microsoft.CodeAnalysis.ObsoleteAttributeData.Uninitialized"/> if attribute arguments haven't been decoded yet.
+        /// </summary>
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+        {
+            get
+            {
+                var attributesBag = _lazyCustomAttributesBag;
+                if (attributesBag != null && attributesBag.IsDecodedWellKnownAttributeDataComputed)
+                {
+                    var decodedData = (ModuleWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+                    return decodedData?.ExperimentalAttributeData;
+                }
+
+                var attributesDeclarations = ((SourceAssemblySymbol)ContainingAssembly).GetAttributeDeclarations();
+                if (attributesDeclarations.IsEmpty)
+                {
+                    return null;
+                }
+
+                return ObsoleteAttributeData.Uninitialized;
             }
         }
     }

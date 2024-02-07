@@ -519,15 +519,15 @@ class C
 ";
 
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: ?, IsInvalid) (Syntax: '[0]')
-  Children(1):
+ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: ?, IsInvalid) (Syntax: '[0]')
+  Elements(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
-                // (6,27): error CS9176: There is no target type for the collection literal.
+                // (6,27): error CS9176: There is no target type for the collection expression.
                 //         var a = /*<bind>*/[0]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[0]").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[0]").WithLocation(6, 27)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<CollectionExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

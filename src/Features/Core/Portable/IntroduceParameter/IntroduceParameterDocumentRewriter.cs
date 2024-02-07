@@ -440,8 +440,8 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
                 var info = await _originalDocument.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 var newMethod = isTrampoline
-                    ? CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, name: newMethodIdentifier, parameters: validParameters, statements: ImmutableArray.Create(newStatement), returnType: typeSymbol)
-                    : CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, statements: ImmutableArray.Create(newStatement), containingType: _methodSymbol.ContainingType);
+                    ? CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, name: newMethodIdentifier, parameters: validParameters, statements: [newStatement], returnType: typeSymbol)
+                    : CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, statements: [newStatement], containingType: _methodSymbol.ContainingType);
 
                 var newMethodDeclaration = info.Service.CreateMethodDeclaration(newMethod, CodeGenerationDestination.Unspecified, info, cancellationToken);
                 Contract.ThrowIfNull(newMethodDeclaration);
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
                     var expressionEditor = new SyntaxEditor(_expression, _generator);
 
                     var argumentListSyntax = invocation is TObjectCreationExpressionSyntax
-                        ? _syntaxFacts.GetArgumentListOfObjectCreationExpression(invocation)
+                        ? _syntaxFacts.GetArgumentListOfBaseObjectCreationExpression(invocation)
                         : _syntaxFacts.GetArgumentListOfInvocationExpression(invocation);
 
                     if (argumentListSyntax == null)

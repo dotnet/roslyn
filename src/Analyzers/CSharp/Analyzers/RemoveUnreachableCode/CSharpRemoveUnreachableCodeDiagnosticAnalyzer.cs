@@ -39,6 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
@@ -115,8 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 Descriptor,
                 firstStatementLocation,
-                ReportDiagnostic.Default,
-                additionalLocations: ImmutableArray<Location>.Empty,
+                NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
+                additionalLocations: [],
                 additionalUnnecessaryLocations: additionalLocations));
 
             var sections = RemoveUnreachableCodeHelpers.GetSubsequentUnreachableSections(firstUnreachableStatement);
@@ -133,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     location,
-                    ReportDiagnostic.Default,
+                    NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
                     additionalLocations,
                     additionalUnnecessaryLocations,
                     s_subsequentSectionProperties));

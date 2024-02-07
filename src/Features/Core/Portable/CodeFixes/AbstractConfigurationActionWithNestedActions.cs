@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// This allows special code actions such as Bulk configuration to to be at the end of
         /// all suppression and configuration actions by having a lower additional priority.
         /// </summary>
-        internal virtual CodeActionPriority AdditionalPriority => CodeActionPriority.Medium;
+        internal virtual CodeActionPriority AdditionalPriority => CodeActionPriority.Default;
 
         internal virtual bool IsBulkConfigurationAction => false;
     }

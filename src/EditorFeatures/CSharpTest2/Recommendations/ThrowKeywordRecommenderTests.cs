@@ -23,24 +23,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterClass_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalStatement_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -68,65 +74,81 @@ $$");
         public async Task TestBeforeStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"$$
-return true;"));
+                """
+                $$
+                return true;
+                """));
         }
 
         [Fact]
         public async Task TestAfterStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"return true;
-$$"));
+                """
+                return true;
+                $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterBlock()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"if (true) {
-}
-$$"));
+                """
+                if (true) {
+                }
+                $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterIf()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"if (true) 
-    $$"));
+                """
+                if (true) 
+                    $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterDo()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"do 
-    $$"));
+                """
+                do 
+                    $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterWhile()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"while (true) 
-    $$"));
+                """
+                while (true) 
+                    $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterFor()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"for (int i = 0; i < 10; i++) 
-    $$"));
+                """
+                for (int i = 0; i < 10; i++) 
+                    $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterForeach()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"foreach (var v in bar)
-    $$"));
+                """
+                foreach (var v in bar)
+                    $$
+                """));
         }
 
         [Fact]
@@ -139,65 +161,73 @@ $$"));
         [Fact]
         public async Task TestNotInClass()
         {
-            await VerifyAbsenceAsync(@"class C
-{
-  $$
-}");
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                  $$
+                }
+                """);
         }
 
         [Fact]
         public async Task TestInNestedIf()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"if (caseOrDefaultKeywordOpt != null) {
-    if (caseOrDefaultKeyword.Kind != SyntaxKind.CaseKeyword && caseOrDefaultKeyword.Kind != SyntaxKind.DefaultKeyword) 
-      $$"));
+                """
+                if (caseOrDefaultKeywordOpt != null) {
+                    if (caseOrDefaultKeyword.Kind != SyntaxKind.CaseKeyword && caseOrDefaultKeyword.Kind != SyntaxKind.DefaultKeyword) 
+                      $$
+                """));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9099")]
         public async Task TestAfterArrow()
         {
             await VerifyKeywordAsync(
-@"class C
-{
-    void Goo() => $$
-");
+                """
+                class C
+                {
+                    void Goo() => $$
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9099")]
         public async Task TestAfterQuestionQuestion()
         {
             await VerifyKeywordAsync(
-@"class C
-{
-    public C(object o)
-    {
-        _o = o ?? $$
-");
+                """
+                class C
+                {
+                    public C(object o)
+                    {
+                        _o = o ?? $$
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9099")]
         public async Task TestInConditional1()
         {
             await VerifyKeywordAsync(
-@"class C
-{
-    public C(object o)
-    {
-        var v= true ? $$
-");
+                """
+                class C
+                {
+                    public C(object o)
+                    {
+                        var v= true ? $$
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9099")]
         public async Task TestInConditional2()
         {
             await VerifyKeywordAsync(
-@"class C
-{
-    public C(object o)
-    {
-        var v= true ? 0 : $$
-");
+                """
+                class C
+                {
+                    public C(object o)
+                    {
+                        var v= true ? 0 : $$
+                """);
         }
     }
 }

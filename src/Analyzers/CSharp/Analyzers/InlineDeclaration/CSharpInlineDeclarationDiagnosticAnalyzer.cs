@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var option = context.GetCSharpAnalyzerOptions().PreferInlinedVariableDeclaration;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 // Don't bother doing any work if the user doesn't even have this preference set.
                 return;
@@ -103,8 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var invocationOrCreation = argumentList.Parent;
-            if (!invocationOrCreation.IsKind(SyntaxKind.InvocationExpression) &&
-                !invocationOrCreation.IsKind(SyntaxKind.ObjectCreationExpression))
+            if (invocationOrCreation?.Kind() is not SyntaxKind.InvocationExpression and not SyntaxKind.ObjectCreationExpression)
             {
                 // Out-variables are only legal with invocations and object creations.
                 // If we don't have one of those bail.  Note: we need hte parent to be
@@ -246,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 reportNode.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: allLocations,
                 properties: null));
         }

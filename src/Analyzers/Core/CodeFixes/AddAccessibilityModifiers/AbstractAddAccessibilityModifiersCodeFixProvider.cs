@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
         protected abstract SyntaxNode MapToDeclarator(SyntaxNode declaration);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId);
+            => [IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId];
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
 
             var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
                 ? CodeActionPriority.Low
-                : CodeActionPriority.Medium;
+                : CodeActionPriority.Default;
 
             var (title, key) = diagnostic.Properties.ContainsKey(AddAccessibilityModifiersConstants.ModifiersAdded)
                 ? (AnalyzersResources.Add_accessibility_modifiers, nameof(AnalyzersResources.Add_accessibility_modifiers))

@@ -73,11 +73,11 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
 
             context.RegisterRefactoring(
-                CodeAction.CreateWithPriority(
-                    CodeActionPriority.Low,
+                CodeAction.Create(
                     FeaturesResources.Convert_to_interpolated_string,
                     _ => UpdateDocumentAsync(document, root, token),
-                    nameof(FeaturesResources.Convert_to_interpolated_string)),
+                    nameof(FeaturesResources.Convert_to_interpolated_string),
+                    CodeActionPriority.Low),
                 literalExpression.Span);
         }
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             return generator.InterpolatedStringExpression(
                 generator.CreateInterpolatedStringStartToken(isVerbatim),
-                new[] { newNode },
+                [newNode],
                 generator.CreateInterpolatedStringEndToken()).WithTriviaFrom(literalExpression);
         }
 

@@ -11,45 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
     /// </summary>
     /// <typeparam name="T">Used to distinguish what type of object this ID applies to. This is dropped in serialization, but simply helps
     /// to ensure type safety in the code so we don't cross IDs of different types.</typeparam>
-    internal readonly struct Id<T> : IEquatable<Id<T>>, ISerializableId where T : Element
-    {
-        public Id(int id)
-        {
-            NumericId = id;
-        }
-
-        public int NumericId { get; }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is Id<T> other && Equals(other);
-        }
-
-        public bool Equals(Id<T> other)
-        {
-            return other.NumericId == NumericId;
-        }
-
-        public override int GetHashCode()
-        {
-            return NumericId.GetHashCode();
-        }
-
-        public static bool operator ==(Id<T> left, Id<T> right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(Id<T> left, Id<T> right)
-        {
-            return !(left == right);
-        }
-
-        public override string ToString()
-        {
-            return $"{NumericId}";
-        }
-    }
+    internal readonly record struct Id<T>(int NumericId) : ISerializableId where T : Element;
 
     internal interface ISerializableId
     {

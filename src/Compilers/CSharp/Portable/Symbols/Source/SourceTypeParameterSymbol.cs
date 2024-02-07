@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -259,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var args = ConstraintsHelper.CheckConstraintsArgsBoxed.Allocate(
-                DeclaringCompilation, new TypeConversions(ContainingAssembly.CorLibrary), _locations[0], diagnostics);
+                DeclaringCompilation, ContainingAssembly.CorLibrary.TypeConversions, _locations[0], diagnostics);
             foreach (var constraintType in constraintTypes)
             {
                 if (!diagnostics.ReportUseSite(constraintType.Type, args.Args.Location))
@@ -345,8 +346,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.ContainingAssembly.GetSpecialType(SpecialType.System_Object);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation locationOpt, Predicate<Symbol> filter, CancellationToken cancellationToken)
         {
+            Debug.Assert(filter == null);
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();

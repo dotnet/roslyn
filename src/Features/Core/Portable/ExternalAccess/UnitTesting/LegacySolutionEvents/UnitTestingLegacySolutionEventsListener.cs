@@ -51,21 +51,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.LegacySolutionEvents
             coordinator?.OnWorkspaceChanged(args);
             return ValueTaskFactory.CompletedTask;
         }
-
-#if false // Not used in unit testing crawling
-        public ValueTask OnTextDocumentOpenedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken)
-        {
-            var coordinator = GetCoordinator(args.Document.Project.Solution);
-            coordinator?.OnTextDocumentOpened(args);
-            return ValueTaskFactory.CompletedTask;
-        }
-
-        public ValueTask OnTextDocumentClosedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken)
-        {
-            var coordinator = GetCoordinator(args.Document.Project.Solution);
-            coordinator?.OnTextDocumentClosed(args);
-            return ValueTaskFactory.CompletedTask;
-        }
-#endif
     }
 }
