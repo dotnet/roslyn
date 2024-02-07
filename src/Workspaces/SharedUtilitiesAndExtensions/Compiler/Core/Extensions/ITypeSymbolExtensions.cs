@@ -444,10 +444,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (containingType == null)
             {
-                return ImmutableArray<T>.Empty;
+                return [];
             }
 
             return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(within).ToImmutableArray();
+        }
+
+        public static ImmutableArray<T> GetAccessibleMembersInThisAndBaseTypes<T>(this ITypeSymbol? containingType, string memberName, ISymbol within) where T : class, ISymbol
+        {
+            if (containingType == null)
+            {
+                return ImmutableArray<T>.Empty;
+            }
+
+            return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(memberName, within).ToImmutableArray();
         }
 
         public static bool? AreMoreSpecificThan(this IList<ITypeSymbol> t1, IList<ITypeSymbol> t2)
@@ -489,7 +499,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (types == null)
             {
-                return ImmutableArray<T>.Empty;
+                return [];
             }
 
             return types.SelectMany(x => x.GetMembers().OfType<T>().Where(m => m.IsAccessibleWithin(within)));
@@ -499,7 +509,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (types == null)
             {
-                return ImmutableArray<T>.Empty;
+                return [];
             }
 
             return types.SelectMany(x => x.GetMembers(memberName).OfType<T>().Where(m => m.IsAccessibleWithin(within)));

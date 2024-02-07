@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 // Next, find references to overloads, if the user has asked to rename those as well.
                 var overloadsResult = options.RenameOverloads ? await GetOverloadsAsync(symbol, solution, cancellationToken).ConfigureAwait(false) :
-                    ImmutableArray<SearchResult>.Empty;
+                    [];
 
                 // Finally, include strings/comments if that's what the user wants.
                 var (strings, comments) = await ReferenceProcessing.GetRenamableLocationsInStringsAndCommentsAsync(
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             var locations = ImmutableHashSet.CreateBuilder<RenameLocation>();
             var referenceSymbols = await SymbolFinder.FindRenamableReferencesAsync(
-                ImmutableArray.Create(symbol), solution, cancellationToken).ConfigureAwait(false);
+                [symbol], solution, cancellationToken).ConfigureAwait(false);
 
             foreach (var referencedSymbol in referenceSymbols)
             {

@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitType
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
-    public partial class UseExplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class UseExplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public UseExplicitTypeTests(ITestOutputHelper logger)
           : base(logger)
@@ -301,8 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
                 """, new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/29718")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29718")]
         public async Task NotOnErrorConvertedType_ForEachVariableStatement()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -324,8 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
                 """, new TestParameters(options: ExplicitTypeEverywhere()));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/29718")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29718")]
         public async Task NotOnErrorConvertedType_AssignmentExpressionStatement()
         {
             await TestMissingInRegularAndScriptAsync(

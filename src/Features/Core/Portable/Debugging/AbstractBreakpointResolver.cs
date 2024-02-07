@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                return ImmutableArray<BreakpointResolutionResult>.Empty;
+                return [];
             }
         }
 
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
             }
         }
 

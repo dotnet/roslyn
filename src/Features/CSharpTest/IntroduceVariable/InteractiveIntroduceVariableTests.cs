@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.IntroduceVariable;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -14,16 +15,16 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.IntroduceVariable
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-    public class InteractiveIntroduceVariableTests : AbstractCSharpCodeActionTest
+    public class InteractiveIntroduceVariableTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new IntroduceVariableCodeRefactoringProvider();
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => GetNestedActions(actions);
 
         protected Task TestAsync(string initial, string expected, int index = 0)
-            => TestAsync(initial, expected, Options.Script, null, index);
+            => TestAsync(initial, expected, TestOptions.Script, null, index);
 
         [Fact]
         public async Task TestMethodFix1()

@@ -105,8 +105,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             var fileName = document.FilePath ?? document.Name;
 
             var options = globalOptions.GetClassificationOptions(document.Project.Language);
-            var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(document, item.Span, options, cancellationToken).ConfigureAwait(false);
-            var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, options, cancellationToken).ConfigureAwait(false);
+            var documentSpan = new DocumentSpan(document, item.Span);
+            var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
+                documentSpan, classifiedSpans: null, options, cancellationToken).ConfigureAwait(false);
             var classifiedSpans = classificationResult.ClassifiedSpans;
 
             return new ValueTrackedTreeItemViewModel(

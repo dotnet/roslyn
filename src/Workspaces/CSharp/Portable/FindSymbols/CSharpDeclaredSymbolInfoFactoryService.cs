@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         {
             if (baseList == null)
             {
-                return ImmutableArray<string>.Empty;
+                return [];
             }
 
             var builder = ArrayBuilder<string>.GetInstance(baseList.Types.Count);
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         DeclaredSymbolInfoKind.Method,
                         Accessibility.Private,
                         localFunction.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty,
+                        inheritanceNames: [],
                         parameterCount: localFunction.ParameterList.Parameters.Count,
                         typeParameterCount: localFunction.TypeParameterList?.Parameters.Count ?? 0));
                 }
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 DeclaredSymbolInfoKind.Enum,
                 GetAccessibility(container, enumDeclaration.Modifiers),
                 enumDeclaration.Identifier.Span,
-                inheritanceNames: ImmutableArray<string>.Empty,
+                inheritanceNames: [],
                 isNestedType: IsNestedType(enumDeclaration));
         }
 
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         DeclaredSymbolInfoKind.Constructor,
                         GetAccessibility(container, ctorDecl.Modifiers),
                         ctorDecl.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty,
+                        inheritanceNames: [],
                         parameterCount: ctorDecl.ParameterList?.Parameters.Count ?? 0));
                     return;
                 case SyntaxKind.DelegateDeclaration:
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         DeclaredSymbolInfoKind.Delegate,
                         GetAccessibility(container, delegateDecl.Modifiers),
                         delegateDecl.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty));
+                        inheritanceNames: []));
                     return;
                 case SyntaxKind.EnumMemberDeclaration:
                     var enumMember = (EnumMemberDeclarationSyntax)node;
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         DeclaredSymbolInfoKind.EnumMember,
                         Accessibility.Public,
                         enumMember.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty));
+                        inheritanceNames: []));
                     return;
                 case SyntaxKind.EventDeclaration:
                     var eventDecl = (EventDeclarationSyntax)node;
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         DeclaredSymbolInfoKind.Event,
                         GetAccessibility(container, eventDecl.Modifiers),
                         eventDecl.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty));
+                        inheritanceNames: []));
                     return;
                 case SyntaxKind.IndexerDeclaration:
                     var indexerDecl = (IndexerDeclarationSyntax)node;
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         DeclaredSymbolInfoKind.Indexer,
                         GetAccessibility(container, indexerDecl.Modifiers),
                         indexerDecl.ThisKeyword.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty));
+                        inheritanceNames: []));
                     return;
                 case SyntaxKind.MethodDeclaration:
                     var method = (MethodDeclarationSyntax)node;
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         isExtensionMethod ? DeclaredSymbolInfoKind.ExtensionMethod : DeclaredSymbolInfoKind.Method,
                         GetAccessibility(container, method.Modifiers),
                         method.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty,
+                        inheritanceNames: [],
                         parameterCount: method.ParameterList?.Parameters.Count ?? 0,
                         typeParameterCount: method.TypeParameterList?.Parameters.Count ?? 0));
                     return;
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         DeclaredSymbolInfoKind.Property,
                         GetAccessibility(container, property.Modifiers),
                         property.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty));
+                        inheritanceNames: []));
                     return;
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.EventFieldDeclaration:
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                             kind,
                             GetAccessibility(container, fieldDeclaration.Modifiers),
                             variableDeclarator.Identifier.Span,
-                            inheritanceNames: ImmutableArray<string>.Empty));
+                            inheritanceNames: []));
                     }
 
                     return;
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                             DeclaredSymbolInfoKind.Property,
                             Accessibility.Public,
                             parameter.Identifier.Span,
-                            inheritanceNames: ImmutableArray<string>.Empty));
+                            inheritanceNames: []));
                     }
                 }
             }
@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 if (TryGetSimpleTypeName(usingDirectiveNode.Alias.Name, typeParameterNames: null, out var aliasName, out _) &&
                     TryGetSimpleTypeName(usingDirectiveNode.NamespaceOrType, typeParameterNames: null, out var name, out _))
                 {
-                    aliases = ImmutableArray.Create<(string, string)>((aliasName, name));
+                    aliases = [(aliasName, name)];
                     return true;
                 }
             }

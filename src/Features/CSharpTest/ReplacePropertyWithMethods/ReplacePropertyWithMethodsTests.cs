@@ -15,12 +15,12 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplacePropertyWithMethods
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
-    public class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTest
+    public class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTest_NoEditor
     {
         private OptionsCollection PreferExpressionBodiedMethods
             => new(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement } };
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new ReplacePropertyWithMethodsCodeRefactoringProvider();
 
         [Fact]
@@ -1442,8 +1442,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16157")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16157")]
         public async Task TestWithConditionalBinding1()
         {
             await TestInRegularAndScriptAsync(
@@ -1478,8 +1477,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle1()
         {
             await TestInRegularAndScriptAsync(
@@ -1503,8 +1501,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """, options: PreferExpressionBodiedMethods);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle2()
         {
             await TestInRegularAndScriptAsync(
@@ -1534,8 +1531,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """, options: PreferExpressionBodiedMethods);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle3()
         {
             await TestInRegularAndScriptAsync(
@@ -1559,8 +1555,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """, options: PreferExpressionBodiedMethods);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle4()
         {
             await TestInRegularAndScriptAsync(
@@ -1578,8 +1573,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """, options: PreferExpressionBodiedMethods);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle5()
         {
             await TestInRegularAndScriptAsync(
@@ -1599,8 +1593,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """, options: PreferExpressionBodiedMethods);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle6()
         {
             await TestInRegularAndScriptAsync(
@@ -1621,8 +1614,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """, options: PreferExpressionBodiedMethods);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle7()
         {
             await TestInRegularAndScriptAsync(
@@ -1651,8 +1643,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """, options: PreferExpressionBodiedMethods);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
         public async Task TestDocumentationComment1()
         {
             await TestInRegularAndScriptAsync(
@@ -1685,8 +1676,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
         public async Task TestDocumentationComment2()
         {
             await TestInRegularAndScriptAsync(
@@ -1719,8 +1709,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
         public async Task TestDocumentationComment3()
         {
             await TestInRegularAndScriptAsync(
@@ -1761,8 +1750,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
         public async Task TestDocumentationComment4()
         {
             await TestInRegularAndScriptAsync(
@@ -1801,8 +1789,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
         public async Task TestDocumentationComment5()
         {
             await TestInRegularAndScriptAsync(
@@ -1847,8 +1834,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18234")]
         public async Task TestDocumentationComment6()
         {
             await TestInRegularAndScriptAsync(
@@ -1881,8 +1867,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
         public async Task TestWithDirectives1()
         {
             await TestInRegularAndScriptAsync(
@@ -1917,8 +1902,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
     """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
         public async Task TestWithDirectives2()
         {
             await TestInRegularAndScriptAsync(
@@ -1952,8 +1936,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
     options: PreferExpressionBodiedMethods);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
         public async Task TestWithDirectives3()
         {
             await TestInRegularAndScriptAsync(
@@ -1981,8 +1964,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19235")]
         public async Task TestWithDirectives4()
         {
             await TestInRegularAndScriptAsync(
@@ -2011,8 +1993,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
     options: PreferExpressionBodiedMethods);
         }
 
-        [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")]
         public async Task TestExplicitInterfaceImplementation()
         {
             await TestInRegularAndScriptAsync(
@@ -2059,8 +2040,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
         public async Task TestUnsafeExpressionBody()
         {
             await TestInRegularAndScriptAsync(
@@ -2081,8 +2061,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
         public async Task TestUnsafeAutoProperty()
         {
             await TestInRegularAndScriptAsync(
@@ -2110,8 +2089,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
         public async Task TestUnsafeSafeType()
         {
             await TestInRegularAndScriptAsync(
@@ -2139,8 +2117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22760")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22760")]
         public async Task QualifyFieldAccessWhenNecessary1()
         {
             await TestInRegularAndScriptAsync(
@@ -2173,8 +2150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22760")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22760")]
         public async Task QualifyFieldAccessWhenNecessary2()
         {
             await TestInRegularAndScriptAsync(
@@ -2207,8 +2183,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22760")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22760")]
         public async Task QualifyFieldAccessWhenNecessary3()
         {
             await TestInRegularAndScriptAsync(
@@ -2241,8 +2216,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/45171")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45171")]
         public async Task TestReferenceInObjectInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -2289,8 +2263,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/45171")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45171")]
         public async Task TestReferenceInImplicitObjectInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -2337,8 +2310,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/45171")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45171")]
         public async Task TestReferenceInWithInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -2385,8 +2357,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/57376")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57376")]
         public async Task TestInLinkedFile()
         {
             await TestInRegularAndScriptAsync(

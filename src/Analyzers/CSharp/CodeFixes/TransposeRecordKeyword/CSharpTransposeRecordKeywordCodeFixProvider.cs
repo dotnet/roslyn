@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(CS9012);
+            => [CS9012];
 
         private static bool TryGetRecordDeclaration(
             Diagnostic diagnostic, CancellationToken cancellationToken, [NotNullWhen(true)] out RecordDeclarationSyntax? recordDeclaration)

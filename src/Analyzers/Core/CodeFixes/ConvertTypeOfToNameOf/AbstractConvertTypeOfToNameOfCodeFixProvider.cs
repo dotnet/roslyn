@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
         protected abstract SyntaxNode GetSymbolTypeExpression(SemanticModel model, TMemberAccessExpressionSyntax node, CancellationToken cancellationToken);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
-           => ImmutableArray.Create(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId);
+           => [IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

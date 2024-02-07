@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             var packageSources = installerService?.IsEnabled(document.Project.Id) == true
                 ? installerService.TryGetPackageSources()
-                : ImmutableArray<PackageSource>.Empty;
+                : [];
 
             if (packageSources.IsEmpty)
             {

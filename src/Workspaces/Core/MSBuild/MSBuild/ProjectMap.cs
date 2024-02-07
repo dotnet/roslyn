@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             if (!_projectPathToProjectInfosMap.TryGetValue(projectFilePath, out var projectInfos))
             {
-                projectInfos = ImmutableArray<ProjectInfo>.Empty;
+                projectInfos = [];
             }
 
             if (projectInfos.Contains(pi => pi.Id == projectInfo.Id))

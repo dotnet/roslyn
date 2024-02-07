@@ -6,28 +6,23 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
 {
     [Export]
     [Shared]
-    internal sealed class DebuggerFindReferencesService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class DebuggerFindReferencesService(
+        IGlobalOptionService globalOptions,
+        Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
     {
-        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DebuggerFindReferencesService(
-            IThreadingContext threadingContext,
-            Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
-        {
-            _streamingPresenter = streamingPresenter;
-        }
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter = streamingPresenter;
 
         public async Task FindSymbolReferencesAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
@@ -42,9 +37,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             // is cancelable.
             var (context, _) = streamingPresenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true);
 
+            var classificationOptions = globalOptions.GetClassificationOptionsProvider();
+
             try
             {
-                await AbstractFindUsagesService.FindSymbolReferencesAsync(context, symbol, project, cancellationToken).ConfigureAwait(false);
+                await AbstractFindUsagesService.FindSymbolReferencesAsync(context, symbol, project, classificationOptions, cancellationToken).ConfigureAwait(false);
             }
             finally
             {

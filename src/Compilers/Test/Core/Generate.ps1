@@ -158,12 +158,12 @@ Add-TargetFramework "Net451" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_ne
   'Facades\System.Threading.Tasks.dll'
 )
 
-Add-TargetFramework "MicrosoftCSharp" '$(NuGetPackageRoot)\microsoft.csharp\$(MicrosoftCSharpVersion)' @(
+Add-TargetFramework "MicrosoftCSharp" '$(PkgMicrosoft_CSharp)' @(
   'Netstandard10#ref\netstandard1.0\Microsoft.CSharp.dll'
   'Netstandard13Lib#lib\netstandard1.3\Microsoft.CSharp.dll'
 )
 
-Add-TargetFramework "MicrosoftVisualBasic" '$(NuGetPackageRoot)\microsoft.visualbasic\$(MicrosoftVisualBasicVersion)\ref' @(
+Add-TargetFramework "MicrosoftVisualBasic" '$(PkgMicrosoft_VisualBasic)\ref' @(
   'Netstandard11#netstandard1.1\Microsoft.VisualBasic.dll'
 )
 

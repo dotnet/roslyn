@@ -9,8 +9,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.Formatting;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -31,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         }
 
         protected override string Language => LanguageNames.CSharp;
-        protected override TestWorkspace CreateTestWorkspace(string testCode, ParseOptions? parseOptions)
-            => TestWorkspace.CreateCSharp(testCode, parseOptions);
+        protected override EditorTestWorkspace CreateTestWorkspace(string testCode, ParseOptions? parseOptions)
+            => EditorTestWorkspace.CreateCSharp(testCode, parseOptions);
 
         [Fact]
         public async Task TestFileScopedNamespaces()

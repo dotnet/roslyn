@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public ImmutableArray<string> GetGlobalAliases(string name, int arity)
         {
             if (_globalAliasInfo == null)
-                return ImmutableArray<string>.Empty;
+                return [];
 
             using var result = TemporaryArray<string>.Empty;
 

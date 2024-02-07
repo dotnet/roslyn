@@ -125,8 +125,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Collection containing all well-known semantic tokens types.
         /// </summary>
-        public static readonly IReadOnlyList<string> AllTypes = new[]
-        {
+        public static readonly IReadOnlyList<string> AllTypes =
+        [
             Namespace,
             Type,
             Class,
@@ -149,6 +149,6 @@ namespace Roslyn.LanguageServer.Protocol
             Number,
             Regexp,
             Operator,
-        };
+        ];
     }
 }

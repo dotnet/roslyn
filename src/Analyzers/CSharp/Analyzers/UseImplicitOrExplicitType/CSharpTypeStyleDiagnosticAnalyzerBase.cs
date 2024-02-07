@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             string diagnosticId, EnforceOnBuild enforceOnBuild, LocalizableString title, LocalizableString message)
             : base(diagnosticId,
                    enforceOnBuild,
-                   ImmutableHashSet.Create<IOption2>(CSharpCodeStyleOptions.VarForBuiltInTypes, CSharpCodeStyleOptions.VarWhenTypeIsApparent, CSharpCodeStyleOptions.VarElsewhere),
+                   [CSharpCodeStyleOptions.VarForBuiltInTypes, CSharpCodeStyleOptions.VarWhenTypeIsApparent, CSharpCodeStyleOptions.VarElsewhere],
                    title, message)
         {
         }

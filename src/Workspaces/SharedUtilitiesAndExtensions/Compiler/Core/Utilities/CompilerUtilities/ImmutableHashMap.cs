@@ -451,17 +451,17 @@ namespace Roslyn.Collections.Immutable
             foreach (var kv in this)
             {
                 builder.Append(kv.Key);
-                builder.Append(":");
+                builder.Append(':');
                 builder.Append(kv.Value);
                 if (needComma)
                 {
-                    builder.Append(",");
+                    builder.Append(',');
                 }
 
                 needComma = true;
             }
 
-            builder.Append("]");
+            builder.Append(']');
             return builder.ToString();
         }
 

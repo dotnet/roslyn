@@ -38,15 +38,15 @@ namespace Microsoft.CodeAnalysis.LanguageService.TypeInferenceService
         }
 
         private static readonly ImmutableArray<string> s_booleanPrefixes =
-            ImmutableArray.Create("Is", "Has", "Contains", "Supports");
+            ["Is", "Has", "Contains", "Supports"];
 
         private static ImmutableArray<ITypeSymbol> InferTypeBasedOnName(
             SemanticModel semanticModel, string name)
         {
             var matchesBoolean = MatchesBoolean(name);
             return matchesBoolean
-                ? ImmutableArray.Create<ITypeSymbol>(semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean))
-                : ImmutableArray<ITypeSymbol>.Empty;
+                ? [semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean)]
+                : [];
         }
 
         private static bool MatchesBoolean(string name)

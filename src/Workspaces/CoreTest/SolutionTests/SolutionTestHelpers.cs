@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(boxedItems, getter(instanceWithItem));
 
             Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, null));
-            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, Array.Empty<TValue>()));
-            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, ImmutableArray<TValue>.Empty));
+            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, []));
+            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, []));
 
             // the factory makes an immutable copy if given a mutable list:
             var mutableItems = new[] { item };

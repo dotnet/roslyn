@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                     .AsImmutable();
             }
 
-            return ImmutableArray<IPropertySymbol>.Empty;
+            return [];
         }
 
         /// <summary>

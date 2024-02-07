@@ -3,6 +3,9 @@ parameters:
 - name: bootstrapToolset
   type: string
   default: ''
+- name: bootstrapName
+  type: string
+  default: ''
 
 steps:
     - template: checkout-windows-task.yml
@@ -12,19 +15,19 @@ steps:
 
     - template: publish-logs.yml
       parameters:
-        jobName: Correctness_Bootstrap_Build
+        jobName: Correctness_Bootstrap_Build - ${{parameters.bootstrapName}}
         configuration: Release
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Artifact Packages
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
-        ArtifactName: 'Bootstrap Packages - ${{parameters.bootstrapToolset}}'
+        ArtifactName: 'Bootstrap Packages - ${{parameters.bootstrapName}}'
         publishLocation: Container
 
     - task: PublishBuildArtifacts@1
       displayName: Publish VSIX Packages
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
-        ArtifactName: 'Bootstrap VSIX - ${{parameters.bootstrapToolset}}'
+        ArtifactName: 'Bootstrap VSIX - ${{parameters.bootstrapName}}'
         publishLocation: Container

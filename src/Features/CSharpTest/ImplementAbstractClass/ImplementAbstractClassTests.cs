@@ -22,7 +22,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-    public partial class ImplementAbstractClassTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest(logger)
+    public partial class ImplementAbstractClassTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
     {
         internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpImplementAbstractClassCodeFixProvider());
@@ -146,6 +146,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                     }
                 }
                 """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70623")]
+        public async Task TestMethodWithNullableDynamic()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                abstract class Base
+                {
+                    public abstract dynamic? M(dynamic? arg);
+                }
+
+                class [|Program|] : Base
+                {
+                }
+                """,
+                """
+                abstract class Base
+                {
+                    public abstract dynamic? M(dynamic? arg);
+                }
+
+                class Program : Base
+                {
+                    public override dynamic? M(dynamic? arg)
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """,
+                compilationOptions: new CSharpCompilationOptions
+                (
+                    OutputKind.DynamicallyLinkedLibrary,
+                    nullableContextOptions: NullableContextOptions.Enable
+                ));
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543234")]

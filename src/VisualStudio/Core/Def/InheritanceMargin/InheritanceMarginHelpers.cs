@@ -21,25 +21,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private static readonly ObjectPool<MultiDictionary<string, InheritanceTargetItem>> s_pool = new(() => new());
 
         private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_I_Up_Arrow
-            = ImmutableArray.Create(
+            =
+            [
                 InheritanceRelationship.ImplementedInterface,
                 InheritanceRelationship.InheritedInterface,
-                InheritanceRelationship.ImplementedMember);
+                InheritanceRelationship.ImplementedMember,
+            ];
 
         private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_I_Down_Arrow
-            = ImmutableArray.Create(
-                InheritanceRelationship.ImplementingType,
-                InheritanceRelationship.ImplementingMember);
+            = [InheritanceRelationship.ImplementingType, InheritanceRelationship.ImplementingMember];
 
         private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_O_Up_Arrow
-            = ImmutableArray.Create(
-                InheritanceRelationship.BaseType,
-                InheritanceRelationship.OverriddenMember);
+            = [InheritanceRelationship.BaseType, InheritanceRelationship.OverriddenMember];
 
         private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_O_Down_Arrow
-            = ImmutableArray.Create(
-                InheritanceRelationship.DerivedType,
-                InheritanceRelationship.OverridingMember);
+            = [InheritanceRelationship.DerivedType, InheritanceRelationship.OverridingMember];
 
         /// <summary>
         /// Decide which moniker should be shown.

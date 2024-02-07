@@ -122,7 +122,7 @@ namespace Roslyn.Utilities
         {
             if (!dictionary.TryGetValue(key, out var existingArray))
             {
-                existingArray = ImmutableArray<TValue>.Empty;
+                existingArray = [];
             }
 
             dictionary[key] = existingArray.Add(value);
@@ -134,7 +134,7 @@ namespace Roslyn.Utilities
         {
             if (!dictionary.TryGetValue(key, out var existingArray))
             {
-                existingArray = ImmutableArray<TValue>.Empty;
+                existingArray = [];
             }
 
             dictionary[key] = existingArray.IsEmpty && value.Equals(defaultArray[0]) ? defaultArray : existingArray.Add(value);

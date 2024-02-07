@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     }
 
                     triviaOfRemovedNode = trivia.ToSyntaxTriviaList();
-                    return newAttributeLists.ToSyntaxList();
+                    return [.. newAttributeLists];
                 }
             }
 

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
                     _token.Kind(),
                     text: prefix + QuoteCharacter + firstTokenSuffix,
                     valueText: "",
-                    trailing: SyntaxFactory.TriviaList(SyntaxFactory.ElasticSpace));
+                    trailing: [SyntaxFactory.ElasticSpace]);
 
                 var secondToken = SyntaxFactory.Token(
                     default,

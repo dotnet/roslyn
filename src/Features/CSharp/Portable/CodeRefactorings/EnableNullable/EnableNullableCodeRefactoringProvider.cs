@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
                 var existingTriviaList = firstToken.LeadingTrivia;
                 var insertionIndex = GetInsertionPoint(existingTriviaList);
 
-                return root.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(existingTriviaList.InsertRange(insertionIndex, new[] { nullableDisableTrivia, newLine, newLine })));
+                return root.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(existingTriviaList.InsertRange(insertionIndex, [nullableDisableTrivia, newLine, newLine])));
             }
             else if (leadingDirective.SettingToken.IsKind(SyntaxKind.RestoreKeyword) && leadingDirective.TargetToken.IsKind(SyntaxKind.None))
             {
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             {
                 var changedSolution = await _createChangedSolution(CodeActionPurpose.Preview, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
                 if (changedSolution is null)
-                    return Array.Empty<CodeActionOperation>();
+                    return [];
 
                 return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
             }

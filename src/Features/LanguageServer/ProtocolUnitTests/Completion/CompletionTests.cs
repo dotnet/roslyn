@@ -639,7 +639,7 @@ class A
             await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             var completionList = cache.GetCachedEntry(0).CompletionList;
             Assert.NotNull(completionList);
-            Assert.True(testAccessor.GetCacheContents().Count == 1);
+            Assert.Single(testAccessor.GetCacheContents());
 
             // 2 items in cache
             await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);

@@ -1553,7 +1553,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 {
                     _lexer.Position += 2;
                     var textChars = _lexer.GetSubPattern(beforeBracketPos, _lexer.Position);
-                    var token = CreateToken(RegexKind.TextToken, ImmutableArray<RegexTrivia>.Empty, textChars);
+                    var token = CreateToken(RegexKind.TextToken, [], textChars);
 
                     // trivia is not allowed anywhere in a character class
                     ConsumeCurrentToken(allowTrivia: false);
@@ -1720,7 +1720,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (bestPosition != -1)
             {
                 var numberToken = CreateToken(
-                    RegexKind.NumberToken, ImmutableArray<RegexTrivia>.Empty,
+                    RegexKind.NumberToken, [],
                     _lexer.GetSubPattern(start, bestPosition)).With(value: capVal);
                 ResetToPositionAndConsumeCurrentToken(bestPosition, allowTrivia: allowTriviaAfterEnd);
                 return new RegexBackreferenceEscapeNode(backslashToken, numberToken);

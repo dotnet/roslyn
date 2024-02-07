@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             => (TSwitchSyntax)generator.InsertSwitchSections(switchNode, insertLocation, newArms);
 
         protected sealed override TSwitchArmSyntax CreateDefaultSwitchArm(SyntaxGenerator generator, Compilation compilation)
-            => (TSwitchArmSyntax)generator.DefaultSwitchSection(new[] { generator.ExitSwitchStatement() });
+            => (TSwitchArmSyntax)generator.DefaultSwitchSection([generator.ExitSwitchStatement()]);
 
         protected sealed override TSwitchArmSyntax CreateSwitchArm(SyntaxGenerator generator, Compilation compilation, TMemberAccessExpression caseLabel)
-            => (TSwitchArmSyntax)generator.SwitchSection(caseLabel, new[] { generator.ExitSwitchStatement() });
+            => (TSwitchArmSyntax)generator.SwitchSection(caseLabel, [generator.ExitSwitchStatement()]);
 
         protected override TSwitchArmSyntax CreateNullSwitchArm(SyntaxGenerator generator, Compilation compilation)
-            => (TSwitchArmSyntax)generator.SwitchSection(generator.NullLiteralExpression(), new[] { generator.ExitSwitchStatement() });
+            => (TSwitchArmSyntax)generator.SwitchSection(generator.NullLiteralExpression(), [generator.ExitSwitchStatement()]);
 
         protected sealed override int InsertPosition(ISwitchOperation switchStatement)
         {

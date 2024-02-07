@@ -25,10 +25,16 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         protected sealed override CodeStyleOption2<bool> GetStylePreference(OperationAnalysisContext context)
             => context.GetAnalyzerOptions().PreferConditionalExpressionOverReturn;
 
-        protected override (bool matched, bool canSimplify) TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol)
+        protected sealed override (bool matched, bool canSimplify) TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol)
         {
             if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
                     GetSyntaxFacts(), ifOperation, containingSymbol, out var isRef, out var trueStatement, out var falseStatement, out var trueReturn, out var falseReturn))
+            {
+                return default;
+            }
+
+            if (!IsStatementSupported(trueStatement) ||
+                !IsStatementSupported(falseStatement))
             {
                 return default;
             }
@@ -41,5 +47,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             return (matched: true, canSimplify);
         }
+
+        protected virtual bool IsStatementSupported(IOperation statement)
+            => true;
     }
 }

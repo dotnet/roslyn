@@ -1012,20 +1012,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         switch (token.Kind())
                         {
                             case SyntaxKind.ForEachKeyword:
-                                return ImmutableArray.Create(((CommonForEachStatementSyntax)token.Parent!).Expression.GetLocation());
+                                return [((CommonForEachStatementSyntax)token.Parent!).Expression.GetLocation()];
                             case SyntaxKind.AwaitKeyword:
-                                return ImmutableArray.Create(token.GetLocation());
+                                return [token.GetLocation()];
                         }
 
                         if (token.Parent.IsInDeconstructionLeft(out var deconstructionLeft))
                         {
-                            return ImmutableArray.Create(deconstructionLeft.GetLocation());
+                            return [deconstructionLeft.GetLocation()];
                         }
                     }
                 }
             }
 
-            return ImmutableArray<Location>.Empty;
+            return [];
         }
 
         public override ImmutableArray<Location> ComputePossibleImplicitUsageConflicts(
@@ -1065,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                             {
                                 if (!method.ReturnsVoid && !method.Parameters.Any() && method.ReturnType.SpecialType == SpecialType.System_Boolean)
                                 {
-                                    return ImmutableArray.Create(originalDeclarationLocation);
+                                    return [originalDeclarationLocation];
                                 }
                             }
                             else if (symbol.Name == "GetEnumerator")
@@ -1075,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                                 if (!method.ReturnsVoid &&
                                     !method.Parameters.Any())
                                 {
-                                    return ImmutableArray.Create(originalDeclarationLocation);
+                                    return [originalDeclarationLocation];
                                 }
                             }
                         }
@@ -1085,14 +1085,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                             if (!property.Parameters.Any() && !property.IsWriteOnly)
                             {
-                                return ImmutableArray.Create(originalDeclarationLocation);
+                                return [originalDeclarationLocation];
                             }
                         }
                     }
                 }
             }
 
-            return ImmutableArray<Location>.Empty;
+            return [];
         }
 
         #endregion

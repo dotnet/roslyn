@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             var token = root.FindTokenOnLeftOfPosition(caretPosition);
 
             if (token.SyntaxTree == null
-                || token.SyntaxTree.IsEntirelyWithinComment(caretPosition, cancellationToken))
+                || token.SyntaxTree.IsInNonUserCode(caretPosition, cancellationToken))
             {
                 return false;
             }
