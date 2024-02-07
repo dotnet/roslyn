@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                static NonFinalWithCompilationTrackerState ForkWithCompilationTrackerState(
+                static InProgressState ForkWithCompilationTrackerState(
                     ProjectState oldProjectState,
                     WithCompilationTrackerState state,
                     CompilationAndGeneratorDriverTranslationAction? translate)
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
 
                     var intermediateProjects = UpdateIntermediateProjects(oldProjectState, state, translate);
 
-                    var newState = CompilationTrackerState.Create(
+                    var newState = CompilationTrackerState.CreateInProgressState(
                         state.IsFrozen,
                         state.CompilationWithoutGeneratedDocuments,
                         state.GeneratorInfo,
@@ -339,12 +339,13 @@ namespace Microsoft.CodeAnalysis
                 var inProgressState = state as InProgressState;
 
                 generatorInfo = state.GeneratorInfo;
-                inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().oldState : this.ProjectState;
+                inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.FirstOrDefault().oldState : this.ProjectState;
 
                 // all changes left for this document is modifying the given document; since the compilation is already fully up to date
                 // we don't need to do any further checking of it's references
                 if (inProgressState != null &&
                     compilationWithoutGeneratedDocuments != null &&
+                    inProgressState.IntermediateProjects.Count > 0 &&
                     inProgressState.IntermediateProjects.All(t => IsTouchDocumentActionForDocument(t.action, id)))
                 {
                     // We'll add in whatever generated documents we do have; these may be from a prior run prior to some changes
@@ -539,27 +540,25 @@ namespace Microsoft.CodeAnalysis
                         return finalState;
 
                     // Transition from wherever we're currently at to the 'all trees parsed' state.
-                    var allSyntaxTreesParsedState = state switch
+                    var expandedInProgressState = state switch
                     {
-                        // If we're already there, then there's nothing to do.
-                        AllSyntaxTreesParsedState allParsedState
-                            => allParsedState,
+                        InProgressState inProgressState
+                            => inProgressState,
                         // We've got nothing.  Build it from scratch :(
                         NoCompilationState noCompilationState
-                            => await BuildAllSyntaxTreesParsedStateFromNoCompilationStateAsync(noCompilationState).ConfigureAwait(false),
-                        InProgressState inProgressState
-                            => await BuildAllSyntaxTreesParsedStateFromInProgressStateAsync(inProgressState).ConfigureAwait(false),
+                            => await BuildInProgressStateFromNoCompilationStateAsync(noCompilationState).ConfigureAwait(false),
                         _ => throw ExceptionUtilities.UnexpectedValue(state.GetType())
                     };
 
                     // Now do the final step of transitioning from the 'all trees parsed' state to the final state.
-                    return await FinalizeCompilationAsync(allSyntaxTreesParsedState).ConfigureAwait(false);
+                    var collapsedInProgressState = await CollapseInProgressStateAsync(expandedInProgressState).ConfigureAwait(false);
+                    return await FinalizeCompilationAsync(collapsedInProgressState).ConfigureAwait(false);
                 }
 
                 [PerformanceSensitive(
                     "https://github.com/dotnet/roslyn/issues/23582",
                     Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
-                async Task<AllSyntaxTreesParsedState> BuildAllSyntaxTreesParsedStateFromNoCompilationStateAsync(NoCompilationState noCompilationState)
+                async Task<InProgressState> BuildInProgressStateFromNoCompilationStateAsync(NoCompilationState noCompilationState)
                 {
                     try
                     {
@@ -579,8 +578,9 @@ namespace Microsoft.CodeAnalysis
                         // here from a frozen state (as a frozen state always ensures we have a
                         // WithCompilationTrackerState).  As such, we can safely still preserve that we're not
                         // frozen here.
-                        var allSyntaxTreesParsedState = new AllSyntaxTreesParsedState(
-                            isFrozen: false, compilation, noCompilationState.GeneratorInfo, staleCompilationWithGeneratedDocuments: null);
+                        var allSyntaxTreesParsedState = new InProgressState(
+                            isFrozen: false, compilation, noCompilationState.GeneratorInfo, staleCompilationWithGeneratedDocuments: null,
+                            ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)>.Empty);
                         WriteState(allSyntaxTreesParsedState);
                         return allSyntaxTreesParsedState;
                     }
@@ -590,21 +590,18 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                async Task<AllSyntaxTreesParsedState> BuildAllSyntaxTreesParsedStateFromInProgressStateAsync(InProgressState initialState)
+                async Task<InProgressState> CollapseInProgressStateAsync(InProgressState initialState)
                 {
                     try
                     {
-                        // This is guaranteed by an in progress state.  Which means we know we'll get into the while loop below.
-                        Contract.ThrowIfTrue(initialState.IntermediateProjects.IsEmpty);
-
-                        WithCompilationTrackerState currentState = initialState;
-                        while (currentState is InProgressState inProgressState)
+                        var currentState = initialState;
+                        while (currentState.IntermediateProjects.Count > 0)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
                             // We have a list of transformations to get to our final compilation; take the first transformation and apply it.
                             var (compilationWithoutGeneratedDocuments, staleCompilationWithGeneratedDocuments, generatorInfo) =
-                                await ApplyFirstTransformationAsync(inProgressState).ConfigureAwait(false);
+                                await ApplyFirstTransformationAsync(currentState).ConfigureAwait(false);
 
                             // We have updated state, so store this new result; this allows us to drop the intermediate state we already processed
                             // even if we were to get cancelled at a later point.
@@ -616,20 +613,16 @@ namespace Microsoft.CodeAnalysis
                             // all states forked from those states frozen as well.  This ensures we don't attempt to move
                             // generator docs back to the uncomputed state from that point onwards.  We'll just keep
                             // whateverZ generated docs we have.
-                            currentState = CompilationTrackerState.Create(
-                                inProgressState.IsFrozen,
+                            currentState = CompilationTrackerState.CreateInProgressState(
+                                currentState.IsFrozen,
                                 compilationWithoutGeneratedDocuments,
                                 generatorInfo,
                                 staleCompilationWithGeneratedDocuments,
-                                inProgressState.IntermediateProjects.RemoveAt(0));
+                                currentState.IntermediateProjects.RemoveAt(0));
                             this.WriteState(currentState);
-
-                            Contract.ThrowIfTrue(inProgressState.IntermediateProjects.Count > 1 && currentState is not InProgressState);
-                            Contract.ThrowIfTrue(inProgressState.IntermediateProjects.Count == 1 && currentState is not AllSyntaxTreesParsedState);
                         }
 
-                        Contract.ThrowIfTrue(currentState is not AllSyntaxTreesParsedState);
-                        return (AllSyntaxTreesParsedState)currentState;
+                        return currentState;
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                     {
@@ -684,15 +677,18 @@ namespace Microsoft.CodeAnalysis
                 // Add all appropriate references to the compilation and set it as our final compilation state.
                 // </summary>
                 async Task<FinalCompilationTrackerState> FinalizeCompilationAsync(
-                    AllSyntaxTreesParsedState allSyntaxTreesParsedState)
+                    InProgressState inProgressState)
                 {
                     try
                     {
+                        // Caller should collapse the in progress state first.
+                        Contract.ThrowIfTrue(inProgressState.IntermediateProjects.Count > 0);
+
                         // The final state we produce will be frozen or not depending on if a frozen state was passed into it.
-                        var isFrozen = allSyntaxTreesParsedState.IsFrozen;
-                        var generatorInfo = allSyntaxTreesParsedState.GeneratorInfo;
-                        var compilationWithoutGeneratedDocuments = allSyntaxTreesParsedState.CompilationWithoutGeneratedDocuments;
-                        var staleCompilationWithGeneratedDocuments = allSyntaxTreesParsedState.StaleCompilationWithGeneratedDocuments;
+                        var isFrozen = inProgressState.IsFrozen;
+                        var generatorInfo = inProgressState.GeneratorInfo;
+                        var compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
+                        var staleCompilationWithGeneratedDocuments = inProgressState.StaleCompilationWithGeneratedDocuments;
 
                         // Project is complete only if the following are all true:
                         //  1. HasAllInformation flag is set for the project
@@ -969,7 +965,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     ValidateCompilationTreesMatchesProjectState(finalState.FinalCompilationWithGeneratedDocuments, ProjectState, state.GeneratorInfo);
                 }
-                else if (state is InProgressState inProgressState)
+                else if (state is InProgressState { IntermediateProjects.Count: > 0 } inProgressState)
                 {
                     ValidateCompilationTreesMatchesProjectState(inProgressState.CompilationWithoutGeneratedDocuments, inProgressState.IntermediateProjects[0].oldState, generatorInfo: null);
 

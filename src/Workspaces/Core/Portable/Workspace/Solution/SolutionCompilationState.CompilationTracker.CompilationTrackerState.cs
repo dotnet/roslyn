@@ -18,15 +18,11 @@ namespace Microsoft.CodeAnalysis
         {
             /// <summary>
             /// The base type of all <see cref="CompilationTracker"/> states. The state of a <see
-            /// cref="CompilationTracker" /> starts at <see cref="NoCompilationState"/>, and then will progress through
-            /// <see cref="AllSyntaxTreesParsedState"/> when the initial compilation, with all parsed syntax trees in
-            /// it, then through <see cref="InProgressState"/> (when there are translation actions to perform), back to
-            /// <see cref="AllSyntaxTreesParsedState"/> once all those translation actions are collapsed, and then
-            /// finally to <see cref="FinalCompilationTrackerState"/> once source generators have been run.
-            /// <para/>
-            /// These states can also move back to <see cref="AllSyntaxTreesParsedState"/> or <see
-            /// cref="InProgressState"/> when forking from a complete <see cref="FinalCompilationTrackerState"/> when a
-            /// project changes.
+            /// cref="CompilationTracker" /> starts at <see cref="NoCompilationState"/>, then through <see
+            /// cref="InProgressState"/> (when there are translation actions to perform), and then finally to <see
+            /// cref="FinalCompilationTrackerState"/> once source generators have been run.
+            /// <para/> These states can also move back to an <see cref="InProgressState"/> when forking from a complete
+            /// <see cref="FinalCompilationTrackerState"/> when a project changes.
             /// </summary>
             private abstract class CompilationTrackerState
             {
@@ -46,11 +42,7 @@ namespace Microsoft.CodeAnalysis
                     GeneratorInfo = generatorInfo;
                 }
 
-                /// <summary>
-                /// Returns a <see cref="AllSyntaxTreesParsedState"/> if <paramref name="intermediateProjects"/> is
-                /// empty, otherwise a <see cref="InProgressState"/>.
-                /// </summary>
-                public static NonFinalWithCompilationTrackerState Create(
+                public static InProgressState CreateInProgressState(
                     bool isFrozen,
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
@@ -67,9 +59,7 @@ namespace Microsoft.CodeAnalysis
                     // If we don't have any intermediate projects to process, just initialize our
                     // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
                     // if our referenced projects are changing, so we'll have to rerun to consume changes.
-                    return intermediateProjects.IsEmpty
-                        ? new AllSyntaxTreesParsedState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, staleCompilationWithGeneratedDocuments)
-                        : new InProgressState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, staleCompilationWithGeneratedDocuments, intermediateProjects);
+                    return new InProgressState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, staleCompilationWithGeneratedDocuments, intermediateProjects);
                 }
             }
 
@@ -136,10 +126,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// Root type for all compilation tracker that have a compilation, but are not the final <see
-            /// cref="FinalCompilationTrackerState"/>
+            /// A state where we are holding onto a previously built compilation, and have a known set of transformations
+            /// that could get us to a more final state.
             /// </summary>
-            private abstract class NonFinalWithCompilationTrackerState : WithCompilationTrackerState
+            private sealed class InProgressState : WithCompilationTrackerState
             {
                 /// <summary>
                 /// The result of taking the original completed compilation that had generated documents and updating
@@ -149,27 +139,6 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public Compilation? StaleCompilationWithGeneratedDocuments { get; }
 
-                protected NonFinalWithCompilationTrackerState(
-                    bool isFrozen,
-                    Compilation compilationWithoutGeneratedDocuments,
-                    CompilationTrackerGeneratorInfo generatorInfo,
-                    Compilation? staleCompilationWithGeneratedDocuments)
-                    : base(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo)
-                {
-                    // If we're not in the frozen state, the documents must *not* be final.  We're not a FinalState, and
-                    // as such, we must still determine what the up to date generated docs are.
-                    Contract.ThrowIfTrue(!IsFrozen && generatorInfo.DocumentsAreFinal);
-
-                    StaleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments;
-                }
-            }
-
-            /// <summary>
-            /// A state where we are holding onto a previously built compilation, and have a known set of transformations
-            /// that could get us to a more final state.
-            /// </summary>
-            private sealed class InProgressState : NonFinalWithCompilationTrackerState
-            {
                 /// <summary>
                 /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
                 /// the state of the project prior to the mutation.
@@ -184,32 +153,14 @@ namespace Microsoft.CodeAnalysis
                     ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
                     : base(isFrozen,
                            compilationWithoutGeneratedDocuments,
-                           generatorInfo,
-                           staleCompilationWithGeneratedDocuments)
+                           generatorInfo)
                 {
+                    // Note: Intermediate projects can be empty.
                     Contract.ThrowIfTrue(intermediateProjects is null);
-                    Contract.ThrowIfTrue(intermediateProjects.IsEmpty);
 
                     IntermediateProjects = intermediateProjects;
+                    StaleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments;
                 }
-            }
-
-            /// <summary>
-            /// A built compilation for the tracker that contains the fully built DeclarationTable, but may not have
-            /// references initialized.  Note: this is practically the same as <see cref="InProgressState"/> except that
-            /// there are no intermediary translation actions to apply.  The tracker state always moves into this state
-            /// prior to moving to the <see cref="FinalCompilationTrackerState"/>.
-            /// </summary>
-            private sealed class AllSyntaxTreesParsedState(
-                bool isFrozen,
-                Compilation compilationWithoutGeneratedDocuments,
-                CompilationTrackerGeneratorInfo generatorInfo,
-                Compilation? staleCompilationWithGeneratedDocuments) : NonFinalWithCompilationTrackerState(
-                    isFrozen,
-                    compilationWithoutGeneratedDocuments,
-                    generatorInfo,
-                    staleCompilationWithGeneratedDocuments)
-            {
             }
 
             /// <summary>
