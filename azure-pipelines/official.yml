@@ -64,7 +64,6 @@ extends:
           BuildConfiguration: Release
           NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
           Packaging.EnableSBOMSigning: false
-          Codeql.Enabled: true
         jobs:
         - template: /azure-pipelines/build.yml@self
           parameters:
@@ -98,7 +97,6 @@ extends:
           BuildConfiguration: Release
           NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
           Packaging.EnableSBOMSigning: false
-          Codeql.Enabled: true
         jobs:
         - template: /azure-pipelines/build.yml@self
           parameters:
