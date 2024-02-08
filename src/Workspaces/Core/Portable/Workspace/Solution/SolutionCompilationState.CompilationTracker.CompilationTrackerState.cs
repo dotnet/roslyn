@@ -120,18 +120,18 @@ namespace Microsoft.CodeAnalysis
             private sealed class InProgressState : WithCompilationTrackerState
             {
                 /// <summary>
+                /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
+                /// the state of the project prior to the mutation.
+                /// </summary>
+                public ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> IntermediateProjects { get; }
+
+                /// <summary>
                 /// The result of taking the original completed compilation that had generated documents and updating
                 /// them by apply the <see cref="CompilationAndGeneratorDriverTranslationAction" />; this is not a
                 /// correct snapshot in that the generators have not been rerun, but may be reusable if the generators
                 /// are later found to give the same output.
                 /// </summary>
                 public Compilation? StaleCompilationWithGeneratedDocuments { get; }
-
-                /// <summary>
-                /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
-                /// the state of the project prior to the mutation.
-                /// </summary>
-                public ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> IntermediateProjects { get; }
 
                 public InProgressState(
                     bool isFrozen,
