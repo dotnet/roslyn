@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
                     // If we're not frozen, transition back to the non-final state as we def want to rerun generators
                     // for either of these non-final states.
                     if (!isFrozen)
-                        generatorInfo = generatorInfo.WithDocumentsAreFinal(false);
+                        generatorInfo = generatorInfo with { DocumentsAreFinal = false };
 
                     // If we don't have any intermediate projects to process, just initialize our
                     // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// Root type for all tracker states that now have a primordial (non source-generator) compilation that can
+            /// Root type for all tracker states that have a primordial (non source-generator) compilation that can
             /// be obtained.
             /// </summary>
             private abstract class WithCompilationTrackerState : CompilationTrackerState
@@ -100,7 +100,8 @@ namespace Microsoft.CodeAnalysis
 
                     // When in the frozen state, all documents must be final. We never want to run generators for frozen
                     // states as the point is to be fast (while potentially incomplete).
-                    Contract.ThrowIfTrue(IsFrozen && !generatorInfo.DocumentsAreFinal);
+                    if (IsFrozen)
+                        Contract.ThrowIfFalse(generatorInfo.DocumentsAreFinal);
 
 #if DEBUG
                     // As a sanity check, we should never see the generated trees inside of the compilation that should
@@ -212,7 +213,6 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                /// <param name="finalCompilation">Not held onto</param>
                 /// <param name="projectId">Not held onto</param>
                 /// <param name="metadataReferenceToProjectId">Not held onto</param>
                 public static FinalCompilationTrackerState Create(
@@ -221,7 +221,6 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedDocuments,
                     bool hasSuccessfullyLoaded,
                     CompilationTrackerGeneratorInfo generatorInfo,
-                    Compilation finalCompilation,
                     ProjectId projectId,
                     Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
                 {
@@ -230,8 +229,8 @@ namespace Microsoft.CodeAnalysis
                     // Keep track of information about symbols from this Compilation.  This will help support other APIs
                     // the solution exposes that allows the user to map back from symbols to project information.
 
-                    var unrootedSymbolSet = UnrootedSymbolSet.Create(finalCompilation);
-                    RecordAssemblySymbols(projectId, finalCompilation, metadataReferenceToProjectId);
+                    var unrootedSymbolSet = UnrootedSymbolSet.Create(finalCompilationWithGeneratedDocuments);
+                    RecordAssemblySymbols(projectId, finalCompilationWithGeneratedDocuments, metadataReferenceToProjectId);
 
                     return new FinalCompilationTrackerState(
                         isFrozen,

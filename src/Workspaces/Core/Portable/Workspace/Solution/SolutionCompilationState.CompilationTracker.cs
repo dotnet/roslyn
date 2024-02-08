@@ -8,8 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Resources;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -147,7 +145,7 @@ namespace Microsoft.CodeAnalysis
                         // This is a singleton.  We just stay in this state.  That's fine as there's no driver or
                         // compilation to track this translate step.  We'll always just have to produce the full
                         // compilation/sg docs if we're in this state.
-                        return state;
+                        return noCompilationState;
                     }
                     else
                     {
@@ -160,9 +158,13 @@ namespace Microsoft.CodeAnalysis
                     WithCompilationTrackerState state,
                     CompilationAndGeneratorDriverTranslationAction? translate)
                 {
-                    var finalCompilationWithGeneratedDocuments = state is FinalCompilationTrackerState finalState
-                        ? finalState.FinalCompilationWithGeneratedDocuments
-                        : null;
+                    // Determine the old/stale compilation to help seed the non-final state with.
+                    var staleCompilationWithGeneratedDocuments = state switch
+                    {
+                        FinalCompilationTrackerState finalState => finalState.FinalCompilationWithGeneratedDocuments,
+                        InProgressState inProgressState => inProgressState.StaleCompilationWithGeneratedDocuments,
+                        _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
+                    };
 
                     var intermediateProjects = UpdateIntermediateProjects(oldProjectState, state, translate);
 
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis
                         state.IsFrozen,
                         state.CompilationWithoutGeneratedDocuments,
                         state.GeneratorInfo,
-                        finalCompilationWithGeneratedDocuments,
+                        staleCompilationWithGeneratedDocuments,
                         intermediateProjects);
                     return newState;
                 }
@@ -282,7 +284,7 @@ namespace Microsoft.CodeAnalysis
 
                 // Mark whatever generator state we have as not only final, and mark our FinalState as frozen as well.
                 // We'll want to keep whatever we have here through whatever future transformations occur.
-                generatorInfo = generatorInfo.WithDocumentsAreFinal(true);
+                generatorInfo = generatorInfo with { DocumentsAreFinal = true };
 
                 var finalState = FinalCompilationTrackerState.Create(
                     isFrozen: true,
@@ -292,7 +294,6 @@ namespace Microsoft.CodeAnalysis
                     // has no guarantees.
                     hasSuccessfullyLoaded: false,
                     generatorInfo,
-                    finalCompilation: compilationPair.CompilationWithGeneratedDocuments,
                     this.ProjectState.Id,
                     metadataReferenceToProjectId);
 
@@ -534,7 +535,7 @@ namespace Microsoft.CodeAnalysis
                             => inProgressState,
                         // We've got nothing.  Build it from scratch :(
                         NoCompilationState noCompilationState
-                            => await BuildInProgressStateFromNoCompilationStateAsync(noCompilationState).ConfigureAwait(false),
+                            => await BuildInProgressStateFromNoCompilationStateAsync().ConfigureAwait(false),
                         _ => throw ExceptionUtilities.UnexpectedValue(state.GetType())
                     };
 
@@ -546,7 +547,8 @@ namespace Microsoft.CodeAnalysis
                 [PerformanceSensitive(
                     "https://github.com/dotnet/roslyn/issues/23582",
                     Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
-                async Task<InProgressState> BuildInProgressStateFromNoCompilationStateAsync(NoCompilationState noCompilationState)
+
+                async Task<InProgressState> BuildInProgressStateFromNoCompilationStateAsync()
                 {
                     try
                     {
@@ -569,6 +571,7 @@ namespace Microsoft.CodeAnalysis
                         var allSyntaxTreesParsedState = new InProgressState(
                             isFrozen: false, compilation, CompilationTrackerGeneratorInfo.Empty, staleCompilationWithGeneratedDocuments: null,
                             ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)>.Empty);
+
                         WriteState(allSyntaxTreesParsedState);
                         return allSyntaxTreesParsedState;
                     }
@@ -655,7 +658,7 @@ namespace Microsoft.CodeAnalysis
 
                         var generatorInfo = inProgressState.GeneratorInfo;
                         if (generatorInfo.Driver != null)
-                            generatorInfo = generatorInfo.WithDriver(action.TransformGeneratorDriver(generatorInfo.Driver));
+                            generatorInfo = generatorInfo with { Driver = action.TransformGeneratorDriver(generatorInfo.Driver) };
 
                         return (compilationWithoutGeneratedDocuments, staleCompilationWithGeneratedDocuments, generatorInfo);
                     }
@@ -759,7 +762,7 @@ namespace Microsoft.CodeAnalysis
                             cancellationToken).ConfigureAwait(false);
 
                         // After producing the sg documents, we must always be in the final state for the generator data.
-                        var nextGeneratorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorDriver).WithDocumentsAreFinal(true);
+                        var nextGeneratorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorDriver, DocumentsAreFinal: true);
 
                         var finalState = FinalCompilationTrackerState.Create(
                             isFrozen,
@@ -767,7 +770,6 @@ namespace Microsoft.CodeAnalysis
                             compilationWithoutGeneratedDocuments,
                             hasSuccessfullyLoaded,
                             nextGeneratorInfo,
-                            compilationWithGeneratedDocuments,
                             this.ProjectState.Id,
                             metadataReferenceToProjectId);
 
