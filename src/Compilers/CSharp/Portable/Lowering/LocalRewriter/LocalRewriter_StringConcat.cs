@@ -492,7 +492,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 readOnlySpanCtorRefParamChar = null;
                 stringImplicitConversionToReadOnlySpan = null;
 
-                if (self.TryGetWellKnownTypeMember(syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol? readOnlySpanCtorRefParamGeneric, isOptional: true))
+                if (self.TryGetWellKnownTypeMember(syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol? readOnlySpanCtorRefParamGeneric, isOptional: true) &&
+                    readOnlySpanCtorRefParamGeneric.Parameters[0].RefKind != RefKind.Out)
                 {
                     var readOnlySpanOfChar = readOnlySpanCtorRefParamGeneric.ContainingType.Construct(charType);
                     readOnlySpanCtorRefParamChar = readOnlySpanCtorRefParamGeneric.AsMember(readOnlySpanOfChar);
@@ -530,12 +531,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var temp = factory.StoreToTemp(arg, out var tempAssignment);
                         localsBuilder.Add(temp.LocalSymbol);
 
+                        Debug.Assert(readOnlySpanCtorRefParamChar.Parameters[0].RefKind != RefKind.Out);
+
                         var wrappedChar = new BoundObjectCreationExpression(
                             arg.Syntax,
                             readOnlySpanCtorRefParamChar,
                             [temp],
                             argumentNamesOpt: default,
-                            argumentRefKindsOpt: [RefKindExtensions.StrictIn],
+                            argumentRefKindsOpt: [readOnlySpanCtorRefParamChar.Parameters[0].RefKind == RefKind.Ref ? RefKind.Ref : RefKindExtensions.StrictIn],
                             expanded: false,
                             argsToParamsOpt: default,
                             defaultArguments: default,
