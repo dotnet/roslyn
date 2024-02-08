@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 using var _ = ArrayBuilder<Entry>.GetInstance(out var entries);
 
-                if (definition.SourceSpans.Length == 1)
+                if (definition.SourceSpans.Length == 1 && definition.MetadataLocations.IsEmpty)
                 {
                     // If we only have a single location, then use the DisplayParts of the
                     // definition as what to show.  That way we show enough information for things

@@ -21,6 +21,15 @@ namespace Microsoft.CodeAnalysis
                 => new(reference.Properties, (reference as PortableExecutableReference)?.FilePath);
         }
 
+        /// <summary>
+        /// Information maintained for unrooted symbols. 
+        /// </summary>
+        /// <param name="ProjectId">
+        /// The project the symbol originated from, i.e. the symbol is defined in the project or its metadata reference.
+        /// </param>
+        /// <param name="ReferencedThrough">
+        /// If the symbol is defined in a metadata reference of <paramref name="ProjectId"/>, information about the reference.
+        /// </param>
         internal sealed record class OriginatingProjectInfo(ProjectId ProjectId, MetadataReferenceInfo? ReferencedThrough);
 
         /// <summary>

@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         {
             return new(DefinitionItem.Create(
                 tags, displayParts, sourceSpans.SelectAsArray(span => span.ToDocumentSpan()), sourceSpans.SelectAsArray(_ => (ClassifiedSpansAndHighlightSpan?)null),
-                ImmutableArray<AssemblyLocation>.Empty, nameDisplayParts, properties: null, displayableProperties: ImmutableDictionary<string, string>.Empty, displayIfNoReferences: displayIfNoReferences));
+                metadataLocations: ImmutableArray<AssemblyLocation>.Empty, nameDisplayParts, properties: null, displayableProperties: ImmutableDictionary<string, string>.Empty, displayIfNoReferences: displayIfNoReferences));
         }
 
         public static VSTypeScriptDefinitionItem CreateExternal(
