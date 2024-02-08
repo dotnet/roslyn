@@ -7920,37 +7920,31 @@ class Test
             var src = @"
 using System;
 
-class C1
+abstract class C1
 {
-    public virtual void Test1(Span<long> a)
-    {
-    }
-
-    public virtual void Test2(Span<long> a)
-    {
-    }
-
-    public virtual void Test3(Span<long> a)
-    {
-    }
+    public abstract Span<long> Test1(Span<long> a);
+    public abstract Span<long> Test2(Span<long> a);
+    public abstract Span<long> Test3(Span<long> a);
 }
 
 class C2 : C1
 {
-    public override void Test1(params Span<long> a)
-    {
-    }
+    public override Span<long> Test1(params Span<long> a)
+        => throw null;
 
-    public override void Test2(params scoped Span<long> a)
-    {
-    }
+    public override Span<long> Test2(params scoped Span<long> a)
+        => throw null;
 
-    public override void Test3(scoped Span<long> a)
-    {
-    }
+    public override Span<long> Test3(scoped Span<long> a)
+        => throw null;
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.False(comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().IsParams);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
 
             comp.VerifyDiagnostics();
         }
@@ -7961,39 +7955,36 @@ class C2 : C1
             var src = @"
 using System;
 
-class C1
+abstract class C1
 {
-    public virtual void Test1(params Span<long> a)
-    {
-    }
-
-    public virtual void Test2(params scoped Span<long> a)
-    {
-    }
-
-    public virtual void Test3(scoped Span<long> a)
-    {
-    }
+    public abstract Span<long> Test1(params Span<long> a);
+    public abstract Span<long> Test2(params scoped Span<long> a);
+    public abstract Span<long> Test3(scoped Span<long> a);
 }
 
 class C2 : C1
 {
-    public override void Test1(Span<long> a)
-    {
-    }
+    public override Span<long> Test1(Span<long> a)
+        => throw null;
 
-    public override void Test2(Span<long> a)
-    {
-    }
+    public override Span<long> Test2(Span<long> a)
+        => throw null;
 
-    public override void Test3(Span<long> a)
-    {
-    }
+    public override Span<long> Test3(Span<long> a)
+        => throw null;
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            comp.VerifyDiagnostics();
+            Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
+
+            comp.VerifyDiagnostics(
+                // (19,32): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public override Span<long> Test3(Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test3").WithArguments("a").WithLocation(19, 32)
+                );
         }
 
         [Fact]
@@ -8003,42 +7994,44 @@ class C2 : C1
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-class C1
+abstract class C1
 {
-    public virtual void Test1(params Span<long> a)
-    {
-    }
-
-    public virtual void Test2(params scoped Span<long> a)
-    {
-    }
-
-    public virtual void Test3(scoped Span<long> a)
-    {
-    }
+    public abstract Span<long> Test1(params Span<long> a);
+    public abstract Span<long> Test2(params scoped Span<long> a);
+    public abstract Span<long> Test3(scoped Span<long> a);
 }
 
 class C2 : C1
 {
-    public override void Test1([UnscopedRef] Span<long> a)
-    {
-    }
+    public override Span<long> Test1([UnscopedRef] Span<long> a)
+        => throw null;
 
-    public override void Test2([UnscopedRef] Span<long> a)
-    {
-    }
+    public override Span<long> Test2([UnscopedRef] Span<long> a)
+        => throw null;
 
-    public override void Test3([UnscopedRef] Span<long> a)
-    {
-    }
+    public override Span<long> Test3([UnscopedRef] Span<long> a)
+        => throw null;
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
+
             comp.VerifyDiagnostics(
-                // (30,33): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
-                //     public override void Test3([UnscopedRef] Span<long> a)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(30, 33)
+                // (14,32): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public override Span<long> Test1([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test1").WithArguments("a").WithLocation(14, 32),
+                // (17,32): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public override Span<long> Test2([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("a").WithLocation(17, 32),
+                // (20,32): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public override Span<long> Test3([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test3").WithArguments("a").WithLocation(20, 32),
+                // (20,39): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     public override Span<long> Test3([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(20, 39)
                 );
         }
 
@@ -8049,47 +8042,51 @@ class C2 : C1
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-class C1
+abstract class C1
 {
-    public virtual void Test1(params Span<long> a)
-    {
-    }
-
-    public virtual void Test2(params scoped Span<long> a)
-    {
-    }
-
-    public virtual void Test3(scoped Span<long> a)
-    {
-    }
+    public abstract Span<long> Test1(params Span<long> a);
+    public abstract Span<long> Test2(params scoped Span<long> a);
+    public abstract Span<long> Test3(scoped Span<long> a);
 }
 
 class C2 : C1
 {
-    public override void Test1([UnscopedRef] params Span<long> a)
-    {
-    }
+    public override Span<long> Test1([UnscopedRef] params Span<long> a)
+        => throw null;
 
-    public override void Test2([UnscopedRef] params Span<long> a)
-    {
-    }
+    public override Span<long> Test2([UnscopedRef] params Span<long> a)
+        => throw null;
 
-    public override void Test3([UnscopedRef] params Span<long> a)
-    {
-    }
+    public override Span<long> Test3([UnscopedRef] params Span<long> a)
+        => throw null;
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
+
             Assert.False(comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().IsParams);
 
-            // PROTOTYPE(ParamsCollections): The params modifier is getting dropped due to overriding (that is not new for params collections),
-            //                               but that is causing the unexpected warning. Not sure it is worth the effort trying to suppress it for
-            //                               this edge case.
             comp.VerifyDiagnostics(
-                // (30,33): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
-                //     public override void Test3([UnscopedRef] params Span<long> a)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(30, 33)
+                // (14,32): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public override Span<long> Test1([UnscopedRef] params Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test1").WithArguments("a").WithLocation(14, 32),
+                // (17,32): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public override Span<long> Test2([UnscopedRef] params Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("a").WithLocation(17, 32),
+                // (20,32): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public override Span<long> Test3([UnscopedRef] params Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test3").WithArguments("a").WithLocation(20, 32),
+
+                // PROTOTYPE(ParamsCollections): The params modifier is getting dropped due to overriding (that is not new for params collections),
+                //                               but that is causing the unexpected warning. Not sure it is worth the effort trying to suppress it for
+                //                               this edge case. The confusing part is the "unscoped by default" statement.
+
+                // (20,39): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     public override Span<long> Test3([UnscopedRef] params Span<long> a)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(20, 39)
                 );
         }
 
@@ -8101,50 +8098,52 @@ using System;
 
 interface C1
 {
-    void Test1(Span<long> a);
-    void Test2(Span<long> a);
-    void Test3(Span<long> a);
+    Span<long> Test1(Span<long> a);
+    Span<long> Test2(Span<long> a);
+    Span<long> Test3(Span<long> a);
 }
 
 class C2 : C1
 {
-    public void Test1(params Span<long> a)
-    {
-    }
+    public Span<long> Test1(params Span<long> a)
+        => throw null;
 
-    public void Test2(params scoped Span<long> a)
-    {
-    }
+    public Span<long> Test2(params scoped Span<long> a)
+        => throw null;
 
-    public void Test3(scoped Span<long> a)
-    {
-    }
+    public Span<long> Test3(scoped Span<long> a)
+        => throw null;
 }
 
 class C3 : C1
 {
-    void C1.Test1(params Span<long> a)
-    {
-    }
+    Span<long> C1.Test1(params Span<long> a)
+        => throw null;
 
-    void C1.Test2(params scoped Span<long> a)
-    {
-    }
+    Span<long> C1.Test2(params scoped Span<long> a)
+        => throw null;
 
-    void C1.Test3(scoped Span<long> a)
-    {
-    }
+    Span<long> C1.Test3(scoped Span<long> a)
+        => throw null;
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
+
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C3.C1.Test1").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C3.C1.Test2").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C3.C1.Test3").Parameters.Single().EffectiveScope);
+
             comp.VerifyDiagnostics(
-                // (28,13): error CS0466: 'C3.C1.Test1(params Span<long>)' should not have a params parameter since 'C1.Test1(Span<long>)' does not
-                //     void C1.Test1(params Span<long> a)
-                Diagnostic(ErrorCode.ERR_ExplicitImplParams, "Test1").WithArguments("C3.C1.Test1(params System.Span<long>)", "C1.Test1(System.Span<long>)").WithLocation(28, 13),
-                // (32,13): error CS0466: 'C3.C1.Test2(params Span<long>)' should not have a params parameter since 'C1.Test2(Span<long>)' does not
-                //     void C1.Test2(params scoped Span<long> a)
-                Diagnostic(ErrorCode.ERR_ExplicitImplParams, "Test2").WithArguments("C3.C1.Test2(params System.Span<long>)", "C1.Test2(System.Span<long>)").WithLocation(32, 13)
+                // (25,19): error CS0466: 'C3.C1.Test1(params Span<long>)' should not have a params parameter since 'C1.Test1(Span<long>)' does not
+                //     Span<long> C1.Test1(params Span<long> a)
+                Diagnostic(ErrorCode.ERR_ExplicitImplParams, "Test1").WithArguments("C3.C1.Test1(params System.Span<long>)", "C1.Test1(System.Span<long>)").WithLocation(25, 19),
+                // (28,19): error CS0466: 'C3.C1.Test2(params Span<long>)' should not have a params parameter since 'C1.Test2(Span<long>)' does not
+                //     Span<long> C1.Test2(params scoped Span<long> a)
+                Diagnostic(ErrorCode.ERR_ExplicitImplParams, "Test2").WithArguments("C3.C1.Test2(params System.Span<long>)", "C1.Test2(System.Span<long>)").WithLocation(28, 19)
                 );
         }
 
@@ -8156,44 +8155,65 @@ using System;
 
 interface C1
 {
-    void Test1(params Span<long> a);
-    void Test2(params scoped Span<long> a);
-    void Test3(scoped Span<long> a);
+    Span<long> Test1(params Span<long> a);
+    Span<long> Test2(params scoped Span<long> a);
+    Span<long> Test3(scoped Span<long> a);
 }
 
 class C2 : C1
 {
-    public void Test1(Span<long> a)
-    {
-    }
+    public Span<long> Test1(Span<long> a)
+        => throw null;
 
-    public void Test2(Span<long> a)
-    {
-    }
+    public Span<long> Test2(Span<long> a)
+        => throw null;
 
-    public void Test3(Span<long> a)
-    {
-    }
+    public Span<long> Test3(Span<long> a)
+        => throw null;
 }
 
 class C3 : C1
 {
-    void C1.Test1(Span<long> a)
-    {
-    }
+    Span<long> C1.Test1(Span<long> a)
+        => throw null;
 
-    void C1.Test2(Span<long> a)
-    {
-    }
+    Span<long> C1.Test2(Span<long> a)
+        => throw null;
 
-    void C1.Test3(Span<long> a)
-    {
-    }
+    Span<long> C1.Test3(Span<long> a)
+        => throw null;
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            comp.VerifyDiagnostics();
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
+
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C3.C1.Test1").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C3.C1.Test2").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C3.C1.Test3").Parameters.Single().EffectiveScope);
+
+            comp.VerifyDiagnostics(
+                // (13,23): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public Span<long> Test1(Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test1").WithArguments("a").WithLocation(13, 23),
+                // (16,23): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public Span<long> Test2(Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("a").WithLocation(16, 23),
+                // (19,23): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public Span<long> Test3(Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test3").WithArguments("a").WithLocation(19, 23),
+                // (25,19): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     Span<long> C1.Test1(Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test1").WithArguments("a").WithLocation(25, 19),
+                // (28,19): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     Span<long> C1.Test2(Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("a").WithLocation(28, 19),
+                // (31,19): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     Span<long> C1.Test3(Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test3").WithArguments("a").WithLocation(31, 19)
+                );
         }
 
         [Fact]
@@ -8205,62 +8225,82 @@ using System.Diagnostics.CodeAnalysis;
 
 interface C1
 {
-    void Test1(params Span<long> a);
-    void Test2(params scoped Span<long> a);
-    void Test3(scoped Span<long> a);
+    Span<long> Test1(params Span<long> a);
+    Span<long> Test2(params scoped Span<long> a);
+    Span<long> Test3(scoped Span<long> a);
 }
 
 class C2 : C1
 {
-    public void Test1([UnscopedRef] Span<long> a)
-    {
-    }
+    public Span<long> Test1([UnscopedRef] Span<long> a)
+        => throw null;
 
-    public void Test2([UnscopedRef] Span<long> a)
-    {
-    }
+    public Span<long> Test2([UnscopedRef] Span<long> a)
+        => throw null;
 
-    public void Test3([UnscopedRef] Span<long> a)
-    {
-    }
+    public Span<long> Test3([UnscopedRef] Span<long> a)
+        => throw null;
 }
 
 class C3 : C1
 {
-    void C1.Test1([UnscopedRef] Span<long> a)
-    {
-    }
+    Span<long> C1.Test1([UnscopedRef] Span<long> a)
+        => throw null;
 
-    void C1.Test2([UnscopedRef] Span<long> a)
-    {
-    }
+    Span<long> C1.Test2([UnscopedRef] Span<long> a)
+        => throw null;
 
-    void C1.Test3([UnscopedRef] Span<long> a)
-    {
-    }
+    Span<long> C1.Test3([UnscopedRef] Span<long> a)
+        => throw null;
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
+
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C3.C1.Test1").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C3.C1.Test2").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C3.C1.Test3").Parameters.Single().EffectiveScope);
+
             comp.VerifyDiagnostics(
-                // (14,24): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
-                //     public void Test1([UnscopedRef] Span<long> a)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(14, 24),
-                // (18,24): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
-                //     public void Test2([UnscopedRef] Span<long> a)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(18, 24),
-                // (22,24): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
-                //     public void Test3([UnscopedRef] Span<long> a)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(22, 24),
-                // (29,20): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
-                //     void C1.Test1([UnscopedRef] Span<long> a)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(29, 20),
-                // (33,20): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
-                //     void C1.Test2([UnscopedRef] Span<long> a)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(33, 20),
-                // (37,20): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
-                //     void C1.Test3([UnscopedRef] Span<long> a)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(37, 20)
+                // (14,23): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public Span<long> Test1([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test1").WithArguments("a").WithLocation(14, 23),
+                // (14,30): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     public Span<long> Test1([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(14, 30),
+                // (17,23): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public Span<long> Test2([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("a").WithLocation(17, 23),
+                // (17,30): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     public Span<long> Test2([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(17, 30),
+                // (20,23): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public Span<long> Test3([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test3").WithArguments("a").WithLocation(20, 23),
+                // (20,30): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     public Span<long> Test3([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(20, 30),
+                // (26,19): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     Span<long> C1.Test1([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test1").WithArguments("a").WithLocation(26, 19),
+                // (26,26): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     Span<long> C1.Test1([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(26, 26),
+                // (29,19): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     Span<long> C1.Test2([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("a").WithLocation(29, 19),
+                // (29,26): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     Span<long> C1.Test2([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(29, 26),
+                // (32,19): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     Span<long> C1.Test3([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test3").WithArguments("a").WithLocation(32, 19),
+                // (32,26): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     Span<long> C1.Test3([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(32, 26)
                 );
         }
 
@@ -8273,47 +8313,67 @@ using System.Diagnostics.CodeAnalysis;
 
 interface C1
 {
-    void Test1(params Span<long> a);
-    void Test2(params scoped Span<long> a);
-    void Test3(scoped Span<long> a);
+    Span<long> Test1(params Span<long> a);
+    Span<long> Test2(params scoped Span<long> a);
+    Span<long> Test3(scoped Span<long> a);
 }
 
 class C2 : C1
 {
-    public void Test1([UnscopedRef] params Span<long> a)
-    {
-    }
+    public Span<long> Test1([UnscopedRef] params Span<long> a)
+        => throw null;
 
-    public void Test2([UnscopedRef] params Span<long> a)
-    {
-    }
+    public Span<long> Test2([UnscopedRef] params Span<long> a)
+        => throw null;
 
-    public void Test3([UnscopedRef] params Span<long> a)
-    {
-    }
+    public Span<long> Test3([UnscopedRef] params Span<long> a)
+        => throw null;
 }
 
 class C3 : C1
 {
-    void C1.Test1([UnscopedRef] params Span<long> a)
-    {
-    }
+    Span<long> C1.Test1([UnscopedRef] params Span<long> a)
+        => throw null;
 
-    void C1.Test2([UnscopedRef] params Span<long> a)
-    {
-    }
+    Span<long> C1.Test2([UnscopedRef] params Span<long> a)
+        => throw null;
 
-    void C1.Test3([UnscopedRef] params Span<long> a)
-    {
-    }
+    Span<long> C1.Test3([UnscopedRef] params Span<long> a)
+        => throw null;
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
+
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C3.C1.Test1").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C3.C1.Test2").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C3.C1.Test3").Parameters.Single().EffectiveScope);
+
             comp.VerifyDiagnostics(
-                // (37,13): error CS0466: 'C3.C1.Test3(params Span<long>)' should not have a params parameter since 'C1.Test3(scoped Span<long>)' does not
-                //     void C1.Test3([UnscopedRef] params Span<long> a)
-                Diagnostic(ErrorCode.ERR_ExplicitImplParams, "Test3").WithArguments("C3.C1.Test3(params System.Span<long>)", "C1.Test3(scoped System.Span<long>)").WithLocation(37, 13)
+                // (14,23): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public Span<long> Test1([UnscopedRef] params Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test1").WithArguments("a").WithLocation(14, 23),
+                // (17,23): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public Span<long> Test2([UnscopedRef] params Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("a").WithLocation(17, 23),
+                // (20,23): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public Span<long> Test3([UnscopedRef] params Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test3").WithArguments("a").WithLocation(20, 23),
+                // (26,19): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     Span<long> C1.Test1([UnscopedRef] params Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test1").WithArguments("a").WithLocation(26, 19),
+                // (29,19): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     Span<long> C1.Test2([UnscopedRef] params Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("a").WithLocation(29, 19),
+                // (32,19): error CS0466: 'C3.C1.Test3(params Span<long>)' should not have a params parameter since 'C1.Test3(scoped Span<long>)' does not
+                //     Span<long> C1.Test3([UnscopedRef] params Span<long> a)
+                Diagnostic(ErrorCode.ERR_ExplicitImplParams, "Test3").WithArguments("C3.C1.Test3(params System.Span<long>)", "C1.Test3(scoped System.Span<long>)").WithLocation(32, 19),
+                // (32,19): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     Span<long> C1.Test3([UnscopedRef] params Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test3").WithArguments("a").WithLocation(32, 19)
                 );
         }
 
@@ -8325,9 +8385,9 @@ using System;
 
 class C1
 {
-    public delegate void Test1(Span<long> a);
-    public delegate void Test2(Span<long> a);
-    public delegate void Test3(Span<long> a);
+    public delegate Span<long> Test1(Span<long> a);
+    public delegate Span<long> Test2(Span<long> a);
+    public delegate Span<long> Test3(Span<long> a);
 }
 
 class C2
@@ -8339,20 +8399,21 @@ class C2
         C1.Test3 d3 = Test3;
     }
 
-    public void Test1(params Span<long> a)
-    {
-    }
+    public Span<long> Test1(params Span<long> a)
+        => throw null;
 
-    public void Test2(params scoped Span<long> a)
-    {
-    }
+    public Span<long> Test2(params scoped Span<long> a)
+        => throw null;
 
-    public void Test3(scoped Span<long> a)
-    {
-    }
+    public Span<long> Test3(scoped Span<long> a)
+        => throw null;
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test1.Invoke").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2.Invoke").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3.Invoke").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
 
             comp.VerifyDiagnostics();
         }
@@ -8365,9 +8426,9 @@ using System;
 
 class C1
 {
-    public delegate void Test1(params Span<long> a);
-    public delegate void Test2(params scoped Span<long> a);
-    public delegate void Test3(scoped Span<long> a);
+    public delegate Span<long> Test1(params Span<long> a);
+    public delegate Span<long> Test2(params scoped Span<long> a);
+    public delegate Span<long> Test3(scoped Span<long> a);
 }
 
 class C2
@@ -8379,22 +8440,33 @@ class C2
         C1.Test3 d3 = Test3;
     }
 
-    public void Test1(Span<long> a)
-    {
-    }
+    public Span<long> Test1(Span<long> a)
+        => throw null;
 
-    public void Test2(Span<long> a)
-    {
-    }
+    public Span<long> Test2(Span<long> a)
+        => throw null;
 
-    public void Test3(Span<long> a)
-    {
-    }
+    public Span<long> Test3(Span<long> a)
+        => throw null;
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            comp.VerifyDiagnostics();
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test1.Invoke").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2.Invoke").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3.Invoke").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
+
+            comp.VerifyDiagnostics(
+                // (15,23): error CS8986: The 'scoped' modifier of parameter 'a' doesn't match target 'C1.Test1'.
+                //         C1.Test1 d1 = Test1;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "Test1").WithArguments("a", "C1.Test1").WithLocation(15, 23),
+                // (16,23): error CS8986: The 'scoped' modifier of parameter 'a' doesn't match target 'C1.Test2'.
+                //         C1.Test2 d2 = Test2;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "Test2").WithArguments("a", "C1.Test2").WithLocation(16, 23),
+                // (17,23): error CS8986: The 'scoped' modifier of parameter 'a' doesn't match target 'C1.Test3'.
+                //         C1.Test3 d3 = Test3;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "Test3").WithArguments("a", "C1.Test3").WithLocation(17, 23)
+                );
         }
 
         [Fact]
@@ -8406,9 +8478,9 @@ using System.Diagnostics.CodeAnalysis;
 
 class C1
 {
-    public delegate void Test1(params Span<long> a);
-    public delegate void Test2(params scoped Span<long> a);
-    public delegate void Test3(scoped Span<long> a);
+    public delegate Span<long> Test1(params Span<long> a);
+    public delegate Span<long> Test2(params scoped Span<long> a);
+    public delegate Span<long> Test3(scoped Span<long> a);
 }
 
 class C2
@@ -8420,31 +8492,41 @@ class C2
         C1.Test3 d3 = Test3;
     }
 
-    public void Test1([UnscopedRef] Span<long> a)
-    {
-    }
+    public Span<long> Test1([UnscopedRef] Span<long> a)
+        => throw null;
 
-    public void Test2([UnscopedRef] Span<long> a)
-    {
-    }
+    public Span<long> Test2([UnscopedRef] Span<long> a)
+        => throw null;
 
-    public void Test3([UnscopedRef] Span<long> a)
-    {
-    }
+    public Span<long> Test3([UnscopedRef] Span<long> a)
+        => throw null;
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test1.Invoke").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2.Invoke").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3.Invoke").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
+
             comp.VerifyDiagnostics(
-                // (21,24): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
-                //     public void Test1([UnscopedRef] Span<long> a)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(21, 24),
-                // (25,24): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
-                //     public void Test2([UnscopedRef] Span<long> a)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(25, 24),
-                // (29,24): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
-                //     public void Test3([UnscopedRef] Span<long> a)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(29, 24)
+                // (16,23): error CS8986: The 'scoped' modifier of parameter 'a' doesn't match target 'C1.Test1'.
+                //         C1.Test1 d1 = Test1;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "Test1").WithArguments("a", "C1.Test1").WithLocation(16, 23),
+                // (17,23): error CS8986: The 'scoped' modifier of parameter 'a' doesn't match target 'C1.Test2'.
+                //         C1.Test2 d2 = Test2;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "Test2").WithArguments("a", "C1.Test2").WithLocation(17, 23),
+                // (18,23): error CS8986: The 'scoped' modifier of parameter 'a' doesn't match target 'C1.Test3'.
+                //         C1.Test3 d3 = Test3;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "Test3").WithArguments("a", "C1.Test3").WithLocation(18, 23),
+                // (21,30): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     public Span<long> Test1([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(21, 30),
+                // (24,30): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     public Span<long> Test2([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(24, 30),
+                // (27,30): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     public Span<long> Test3([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(27, 30)
                 );
         }
 
@@ -8457,9 +8539,9 @@ using System.Diagnostics.CodeAnalysis;
 
 class C1
 {
-    public delegate void Test1(params Span<long> a);
-    public delegate void Test2(params scoped Span<long> a);
-    public delegate void Test3(scoped Span<long> a);
+    public delegate Span<long> Test1(params Span<long> a);
+    public delegate Span<long> Test2(params scoped Span<long> a);
+    public delegate Span<long> Test3(scoped Span<long> a);
 }
 
 class C2
@@ -8471,22 +8553,33 @@ class C2
         C1.Test3 d3 = Test3;
     }
 
-    public void Test1([UnscopedRef] params Span<long> a)
-    {
-    }
+    public Span<long> Test1([UnscopedRef] params Span<long> a)
+        => throw null;
 
-    public void Test2([UnscopedRef] params Span<long> a)
-    {
-    }
+    public Span<long> Test2([UnscopedRef] params Span<long> a)
+        => throw null;
 
-    public void Test3([UnscopedRef] params Span<long> a)
-    {
-    }
+    public Span<long> Test3([UnscopedRef] params Span<long> a)
+        => throw null;
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            comp.VerifyDiagnostics();
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test1.Invoke").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2.Invoke").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3.Invoke").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
+
+            comp.VerifyDiagnostics(
+                // (16,23): error CS8986: The 'scoped' modifier of parameter 'a' doesn't match target 'C1.Test1'.
+                //         C1.Test1 d1 = Test1;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "Test1").WithArguments("a", "C1.Test1").WithLocation(16, 23),
+                // (17,23): error CS8986: The 'scoped' modifier of parameter 'a' doesn't match target 'C1.Test2'.
+                //         C1.Test2 d2 = Test2;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "Test2").WithArguments("a", "C1.Test2").WithLocation(17, 23),
+                // (18,23): error CS8986: The 'scoped' modifier of parameter 'a' doesn't match target 'C1.Test3'.
+                //         C1.Test3 d3 = Test3;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "Test3").WithArguments("a", "C1.Test3").WithLocation(18, 23)
+                );
         }
 
         [Fact]
@@ -8518,6 +8611,10 @@ partial class C1
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test1").PartialImplementationPart.Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test2").PartialImplementationPart.Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test3").PartialImplementationPart.Parameters.Single().EffectiveScope);
 
             comp.VerifyDiagnostics(
                 // (13,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
@@ -8567,6 +8664,10 @@ partial class C1
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test1").PartialImplementationPart.Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test2").PartialImplementationPart.Parameters.Single().EffectiveScope);
+            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test3").PartialImplementationPart.Parameters.Single().EffectiveScope);
 
             comp.VerifyDiagnostics(
                 // (13,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
@@ -8618,6 +8719,15 @@ partial class C1
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
+            // The the [UnscopedRef] attribute is applied to the declaration as well, and it cancels the scoped modifier
+            Assert.Equal(ScopedKind.None, comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.None, comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.None, comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope);
+
+            Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test1").PartialImplementationPart.Parameters.Single().EffectiveScope);
+            Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test2").PartialImplementationPart.Parameters.Single().EffectiveScope);
+            Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test3").PartialImplementationPart.Parameters.Single().EffectiveScope);
+
             comp.VerifyDiagnostics(
                 // (14,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
                 //     partial void Test1([UnscopedRef] Span<long> a)
@@ -8646,32 +8756,41 @@ using System.Diagnostics.CodeAnalysis;
 
 partial class C1
 {
-    partial void Test1(params Span<long> a);
-    partial void Test2(params scoped Span<long> a);
-    partial void Test3(scoped Span<long> a);
+    public partial Span<long> Test1(params Span<long> a);
+    public partial Span<long> Test2(params scoped Span<long> a);
+    public partial Span<long> Test3(scoped Span<long> a);
 }
 
 partial class C1
 {
-    partial void Test1([UnscopedRef] params Span<long> a)
-    {
-    }
+    public partial Span<long> Test1([UnscopedRef] params Span<long> a)
+        => throw null;
 
-    partial void Test2([UnscopedRef] params Span<long> a)
-    {
-    }
+    public partial Span<long> Test2([UnscopedRef] params Span<long> a)
+        => throw null;
 
-    partial void Test3([UnscopedRef] params Span<long> a)
-    {
-    }
+    public partial Span<long> Test3([UnscopedRef] params Span<long> a)
+        => throw null;
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
+            // The the [UnscopedRef] attribute is applied to the declaration as well, and it cancels the scoped modifier
+            Assert.Equal(ScopedKind.None, comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.None, comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.None, comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope);
+
+            Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test1").PartialImplementationPart.Parameters.Single().EffectiveScope);
+            Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test2").PartialImplementationPart.Parameters.Single().EffectiveScope);
+            Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test3").PartialImplementationPart.Parameters.Single().EffectiveScope);
+            Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test1").PartialImplementationPart.Parameters.Single().EffectiveScope);
+            Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test2").PartialImplementationPart.Parameters.Single().EffectiveScope);
+            Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C1.Test3").PartialImplementationPart.Parameters.Single().EffectiveScope);
+
             comp.VerifyDiagnostics(
-                // (22,18): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
-                //     partial void Test3([UnscopedRef] params Span<long> a)
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test3").WithLocation(22, 18)
+                // (20,31): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                //     public partial Span<long> Test3([UnscopedRef] params Span<long> a)
+                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test3").WithLocation(20, 31)
                 );
         }
 
