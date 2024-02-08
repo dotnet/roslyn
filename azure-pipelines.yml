@@ -425,7 +425,10 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - script: eng/test-determinism.cmd -configuration Debug
+      - script: eng/make-bootstrap.cmd -name determinism
+        displayName: Build Bootstrap Compiler
+
+      - script: eng/test-determinism.cmd -configuration Debug -bootstrapDir $(Build.SourcesDirectory)/artifacts/bootstrap/determinism
         displayName: Build - Validate determinism
 
       - template: eng/pipelines/publish-logs.yml
@@ -446,7 +449,7 @@ stages:
       - template: eng/pipelines/build-bootstrap.yml
         parameters:
           bootstrapName: Default
-          bootstrapToolset: AnyCpu
+          bootstrapToolset: Default
 
   - job: Correctness_Bootstrap_Build_Framework
     dependsOn: Determine_Changes

@@ -13,7 +13,8 @@
 param(
   [string]$configuration = "Debug",
   [switch]$enableDumps = $false,
-  [string]$bootstrapToolset = "AnyCPU",
+  [string]$bootstrapDir = "",
+  [switch]$ci = $false,
   [switch]$help)
 
 Set-StrictMode -version 2.0
@@ -41,8 +42,14 @@ try {
     New-ItemProperty -Path $key -Name 'DumpFolder' -PropertyType 'String' -Value $LogDir -Force
   }
 
+  if ($bootstrapDir -eq "") {
+    Write-Host "Building bootstrap compiler"
+    Exec-Script (Join-Path $PSScriptRoot "make-bootstrap.ps1") "-name correctness -ci:$ci"
+    $bootstrapDir = Join-Path $ArtifactsDir "bootstrap" "correctness"
+  }
+
   Write-Host "Building Roslyn"
-  Exec-Script (Join-Path $PSScriptRoot "build.ps1") "-restore -build -bootstrap -bootstrapConfiguration:Debug -bootstrapToolset:$bootstrapToolset -ci:$true -prepareMachine:$true -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties `"/p:RoslynEnforceCodeStyle=true`""
+  Exec-Script (Join-Path $PSScriptRoot "build.ps1") "-restore -build -bootstrapDir:$bootstrapDir -ci:$true -prepareMachine:$true -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties `"/p:RoslynEnforceCodeStyle=true`""
 
   Subst-TempDir
 
