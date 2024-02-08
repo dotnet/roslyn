@@ -448,8 +448,7 @@ stages:
     steps:
       - template: eng/pipelines/build-bootstrap.yml
         parameters:
-          bootstrapName: Default
-          bootstrapToolset: Default
+          toolset: Default
 
   - job: Correctness_Bootstrap_Build_Framework
     dependsOn: Determine_Changes
@@ -463,8 +462,7 @@ stages:
     steps:
       - template: eng/pipelines/build-bootstrap.yml
         parameters:
-          bootstrapName: Framework
-          bootstrapToolset: Framework
+          toolset: Framework
 
   - job: Correctness_TodoCheck
     pool: ${{ parameters.ubuntuPool }}
