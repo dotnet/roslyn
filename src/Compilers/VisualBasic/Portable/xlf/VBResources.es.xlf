@@ -608,6 +608,16 @@
         <target state="translated">El atributo CallerArgumentExpressionAttribute aplicado al parámetro no tendrá ningún efecto porque es autorreferencial.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">
         <source>Analyzer reference '{0}' specified multiple times</source>
         <target state="translated">Referencia del analizador "{0}" especificada varias veces</target>
@@ -646,6 +656,16 @@
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
         <target state="translated">Error de inicialización del generador.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_LockTypeUnsupported">
+        <source>A value of type 'System.Threading.Lock' in SyncLock will use likely unintended monitor-based locking. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
+        <target state="new">A value of type 'System.Threading.Lock' in SyncLock will use likely unintended monitor-based locking. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_LockTypeUnsupported_Title">
+        <source>A value of type 'System.Threading.Lock' in SyncLock will use likely unintended monitor-based locking. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
+        <target state="new">A value of type 'System.Threading.Lock' in SyncLock will use likely unintended monitor-based locking. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="WrongNumberOfTypeArguments">
