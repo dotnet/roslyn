@@ -12,6 +12,11 @@ internal partial class SolutionCompilationState
     {
         private readonly struct CompilationTrackerGeneratorInfo
         {
+            public static readonly CompilationTrackerGeneratorInfo Empty = new(
+                TextDocumentStates<SourceGeneratedDocumentState>.Empty,
+                driver: null,
+                documentsAreFinal: false);
+
             /// <summary>
             /// The best generated documents we have for the current state. <see cref="DocumentsAreFinal"/>
             /// specifies whether the documents are to be considered final and can be reused, or whether they're from
