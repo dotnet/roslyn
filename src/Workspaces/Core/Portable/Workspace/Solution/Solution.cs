@@ -1474,8 +1474,7 @@ namespace Microsoft.CodeAnalysis
             var newCompilationState = await this.CompilationState.WithFrozenPartialCompilationsAsync(cancellationToken).ConfigureAwait(false);
             var frozenSolution = new Solution(newCompilationState)
             {
-                // Set the frozen solution to be its own frozen solution.  That way if someone asks for it, it can
-                // be returned immediately.
+                // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.
                 _cachedFrozenSolution = _cachedFrozenSolution
             };
 
