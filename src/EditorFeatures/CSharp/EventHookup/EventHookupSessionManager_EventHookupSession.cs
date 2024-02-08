@@ -237,8 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             {
                 _threadingContext.ThrowIfNotOnBackgroundThread();
                 var objectPart = GetNameObjectPart(eventSymbol, plusEqualsToken, semanticModel, syntaxFactsService);
-                var basename = namingRule.NamingStyle.CreateName(ImmutableArray.Create(
-                    string.Format("{0}_{1}", objectPart, eventSymbol.Name)));
+                var basename = namingRule.NamingStyle.CreateName([string.Format("{0}_{1}", objectPart, eventSymbol.Name)]);
 
                 var reservedNames = semanticModel.LookupSymbols(plusEqualsToken.SpanStart).Select(m => m.Name);
 

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var state = await State.GenerateDeconstructMethodStateAsync(
                     (TService)this, semanticDocument, leftSide, typeToGenerateIn, cancellationToken).ConfigureAwait(false);
 
-                return state != null ? await GetActionsAsync(document, state, fallbackOptions, cancellationToken).ConfigureAwait(false) : ImmutableArray<CodeAction>.Empty;
+                return state != null ? await GetActionsAsync(document, state, fallbackOptions, cancellationToken).ConfigureAwait(false) : [];
             }
         }
     }

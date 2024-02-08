@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 syntaxFacts.GetContainingTypeDeclaration(root, position) is EnumDeclarationSyntax ||
                 syntaxTree.IsPossibleTupleContext(leftToken, position))
             {
-                return ImmutableArray<CompletionItem>.Empty;
+                return [];
             }
 
             var context = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            return ImmutableArray<CompletionItem>.Empty;
+            return [];
         }
 
         private static ImmutableArray<CompletionItem> GetSnippetCompletionItems(
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var service = services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
             if (service == null)
-                return ImmutableArray<CompletionItem>.Empty;
+                return [];
 
             var snippets = service.GetSnippetsIfAvailable();
             if (context.CompletionOptions.ShouldShowNewSnippetExperience(context.Document))

@@ -45,7 +45,8 @@ foreach (var node in vssdkPackageSpec.Descendants())
         if (!id.StartsWith("Microsoft.VisualStudio") &&
             !id.StartsWith("Microsoft.ServiceHub") &&
             id != "Newtonsoft.Json" &&
-            id != "StreamJsonRpc")
+            id != "StreamJsonRpc" &&
+            id != "Nerdbank.Streams")
         {
             continue;
         }

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
         // we have 9 different code actions offered (3 major groups, with 3 actions per group).  
         // It's likely the user will just pick from a few of these. So we'd like the ones they
         // choose to be prioritized accordingly.
-        private static ImmutableArray<string> s_mruTitles = ImmutableArray<string>.Empty;
+        private static ImmutableArray<string> s_mruTitles = [];
 
         public string ParentTitle { get; } = parentTitle;
 

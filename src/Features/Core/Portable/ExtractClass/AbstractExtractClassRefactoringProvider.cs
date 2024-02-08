@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             }
 
             return new ExtractClassWithDialogCodeAction(
-                document, span, optionsService, selectedType, selectedClassNode, context.Options, selectedMembers: ImmutableArray<ISymbol>.Empty);
+                document, span, optionsService, selectedType, selectedClassNode, context.Options, selectedMembers: []);
         }
 
         private static bool HasBaseType(INamedTypeSymbol containingType) => containingType.BaseType?.SpecialType != SpecialType.System_Object;

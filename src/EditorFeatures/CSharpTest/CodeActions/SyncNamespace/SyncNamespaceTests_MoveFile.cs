@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
 
             var expectedFolders = new List<string[]>();
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -52,7 +52,7 @@ namespace [||]{declaredNamespace}
 
             var expectedFolders = new List<string[]>();
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -83,7 +83,7 @@ class Class1
                 new[] { "B", "C" }
             };
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>());
+            var (folder, filePath) = CreateDocumentFilePath([]);
             var code =
 $@"
 <Workspace>
@@ -115,7 +115,7 @@ namespace [||]{declaredNamespace}
                 new[] { "B", "C", "D", "E" }
             };
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var documentPath2 = CreateDocumentFilePath(["B", "C"], "File2.cs");   // file2 is in <root>\B\C\
             var code =
 $@"
@@ -189,7 +189,7 @@ class Class2
             expectedFolders.Add(["B", "C", "D", "E"]);
             expectedFolders.Add(["B.C", "D", "E"]);
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var documentPath2 = CreateDocumentFilePath(["B.C"], "File2.cs");   // file2 is in <root>\B.C\
             var code =
 $@"
@@ -233,7 +233,7 @@ namespace Foo
             expectedFolders.Add(["B.C", "D", "E"]);
             expectedFolders.Add(["B", "C.D", "E"]);
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var documentPath2 = CreateDocumentFilePath(["B", "C.D"], "File2.cs");   // file2 is in <root>\B\C.D\
             var documentPath3 = CreateDocumentFilePath(["B.C"], "File3.cs");   // file3 is in <root>\B.C\
             var code =

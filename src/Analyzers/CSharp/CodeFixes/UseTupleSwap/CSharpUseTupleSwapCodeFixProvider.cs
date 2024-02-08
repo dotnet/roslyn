@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
-            = ImmutableArray.Create(IDEDiagnosticIds.UseTupleSwapDiagnosticId);
+            = [IDEDiagnosticIds.UseTupleSwapDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
 
             var tupleAssignmentStatement = ExpressionStatement(AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
-                TupleExpression(SeparatedList(new[] { Argument(exprB), Argument(exprA) })),
-                TupleExpression(SeparatedList(new[] { Argument(exprA), Argument(exprB) }))));
+                TupleExpression([Argument(exprB), Argument(exprA)]),
+                TupleExpression([Argument(exprA), Argument(exprB)])));
 
             editor.ReplaceNode(localDeclarationStatement, tupleAssignmentStatement.WithTriviaFrom(localDeclarationStatement));
         }

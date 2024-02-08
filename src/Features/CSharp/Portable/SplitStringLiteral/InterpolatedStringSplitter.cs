@@ -60,13 +60,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 
                 var leftExpression = SyntaxFactory.InterpolatedStringExpression(
                     _interpolatedStringExpression.StringStartToken,
-                    SyntaxFactory.List(beforeSplitContents),
+                    [.. beforeSplitContents],
                     SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken)
                                  .WithTrailingTrivia(SyntaxFactory.ElasticSpace));
 
                 var rightExpression = SyntaxFactory.InterpolatedStringExpression(
                     SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken),
-                    SyntaxFactory.List(afterSplitContents),
+                    [.. afterSplitContents],
                     _interpolatedStringExpression.StringEndToken);
 
                 return SyntaxFactory.BinaryExpression(

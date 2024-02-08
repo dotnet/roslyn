@@ -422,9 +422,9 @@
         <target state="translated">启用对源链接和嵌入源的导航</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
-        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="translated">启用“拉取”诊断(实验性，需要重启)</target>
+      <trans-unit id="Enable_pull_diagnostics_requires_restart">
+        <source>Enable 'pull' diagnostics (requires restart)</source>
+        <target state="new">Enable 'pull' diagnostics (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enabled">

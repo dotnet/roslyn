@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                     else if (metadata is ModuleMetadata module)
                     {
-                        return ImmutableArray.Create(module);
+                        return [module];
                     }
                 }
                 catch (BadImageFormatException)
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // https://devdiv.visualstudio.com/DevDiv/_workitems?id=234447
                 }
 
-                return ImmutableArray<ModuleMetadata>.Empty;
+                return [];
             }
 
             internal SymbolTreeInfo Create()

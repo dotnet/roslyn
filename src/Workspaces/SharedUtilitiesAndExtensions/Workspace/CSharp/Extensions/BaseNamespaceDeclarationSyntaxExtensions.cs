@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             newUsings.SortUsingDirectives(namespaceDeclaration.Usings, placeSystemNamespaceFirst);
             newUsings = newUsings.Select(u => u.WithAdditionalAnnotations(annotations)).ToList();
 
-            var newNamespace = namespaceDeclaration.WithUsings(newUsings.ToSyntaxList());
+            var newNamespace = namespaceDeclaration.WithUsings([.. newUsings]);
             return (TNamespaceDeclarationSyntax)newNamespace;
         }
     }

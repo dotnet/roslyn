@@ -2134,7 +2134,7 @@ parseOptions: TestOptions.Regular);
             }
             """;
 
-        await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.Introduce_local_constant_for_0, "5") });
+        await TestExactActionSetOfferedAsync(code, [string.Format(FeaturesResources.Introduce_local_constant_for_0, "5")]);
 
         await TestInRegularAndScriptAsync(code,
             """
@@ -2176,7 +2176,7 @@ parseOptions: TestOptions.Regular);
             """;
 
         await TestExactActionSetOfferedAsync(code,
-            new[] { string.Format(FeaturesResources.Introduce_local_constant_for_0, "5"), string.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5") });
+            [string.Format(FeaturesResources.Introduce_local_constant_for_0, "5"), string.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5")]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529795")]

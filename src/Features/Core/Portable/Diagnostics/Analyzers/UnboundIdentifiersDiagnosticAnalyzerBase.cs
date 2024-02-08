@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
             => true;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(DiagnosticDescriptor);
+            => [DiagnosticDescriptor];
 
         public bool OpenFileOnly(SimplifierOptions? options)
             => false;

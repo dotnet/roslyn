@@ -11,12 +11,13 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class ParsingErrorRecoveryTests : CSharpTestBase
+    public class ParsingErrorRecoveryTests(ITestOutputHelper helper) : ParsingTests(helper)
     {
-        private CompilationUnitSyntax ParseTree(string text, CSharpParseOptions options = null)
+        private new CompilationUnitSyntax ParseTree(string text, CSharpParseOptions options = null)
         {
             return SyntaxFactory.ParseCompilationUnit(text, options: options);
         }
@@ -7226,6 +7227,85 @@ class c
             var ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
             Assert.False(ns.OpenBraceToken.IsMissing);
             Assert.False(ns.CloseBraceToken.IsMissing);
+        }
+
+        [Fact]
+        public void RazorCommentRecovery_Space()
+        {
+            UsingTree("""@ * *@""",
+                // (1,1): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                // @ * *@
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(1, 1),
+                // (1,6): error CS1525: Invalid expression term ''
+                // @ * *@
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "@").WithArguments("").WithLocation(1, 6),
+                // (1,6): error CS1002: ; expected
+                // @ * *@
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "@").WithLocation(1, 6),
+                // (1,6): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                // @ * *@
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(1, 6));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.PointerIndirectionExpression);
+                        {
+                            N(SyntaxKind.AsteriskToken);
+                            N(SyntaxKind.PointerIndirectionExpression);
+                            {
+                                N(SyntaxKind.AsteriskToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RazorCommentRecovery_NoStart()
+        {
+            UsingTree("""*@""",
+                // (1,2): error CS1525: Invalid expression term ''
+                // *@
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "@").WithArguments("").WithLocation(1, 2),
+                // (1,2): error CS1002: ; expected
+                // *@
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "@").WithLocation(1, 2),
+                // (1,2): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                // *@
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(1, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.PointerIndirectionExpression);
+                        {
+                            N(SyntaxKind.AsteriskToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
     }
 }

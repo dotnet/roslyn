@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
             // Silence NRT warning.  This will be initialized by the call below to ReparseCommandLineIfChanged_NoLock.
             _commandLineArgumentsForCommandLine = null!;
-            ReparseCommandLineIfChanged_NoLock(arguments: ImmutableArray<string>.Empty);
+            ReparseCommandLineIfChanged_NoLock(arguments: []);
         }
 
         /// <returns><see langword="true"/> if the command line was updated.</returns>

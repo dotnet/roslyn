@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
     {
         public SmartIndenterEnterOnTokenTests(ITestOutputHelper output) : base(output) { }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537808")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537808")]
         public async Task MethodBody1()
         {
             var code = @"class Class1
@@ -577,8 +576,7 @@ int
                 expectedIndentation: 4);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537802")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537802")]
         public async Task EmbededStatement()
         {
             var code = @"class Program
@@ -599,8 +597,7 @@ int
                 expectedIndentation: 8);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537808")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537808")]
         public async Task MethodBraces1()
         {
             var code = @"class Class1
@@ -616,8 +613,7 @@ int
                 expectedIndentation: 4);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537808")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537808")]
         public async Task MethodBraces2()
         {
             var code = @"class Class1
@@ -634,8 +630,7 @@ int
                 expectedIndentation: 4);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537795")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537795")]
         public async Task Property1()
         {
             var code = @"class C
@@ -654,8 +649,7 @@ int
                 expectedIndentation: 4);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537563")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537563")]
         public async Task Class1()
         {
             var code = @"class C

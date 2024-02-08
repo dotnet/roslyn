@@ -353,9 +353,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         // This property will be used for drag-and-drop case.
                         var commonLabel = new System.Text.StringBuilder();
                         commonLabel.Append(typeSymbol.Name);
-                        commonLabel.Append("<");
+                        commonLabel.Append('<');
                         commonLabel.Append(string.Join(", ", typeSymbol.TypeParameters.Select(t => t.Name)));
-                        commonLabel.Append(">");
+                        commonLabel.Append('>');
                         node[Microsoft.VisualStudio.ArchitectureTools.ProgressiveReveal.ProgressiveRevealSchema.CommonLabel] = commonLabel.ToString();
 
                         return;

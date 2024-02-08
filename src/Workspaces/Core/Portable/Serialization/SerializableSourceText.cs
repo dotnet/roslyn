@@ -150,14 +150,16 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
-            var encoding = (Encoding)reader.ReadValue();
+            var encoding = reader.ReadEncoding();
 
             var kind = (SerializationKinds)reader.ReadInt32();
+            Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
+
             if (kind == SerializationKinds.MemoryMapFile)
             {
                 var storage2 = (ITemporaryStorageService2)storageService;
 
-                var name = reader.ReadString();
+                var name = reader.ReadRequiredString();
                 var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
@@ -171,9 +173,10 @@ namespace Microsoft.CodeAnalysis.Serialization
                     return new SerializableSourceText(storage.ReadText(cancellationToken));
                 }
             }
-
-            Contract.ThrowIfFalse(kind == SerializationKinds.Bits);
-            return new SerializableSourceText(SourceTextExtensions.ReadFrom(textService, reader, encoding, checksumAlgorithm, cancellationToken));
+            else
+            {
+                return new SerializableSourceText(SourceTextExtensions.ReadFrom(textService, reader, encoding, checksumAlgorithm, cancellationToken));
+            }
         }
     }
 }

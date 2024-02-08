@@ -2,9 +2,9 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
   <PropertyGroup>
-    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
-    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
-    
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);_IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);_IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
+
     <!-- 
       Transitive references get passed to all VS command line tools related to VSIX, VSCT, etc ... processsing. 
       These tools don't have RSP files and the full set of transitive references end up overflowing the allowed 
@@ -16,19 +16,12 @@
          when we don't have one. -->
     <CopyVsixManifestToOutput>$(CreateVsixContainer)</CopyVsixManifestToOutput>
     <SetupProductArch Condition="'$(SetupProductArch)' == ''">Neutral</SetupProductArch>
-
-    <!-- Avoid auto-adding referenced dlls to VSIX -->
-    <IncludeCopyLocalReferencesInVSIXContainer>false</IncludeCopyLocalReferencesInVSIXContainer>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
     <VSIXSourceItem>
       <Visible>false</Visible>
     </VSIXSourceItem>
-    
-    <NuGetPackageToIncludeInVsix>
-      <Visible>false</Visible>
-    </NuGetPackageToIncludeInVsix>
   </ItemDefinitionGroup>
   
   <!-- CPS doesn't show these items by default, but we want to show them. -->
@@ -36,7 +29,7 @@
     <AvailableItemName Include="VSCTCompile" />
   </ItemGroup>
 
-  <Target Name="IncludeVsixLocalOnlyItems">
+  <Target Name="_IncludeVsixLocalOnlyItems">
     <!-- This is shamelessly ripped from Microsoft.VsSDK.targets -->
     <ItemGroup>
       <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' and '%(Content.VSIXSubPath)' == ''">
@@ -51,37 +44,36 @@
   </Target>
 
   <!--
-    Disable auto-including referenced libraries by default.
-    Instead, explicitly list packages to include in NuGetPackageToIncludeInVsix items.
+    Disable auto-including referenced libraries to VSIX by default.
+    Instead, set IncludeInVsix="true" on PackageReference items to include them.
   -->
 
   <PropertyGroup>
     <IncludeCopyLocalReferencesInVSIXContainer>false</IncludeCopyLocalReferencesInVSIXContainer>
   </PropertyGroup>
-  
-  <Target Name="IncludeNuGetResolvedAssets"
-          DependsOnTargets="ResolvePackageDependenciesForBuild"
-          BeforeTargets="GeneratePkgDef"
-          Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
 
+  <Target Name="_IncludeNuGetResolvedAssets"
+          DependsOnTargets="ResolvePackageDependenciesForBuild"
+          BeforeTargets="GeneratePkgDef">
     <!--
-      NuGetPackageToIncludeInVsix items are names of packages with metadata.
-      We join this list with ReferenceCopyLocalPaths items to get the list of dlls to include in the VSIX.
+      We join PackageReference list with ReferenceCopyLocalPaths items to get the list of dlls to include in the VSIX.
     -->
     <ItemGroup>
+      <_NuGetPackageToIncludeInVsix Include="@(PackageReference)" Condition="'%(PackageReference.IncludeInVsix)' == 'true' or '%(PackageReference.PkgDefEntry)' != ''"/>
+      
       <_RuntimeAssetsByPackageId Include="@(ReferenceCopyLocalPaths->'%(NuGetPackageId)')" Condition="%(ReferenceCopyLocalPaths.AssetType) == 'runtime'">
         <Path>%(ReferenceCopyLocalPaths.Identity)</Path>
       </_RuntimeAssetsByPackageId>
     </ItemGroup>
 
     <JoinItems Left="@(_RuntimeAssetsByPackageId)" LeftKey="" LeftMetadata="*"
-               Right="@(NuGetPackageToIncludeInVsix)" RightKey="" RightMetadata="*">
+               Right="@(_NuGetPackageToIncludeInVsix)" RightKey="" RightMetadata="*">
       <Output TaskParameter="JoinResult" ItemName="_RuntimeAssetsWithMetadata" />
     </JoinItems>
 
     <ItemGroup>
-      <!-- Include the assets in the VSIX -->
-      <VSIXCopyLocalReferenceSourceItem Include="@(_RuntimeAssetsWithMetadata->'%(Path)')">
+      <!-- Include runtime assets in the VSIX -->
+      <VSIXCopyLocalReferenceSourceItem Include="@(_RuntimeAssetsWithMetadata->'%(Path)')" Condition="'%(_RuntimeAssetsWithMetadata.IncludeInVsix)' == 'true'">
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
         <Ngen Condition="'%(_RuntimeAssetsWithMetadata.Optimization)' == 'true'">true</Ngen>
@@ -93,12 +85,12 @@
       <PkgDefBindingRedirect Include="@(_RuntimeAssetsWithMetadata->'%(Path)')" Condition="'%(_RuntimeAssetsWithMetadata.PkgDefEntry)' == 'BindingRedirect'" />
       <PkgDefCodeBase Include="@(_RuntimeAssetsWithMetadata->'%(Path)')" Condition="'%(_RuntimeAssetsWithMetadata.PkgDefEntry)' == 'CodeBase'" />
 
-      <!-- Check that NuGetPackageToIncludeInVsix doesn't list unreferenced package -->
-      <_UnknownAssets Include="@(NuGetPackageToIncludeInVsix)" />
+      <!-- Check that _NuGetPackageToIncludeInVsix doesn't list unreferenced package -->
+      <_UnknownAssets Include="@(_NuGetPackageToIncludeInVsix)" Condition="'%(_NuGetPackageToIncludeInVsix.IncludeInVsix)' == 'true'" />
       <_UnknownAssets Remove="@(_RuntimeAssetsWithMetadata)" />
     </ItemGroup>
 
-    <Error Text="Packages specified by NuGetPackageToIncludeInVsix are not referenced by the project or have no runtime assets applicable to $(TargetFramework): @(_UnknownAssets)"
+    <Error Text="PackageReferences with IncludeInVsix=true have no runtime assets applicable to $(TargetFramework): @(_UnknownAssets)"
            Condition="'@(_UnknownAssets)' != ''"/>
   </Target>
 
@@ -142,13 +134,33 @@
   </ItemGroup>
 
   <Target Name="_CheckDeploymentTargetVisualStudioVersion"
-		      Condition="'$(DeployExtension)' == 'true' and '$(CreateVsixContainer)' == 'true'"
+          Condition="'$(DeployExtension)' == 'true' and '$(CreateVsixContainer)' == 'true'"
           BeforeTargets="DeployVsixExtensionFiles"
-	       	DependsOnTargets="GetVsixDeploymentPath">
+          DependsOnTargets="GetVsixDeploymentPath">
 
     <Error Text="Deployment to Dev16 is not supported in this *-vs-deps branch. Use the corresponding non-VS branch." 
            Condition="$([MSBuild]::ValueOrDefault('$(ExtensionsPath)', '').Contains('16.0'))"/>
   </Target>
 
   <Import Project="GeneratePkgDef.targets" Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(GeneratePkgDefFile)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
+
+  <!--
+    TODO: Workaround for a bug in Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk
+    Remove once we can update to a version that includes the fix.
+
+    Replaces ExtensionJsonOutputGroup target defined in Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk.props
+  -->
+  <Target Name="ExtensionJsonOutputGroup" Returns="@(ExtensionJsonOutputGroupOutput)" DependsOnTargets="IncludeGeneratedExtensionManifests">
+    <ItemGroup>
+      <ExtensionJsonOutputGroupOutput Include="$(OutDir)\.vsextension\extension.json" Condition="Exists('$(OutDir)\.vsextension\extension.json')" TargetPath=".vsextension\extension.json" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk.props creates content items for all files in .vsextension dir.
+    NuGet includes content items in package, by default but these items should only be included in the VSIX.
+  -->
+  <ItemGroup>
+    <Content Update=".vsextension\**\*" Pack="false" />
+  </ItemGroup>
 </Project>

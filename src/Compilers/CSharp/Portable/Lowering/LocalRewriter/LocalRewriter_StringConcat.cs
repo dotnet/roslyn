@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Convert both sides to a string (calling ToString if necessary)
-            loweredLeft = ConvertConcatExprToString(syntax, loweredLeft);
-            loweredRight = ConvertConcatExprToString(syntax, loweredRight);
+            loweredLeft = ConvertConcatExprToString(loweredLeft);
+            loweredRight = ConvertConcatExprToString(loweredRight);
 
             Debug.Assert(loweredLeft.Type is { } && (loweredLeft.Type.IsStringType() || loweredLeft.Type.IsErrorType()) || loweredLeft.ConstantValueOpt?.IsNull == true);
             Debug.Assert(loweredRight.Type is { } && (loweredRight.Type.IsStringType() || loweredRight.Type.IsErrorType()) || loweredRight.ConstantValueOpt?.IsNull == true);
@@ -366,8 +366,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns an expression which converts the given expression into a string (or null).
         /// If necessary, this invokes .ToString() on the expression, to avoid boxing value types.
         /// </summary>
-        private BoundExpression ConvertConcatExprToString(SyntaxNode syntax, BoundExpression expr)
+        private BoundExpression ConvertConcatExprToString(BoundExpression expr)
         {
+            var syntax = expr.Syntax;
+
             // If it's a value type, it'll have been boxed by the +(string, object) or +(object, string)
             // operator. Undo that.
             if (expr.Kind == BoundKind.Conversion)
@@ -431,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // types to all special value types.
             if (structToStringMethod != null && (expr.Type.SpecialType != SpecialType.None && !isFieldOfMarshalByRef(expr, _compilation)))
             {
-                return BoundCall.Synthesized(expr.Syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, structToStringMethod);
+                return BoundCall.Synthesized(syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, structToStringMethod);
             }
 
             // - It's a reference type (excluding unconstrained generics): no copy
@@ -454,9 +456,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!callWithoutCopy)
                 {
-                    expr = new BoundPassByCopy(expr.Syntax, expr, expr.Type);
+                    expr = new BoundPassByCopy(syntax, expr, expr.Type);
                 }
-                return BoundCall.Synthesized(expr.Syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, objectToStringMethod);
+                return BoundCall.Synthesized(syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, objectToStringMethod);
             }
 
             if (callWithoutCopy)

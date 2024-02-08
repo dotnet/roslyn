@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
             spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
             // And we should have no errors for this document.
-            Assert.True(spans.Count == 0);
+            Assert.Empty(spans);
         }
 
         [WpfFact]
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
             spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
             // And we should have no errors for this document.
-            Assert.True(spans.Count == 0);
+            Assert.Empty(spans);
         }
 
         private static readonly TestComposition s_mockComposition = EditorTestCompositions.EditorFeatures
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansInSourceGeneratedDocumentAsync(string content)
         {
             using var workspace = EditorTestWorkspace.CreateCSharp(
-                files: Array.Empty<string>(),
+                files: [],
                 sourceGeneratedFiles: new[] { content },
                 composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
 

@@ -7,6 +7,7 @@
     <TargetFrameworks>$(NetRoslynAll);net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsShipping>false</IsShipping>
+    <IsTestUtilityProject>true</IsTestUtilityProject>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
   <ItemGroup>

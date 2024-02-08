@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                     // could not find a member, we may be directly on a variable declaration
                     var varDeclarator = await context.TryGetRelevantNodeAsync<VariableDeclaratorSyntax>().ConfigureAwait(false);
                     return varDeclarator == null
-                        ? ImmutableArray<SyntaxNode>.Empty
-                        : ImmutableArray.Create<SyntaxNode>(varDeclarator);
+                        ? []
+                        : [varDeclarator];
                 }
                 else
                 {
@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                     {
                         FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Variables.AsImmutable<SyntaxNode>(),
                         EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.AsImmutable<SyntaxNode>(),
-                        IncompleteMemberSyntax or GlobalStatementSyntax => ImmutableArray<SyntaxNode>.Empty,
-                        _ => ImmutableArray.Create<SyntaxNode>(memberDeclaration),
+                        IncompleteMemberSyntax or GlobalStatementSyntax => [],
+                        _ => [memberDeclaration],
                     };
                 }
             }
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                 // Consider pub[||] static int Foo;
                 // Which has 2 member nodes (an incomplete and a field), but we'd only expect one
                 return members.Any(m => m is GlobalStatementSyntax or IncompleteMemberSyntax)
-                    ? ImmutableArray<SyntaxNode>.Empty
+                    ? []
                     : members;
             }
         }

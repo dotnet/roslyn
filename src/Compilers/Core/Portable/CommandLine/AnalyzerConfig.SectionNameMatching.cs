@@ -383,12 +383,12 @@ namespace Microsoft.CodeAnalysis
                 if (lastChar == ',')
                 {
                     // Another option
-                    sb.Append("|");
+                    sb.Append('|');
                 }
                 else if (lastChar == '}')
                 {
                     // Close out the capture group
-                    sb.Append(")");
+                    sb.Append(')');
                     return true;
                 }
                 else

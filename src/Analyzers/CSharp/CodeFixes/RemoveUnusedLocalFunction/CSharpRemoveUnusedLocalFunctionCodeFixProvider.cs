@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
         }
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(CS8321);
+            => [CS8321];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

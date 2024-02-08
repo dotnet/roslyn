@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Rename
             private readonly CodeCleanupOptionsProvider _fallbackOptions;
 
             private SyncNamespaceDocumentAction(AnalysisResult analysis, CodeCleanupOptionsProvider fallbackOptions)
-                : base(ImmutableArray<ErrorResource>.Empty)
+                : base([])
             {
                 _analysis = analysis;
                 _fallbackOptions = fallbackOptions;

@@ -23,6 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypePartial
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CS0260);
+            [CS0260];
     }
 }

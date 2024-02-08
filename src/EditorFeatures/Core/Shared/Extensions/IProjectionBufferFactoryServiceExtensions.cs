@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             contentType ??= factoryService.ProjectionContentType;
             var projectionBuffer = factoryService.CreateProjectionBuffer(
                 projectionEditResolver: null,
-                sourceSpans: Array.Empty<object>(),
+                sourceSpans: [],
                 options: ProjectionBufferOptions.None,
                 contentType: contentType);
 

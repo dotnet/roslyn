@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 {
                     if (_diagnosticTokenList == null)
                     {
-                        return ImmutableArray<DiagnosticAsyncToken>.Empty;
+                        return [];
                     }
 
                     return _diagnosticTokenList.ToImmutableArray();
