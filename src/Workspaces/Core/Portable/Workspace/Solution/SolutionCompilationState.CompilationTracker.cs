@@ -155,9 +155,13 @@ namespace Microsoft.CodeAnalysis
                     WithCompilationTrackerState state,
                     CompilationAndGeneratorDriverTranslationAction? translate)
                 {
-                    var finalCompilationWithGeneratedDocuments = state is FinalCompilationTrackerState finalState
-                        ? finalState.FinalCompilationWithGeneratedDocuments
-                        : null;
+                    // Determine the old/stale compilation to help seed the non-final state with.
+                    var staleCompilationWithGeneratedDocuments = state switch
+                    {
+                        FinalCompilationTrackerState finalState => finalState.FinalCompilationWithGeneratedDocuments,
+                        NonFinalWithCompilationTrackerState nonFinalState => nonFinalState.StaleCompilationWithGeneratedDocuments,
+                        _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
+                    };
 
                     var intermediateProjects = UpdateIntermediateProjects(oldProjectState, state, translate);
 
@@ -165,7 +169,7 @@ namespace Microsoft.CodeAnalysis
                         state.IsFrozen,
                         state.CompilationWithoutGeneratedDocuments,
                         state.GeneratorInfo,
-                        finalCompilationWithGeneratedDocuments,
+                        staleCompilationWithGeneratedDocuments,
                         intermediateProjects);
                     return newState;
                 }
