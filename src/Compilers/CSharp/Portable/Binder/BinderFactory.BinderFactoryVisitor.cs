@@ -1225,12 +1225,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ = typeDeclaration.ParameterList;
                     Binder outerBinder = VisitCore(memberSyntax);
                     SourceNamedTypeSymbol type = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);
-                    var primaryConstructor = type.PrimaryConstructor;
-
-                    if (primaryConstructor.SyntaxRef.SyntaxTree == memberSyntax.SyntaxTree &&
-                        primaryConstructor.GetSyntax() == memberSyntax)
+                    if (type is not null)
                     {
-                        return new WithParametersBinder(primaryConstructor.Parameters, nextBinder);
+                        var primaryConstructor = type.PrimaryConstructor;
+
+                        if (primaryConstructor.SyntaxRef.SyntaxTree == memberSyntax.SyntaxTree &&
+                            primaryConstructor.GetSyntax() == memberSyntax)
+                        {
+                            return new WithParametersBinder(primaryConstructor.Parameters, nextBinder);
+                        }
                     }
                 }
 
