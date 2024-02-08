@@ -30,6 +30,9 @@ internal partial class SolutionCompilationState
             GeneratorDriver? Driver,
             bool DocumentsAreFinal)
         {
+            public static readonly CompilationTrackerGeneratorInfo Empty =
+                new(TextDocumentStates<SourceGeneratedDocumentState>.Empty, driver: null);
+
             public CompilationTrackerGeneratorInfo(
                 TextDocumentStates<SourceGeneratedDocumentState> documents,
                 GeneratorDriver? driver) : this(documents, driver, DocumentsAreFinal: false)

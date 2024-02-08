@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
             /// and will have no extra information beyond the project itself.
             /// </summary>
             public CompilationTracker(ProjectState project)
-                : this(project, CompilationTrackerState.Empty, cachedSkeletonReferences: new())
+                : this(project, NoCompilationState.Instance, cachedSkeletonReferences: new())
             {
             }
 
@@ -91,7 +91,9 @@ namespace Microsoft.CodeAnalysis
                 get
                 {
                     var state = this.ReadState();
-                    return state.GeneratorInfo.Driver;
+                    return state is WithCompilationTrackerState withCompilationTrackerState
+                        ? withCompilationTrackerState.GeneratorInfo.Driver
+                        : null;
                 }
             }
 
@@ -142,7 +144,10 @@ namespace Microsoft.CodeAnalysis
                     }
                     else if (state is NoCompilationState noCompilationState)
                     {
-                        return ForkNoCompilationState(noCompilationState, translate);
+                        // This is a singleton.  We just stay in this state.  That's fine as there's no driver or
+                        // compilation to track this translate step.  We'll always just have to produce the full
+                        // compilation/sg docs if we're in this state.
+                        return noCompilationState;
                     }
                     else
                     {
@@ -172,26 +177,6 @@ namespace Microsoft.CodeAnalysis
                         staleCompilationWithGeneratedDocuments,
                         intermediateProjects);
                     return newState;
-                }
-
-                static NoCompilationState ForkNoCompilationState(
-                    NoCompilationState state,
-                    CompilationAndGeneratorDriverTranslationAction? translate)
-                {
-                    // We may still have a cached generator; we'll have to remember to run generators again since we are making some
-                    // change here. We'll also need to update the other state of the driver if appropriate.
-
-                    // The no compilation state can never be in the 'DocumentsAreFinal' state.  The only place where
-                    // we start with the NoCompilationState is the 'Empty' instance (where DocumentsAreFinal=false).
-                    // And then this is the only place where we get a NoCompilationState and create a new instance.
-                    // So there is no way to ever transition this to the DocumentsAreFinal=true state.
-                    Contract.ThrowIfTrue(state.GeneratorInfo.DocumentsAreFinal);
-                    Contract.ThrowIfTrue(state.GeneratorInfo.Driver != null);
-                    var generatorInfo = state.GeneratorInfo;
-                    if (generatorInfo.Driver != null && translate != null)
-                        generatorInfo = generatorInfo with { Driver = translate.TransformGeneratorDriver(generatorInfo.Driver) };
-
-                    return new NoCompilationState(generatorInfo);
                 }
 
                 static ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> UpdateIntermediateProjects(
@@ -335,14 +320,17 @@ namespace Microsoft.CodeAnalysis
                 CancellationToken cancellationToken)
             {
                 var state = ReadState();
-                var compilationWithoutGeneratedDocuments = state is WithCompilationTrackerState withCompilationState
-                    ? withCompilationState.CompilationWithoutGeneratedDocuments
+                var compilationWithoutGeneratedDocuments = state is WithCompilationTrackerState withCompilationState1
+                    ? withCompilationState1.CompilationWithoutGeneratedDocuments
                     : null;
+
+                generatorInfo = state is WithCompilationTrackerState withCompilationState2
+                    ? withCompilationState2.GeneratorInfo
+                    : CompilationTrackerGeneratorInfo.Empty;
 
                 // check whether we can bail out quickly for typing case
                 var inProgressState = state as InProgressState;
 
-                generatorInfo = state.GeneratorInfo;
                 inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().oldState : this.ProjectState;
 
                 // all changes left for this document is modifying the given document; since the compilation is already fully up to date
@@ -550,7 +538,9 @@ namespace Microsoft.CodeAnalysis
                             => allParsedState,
                         // We've got nothing.  Build it from scratch :(
                         NoCompilationState noCompilationState
-                            => await BuildAllSyntaxTreesParsedStateFromNoCompilationStateAsync(noCompilationState).ConfigureAwait(false),
+                            => await BuildAllSyntaxTreesParsedStateFromNoCompilationStateAsync().ConfigureAwait(false),
+
+                        // We must have an in progress compilation. Build off of that.
                         InProgressState inProgressState
                             => await BuildAllSyntaxTreesParsedStateFromInProgressStateAsync(inProgressState).ConfigureAwait(false),
                         _ => throw ExceptionUtilities.UnexpectedValue(state.GetType())
@@ -563,7 +553,7 @@ namespace Microsoft.CodeAnalysis
                 [PerformanceSensitive(
                     "https://github.com/dotnet/roslyn/issues/23582",
                     Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
-                async Task<AllSyntaxTreesParsedState> BuildAllSyntaxTreesParsedStateFromNoCompilationStateAsync(NoCompilationState noCompilationState)
+                async Task<AllSyntaxTreesParsedState> BuildAllSyntaxTreesParsedStateFromNoCompilationStateAsync()
                 {
                     try
                     {
@@ -584,7 +574,7 @@ namespace Microsoft.CodeAnalysis
                         // WithCompilationTrackerState).  As such, we can safely still preserve that we're not
                         // frozen here.
                         var allSyntaxTreesParsedState = new AllSyntaxTreesParsedState(
-                            isFrozen: false, compilation, noCompilationState.GeneratorInfo, staleCompilationWithGeneratedDocuments: null);
+                            isFrozen: false, compilation, CompilationTrackerGeneratorInfo.Empty, staleCompilationWithGeneratedDocuments: null);
                         WriteState(allSyntaxTreesParsedState);
                         return allSyntaxTreesParsedState;
                     }
@@ -971,7 +961,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (state is FinalCompilationTrackerState finalState)
                 {
-                    ValidateCompilationTreesMatchesProjectState(finalState.FinalCompilationWithGeneratedDocuments, ProjectState, state.GeneratorInfo);
+                    ValidateCompilationTreesMatchesProjectState(finalState.FinalCompilationWithGeneratedDocuments, ProjectState, finalState.GeneratorInfo);
                 }
                 else if (state is InProgressState inProgressState)
                 {
