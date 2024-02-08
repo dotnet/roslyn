@@ -12,11 +12,6 @@ param (
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 
-function Exec-ConsoleEx([string]$command, [string]$commandArgs) {
-  Write-Host "$command $commandArgs"
-  return Exec-Console $command $commandArgs
-}
-
 try {
 
   . (Join-Path $PSScriptRoot "build-utils.ps1")
@@ -65,15 +60,15 @@ try {
     $args += " /p:ContinuousIntegrationBuild=true"
   }
 
-  Exec-ConsoleEx $dotnet "build $args $projectPath"
+  Exec-Console $dotnet "build $args $projectPath"
 
   $packageFilePath = Get-ChildItem -Path $bootstrapDir -Filter "$packageName.*.nupkg"
   Write-Host "Found package $packageFilePath"
   Unzip $packageFilePath.FullName $bootstrapDir
 
   Write-Host "Cleaning up artifacts"
-  Exec-ConsoleEx $dotnet "build /t:Clean $projectPath"
-  Exec-ConsoleEx $dotnet "build-server shutdown"
+  Exec-Console $dotnet "build /t:Clean $projectPath"
+  Exec-Console $dotnet "build-server shutdown"
 
   exit 0
 }

@@ -485,7 +485,7 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - powershell: .\eng\test-rebuild.ps1 -ci -configuration Release
+      - pwsh: -noprofile .\eng\test-rebuild.ps1 -ci -configuration Release -botostrap
         displayName: Run BuildValidator
 
       - task: PublishBuildArtifacts@1
