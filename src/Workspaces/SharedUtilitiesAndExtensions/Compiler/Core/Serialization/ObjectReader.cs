@@ -9,18 +9,8 @@ using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities;
-
-#if COMPILERCORE
-using Resources = CodeAnalysisResources;
-#elif CODE_STYLE
-using Resources = CodeStyleResources;
-#else
-using Resources = WorkspacesResources;
-#endif
 
 using TypeCode = ObjectWriter.TypeCode;
 
@@ -250,13 +240,19 @@ internal sealed partial class ObjectReader : IDisposable
                 return Encoding.GetEncoding(ReadRequiredString());
 
             case >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding:
-                return ObjectWriter.ToEncodingKind(code).GetEncoding();
+                return ToEncodingKind(code).GetEncoding();
 
             case TypeCode.EncodingCodePage:
                 return Encoding.GetEncoding(ReadInt32());
 
             default:
                 throw ExceptionUtilities.UnexpectedValue(code);
+        }
+
+        static TextEncodingKind ToEncodingKind(TypeCode code)
+        {
+            Debug.Assert(code is >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding);
+            return Microsoft.CodeAnalysis.EncodingExtensions.FirstTextEncodingKind + (byte)(code - TypeCode.FirstWellKnownTextEncoding);
         }
     }
 

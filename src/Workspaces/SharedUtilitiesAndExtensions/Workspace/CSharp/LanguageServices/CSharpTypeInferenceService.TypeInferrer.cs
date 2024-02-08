@@ -2296,23 +2296,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Attempt to determine what x and y are based on their future usage.
                     if (declExpr.Type.IsVar &&
                         declExpr.Designation is ParenthesizedVariableDesignationSyntax parenthesizedVariableDesignation &&
-                        parenthesizedVariableDesignation.Variables.All(v => v is SingleVariableDesignationSyntax))
+                        parenthesizedVariableDesignation.Variables.All(v => v is SingleVariableDesignationSyntax { Identifier.ValueText: not "" }))
                     {
-                        using var _1 = ArrayBuilder<ITypeSymbol>.GetInstance(out var tupleTypes);
-                        using var _2 = ArrayBuilder<string>.GetInstance(out var names);
-
-                        foreach (var variable in parenthesizedVariableDesignation.Variables.Cast<SingleVariableDesignationSyntax>())
+                        var elementNames = parenthesizedVariableDesignation.Variables.SelectAsArray(v => ((SingleVariableDesignationSyntax)v).Identifier.ValueText);
+                        var elementTypes = parenthesizedVariableDesignation.Variables.SelectAsArray(v =>
                         {
-                            var symbol = SemanticModel.GetRequiredDeclaredSymbol(variable, CancellationToken);
+                            var designation = (SingleVariableDesignationSyntax)v;
+
+                            var symbol = SemanticModel.GetRequiredDeclaredSymbol(designation, CancellationToken);
                             var inferredFutureUsage = InferTypeBasedOnLaterUsage(symbol, afterNode: left.Parent);
-                            tupleTypes.Add(inferredFutureUsage.Length > 0 ? inferredFutureUsage[0].InferredType : Compilation.ObjectType);
-                            names.Add(variable.Identifier.ValueText);
-                        }
+                            return inferredFutureUsage.Length > 0 ? inferredFutureUsage[0].InferredType : Compilation.ObjectType;
+                        });
 
                         return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(
-                            Compilation.CreateTupleTypeSymbol(
-                                tupleTypes.ToImmutable(),
-                                names.ToImmutable())));
+                            Compilation.CreateTupleTypeSymbol(elementTypes, elementNames)));
                     }
 
                     return GetTypes(declExpr.Type);
@@ -2322,14 +2319,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We have something of the form:
                     //   (int a, int b) = ...
                     //
-                    // This is a deconstruction, and a decent deconstructable type we can infer here
-                    // is ValueTuple<int,int>.
+                    // This is a deconstruction, and a decent deconstructable type we can infer here is
+                    // ValueTuple<int,int>.
                     var tupleType = GetTupleType(tupleExpression);
 
                     if (tupleType != null)
-                    {
                         return CreateResult(tupleType);
-                    }
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
