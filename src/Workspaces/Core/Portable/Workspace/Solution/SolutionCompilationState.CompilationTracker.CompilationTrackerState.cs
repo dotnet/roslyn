@@ -157,9 +157,13 @@ namespace Microsoft.CodeAnalysis
                     Compilation? staleCompilationWithGeneratedDocuments)
                     : base(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo)
                 {
-                    // If we're not in the frozen state, the documents must *not* be final.  We're not a FinalState, and
-                    // as such, we must still determine what the up to date generated docs are.
-                    Contract.ThrowIfTrue(!IsFrozen && generatorInfo.DocumentsAreFinal);
+                    // We're the non-final state.  As such, there is a strong correspondence between these two pieces of
+                    // state.  Specifically, if we're frozen, then the documents must be final.  After all, we do not
+                    // want to generate SG docs in the frozen state.  Conversely, if we're not frozen, the documents
+                    // must not be final.  We *must* generate the final docs from this state to get into the
+                    // FinalCompilationTrackerState.
+
+                    Contract.ThrowIfFalse(IsFrozen == generatorInfo.DocumentsAreFinal);
 
                     StaleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments;
                 }
