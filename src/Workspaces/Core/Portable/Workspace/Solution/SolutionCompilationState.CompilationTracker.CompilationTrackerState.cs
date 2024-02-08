@@ -122,7 +122,8 @@ namespace Microsoft.CodeAnalysis
 
                     // When in the frozen state, all documents must be final. We never want to run generators for frozen
                     // states as the point is to be fast (while potentially incomplete).
-                    Contract.ThrowIfTrue(IsFrozen && !generatorInfo.DocumentsAreFinal);
+                    if (IsFrozen)
+                        Contract.ThrowIfFalse(IgeneratorInfo.DocumentsAreFinal);
 
 #if DEBUG
                     // As a sanity check, we should never see the generated trees inside of the compilation that should
