@@ -582,6 +582,36 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
+                    [PerformanceSensitive(
+                        "https://github.com/dotnet/roslyn/issues/23582",
+                        Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
+                    async Task<AllSyntaxTreesParsedState> BuildAllSyntaxTreesParsedStateFromScratchAsync(
+                        CancellationToken cancellationToken)
+                    {
+                        try
+                        {
+                            var compilation = CreateEmptyCompilation();
+
+                            using var _ = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentStates.Count, out var trees);
+                            foreach (var documentState in ProjectState.DocumentStates.GetStatesInCompilationOrder())
+                            {
+                                cancellationToken.ThrowIfCancellationRequested();
+                                // Include the tree even if the content of the document failed to load.
+                                trees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                            }
+
+                            compilation = compilation.AddSyntaxTrees(trees);
+                            var allSyntaxTreesParsedState = new AllSyntaxTreesParsedState(
+                                compilation, CompilationTrackerGeneratorInfo.Empty, compilationWithGeneratedDocuments: null);
+                            WriteState(allSyntaxTreesParsedState);
+                            return allSyntaxTreesParsedState;
+                        }
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+                        {
+                            throw ExceptionUtilities.Unreachable();
+                        }
+                    }
+
                     async Task<FinalState> BuildFinalStateFromInProgressStateAsync(
                         SolutionCompilationState compilationState, InProgressState inProgressState, CancellationToken cancellationToken)
                     {
@@ -601,36 +631,6 @@ namespace Microsoft.CodeAnalysis
                             throw ExceptionUtilities.Unreachable();
                         }
                     }
-                }
-            }
-
-            [PerformanceSensitive(
-                "https://github.com/dotnet/roslyn/issues/23582",
-                Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
-            private async Task<AllSyntaxTreesParsedState> BuildAllSyntaxTreesParsedStateFromScratchAsync(
-                CancellationToken cancellationToken)
-            {
-                try
-                {
-                    var compilation = CreateEmptyCompilation();
-
-                    using var _ = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentStates.Count, out var trees);
-                    foreach (var documentState in ProjectState.DocumentStates.GetStatesInCompilationOrder())
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        // Include the tree even if the content of the document failed to load.
-                        trees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-                    }
-
-                    compilation = compilation.AddSyntaxTrees(trees);
-                    var allSyntaxTreesParsedState = new AllSyntaxTreesParsedState(
-                        compilation, CompilationTrackerGeneratorInfo.Empty, compilationWithGeneratedDocuments: null);
-                    WriteState(allSyntaxTreesParsedState);
-                    return allSyntaxTreesParsedState;
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-                {
-                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
