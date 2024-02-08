@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
                     // If we're not frozen, transition back to the non-final state as we def want to rerun generators
                     // for either of these non-final states.
                     if (!isFrozen)
-                        generatorInfo = generatorInfo.WithDocumentsAreFinal(false);
+                        generatorInfo = generatorInfo with { DocumentsAreFinal = false };
 
                     // If we don't have any intermediate projects to process, just initialize our
                     // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called

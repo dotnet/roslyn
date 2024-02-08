@@ -232,11 +232,14 @@ internal partial class SolutionCompilationState
                 var additionalTexts = this.ProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText);
                 var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
 
-                generatorInfo = generatorInfo.WithDriver(compilationFactory.CreateGeneratorDriver(
-                    this.ProjectState.ParseOptions!,
-                    ProjectState.SourceGenerators.ToImmutableArray(),
-                    this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
-                    additionalTexts));
+                generatorInfo = generatorInfo with
+                {
+                    Driver = compilationFactory.CreateGeneratorDriver(
+                        this.ProjectState.ParseOptions!,
+                        ProjectState.SourceGenerators.ToImmutableArray(),
+                        this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
+                        additionalTexts)
+                };
             }
             else
             {
@@ -276,7 +279,11 @@ internal partial class SolutionCompilationState
             var compilationToRunGeneratorsOn = compilationWithoutGeneratedFiles.RemoveSyntaxTrees(treesToRemove);
             // END HACK HACK HACK HACK.
 
-            generatorInfo = generatorInfo.WithDriver(generatorInfo.Driver.RunGenerators(compilationToRunGeneratorsOn, cancellationToken));
+            generatorInfo = generatorInfo with
+            {
+                Driver = generatorInfo.Driver.RunGenerators(compilationToRunGeneratorsOn, cancellationToken)
+            };
+
             Contract.ThrowIfNull(generatorInfo.Driver);
 
             var runResult = generatorInfo.Driver.GetRunResult();

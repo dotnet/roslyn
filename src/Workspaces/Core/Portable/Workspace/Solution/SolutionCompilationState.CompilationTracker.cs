@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis
                     Contract.ThrowIfTrue(state.GeneratorInfo.Driver != null);
                     var generatorInfo = state.GeneratorInfo;
                     if (generatorInfo.Driver != null && translate != null)
-                        generatorInfo = generatorInfo.WithDriver(translate.TransformGeneratorDriver(generatorInfo.Driver));
+                        generatorInfo = generatorInfo with { Driver = translate.TransformGeneratorDriver(generatorInfo.Driver) };
 
                     return new NoCompilationState(generatorInfo);
                 }
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis
 
                 // Mark whatever generator state we have as not only final, and mark our FinalState as frozen as well.
                 // We'll want to keep whatever we have here through whatever future transformations occur.
-                generatorInfo = generatorInfo.WithDocumentsAreFinal(true);
+                generatorInfo = generatorInfo with { DocumentsAreFinal = true };
 
                 var finalState = FinalCompilationTrackerState.Create(
                     isFrozen: true,
@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis
 
                         var generatorInfo = inProgressState.GeneratorInfo;
                         if (generatorInfo.Driver != null)
-                            generatorInfo = generatorInfo.WithDriver(action.TransformGeneratorDriver(generatorInfo.Driver));
+                            generatorInfo = generatorInfo with { Driver = action.TransformGeneratorDriver(generatorInfo.Driver) };
 
                         return (compilationWithoutGeneratedDocuments, staleCompilationWithGeneratedDocuments, generatorInfo);
                     }
@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis
                             cancellationToken).ConfigureAwait(false);
 
                         // After producing the sg documents, we must always be in the final state for the generator data.
-                        var nextGeneratorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorDriver).WithDocumentsAreFinal(true);
+                        var nextGeneratorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorDriver, DocumentsAreFinal: true);
 
                         var finalState = FinalCompilationTrackerState.Create(
                             isFrozen,
