@@ -246,7 +246,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                        locals.Remove(constructorLocal.LocalSymbol) &&
                                        (object)objectCreationConstructor.OriginalDefinition == _compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference) &&
                                        objectCreationConstructor.ContainingType.IsReadOnlySpanChar():
-                                    Debug.Assert(assignment.Right.Type?.IsCharType() == true);
                                     var wrappedExpr = ConvertConcatExprToString(assignment.Right);
                                     unwrappedArgsBuilder.Add(wrappedExpr);
                                     break;
