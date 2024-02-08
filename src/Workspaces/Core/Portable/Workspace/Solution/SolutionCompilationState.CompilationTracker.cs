@@ -186,6 +186,12 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            public ICompilationTracker FreezePartialState(
+                SolutionCompilationState compilationState,
+                CancellationToken cancellationToken)
+            {
+            }
+
             public ICompilationTracker FreezePartialStateWithTree(
                 SolutionCompilationState compilationState,
                 DocumentState docState,

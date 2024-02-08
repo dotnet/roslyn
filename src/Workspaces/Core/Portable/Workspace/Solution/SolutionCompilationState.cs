@@ -62,6 +62,7 @@ internal sealed partial class SolutionCompilationState
     /// Mapping of DocumentId to the frozen compilation state we produced for it the last time we were queried.
     /// </summary>
     private readonly Dictionary<DocumentId, SolutionCompilationState> _cachedFrozenDocumentState = new();
+    private SolutionCompilationState? _cachedFrozenSnapshot;
 
     private SolutionCompilationState(
         SolutionState solution,
@@ -1006,21 +1007,62 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
+    public SolutionCompilationState WithFrozenPartialCompilations(CancellationToken cancellationToken)
+    {
+        using (this.StateLock.DisposableWait(cancellationToken))
+        {
+            if (_cachedFrozenSnapshot is null)
+            {
+                _cachedFrozenSnapshot = ComputeFrozenPartialState(this, cancellationToken);
+
+                // Set the frozen solution to be its own frozen solution.  That way if someone asks for it, it can
+                // be returned immediately.
+                _cachedFrozenSnapshot._cachedFrozenSnapshot = _cachedFrozenSnapshot;
+            }
+
+            return _cachedFrozenSnapshot;
+        }
+
+        static SolutionCompilationState ComputeFrozenPartialState(
+            SolutionCompilationState @this, CancellationToken cancellationToken)
+        {
+            var newIdToProjectStateMap = @this.SolutionState.ProjectStates;
+            var newIdToTrackerMap = @this._projectIdToTrackerMap;
+
+            foreach (var (projectId, projectState) in newIdToProjectStateMap)
+            {
+                // if we don't have one or it is stale, create a new partial solution
+                var tracker = @this.GetCompilationTracker(projectId);
+                var newTracker = tracker.FreezePartialState(@this, cancellationToken);
+
+                Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(projectId));
+                newIdToProjectStateMap = newIdToProjectStateMap.SetItem(projectId, newTracker.ProjectState);
+                newIdToTrackerMap = newIdToTrackerMap.SetItem(projectId, newTracker);
+            }
+
+            var newState = @this.SolutionState.Branch(
+                idToProjectStateMap: newIdToProjectStateMap,
+                dependencyGraph: SolutionState.CreateDependencyGraph(@this.SolutionState.ProjectIds, newIdToProjectStateMap));
+            var newCompilationState = @this.Branch(
+                newState,
+                newIdToTrackerMap);
+
+            return newCompilationState;
+        }
+    }
+
     /// <summary>
-    /// Creates a branch of the solution that has its compilations frozen in whatever state they are in at the time, assuming a background compiler is
-    /// busy building this compilations.
-    ///
-    /// A compilation for the project containing the specified document id will be guaranteed to exist with at least the syntax tree for the document.
-    ///
+    /// Creates a branch of the solution that has its compilations frozen in whatever state they are in at the time,
+    /// assuming a background compiler is busy building this compilations.
+    /// <para/>
+    /// A compilation for the project containing the specified document id will be guaranteed to exist with at least the
+    /// syntax tree for the document.
+    /// <para/>
     /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
     /// </summary>
     public SolutionCompilationState WithFrozenPartialCompilationIncludingSpecificDocument(
         DocumentId documentId, CancellationToken cancellationToken)
     {
-        // in progress solutions are disabled for some testing
-        if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
-            return this;
-
         var currentCompilationState = this;
         var currentDocumentState = this.SolutionState.GetRequiredDocumentState(documentId);
 

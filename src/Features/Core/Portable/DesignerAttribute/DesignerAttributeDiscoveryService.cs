@@ -119,18 +119,10 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                         _documentToLastReportedInformation.TryRemove(docId, out _);
                 }
 
-                var documentId = priorityDocumentId ?? solution.Projects.FirstOrDefault()?.Documents.FirstOrDefault()?.Id;
-                if (documentId is null)
-                {
-                    // If we can't find a single document to key off of, there's nothing to do and we can immediately
-                    // bail out.
-                    return;
-                }
-
                 // Freeze the entire solution at this point.  We don't want to run generators (as they are very unlikely
                 // to contribute any changes that would affect which types we think are designable), and we want to be 
                 // very fast to update the ui as a user types.
-                solution = solution.WithFrozenPartialCompilations(documentId, cancellationToken);
+                solution = solution.WithFrozenPartialCompilations(cancellationToken);
 
                 // Handle the priority doc first.
                 var priorityDocument = solution.GetDocument(priorityDocumentId);

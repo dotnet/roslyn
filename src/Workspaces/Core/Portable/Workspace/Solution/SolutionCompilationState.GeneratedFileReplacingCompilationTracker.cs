@@ -57,6 +57,13 @@ namespace Microsoft.CodeAnalysis
                 throw new NotImplementedException();
             }
 
+            public ICompilationTracker FreezePartialState(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+            {
+                // If we already computed generator docs, just return this as the frozen tracker.  We wouldn't need to
+                // run generators again anyways.
+                return this;
+            }
+
             public ICompilationTracker FreezePartialStateWithTree(SolutionCompilationState compilationState, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
             {
                 // Because we override SourceGeneratedDocument.WithFrozenPartialSemantics directly, we shouldn't be able to get here.

@@ -31,10 +31,18 @@ namespace Microsoft.CodeAnalysis
         private ImmutableHashMap<ProjectId, Project> _projectIdToProjectMap;
 
         /// <summary>
-        /// Mapping of DocumentId to the frozen solution we produced for it the last time we were queried.
+        /// Result of calling <see cref="WithFrozenPartialCompilations(CancellationToken)"/>.  Use <see
+        /// cref="_cachedFrozenGate"/> to access.
+        /// </summary>
+        private Solution? _cachedFrozenSolution;
+
+        /// <summary>
+        /// Mapping of DocumentId to the frozen solution we produced for it the last time we were queried.  Use <see
+        /// cref="_cachedFrozenGate"/> to access.
         /// </summary>
         private readonly Dictionary<DocumentId, Solution> _cachedFrozenDocumentState = new();
-        private readonly SemaphoreSlim _cachedFrozenDocumentStateGate = new(initialCount: 1);
+
+        private readonly SemaphoreSlim _cachedFrozenGate = new(initialCount: 1);
 
         private Solution(SolutionCompilationState compilationState)
         {
@@ -1452,9 +1460,26 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        internal Solution WithFrozenPartialCompilations(CancellationToken cancellationToken)
+        internal async Task<Solution> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
         {
+            // in progress solutions are disabled for some testing
+            if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
+                return this;
 
+            using (await _cachedFrozenGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (_cachedFrozenSolution is null)
+                {
+                    var newCompilationState = await this.CompilationState.WithFrozenPartialCompilationsAsync(cancellationToken).ConfigureAwait(false);
+                    _cachedFrozenSolution = new Solution(newCompilationState);
+
+                    // Set the frozen solution to be its own frozen solution.  That way if someone asks for it, it can
+                    // be returned immediately.
+                    _cachedFrozenSolution._cachedFrozenSolution = _cachedFrozenSolution;
+                }
+
+                return _cachedFrozenSolution;
+            }
         }
 
         /// <summary>
@@ -1466,7 +1491,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
-            using (_cachedFrozenDocumentStateGate.DisposableWait(cancellationToken))
+            // in progress solutions are disabled for some testing
+            if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
+                return this;
+
+            using (_cachedFrozenGate.DisposableWait(cancellationToken))
             {
                 if (!_cachedFrozenDocumentState.TryGetValue(documentId, out var frozenSolution))
                 {
