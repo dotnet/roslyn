@@ -261,6 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Not all locals are part of a known shape
                             locals.Free();
+                            unwrappedArgsBuilder.Free();
                             arguments = default;
                             return false;
                         }
