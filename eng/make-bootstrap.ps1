@@ -16,9 +16,6 @@ try {
 
   . (Join-Path $PSScriptRoot "build-utils.ps1")
 
-  $dotnetRoot = InitializeDotNetCli -install:$restore
-  $dotnet = Join-Path $dotnetRoot "dotnet.exe"
-
   $bootstrapDir = Join-Path $ArtifactsDir "bootstrap" $name
   Write-Host "Building bootstrap compiler into $bootstrapDir"
 
@@ -60,15 +57,15 @@ try {
     $args += " /p:ContinuousIntegrationBuild=true"
   }
 
-  Exec-Command $dotnet "build $args $projectPath"
+  Exec-DotNet "build $args $projectPath"
 
   $packageFilePath = Get-ChildItem -Path $bootstrapDir -Filter "$packageName.*.nupkg"
   Write-Host "Found package $packageFilePath"
   Unzip $packageFilePath.FullName $bootstrapDir
 
   Write-Host "Cleaning up artifacts"
-  Exec-Command $dotnet "build /t:Clean $projectPath"
-  Exec-Command $dotnet "build-server shutdown"
+  Exec-DotNet "build /t:Clean $projectPath"
+  Exec-DotNet "build-server shutdown"
 
   exit 0
 }
