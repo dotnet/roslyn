@@ -7,8 +7,8 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.VSCode.API;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
+using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
@@ -54,10 +54,10 @@ internal sealed class LanguageServerWorkspaceFactory
     public ProjectSystemHostInfo ProjectSystemHostInfo { get; }
     public ProjectTargetFrameworkManager TargetFrameworkManager { get; }
 
-    public async Task InitializeSolutionLevelAnalyzersAsync(ImmutableArray<string> analyzerPaths)
+    public async Task InitializeSolutionLevelAnalyzersAsync(ImmutableArray<string> analyzerPaths, ExtensionAssemblyManager extensionAssemblyManager)
     {
         var references = new List<AnalyzerFileReference>();
-        var analyzerLoader = VSCodeAnalyzerLoader.CreateAnalyzerAssemblyLoader();
+        var analyzerLoader = VSCodeAnalyzerLoader.CreateAnalyzerAssemblyLoader(extensionAssemblyManager, _logger);
 
         foreach (var analyzerPath in analyzerPaths)
         {
@@ -75,7 +75,6 @@ internal sealed class LanguageServerWorkspaceFactory
         await ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(w =>
         {
             w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged);
-            return ValueTask.CompletedTask;
         });
     }
 }

@@ -255,6 +255,15 @@ namespace BuildBoss
                     case "$(NetVSCode)":
                     case "$(NetVSShared)":
                         continue;
+
+                    case "$(NetRoslynBuildHostNetCoreVersion)":
+                        {
+                            // This property should only be used in one specific project
+                            if (_data.FileName == "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj")
+                                continue;
+                            else
+                                break;
+                        }
                 }
 
                 textWriter.WriteLine($"TargetFramework {targetFramework} is not supported in this build");

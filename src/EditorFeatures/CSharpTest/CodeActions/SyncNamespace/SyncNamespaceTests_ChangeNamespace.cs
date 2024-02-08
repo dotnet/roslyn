@@ -1879,8 +1879,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
         public async Task ChangeNamespace_ExtensionMethodInReducedForm()
         {
             var defaultNamespace = "A";
@@ -1935,8 +1934,7 @@ namespace {defaultNamespace}
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
         public async Task ChangeNamespace_ExternsionMethodInRegularForm()
         {
             var defaultNamespace = "A";
@@ -1991,8 +1989,7 @@ namespace A
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
         public async Task ChangeNamespace_ContainsBothTypeAndExternsionMethod()
         {
             var defaultNamespace = "A";
@@ -2053,8 +2050,7 @@ namespace A
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
         public async Task ChangeNamespace_WithExtensionMethodReferencesInVBDocument()
         {
             var defaultNamespace = "A.B.C";
@@ -2111,8 +2107,7 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
         public async Task ChangeNamespace_WithMemberAccessReferencesInOtherDocument()
         {
             var defaultNamespace = "A";
@@ -2175,8 +2170,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
         public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInOtherDocument()
         {
             var defaultNamespace = "";
@@ -2234,8 +2228,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
         public async Task ChangeNamespace_WithMemberAccessReferencesInVBDocument()
         {
             var defaultNamespace = "A.B.C";
@@ -2286,8 +2279,7 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
         public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInVBDocument()
         {
             var defaultNamespace = "";

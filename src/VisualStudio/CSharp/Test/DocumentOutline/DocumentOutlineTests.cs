@@ -150,8 +150,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             Assert.Equal(0, searchedSymbols.Length);
         }
 
-        [WpfFact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/66012")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66012")]
         public async Task TestEnumOnSingleLine()
         {
             var (_, _, items) = await InitializeMocksAndDataModelAndUIItems(
@@ -181,8 +180,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 });
         }
 
-        [WpfFact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/66473")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66473")]
         public async Task TestClassOnSingleLine()
         {
             var (_, _, items) = await InitializeMocksAndDataModelAndUIItems(

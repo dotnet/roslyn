@@ -3367,16 +3367,16 @@ public class C : A {
         }
 
         [Fact]
-        public void TestProjectWithNoMetadataReferencesHasIncompleteReferences()
+        public async Task TestProjectWithNoMetadataReferencesHasIncompleteReferences()
         {
             var workspace = new AdhocWorkspace();
             var project = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
-            Assert.False(project.HasSuccessfullyLoadedAsync().Result);
+            Assert.False(await project.HasSuccessfullyLoadedAsync(CancellationToken.None));
             Assert.Empty(project.GetCompilationAsync().Result.ExternalReferences);
         }
 
         [Fact]
-        public void TestProjectWithNoBrokenReferencesHasNoIncompleteReferences()
+        public async Task TestProjectWithNoBrokenReferencesHasNoIncompleteReferences()
         {
             var workspace = new AdhocWorkspace();
             var project1 = workspace.AddProject(
@@ -3398,13 +3398,13 @@ public class C : A {
                     projectReferences: [new ProjectReference(project1.Id)]));
 
             // Nothing should have incomplete references, and everything should build
-            Assert.True(project1.HasSuccessfullyLoadedAsync().Result);
-            Assert.True(project2.HasSuccessfullyLoadedAsync().Result);
+            Assert.True(await project1.HasSuccessfullyLoadedAsync(CancellationToken.None));
+            Assert.True(await project2.HasSuccessfullyLoadedAsync(CancellationToken.None));
             Assert.Equal(2, project2.GetCompilationAsync().Result.ExternalReferences.Length);
         }
 
         [Fact]
-        public void TestProjectWithBrokenCrossLanguageReferenceHasIncompleteReferences()
+        public async Task TestProjectWithBrokenCrossLanguageReferenceHasIncompleteReferences()
         {
             var workspace = new AdhocWorkspace();
             var project1 = workspace.AddProject(
@@ -3427,8 +3427,8 @@ public class C : A {
                     metadataReferences: [MscorlibRef],
                     projectReferences: [new ProjectReference(project1.Id)]));
 
-            Assert.True(project1.HasSuccessfullyLoadedAsync().Result);
-            Assert.False(project2.HasSuccessfullyLoadedAsync().Result);
+            Assert.True(await project1.HasSuccessfullyLoadedAsync(CancellationToken.None));
+            Assert.False(await project2.HasSuccessfullyLoadedAsync(CancellationToken.None));
             Assert.Single(project2.GetCompilationAsync().Result.ExternalReferences);
         }
 
@@ -3549,7 +3549,7 @@ public class C : A {
         }
 
         [Fact]
-        public void TestFrozenPartialProjectAlwaysIsIncomplete()
+        public async Task TestFrozenPartialProjectAlwaysIsIncomplete()
         {
             var workspace = new AdhocWorkspace();
             var project1 = workspace.AddProject(
@@ -3576,8 +3576,8 @@ public class C : A {
             // Nothing should have incomplete references, and everything should build
             var frozenSolution = document.WithFrozenPartialSemantics(CancellationToken.None).Project.Solution;
 
-            Assert.True(frozenSolution.GetProject(project1.Id).HasSuccessfullyLoadedAsync().Result);
-            Assert.True(frozenSolution.GetProject(project2.Id).HasSuccessfullyLoadedAsync().Result);
+            Assert.True(await frozenSolution.GetProject(project1.Id).HasSuccessfullyLoadedAsync(CancellationToken.None));
+            Assert.True(await frozenSolution.GetProject(project2.Id).HasSuccessfullyLoadedAsync(CancellationToken.None));
         }
 
         [Fact]
@@ -3614,8 +3614,7 @@ public class C : A {
             Assert.Same(await frozenDocument.GetSyntaxTreeAsync(), singleTree);
         }
 
-        [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
         public async Task TestFrozenPartialSemanticsHandlesDocumentWithSamePathBeingRemovedAndAdded()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
@@ -3636,8 +3635,7 @@ public class C : A {
             Assert.Same(await frozenDocument.GetSyntaxTreeAsync(), singleTree);
         }
 
-        [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
         public async Task TestFrozenPartialSemanticsHandlesRemoveAndAddWithNullPathAndDifferentNames()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
@@ -3796,29 +3794,29 @@ public class C : A {
         }
 
         [Fact]
-        public void TestProjectCompletenessWithMultipleProjects()
+        public async Task TestProjectCompletenessWithMultipleProjects()
         {
             GetMultipleProjects(out var csBrokenProject, out var vbNormalProject, out var dependsOnBrokenProject, out var dependsOnVbNormalProject, out var transitivelyDependsOnBrokenProjects, out var transitivelyDependsOnNormalProjects);
 
             // check flag for a broken project itself
-            Assert.False(csBrokenProject.HasSuccessfullyLoadedAsync().Result);
+            Assert.False(await csBrokenProject.HasSuccessfullyLoadedAsync(CancellationToken.None));
 
             // check flag for a normal project itself
-            Assert.True(vbNormalProject.HasSuccessfullyLoadedAsync().Result);
+            Assert.True(await vbNormalProject.HasSuccessfullyLoadedAsync(CancellationToken.None));
 
             // check flag for normal project that directly reference a broken project
-            Assert.True(dependsOnBrokenProject.HasSuccessfullyLoadedAsync().Result);
+            Assert.True(await dependsOnBrokenProject.HasSuccessfullyLoadedAsync(CancellationToken.None));
 
             // check flag for normal project that directly reference only normal project
-            Assert.True(dependsOnVbNormalProject.HasSuccessfullyLoadedAsync().Result);
+            Assert.True(await dependsOnVbNormalProject.HasSuccessfullyLoadedAsync(CancellationToken.None));
 
             // check flag for normal project that indirectly reference a borken project
             // normal project -> normal project -> broken project
-            Assert.True(transitivelyDependsOnBrokenProjects.HasSuccessfullyLoadedAsync().Result);
+            Assert.True(await transitivelyDependsOnBrokenProjects.HasSuccessfullyLoadedAsync(CancellationToken.None));
 
             // check flag for normal project that indirectly reference only normal project
             // normal project -> normal project -> normal project
-            Assert.True(transitivelyDependsOnNormalProjects.HasSuccessfullyLoadedAsync().Result);
+            Assert.True(await transitivelyDependsOnNormalProjects.HasSuccessfullyLoadedAsync(CancellationToken.None));
         }
 
         private sealed class TestSmallFileTextLoader : FileTextLoader

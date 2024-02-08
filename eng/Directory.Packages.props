@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
-    <RoslynDiagnosticsNugetPackageVersion>3.11.0-beta1.23364.2</RoslynDiagnosticsNugetPackageVersion>
+    <RoslynDiagnosticsNugetPackageVersion>3.11.0-beta1.24081.1</RoslynDiagnosticsNugetPackageVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>8.0.0-preview.23468.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.23411.1</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.187-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
@@ -21,6 +21,7 @@
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>8.0.0</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <xunitVersion>2.4.1</xunitVersion>
     <SqliteVersion>2.1.0</SqliteVersion>
+    <MicrosoftVisualStudioExtensibilityVersion>17.9.43-preview-1</MicrosoftVisualStudioExtensibilityVersion>
   </PropertyGroup>
 
   <!--
@@ -56,8 +57,9 @@
     <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.9.35796-preview.1" />
     <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="17.9.35796-preview.1" />
     <PackageVersion Include="Microsoft.ServiceHub.Client" Version="4.2.1017" />
-    <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="17.9.2072-preview-3" />
-    <PackageVersion Include="Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk" Version="17.9.2072-preview-3" />
+    <PackageVersion Include="Microsoft.VisualStudio.Extensibility" Version="$(MicrosoftVisualStudioExtensibilityVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="$(MicrosoftVisualStudioExtensibilityVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk" Version="$(MicrosoftVisualStudioExtensibilityVersion)" />
     <PackageVersion Include="Microsoft.VSSDK.Debugger.VSDConfigTool" Version="17.0.1051901-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem" Version="17.0.77-pre-g62a6cb5699" />
     <PackageVersion Include="Microsoft.VisualStudio.Progression.CodeSchema" Version="15.8.27812-alpha" />
@@ -106,7 +108,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.9.3-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.56" />
     <PackageVersion Include="Nerdbank.Streams" Version="2.10.69" />
-    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageVersion Include="StreamJsonRpc" Version="2.17.9" />
 
     <!-- TODO: workaround for https://github.com/dotnet/roslyn/issues/71377 -->
@@ -152,11 +154,11 @@
       packages we will keep it untied to the RoslynDiagnosticsNugetPackageVersion we use for
       other analyzers to ensure it stays on a release version.
     -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview.23468.1" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.3.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="3.3.4-beta1.22504.1" />
 
     <!--
@@ -165,13 +167,13 @@
     <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageVersion Include="Microsoft.VisualBasic" Version="10.3.0" />
-    <PackageVersion Include="Microsoft.DiaSymReader" Version="2.0.0" />
+    <PackageVersion Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageVersion Include="Microsoft.DiaSymReader.Native" Version="17.0.0-beta1.21524.1" />
     <PackageVersion Include="Microsoft.DiaSymReader.PortablePdb" Version="1.7.0-beta-21528-01" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="7.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsLoggingAbstractionsVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
     <PackageVersion Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.3" />
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net461" Version="1.0.3" />
@@ -179,12 +181,12 @@
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net40" Version="1.0.3" />
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net20" Version="1.0.3" />
     <PackageVersion Include="System.Buffers" Version="4.5.1" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.23407.1" />
+    <PackageVersion Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
-    <PackageVersion Include="System.Composition" Version="7.0.0" />
+    <PackageVersion Include="System.Composition" Version="$(SystemCompositionVersion)" />
     <PackageVersion Include="System.ComponentModel.Composition" Version="7.0.0" />
     <PackageVersion Include="System.IO.Hashing" Version="8.0.0" />
-    <PackageVersion Include="System.IO.Pipelines" Version="7.0.0" />
+    <PackageVersion Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
     <PackageVersion Include="System.IO.Pipes.AccessControl" Version="5.0.0" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
@@ -207,7 +209,7 @@
     <PackageVersion Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
 
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
-    <PackageVersion Include="System.Text.Json" Version="7.0.3" />
+    <PackageVersion Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
 
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
     <PackageVersion Include="System.Threading.Channels" Version="7.0.0" />

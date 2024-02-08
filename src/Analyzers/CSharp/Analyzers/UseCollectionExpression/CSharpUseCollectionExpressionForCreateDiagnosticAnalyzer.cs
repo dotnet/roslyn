@@ -44,9 +44,9 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             return;
 
         // Make sure we can actually use a collection expression in place of the full invocation.
-        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
+        var allowSemanticsChange = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
         if (!CanReplaceWithCollectionExpression(
-                semanticModel, invocationExpression, expressionType, isSingletonInstance: false, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
+                semanticModel, invocationExpression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
         {
             return;
         }
