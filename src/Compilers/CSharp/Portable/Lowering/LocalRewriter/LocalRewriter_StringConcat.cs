@@ -227,10 +227,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var wrappedArgs = sequenceCall.Arguments;
                         var unwrappedArgsBuilder = ArrayBuilder<BoundExpression>.GetInstance(capacity: wrappedArgs.Length);
 
-                        for (var i = 0; i < wrappedArgs.Length; i++)
+                        foreach (var wrappedArg in wrappedArgs)
                         {
-                            var wrappedArg = wrappedArgs[i];
-
                             switch (wrappedArg)
                             {
                                 // Check whether a call is an implicit `string -> ReadOnlySpan<char>` conversion
