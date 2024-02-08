@@ -70,6 +70,8 @@ extends:
         - task: MicroBuildInsertVsPayload@4
           displayName: 🏭 Insert VS Payload
           inputs:
+            TeamName: $(TeamName)
+            TeamEmail: $(TeamEmail)
             InsertionPayloadName: $(Build.Repository.Name) VALIDATION BUILD $(Build.BuildNumber) ($(Build.SourceBranch)) [Skip-SymbolCheck]
             InsertionDescription: |
               This PR is for **validation purposes only** for !$(System.PullRequest.PullRequestId). **Do not complete**.
