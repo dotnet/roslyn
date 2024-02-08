@@ -64,7 +64,7 @@ try {
   Unzip $packageFilePath.FullName $bootstrapDir
 
   Write-Host "Cleaning up artifacts"
-  Exec-DotNet "build /t:Clean $projectPath"
+  Exec-DotNet "build --no-restore /t:Clean $projectPath"
   Exec-DotNet "build-server shutdown"
 
   exit 0
