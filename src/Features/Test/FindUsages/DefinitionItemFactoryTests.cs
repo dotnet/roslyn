@@ -606,6 +606,50 @@ public class DefinitionItemFactoryTests
     }
 
     [Fact]
+    public async Task ToClassifiedDefinitionItemAsync_Tuple()
+    {
+        using var workspace = TestWorkspace.CreateCSharp("class C { (int a, int b) F; }");
+
+        var solution = workspace.CurrentSolution;
+        var project = solution.Projects.Single();
+        var compilation = await project.GetCompilationAsync();
+        Contract.ThrowIfNull(compilation);
+        var c = compilation.GetMember<IFieldSymbol>("C.F").Type;
+        var t = c.OriginalDefinition;
+        var i = compilation.GetSpecialType(SpecialType.System_Int32);
+        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var searchOptions = FindReferencesSearchOptions.Default;
+
+        var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(c, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
+
+        VerifyDefinitionItem(item, project, [(c, nameof(c)), (i, nameof(i)), (t, nameof(t))],
+            displayParts:
+            [
+                (tag: "Punctuation", text: "(", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "TypeParameter", text: "T1", TaggedTextStyle.None, target: "7 \"C#\" (Y 0 \"T1\" (D (N \"System\" 0 (N \"\" 1 (U (S \"System.ValueTuple\" 5) 4) 3) 2) \"ValueTuple\" 2 ! 0 0 0 (% 0) 1) 0)", hint: "T1"),
+                (tag: "Punctuation", text: ",", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "TypeParameter", text: "T2", TaggedTextStyle.None, target: "7 \"C#\" (Y 0 \"T2\" (D (N \"System\" 0 (N \"\" 1 (U (S \"System.ValueTuple\" 5) 4) 3) 2) \"ValueTuple\" 2 ! 0 0 0 (% 0) 1) 0)", hint: "T2"),
+                (tag: "Punctuation", text: ")", TaggedTextStyle.None, target: null, hint: null)
+            ],
+            nameDisplayParts:
+            [
+                (tag: "Keyword", text: "dynamic", TaggedTextStyle.None, target: SymbolKey.CreateString(c), hint: "dynamic")
+            ],
+            sourceSpans: [],
+            tags:
+            [
+                "Class",
+                "Public"
+            ],
+            properties:
+            [
+                ("NonNavigable", ""),
+                ("Primary", "")
+            ]);
+    }
+
+    [Fact]
     public async Task ToClassifiedDefinitionItemAsync_TypeTypeParameter()
     {
         using var workspace = TestWorkspace.CreateCSharp("class C<T>;");
