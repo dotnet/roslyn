@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// Root type for all tracker states that now have a primordial (non source-generator) compilation that can
+            /// Root type for all tracker states that have a primordial (non source-generator) compilation that can
             /// be obtained.
             /// </summary>
             private abstract class WithCompilationTrackerState : CompilationTrackerState
