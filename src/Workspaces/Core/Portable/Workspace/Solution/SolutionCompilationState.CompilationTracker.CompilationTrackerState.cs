@@ -23,22 +23,14 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private abstract class CompilationTrackerState
             {
-                /// <summary>
-                /// The base <see cref="CompilationTrackerState"/> that starts with everything empty.
-                /// </summary>
-                public static readonly CompilationTrackerState Empty = new NoCompilationState(
-                    new CompilationTrackerGeneratorInfo(
-                        documents: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
-                        driver: null,
-                        documentsAreFinal: false));
-
-                public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
-
-                protected CompilationTrackerState(
-                    CompilationTrackerGeneratorInfo generatorInfo)
-                {
-                    GeneratorInfo = generatorInfo;
-                }
+                ///// <summary>
+                ///// The base <see cref="CompilationTrackerState"/> that starts with everything empty.
+                ///// </summary>
+                //public static readonly CompilationTrackerState Empty = new NoCompilationState(
+                //    new CompilationTrackerGeneratorInfo(
+                //        documents: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
+                //        driver: null,
+                //        documentsAreFinal: false));
 
                 /// <summary>
                 /// Returns a <see cref="AllSyntaxTreesParsedState"/> if <paramref name="intermediateProjects"/> is
@@ -67,11 +59,10 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class NoCompilationState : CompilationTrackerState
             {
-                public NoCompilationState(CompilationTrackerGeneratorInfo generatorInfo)
-                    : base(generatorInfo)
+                public static readonly NoCompilationState Instance = new();
+
+                private NoCompilationState()
                 {
-                    // The no compilation state can never be in the 'DocumentsAreFinal' state.
-                    Contract.ThrowIfTrue(generatorInfo.DocumentsAreFinal);
                 }
             }
 
@@ -83,10 +74,12 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public Compilation CompilationWithoutGeneratedDocuments { get; }
 
+                public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
+
                 public WithCompilationTrackerState(Compilation compilationWithoutGeneratedDocuments, CompilationTrackerGeneratorInfo generatorInfo)
-                    : base(generatorInfo)
                 {
                     CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
+                    GeneratorInfo = generatorInfo;
 
 #if DEBUG
                     // As a sanity check, we should never see the generated trees inside of the compilation that should
