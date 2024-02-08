@@ -1113,7 +1113,7 @@ internal sealed partial class SolutionCompilationState
                     statesAndTrees.Add((documentState, documentState.GetSyntaxTree(cancellationToken)));
                 }
 
-                using (@this._stateLock.DisposableWait(cancellationToken))
+                using (@this.StateLock.DisposableWait(cancellationToken))
                 {
                     if (!@this._cachedFrozenDocumentState.TryGetValue(documentId, out var compilationState))
                     {
