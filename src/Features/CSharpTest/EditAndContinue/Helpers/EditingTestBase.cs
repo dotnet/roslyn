@@ -97,7 +97,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
                 _ => null
             };
 
-        internal static SemanticEditDescription[] NoSemanticEdits = Array.Empty<SemanticEditDescription>();
+        internal static SemanticEditDescription[] NoSemanticEdits = [];
 
         internal static RudeEditDiagnosticDescription Diagnostic(RudeEditKind rudeEditKind, string squiggle, params string[] arguments)
             => new(rudeEditKind, squiggle, arguments, firstLine: null);

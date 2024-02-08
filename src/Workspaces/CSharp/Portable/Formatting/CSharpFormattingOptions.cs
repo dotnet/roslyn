@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 name: publicName,
                 group: FormattingOptionGroups.NewLine,
                 defaultValue: CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.HasFlag(flag),
-                storageLocations: ImmutableArray<OptionStorageLocation>.Empty,
+                storageLocations: [],
                 storageMapping: new NewLineForBracesInternalStorageMapping(CSharpFormattingOptions2.NewLineBeforeOpenBrace, flag),
                 isEditorConfigOption: true);
 
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 name: publicName,
                 group: CSharpFormattingOptionGroups.Spacing,
                 defaultValue: CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.HasFlag(flag),
-                storageLocations: ImmutableArray<OptionStorageLocation>.Empty,
+                storageLocations: [],
                 storageMapping: new SpacePlacementInternalStorageMapping(CSharpFormattingOptions2.SpaceBetweenParentheses, flag),
                 isEditorConfigOption: true);
 

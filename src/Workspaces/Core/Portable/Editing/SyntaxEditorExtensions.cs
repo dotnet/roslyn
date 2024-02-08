@@ -50,22 +50,22 @@ namespace Microsoft.CodeAnalysis.Editing
             => editor.ReplaceNode(declaration, (d, g) => g.WithSetAccessorStatements(d, statements));
 
         public static void AddParameter(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode parameter)
-            => editor.ReplaceNode(declaration, (d, g) => g.AddParameters(d, new[] { parameter }));
+            => editor.ReplaceNode(declaration, (d, g) => g.AddParameters(d, [parameter]));
 
         public static void InsertParameter(this SyntaxEditor editor, SyntaxNode declaration, int index, SyntaxNode parameter)
-            => editor.ReplaceNode(declaration, (d, g) => g.InsertParameters(d, index, new[] { parameter }));
+            => editor.ReplaceNode(declaration, (d, g) => g.InsertParameters(d, index, [parameter]));
 
         public static void AddAttribute(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode attribute)
-            => editor.ReplaceNode(declaration, (d, g) => g.AddAttributes(d, new[] { attribute }));
+            => editor.ReplaceNode(declaration, (d, g) => g.AddAttributes(d, [attribute]));
 
         public static void AddReturnAttribute(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode attribute)
-            => editor.ReplaceNode(declaration, (d, g) => g.AddReturnAttributes(d, new[] { attribute }));
+            => editor.ReplaceNode(declaration, (d, g) => g.AddReturnAttributes(d, [attribute]));
 
         public static void AddAttributeArgument(this SyntaxEditor editor, SyntaxNode attributeDeclaration, SyntaxNode attributeArgument)
-            => editor.ReplaceNode(attributeDeclaration, (d, g) => g.AddAttributeArguments(d, new[] { attributeArgument }));
+            => editor.ReplaceNode(attributeDeclaration, (d, g) => g.AddAttributeArguments(d, [attributeArgument]));
 
         public static void AddMember(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode member)
-            => editor.ReplaceNode(declaration, (d, g) => g.AddMembers(d, new[] { member }));
+            => editor.ReplaceNode(declaration, (d, g) => g.AddMembers(d, [member]));
 
         public static void InsertMembers(this SyntaxEditor editor, SyntaxNode declaration, int index, IEnumerable<SyntaxNode> members)
             => editor.ReplaceNode(declaration, (d, g) => g.InsertMembers(d, index, members));

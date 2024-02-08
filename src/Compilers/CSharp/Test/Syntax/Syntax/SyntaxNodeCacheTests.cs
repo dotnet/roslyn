@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 SyntaxNodeCache.AddNode(child0, child0.GetCacheHash());
                 SyntaxNodeCache.AddNode(child1, child1.GetCacheHash());
 
-                var listOf2 = new SyntaxList.WithTwoChildren(child0, child1);
+                var listOf2 = new CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithTwoChildren(child0, child1);
                 SyntaxNodeCache.AddNode(listOf2, listOf2.GetCacheHash());
 
-                var listCached = (SyntaxList.WithTwoChildren)SyntaxNodeCache.TryGetNode(listOf2.RawKind, child0, child1, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
+                var listCached = (CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithTwoChildren)SyntaxNodeCache.TryGetNode(listOf2.RawKind, child0, child1, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
                 Assert.NotNull(listCached);
 
                 var listOf1 = SyntaxNodeCache.TryGetNode(listOf2.RawKind, child0, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 SyntaxNodeCache.AddNode(child1, child1.GetCacheHash());
                 SyntaxNodeCache.AddNode(child2, child2.GetCacheHash());
 
-                var listOf3 = new SyntaxList.WithThreeChildren(child0, child1, child2);
+                var listOf3 = new CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithThreeChildren(child0, child1, child2);
                 SyntaxNodeCache.AddNode(listOf3, listOf3.GetCacheHash());
 
-                var listCached = (SyntaxList.WithThreeChildren)SyntaxNodeCache.TryGetNode(listOf3.RawKind, child0, child1, child2, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
+                var listCached = (CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithThreeChildren)SyntaxNodeCache.TryGetNode(listOf3.RawKind, child0, child1, child2, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
                 Assert.NotNull(listCached);
 
                 var listOf2 = SyntaxNodeCache.TryGetNode(listOf3.RawKind, child0, child1, SyntaxNodeCache.GetDefaultNodeFlags(), out _);

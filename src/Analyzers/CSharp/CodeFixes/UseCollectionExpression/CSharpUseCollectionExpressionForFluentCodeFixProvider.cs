@@ -37,7 +37,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId)
 {
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId];
 
     protected override async Task FixAsync(
         Document document,
@@ -55,7 +55,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
 
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var expressionType = semanticModel.Compilation.ExpressionOfTType();
-        if (AnalyzeInvocation(text, state, invocationExpression, expressionType, allowInterfaceConversion: true, addMatches: true, cancellationToken) is not { } analysisResult)
+        if (AnalyzeInvocation(text, state, invocationExpression, expressionType, allowSemanticsChange: true, addMatches: true, cancellationToken) is not { } analysisResult)
             return;
 
         // We want to replace `new[] { 1, 2, 3 }.Concat(x).Add(y).ToArray()` with the new collection expression.  To do

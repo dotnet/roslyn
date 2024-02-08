@@ -260,6 +260,188 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Comments")]
+        public void TestMultiLineCommentOnOneLine_Razor()
+        {
+            var text = "@* comment *@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestMultiLineCommentOnMultipleLines_Razor()
+        {
+            var text =
+@"@* 
+ comment 
+ on many lines
+*@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestMultiLineXmlCommentOnMultipleLines_Razor()
+        {
+            var text =
+@"@** 
+ xml comment 
+ on many lines
+**@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestUnterminatedMultiLineComment_Razor_01()
+        {
+            var text = "@* comment";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1),
+                // error CS1035: End-of-file found, '*/' expected
+                TestBase.Diagnostic(ErrorCode.ERR_OpenEndedComment).WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestUnterminatedMultiLineComment_Razor_02()
+        {
+            var text = "@*@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1),
+                // error CS1035: End-of-file found, '*/' expected
+                TestBase.Diagnostic(ErrorCode.ERR_OpenEndedComment).WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestUnterminatedMultiLineComment_WrongTerminator_Razor_01()
+        {
+            var text = "@* comment */";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1),
+                // error CS1035: End-of-file found, '*/' expected
+                TestBase.Diagnostic(ErrorCode.ERR_OpenEndedComment).WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestUnterminatedMultiLineComment_WrongTerminator_Razor_02()
+        {
+            var text = "/* comment *@";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1035: End-of-file found, '*/' expected
+                TestBase.Diagnostic(ErrorCode.ERR_OpenEndedComment).WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Theory]
+        [InlineData('/', '@')]
+        [InlineData('@', '/')]
+        public void TestMixedMultiLineCommentTerminators_01(char outsideDelimiter, char insideDelimiter)
+        {
+            var text = $"{outsideDelimiter}* *{insideDelimiter} *{outsideDelimiter}";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            if (outsideDelimiter == '@')
+            {
+                errors.Verify(
+                    // error CS1056: Unexpected character '@'
+                    TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
+            }
+            else
+            {
+                errors.Verify();
+            }
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
         public void TestCommentWithTextWindowSentinel()
         {
             Assert.Equal('\uFFFF', SlidingTextWindow.InvalidCharacter);

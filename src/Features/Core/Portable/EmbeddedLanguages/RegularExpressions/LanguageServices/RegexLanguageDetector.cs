@@ -29,7 +29,7 @@ internal sealed class RegexLanguageDetector(
 {
     internal readonly struct RegexInfo : ILanguageDetectorInfo<RegexLanguageDetector>
     {
-        public ImmutableArray<string> LanguageIdentifiers => ImmutableArray.Create("Regex", "Regexp");
+        public ImmutableArray<string> LanguageIdentifiers => ["Regex", "Regexp"];
 
         public RegexLanguageDetector Create(Compilation compilation, EmbeddedLanguageInfo info)
         {

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MSBuild.Rpc;
+using Microsoft.VisualStudio.Telemetry;
 using Nerdbank.Streams;
 using Xunit;
 
@@ -188,6 +189,20 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             var exception = await Assert.ThrowsAsync<RemoteInvocationException>(() => rpcPair.Client.InvokeAsync(targetObject: 0, nameof(ObjectWithThrowingMethod.ThrowException), [], CancellationToken.None));
 
             Assert.Contains("Exception thrown by test method!", exception.Message);
+        }
+
+        [Fact]
+        public async Task CancelledTaskDoesNotLeakRequest()
+        {
+            await using var rpcPair = new RpcPair();
+
+            var tokenSource = new CancellationTokenSource();
+            tokenSource.Cancel();
+
+            rpcPair.Server.AddTarget(new ObjectWithHelloMethod());
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await rpcPair.Client.InvokeAsync<string>(targetObject: 0, nameof(ObjectWithHelloMethod.Hello), [], tokenSource.Token));
+
+            Assert.Equal(0, rpcPair.Client.GetTestAccessor().GetOutstandingRequestCount());
         }
 
 #pragma warning disable CA1822 // Mark members as static

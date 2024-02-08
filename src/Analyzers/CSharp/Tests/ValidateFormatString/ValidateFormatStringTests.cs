@@ -625,13 +625,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
         [Fact]
         public async Task TestOption_Ignored()
         {
-            var source = @"class Program
-{
-    static void Main(string[] args)
-    {
-        string.Format(""This [|{1}|] is my test"", ""teststring1"");
-    }     
-}";
+            var source = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        string.Format("This [|{1}|] is my test", "teststring1");
+                    }     
+                }
+                """;
             await TestDiagnosticInfoAsync(
                 source,
                 options: null,

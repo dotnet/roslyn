@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return symbols.ToImmutable();
             }
 
-            return ImmutableArray<ISymbol>.Empty;
+            return [];
         }
 
         private static void DecodeSymbols(List<string> ids, Compilation compilation, ArrayBuilder<ISymbol> symbols)

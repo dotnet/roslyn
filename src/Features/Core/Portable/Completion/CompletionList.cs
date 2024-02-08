@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The default <see cref="CompletionList"/> returned when no items are found to populate the list.
         /// </summary>
         public static readonly CompletionList Empty = new(
-            default, ImmutableArray<CompletionItem>.Empty, CompletionRules.Default,
+            default, [], CompletionRules.Default,
             suggestionModeItem: null, isExclusive: false);
 
         internal bool IsEmpty => ItemsList.Count == 0 && SuggestionModeItem is null;

@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis
 
         #region Factories 
 
-        public abstract SyntaxToken CreateSeparator<TNode>(SyntaxNode element) where TNode : SyntaxNode;
+        public abstract SyntaxToken CreateSeparator(SyntaxNode element);
         public abstract bool IsTriviaWithEndOfLine(); // trivia node has end of line
 
         /*
@@ -846,15 +846,15 @@ namespace Microsoft.CodeAnalysis
                 case 1:
                     return select(list[0]);
                 case 2:
-                    return SyntaxList.List(select(list[0]), select(list[1]));
+                    return Syntax.InternalSyntax.SyntaxList.List(select(list[0]), select(list[1]));
                 case 3:
-                    return SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
+                    return Syntax.InternalSyntax.SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
                 default:
                     {
                         var array = new ArrayElement<GreenNode>[list.Count];
                         for (int i = 0; i < array.Length; i++)
                             array[i].Value = select(list[i]);
-                        return SyntaxList.List(array);
+                        return Syntax.InternalSyntax.SyntaxList.List(array);
                     }
             }
         }
@@ -868,15 +868,15 @@ namespace Microsoft.CodeAnalysis
                 case 1:
                     return select(list[0]);
                 case 2:
-                    return SyntaxList.List(select(list[0]), select(list[1]));
+                    return Syntax.InternalSyntax.SyntaxList.List(select(list[0]), select(list[1]));
                 case 3:
-                    return SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
+                    return Syntax.InternalSyntax.SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
                 default:
                     {
                         var array = new ArrayElement<GreenNode>[list.Count];
                         for (int i = 0; i < array.Length; i++)
                             array[i].Value = select(list[i]);
-                        return SyntaxList.List(array);
+                        return Syntax.InternalSyntax.SyntaxList.List(array);
                     }
             }
         }

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
 
         public bool HasSpans => _spans?.Count > 0;
 
-        public ImmutableArray<TextSpan> Spans => _spans?.ToImmutable() ?? ImmutableArray<TextSpan>.Empty;
+        public ImmutableArray<TextSpan> Spans => _spans?.ToImmutable() ?? [];
 
         public ImmutableArray<TextSpan>.Builder SpansBuilder
         {

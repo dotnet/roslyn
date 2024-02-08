@@ -85,13 +85,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 public WorkItem(DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority, SyntaxPath? activeMember, IAsyncToken asyncToken)
-                    : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember, ImmutableHashSet.Create<IIncrementalAnalyzer>(), asyncToken)
+                    : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember, [], asyncToken)
                 {
                 }
 
                 public WorkItem(DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority, IIncrementalAnalyzer? analyzer, IAsyncToken asyncToken)
                     : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember: null,
-                           analyzer == null ? ImmutableHashSet.Create<IIncrementalAnalyzer>() : ImmutableHashSet.Create(analyzer),
+                           analyzer == null ? [] : [analyzer],
                            asyncToken)
                 {
                 }
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // An empty analyzer list means run all analyzers, so empty always wins over any specific
                         if (specificAnalyzers1.IsEmpty || specificAnalyzers2.IsEmpty)
                         {
-                            return ImmutableHashSet<IIncrementalAnalyzer>.Empty;
+                            return [];
                         }
 
                         // Otherwise, if both sets have analyzers we use a union of the two

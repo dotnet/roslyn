@@ -2282,6 +2282,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidExperimentalDiagID = 9211,
         ERR_SpreadMissingMember = 9212,
         ERR_CollectionExpressionTargetNoElementType = 9213,
+        ERR_CollectionExpressionMissingConstructor = 9214,
+        ERR_CollectionExpressionMissingAdd = 9215,
 
         #endregion
 

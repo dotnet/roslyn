@@ -15,14 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles
     internal sealed class CSharpNamingStyleDiagnosticAnalyzer : NamingStyleDiagnosticAnalyzerBase<SyntaxKind>
     {
         protected override ImmutableArray<SyntaxKind> SupportedSyntaxKinds { get; } =
-            ImmutableArray.Create(
+            [
                 SyntaxKind.VariableDeclarator,
                 SyntaxKind.ForEachStatement,
                 SyntaxKind.CatchDeclaration,
                 SyntaxKind.SingleVariableDesignation,
                 SyntaxKind.LocalFunctionStatement,
                 SyntaxKind.Parameter,
-                SyntaxKind.TypeParameter);
+                SyntaxKind.TypeParameter,
+            ];
 
         protected override bool ShouldIgnore(ISymbol symbol)
         {

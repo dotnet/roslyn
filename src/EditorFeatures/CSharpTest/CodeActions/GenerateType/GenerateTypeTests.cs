@@ -1176,8 +1176,7 @@ index: 2);
 index: 1);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538516")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538516")]
         public async Task TestGenerateClassFromIntoNewNamespace()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -3356,8 +3355,7 @@ internal class @int
 index: 1);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539535")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539535")]
         public async Task TestGenerateIntoNewFile()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -4684,8 +4682,7 @@ index: 1);
 string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo"));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543853")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543853")]
         public async Task TestAddDocumentForGlobalNamespace()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -4857,8 +4854,7 @@ namespace A
             await TestInRegularAndScriptAsync(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
         public async Task TestGenerateTypeInFolderNotDefaultNamespace_0()
         {
             var code = @"<Workspace>
@@ -4917,8 +4913,7 @@ public class ClassB
                     options: Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent)));
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
         public async Task TestGenerateTypeInFolderNotDefaultNamespace_1()
         {
             var code = @"<Workspace>
@@ -5308,8 +5303,7 @@ index: 1);
 index: 2);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17361")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17361")]
         public async Task TestPreserveFileBanner1()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -5331,8 +5325,7 @@ expectedContainers: ImmutableArray<string>.Empty,
 expectedDocumentName: "Goo.cs");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17361")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17361")]
         public async Task TestPreserveFileBanner2()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -5351,8 +5344,7 @@ expectedContainers: ImmutableArray<string>.Empty,
 expectedDocumentName: "Goo.cs");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17361")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17361")]
         public async Task TestPreserveFileBanner3()
         {
             await TestAddDocumentInRegularAndScriptAsync(
@@ -5382,8 +5374,7 @@ internal class Goo
     expectedDocumentName: "Goo.cs");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17361")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17361")]
         public async Task TestPreserveFileBanner4()
         {
             await TestAddDocumentInRegularAndScriptAsync(

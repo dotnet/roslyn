@@ -516,12 +516,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             /// </summary>
             private static ImmutableArray<string> AddComplexTypes(ImmutableArray<string> receiverTypeNames)
             {
-                using var _ = ArrayBuilder<string>.GetInstance(receiverTypeNames.Length + 2, out var receiverTypeNamesBuilder);
-                receiverTypeNamesBuilder.AddRange(receiverTypeNames);
-                receiverTypeNamesBuilder.Add(FindSymbols.Extensions.ComplexReceiverTypeName);
-                receiverTypeNamesBuilder.Add(FindSymbols.Extensions.ComplexArrayReceiverTypeName);
-
-                return receiverTypeNamesBuilder.ToImmutableAndClear();
+                return
+                [
+                    .. receiverTypeNames,
+                    FindSymbols.Extensions.ComplexReceiverTypeName,
+                    FindSymbols.Extensions.ComplexArrayReceiverTypeName,
+                ];
             }
 
             private static string GetReceiverTypeName(ITypeSymbol typeSymbol)

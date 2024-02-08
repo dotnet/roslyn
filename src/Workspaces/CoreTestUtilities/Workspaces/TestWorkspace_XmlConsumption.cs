@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                                    .WithGeneralDiagnosticOption(reportDiagnostic)
                                                    .WithSourceReferenceResolver(SourceFileResolver.Default)
                                                    .WithXmlReferenceResolver(XmlFileResolver.Default)
-                                                   .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, null)))
+                                                   .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver([], null)))
                                                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                                                    .WithCryptoKeyFile(cryptoKeyFile)
                                                    .WithStrongNameProvider(strongNameProvider)
@@ -824,7 +824,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 analyzers.Add(
                     new AnalyzerImageReference(
-                        ImmutableArray<DiagnosticAnalyzer>.Empty,
+                        [],
                         display: (string)analyzer.Attribute(AnalyzerDisplayAttributeName),
                         fullPath: (string)analyzer.Attribute(AnalyzerFullPathAttributeName)));
             }

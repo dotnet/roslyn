@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
     [Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
     public class BlockCommentEditingTests : AbstractTypingCommandHandlerTest<ReturnKeyCommandArgs>
     {
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11057")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11057")]
         public void EdgeCase0()
         {
             var code = @"
@@ -34,8 +33,7 @@ $$/**/
             Verify(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11057")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11057")]
         public void EdgeCase1()
         {
             var code = @"
@@ -48,8 +46,7 @@ $$
             Verify(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11056")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11056")]
         public void EdgeCase2()
         {
             var code = @"
@@ -62,8 +59,7 @@ $$/* */
             Verify(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/11056")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11056")]
         public void EdgeCase3()
         {
             var code = @"
@@ -76,8 +72,7 @@ $$
             Verify(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
         public void EofCase0()
         {
             var code = @"
@@ -88,8 +83,7 @@ $$";
             Verify(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
         public void EofCase1()
         {
             var code = @"
@@ -100,8 +94,7 @@ $$";
             Verify(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
         public void EofCase2()
         {
             var code = @"

@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly Solution _solution;
         private readonly ProjectState _projectState;
-        private ImmutableHashMap<DocumentId, Document> _idToDocumentMap = ImmutableHashMap<DocumentId, Document>.Empty;
-        private ImmutableHashMap<DocumentId, SourceGeneratedDocument> _idToSourceGeneratedDocumentMap = ImmutableHashMap<DocumentId, SourceGeneratedDocument>.Empty;
-        private ImmutableHashMap<DocumentId, AdditionalDocument> _idToAdditionalDocumentMap = ImmutableHashMap<DocumentId, AdditionalDocument>.Empty;
-        private ImmutableHashMap<DocumentId, AnalyzerConfigDocument> _idToAnalyzerConfigDocumentMap = ImmutableHashMap<DocumentId, AnalyzerConfigDocument>.Empty;
+        private ImmutableHashMap<DocumentId, Document> _idToDocumentMap = [];
+        private ImmutableHashMap<DocumentId, SourceGeneratedDocument> _idToSourceGeneratedDocumentMap = [];
+        private ImmutableHashMap<DocumentId, AdditionalDocument> _idToAdditionalDocumentMap = [];
+        private ImmutableHashMap<DocumentId, AnalyzerConfigDocument> _idToAnalyzerConfigDocumentMap = [];
 
         internal Project(Solution solution, ProjectState projectState)
         {
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis
         /// Determines if the compilation returned by <see cref="GetCompilationAsync"/> and all its referenced compilation are from fully loaded projects.
         /// </summary>
         // TODO: make this public
-        internal Task<bool> HasSuccessfullyLoadedAsync(CancellationToken cancellationToken = default)
+        internal Task<bool> HasSuccessfullyLoadedAsync(CancellationToken cancellationToken)
             => _solution.CompilationState.HasSuccessfullyLoadedAsync(_projectState, cancellationToken);
 
         /// <summary>

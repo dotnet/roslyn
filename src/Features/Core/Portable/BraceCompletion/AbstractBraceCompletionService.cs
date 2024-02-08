@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             // The caret location should be in between the braces.
             var originalOpeningLinePosition = context.Document.Text.Lines.GetLinePosition(context.OpeningPoint);
             var caretLocation = new LinePosition(originalOpeningLinePosition.Line, originalOpeningLinePosition.Character + 1);
-            return new BraceCompletionResult(ImmutableArray.Create(braceTextEdit), caretLocation);
+            return new BraceCompletionResult([braceTextEdit], caretLocation);
         }
 
         public virtual BraceCompletionResult? GetTextChangesAfterCompletion(BraceCompletionContext braceCompletionContext, IndentationOptions options, CancellationToken cancellationToken)

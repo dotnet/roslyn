@@ -125,13 +125,13 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                     return DeclarationExpression(
                         IdentifierName("var"),
                         ParenthesizedVariableDesignation(
-                            SeparatedList(localTypesAndDesignations.SelectAsArray(n => n.designation))));
+                            [.. localTypesAndDesignations.Select(n => n.designation)]));
                 }
                 else
                 {
                     // otherwise, emit as `(T1 x, T2 y, T3 z) = ...`.  Note, the 'T's will get simplified to 'var' if that matches the user's preference.
-                    return TupleExpression(SeparatedList(localTypesAndDesignations.SelectAsArray(t =>
-                        Argument(DeclarationExpression(t.type.GenerateTypeSyntax(), t.designation)))));
+                    return TupleExpression([.. localTypesAndDesignations.Select(t =>
+                        Argument(DeclarationExpression(t.type.GenerateTypeSyntax(), t.designation)))]);
                 }
 
                 bool CanUseVar()

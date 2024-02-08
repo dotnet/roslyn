@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             => text[characterPosition] is ('<' or '"') ||
                CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
 
-        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('<', '"', ' ');
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ['<', '"', ' '];
 
         protected override async Task<IEnumerable<CompletionItem>?> GetItemsWorkerAsync(
             Document document, int position,
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
                 filterCharacterRules: FilterRules,
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '>', '\t')),
+                commitCharacterRules: [CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '>', '\t')],
                 enterKeyRule: EnterKeyRule.Never);
     }
 }

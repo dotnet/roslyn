@@ -216,9 +216,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _memoryListener = memoryListener;
             }
 
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
+
             // This must be called after the _openFileTracker was assigned; this way we know that a file added from the project system either got checked
             // in CheckForAddedFileBeingOpenMaybeAsync, or we catch it here.
-            await openFileTracker.CheckForOpenFilesThatWeMissedAsync(_threadingContext.DisposalToken).ConfigureAwait(false);
+            openFileTracker.CheckForOpenFilesThatWeMissed();
 
             // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
             await TaskScheduler.Default;

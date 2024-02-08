@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => text[characterPosition] == '.';
 
-        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('.');
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ['.'];
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

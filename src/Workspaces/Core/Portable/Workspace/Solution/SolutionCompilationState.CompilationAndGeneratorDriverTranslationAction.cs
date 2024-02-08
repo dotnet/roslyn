@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
             /// </remarks>
             public abstract bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput { get; }
 
-            public virtual GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver) => generatorDriver;
+            public abstract GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver);
 
             /// <summary>
             /// When changes are made to a solution, we make a list of translation actions. If multiple similar changes happen in rapid
