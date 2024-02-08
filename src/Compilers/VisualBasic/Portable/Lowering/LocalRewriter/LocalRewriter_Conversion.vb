@@ -1228,6 +1228,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim operand = node.Operand
 
+            ' Use C# explicit cast to integral types (=Decimal.ToIntNN) instead of Convert.ToIntNN
+            ' when the value has just been rounded using several rounding methods in Math.
+            ' Convert.ToIntNN execute an extra Decimal.Round (=Math.Round) in addition to Decimal.ToIntNN.
+            ' e.g. Convert.ToInt32: https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/Convert.cs,11fd4940860023d5
+
             If operand.Kind = BoundKind.Call AndAlso underlyingTypeTo.IsIntegralType() Then
                 Dim callOperand = DirectCast(operand, BoundCall)
                 Dim target As BoundExpression = Nothing
