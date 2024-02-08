@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             var type = reader.ReadString();
             if (type == nameof(AnalyzerFileReference))
             {
-                var fullPath = reader.ReadString();
+                var fullPath = reader.ReadRequiredString();
                 var shadowCopy = reader.ReadBoolean();
                 return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(new AnalyzerAssemblyLoaderOptions(shadowCopy)));
             }
@@ -228,37 +229,34 @@ namespace Microsoft.CodeAnalysis.Serialization
         private PortableExecutableReference ReadPortableExecutableReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             var kind = (SerializationKinds)reader.ReadInt32();
-            if (kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile)
+            Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
+
+            var properties = ReadMetadataReferencePropertiesFrom(reader, cancellationToken);
+
+            var filePath = reader.ReadString();
+
+            var tuple = TryReadMetadataFrom(reader, kind, cancellationToken);
+            if (tuple == null)
             {
-                var properties = ReadMetadataReferencePropertiesFrom(reader, cancellationToken);
+                // TODO: deal with xml document provider properly
+                //       should we shadow copy xml doc comment?
 
-                var filePath = reader.ReadString();
-
-                var tuple = TryReadMetadataFrom(reader, kind, cancellationToken);
-                if (tuple == null)
-                {
-                    // TODO: deal with xml document provider properly
-                    //       should we shadow copy xml doc comment?
-
-                    // image doesn't exist
-                    return new MissingMetadataReference(properties, filePath, XmlDocumentationProvider.Default);
-                }
-
-                // for now, we will use IDocumentationProviderService to get DocumentationProvider for metadata
-                // references. if the service is not available, then use Default (NoOp) provider.
-                // since xml doc comment is not part of solution snapshot, (like xml reference resolver or strong name
-                // provider) this provider can also potentially provide content that is different than one in the host. 
-                // an alternative approach of this is synching content of xml doc comment to remote host as well
-                // so that we can put xml doc comment as part of snapshot. but until we believe that is necessary,
-                // it will go with simpler approach
-                var documentProvider = filePath != null && _documentationService != null ?
-                    _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
-
-                return new SerializedMetadataReference(
-                    properties, filePath, tuple.Value.metadata, tuple.Value.storages, documentProvider);
+                // image doesn't exist
+                return new MissingMetadataReference(properties, filePath, XmlDocumentationProvider.Default);
             }
 
-            throw ExceptionUtilities.UnexpectedValue(kind);
+            // for now, we will use IDocumentationProviderService to get DocumentationProvider for metadata
+            // references. if the service is not available, then use Default (NoOp) provider.
+            // since xml doc comment is not part of solution snapshot, (like xml reference resolver or strong name
+            // provider) this provider can also potentially provide content that is different than one in the host. 
+            // an alternative approach of this is synching content of xml doc comment to remote host as well
+            // so that we can put xml doc comment as part of snapshot. but until we believe that is necessary,
+            // it will go with simpler approach
+            var documentProvider = filePath != null && _documentationService != null ?
+                _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
+
+            return new SerializedMetadataReference(
+                properties, filePath, tuple.Value.metadata, tuple.Value.storages, documentProvider);
         }
 
         private static void WriteTo(MetadataReferenceProperties properties, ObjectWriter writer, CancellationToken cancellationToken)
@@ -266,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             writer.WriteInt32((int)properties.Kind);
-            writer.WriteValue(properties.Aliases.ToArray());
+            writer.WriteArray(properties.Aliases, static (w, a) => w.WriteString(a));
             writer.WriteBoolean(properties.EmbedInteropTypes);
         }
 
@@ -275,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             var kind = (MetadataImageKind)reader.ReadInt32();
-            var aliases = reader.ReadArray<string>().ToImmutableArrayOrEmpty();
+            var aliases = reader.ReadArray(static r => r.ReadRequiredString());
             var embedInteropTypes = reader.ReadBoolean();
 
             return new MetadataReferenceProperties(kind, aliases, embedInteropTypes);
@@ -422,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            GetTemporaryStorage(reader, kind, out var storage, out var length, cancellationToken);
+            var (storage, length) = GetTemporaryStorage(reader, kind, cancellationToken);
 
             var storageStream = storage.ReadStream(cancellationToken);
             Contract.ThrowIfFalse(length == storageStream.Length);
@@ -441,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
 
-            var array = reader.ReadArray<byte>();
+            var array = reader.ReadByteArray();
             var pinnedObject = new PinnedObject(array);
 
             var metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), array.Length);
@@ -453,39 +451,38 @@ namespace Microsoft.CodeAnalysis.Serialization
             return metadata;
         }
 
-        private void GetTemporaryStorage(
-            ObjectReader reader, SerializationKinds kind, out ITemporaryStreamStorageInternal storage, out long length, CancellationToken cancellationToken)
+        private (ITemporaryStreamStorageInternal storage, long length) GetTemporaryStorage(
+            ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
+
             if (kind == SerializationKinds.Bits)
             {
-                storage = _storageService.CreateTemporaryStreamStorage();
+                var storage = _storageService.CreateTemporaryStreamStorage();
                 using var stream = SerializableBytes.CreateWritableStream();
 
                 CopyByteArrayToStream(reader, stream, cancellationToken);
 
-                length = stream.Length;
+                var length = stream.Length;
 
                 stream.Position = 0;
                 storage.WriteStream(stream, cancellationToken);
 
-                return;
+                return (storage, length);
             }
-
-            if (kind == SerializationKinds.MemoryMapFile)
+            else
             {
                 var service2 = (ITemporaryStorageService2)_storageService;
 
-                var name = reader.ReadString();
+                var name = reader.ReadRequiredString();
                 var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
-                storage = service2.AttachTemporaryStreamStorage(name, offset, size);
-                length = size;
+                var storage = service2.AttachTemporaryStreamStorage(name, offset, size);
+                var length = size;
 
-                return;
+                return (storage, length);
             }
-
-            throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
         private static void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object? lifeTimeObject)
@@ -525,7 +522,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             // TODO: make reader be able to read byte[] chunk
-            var content = reader.ReadArray<byte>();
+            var content = reader.ReadByteArray();
             stream.Write(content, 0, content.Length);
         }
 
@@ -540,7 +537,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            writer.WriteValue(new ReadOnlySpan<byte>(reader.MetadataPointer, reader.MetadataLength));
+            writer.WriteSpan(new ReadOnlySpan<byte>(reader.MetadataPointer, reader.MetadataLength));
         }
 
         private static void WriteUnresolvedAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer)

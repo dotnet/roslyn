@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
-            = ImmutableArray.Create(IDEDiagnosticIds.UseTupleSwapDiagnosticId);
+            = [IDEDiagnosticIds.UseTupleSwapDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

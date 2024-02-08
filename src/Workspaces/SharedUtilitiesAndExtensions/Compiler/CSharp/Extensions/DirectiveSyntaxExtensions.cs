@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var directiveConditionalMap = GetDirectiveInfo(directive, cancellationToken).ConditionalMap;
             return directiveConditionalMap.TryGetValue(directive, out var result)
                 ? result
-                : ImmutableArray<DirectiveTriviaSyntax>.Empty;
+                : [];
         }
     }
 }

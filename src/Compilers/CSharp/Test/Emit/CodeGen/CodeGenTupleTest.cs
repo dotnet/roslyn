@@ -3266,7 +3266,7 @@ class C
         public void HugeTupleCreationParses()
         {
             StringBuilder b = new StringBuilder();
-            b.Append("(");
+            b.Append('(');
             for (int i = 0; i < 3000; i++)
             {
                 b.Append("1, ");
@@ -3292,7 +3292,7 @@ class C
         public void HugeTupleDeclarationParses()
         {
             StringBuilder b = new StringBuilder();
-            b.Append("(");
+            b.Append('(');
             for (int i = 0; i < 3000; i++)
             {
                 b.Append("int, ");

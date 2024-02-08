@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly NonReentrantLock _serializationLock = new();
 
         private readonly MSBuildProjectLoader _loader;
+        private readonly Microsoft.Extensions.Logging.ILoggerFactory _loggerFactory;
         private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
         private readonly DiagnosticReporter _reporter;
 
@@ -41,7 +42,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             _reporter = new DiagnosticReporter(this);
             _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(Services.SolutionServices, _reporter);
-            _loader = new MSBuildProjectLoader(Services.SolutionServices, _reporter, _projectFileExtensionRegistry, properties);
+            _loggerFactory = DiagnosticReporterLoggerProvider.CreateLoggerFactoryForDiagnosticReporter(_reporter);
+            _loader = new MSBuildProjectLoader(Services.SolutionServices, _reporter, _loggerFactory, _projectFileExtensionRegistry, properties);
         }
 
         /// <summary>
@@ -312,7 +314,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 try
                 {
                     Debug.Assert(_applyChangesBuildHostProcessManager == null);
-                    _applyChangesBuildHostProcessManager = new BuildHostProcessManager(Properties);
+                    _applyChangesBuildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
 
                     return base.TryApplyChanges(newSolution, progressTracker);
                 }

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.InlineTemporary
                 }
             }
 
-            return ImmutableArray<TIdentifierNameSyntax>.Empty;
+            return [];
         }
     }
 }

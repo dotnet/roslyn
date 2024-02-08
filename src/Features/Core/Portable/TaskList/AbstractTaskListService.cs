@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.TaskList
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
-                    return ImmutableArray<TaskListItem>.Empty;
+                    return [];
 
                 return result.Value;
             }
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.TaskList
             CancellationToken cancellationToken)
         {
             if (descriptors.IsEmpty)
-                return ImmutableArray<TaskListItem>.Empty;
+                return [];
 
             cancellationToken.ThrowIfCancellationRequested();
 

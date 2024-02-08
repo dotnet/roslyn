@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             {
                 // return empty since that is what IDE does for this case
                 // see AbstractProject.GetStrongNameKeyPaths
-                return ImmutableArray<string>.Empty;
+                return [];
             }
 
             var builder = ArrayBuilder<string>.GetInstance();

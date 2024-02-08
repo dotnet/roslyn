@@ -1605,21 +1605,18 @@ Systen.Console.WriteLine();
             await VerifyItemExistsAsync("call(" + prefix + "$$)", "args", sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55969")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_1()
             => await VerifyItemIsAbsentAsync(@"$$", "args", sourceCodeKind: SourceCodeKind.Regular);
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55969")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_2()
             => await VerifyItemExistsAsync(
                 @"using System;
 Console.WriteLine();
 $$", "args", sourceCodeKind: SourceCodeKind.Regular);
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55969")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55969")]
         public async Task Parameters_TopLevelStatement_3()
             => await VerifyItemIsAbsentAsync(
                 @"using System;
@@ -5202,8 +5199,7 @@ public class Goo
         }
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522440")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674611")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674611")]
         public async Task EditorBrowsable_Property_BrowsableStateNever()
         {
             var markup = @"
@@ -9444,8 +9440,7 @@ class C
             await VerifyItemExistsAsync(markup, "Bar");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7932")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7932")]
         public async Task ExtensionMethodWithinSameClassOfferedForCompletion()
         {
             var markup = @"
@@ -9461,8 +9456,7 @@ public static class Test
             await VerifyItemExistsAsync(markup, "TestA");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7932")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7932")]
         public async Task ExtensionMethodWithinParentClassOfferedForCompletion()
         {
             var markup = @"

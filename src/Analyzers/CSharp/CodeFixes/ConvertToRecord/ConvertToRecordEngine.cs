@@ -560,7 +560,7 @@ internal static class ConvertToRecordEngine
             {
                 if (result.IsInherited)
                 {
-                    return ImmutableArray<SyntaxTrivia>.Empty;
+                    return [];
                 }
 
                 var p = result.Declaration;

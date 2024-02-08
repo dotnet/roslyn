@@ -42,7 +42,7 @@ internal class RenameIntentProvider : IIntentProvider
         var renameInfo = await renameService.GetRenameInfoAsync(priorDocument, priorSelection.Start, cancellationToken).ConfigureAwait(false);
         if (!renameInfo.CanRename)
         {
-            return ImmutableArray<IntentProcessorResult>.Empty;
+            return [];
         }
 
         var options = new SymbolRenameOptions(
@@ -54,6 +54,6 @@ internal class RenameIntentProvider : IIntentProvider
         var renameLocationSet = await renameInfo.FindRenameLocationsAsync(options, cancellationToken).ConfigureAwait(false);
         var renameReplacementInfo = await renameLocationSet.GetReplacementsAsync(renameIntentData.NewName, options, cancellationToken).ConfigureAwait(false);
 
-        return ImmutableArray.Create(new IntentProcessorResult(renameReplacementInfo.NewSolution, renameReplacementInfo.DocumentIds.ToImmutableArray(), EditorFeaturesResources.Rename, WellKnownIntents.Rename));
+        return [new IntentProcessorResult(renameReplacementInfo.NewSolution, renameReplacementInfo.DocumentIds.ToImmutableArray(), EditorFeaturesResources.Rename, WellKnownIntents.Rename)];
     }
 }

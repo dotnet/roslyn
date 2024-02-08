@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 // Add the new statement as the first/last statement of the new block 
                 // depending if we were asked to go after something or not.
                 editor.SetStatements(functionDeclaration, statementToAddAfterOpt == null
-                    ? ImmutableArray.Create(statement, convertedStatement)
-                    : ImmutableArray.Create(convertedStatement, statement));
+                    ? [statement, convertedStatement]
+                    : [convertedStatement, statement]);
             }
             else if (body is BlockSyntax block)
             {

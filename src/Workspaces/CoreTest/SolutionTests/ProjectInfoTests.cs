@@ -36,20 +36,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var documentInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "doc");
             Assert.Throws<ArgumentException>("documents[1]",
-                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", documents: new[] { documentInfo, documentInfo }));
+                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", documents: [documentInfo, documentInfo]));
 
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: "C#",
                 additionalDocuments: new DocumentInfo[] { null }));
 
             Assert.Throws<ArgumentException>("additionalDocuments[1]",
-                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", additionalDocuments: new[] { documentInfo, documentInfo }));
+                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", additionalDocuments: [documentInfo, documentInfo]));
 
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: "C#",
                 projectReferences: new ProjectReference[] { null }));
 
             var projectReference = new ProjectReference(ProjectId.CreateNewId());
             Assert.Throws<ArgumentException>("projectReferences[1]",
-                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", projectReferences: new[] { projectReference, projectReference }));
+                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", projectReferences: [projectReference, projectReference]));
 
             Assert.Throws<ArgumentNullException>("analyzerReferences[0]", () => ProjectInfo.Create(pid, VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: "C#",
                 analyzerReferences: new AnalyzerReference[] { null }));
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var version = VersionStamp.Default;
             var documentInfo = DocumentInfo.Create(DocumentId.CreateNewId(ProjectId.CreateNewId()), "doc");
 
-            var info1 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", documents: new[] { documentInfo });
+            var info1 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", documents: [documentInfo]);
             Assert.Same(documentInfo, ((ImmutableArray<DocumentInfo>)info1.Documents).Single());
 
             var info2 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#");
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var info3 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", documents: new DocumentInfo[0]);
             Assert.True(((ImmutableArray<DocumentInfo>)info3.Documents).IsEmpty);
 
-            var info4 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", documents: ImmutableArray<DocumentInfo>.Empty);
+            var info4 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", documents: []);
             Assert.True(((ImmutableArray<DocumentInfo>)info4.Documents).IsEmpty);
         }
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var version = VersionStamp.Default;
             var documentInfo = DocumentInfo.Create(DocumentId.CreateNewId(ProjectId.CreateNewId()), "doc");
 
-            var info1 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", additionalDocuments: new[] { documentInfo });
+            var info1 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", additionalDocuments: [documentInfo]);
             Assert.Same(documentInfo, ((ImmutableArray<DocumentInfo>)info1.AdditionalDocuments).Single());
 
             var info2 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#");
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var info3 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", additionalDocuments: new DocumentInfo[0]);
             Assert.True(((ImmutableArray<DocumentInfo>)info3.AdditionalDocuments).IsEmpty);
 
-            var info4 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", additionalDocuments: ImmutableArray<DocumentInfo>.Empty);
+            var info4 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", additionalDocuments: []);
             Assert.True(((ImmutableArray<DocumentInfo>)info4.AdditionalDocuments).IsEmpty);
         }
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var version = VersionStamp.Default;
             var projectReference = new ProjectReference(ProjectId.CreateNewId());
 
-            var info1 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", projectReferences: new[] { projectReference });
+            var info1 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", projectReferences: [projectReference]);
             Assert.Same(projectReference, ((ImmutableArray<ProjectReference>)info1.ProjectReferences).Single());
 
             var info2 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#");
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var info3 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", projectReferences: new ProjectReference[0]);
             Assert.True(((ImmutableArray<ProjectReference>)info3.ProjectReferences).IsEmpty);
 
-            var info4 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", projectReferences: ImmutableArray<ProjectReference>.Empty);
+            var info4 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", projectReferences: []);
             Assert.True(((ImmutableArray<ProjectReference>)info4.ProjectReferences).IsEmpty);
         }
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var info3 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", metadataReferences: new MetadataReference[0]);
             Assert.True(((ImmutableArray<MetadataReference>)info3.MetadataReferences).IsEmpty);
 
-            var info4 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", metadataReferences: ImmutableArray<MetadataReference>.Empty);
+            var info4 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", metadataReferences: []);
             Assert.True(((ImmutableArray<MetadataReference>)info4.MetadataReferences).IsEmpty);
         }
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var info3 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", analyzerReferences: new AnalyzerReference[0]);
             Assert.True(((ImmutableArray<AnalyzerReference>)info3.AnalyzerReferences).IsEmpty);
 
-            var info4 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", analyzerReferences: ImmutableArray<AnalyzerReference>.Empty);
+            var info4 = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#", analyzerReferences: []);
             Assert.True(((ImmutableArray<AnalyzerReference>)info4.AnalyzerReferences).IsEmpty);
         }
 

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
             var items = ImmutableArray.Create("Action1", "Action2");
 
             var sorted = WrapItemsAction.SortByMostRecentlyUsed(
-                items, ImmutableArray<string>.Empty, a => a);
+                items, [], a => a);
 
             // Shouldn't change order
             Assert.Equal((IEnumerable<string>)items, sorted);

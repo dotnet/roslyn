@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 
@@ -15,6 +16,6 @@ namespace Microsoft.CodeAnalysis.GoToBase
         /// Finds the base members overridden or implemented by the symbol at the specific position in the document,
         /// pushing the results into the context instance.
         /// </summary>
-        Task FindBasesAsync(IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken);
+        Task FindBasesAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken);
     }
 }

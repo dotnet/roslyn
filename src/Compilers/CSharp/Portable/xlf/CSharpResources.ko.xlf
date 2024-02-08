@@ -432,6 +432,16 @@
         <target state="translated">이 버전의 '{0}'은(는) 컬렉션 식과 함께 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingAdd">
+        <source>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</source>
+        <target state="new">Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingConstructor">
+        <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
+        <target state="new">Collection expression type must have an applicable constructor that can be called with no arguments.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
         <source>There is no target type for the collection expression.</source>
         <target state="translated">컬렉션 식에 대한 대상 형식이 없습니다.</target>

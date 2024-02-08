@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Diagnostic? syntaxError,
             bool hasEmitErrors)
             => new(
-                new(syntaxError != null || hasEmitErrors ? ModuleUpdateStatus.Blocked : ModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedHotReloadUpdate>.Empty),
+                new(syntaxError != null || hasEmitErrors ? ModuleUpdateStatus.Blocked : ModuleUpdateStatus.RestartRequired, []),
                 ImmutableArray<(Guid, ImmutableArray<(ManagedModuleMethodId, NonRemappableRegion)>)>.Empty,
-                ImmutableArray<ProjectBaseline>.Empty,
+                [],
                 diagnostics,
                 documentsWithRudeEdits,
                 syntaxError);

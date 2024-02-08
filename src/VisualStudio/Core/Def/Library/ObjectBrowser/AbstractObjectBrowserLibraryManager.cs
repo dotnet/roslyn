@@ -9,10 +9,12 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
@@ -376,7 +378,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     case (uint)_LIB_LISTTYPE.LLT_NAMESPACES:
                         if (namespaceName.Length > 0)
                         {
-                            namespaceName.Append(".");
+                            namespaceName.Append('.');
                         }
 
                         namespaceName.Append(rgSymbolNodes[count].pszName);
@@ -385,7 +387,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     case (uint)_LIB_LISTTYPE.LLT_CLASSES:
                         if (className.Length > 0)
                         {
-                            className.Append(".");
+                            className.Append('.');
                         }
 
                         className.Append(rgSymbolNodes[count].pszName);
@@ -490,9 +492,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                                 // immediately.
                                 var streamingPresenter = ComponentModel.GetService<IStreamingFindUsagesPresenter>();
                                 var asynchronousOperationListener = ComponentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.LibraryManager);
+                                var globalOptions = ComponentModel.GetService<IGlobalOptionService>();
 
                                 var asyncToken = asynchronousOperationListener.BeginAsyncOperation(nameof(AbstractObjectBrowserLibraryManager) + "." + nameof(TryExec));
-                                FindReferencesAsync(streamingPresenter, symbolListItem, project).CompletesAsyncOperation(asyncToken);
+                                FindReferencesAsync(streamingPresenter, symbolListItem, project, globalOptions.GetClassificationOptionsProvider()).CompletesAsyncOperation(asyncToken);
                                 return true;
                             }
                         }
@@ -505,7 +508,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         private static async Task FindReferencesAsync(
-            IStreamingFindUsagesPresenter presenter, SymbolListItem symbolListItem, Project project)
+            IStreamingFindUsagesPresenter presenter, SymbolListItem symbolListItem, Project project, OptionsProvider<ClassificationOptions> classificationOptions)
         {
             try
             {
@@ -520,7 +523,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     // t block the calling (UI) thread too long if we happen to do our work on this
                     // thread.
                     await Task.Run(
-                        () => FindReferencesAsync(symbolListItem, project, context, cancellationToken), cancellationToken).ConfigureAwait(false);
+                        () => FindReferencesAsync(symbolListItem, project, context, classificationOptions, cancellationToken), cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -536,13 +539,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         private static async Task FindReferencesAsync(
-            SymbolListItem symbolListItem, Project project,
-            FindUsagesContext context, CancellationToken cancellationToken)
+            SymbolListItem symbolListItem,
+            Project project,
+            FindUsagesContext context,
+            OptionsProvider<ClassificationOptions> classificationOptions,
+            CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var symbol = symbolListItem.ResolveSymbol(compilation);
             if (symbol != null)
-                await AbstractFindUsagesService.FindSymbolReferencesAsync(context, symbol, project, cancellationToken).ConfigureAwait(false);
+                await AbstractFindUsagesService.FindSymbolReferencesAsync(context, symbol, project, classificationOptions, cancellationToken).ConfigureAwait(false);
         }
     }
 }

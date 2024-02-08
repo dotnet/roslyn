@@ -66,27 +66,27 @@ namespace Microsoft.CodeAnalysis
             if (tokens.Length == 0)
                 return default;
 
-            if (tokens.Length == 1)
-                return new SyntaxTokenList(tokens[0]);
-
             return new SyntaxTokenList(parent: null, CreateNodeFromSpan(tokens), position: 0, index: 0);
         }
 
         private static GreenNode? CreateNodeFromSpan(ReadOnlySpan<SyntaxToken> tokens)
         {
-            if (tokens == null)
-                return null;
-
-            // TODO: it would be nice to avoid the intermediary builder.  We could just inline what ToList does here.
-            var builder = new SyntaxTokenListBuilder(tokens.Length);
-            for (int i = 0; i < tokens.Length; i++)
+            switch (tokens.Length)
             {
-                var node = tokens[i].Node;
-                Debug.Assert(node is not null);
-                builder.Add(node);
-            }
+                // Also handles case where tokens is `null`.
+                case 0: return null;
+                case 1: return tokens[0].Node;
+                case 2: return Syntax.InternalSyntax.SyntaxList.List(tokens[0].Node!, tokens[1].Node!);
+                case 3: return Syntax.InternalSyntax.SyntaxList.List(tokens[0].Node!, tokens[1].Node!, tokens[2].Node!);
+                default:
+                    {
+                        var copy = new ArrayElement<GreenNode>[tokens.Length];
+                        for (int i = 0, n = tokens.Length; i < n; i++)
+                            copy[i].Value = tokens[i].Node!;
 
-            return builder.ToList().Node;
+                        return Syntax.InternalSyntax.SyntaxList.List(copy);
+                    }
+            }
         }
 
         private static GreenNode? CreateNode(IEnumerable<SyntaxToken> tokens)

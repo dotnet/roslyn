@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId];
 
         public override FixAllProvider GetFixAllProvider()
         {
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
                     // Add any orphaned trivia to this node.
                     deduplicatedUsingsBuilder.Add(usingDirective.WithPrependedLeadingTrivia(orphanedTrivia));
-                    orphanedTrivia = Enumerable.Empty<SyntaxTrivia>();
+                    orphanedTrivia = [];
                 }
             }
 

@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken)
             : this(document,
                    (diagnostic ?? throw new ArgumentNullException(nameof(diagnostic))).Location.SourceSpan,
-                   ImmutableArray.Create(diagnostic),
+                   [diagnostic],
                    registerCodeFix,
                    CodeActionOptions.DefaultProvider,
                    cancellationToken)
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken)
             : this(document,
                    (diagnostic ?? throw new ArgumentNullException(nameof(diagnostic))).Location.SourceSpan,
-                   ImmutableArray.Create(diagnostic),
+                   [diagnostic],
                    registerCodeFix,
                    CodeActionOptions.DefaultProvider,
                    cancellationToken)
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 throw new ArgumentNullException(nameof(diagnostic));
             }
 
-            _registerCodeFix(action, ImmutableArray.Create(diagnostic));
+            _registerCodeFix(action, [diagnostic]);
         }
 
         /// <summary>

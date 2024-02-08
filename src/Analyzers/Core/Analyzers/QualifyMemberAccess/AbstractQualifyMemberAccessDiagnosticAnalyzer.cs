@@ -24,7 +24,13 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         protected AbstractQualifyMemberAccessDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId,
                    EnforceOnBuildValues.AddQualification,
-                   options: ImmutableHashSet.Create<IOption2>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
+                   options:
+                   [
+                       CodeStyleOptions2.QualifyFieldAccess,
+                       CodeStyleOptions2.QualifyPropertyAccess,
+                       CodeStyleOptions2.QualifyMethodAccess,
+                       CodeStyleOptions2.QualifyEventAccess,
+                   ],
                    new LocalizableResourceString(nameof(AnalyzersResources.Member_access_should_be_qualified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Add_this_or_Me_qualification), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {

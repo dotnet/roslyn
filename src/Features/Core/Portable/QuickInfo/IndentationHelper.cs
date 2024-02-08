@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             }
             else
             {
-                return ImmutableArray<ClassifiedSpan>.Empty;
+                return [];
             }
         }
 

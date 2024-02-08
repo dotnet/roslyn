@@ -22,15 +22,25 @@ namespace Microsoft.CodeAnalysis
             if (nodes.Length == 0)
                 return default;
 
-            if (nodes.Length == 1)
-                return new SyntaxList<TNode>(nodes[0]);
+            return new SyntaxList<TNode>(createGreenNode(nodes).CreateRed());
 
-            // TODO: it would be nice to avoid the intermediary builder.  We could just inline what ToList does here.
-            var builder = new SyntaxListBuilder<TNode>(nodes.Length);
-            foreach (var node in nodes)
-                builder.Add(node);
+            static GreenNode createGreenNode(ReadOnlySpan<TNode> nodes)
+            {
+                switch (nodes.Length)
+                {
+                    case 1: return nodes[0].Green;
+                    case 2: return Syntax.InternalSyntax.SyntaxList.List(nodes[0].Green, nodes[1].Green);
+                    case 3: return Syntax.InternalSyntax.SyntaxList.List(nodes[0].Green, nodes[1].Green, nodes[2].Green);
+                    default:
+                        {
+                            var copy = new ArrayElement<GreenNode>[nodes.Length];
+                            for (int i = 0, n = nodes.Length; i < n; i++)
+                                copy[i].Value = nodes[i].Green;
 
-            return new SyntaxList<TNode>(builder.ToList().Node);
+                            return Syntax.InternalSyntax.SyntaxList.List(copy);
+                        }
+                }
+            }
         }
     }
 

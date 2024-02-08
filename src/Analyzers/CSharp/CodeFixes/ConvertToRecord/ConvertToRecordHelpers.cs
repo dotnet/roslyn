@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                             if (additionalValuesBuilder.ContainsKey(property))
                             {
                                 // don't allow assignment to the same property more than once
-                                return ImmutableArray<ExpressionSyntax>.Empty;
+                                return [];
                             }
 
                             additionalValuesBuilder.Add(property, captured);
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             }
 
             // no initializer or uses explicit constructor, no need to make a change
-            return ImmutableArray<ExpressionSyntax>.Empty;
+            return [];
         }
 
         private static ImmutableArray<ExpressionSyntax> GetAssignmentExpressionsFromValuesMap(
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             var body = GetBlockOfMethodBody(operation);
 
             if (body == null || !methodSymbol.Parameters.IsSingle())
-                return ImmutableArray<IFieldSymbol>.Empty;
+                return [];
 
             var bodyOps = body.Operations;
             var parameter = methodSymbol.Parameters.First();
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 // and a variable assignment happens (either in the if or in a following statement)
                 else if (!TryGetBindingCastInFirstIfStatement(bodyOps, parameter, type, fields, out otherC, out statementsToCheck))
                 {
-                    return ImmutableArray<IFieldSymbol>.Empty;
+                    return [];
                 }
             }
 
@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 !TryAddEqualizedFieldsForStatements(statementsToCheck, otherC, type, fields))
             {
                 // no patterns matched to bind variable or statements didn't match expectation
-                return ImmutableArray<IFieldSymbol>.Empty;
+                return [];
             }
 
             return fields.ToImmutable();
@@ -787,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             IEnumerable<IOperation>? additionalConditions = null)
         {
             boundVariable = null;
-            additionalConditions ??= Enumerable.Empty<IOperation>();
+            additionalConditions ??= [];
             return (successRequirement, condition) switch
             {
                 (_, IUnaryOperation { OperatorKind: UnaryOperatorKind.Not, Operand: IOperation newCondition })
@@ -1055,16 +1055,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             // this will be changed if we successfully match the pattern
             successRequirement = default;
             // this could be empty even if we match, if there is no else block
-            remainingStatements = Enumerable.Empty<IOperation>();
+            remainingStatements = [];
 
             // all the operations that would happen after the condition is true or false
             // branches can either be block bodies or single statements
             // each branch is followed by statements outside the branch either way
-            var trueOps = ((whenTrue as IBlockOperation)?.Operations ?? ImmutableArray.Create(whenTrue))
+            var trueOps = ((whenTrue as IBlockOperation)?.Operations ?? [whenTrue])
                 .Concat(otherOps);
             var falseOps = ((whenFalse as IBlockOperation)?.Operations ??
                 (whenFalse != null
-                    ? ImmutableArray.Create(whenFalse)
+                    ? [whenFalse]
                     : ImmutableArray<IOperation>.Empty))
                 .Concat(otherOps);
 

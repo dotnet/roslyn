@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
                     // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
                     Log.Write("Syntax errors found in '{0}'", filePath);
-                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray<RudeEditDiagnostic>.Empty, syntaxError, analysisStopwatch.Elapsed, hasChanges);
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [], syntaxError, analysisStopwatch.Elapsed, hasChanges);
                 }
 
                 if (!hasChanges)
@@ -591,8 +591,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     Log.Write("Experimental features enabled in '{0}'", filePath);
 
-                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(
-                        new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)), syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
                 }
 
                 var capabilities = new EditAndContinueCapabilitiesGrantor(await lazyCapabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
@@ -601,8 +600,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // If the document has changed at all, lets make sure Edit and Continue is supported
                 if (!capabilities.Grant(EditAndContinueCapabilities.Baseline))
                 {
-                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(
-                       new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)), syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
                 }
 
                 // We are in break state when there are no active statements.
@@ -638,7 +636,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var oldActiveStatements = (oldTree == null) ? ImmutableArray<UnmappedActiveStatement>.Empty :
+                var oldActiveStatements = (oldTree == null) ? [] :
                     oldActiveStatementMap.GetOldActiveStatements(this, oldTree, oldText, oldRoot, cancellationToken);
 
                 var newActiveStatements = ImmutableArray.CreateBuilder<ActiveStatement>(oldActiveStatements.Length);
@@ -704,7 +702,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     : new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: [newDocument.FilePath, e.ToString()]);
 
                 // Report as "syntax error" - we can't analyze the document
-                return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(diagnostic), syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+                return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [diagnostic], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
             }
 
             static void LogRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SourceText text, string filePath)
@@ -874,7 +872,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (newActiveStatements[i] == null)
                     {
                         newActiveStatements[i] = oldActiveStatements[i].Statement.WithSpan(default);
-                        newExceptionRegions[i] = ImmutableArray<SourceFileSpan>.Empty;
+                        newExceptionRegions[i] = [];
                     }
                 }
             }
@@ -1002,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         var newSpan = GetDeletedDeclarationActiveSpan(topMatch.Matches, oldDeclaration);
                         newActiveStatements[activeStatementIndex] = GetActiveStatementWithSpan(oldActiveStatements[activeStatementIndex], topMatch.NewRoot.SyntaxTree, newSpan, diagnostics, cancellationToken);
-                        newExceptionRegions[activeStatementIndex] = ImmutableArray<SourceFileSpan>.Empty;
+                        newExceptionRegions[activeStatementIndex] = [];
                     }
                 }
                 else
@@ -1127,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var oldStatementSyntax = activeNode.OldNode;
                     var oldEnclosingLambdaBody = activeNode.EnclosingLambdaBody;
 
-                    newExceptionRegions[activeStatementIndex] = ImmutableArray<SourceFileSpan>.Empty;
+                    newExceptionRegions[activeStatementIndex] = [];
 
                     DeclarationBodyMap enclosingBodyMap;
                     DeclarationBody oldBody;
@@ -1205,7 +1203,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Lambda containing the active statement can't be found in the new source.
                         var oldLambda = oldEnclosingLambdaBody.GetLambda();
                         diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ActiveStatementLambdaRemoved, newSpan, oldLambda,
-                            new[] { GetDisplayName(oldLambda) }));
+                            [GetDisplayName(oldLambda)]));
                     }
                     else
                     {
@@ -1217,7 +1215,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             diagnostics.Add(
                                 new RudeEditDiagnostic(isNonLeaf ? RudeEditKind.DeleteActiveStatement : RudeEditKind.PartiallyExecutedActiveStatementDelete,
                                 GetDeletedNodeDiagnosticSpan(enclosingBodyMap.Forward, oldStatementSyntax),
-                                arguments: new[] { FeaturesResources.code }));
+                                arguments: [FeaturesResources.code]));
                         }
                     }
 
@@ -1265,7 +1263,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 foreach (var i in activeStatementIndices)
                 {
                     newActiveStatements[i] = oldActiveStatements[i].Statement;
-                    newExceptionRegions[i] = ImmutableArray<SourceFileSpan>.Empty;
+                    newExceptionRegions[i] = [];
                 }
 
                 // We expect OOM to be thrown during the analysis if the number of statements is too large.
@@ -1273,11 +1271,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // it might throw another OOM here or later on.
                 if (e is OutOfMemoryException)
                 {
-                    diagnosticContext.Report(RudeEditKind.MemberBodyTooBig, cancellationToken, arguments: new[] { newMember.Name });
+                    diagnosticContext.Report(RudeEditKind.MemberBodyTooBig, cancellationToken, arguments: [newMember.Name]);
                 }
                 else
                 {
-                    diagnosticContext.Report(RudeEditKind.MemberBodyInternalError, cancellationToken, arguments: new[] { newMember.Name, e.ToString() });
+                    diagnosticContext.Report(RudeEditKind.MemberBodyInternalError, cancellationToken, arguments: [newMember.Name, e.ToString()]);
                 }
 
                 syntaxMaps = new SyntaxMaps(newModel.SyntaxTree);
@@ -1327,7 +1325,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     RudeEditKind.UpdateAroundActiveStatement,
                     newSpan,
                     LineDirectiveSyntaxKind,
-                    arguments: new[] { string.Format(FeaturesResources._0_directive, LineDirectiveKeyword) }));
+                    arguments: [string.Format(FeaturesResources._0_directive, LineDirectiveKeyword)]));
             }
 
             return oldStatement.Statement.WithFileSpan(mappedLineSpan);
@@ -1401,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (TryGetLambdaBodies(oldNode, out var oldLambdaBody1, out var oldLambdaBody2))
                     {
                         lambdaBodyMaps ??= ArrayBuilder<(DeclarationBodyMap, SyntaxNode?)>.GetInstance();
-                        lazyActiveOrMatchedLambdas ??= [];
+                        lazyActiveOrMatchedLambdas ??= new();
 
                         var newLambdaBody1 = oldLambdaBody1.TryGetPartnerLambdaBody(newNode);
                         if (newLambdaBody1 != null)
@@ -1472,12 +1470,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             if (activeOrMatchedLambdas.TryGetValue(oldLambdaBody, out var info))
             {
                 // Lambda may be matched but not be active.
-                activeNodesInLambdaBody = info.ActiveNodeIndices?.Select(i => memberBodyActiveNodes[i]) ?? Array.Empty<ActiveNode>();
+                activeNodesInLambdaBody = info.ActiveNodeIndices?.Select(i => memberBodyActiveNodes[i]) ?? [];
             }
             else
             {
                 // If the lambda body isn't in the map it doesn't have any active/tracked statements.
-                activeNodesInLambdaBody = Array.Empty<ActiveNode>();
+                activeNodesInLambdaBody = [];
                 info = new LambdaInfo();
             }
 
@@ -1524,7 +1522,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // since the debugger does not support remapping active statements to a different method.
             if (hasActiveStatement && oldStateMachineInfo.IsStateMachine != newStateMachineInfo.IsStateMachine)
             {
-                diagnosticContext.Report(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, cancellationToken, arguments: Array.Empty<string>());
+                diagnosticContext.Report(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, cancellationToken, arguments: []);
             }
 
             // report removing async as rude:
@@ -1570,7 +1568,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             if (exceptionHandlingAncestors.Count == 0)
             {
-                return new ActiveStatementExceptionRegions(ImmutableArray<SourceFileSpan>.Empty, isActiveStatementCovered: false);
+                return new ActiveStatementExceptionRegions([], isActiveStatementCovered: false);
             }
 
             var isCovered = false;
@@ -1773,7 +1771,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 RudeEditKind.UpdateAroundActiveStatement,
                 GetDiagnosticSpan(newNode, EditKind.Update),
                 newNode,
-                new[] { GetDisplayName(newNode, EditKind.Update) }));
+                [GetDisplayName(newNode, EditKind.Update)]));
         }
 
         protected void AddRudeInsertAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)
@@ -1782,7 +1780,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 RudeEditKind.InsertAroundActiveStatement,
                 GetDiagnosticSpan(newNode, EditKind.Insert),
                 newNode,
-                new[] { GetDisplayName(newNode, EditKind.Insert) }));
+                [GetDisplayName(newNode, EditKind.Insert)]));
         }
 
         protected void AddRudeDeleteAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, TextSpan newActiveStatementSpan)
@@ -1791,7 +1789,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 RudeEditKind.DeleteAroundActiveStatement,
                 newActiveStatementSpan,
                 oldNode,
-                new[] { GetDisplayName(oldNode, EditKind.Delete) }));
+                [GetDisplayName(oldNode, EditKind.Delete)]));
         }
 
         protected void ReportUnmatchedStatements<TSyntaxNode>(
@@ -2451,7 +2449,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (editScript.Edits.Length == 0 && triviaEdits.Count == 0)
             {
-                return ImmutableArray<SemanticEditInfo>.Empty;
+                return [];
             }
 
             // { new type -> constructor update }
@@ -2515,7 +2513,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         RudeEditKind.ChangingNamespace,
                                         GetDiagnosticSpan(newTypeDeclaration, EditKind.Update),
                                         newTypeDeclaration,
-                                        new[] { GetDisplayName(newTypeDeclaration), oldSymbol.ContainingNamespace.ToDisplayString(), newSymbol.ContainingNamespace.ToDisplayString() }));
+                                        [GetDisplayName(newTypeDeclaration), oldSymbol.ContainingNamespace.ToDisplayString(), newSymbol.ContainingNamespace.ToDisplayString()]));
                                 }
                                 else
                                 {
@@ -2676,7 +2674,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     // If we got here for a global statement then the actual edit is a delete of the synthesized Main method
                                     if (IsGlobalMain(oldSymbol))
                                     {
-                                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Delete, diagnosticSpan, edit.OldNode, new[] { GetDisplayName(edit.OldNode!, EditKind.Delete) }));
+                                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Delete, diagnosticSpan, edit.OldNode, [GetDisplayName(edit.OldNode!, EditKind.Delete)]));
                                         continue;
                                     }
 
@@ -2693,7 +2691,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             rudeEditKind,
                                             diagnosticSpan,
                                             oldDeclaration,
-                                            new[] { GetDisplayKindAndName(oldSymbol, GetDisplayName(oldDeclaration, EditKind.Delete), fullyQualify: diagnosticSpan.IsEmpty) }));
+                                            [GetDisplayKindAndName(oldSymbol, GetDisplayName(oldDeclaration, EditKind.Delete), fullyQualify: diagnosticSpan.IsEmpty)]));
 
                                         continue;
                                     }
@@ -2720,7 +2718,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             rudeEditKind,
                                             diagnosticSpan,
                                             oldDeclaration,
-                                            new[] { GetDisplayKindAndName(oldSymbol, GetDisplayName(oldDeclaration, EditKind.Delete), fullyQualify: diagnosticSpan.IsEmpty) }));
+                                            [GetDisplayKindAndName(oldSymbol, GetDisplayName(oldDeclaration, EditKind.Delete), fullyQualify: diagnosticSpan.IsEmpty)]));
 
                                         continue;
                                     }
@@ -2855,7 +2853,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                                 RudeEditKind.InsertNotSupportedByRuntime,
                                                 GetDiagnosticSpan(newDeclaration, EditKind.Insert),
                                                 newDeclaration,
-                                                arguments: new[] { GetDisplayName(newDeclaration, EditKind.Insert) }));
+                                                arguments: [GetDisplayName(newDeclaration, EditKind.Insert)]));
 
                                             continue;
                                         }
@@ -2897,7 +2895,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                                 RudeEditKind.InsertNotSupportedByRuntime,
                                                 GetDiagnosticSpan(newDeclaration, EditKind.Insert),
                                                 newDeclaration,
-                                                arguments: new[] { GetDisplayName(newDeclaration, EditKind.Insert) }));
+                                                arguments: [GetDisplayName(newDeclaration, EditKind.Insert)]));
                                         }
 
                                         oldContainingType = null;
@@ -3031,7 +3029,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 {
                                     newActiveStatementSpan ??= GetDeletedDeclarationActiveSpan(editScript.Match.Matches, oldDeclaration);
                                     newActiveStatements[index] = GetActiveStatementWithSpan(oldActiveStatements[index], newTree, newActiveStatementSpan.Value, diagnostics, cancellationToken);
-                                    newExceptionRegions[index] = ImmutableArray<SourceFileSpan>.Empty;
+                                    newExceptionRegions[index] = [];
                                 }
                                 else
                                 {
@@ -3902,14 +3900,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Adding a state machine, either for async or iterator, will require creating a new helper class
                 // so is a rude edit if the runtime doesn't support it
                 var rudeEdit = newStateMachineInfo.IsAsync ? RudeEditKind.MakeMethodAsyncNotSupportedByRuntime : RudeEditKind.MakeMethodIteratorNotSupportedByRuntime;
-                diagnosticContext.Report(rudeEdit, cancellationToken, arguments: Array.Empty<string>());
+                diagnosticContext.Report(rudeEdit, cancellationToken, arguments: []);
             }
 
             if (oldStateMachineInfo.IsStateMachine && newStateMachineInfo.IsStateMachine)
             {
                 if (!capabilities.Grant(EditAndContinueCapabilities.AddInstanceFieldToExistingType))
                 {
-                    diagnosticContext.Report(RudeEditKind.UpdatingStateMachineMethodNotSupportedByRuntime, cancellationToken, arguments: Array.Empty<string>());
+                    diagnosticContext.Report(RudeEditKind.UpdatingStateMachineMethodNotSupportedByRuntime, cancellationToken, arguments: []);
                 }
 
                 if ((InGenericContext(oldMember) ||
@@ -4492,11 +4490,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (IsNonCustomAttribute(attributeData))
                 {
-                    diagnosticContext.Report(RudeEditKind.ChangingNonCustomAttribute, cancellationToken, arguments: new[]
-                    {
+                    diagnosticContext.Report(RudeEditKind.ChangingNonCustomAttribute, cancellationToken, arguments:
+                    [
                         attributeData.AttributeClass!.Name,
                         GetDisplayKind(diagnosticContext.RequiredNewSymbol)
-                    });
+                    ]);
 
                     return false;
                 }
@@ -4510,10 +4508,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace.IsGlobalNamespace: true
                     })
                 {
-                    diagnosticContext.Report(RudeEditKind.ChangingAttribute, cancellationToken, arguments: new[]
-                    {
+                    diagnosticContext.Report(RudeEditKind.ChangingAttribute, cancellationToken, arguments:
+                    [
                         attributeData.AttributeClass.Name,
-                    });
+                    ]);
 
                     return false;
                 }
@@ -4926,11 +4924,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Report(
                     (newSymbol.ContainingType.TypeKind == TypeKind.Struct) ? RudeEditKind.InsertIntoStruct : RudeEditKind.InsertIntoClassWithLayout,
                     cancellationToken,
-                    arguments: new[]
-                    {
+                    arguments:
+                    [
                         analyzer.GetDisplayKind(newSymbol),
                         analyzer.GetDisplayKind(newSymbol.ContainingType)
-                    });
+                    ]);
             }
 
             public DiagnosticContext WithSymbols(ISymbol oldSymbol, ISymbol newSymbol)
@@ -5632,7 +5630,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     if (!CanAddNewLambda(newLambda, newLambdaBody1, newLambdaBody2))
                     {
-                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertNotSupportedByRuntime, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda, new string[] { GetDisplayName(newLambda, EditKind.Insert) }));
+                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertNotSupportedByRuntime, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda, [GetDisplayName(newLambda, EditKind.Insert)]));
                     }
 
                     // TODO: https://github.com/dotnet/roslyn/issues/37128
@@ -5640,7 +5638,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Although local functions are non-virtual the Core CLR currently does not support adding any method to an interface.
                     if (isInInterface && IsLocalFunction(newLambda))
                     {
-                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda, new string[] { GetDisplayName(newLambda, EditKind.Insert) }));
+                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda, [GetDisplayName(newLambda, EditKind.Insert)]));
                     }
                 }
             }
@@ -5777,8 +5775,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (memberBody == null)
             {
-                variablesCapturedInLambdas = ImmutableArray<VariableCapture>.Empty;
-                primaryParametersCapturedViaThis = ImmutableArray<IParameterSymbol>.Empty;
+                variablesCapturedInLambdas = [];
+                primaryParametersCapturedViaThis = [];
                 return;
             }
 
@@ -5824,7 +5822,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             variablesCapturedInLambdas = inLambdaCaptures?.SelectAsArray(
-                static item => new VariableCapture(item.kind, item.symbol)) ?? ImmutableArray<VariableCapture>.Empty;
+                static item => new VariableCapture(item.kind, item.symbol)) ?? [];
 
             inLambdaCaptures?.Free();
 
@@ -5838,7 +5836,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             else
             {
-                primaryParametersCapturedViaThis = ImmutableArray<IParameterSymbol>.Empty;
+                primaryParametersCapturedViaThis = [];
             }
 
             inLambdaCapturesIndex?.Free();
@@ -5861,7 +5859,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         RudeEditKind.CapturingPrimaryConstructorParameter,
                         GetSymbolLocationSpan(newCapture, cancellationToken),
                         node: null,
-                        new[] { GetLayoutKindDisplay(newCapture), newCapture.Name }));
+                        [GetLayoutKindDisplay(newCapture), newCapture.Name]));
                 }
             }
 
@@ -5876,7 +5874,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         RudeEditKind.NotCapturingPrimaryConstructorParameter,
                         GetSymbolLocationSpan(newMember, cancellationToken),
                         node: null,
-                        new[] { GetLayoutKindDisplay(oldCapture), oldCapture.Name }));
+                        [GetLayoutKindDisplay(oldCapture), oldCapture.Name]));
                 }
             }
 
@@ -6340,7 +6338,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // since the attribute has been long defined in the BCL.
             if (oldCompilation.GetTypeByMetadataName(stateMachineAttributeQualifiedName) == null)
             {
-                diagnosticContext.Report(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, cancellationToken, arguments: new[] { stateMachineAttributeQualifiedName });
+                diagnosticContext.Report(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, cancellationToken, arguments: [stateMachineAttributeQualifiedName]);
             }
         }
 

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             => GetDefaultFormattingRules(document.Project.Services);
 
         internal static ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules(LanguageServices languageServices)
-            => languageServices.GetService<ISyntaxFormattingService>()?.GetDefaultFormattingRules() ?? ImmutableArray<AbstractFormattingRule>.Empty;
+            => languageServices.GetService<ISyntaxFormattingService>()?.GetDefaultFormattingRules() ?? [];
 
         /// <summary>
         /// Formats the whitespace in a document.

@@ -384,8 +384,8 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         keySelector: argument => argument.Parameter!,
                         elementSelector: argument => GenerateArgumentExpression(syntaxGenerator, argument));
                 return new MethodParametersInfo(
-                    ImmutableArray<(IParameterSymbol parameterSymbol, string name)>.Empty,
-                    ImmutableArray<(IParameterSymbol parameterSymbol, TExpressionSyntax initExpression)>.Empty,
+                    [],
+                    [],
                     parameterToReplaceMap,
                     false);
             }

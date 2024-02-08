@@ -352,12 +352,12 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
         <source>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</source>
-        <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
+        <target state="translated">Önceden yakalanmamış olan '{0}' birincil oluşturucu parametresini yakalamak için uygulamanın yeniden başlatılmasını gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
         <source>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</source>
-        <target state="translated">Birincil oluşturucu parametresinin yakalaması '{0}' '{1}' için uygulamanın yeniden başlatılması gerekir.</target>
+        <target state="translated">'{0}' / '{1}' birincil oluşturucu parametresini yakalama işleminin başlatılması için uygulamanın yeniden başlatılması gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
@@ -412,7 +412,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Changing_attribute_0_requires_restarting_the_application">
         <source>Changing attribute '{0}' requires restarting the application.</source>
-        <target state="new">Changing attribute '{0}' requires restarting the application.</target>
+        <target state="translated">'{0}' özniteliğinin değiştirilmesi için uygulamanın yeniden başlatılması gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
@@ -527,7 +527,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Convert_number">
         <source>Convert number</source>
-        <target state="translated">Sladırı dönüştür</target>
+        <target state="translated">Sayıyı dönüştür</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -607,12 +607,12 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Debug_All_Tests">
         <source>Debug All Tests</source>
-        <target state="new">Debug All Tests</target>
+        <target state="translated">Tüm Testlerin Hatalarını Ayıkla</target>
         <note />
       </trans-unit>
       <trans-unit id="Debug_Test">
         <source>Debug Test</source>
-        <target state="new">Debug Test</target>
+        <target state="translated">Testin Hatalarını Ayıkla</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompilation_log">
@@ -757,7 +757,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Fix_All_0">
         <source>Fix All: {0}</source>
-        <target state="new">Fix All: {0}</target>
+        <target state="translated">Tümünü Düzelt: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -2517,7 +2517,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Remove_unnecessary_imports_or_usings">
         <source>Remove unnecessary imports or usings</source>
-        <target state="new">Remove unnecessary imports or usings</target>
+        <target state="translated">Gereksiz içeri aktarmaları veya kullanmaları kaldır</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameters">
@@ -2597,12 +2597,12 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Run_All_Tests">
         <source>Run All Tests</source>
-        <target state="new">Run All Tests</target>
+        <target state="translated">Tüm Testleri Çalıştır</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_Test">
         <source>Run Test</source>
-        <target state="new">Run Test</target>
+        <target state="translated">Testi Çalıştır</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
@@ -3052,7 +3052,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Wrap_long_collection">
         <source>Wrap long collection</source>
-        <target state="translated">Uzun koleksiyonu kaydır</target>
+        <target state="translated">Uzun koleksiyonu sarmala</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">
@@ -3458,7 +3458,7 @@ If the "H" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
         <source>class with explicit or sequential layout</source>
-        <target state="new">class with explicit or sequential layout</target>
+        <target state="translated">açık veya sıralı düzeni olan sınıf</target>
         <note />
       </trans-unit>
       <trans-unit id="code">

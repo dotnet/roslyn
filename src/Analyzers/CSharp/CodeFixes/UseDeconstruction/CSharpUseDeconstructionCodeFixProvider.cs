@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseDeconstructionDiagnosticId);
+            => [IDEDiagnosticIds.UseDeconstructionDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

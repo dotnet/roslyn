@@ -1028,8 +1028,7 @@ class Program
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/66109")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64098")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64098")]
         public void FileLocalType_07()
         {
             var sourceA = """
@@ -1178,8 +1177,7 @@ class Program
                 });
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/66109")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66109")]
         public void SequencePointsMultipleDocuments_01()
         {
             var sourceA =
@@ -1356,8 +1354,7 @@ class Program
                 });
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/66109")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66109")]
         public void SequencePointsMultipleDocuments_02()
         {
             var sourceA = """

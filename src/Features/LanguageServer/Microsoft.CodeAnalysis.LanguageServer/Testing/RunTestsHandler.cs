@@ -71,7 +71,7 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
             await testRunner.RunTestsAsync(testCases, progress, vsTestConsoleWrapper, request.AttachDebugger, runSettings, clientLanguageServerManager, cancellationToken);
         }
 
-        return progress.GetValues() ?? Array.Empty<RunTestsPartialResult>();
+        return progress.GetValues() ?? [];
     }
 
     /// <summary>
