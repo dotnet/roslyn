@@ -215,9 +215,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundSequence { SideEffects.Length: 0, Value: BoundCall sequenceCall } sequence:
-                    var locals = PooledHashSet<LocalSymbol>.GetInstance();
-                    locals.AddAll(sequence.Locals);
-
                     if ((object)sequenceCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_2ReadOnlySpans) ||
                         (object)sequenceCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_3ReadOnlySpans) ||
                         (object)sequenceCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_4ReadOnlySpans))
@@ -226,6 +223,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // The key thing is that we need not to only extract arguments, but also unwrap them from being spans and for chars also wrap them into `ToString` calls.
                         var wrappedArgs = sequenceCall.Arguments;
                         var unwrappedArgsBuilder = ArrayBuilder<BoundExpression>.GetInstance(capacity: wrappedArgs.Length);
+
+                        var locals = PooledHashSet<LocalSymbol>.GetInstance();
+                        locals.AddAll(sequence.Locals);
 
                         foreach (var wrappedArg in wrappedArgs)
                         {
