@@ -53,7 +53,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         private sealed class ExternalDefinitionItem(VSTypeScriptDefinitionItemNavigator navigator, ImmutableArray<string> tags, ImmutableArray<TaggedText> displayParts) : DefinitionItem(tags,
                    displayParts,
                    ImmutableArray<TaggedText>.Empty,
-                   originationParts: default,
                    sourceSpans: default,
                    classifiedSpans: default,
                    properties: null,

@@ -178,7 +178,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
         ImmutableArray<string> tags,
         ImmutableArray<TaggedText> displayParts,
         ImmutableArray<TaggedText> nameDisplayParts,
-        ImmutableArray<TaggedText> originationParts,
         ImmutableArray<SerializableDocumentSpan> sourceSpans,
         ImmutableArray<AssemblyLocation> metadataLocations,
         ImmutableDictionary<string, string> properties,
@@ -198,21 +197,18 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public readonly ImmutableArray<TaggedText> NameDisplayParts = nameDisplayParts;
 
         [DataMember(Order = 4)]
-        public readonly ImmutableArray<TaggedText> OriginationParts = originationParts;
-
-        [DataMember(Order = 5)]
         public readonly ImmutableArray<SerializableDocumentSpan> SourceSpans = sourceSpans;
 
-        [DataMember(Order = 6)]
+        [DataMember(Order = 5)]
         public readonly ImmutableArray<AssemblyLocation> MetadataLocations = metadataLocations;
 
-        [DataMember(Order = 7)]
+        [DataMember(Order = 6)]
         public readonly ImmutableDictionary<string, string> Properties = properties;
 
-        [DataMember(Order = 8)]
+        [DataMember(Order = 7)]
         public readonly ImmutableDictionary<string, string> DisplayableProperties = displayableProperties;
 
-        [DataMember(Order = 9)]
+        [DataMember(Order = 8)]
         public readonly bool DisplayIfNoReferences = displayIfNoReferences;
 
         public static SerializableDefinitionItem Dehydrate(int id, DefinitionItem item)
@@ -220,7 +216,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
                    item.Tags,
                    item.DisplayParts,
                    item.NameDisplayParts,
-                   item.OriginationParts,
                    item.SourceSpans.SelectAsArray(SerializableDocumentSpan.Dehydrate),
                    item.MetadataLocations,
                    item.Properties,
@@ -235,7 +230,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 Tags,
                 DisplayParts,
                 NameDisplayParts,
-                OriginationParts,
                 sourceSpans,
                 // todo: consider serializing this over.
                 classifiedSpans: sourceSpans.SelectAsArray(ss => (ClassifiedSpansAndHighlightSpan?)null),

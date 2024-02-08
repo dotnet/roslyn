@@ -27,7 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected override object? GetValueWorker(string keyName)
                 => keyName switch
                 {
-                    StandardTableKeyNames.ProjectName => string.Format(ServicesVSResources.AssemblyNameAndVersionDisplay, metadataLocation.Name, metadataLocation.Version),
+                    StandardTableKeyNames.ProjectName => metadataLocation.Version != Versions.Null
+                        ? string.Format(ServicesVSResources.AssemblyNameAndVersionDisplay, metadataLocation.Name, metadataLocation.Version)
+                        : metadataLocation.Name,
                     StandardTableKeyNames.DisplayPath => metadataLocation.FilePath,
                     StandardTableKeyNames.Text => DefinitionBucket.DefinitionItem.DisplayParts.JoinText(),
                     StandardTableKeyNames.ItemOrigin => ItemOrigin.ExactMetadata,

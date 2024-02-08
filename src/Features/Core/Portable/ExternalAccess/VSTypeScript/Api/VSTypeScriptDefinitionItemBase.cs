@@ -15,7 +15,6 @@ internal abstract class VSTypeScriptDefinitionItemBase : DefinitionItem
         : base(tags,
               displayParts,
               [],
-              originationParts: default,
               sourceSpans: default,
               classifiedSpans: default,
               properties: null,

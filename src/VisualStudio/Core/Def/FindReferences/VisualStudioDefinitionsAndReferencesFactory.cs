@@ -80,7 +80,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 tags,
                 displayParts,
                 nameDisplayParts: ImmutableArray<TaggedText>.Empty,
-                originationParts: default,
                 sourceSpans: default,
                 metadataLocations: default,
                 classifiedSpans: default,

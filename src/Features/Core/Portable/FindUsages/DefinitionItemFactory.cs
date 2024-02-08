@@ -127,15 +127,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     .Add(DefinitionItem.MetadataSymbolOriginatingProjectIdDebugName, originatingProjectId.DebugName ?? "");
             }
 
-            var originationParts = GetOriginationParts(definition);
-
             if (sourceLocations.IsEmpty && metadataLocations.IsEmpty)
             {
                 // If we got no definition locations, then create a sentinel one
                 // that we can display but which will not allow navigation.
                 return DefinitionItem.CreateNonNavigableItem(
                     tags, displayParts,
-                    originationParts,
                     nameDisplayParts,
                     metadataLocations,
                     properties, displayIfNoReferences);
@@ -145,14 +142,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             return DefinitionItem.Create(
                 tags, displayParts, sourceLocations, classifiedSpans, metadataLocations,
-                nameDisplayParts, originationParts, properties, displayableProperties, displayIfNoReferences);
-        }
-
-        internal static ImmutableArray<TaggedText> GetOriginationParts(ISymbol symbol)
-        {
-            // The assembly this symbol came from as the Origination of the DefinitionItem.
-            var assemblyName = symbol.ContainingAssembly?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-            return string.IsNullOrWhiteSpace(assemblyName) ? default : [new TaggedText(TextTags.Assembly, assemblyName)];
+                nameDisplayParts, properties, displayableProperties, displayIfNoReferences);
         }
 
         internal static ImmutableArray<AssemblyLocation> GetMetadataLocations(ISymbol definition, Solution solution, out ProjectId? originatingProjectId)

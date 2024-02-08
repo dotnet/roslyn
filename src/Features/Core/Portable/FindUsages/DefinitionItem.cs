@@ -87,12 +87,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public ImmutableArray<TaggedText> DisplayParts { get; }
 
         /// <summary>
-        /// Where the location originally came from (for example, the containing assembly or
-        /// project name).  May be used in the presentation of a definition.
-        /// </summary>
-        public ImmutableArray<TaggedText> OriginationParts { get; }
-
-        /// <summary>
         /// Additional locations to present in the UI.  A definition may have multiple locations 
         /// for cases like partial types/members.
         /// </summary>
@@ -127,7 +121,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> nameDisplayParts,
-            ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
             ImmutableDictionary<string, string>? properties,
@@ -136,7 +129,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 tags,
                 displayParts,
                 nameDisplayParts,
-                originationParts,
                 sourceSpans,
                 classifiedSpans,
                 ImmutableArray<AssemblyLocation>.Empty,
@@ -150,7 +142,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> nameDisplayParts,
-            ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
             ImmutableArray<AssemblyLocation> metadataLocations,
@@ -161,7 +152,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
             Tags = tags;
             DisplayParts = displayParts;
             NameDisplayParts = nameDisplayParts.IsDefaultOrEmpty ? displayParts : nameDisplayParts;
-            OriginationParts = originationParts.NullToEmpty();
             SourceSpans = sourceSpans.NullToEmpty();
             ClassifiedSpans = classifiedSpans.NullToEmpty();
             MetadataLocations = metadataLocations.NullToEmpty();
@@ -261,7 +251,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
             ImmutableArray<AssemblyLocation> metadataLocations,
             ImmutableArray<TaggedText> nameDisplayParts = default,
-            ImmutableArray<TaggedText> originationParts = default,
             ImmutableDictionary<string, string>? properties = null,
             ImmutableDictionary<string, string>? displayableProperties = null,
             bool displayIfNoReferences = true)
@@ -269,13 +258,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             Contract.ThrowIfTrue(sourceSpans.IsDefault);
             Contract.ThrowIfTrue(metadataLocations.IsDefault);
 
-            if (originationParts.IsDefault && !sourceSpans.IsEmpty)
-            {
-                originationParts = [new TaggedText(TextTags.Text, sourceSpans[0].Document.Project.Name)];
-            }
-
             return new DefaultDefinitionItem(
-                tags, displayParts, nameDisplayParts, originationParts,
+                tags, displayParts, nameDisplayParts,
                 sourceSpans, classifiedSpans, metadataLocations, properties, displayableProperties, displayIfNoReferences);
         }
 
@@ -288,14 +272,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
             bool displayIfNoReferences)
         {
             return CreateNonNavigableItem(
-                tags, displayParts, originationParts,
+                tags, displayParts,
                 properties: null, displayIfNoReferences: displayIfNoReferences);
         }
 
         public static DefinitionItem CreateNonNavigableItem(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
-            ImmutableArray<TaggedText> originationParts = default,
             ImmutableArray<TaggedText> nameDisplayParts = default,
             ImmutableArray<AssemblyLocation> metadataLocations = default,
             ImmutableDictionary<string, string>? properties = null,
@@ -308,7 +291,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 tags: tags,
                 displayParts: displayParts,
                 nameDisplayParts: [],
-                originationParts: originationParts,
                 nameDisplayParts: nameDisplayParts,
                 sourceSpans: [],
                 classifiedSpans: [],
@@ -319,6 +301,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         public DetachedDefinitionItem Detach()
-            => new(Tags, DisplayParts, NameDisplayParts, OriginationParts, SourceSpans.SelectAsArray(ss => (DocumentIdSpan)ss), MetadataLocations, Properties, DisplayableProperties, DisplayIfNoReferences);
+            => new(Tags, DisplayParts, NameDisplayParts, SourceSpans.SelectAsArray(ss => (DocumentIdSpan)ss), MetadataLocations, Properties, DisplayableProperties, DisplayIfNoReferences);
     }
 }

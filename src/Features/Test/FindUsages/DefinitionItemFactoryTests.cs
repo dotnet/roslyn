@@ -76,7 +76,6 @@ public class DefinitionItemFactoryTests
         (ISymbol symbol, string localName)[]? symbols = null,
         PartDescription[]? displayParts = null,
         PartDescription[]? nameDisplayParts = null,
-        PartDescription[]? originationParts = null,
         string[]? sourceSpans = null,
         string[]? metadataLocations = null,
         string[]? tags = null,
@@ -89,7 +88,6 @@ public class DefinitionItemFactoryTests
 
         verify(() => VerifyParts(displayParts ?? [], item.DisplayParts, nameof(item.DisplayParts), expressionMap));
         verify(() => VerifyParts(nameDisplayParts ?? [], item.NameDisplayParts, nameof(item.NameDisplayParts), expressionMap));
-        verify(() => VerifyParts(originationParts ?? [], item.OriginationParts, nameof(item.OriginationParts), expressionMap));
         verify(() => VerifyItems(sourceSpans ?? [], item.SourceSpans.Select(Inspect), nameof(item.SourceSpans)));
         verify(() => VerifyItems(metadataLocations ?? [], item.MetadataLocations.Select(Inspect), nameof(item.MetadataLocations)));
         verify(() => VerifyItems(tags ?? [], item.Tags, nameof(item.Tags)));
@@ -141,10 +139,6 @@ public class DefinitionItemFactoryTests
             [
                 (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: SymbolKey.CreateString(a), hint: "Test")
             ],
-            originationParts:
-            [
-                (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
-            ],
             sourceSpans: [],
             tags:
             [
@@ -181,7 +175,6 @@ public class DefinitionItemFactoryTests
             [
                 (tag: "Assembly", text: "mscorlib", TaggedTextStyle.None, target: SymbolKey.CreateString(m), hint: "mscorlib")
             ],
-            originationParts: [],
             sourceSpans: [],
             metadataLocations:
             [
@@ -224,10 +217,6 @@ public class DefinitionItemFactoryTests
             [
                 (tag: "Module", text: "Test.dll", TaggedTextStyle.None, target: SymbolKey.CreateString(m), hint: "Test.dll")
             ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
-            ],
             sourceSpans: [],
             tags:
             [
@@ -263,10 +252,6 @@ public class DefinitionItemFactoryTests
             nameDisplayParts:
             [
                 (tag: "Module", text: "CommonLanguageRuntimeLibrary", TaggedTextStyle.None, target: SymbolKey.CreateString(m), hint: "CommonLanguageRuntimeLibrary")
-            ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "mscorlib", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans: [],
             metadataLocations:
@@ -313,10 +298,6 @@ public class DefinitionItemFactoryTests
             [
                 (tag: "Namespace", text: "N", TaggedTextStyle.None, target: null, hint: null)
             ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
-            ],
             sourceSpans:
             [
                 "test1.cs [10..11)"
@@ -359,8 +340,6 @@ public class DefinitionItemFactoryTests
             [
                 (tag: "Namespace", text: "System", TaggedTextStyle.None, target: null, hint: null)
             ],
-            // namespace spans multiple assemblies, so no originating project
-            originationParts: [],
             sourceSpans: [],
             metadataLocations:
             [
@@ -413,10 +392,6 @@ public class DefinitionItemFactoryTests
             nameDisplayParts:
             [
                 (tag: "Namespace", text: "System", TaggedTextStyle.None, target: null, hint: null)
-            ],
-            originationParts:
-            [
-                (tag: "Text", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             metadataLocations:
             [
@@ -473,10 +448,6 @@ public class DefinitionItemFactoryTests
             [
                 (tag: "Class", text: "C", TaggedTextStyle.None, target: SymbolKey.CreateString(c), hint: "C")
             ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
-            ],
             sourceSpans:
             [
                 "test1.cs [6..7)"
@@ -518,10 +489,6 @@ public class DefinitionItemFactoryTests
             nameDisplayParts:
             [
                 (tag: "Class", text: "Activator", TaggedTextStyle.None, target: SymbolKey.CreateString(c), hint: "Activator")
-            ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "mscorlib", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans: [],
             metadataLocations:
@@ -581,10 +548,6 @@ public class DefinitionItemFactoryTests
             [
                 (tag: "Class", text: "C", TaggedTextStyle.None, target: SymbolKey.CreateString(c), hint: "C")
             ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "P2", TaggedTextStyle.None, target: null, hint: null)
-            ],
             sourceSpans: [],
             metadataLocations:
             [
@@ -629,7 +592,6 @@ public class DefinitionItemFactoryTests
             [
                 (tag: "Keyword", text: "dynamic", TaggedTextStyle.None, target: SymbolKey.CreateString(c), hint: "dynamic")
             ],
-            originationParts: [],
             sourceSpans: [],
             tags:
             [
@@ -674,10 +636,6 @@ public class DefinitionItemFactoryTests
             nameDisplayParts:
             [
                 (tag: "TypeParameter", text: "T", TaggedTextStyle.None, target: SymbolKey.CreateString(p), hint: "T")
-            ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -732,10 +690,6 @@ public class DefinitionItemFactoryTests
                 (tag: "Punctuation", text: ".", TaggedTextStyle.None, target: null, hint: null),
                 (tag: "Method", text: "M", TaggedTextStyle.None, target: SymbolKey.CreateString(m), hint: "void C.M(int x)")
             ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
-            ],
             sourceSpans:
             [
                 "test1.cs [15..16)"
@@ -787,10 +741,6 @@ public class DefinitionItemFactoryTests
                 (tag: "Class", text: "C", TaggedTextStyle.None, target: SymbolKey.CreateString(c), hint: "C"),
                 (tag: "Punctuation", text: ".", TaggedTextStyle.None, target: null, hint: null),
                 (tag: "Field", text: "M", TaggedTextStyle.None, target: SymbolKey.CreateString(m), hint: "int C.M")
-            ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -854,10 +804,6 @@ public class DefinitionItemFactoryTests
                 (tag: "Punctuation", text: ".", TaggedTextStyle.None, target: null, hint: null),
                 (tag: "Property", text: "P", TaggedTextStyle.None, target: SymbolKey.CreateString(p), hint: "int C.P")
             ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
-            ],
             sourceSpans:
             [
                 "test1.cs [14..15)"
@@ -916,10 +862,6 @@ public class DefinitionItemFactoryTests
                 (tag: "Punctuation", text: ".", TaggedTextStyle.None, target: null, hint: null),
                 (tag: "Keyword", text: "get", TaggedTextStyle.None, target: null, hint: null)
             ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
-            ],
             sourceSpans:
             [
                 "test1.cs [18..21)"
@@ -976,10 +918,6 @@ public class DefinitionItemFactoryTests
                 (tag: "Property", text: "P", TaggedTextStyle.None, target: SymbolKey.CreateString(p), hint: "int C.P"),
                 (tag: "Punctuation", text: ".", TaggedTextStyle.None, target: null, hint: null),
                 (tag: "Keyword", text: "set", TaggedTextStyle.None, target: null, hint: null)
-            ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -1047,10 +985,6 @@ public class DefinitionItemFactoryTests
                 (tag: "Punctuation", text: ".", TaggedTextStyle.None, target: null, hint: null),
                 (tag: "Keyword", text: "this", TaggedTextStyle.None, target: null, hint: null)
             ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
-            ],
             sourceSpans:
             [
                 "test1.cs [32..36)"
@@ -1112,10 +1046,6 @@ public class DefinitionItemFactoryTests
             [
                 (tag: "Parameter", text: "p", TaggedTextStyle.None, target: SymbolKey.CreateString(p), hint: "int p")
             ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
-            ],
             sourceSpans:
             [
                 "test1.cs [27..28)"
@@ -1173,10 +1103,6 @@ public class DefinitionItemFactoryTests
             [
                 (tag: "TypeParameter", text: "T", TaggedTextStyle.None, target: SymbolKey.CreateString(p), hint: "T")
             ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
-            ],
             sourceSpans:
             [
                 "test1.cs [23..24)"
@@ -1232,10 +1158,6 @@ public class DefinitionItemFactoryTests
             nameDisplayParts:
             [
                 (tag: "Method", text: "F", TaggedTextStyle.None, target: SymbolKey.CreateString(f), hint: "void F()")
-            ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -1301,10 +1223,6 @@ public class DefinitionItemFactoryTests
             nameDisplayParts:
             [
                 (tag: "Local", text: "x", TaggedTextStyle.None, target: SymbolKey.CreateString(x), hint: "int x")
-            ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "Test", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
@@ -1376,10 +1294,6 @@ public class DefinitionItemFactoryTests
             nameDisplayParts:
             [
                 (tag: "RangeVariable", text: "x", TaggedTextStyle.None, target: SymbolKey.CreateString(r), hint: "? x")
-            ],
-            originationParts:
-            [
-                (tag: "Assembly", text: "CSharpAssembly1", TaggedTextStyle.None, target: null, hint: null)
             ],
             sourceSpans:
             [
