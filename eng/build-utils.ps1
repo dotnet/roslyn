@@ -153,35 +153,38 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
 #   $args = "/p:ManualBuild=true Test.proj"
 #   Exec-Command $msbuild $args
 # 
+# The -useConsole argument controls if the process should re-use the current
+# console for output or return output as a string
 function Exec-Command([string]$command, [string]$commandArgs, [switch]$useConsole = $false, [switch]$echoCommand = $true) {
   if ($args -ne "") {
     throw "Extra arguments passed to Exec-Command: $args"
   }
-  Exec-CommandCore -command $command -commandArgs $commandargs -useConsole:$useConsole -echoCommand:$echoCommand
-}
-
-# Functions exactly like Exec-Command but lets the process re-use the current 
-# console. This means items like colored output will function correctly.
-#
-# In general this command should be used in place of
-#   Exec-Command $msbuild $args | Out-Host
-#
-function Exec-Console([string]$command, [string]$commandArgs, [switch]$echoCommand = $true) {
-  if ($args -ne "") {
-    throw "Extra arguments passed to Exec-Console: $args"
-  }
-  Exec-CommandCore -command $command -commandArgs $commandargs -useConsole:$true -echoCommand:$echoCommand
+  Exec-CommandCore -command $command -commandArgs $commandArgs -useConsole:$useConsole -echoCommand:$echoCommand
 }
 
 # Handy function for executing a powershell script in a clean environment with 
 # arguments.  Prefer this over & sourcing a script as it will both use a clean
 # environment and do proper error checking
+# 
+# The -useConsole argument controls if the process should re-use the current
+# console for output or return output as a string
 function Exec-Script([string]$script, [string]$scriptArgs = "", [switch]$useConsole = $true, [switch]$echoCommand = $true) {
   if ($args -ne "") {
     throw "Extra arguments passed to Exec-Script: $args"
   }
-  Exec-Command "pwsh" "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs" -useConsole:$useConsole -echoCommand:$echoCommand
+  Exec-CommandCore -command "pwsh" -commandArgs "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs" -useConsole:$useConsole -echoCommand:$echoCommand
 }
+
+# Handy function for executing a dotnet command without having to track down the 
+# proper dotnet executable or ensure it's on the path.
+function Exec-DotNet([string]$commandArgs = "", [switch]$useConsole = $true, [switch]$echoCommand = $true) {
+  if ($args -ne "") {
+    throw "Extra arguments passed to Exec-DotNet: $args"
+  }
+  $dotnet = Ensure-DotNetSdk
+  Exec-CommandCore -command $dotnet -commandArgs $commandArgs -useConsole:$useConsole -echoCommand:$echoCommand
+}
+
 
 # Ensure the proper .NET Core SDK is available. Returns the location to the dotnet.exe.
 function Ensure-DotnetSdk() {

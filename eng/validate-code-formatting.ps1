@@ -10,7 +10,7 @@ try {
   Push-Location $RepoRoot
 
   $dotnet = Ensure-DotnetSdk
-  Exec-Console $dotnet "tool run dotnet-format -v detailed whitespace $rootDirectory --folder --include-generated --include $includeDirectories --verify-no-changes"
+  Exec-Command $dotnet "tool run dotnet-format -v detailed whitespace $rootDirectory --folder --include-generated --include $includeDirectories --verify-no-changes"
 
   exit 0
 }

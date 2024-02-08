@@ -60,15 +60,15 @@ try {
     $args += " /p:ContinuousIntegrationBuild=true"
   }
 
-  Exec-Console $dotnet "build $args $projectPath"
+  Exec-Command $dotnet "build $args $projectPath"
 
   $packageFilePath = Get-ChildItem -Path $bootstrapDir -Filter "$packageName.*.nupkg"
   Write-Host "Found package $packageFilePath"
   Unzip $packageFilePath.FullName $bootstrapDir
 
   Write-Host "Cleaning up artifacts"
-  Exec-Console $dotnet "build /t:Clean $projectPath"
-  Exec-Console $dotnet "build-server shutdown"
+  Exec-Command $dotnet "build /t:Clean $projectPath"
+  Exec-Command $dotnet "build-server shutdown"
 
   exit 0
 }
