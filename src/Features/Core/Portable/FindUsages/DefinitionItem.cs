@@ -290,7 +290,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
             return new DefaultDefinitionItem(
                 tags: tags,
                 displayParts: displayParts,
-                nameDisplayParts: [],
                 nameDisplayParts: nameDisplayParts,
                 sourceSpans: [],
                 classifiedSpans: [],
