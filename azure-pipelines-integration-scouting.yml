@@ -22,12 +22,9 @@ parameters:
 - name: queueName
   displayName: Queue Name
   type: string
-  default: windows.vs2022preview.scout.amd64.open
+  default: windows.amd64.vs2022.pre.scout.open
   values:
-  - windows.vs2022.amd64.open
-  - windows.vs2022.scout.amd64.open
-  - windows.vs2022preview.amd64.open
-  - windows.vs2022preview.scout.amd64.open
+  - windows.amd64.vs2022.pre.scout.open
 - name: timeout
   displayName: Timeout in Minutes
   type: number
@@ -40,9 +37,6 @@ stages:
     queueName: ${{ parameters.queueName }}
     timeout: ${{ parameters.timeout }}
     configuration: Debug
-    # Helix does not have VS scouting queues yet.
-    # See https://github.com/dotnet/dnceng/issues/1687
-    useHelix: false
     testRuns:
       - oop64bit: false
         oopCoreClr: false
@@ -59,9 +53,6 @@ stages:
     queueName: ${{ parameters.queueName }}
     timeout: ${{ parameters.timeout }}
     configuration: Release
-    # Helix does not have VS scouting queues yet.
-    # See https://github.com/dotnet/dnceng/issues/1687
-    useHelix: false
     testRuns:
       - oop64bit: false
         oopCoreClr: false
