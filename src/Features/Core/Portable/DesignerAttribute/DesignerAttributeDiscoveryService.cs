@@ -122,6 +122,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 // Handle the priority doc first.
                 if (priorityDocumentId != null)
                 {
+                    // Create a frozen snapshot guaranteed to have this document in it.
                     var priorityDocument = solution
                         .GetRequiredDocument(priorityDocumentId)
                         .WithFrozenPartialSemantics(cancellationToken);

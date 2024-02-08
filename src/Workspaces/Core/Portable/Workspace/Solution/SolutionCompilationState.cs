@@ -62,7 +62,7 @@ internal sealed partial class SolutionCompilationState
     /// </summary>
     private readonly Dictionary<DocumentId, SolutionCompilationState> _cachedFrozenDocumentState = new();
 
-    private SolutionCompilationState? _cachedFrozenSnapshot;
+    private AsyncLazy<SolutionCompilationState> _cachedFrozenSnapshot;
 
     private SolutionCompilationState(
         SolutionState solution,
@@ -77,6 +77,7 @@ internal sealed partial class SolutionCompilationState
 
         // when solution state is changed, we recalculate its checksum
         _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectId: null, c));
+        _cachedFrozenSnapshot = AsyncLazy.Create(c => Task.FromResult(ComputeFrozenSnapshot(c)));
 
         CheckInvariants();
     }
@@ -1007,43 +1008,37 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
-    public async Task<SolutionCompilationState> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
+    public Task<SolutionCompilationState> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
+        => _cachedFrozenSnapshot.GetValueAsync(cancellationToken);
+
+    private SolutionCompilationState ComputeFrozenSnapshot(CancellationToken cancellationToken)
     {
-        using (await _stateLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        var newIdToProjectStateMap = this.SolutionState.ProjectStates;
+        var newIdToTrackerMap = _projectIdToTrackerMap;
+
+        foreach (var (projectId, projectState) in newIdToProjectStateMap)
         {
-            return _cachedFrozenSnapshot ??= ComputeFrozenPartialState(this, cancellationToken);
+            // if we don't have one or it is stale, create a new partial solution
+            var tracker = GetCompilationTracker(projectId);
+            var newTracker = tracker.FreezePartialState(this, cancellationToken);
+
+            Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(projectId));
+            newIdToProjectStateMap = newIdToProjectStateMap.SetItem(projectId, newTracker.ProjectState);
+            newIdToTrackerMap = newIdToTrackerMap.SetItem(projectId, newTracker);
         }
 
-        static SolutionCompilationState ComputeFrozenPartialState(
-            SolutionCompilationState @this, CancellationToken cancellationToken)
-        {
-            var newIdToProjectStateMap = @this.SolutionState.ProjectStates;
-            var newIdToTrackerMap = @this._projectIdToTrackerMap;
+        var newState = this.SolutionState.Branch(
+            idToProjectStateMap: newIdToProjectStateMap,
+            dependencyGraph: SolutionState.CreateDependencyGraph(this.SolutionState.ProjectIds, newIdToProjectStateMap));
+        var newCompilationState = this.Branch(
+            newState,
+            newIdToTrackerMap);
 
-            foreach (var (projectId, projectState) in newIdToProjectStateMap)
-            {
-                // if we don't have one or it is stale, create a new partial solution
-                var tracker = @this.GetCompilationTracker(projectId);
-                var newTracker = tracker.FreezePartialState(@this, cancellationToken);
+        // Set the frozen solution to be its own frozen solution.  That way if someone asks for it, it can
+        // be returned immediately.
+        newCompilationState._cachedFrozenSnapshot = _cachedFrozenSnapshot;
 
-                Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(projectId));
-                newIdToProjectStateMap = newIdToProjectStateMap.SetItem(projectId, newTracker.ProjectState);
-                newIdToTrackerMap = newIdToTrackerMap.SetItem(projectId, newTracker);
-            }
-
-            var newState = @this.SolutionState.Branch(
-                idToProjectStateMap: newIdToProjectStateMap,
-                dependencyGraph: SolutionState.CreateDependencyGraph(@this.SolutionState.ProjectIds, newIdToProjectStateMap));
-            var newCompilationState = @this.Branch(
-                newState,
-                newIdToTrackerMap);
-
-            // Set the frozen solution to be its own frozen solution.  That way if someone asks for it, it can
-            // be returned immediately.
-            newCompilationState._cachedFrozenSnapshot = newCompilationState;
-
-            return newCompilationState;
-        }
+        return newCompilationState;
     }
 
     /// <summary>
