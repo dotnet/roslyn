@@ -1448,6 +1448,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns a solution instance where every project is frozen at whatever current state it is in
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        internal Solution WithFrozenPartialCompilations(CancellationToken cancellationToken)
+        {
+
+        }
+
+        /// <summary>
         /// Creates a branch of the solution that has its compilations frozen in whatever state they are in at the time,
         /// assuming a background compiler is busy building this compilations.
         /// <para/> A compilation for the project containing the specified document id will be guaranteed to exist with

@@ -7,16 +7,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.DesignerAttribute
-{
-    internal partial interface IDesignerAttributeDiscoveryService : IWorkspaceService
-    {
-        public interface ICallback
-        {
-            ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
-        }
+namespace Microsoft.CodeAnalysis.DesignerAttribute;
 
-        ValueTask ProcessSolutionAsync(
-            Solution solution, DocumentId? priorityDocumentId, bool useFrozenSnapshots, ICallback callback, CancellationToken cancellationToken);
+internal partial interface IDesignerAttributeDiscoveryService : IWorkspaceService
+{
+    public interface ICallback
+    {
+        ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
     }
+
+    ValueTask ProcessSolutionAsync(
+        Solution solution, DocumentId? priorityDocumentId, ICallback callback, CancellationToken cancellationToken);
 }
