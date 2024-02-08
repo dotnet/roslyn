@@ -751,7 +751,7 @@ try {
 
   if ($bootstrap -and $bootstrapDir -eq "") {
     Write-Host "Building bootstrap Compiler"
-    Exec-Script (Join-Path $PSScriptRoot "make-bootstrap.ps1") "-name 'build' -force -ci:$ci"
+    Exec-Script (Join-Path $PSScriptRoot "make-bootstrap.ps1") "-name build -force -ci:$ci"
     $bootstrapDir = Join-Path $ArtifactsDir "bootstrap" "build"
   }
 
