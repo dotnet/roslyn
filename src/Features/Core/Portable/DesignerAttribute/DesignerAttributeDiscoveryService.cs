@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 // Freeze the entire solution at this point.  We don't want to run generators (as they are very unlikely
                 // to contribute any changes that would affect which types we think are designable), and we want to be 
                 // very fast to update the ui as a user types.
-                solution = solution.WithFrozenPartialCompilations(cancellationToken);
+                solution = await solution.WithFrozenPartialCompilationsAsync(cancellationToken).ConfigureAwait(false);
 
                 // Handle the priority doc first.
                 var priorityDocument = solution.GetDocument(priorityDocumentId);

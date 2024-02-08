@@ -55,13 +55,13 @@ internal sealed partial class SolutionCompilationState
     private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
 
     // Lock for the partial compilation state listed below.
-    private NonReentrantLock? _stateLockBackingField;
-    private NonReentrantLock StateLock => LazyInitializer.EnsureInitialized(ref _stateLockBackingField, NonReentrantLock.Factory);
+    private readonly SemaphoreSlim _stateLock = new(initialCount: 1);
 
     /// <summary>
     /// Mapping of DocumentId to the frozen compilation state we produced for it the last time we were queried.
     /// </summary>
     private readonly Dictionary<DocumentId, SolutionCompilationState> _cachedFrozenDocumentState = new();
+
     private SolutionCompilationState? _cachedFrozenSnapshot;
 
     private SolutionCompilationState(
@@ -1007,13 +1007,13 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
-    public SolutionCompilationState WithFrozenPartialCompilations(CancellationToken cancellationToken)
+    public async Task<SolutionCompilationState> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
     {
-        using (this.StateLock.DisposableWait(cancellationToken))
+        using (await _stateLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             if (_cachedFrozenSnapshot is null)
             {
-                _cachedFrozenSnapshot = ComputeFrozenPartialState(this, cancellationToken);
+                _cachedFrozenSnapshot = await ComputeFrozenPartialStateAsync(this, cancellationToken).ConfigureAwait(false);
 
                 // Set the frozen solution to be its own frozen solution.  That way if someone asks for it, it can
                 // be returned immediately.
@@ -1023,7 +1023,7 @@ internal sealed partial class SolutionCompilationState
             return _cachedFrozenSnapshot;
         }
 
-        static SolutionCompilationState ComputeFrozenPartialState(
+        static async Task<SolutionCompilationState> ComputeFrozenPartialStateAsync(
             SolutionCompilationState @this, CancellationToken cancellationToken)
         {
             var newIdToProjectStateMap = @this.SolutionState.ProjectStates;
@@ -1033,7 +1033,7 @@ internal sealed partial class SolutionCompilationState
             {
                 // if we don't have one or it is stale, create a new partial solution
                 var tracker = @this.GetCompilationTracker(projectId);
-                var newTracker = tracker.FreezePartialState(@this, cancellationToken);
+                var newTracker = await tracker.FreezePartialStateAsync(@this, cancellationToken).ConfigureAwait(false);
 
                 Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(projectId));
                 newIdToProjectStateMap = newIdToProjectStateMap.SetItem(projectId, newTracker.ProjectState);
@@ -1122,7 +1122,7 @@ internal sealed partial class SolutionCompilationState
                     statesAndTrees.Add((documentState, documentState.GetSyntaxTree(cancellationToken)));
                 }
 
-                using (@this.StateLock.DisposableWait(cancellationToken))
+                using (@this._stateLock.DisposableWait(cancellationToken))
                 {
                     if (!@this._cachedFrozenDocumentState.TryGetValue(documentId, out var compilationState))
                     {

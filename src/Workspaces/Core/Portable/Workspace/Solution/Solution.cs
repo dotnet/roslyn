@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis
         private ImmutableHashMap<ProjectId, Project> _projectIdToProjectMap;
 
         /// <summary>
-        /// Result of calling <see cref="WithFrozenPartialCompilations(CancellationToken)"/>.  Use <see
-        /// cref="_cachedFrozenGate"/> to access.
+        /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.  Use <see cref="_cachedFrozenGate"/> to
+        /// access.
         /// </summary>
         private Solution? _cachedFrozenSolution;
 

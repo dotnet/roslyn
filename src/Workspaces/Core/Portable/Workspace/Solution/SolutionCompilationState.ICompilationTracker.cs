@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
             ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate);
             Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
 
-            ICompilationTracker FreezePartialState(SolutionCompilationState compilationState, CancellationToken cancellationToken);
+            Task<ICompilationTracker> FreezePartialStateAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
             ICompilationTracker FreezePartialStateWithTree(SolutionCompilationState compilationState, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken);
 
             Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
