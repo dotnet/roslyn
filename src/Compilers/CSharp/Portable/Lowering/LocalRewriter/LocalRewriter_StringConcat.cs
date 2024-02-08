@@ -251,6 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     unwrappedArgsBuilder.Add(wrappedExpr);
                                     break;
                                 default:
+                                    locals.Free();
                                     unwrappedArgsBuilder.Free();
                                     arguments = default;
                                     return false;
@@ -260,10 +261,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (locals.Count > 0)
                         {
                             // Not all locals are part of a known shape
+                            locals.Free();
                             arguments = default;
                             return false;
                         }
 
+                        locals.Free();
                         arguments = unwrappedArgsBuilder.ToImmutableAndFree();
                         return true;
                     }
