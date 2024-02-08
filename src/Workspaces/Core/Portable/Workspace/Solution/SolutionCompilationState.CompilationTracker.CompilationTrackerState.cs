@@ -26,22 +26,6 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private abstract class CompilationTrackerState
             {
-                /// <summary>
-                /// The base <see cref="CompilationTrackerState"/> that starts with everything empty.
-                /// </summary>
-                public static readonly CompilationTrackerState Empty = new NoCompilationState(
-                    new CompilationTrackerGeneratorInfo(
-                        documents: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
-                        driver: null));
-
-                public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
-
-                protected CompilationTrackerState(
-                    CompilationTrackerGeneratorInfo generatorInfo)
-                {
-                    GeneratorInfo = generatorInfo;
-                }
-
                 public static InProgressState CreateInProgressState(
                     bool isFrozen,
                     Compilation compilationWithoutGeneratedDocuments,
@@ -69,11 +53,10 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class NoCompilationState : CompilationTrackerState
             {
-                public NoCompilationState(CompilationTrackerGeneratorInfo generatorInfo)
-                    : base(generatorInfo)
+                public static readonly NoCompilationState Instance = new();
+
+                private NoCompilationState()
                 {
-                    // The no compilation state can never be in the 'DocumentsAreFinal' state.
-                    Contract.ThrowIfTrue(generatorInfo.DocumentsAreFinal);
                 }
             }
 
@@ -84,10 +67,10 @@ namespace Microsoft.CodeAnalysis
             private abstract class WithCompilationTrackerState : CompilationTrackerState
             {
                 /// <summary>
-                /// Whether the generated documents in <see cref="CompilationTrackerState.GeneratorInfo"/> are frozen
-                /// and generators should never be ran again, ever, even if a document is later changed. This is used to
-                /// ensure that when we produce a frozen solution for partial semantics, further downstream forking of
-                /// that solution won't rerun generators. This is because of two reasons:
+                /// Whether the generated documents in <see cref="GeneratorInfo"/> are frozen and generators should
+                /// never be ran again, ever, even if a document is later changed. This is used to ensure that when we
+                /// produce a frozen solution for partial semantics, further downstream forking of that solution won't
+                /// rerun generators. This is because of two reasons:
                 /// <list type="number">
                 /// <item>Generally once we've produced a frozen solution with partial semantics, we now want speed rather
                 /// than accuracy; a generator running in a later path will still cause issues there.</item>
@@ -104,11 +87,16 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public Compilation CompilationWithoutGeneratedDocuments { get; }
 
-                public WithCompilationTrackerState(bool isFrozen, Compilation compilationWithoutGeneratedDocuments, CompilationTrackerGeneratorInfo generatorInfo)
-                    : base(generatorInfo)
+                public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
+
+                public WithCompilationTrackerState(
+                    bool isFrozen,
+                    Compilation compilationWithoutGeneratedDocuments,
+                    CompilationTrackerGeneratorInfo generatorInfo)
                 {
                     IsFrozen = isFrozen;
                     CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
+                    GeneratorInfo = generatorInfo;
 
                     // When in the frozen state, all documents must be final. We never want to run generators for frozen
                     // states as the point is to be fast (while potentially incomplete).
