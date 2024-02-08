@@ -84,7 +84,6 @@ internal partial class SolutionCompilationState
                 return (result.Value.compilationWithGeneratedFiles, result.Value.generatedDocuments, oldGeneratorDriver);
             }
 
-
             // If that failed (OOP crash, or we are the OOP process ourselves), then generate the SG docs locally.
             var telemetryCollector = compilationState.SolutionState.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
             return await ComputeNewGeneratorInfoInCurrentProcessAsync(

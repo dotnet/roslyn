@@ -294,7 +294,6 @@ namespace Microsoft.CodeAnalysis
                     // has no guarantees.
                     hasSuccessfullyLoaded: false,
                     generatorInfo,
-                    finalCompilation: compilationPair.CompilationWithGeneratedDocuments,
                     this.ProjectState.Id,
                     metadataReferenceToProjectId);
 
@@ -775,7 +774,6 @@ namespace Microsoft.CodeAnalysis
                             compilationWithoutGeneratedDocuments,
                             hasSuccessfullyLoaded,
                             nextGeneratorInfo,
-                            compilationWithGeneratedDocuments,
                             this.ProjectState.Id,
                             metadataReferenceToProjectId);
 
