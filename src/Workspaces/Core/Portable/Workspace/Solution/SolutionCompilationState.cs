@@ -55,7 +55,8 @@ internal sealed partial class SolutionCompilationState
     private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
 
     // Lock for the partial compilation state listed below.
-    private readonly SemaphoreSlim _stateLock = new(initialCount: 1);
+    private NonReentrantLock? _stateLockBackingField;
+    private NonReentrantLock StateLock => LazyInitializer.EnsureInitialized(ref _stateLockBackingField, NonReentrantLock.Factory);
 
     /// <summary>
     /// Mapping of DocumentId to the frozen compilation state we produced for it the last time we were queried.
@@ -1034,8 +1035,7 @@ internal sealed partial class SolutionCompilationState
             newState,
             newIdToTrackerMap);
 
-        // Set the frozen solution to be its own frozen solution.  That way if someone asks for it, it can
-        // be returned immediately.
+        // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.
         newCompilationState._cachedFrozenSnapshot = _cachedFrozenSnapshot;
 
         return newCompilationState;
@@ -1112,7 +1112,7 @@ internal sealed partial class SolutionCompilationState
                     statesAndTrees.Add((documentState, documentState.GetSyntaxTree(cancellationToken)));
                 }
 
-                using (@this._stateLock.DisposableWait(cancellationToken))
+                using (@this.StateLock.DisposableWait(cancellationToken))
                 {
                     if (!@this._cachedFrozenDocumentState.TryGetValue(documentId, out var compilationState))
                     {
