@@ -135,10 +135,10 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
                 var newParent = WithStatements(
                     declarationStatement.GetRequiredParent(),
-                    new SyntaxList<TStatementSyntax>(surroundingStatements
+                    [.. surroundingStatements
                         .Take(declarationStatementIndex)
                         .Concat(usingStatement)
-                        .Concat(surroundingStatements.Skip(declarationStatementIndex + 2)))); // +2 to skip the decl statement and the try statement
+                        .Concat(surroundingStatements.Skip(declarationStatementIndex + 2))]); // +2 to skip the decl statement and the try statement
 
                 return document.WithSyntaxRoot(root.ReplaceNode(
                     declarationStatement.GetRequiredParent(),
@@ -164,10 +164,10 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                     {
                         var newParent = WithStatements(
                             declarationStatement.GetRequiredParent(),
-                            new SyntaxList<TStatementSyntax>(surroundingStatements
+                            [.. surroundingStatements
                                 .Take(declarationStatementIndex)
                                 .Concat(usingStatement)
-                                .Concat(surroundingStatements.Skip(declarationStatementIndex + 1 + statementsToSurround.Count))));
+                                .Concat(surroundingStatements.Skip(declarationStatementIndex + 1 + statementsToSurround.Count))]);
 
                         return document.WithSyntaxRoot(root.ReplaceNode(
                             declarationStatement.GetRequiredParent(),
@@ -252,9 +252,9 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             var declarationStatementIndex = surroundingStatements.IndexOf(declarationStatement);
             var lastUsageStatementIndex = surroundingStatements.IndexOf(lastUsageStatement, declarationStatementIndex + 1);
 
-            return new SyntaxList<TStatementSyntax>(surroundingStatements
+            return [.. surroundingStatements
                 .Take(lastUsageStatementIndex + 1)
-                .Skip(declarationStatementIndex + 1));
+                .Skip(declarationStatementIndex + 1)];
         }
 
         private static TStatementSyntax FindSiblingStatementContainingLastUsage(

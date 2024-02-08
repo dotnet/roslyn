@@ -14,11 +14,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             return tableEntry.GetValueOrDefault(StandardTableKeyNames.ErrorSeverity, (__VSERRORCATEGORY)(-1));
         }
 
-        public static string GetBuildTool(this ITableEntry tableEntry)
-        {
-            return tableEntry.GetValueOrDefault(StandardTableKeyNames.BuildTool, "<unknown>");
-        }
-
         public static ItemOrigin? GetItemOrigin(this ITableEntry tableEntry)
         {
             return tableEntry.GetValueOrNull<ItemOrigin>(StandardTableKeyNames.ItemOrigin);

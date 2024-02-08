@@ -5590,21 +5590,22 @@ public class RemoveUnnecessaryCastTests
     public async Task DoNotRemoveCastOnInvalidUnaryOperatorEnumValue1(string op)
     {
         var source =
-$@"
-enum Sign
-    {{
-        Positive = 1,
-        Negative = -1
-    }}
+            $$"""
+            enum Sign
+                {
+                    Positive = 1,
+                    Negative = -1
+                }
 
-    class T
-    {{
-        void Goo()
-        {{
-            Sign mySign = Sign.Positive;
-            Sign invertedSign = (Sign) ( {op}((int) mySign) );
-        }}
-    }}";
+                class T
+                {
+                    void Goo()
+                    {
+                        Sign mySign = Sign.Positive;
+                        Sign invertedSign = (Sign) ( {{op}}((int) mySign) );
+                    }
+                }
+            """;
 
         await VerifyCS.VerifyCodeFixAsync(source, source);
     }
@@ -5615,21 +5616,22 @@ enum Sign
     public async Task DoNotRemoveCastOnInvalidUnaryOperatorEnumValue2(string op)
     {
         var source =
-$@"
-enum Sign
-    {{
-        Positive = 1,
-        Negative = -1
-    }}
+            $$"""
+            enum Sign
+                {
+                    Positive = 1,
+                    Negative = -1
+                }
 
-    class T
-    {{
-        void Goo()
-        {{
-            Sign mySign = Sign.Positive;
-            Sign invertedSign = (Sign) ( {op}(int) mySign );
-        }}
-    }}";
+                class T
+                {
+                    void Goo()
+                    {
+                        Sign mySign = Sign.Positive;
+                        Sign invertedSign = (Sign) ( {{op}}(int) mySign );
+                    }
+                }
+            """;
 
         await VerifyCS.VerifyCodeFixAsync(source, source);
     }
@@ -13007,28 +13009,28 @@ enum Sign
     [InlineData("Func<string>")]
     public async Task ConvertingMethodGroupToObject_CastIsUnnecessary(string type)
     {
-        var code = $@"
-using System;
+        var code = $$"""
+            using System;
 
-class C
-{{
-    static {type} M(object o)
-    {{
-        return ({type})[|(object)|]o.ToString;
-    }}
-}}
-";
-        var fixedCode = $@"
-using System;
+            class C
+            {
+                static {{type}} M(object o)
+                {
+                    return ({{type}})[|(object)|]o.ToString;
+                }
+            }
+            """;
+        var fixedCode = $$"""
+            using System;
 
-class C
-{{
-    static {type} M(object o)
-    {{
-        return o.ToString;
-    }}
-}}
-";
+            class C
+            {
+                static {{type}} M(object o)
+                {
+                    return o.ToString;
+                }
+            }
+            """;
         await new VerifyCS.Test
         {
             TestCode = code,
@@ -13746,6 +13748,29 @@ class C
                     void M2()
                     {
                         ReadOnlySpan<int> r = [1, 2, 3, 4];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71926")]
+    public async Task NecessaryDelegateCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var main = (Delegate)Main; // IDE0004: Cast is redundant.
+                        var x = Unsafe.As<Delegate, object>(ref main);
                     }
                 }
                 """,

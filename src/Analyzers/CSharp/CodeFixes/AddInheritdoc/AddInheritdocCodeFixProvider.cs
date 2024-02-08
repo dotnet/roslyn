@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS1591);
+        public override ImmutableArray<string> FixableDiagnosticIds => [CS1591];
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
 
                 // We can safely assume, that there is no leading doc comment, because that is what CS1591 is telling us.
                 // So we create a new /// <inheritdoc/> comment.
-                var xmlSpaceAfterTripleSlash = Token(leading: TriviaList(DocumentationCommentExterior("///")), SyntaxKind.XmlTextLiteralToken, text: " ", valueText: " ", trailing: default);
+                var xmlSpaceAfterTripleSlash = Token(leading: [DocumentationCommentExterior("///")], SyntaxKind.XmlTextLiteralToken, text: " ", valueText: " ", trailing: default);
                 var lessThanToken = Token(SyntaxKind.LessThanToken).WithoutTrivia();
                 var inheritdocTagName = XmlName("inheritdoc").WithoutTrivia();
                 var slashGreaterThanToken = Token(SyntaxKind.SlashGreaterThanToken).WithoutTrivia();
@@ -114,12 +114,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
 
                 var singleLineInheritdocComment = DocumentationCommentTrivia(
                     kind: SyntaxKind.SingleLineDocumentationCommentTrivia,
-                    content: List(new XmlNodeSyntax[]
-                    {
+                    content:
+                    [
                         XmlText(xmlSpaceAfterTripleSlash),
                         XmlEmptyElement(lessThanToken, inheritdocTagName, attributes: default, slashGreaterThanToken),
                         XmlText(xmlNewLineToken),
-                    }),
+                    ],
                     endOfComment: Token(SyntaxKind.EndOfDocumentationCommentToken).WithoutTrivia());
 
                 sourceText ??= await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);

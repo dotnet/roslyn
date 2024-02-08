@@ -45,7 +45,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static Document GetRequiredDocument(this Solution solution, DocumentId documentId)
-            => solution.GetDocument(documentId) ?? throw CreateDocumentNotFoundException();
+        {
+#if !CODE_STYLE
+            // If we get a source-generated DocumentId, we can give a different exception to make it clear the type of failure this is; otherwise a failure of
+            // this in the wild is hard to guess whether this is because of a logic bug in the feature (where it tried to use a DocumentId for a document that disappeared)
+            // or whether it hasn't been correctly updated to handle source generated files.
+            if (documentId.IsSourceGenerated)
+                throw new ArgumentException($"{nameof(GetRequiredDocument)} was given a source-generated DocumentId, but it will never return a source generated document. The caller needs to be calling some other method.");
+#endif
+
+            return solution.GetDocument(documentId) ?? throw CreateDocumentNotFoundException();
+        }
 
 #if !CODE_STYLE
         public static async ValueTask<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)

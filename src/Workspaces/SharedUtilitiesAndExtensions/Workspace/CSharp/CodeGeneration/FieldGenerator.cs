@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // declaration.
             var members = Insert(destination.Members, declaration, info, availableIndices,
                 after: m => LastField(m, declaration), before: FirstMember);
-            return destination.WithMembers(members.ToSyntaxList());
+            return destination.WithMembers([.. members]);
         }
 
         internal static TypeDeclarationSyntax AddFieldTo(
@@ -99,8 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 GenerateModifiers(field, info),
                 SyntaxFactory.VariableDeclaration(
                     field.Type.GenerateTypeSyntax(),
-                    SyntaxFactory.SingletonSeparatedList(
-                        AddAnnotationsTo(field, SyntaxFactory.VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer)))));
+                    [AddAnnotationsTo(field, SyntaxFactory.VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer))]));
 
             return AddFormatterAndCodeGeneratorAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(fieldDeclaration, field, info, cancellationToken));

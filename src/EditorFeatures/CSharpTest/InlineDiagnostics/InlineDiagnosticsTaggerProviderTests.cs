@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
@@ -42,20 +43,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
 
         private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansAsync(string content)
         {
-            using var workspace = TestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
+            using var workspace = EditorTestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
             return await GetTagSpansAsync(workspace);
         }
 
         private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansInSourceGeneratedDocumentAsync(string content)
         {
-            using var workspace = TestWorkspace.CreateCSharp(
-                files: Array.Empty<string>(),
+            using var workspace = EditorTestWorkspace.CreateCSharp(
+                files: [],
                 sourceGeneratedFiles: new[] { content },
                 composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             return await GetTagSpansAsync(workspace);
         }
 
-        private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansAsync(TestWorkspace workspace)
+        private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansAsync(EditorTestWorkspace workspace)
         {
             workspace.GlobalOptions.SetGlobalOption(InlineDiagnosticsOptionsStorage.EnableInlineDiagnostics, LanguageNames.CSharp, true);
             return (await TestDiagnosticTagProducer<InlineDiagnosticsTaggerProvider, InlineDiagnosticsTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;

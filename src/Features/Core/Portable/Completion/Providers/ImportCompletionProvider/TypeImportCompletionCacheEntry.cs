@@ -62,10 +62,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             bool hideAdvancedMembers)
         {
             if (AssemblySymbolKey.Resolve(originCompilation).Symbol is not IAssemblySymbol assemblySymbol)
-                return ImmutableArray<CompletionItem>.Empty;
+                return [];
 
             if (isEnumBaseListContext && !HasEnumBaseTypes)
-                return ImmutableArray<CompletionItem>.Empty;
+                return [];
 
             var isSameLanguage = Language == language;
             var isInternalsVisible = originCompilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(assemblySymbol);

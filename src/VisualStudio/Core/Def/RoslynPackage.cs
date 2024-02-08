@@ -23,7 +23,6 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
@@ -231,9 +230,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             await this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
-            // Load and initialize the add solution item service so ConfigurationUpdater can use it to create editorconfig files.
-            await this.ComponentModel.GetService<VisualStudioAddSolutionItemService>().InitializeAsync(this).ConfigureAwait(false);
-
             await this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
             await this.ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
             await this.ComponentModel.GetService<SyncNamespacesCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
@@ -270,33 +266,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             await TaskScheduler.Default;
 
-            await LoadInteractiveMenusAsync(cancellationToken).ConfigureAwait(true);
             await LoadStackTraceExplorerMenusAsync(cancellationToken).ConfigureAwait(true);
 
             // Initialize keybinding reset detector
             await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync().ConfigureAwait(true);
-        }
-
-        private async Task LoadInteractiveMenusAsync(CancellationToken cancellationToken)
-        {
-            // Obtain services and QueryInterface from the main thread
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
-            var monitorSelectionService = (IVsMonitorSelection)await GetServiceAsync(typeof(SVsShellMonitorSelection)).ConfigureAwait(true);
-
-            // Switch to the background object for constructing commands
-            await TaskScheduler.Default;
-
-            var threadingContext = ComponentModel.GetService<IThreadingContext>();
-
-            await new CSharpResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel, threadingContext)
-                .InitializeResetInteractiveFromProjectCommandAsync()
-                .ConfigureAwait(true);
-
-            await new VisualBasicResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel, threadingContext)
-                .InitializeResetInteractiveFromProjectCommandAsync()
-                .ConfigureAwait(true);
         }
 
         private async Task LoadStackTraceExplorerMenusAsync(CancellationToken cancellationToken)

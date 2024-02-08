@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var lambdaNode = await document.TryGetRelevantNodeAsync<LambdaExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
             if (lambdaNode == null)
             {
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
             }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

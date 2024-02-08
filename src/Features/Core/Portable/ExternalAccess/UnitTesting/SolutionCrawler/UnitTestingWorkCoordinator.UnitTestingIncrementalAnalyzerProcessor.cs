@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                             if (onlyHighPriorityAnalyzer)
                             {
-                                return ImmutableArray<IUnitTestingIncrementalAnalyzer>.Empty;
+                                return [];
                             }
 
                             return analyzers;

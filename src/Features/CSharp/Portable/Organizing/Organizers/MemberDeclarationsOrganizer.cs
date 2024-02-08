@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
                 return members;
             }
 
-            return sortedGroups.ToSyntaxList();
+            return [.. sortedGroups];
         }
 
         private static void TransferTrivia<TSyntaxNode>(

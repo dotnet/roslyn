@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
         {
             var tree = CreateTree("goo", new Span(0, 0));
             var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(0, 0)));
-            Assert.True(spans.Count == 1);
+            Assert.Single(spans);
         }
 
         [Fact]
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
         {
             var tree = CreateTree("goo", new Span(0, 0));
             var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(0, "goo".Length)));
-            Assert.True(spans.Count == 1);
+            Assert.Single(spans);
         }
 
         [Fact]
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
         {
             var tree = CreateTree("goo", new Span(1, 0));
             var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(0, 1)));
-            Assert.True(spans.Count == 1);
+            Assert.Single(spans);
         }
 
         [Fact]
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
         {
             var tree = CreateTree("goo", new Span(1, 0));
             var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(1, 0)));
-            Assert.True(spans.Count == 1);
+            Assert.Single(spans);
         }
 
         [Fact]
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
         {
             var tree = CreateTree("goo", new Span(1, 0));
             var spans = tree.GetIntersectingSpans(new SnapshotSpan(tree.Buffer.CurrentSnapshot, new Span(1, 1)));
-            Assert.True(spans.Count == 1);
+            Assert.Single(spans);
         }
     }
 }

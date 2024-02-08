@@ -1436,8 +1436,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+#nullable enable
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
+            if (filter?.Invoke(this) == false)
+            {
+                return;
+            }
+
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -1466,7 +1472,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     var conversions = this.ContainingAssembly.CorLibrary.TypeConversions;
                                     foreach (var parameter in this.Parameters)
                                     {
-                                        parameter.ForceComplete(locationOpt, cancellationToken);
+                                        // We can't filter out deeper than member level
+                                        parameter.ForceComplete(locationOpt, filter: null, cancellationToken);
                                         parameter.Type.CheckAllConstraints(DeclaringCompilation, conversions, parameter.GetFirstLocation(), diagnostics);
                                     }
 
@@ -1522,6 +1529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _state.SpinWaitComplete(incompletePart, cancellationToken);
             }
         }
+#nullable disable
 
         protected virtual void ValidatePropertyType(BindingDiagnosticBag diagnostics)
         {

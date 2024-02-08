@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 {
                     var enclosingType = _context.SemanticModel.GetEnclosingNamedType(_context.LeftToken.SpanStart, _cancellationToken);
                     _lazyEnclosingTypeBases = enclosingType == null
-                        ? ImmutableArray<INamedTypeSymbol>.Empty
+                        ? []
                         : enclosingType.GetBaseTypes().SelectAsArray(b => b.OriginalDefinition);
                 }
 

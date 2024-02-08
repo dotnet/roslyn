@@ -564,7 +564,7 @@ class C
     }
 }";
 
-            using var session = CreateSession(TestWorkspace.CreateCSharp(code), '(', ')');
+            using var session = CreateSession(EditorTestWorkspace.CreateCSharp(code), '(', ')');
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -591,7 +591,7 @@ class C
     }
 }";
 
-            using var session = CreateSession(TestWorkspace.CreateCSharp(code), '(', ')');
+            using var session = CreateSession(EditorTestWorkspace.CreateCSharp(code), '(', ')');
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -756,8 +756,7 @@ class C
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         public void Collection_Initializer_OpenBraceOnSameLine_Enter()
         {
             var code = @"using System.Collections.Generic;
@@ -793,8 +792,7 @@ class C
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         public void Collection_Initializer_OpenBraceOnDifferentLine_Enter()
         {
             var code = @"using System.Collections.Generic;
@@ -826,8 +824,7 @@ class C
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         public void Object_Initializer_OpenBraceOnSameLine_Enter()
         {
             var code = @"class C
@@ -869,8 +866,7 @@ class Goo
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         public void Object_Initializer_OpenBraceOnDifferentLine_Enter()
         {
             var code = @"class C
@@ -908,8 +904,7 @@ class Goo
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         public void ArrayImplicit_Initializer_OpenBraceOnSameLine_Enter()
         {
             var code = @"class C
@@ -941,8 +936,7 @@ class Goo
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         public void ArrayImplicit_Initializer_OpenBraceOnDifferentLine_Enter()
         {
             var code = @"class C
@@ -970,8 +964,7 @@ class Goo
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         public void ArrayExplicit1_Initializer_OpenBraceOnSameLine_Enter()
         {
             var code = @"class C
@@ -1003,8 +996,7 @@ class Goo
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         public void ArrayExplicit1_Initializer_OpenBraceOnDifferentLine_Enter()
         {
             var code = @"class C
@@ -1032,8 +1024,7 @@ class Goo
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         public void ArrayExplicit2_Initializer_OpenBraceOnSameLine_Enter()
         {
             var code = @"class C
@@ -1064,8 +1055,7 @@ class Goo
             CheckReturn(session.Session, 12, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
         public void ArrayExplicit2_Initializer_OpenBraceOnDifferentLine_Enter()
         {
             var code = @"class C
@@ -1094,8 +1084,7 @@ class Goo
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/3447")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850540")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850540")]
         public void BlockIndentationWithAutomaticBraceFormattingDisabled()
         {
             var code = @"class C
@@ -1132,8 +1121,7 @@ class Goo
             CheckReturn(session.Session, 4, expectedAfterReturn);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2224")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2224")]
         public void NoSmartOrBlockIndentationWithAutomaticBraceFormattingDisabled()
         {
             var code = @"namespace NS1
@@ -1160,8 +1148,7 @@ $$
             Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2330")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2330")]
         public void BlockIndentationWithAutomaticBraceFormatting()
         {
             var code = @"namespace NS1
@@ -1198,8 +1185,7 @@ $$
             CheckReturn(session.Session, 8, expectedAfterReturn);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2330")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2330")]
         public void BlockIndentationWithAutomaticBraceFormattingSecondSet()
         {
             var code = @"namespace NS1
@@ -1694,7 +1680,7 @@ $$";
         internal static Holder CreateSession(string code, OptionsCollection? globalOptions = null)
         {
             return CreateSession(
-                TestWorkspace.CreateCSharp(code),
+                EditorTestWorkspace.CreateCSharp(code),
                 CurlyBrace.OpenCharacter, CurlyBrace.CloseCharacter, globalOptions);
         }
     }

@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion">
         <source>Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</source>
-        <target state="new">Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</target>
+        <target state="translated">Enter キーで名前の変更、Shift キーを押しながら Enter キーでプレビューの表示、Ctrl キーを押しながらスペースキーで名前変更の提示を表示します</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_performing_rename_0">
@@ -34,12 +34,12 @@
       </trans-unit>
       <trans-unit id="Generating_suggestions">
         <source>Generating suggestions...</source>
-        <target state="new">Generating suggestions...</target>
+        <target state="translated">候補を生成しています...</target>
         <note />
       </trans-unit>
       <trans-unit id="Get_AI_suggestions">
         <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
-        <target state="new">Get AI-powered rename suggestions (Ctrl+Space)</target>
+        <target state="translated">AI を利用した名前変更の提示を取得する (Ctrl + Space)</target>
         <note />
       </trans-unit>
       <trans-unit id="Interactive_host_process_platform">

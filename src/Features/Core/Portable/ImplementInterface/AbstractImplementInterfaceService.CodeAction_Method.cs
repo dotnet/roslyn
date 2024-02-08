@@ -35,11 +35,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     updatedMethod,
                     accessibility: accessibility,
                     modifiers: modifiers,
-                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(updatedMethod) : default,
+                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? [updatedMethod] : default,
                     name: memberName,
                     statements: generateAbstractly
                         ? default
-                        : ImmutableArray.Create(CreateStatement(compilation, updatedMethod)));
+                        : [CreateStatement(compilation, updatedMethod)]);
             }
 
             private SyntaxNode CreateStatement(Compilation compilation, IMethodSymbol method)

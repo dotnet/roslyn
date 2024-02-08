@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.InlineDeclarationDiagnosticId);
+            => [IDEDiagnosticIds.InlineDeclarationDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

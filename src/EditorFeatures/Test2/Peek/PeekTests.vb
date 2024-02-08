@@ -252,8 +252,44 @@ public partial class D
             End Using
         End Sub
 
-        Private Shared Function CreateTestWorkspace(element As XElement) As TestWorkspace
-            Return TestWorkspace.Create(element, composition:=EditorTestCompositions.EditorFeaturesWpf)
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/71680")>
+        <InlineData("ValueTuple<int> valueTuple1;")>
+        <InlineData("ValueTuple<int, int> valueTuple2;")>
+        <InlineData("ValueTuple<int, int, int> valueTuple3;")>
+        <InlineData("ValueTuple<int, int, int, int> valueTuple4;")>
+        <InlineData("ValueTuple<int, int, int, int, int> valueTuple5;")>
+        <InlineData("ValueTuple<int, int, int, int, int, int> valueTuple6;")>
+        <InlineData("ValueTuple<int, int, int, int, int, int, int> valueTuple7;")>
+        <InlineData("ValueTuple<int, int, int, int, int, int, int, int> valueTuple8;")>
+        Public Sub TestPeekDefinitionWithValueType(expression As String)
+            Dim workspace =
+               <Workspace>
+                   <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
+                       <Document FilePath="C.cs">
+                            using System;
+
+                            class C
+                            {
+                                void M()
+                                {
+                                    $$<%= expression %>
+                                }
+                            }
+                        </Document>
+                   </Project>
+               </Workspace>
+
+            Using testWorkspace = CreateTestWorkspace(workspace)
+                Dim result = GetPeekResultCollection(workspace)
+
+                Assert.Equal(1, result.Items.Count)
+                Assert.Equal($"ValueTuple [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
+                Assert.Equal($"ValueTuple [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
+            End Using
+        End Sub
+
+        Private Shared Function CreateTestWorkspace(element As XElement) As EditorTestWorkspace
+            Return EditorTestWorkspace.Create(element, composition:=EditorTestCompositions.EditorFeaturesWpf)
         End Function
 
         Private Shared Function GetPeekResultCollection(element As XElement) As PeekResultCollection
@@ -262,7 +298,7 @@ public partial class D
             End Using
         End Function
 
-        Private Shared Function GetPeekResultCollection(workspace As TestWorkspace) As PeekResultCollection
+        Private Shared Function GetPeekResultCollection(workspace As EditorTestWorkspace) As PeekResultCollection
             Dim document = workspace.Documents.FirstOrDefault(Function(d) d.CursorPosition.HasValue)
 
             If document Is Nothing Then
@@ -362,9 +398,9 @@ public partial class D
 
             Public ReadOnly Items As New List(Of IPeekResult)
 
-            Private ReadOnly _workspace As TestWorkspace
+            Private ReadOnly _workspace As EditorTestWorkspace
 
-            Public Sub New(workspace As TestWorkspace)
+            Public Sub New(workspace As EditorTestWorkspace)
                 _workspace = workspace
             End Sub
 

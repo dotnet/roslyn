@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                     sourceDoc.Project.Solution,
                     moveOptions.Destination!,
                     // TODO: Find a way to merge/change generic type args for classes, or change PullMembersUp to handle instead
-                    typeArgIndices: ImmutableArray<int>.Empty,
+                    typeArgIndices: [],
                     sourceDoc.Id,
                     destinationDocId,
                     cancellationToken).ConfigureAwait(false);
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 
             // even though we can move members here, we will move them by calling PullMembersUp
             var newType = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                ImmutableArray.Create<AttributeData>(),
+                [],
                 Accessibility.NotApplicable,
                 DeclarationModifiers.Static,
                 GetNewTypeKind(_selectedType),

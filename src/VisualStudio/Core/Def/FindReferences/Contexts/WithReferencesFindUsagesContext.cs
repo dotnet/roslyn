@@ -71,10 +71,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 using var _1 = ArrayBuilder<Entry>.GetInstance(out var declarations);
                 using var _2 = PooledHashSet<(string? filePath, TextSpan span)>.GetInstance(out var seenLocations);
-                foreach (var declarationLocation in definition.SourceSpans)
+
+                for (int i = 0, n = definition.SourceSpans.Length; i < n; i++)
                 {
+                    var declarationLocation = definition.SourceSpans[i];
+                    var classifiedSpans = definition.ClassifiedSpans[i];
                     var definitionEntry = await TryCreateDocumentSpanEntryAsync(
-                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, SymbolUsageInfo.None,
+                        definitionBucket, declarationLocation, classifiedSpans, HighlightSpanKind.Definition, SymbolUsageInfo.None,
                         additionalProperties: definition.DisplayableProperties, cancellationToken).ConfigureAwait(false);
                     declarations.AddIfNotNull(definitionEntry);
                 }
@@ -116,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return OnEntryFoundAsync(
                     reference.Definition,
                     bucket => TryCreateDocumentSpanEntryAsync(
-                        bucket, reference.SourceSpan,
+                        bucket, reference.SourceSpan, reference.ClassifiedSpans,
                         reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference,
                         reference.SymbolUsageInfo,
                         reference.AdditionalProperties,
@@ -254,7 +257,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // even if we found no references and even if it would prefer to not be seen.
                     if (entries.Count == 0 && Definitions.Count > 0)
                     {
-                        return ImmutableArray.Create(Definitions.First());
+                        return [Definitions.First()];
                     }
 
                     return ImmutableArray<DefinitionItem>.Empty;
@@ -286,9 +289,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private static readonly DefinitionItem SymbolsWithoutReferencesDefinitionItem =
                 DefinitionItem.CreateNonNavigableItem(
                     GlyphTags.GetTags(Glyph.StatusInformation),
-                    ImmutableArray.Create(new TaggedText(
+                    [new TaggedText(
                         TextTags.Text,
-                        ServicesVSResources.Symbols_without_references)));
+                        ServicesVSResources.Symbols_without_references)]);
         }
     }
 }

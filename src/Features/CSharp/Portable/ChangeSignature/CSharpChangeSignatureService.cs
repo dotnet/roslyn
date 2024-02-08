@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         protected override SyntaxGenerator Generator => CSharpSyntaxGenerator.Instance;
         protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
-        private static readonly ImmutableArray<SyntaxKind> _declarationKinds = ImmutableArray.Create(
+        private static readonly ImmutableArray<SyntaxKind> _declarationKinds =
+        [
             SyntaxKind.MethodDeclaration,
             SyntaxKind.ConstructorDeclaration,
             SyntaxKind.IndexerDeclaration,
@@ -47,10 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.RecordStructDeclaration,
             SyntaxKind.RecordDeclaration,
             SyntaxKind.StructDeclaration,
-            SyntaxKind.ClassDeclaration);
+            SyntaxKind.ClassDeclaration,
+        ];
 
         private static readonly ImmutableArray<SyntaxKind> _declarationAndInvocableKinds =
-            _declarationKinds.Concat(ImmutableArray.Create(
+            _declarationKinds.Concat(
+            [
                 SyntaxKind.InvocationExpression,
                 SyntaxKind.ElementAccessExpression,
                 SyntaxKind.ThisConstructorInitializer,
@@ -58,9 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 SyntaxKind.ObjectCreationExpression,
                 SyntaxKind.ImplicitObjectCreationExpression,
                 SyntaxKind.Attribute,
-                SyntaxKind.NameMemberCref));
+                SyntaxKind.NameMemberCref,
+            ]);
 
-        private static readonly ImmutableArray<SyntaxKind> _updatableAncestorKinds = ImmutableArray.Create(
+        private static readonly ImmutableArray<SyntaxKind> _updatableAncestorKinds =
+        [
             SyntaxKind.ConstructorDeclaration,
             SyntaxKind.IndexerDeclaration,
             SyntaxKind.InvocationExpression,
@@ -72,9 +77,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.DelegateDeclaration,
             SyntaxKind.SimpleLambdaExpression,
             SyntaxKind.ParenthesizedLambdaExpression,
-            SyntaxKind.NameMemberCref);
+            SyntaxKind.NameMemberCref,
+        ];
 
-        private static readonly ImmutableArray<SyntaxKind> _updatableNodeKinds = ImmutableArray.Create(
+        private static readonly ImmutableArray<SyntaxKind> _updatableNodeKinds =
+        [
             SyntaxKind.MethodDeclaration,
             SyntaxKind.LocalFunctionStatement,
             SyntaxKind.ConstructorDeclaration,
@@ -94,7 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.RecordStructDeclaration,
             SyntaxKind.RecordDeclaration,
             SyntaxKind.StructDeclaration,
-            SyntaxKind.ClassDeclaration);
+            SyntaxKind.ClassDeclaration,
+        ];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -358,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             {
                 if (signaturePermutation.UpdatedConfiguration.ToListOfParameters().Any())
                 {
-                    var updatedParameters = UpdateDeclaration(SeparatedList(new[] { lambda.Parameter }), signaturePermutation, CreateNewParameterSyntax);
+                    var updatedParameters = UpdateDeclaration([lambda.Parameter], signaturePermutation, CreateNewParameterSyntax);
                     return ParenthesizedLambdaExpression(
                         lambda.AsyncKeyword,
                         ParameterList(updatedParameters),
@@ -761,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             if (!node.HasLeadingTrivia)
             {
-                return ImmutableArray<SyntaxTrivia>.Empty;
+                return [];
             }
 
             var paramNodes = node
@@ -772,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var permutedParamNodes = VerifyAndPermuteParamNodes(paramNodes, declarationSymbol, updatedSignature);
             if (permutedParamNodes.IsEmpty)
             {
-                return ImmutableArray<SyntaxTrivia>.Empty;
+                return [];
             }
 
             var options = await document.GetLineFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
@@ -789,13 +797,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             if (paramNodes.Count() != declaredParameters.Length)
             {
-                return ImmutableArray<SyntaxNode>.Empty;
+                return [];
             }
 
             // No parameters originally, so no param nodes to permute.
             if (declaredParameters.Length == 0)
             {
-                return ImmutableArray<SyntaxNode>.Empty;
+                return [];
             }
 
             var dictionary = new Dictionary<string, XmlElementSyntax>();
@@ -805,13 +813,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var nameAttribute = paramNode.StartTag.Attributes.FirstOrDefault(a => a.Name.ToString().Equals("name", StringComparison.OrdinalIgnoreCase));
                 if (nameAttribute == null)
                 {
-                    return ImmutableArray<SyntaxNode>.Empty;
+                    return [];
                 }
 
                 var identifier = nameAttribute.DescendantNodes(descendIntoTrivia: true).OfType<IdentifierNameSyntax>().FirstOrDefault();
                 if (identifier == null || identifier.ToString() != declaredParameters.ElementAt(i).Name)
                 {
-                    return ImmutableArray<SyntaxNode>.Empty;
+                    return [];
                 }
 
                 dictionary.Add(originalParameters[i].Name.ToString(), paramNode);
@@ -831,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     permutedParams.Add(XmlElement(
                         XmlElementStartTag(
                             XmlName("param"),
-                            List<XmlAttributeSyntax>(new[] { XmlNameAttribute(parameter.Name) })),
+                            [XmlNameAttribute(parameter.Name)]),
                         XmlElementEndTag(XmlName("param"))));
                 }
             }

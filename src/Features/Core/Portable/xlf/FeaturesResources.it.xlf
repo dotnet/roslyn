@@ -352,7 +352,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
         <source>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</source>
-        <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
+        <target state="translated">L'acquisizione del parametro primario del costruttore '{0}' che non è stato acquisito prima richiede il riavvio dell'applicazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
@@ -412,7 +412,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Changing_attribute_0_requires_restarting_the_application">
         <source>Changing attribute '{0}' requires restarting the application.</source>
-        <target state="new">Changing attribute '{0}' requires restarting the application.</target>
+        <target state="translated">La modifica dell'attributo '{0}' richiede il riavvio dell'applicazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
@@ -607,12 +607,12 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Debug_All_Tests">
         <source>Debug All Tests</source>
-        <target state="new">Debug All Tests</target>
+        <target state="translated">Esegui il debug di tutti i test</target>
         <note />
       </trans-unit>
       <trans-unit id="Debug_Test">
         <source>Debug Test</source>
-        <target state="new">Debug Test</target>
+        <target state="translated">Test di debug</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompilation_log">
@@ -757,7 +757,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Fix_All_0">
         <source>Fix All: {0}</source>
-        <target state="new">Fix All: {0}</target>
+        <target state="translated">Correggi tutto: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -2517,7 +2517,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Remove_unnecessary_imports_or_usings">
         <source>Remove unnecessary imports or usings</source>
-        <target state="new">Remove unnecessary imports or usings</target>
+        <target state="translated">Rimuovi importazioni o utilizzi non necessari</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameters">
@@ -2597,12 +2597,12 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Run_All_Tests">
         <source>Run All Tests</source>
-        <target state="new">Run All Tests</target>
+        <target state="translated">Esegui tutti i test</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_Test">
         <source>Run Test</source>
-        <target state="new">Run Test</target>
+        <target state="translated">Esegui test</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
@@ -3458,7 +3458,7 @@ Se l'identificatore di formato "H" viene usato senza altri identificatori di for
       </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
         <source>class with explicit or sequential layout</source>
-        <target state="new">class with explicit or sequential layout</target>
+        <target state="translated">classe con layout esplicito o sequenziale</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
