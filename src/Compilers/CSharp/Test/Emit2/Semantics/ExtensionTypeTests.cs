@@ -16360,7 +16360,7 @@ public static class E2
     }
 
     [Fact]
-    public void ExtensionInvocation_AmbiguityWithExtensionOnBaseType()
+    public void ExtensionInvocation_InstanceReceiver_AmbiguityWithExtensionOnBaseType()
     {
         var source = """
 System.Console.Write(new C().M(42));
@@ -16389,9 +16389,9 @@ implicit extension E2 for C
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
-        var memberAccess = GetSyntax<InvocationExpressionSyntax>(tree, "new C().M(42)");
-        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Empty(model.GetMemberGroup(memberAccess));
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C().M(42)");
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Empty(model.GetMemberGroup(invocation));
 
         source = """
 System.Console.Write(new C().M(42));
@@ -16412,6 +16412,111 @@ public static class E2
 """;
         comp = CreateCompilation(source);
         CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionInvocation_StaticReceiver_AmbiguityWithExtensionOnBaseType()
+    {
+        var source = """
+System.Console.Write(C.M(42));
+
+class Base { }
+
+class C : Base { }
+
+implicit extension E1 for Base
+{
+    public static int M(int i) => throw null;
+}
+
+implicit extension E2 for C
+{
+    public static int M(int i) => i;
+}
+""";
+        // PROTOTYPE E2 might be a better choice because it extends a more specific type. we have rules around receiver types for regular extension methods.
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,24): error CS0121: The call is ambiguous between the following methods or properties: 'E1.M(int)' and 'E2.M(int)'
+            // System.Console.Write(C.M(42));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.M(int)", "E2.M(int)").WithLocation(1, 24)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "C.M(42)");
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Empty(model.GetMemberGroup(invocation));
+    }
+
+    [Fact]
+    public void ExtensionProperty_InstanceReceiver_AmbiguityWithExtensionOnBaseType()
+    {
+        var source = """
+System.Console.Write(new C().P);
+
+class Base { }
+
+class C : Base { }
+
+implicit extension E1 for Base
+{
+    public int P => throw null;
+}
+
+implicit extension E2 for C
+{
+    public int P => throw null;
+}
+""";
+        // PROTOTYPE E2 might be a better choice because it extends a more specific type. we have rules around receiver types for regular extension methods.
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,30): error CS0229: Ambiguity between 'E1.P' and 'E2.P'
+            // System.Console.Write(new C().P);
+            Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("E1.P", "E2.P").WithLocation(1, 30)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().P");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Fact]
+    public void ExtensionProperty_StaticReceiver_AmbiguityWithExtensionOnBaseType()
+    {
+        var source = """
+System.Console.Write(C.P);
+
+class Base { }
+
+class C : Base { }
+
+implicit extension E1 for Base
+{
+    public static int P => throw null;
+}
+
+implicit extension E2 for C
+{
+    public static int P => throw null;
+}
+""";
+        // PROTOTYPE E2 might be a better choice because it extends a more specific type. we have rules around receiver types for regular extension methods.
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,24): error CS0229: Ambiguity between 'E1.P' and 'E2.P'
+            // System.Console.Write(C.P);
+            Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("E1.P", "E2.P").WithLocation(1, 24)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.P");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
@@ -20076,6 +20181,52 @@ implicit extension E<T> for I2<T>
         Assert.Equal("System.String E<System.Int32>.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
+    [ConditionalTheory(typeof(CoreClrOnly))]
+    [InlineData("in")]
+    [InlineData("out")]
+    public void GenericExtension_ForInterfaceWithVariance(string variance)
+    {
+        var src = $$"""
+interface I<{{variance}} T> { }
+
+implicit extension E<T> for I<T> { }
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public void GenericExtension_Variance_In(bool isExplicit)
+    {
+        var src = $$"""
+interface I<in T> { }
+
+{{(isExplicit ? "explicit" : "implicit")}} extension E<in T> for I<T> { }
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (3,22): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+            // implicit extension E<in T> for I<T> { }
+            Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(3, 22)
+            );
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public void GenericExtension_Variance_Out(bool isExplicit)
+    {
+        var src = $$"""
+interface I<out T> { }
+
+{{(isExplicit ? "explicit" : "implicit")}} extension E<out T> for I<T> { }
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (3,22): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+            // explicit extension E<out T> for I<T> { }
+            Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(3, 22)
+            );
+    }
+
     [ConditionalFact(typeof(CoreClrOnly))]
     public void GenericExtension_ForBase()
     {
@@ -21501,23 +21652,16 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
         // PROTOTYPE should warn about hiding
         // PROTOTYPE update overload resolution so that extension members can hide members of the underlying type
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (2,3): error CS0121: The call is ambiguous between the following methods or properties: 'E.Method()' and 'C.Method()'
-            // E.Method();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("E.Method()", "C.Method()").WithLocation(2, 3),
-            // (12,30): error CS0121: The call is ambiguous between the following methods or properties: 'E.Method()' and 'C.Method()'
-            //     public static void M() { Method(); }
-            Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("E.Method()", "C.Method()").WithLocation(12, 30)
-            );
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "Method()");
-        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Equal("void E.Method()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(invocation)); // PROTOTYPE need to fix the semantic model
 
         var typeInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E.Method()");
-        Assert.Null(model.GetSymbolInfo(typeInvocation).Symbol);
+        Assert.Equal("void E.Method()", model.GetSymbolInfo(typeInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(typeInvocation)); // PROTOTYPE need to fix the semantic model
     }
 
@@ -22943,32 +23087,21 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should warn about hiding
-        // PROTOTYPE update overload resolution so that extension members can hide members of the underlying type
-        comp.VerifyDiagnostics(
-            // (12,31): error CS0121: The call is ambiguous between the following methods or properties: 'E.M2()' and 'C.M2()'
-            //     public void M(E e) { this.M2(); e.M2(); M2(); }
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("E.M2()", "C.M2()").WithLocation(12, 31),
-            // (12,39): error CS0121: The call is ambiguous between the following methods or properties: 'E.M2()' and 'C.M2()'
-            //     public void M(E e) { this.M2(); e.M2(); M2(); }
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("E.M2()", "C.M2()").WithLocation(12, 39),
-            // (12,45): error CS0121: The call is ambiguous between the following methods or properties: 'E.M2()' and 'C.M2()'
-            //     public void M(E e) { this.M2(); e.M2(); M2(); }
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("E.M2()", "C.M2()").WithLocation(12, 45)
-            );
+        comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         // PROTOTYPE need to fix the semantic model
         var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
-        Assert.Null(model.GetSymbolInfo(thisInvocation).Symbol);
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(thisInvocation));
 
         var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
-        Assert.Null(model.GetSymbolInfo(instanceInvocation).Symbol);
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(instanceInvocation));
 
         var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
-        Assert.Null(model.GetSymbolInfo(simpleInvocation).Symbol);
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(simpleInvocation));
     }
 
@@ -22994,31 +23127,21 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should warn about hiding
-        comp.VerifyDiagnostics(
-            // (14,31): error CS0121: The call is ambiguous between the following methods or properties: 'E.M2()' and 'Base.M2()'
-            //     public void M(E e) { this.M2(); e.M2(); M2(); }
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("E.M2()", "Base.M2()").WithLocation(14, 31),
-            // (14,39): error CS0121: The call is ambiguous between the following methods or properties: 'E.M2()' and 'Base.M2()'
-            //     public void M(E e) { this.M2(); e.M2(); M2(); }
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("E.M2()", "Base.M2()").WithLocation(14, 39),
-            // (14,45): error CS0121: The call is ambiguous between the following methods or properties: 'E.M2()' and 'Base.M2()'
-            //     public void M(E e) { this.M2(); e.M2(); M2(); }
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("E.M2()", "Base.M2()").WithLocation(14, 45)
-            );
+        comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         // PROTOTYPE need to fix the semantic model
         var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
-        Assert.Null(model.GetSymbolInfo(thisInvocation).Symbol);
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(thisInvocation));
 
         var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
-        Assert.Null(model.GetSymbolInfo(instanceInvocation).Symbol);
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(instanceInvocation));
 
         var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
-        Assert.Null(model.GetSymbolInfo(simpleInvocation).Symbol);
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(simpleInvocation));
     }
 

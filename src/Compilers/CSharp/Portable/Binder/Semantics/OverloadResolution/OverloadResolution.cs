@@ -844,7 +844,6 @@ outerDefault:
             bool checkOverriddenOrHidden = true)
             where TMember : Symbol
         {
-            // PROTOTYPE update overload resolution so that extension members can hide members of the underlying type
             Debug.Assert(checkOverriddenOrHidden || containingTypeMapOpt is null);
 
             // SPEC VIOLATION:
@@ -916,6 +915,7 @@ outerDefault:
                                 return;
                             }
 
+                            // PROTOTYPE could we encounter an extension type in metadata with a `hidebyname` method?
                             if (MemberGroupHidesByName(others, member, ref useSiteInfo))
                             {
                                 return;
@@ -1305,7 +1305,7 @@ outerDefault:
             }
         }
 
-        // Is this type a base type of any valid method on the list?
+        // Is this type a base type (or base type of an extended type) of any valid method on the list?
         private static bool IsLessDerivedThanAny<TMember>(int index, TypeSymbol type, ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
         {
@@ -1337,6 +1337,10 @@ outerDefault:
                 }
 
                 if (currentType.IsInterfaceType() && type.IsInterfaceType() && currentType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo).Contains((NamedTypeSymbol)type))
+                {
+                    return true;
+                }
+                else if (currentType.IsExtension && currentType.ExtendedTypeIsOrDerivedFrom(type, TypeCompareKind.ConsiderEverything, useSiteInfo: ref useSiteInfo))
                 {
                     return true;
                 }
