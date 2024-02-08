@@ -74,9 +74,14 @@ internal partial class SolutionCompilationState
             // back over to us to ensure that both processes are in total agreement about the SG docs and their
             // contents.
             var result = await TryComputeNewGeneratorInfoInRemoteProcessAsync(
-                compilationState, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
+                compilationState, compilationWithoutGeneratedFiles, generatorInfo.Documents, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
             if (result.HasValue)
-                return result.Value;
+            {
+                // Since we ran the SG work out of process, we could not have created or modified the driver passed in.
+                // So just pass what we got in right back out.
+                return (result.Value.compilationWithGeneratedFiles, result.Value.generatedDocuments, generatorInfo.Driver);
+            }
+
 
             // If that failed (OOP crash, or we are the OOP process ourselves), then generate the SG docs locally.
             var telemetryCollector = compilationState.SolutionState.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
@@ -84,10 +89,10 @@ internal partial class SolutionCompilationState
                 telemetryCollector, compilationWithoutGeneratedFiles, generatorInfo, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<(Compilation compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments, GeneratorDriver? generatorDriver)?> TryComputeNewGeneratorInfoInRemoteProcessAsync(
+        private async Task<(Compilation compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments)?> TryComputeNewGeneratorInfoInRemoteProcessAsync(
             SolutionCompilationState compilationState,
             Compilation compilationWithoutGeneratedFiles,
-            CompilationTrackerGeneratorInfo generatorInfo,
+            TextDocumentStates<SourceGeneratedDocumentState> oldGeneratedDocuments,
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
@@ -128,7 +133,7 @@ internal partial class SolutionCompilationState
                 var documentId = documentIdentity.DocumentId;
                 Contract.ThrowIfFalse(documentId.IsSourceGenerated);
 
-                var existingDocument = generatorInfo.Documents.GetState(documentId);
+                var existingDocument = oldGeneratedDocuments.GetState(documentId);
 
                 // Can keep what we have if it has the same doc and content identity.
                 if (existingDocument?.Identity == documentIdentity &&
@@ -144,12 +149,12 @@ internal partial class SolutionCompilationState
 
             // If we produced just as many documents as before, and none of them required any changes, then we can
             // reuse the prior compilation.
-            if (infos.Length == generatorInfo.Documents.Count &&
+            if (infos.Length == oldGeneratedDocuments.Count &&
                 documentsToAddOrUpdate.Count == 0 &&
                 compilationWithStaleGeneratedTrees != null &&
-                generatorInfo.Documents.States.All(kvp => kvp.Value.ParseOptions.Equals(this.ProjectState.ParseOptions)))
+                oldGeneratedDocuments.States.All(kvp => kvp.Value.ParseOptions.Equals(this.ProjectState.ParseOptions)))
             {
-                return (compilationWithStaleGeneratedTrees, generatorInfo.Documents, generatorInfo.Driver);
+                return (compilationWithStaleGeneratedTrees, oldGeneratedDocuments);
             }
 
             // Either we generated a different number of files, and/or we had contents of files that changed. Ensure
@@ -196,7 +201,7 @@ internal partial class SolutionCompilationState
                 else
                 {
                     // a document that already matched something locally.
-                    var existingDocument = generatorInfo.Documents.GetRequiredState(documentId);
+                    var existingDocument = oldGeneratedDocuments.GetRequiredState(documentId);
                     Contract.ThrowIfTrue(existingDocument.Identity != documentIdentity, "Identities must match!");
                     Contract.ThrowIfTrue(existingDocument.GetOriginalSourceTextContentHash() != contentIdentity.OriginalSourceTextContentHash, "Checksums must match!");
 
@@ -206,11 +211,11 @@ internal partial class SolutionCompilationState
                 }
             }
 
-            var generatedDocuments = new TextDocumentStates<SourceGeneratedDocumentState>(generatedDocumentsBuilder.ToImmutableAndClear());
+            var newGeneratedDocuments = new TextDocumentStates<SourceGeneratedDocumentState>(generatedDocumentsBuilder.ToImmutableAndClear());
             var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(
-                await generatedDocuments.States.Values.SelectAsArrayAsync(
+                await newGeneratedDocuments.States.Values.SelectAsArrayAsync(
                     static (state, cancellationToken) => state.GetSyntaxTreeAsync(cancellationToken), cancellationToken).ConfigureAwait(false));
-            return (compilationWithGeneratedFiles, generatedDocuments, generatorInfo.Driver);
+            return (compilationWithGeneratedFiles, newGeneratedDocuments);
         }
 
         private async Task<(Compilation compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments, GeneratorDriver? generatorDriver)> ComputeNewGeneratorInfoInCurrentProcessAsync(
