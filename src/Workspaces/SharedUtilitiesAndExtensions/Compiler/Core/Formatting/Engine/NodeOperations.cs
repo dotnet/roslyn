@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// <summary>
     /// this collector gathers formatting operations that are based on a node
     /// </summary>
-    internal record NodeOperations : IDisposable
+    internal sealed class NodeOperations : IDisposable
     {
         private static readonly ObjectPool<SegmentedList<IndentBlockOperation>> s_indentBlockOperationPool = new(() => new());
         private static readonly ObjectPool<SegmentedList<SuppressOperation>> s_suppressOperationPool = new(() => new());
