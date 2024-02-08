@@ -123,12 +123,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
 
             var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
-            var priorityDocument = trackingService.TryGetActiveDocument();
+            var priorityDocumentId = trackingService.TryGetActiveDocument();
+            if (solution.GetDocument(priorityDocumentId) is null)
+                priorityDocumentId = null;
 
             await client.TryInvokeAsync<IRemoteDesignerAttributeDiscoveryService>(
                 solution,
                 (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
-                    callbackId, checksum, priorityDocument, cancellationToken),
+                    callbackId, checksum, priorityDocumentId, cancellationToken),
                 callbackTarget: this,
                 cancellationToken).ConfigureAwait(false);
         }

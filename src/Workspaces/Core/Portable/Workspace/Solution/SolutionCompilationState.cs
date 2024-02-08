@@ -1011,19 +1011,10 @@ internal sealed partial class SolutionCompilationState
     {
         using (await _stateLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            if (_cachedFrozenSnapshot is null)
-            {
-                _cachedFrozenSnapshot = await ComputeFrozenPartialStateAsync(this, cancellationToken).ConfigureAwait(false);
-
-                // Set the frozen solution to be its own frozen solution.  That way if someone asks for it, it can
-                // be returned immediately.
-                _cachedFrozenSnapshot._cachedFrozenSnapshot = _cachedFrozenSnapshot;
-            }
-
-            return _cachedFrozenSnapshot;
+            return _cachedFrozenSnapshot ??= ComputeFrozenPartialState(this, cancellationToken);
         }
 
-        static async Task<SolutionCompilationState> ComputeFrozenPartialStateAsync(
+        static SolutionCompilationState ComputeFrozenPartialState(
             SolutionCompilationState @this, CancellationToken cancellationToken)
         {
             var newIdToProjectStateMap = @this.SolutionState.ProjectStates;
@@ -1033,7 +1024,7 @@ internal sealed partial class SolutionCompilationState
             {
                 // if we don't have one or it is stale, create a new partial solution
                 var tracker = @this.GetCompilationTracker(projectId);
-                var newTracker = await tracker.FreezePartialStateAsync(@this, cancellationToken).ConfigureAwait(false);
+                var newTracker = tracker.FreezePartialState(@this, cancellationToken);
 
                 Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(projectId));
                 newIdToProjectStateMap = newIdToProjectStateMap.SetItem(projectId, newTracker.ProjectState);
@@ -1046,6 +1037,10 @@ internal sealed partial class SolutionCompilationState
             var newCompilationState = @this.Branch(
                 newState,
                 newIdToTrackerMap);
+
+            // Set the frozen solution to be its own frozen solution.  That way if someone asks for it, it can
+            // be returned immediately.
+            newCompilationState._cachedFrozenSnapshot = newCompilationState;
 
             return newCompilationState;
         }

@@ -119,15 +119,20 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                         _documentToLastReportedInformation.TryRemove(docId, out _);
                 }
 
+                // Handle the priority doc first.
+                if (priorityDocumentId != null)
+                {
+                    var priorityDocument = solution
+                        .GetRequiredDocument(priorityDocumentId)
+                        .WithFrozenPartialSemantics(cancellationToken);
+
+                    await ProcessProjectAsync(priorityDocument.Project, priorityDocument, callback, cancellationToken).ConfigureAwait(false);
+                }
+
                 // Freeze the entire solution at this point.  We don't want to run generators (as they are very unlikely
                 // to contribute any changes that would affect which types we think are designable), and we want to be 
                 // very fast to update the ui as a user types.
                 solution = await solution.WithFrozenPartialCompilationsAsync(cancellationToken).ConfigureAwait(false);
-
-                // Handle the priority doc first.
-                var priorityDocument = solution.GetDocument(priorityDocumentId);
-                if (priorityDocument != null)
-                    await ProcessProjectAsync(priorityDocument.Project, priorityDocument, callback, cancellationToken).ConfigureAwait(false);
 
                 // Wait a little after the priority document and process the rest at a lower priority.
                 await _listener.Delay(DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);

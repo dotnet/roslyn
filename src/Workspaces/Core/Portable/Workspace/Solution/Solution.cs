@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.  Use <see cref="_cachedFrozenGate"/> to
         /// access.
         /// </summary>
-        private Solution? _cachedFrozenSolution;
+        private AsyncLazy<Solution> _cachedFrozenSolution;
 
         /// <summary>
         /// Mapping of DocumentId to the frozen solution we produced for it the last time we were queried.  Use <see
@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis
         {
             _projectIdToProjectMap = [];
             _compilationState = compilationState;
+
+            _cachedFrozenSolution = AsyncLazy.Create(c => ComputeFrozenSolutionAsync(c));
         }
 
         internal Solution(
@@ -1460,26 +1462,24 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        internal async Task<Solution> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
+        internal Task<Solution> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
+            => _cachedFrozenSolution.GetValueAsync(cancellationToken);
+
+        private async Task<Solution> ComputeFrozenSolutionAsync(CancellationToken cancellationToken)
         {
             // in progress solutions are disabled for some testing
             if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
                 return this;
 
-            using (await _cachedFrozenGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            var newCompilationState = await this.CompilationState.WithFrozenPartialCompilationsAsync(cancellationToken).ConfigureAwait(false);
+            var frozenSolution = new Solution(newCompilationState)
             {
-                if (_cachedFrozenSolution is null)
-                {
-                    var newCompilationState = await this.CompilationState.WithFrozenPartialCompilationsAsync(cancellationToken).ConfigureAwait(false);
-                    _cachedFrozenSolution = new Solution(newCompilationState);
+                // Set the frozen solution to be its own frozen solution.  That way if someone asks for it, it can
+                // be returned immediately.
+                _cachedFrozenSolution = _cachedFrozenSolution
+            };
 
-                    // Set the frozen solution to be its own frozen solution.  That way if someone asks for it, it can
-                    // be returned immediately.
-                    _cachedFrozenSolution._cachedFrozenSolution = _cachedFrozenSolution;
-                }
-
-                return _cachedFrozenSolution;
-            }
+            return frozenSolution;
         }
 
         /// <summary>

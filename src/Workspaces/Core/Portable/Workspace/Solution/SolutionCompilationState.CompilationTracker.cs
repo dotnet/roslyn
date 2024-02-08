@@ -186,16 +186,10 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public async Task<ICompilationTracker> FreezePartialStateAsync(
+            public ICompilationTracker FreezePartialState(
                 SolutionCompilationState compilationState,
                 CancellationToken cancellationToken)
             {
-                var state = this.ReadState();
-                if (state is NoCompilationState)
-                {
-                    await BuildAllSyntaxTreesParsedStateFromScratchAsync(cancellationToken).ConfigureAwait(false);
-                }
-
                 return FreezePartialStateWorker(
                     compilationState, docState: null, tree: null, cancellationToken);
             }
