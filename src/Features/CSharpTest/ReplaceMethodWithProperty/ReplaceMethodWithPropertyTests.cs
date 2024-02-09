@@ -108,8 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/6034")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6034")]
         public async Task TestMethodWithArrowBody()
         {
             await TestWithAllCodeStyleOff(
@@ -330,8 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
         public async Task TestIfDefMethod1()
         {
             await TestWithAllCodeStyleOff(
@@ -360,8 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
         public async Task TestIfDefMethod2()
         {
             await TestWithAllCodeStyleOff(
@@ -398,8 +395,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
         public async Task TestIfDefMethod3()
         {
             await TestWithAllCodeStyleOff(
@@ -436,8 +432,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """, index: 1);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
         public async Task TestIfDefMethod4()
         {
             await TestWithAllCodeStyleOff(
@@ -474,8 +469,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
         public async Task TestIfDefMethod5()
         {
             await TestWithAllCodeStyleOff(
@@ -1880,8 +1874,7 @@ index: 1);
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14327")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14327")]
         public async Task TestUpdateChainedGet1()
         {
             await TestWithAllCodeStyleOff(
@@ -1918,8 +1911,7 @@ index: 1);
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle1()
         {
             await TestInRegularAndScriptAsync(
@@ -1940,8 +1932,7 @@ index: 1);
                 """, options: PreferExpressionBodiedAccessors);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle2()
         {
             await TestInRegularAndScriptAsync(
@@ -1962,8 +1953,7 @@ index: 1);
                 """, options: PreferExpressionBodiedProperties);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle3()
         {
             await TestInRegularAndScriptAsync(
@@ -1984,8 +1974,7 @@ index: 1);
                 """, options: PreferExpressionBodiedAccessorsAndProperties);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle4()
         {
             await TestInRegularAndScriptAsync(
@@ -2013,8 +2002,7 @@ index: 1,
 options: PreferExpressionBodiedAccessors);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle5()
         {
             await TestInRegularAndScriptAsync(
@@ -2053,8 +2041,7 @@ index: 1,
 options: PreferExpressionBodiedProperties);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle6()
         {
             await TestInRegularAndScriptAsync(
@@ -2082,8 +2069,7 @@ index: 1,
 options: PreferExpressionBodiedAccessorsAndProperties);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle7()
         {
             await TestInRegularAndScriptAsync(
@@ -2101,8 +2087,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """, options: PreferExpressionBodiedProperties);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle8()
         {
             await TestInRegularAndScriptAsync(
@@ -2120,8 +2105,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """, options: PreferExpressionBodiedAccessors);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle9()
         {
             await TestInRegularAndScriptAsync(
@@ -2139,8 +2123,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """, options: PreferExpressionBodiedAccessors);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle10()
         {
             await TestInRegularAndScriptAsync(
@@ -2243,8 +2226,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
         public async Task TestSystemObjectMetadataOverride()
         {
             await TestMissingAsync(
@@ -2258,8 +2240,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
         public async Task TestMetadataOverride()
         {
             await TestWithAllCodeStyleOff(
@@ -2473,8 +2454,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
         public async Task TestUnsafeGetter()
         {
             await TestInRegularAndScriptAsync(
@@ -2503,8 +2483,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """, index: 1);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
         public async Task TestUnsafeSetter()
         {
             await TestInRegularAndScriptAsync(
@@ -2683,8 +2662,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42699")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42699")]
         public async Task TestSameNameMemberAsProperty()
         {
             await TestInRegularAndScript1Async(
@@ -2711,8 +2689,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42698")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42698")]
         public async Task TestMethodWithTrivia_3()
         {
             await TestInRegularAndScript1Async(
@@ -2734,8 +2711,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42698")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42698")]
         public async Task TestMethodWithTrivia_4()
         {
             await TestWithAllCodeStyleOff(
@@ -2816,8 +2792,7 @@ index: 1);
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37991")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37991")]
         public async Task AllowIfNestedNullableIsSame()
         {
             await TestInRegularAndScriptAsync(
@@ -2855,8 +2830,7 @@ index: 1);
                 """, index: 1);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37991")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37991")]
         public async Task TestGetSetWithGeneric()
         {
             await TestInRegularAndScriptAsync(
@@ -2890,8 +2864,7 @@ index: 1);
                 """, index: 1);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
         public async Task TestReferenceTrivia1()
         {
             await TestInRegularAndScriptAsync(
@@ -2923,8 +2896,7 @@ index: 1);
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
         public async Task TestReferenceTrivia2()
         {
             await TestInRegularAndScriptAsync(
@@ -2956,8 +2928,7 @@ index: 1);
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
         public async Task TestReferenceTrivia3()
         {
             await TestInRegularAndScriptAsync(
@@ -2985,8 +2956,7 @@ index: 1);
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
         public async Task TestReferenceTrivia4()
         {
             await TestInRegularAndScriptAsync(
@@ -3014,7 +2984,7 @@ index: 1);
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72035")]
         public async Task TestUpdateGetReferenceGeneratedPart()
         {
             await TestInRegularAndScript1Async(
