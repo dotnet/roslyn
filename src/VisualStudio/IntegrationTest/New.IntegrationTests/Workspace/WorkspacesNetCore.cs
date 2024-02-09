@@ -48,11 +48,5 @@ public class WorkspacesNetCore : WorkspaceBase
         await InitializeWithDefaultSolution();
         await base.RenamingOpenFiles();
     }
-
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72018")]
-    public override Task ProjectReference()
-    {
-        return base.ProjectReference();
-    }
 }
 

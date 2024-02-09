@@ -80,7 +80,8 @@ End Class", HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentTokenTypeAsync("identifier", HangMitigatingCancellationToken);
         }
 
-        public virtual async Task ProjectReference()
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72018")]
+        public async Task ProjectReference()
         {
             await InitializeWithDefaultSolution();
             var csProj2 = "CSProj2";
