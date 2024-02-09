@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                     // Type 'Global.Microsoft.VisualBasic.ApplicationServices.ApplicationBase' is not defined.
                     // Bug: https://github.com/dotnet/roslyn/issues/72014
                     "BC30002",
-                  ]
+                ]
                 : Array.Empty<string>();
 
             await AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.VisualBasic, ignoredDiagnostics);
