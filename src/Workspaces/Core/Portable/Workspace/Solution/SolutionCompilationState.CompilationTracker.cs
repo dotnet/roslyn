@@ -119,21 +119,21 @@ namespace Microsoft.CodeAnalysis
                 ProjectState newProjectState,
                 CompilationAndGeneratorDriverTranslationAction? translate)
             {
-                var forkedTrackerState = ForkTrackerState(oldProjectState: this.ProjectState, ReadState(), translate);
+                var oldProjectState = this.ProjectState;
+                var forkedTrackerState = ForkTrackerState();
 
                 // We should never fork into a FinalCompilationTrackerState.  We must always be at some state prior to
                 // it since some change has happened, and we may now need to run generators.
                 Contract.ThrowIfTrue(forkedTrackerState is FinalCompilationTrackerState);
+                Contract.ThrowIfFalse(forkedTrackerState is null or InProgressState);
                 return new CompilationTracker(
                     newProjectState,
                     forkedTrackerState,
                     this.SkeletonReferenceCache.Clone());
 
-                static CompilationTrackerState? ForkTrackerState(
-                    ProjectState oldProjectState,
-                    CompilationTrackerState? state,
-                    CompilationAndGeneratorDriverTranslationAction? translate)
+                CompilationTrackerState? ForkTrackerState()
                 {
+                    var state = this.ReadState();
                     if (state is null)
                         return null;
 
@@ -145,14 +145,12 @@ namespace Microsoft.CodeAnalysis
                     };
 
                     var finalSteps = UpdatePendingTranslationSteps(
-                        oldProjectState,
                         state switch
                         {
                             InProgressState { PendingTranslationSteps: var pendingTranslationSteps } => pendingTranslationSteps,
                             FinalCompilationTrackerState => [],
                             _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
-                        },
-                        translate);
+                        });
 
                     var newState = InProgressState.Create(
                         state.IsFrozen,
@@ -164,10 +162,8 @@ namespace Microsoft.CodeAnalysis
                     return newState;
                 }
 
-                static ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> UpdatePendingTranslationSteps(
-                    ProjectState oldProjectState,
-                    ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps,
-                    CompilationAndGeneratorDriverTranslationAction? translate)
+                ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> UpdatePendingTranslationSteps(
+                    ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
                 {
                     if (translate is null)
                         return pendingTranslationSteps;
