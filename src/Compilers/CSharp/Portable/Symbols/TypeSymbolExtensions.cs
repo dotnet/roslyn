@@ -2078,6 +2078,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsWellKnownTypeOutAttribute(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("OutAttribute");
 
+        // Keep consistent with ISymbolExtensions.IsLockType.
         internal static bool IsWellKnownTypeLock(this TypeSymbol typeSymbol)
         {
             return typeSymbol is NamedTypeSymbol { Name: "Lock", Arity: 0, ContainingType: null } &&

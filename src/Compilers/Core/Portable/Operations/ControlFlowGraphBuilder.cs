@@ -3946,7 +3946,10 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        private void HandleUsingOperationParts(IOperation resources, IOperation body, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous)
+        /// <param name="forLock">
+        /// If <see langword="true"/>, <paramref name="resources"/> operation is expected to be already visited.
+        /// </param>
+        private void HandleUsingOperationParts(IOperation resources, IOperation body, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous, bool forLock = false)
         {
             var usingRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
             EnterRegion(usingRegion);
@@ -3977,7 +3980,7 @@ oneMoreTime:
                 Debug.Assert(resources.Kind != OperationKind.VariableDeclarator);
 
                 EvalStackFrame frame = PushStackFrame();
-                IOperation resource = VisitRequired(resources);
+                IOperation resource = forLock ? resources : VisitRequired(resources);
 
                 if (shouldConvertToIDisposableBeforeTry(resource))
                 {
@@ -4200,18 +4203,34 @@ oneMoreTime:
         {
             StartVisitingStatement(operation);
 
-            var lockStatement = (LockOperation)operation;
-
             // `lock (l) { }` on value of type `System.Threading.Lock` is lowered to `using (l.EnterLockScope()) { }`.
-            if (lockStatement.LockTypeInfo is { } lockTypeInfo)
+            if (operation.LockedValue.Type?.IsLockType() == true)
             {
+                var lockTypeInfo = operation.LockedValue.Type.TryFindLockTypeInfo();
+
+                var lockObject = VisitRequired(operation.LockedValue);
+
+                var enterLockScope = lockTypeInfo.EnterLockScopeMethod is { } targetMethod
+                    ? new InvocationOperation(
+                        targetMethod: targetMethod,
+                        constrainedToType: null,
+                        instance: lockObject,
+                        isVirtual: targetMethod.IsVirtual || targetMethod.IsAbstract || targetMethod.IsOverride,
+                        arguments: ImmutableArray<IArgumentOperation>.Empty,
+                        semanticModel: null,
+                        syntax: lockObject.Syntax,
+                        type: targetMethod.ReturnType,
+                        isImplicit: true)
+                    : MakeInvalidOperation(type: null, lockObject);
+
                 HandleUsingOperationParts(
-                    resources: lockTypeInfo.EnterLockScope,
-                    body: lockStatement.Body,
-                    disposeMethod: lockTypeInfo.DisposeMethod,
+                    resources: enterLockScope,
+                    body: operation.Body,
+                    disposeMethod: lockTypeInfo.ScopeDisposeMethod,
                     disposeArguments: ImmutableArray<IArgumentOperation>.Empty,
                     locals: ImmutableArray<ILocalSymbol>.Empty,
-                    isAsynchronous: false);
+                    isAsynchronous: false,
+                    forLock: true);
 
                 return FinishVisitingStatement(operation);
             }
@@ -4249,6 +4268,7 @@ oneMoreTime:
             // Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.CheckForSyncLockOnValueType to ensure no value type is
             // used.
             // For simplicity, we will not synthesize this call because its presence is unlikely to affect graph analysis.
+            var lockStatement = (LockOperation)operation;
 
             var lockRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime,
                                                locals: lockStatement.LockTakenSymbol != null ?

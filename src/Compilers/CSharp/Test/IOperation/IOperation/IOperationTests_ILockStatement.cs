@@ -1412,33 +1412,35 @@ Block[B6] - Exit
                 Block[B0] - Entry
                     Statements (0)
                     Next (Regular) Block[B1]
-                        Entering: {R1} {R2}
+                        Entering: {R1}
                 .locals {R1}
                 {
-                    CaptureIds: [1]
+                    CaptureIds: [0]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B3]
+                            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                        Next (Regular) Block[B2]
+                    Block[B2] - Block
+                        Predecessors: [B1]
+                        Statements (1)
+                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l1')
+                              Value:
+                                IParameterReferenceOperation: l1 (OperationKind.ParameterReference, Type: System.Threading.Lock) (Syntax: 'l1')
+                        Next (Regular) Block[B4]
+                            Entering: {R2}
+                    Block[B3] - Block
+                        Predecessors: [B1]
+                        Statements (1)
+                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l2')
+                              Value:
+                                IParameterReferenceOperation: l2 (OperationKind.ParameterReference, Type: System.Threading.Lock) (Syntax: 'l2')
+                        Next (Regular) Block[B4]
+                            Entering: {R2}
                     .locals {R2}
                     {
-                        CaptureIds: [0]
-                        Block[B1] - Block
-                            Predecessors: [B0]
-                            Statements (0)
-                            Jump if False (Regular) to Block[B3]
-                                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
-                            Next (Regular) Block[B2]
-                        Block[B2] - Block
-                            Predecessors: [B1]
-                            Statements (1)
-                                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l1')
-                                  Value:
-                                    IParameterReferenceOperation: l1 (OperationKind.ParameterReference, Type: System.Threading.Lock) (Syntax: 'l1')
-                            Next (Regular) Block[B4]
-                        Block[B3] - Block
-                            Predecessors: [B1]
-                            Statements (1)
-                                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l2')
-                                  Value:
-                                    IParameterReferenceOperation: l2 (OperationKind.ParameterReference, Type: System.Threading.Lock) (Syntax: 'l2')
-                            Next (Regular) Block[B4]
+                        CaptureIds: [1]
                         Block[B4] - Block
                             Predecessors: [B2] [B3]
                             Statements (1)
@@ -1449,28 +1451,27 @@ Block[B6] - Exit
                                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock, IsImplicit) (Syntax: 'b ? l1 : l2')
                                       Arguments(0)
                             Next (Regular) Block[B5]
-                                Leaving: {R2}
                                 Entering: {R3} {R4}
-                    }
-                    .try {R3, R4}
-                    {
-                        Block[B5] - Block
-                            Predecessors: [B4]
-                            Statements (0)
-                            Next (Regular) Block[B7]
-                                Finalizing: {R5}
-                                Leaving: {R4} {R3} {R1}
-                    }
-                    .finally {R5}
-                    {
-                        Block[B6] - Block
-                            Predecessors (0)
-                            Statements (1)
-                                IInvocationOperation ( void System.Threading.Lock.Scope.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'b ? l1 : l2')
-                                  Instance Receiver:
-                                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'b ? l1 : l2')
-                                  Arguments(0)
-                            Next (StructuredExceptionHandling) Block[null]
+                        .try {R3, R4}
+                        {
+                            Block[B5] - Block
+                                Predecessors: [B4]
+                                Statements (0)
+                                Next (Regular) Block[B7]
+                                    Finalizing: {R5}
+                                    Leaving: {R4} {R3} {R2} {R1}
+                        }
+                        .finally {R5}
+                        {
+                            Block[B6] - Block
+                                Predecessors (0)
+                                Statements (1)
+                                    IInvocationOperation ( void System.Threading.Lock.Scope.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'b ? l1 : l2')
+                                      Instance Receiver:
+                                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'b ? l1 : l2')
+                                      Arguments(0)
+                                Next (StructuredExceptionHandling) Block[null]
+                        }
                     }
                 }
                 Block[B7] - Exit
@@ -1638,44 +1639,46 @@ Block[B6] - Exit
                 Block[B0] - Entry
                     Statements (0)
                     Next (Regular) Block[B1]
-                        Entering: {R1} {R2} {R3}
+                        Entering: {R1} {R2}
                 .locals {R1}
                 {
-                    CaptureIds: [2]
+                    CaptureIds: [1]
                     .locals {R2}
                     {
-                        CaptureIds: [1]
-                        .locals {R3}
-                        {
-                            CaptureIds: [0]
-                            Block[B1] - Block
-                                Predecessors: [B0]
-                                Statements (1)
-                                    IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l1')
-                                      Value:
-                                        IParameterReferenceOperation: l1 (OperationKind.ParameterReference, Type: System.Threading.Lock) (Syntax: 'l1')
-                                Jump if True (Regular) to Block[B3]
-                                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'l1')
-                                      Operand:
-                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l1')
-                                    Leaving: {R3}
-                                Next (Regular) Block[B2]
-                            Block[B2] - Block
-                                Predecessors: [B1]
-                                Statements (1)
-                                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l1')
-                                      Value:
-                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l1')
-                                Next (Regular) Block[B4]
-                                    Leaving: {R3}
-                        }
-                        Block[B3] - Block
+                        CaptureIds: [0]
+                        Block[B1] - Block
+                            Predecessors: [B0]
+                            Statements (1)
+                                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l1')
+                                  Value:
+                                    IParameterReferenceOperation: l1 (OperationKind.ParameterReference, Type: System.Threading.Lock) (Syntax: 'l1')
+                            Jump if True (Regular) to Block[B3]
+                                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'l1')
+                                  Operand:
+                                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l1')
+                                Leaving: {R2}
+                            Next (Regular) Block[B2]
+                        Block[B2] - Block
                             Predecessors: [B1]
                             Statements (1)
-                                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l2')
+                                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l1')
                                   Value:
-                                    IParameterReferenceOperation: l2 (OperationKind.ParameterReference, Type: System.Threading.Lock) (Syntax: 'l2')
+                                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l1')
                             Next (Regular) Block[B4]
+                                Leaving: {R2}
+                                Entering: {R3}
+                    }
+                    Block[B3] - Block
+                        Predecessors: [B1]
+                        Statements (1)
+                            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l2')
+                              Value:
+                                IParameterReferenceOperation: l2 (OperationKind.ParameterReference, Type: System.Threading.Lock) (Syntax: 'l2')
+                        Next (Regular) Block[B4]
+                            Entering: {R3}
+                    .locals {R3}
+                    {
+                        CaptureIds: [2]
                         Block[B4] - Block
                             Predecessors: [B2] [B3]
                             Statements (1)
@@ -1686,28 +1689,27 @@ Block[B6] - Exit
                                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l1 ?? l2')
                                       Arguments(0)
                             Next (Regular) Block[B5]
-                                Leaving: {R2}
                                 Entering: {R4} {R5}
-                    }
-                    .try {R4, R5}
-                    {
-                        Block[B5] - Block
-                            Predecessors: [B4]
-                            Statements (0)
-                            Next (Regular) Block[B7]
-                                Finalizing: {R6}
-                                Leaving: {R5} {R4} {R1}
-                    }
-                    .finally {R6}
-                    {
-                        Block[B6] - Block
-                            Predecessors (0)
-                            Statements (1)
-                                IInvocationOperation ( void System.Threading.Lock.Scope.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'l1 ?? l2')
-                                  Instance Receiver:
-                                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l1 ?? l2')
-                                  Arguments(0)
-                            Next (StructuredExceptionHandling) Block[null]
+                        .try {R4, R5}
+                        {
+                            Block[B5] - Block
+                                Predecessors: [B4]
+                                Statements (0)
+                                Next (Regular) Block[B7]
+                                    Finalizing: {R6}
+                                    Leaving: {R5} {R4} {R3} {R1}
+                        }
+                        .finally {R6}
+                        {
+                            Block[B6] - Block
+                                Predecessors (0)
+                                Statements (1)
+                                    IInvocationOperation ( void System.Threading.Lock.Scope.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'l1 ?? l2')
+                                      Instance Receiver:
+                                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l1 ?? l2')
+                                      Arguments(0)
+                                Next (StructuredExceptionHandling) Block[null]
+                        }
                     }
                 }
                 Block[B7] - Exit
@@ -1889,13 +1891,10 @@ Block[B6] - Exit
                             Statements (1)
                                 IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
                                   Value:
-                                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'l')
-                                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                        (NoConversion)
-                                      Operand:
-                                        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
-                                          Children(1):
-                                              ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
+                                    IInvocationOperation ( System.Threading.Lock.Scope System.Threading.Lock.EnterLockScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsInvalid, IsImplicit) (Syntax: 'l')
+                                      Instance Receiver:
+                                        ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
+                                      Arguments(0)
                             Next (Regular) Block[B3]
                                 Entering: {R3} {R4}
                         .try {R3, R4}
@@ -1903,7 +1902,7 @@ Block[B6] - Exit
                             Block[B3] - Block
                                 Predecessors: [B2]
                                 Statements (0)
-                                Next (Regular) Block[B7]
+                                Next (Regular) Block[B5]
                                     Finalizing: {R5}
                                     Leaving: {R4} {R3} {R2} {R1}
                         }
@@ -1911,28 +1910,20 @@ Block[B6] - Exit
                         {
                             Block[B4] - Block
                                 Predecessors (0)
-                                Statements (0)
-                                Jump if True (Regular) to Block[B6]
-                                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'l')
-                                      Operand:
-                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'l')
-                                Next (Regular) Block[B5]
-                            Block[B5] - Block
-                                Predecessors: [B4]
                                 Statements (1)
                                     IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'l')
                                       Instance Receiver:
-                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'l')
+                                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'l')
+                                          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                            (NoConversion)
+                                          Operand:
+                                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock.Scope, IsInvalid, IsImplicit) (Syntax: 'l')
                                       Arguments(0)
-                                Next (Regular) Block[B6]
-                            Block[B6] - Block
-                                Predecessors: [B4] [B5]
-                                Statements (0)
                                 Next (StructuredExceptionHandling) Block[null]
                         }
                     }
                 }
-                Block[B7] - Exit
+                Block[B5] - Exit
                     Predecessors: [B3]
                     Statements (0)
                 """;

@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLockStatement(_syntax, expr, stmt, hasErrors);
         }
 
+        // Keep consistent with ISymbolExtensions.TryFindLockTypeInfo.
         internal static LockTypeInfo? TryFindLockTypeInfo(TypeSymbol lockType, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
             const string LockTypeFullName = "System.Threading.Lock";
@@ -114,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
         }
 
+        // Keep consistent with ISymbolExtensions.TryFindPublicVoidParameterlessMethod.
         private static MethodSymbol? TryFindPublicVoidParameterlessMethod(TypeSymbol type, string name)
         {
             var members = type.GetMembers(name);

@@ -2052,44 +2052,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundLockStatement.Syntax;
             bool isImplicit = boundLockStatement.WasCompilerGenerated;
 
-            return new LockOperation(lockedValue, body, lockTakenSymbol, _semanticModel, syntax, isImplicit)
-            {
-                LockTypeInfo = getLockTypeInfo(),
-            };
-
-            (IOperation EnterLockScope, IMethodSymbol? DisposeMethod)? getLockTypeInfo()
-            {
-                if (boundLockStatement.Argument is { Type: { } argType, Syntax: SyntaxNode argSyntax } argExpression &&
-                    argType.IsWellKnownTypeLock())
-                {
-                    if (LockBinder.TryFindLockTypeInfo(argType, CSharp.BindingDiagnosticBag.Discarded, argSyntax) is { } lockTypeInfo)
-                    {
-                        return new()
-                        {
-                            EnterLockScope = CreateBoundCallOperation(BoundCall.Synthesized(
-                                argSyntax,
-                                argExpression,
-                                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
-                                lockTypeInfo.EnterLockScopeMethod)),
-                            DisposeMethod = lockTypeInfo.ScopeDisposeMethod.GetPublicSymbol()
-                        };
-                    }
-
-                    return new()
-                    {
-                        EnterLockScope = new InvalidOperation(
-                            ImmutableArray.Create(Create(argExpression)),
-                            _semanticModel,
-                            argSyntax,
-                            type: null,
-                            constantValue: null,
-                            isImplicit: true),
-                        DisposeMethod = null
-                    };
-                }
-
-                return null;
-            }
+            return new LockOperation(lockedValue, body, lockTakenSymbol, _semanticModel, syntax, isImplicit);
         }
 
         private IInvalidOperation CreateBoundBadStatementOperation(BoundBadStatement boundBadStatement)
