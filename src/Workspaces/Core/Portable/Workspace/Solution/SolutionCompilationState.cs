@@ -1017,7 +1017,7 @@ internal sealed partial class SolutionCompilationState
         var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
 
-        foreach (var (projectId, projectState) in this.SolutionState.ProjectStates)
+        foreach (var projectId in this.SolutionState.ProjectIds)
         {
             // if we don't have one or it is stale, create a new partial solution
             var tracker = GetCompilationTracker(projectId);
