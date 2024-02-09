@@ -937,14 +937,22 @@ namespace Microsoft.CodeAnalysis
                 {
                     ValidateCompilationTreesMatchesProjectState(finalState.FinalCompilationWithGeneratedDocuments, ProjectState, finalState.GeneratorInfo);
                 }
-                else if (state is InProgressState { PendingTranslationSteps.Count: > 0 } inProgressState)
+                else if (state is InProgressState inProgressState)
                 {
-                    ValidateCompilationTreesMatchesProjectState(inProgressState.CompilationWithoutGeneratedDocuments, inProgressState.PendingTranslationSteps[0].oldState, generatorInfo: null);
+                    var projectState = inProgressState.PendingTranslationSteps is [(var oldState, _), ..]
+                        ? oldState
+                        : this.ProjectState;
+
+                    ValidateCompilationTreesMatchesProjectState(inProgressState.CompilationWithoutGeneratedDocuments, projectState, generatorInfo: null);
 
                     if (inProgressState.StaleCompilationWithGeneratedDocuments != null)
                     {
-                        ValidateCompilationTreesMatchesProjectState(inProgressState.StaleCompilationWithGeneratedDocuments, inProgressState.PendingTranslationSteps[0].oldState, inProgressState.GeneratorInfo);
+                        ValidateCompilationTreesMatchesProjectState(inProgressState.StaleCompilationWithGeneratedDocuments, projectState, inProgressState.GeneratorInfo);
                     }
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(state.GetType())
                 }
             }
 
