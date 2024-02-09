@@ -330,7 +330,7 @@ internal static class ConvertToRecordEngine
 
         return solutionEditor.GetChangedSolution();
 
-        (ConstructorDeclarationSyntax constructor, ImmutableArray<IPropertySymbol> propertiesToAssign) TryFindPrimaryConstructor()
+        (ConstructorDeclarationSyntax? constructor, ImmutableArray<IPropertySymbol> propertiesToAssign) TryFindPrimaryConstructor()
         {
             var propertiesToAssign = positionalParameterInfos.SelectAsArray(info => info.Symbol);
             var orderedPropertyTypesToAssign = propertiesToAssign.SelectAsArray(s => s.Type).OrderBy(type => type.Name);
@@ -368,7 +368,7 @@ internal static class ConvertToRecordEngine
                 return (constructor, orderedPropertiesToAssign);
             }
 
-            return default;
+            return (null, propertiesToAssign);
         }
     }
 
