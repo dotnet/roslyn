@@ -240,7 +240,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             var projectInstance = project.CreateProjectInstance();
 
             // Verify targets
-            var targets = new List<string>();
             foreach (var target in requiredTargets)
             {
                 if (!projectInstance.Targets.ContainsKey(target))
@@ -248,9 +247,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                     log.Add(string.Format(WorkspaceMSBuildBuildHostResources.Project_does_not_contain_0_target, target), projectInstance.FullPath);
                     return projectInstance;
                 }
-                targets.Add(target);
             }
 
+            var targets = new List<string>(requiredTargets);
             foreach (var target in optionalTargets)
             {
                 if (projectInstance.Targets.ContainsKey(target))

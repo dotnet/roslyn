@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
     public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
     {
+        private static readonly string s_globalJsonPath;
+
         // The Maui templates require additional dotnet workloads to be installed.
         // Running `dotnet workload restore` will install workloads but may require
         // admin permissions. In addition a restart may be required after workload
@@ -25,6 +27,23 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         private const bool ExcludeMauiTemplates = true;
 
         protected ITestOutputHelper TestOutputHelper { get; set; }
+
+        static NewlyCreatedProjectsFromDotNetNew()
+        {
+            // We'll use the same global.json as we use for our own build.
+            s_globalJsonPath = Path.Combine(GetSolutionFolder(), "global.json");
+
+            static string GetSolutionFolder()
+            {
+                // Expected assembly path:
+                //  <solutionFolder>\artifacts\bin\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests\<Configuration>\<TFM>\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll
+                var assemblyLocation = typeof(DotNetSdkMSBuildInstalled).Assembly.Location;
+                var solutionFolder = Directory.GetParent(assemblyLocation)
+                    ?.Parent?.Parent?.Parent?.Parent?.Parent?.FullName;
+                Assumes.NotNull(solutionFolder);
+                return solutionFolder;
+            }
+        }
 
         public NewlyCreatedProjectsFromDotNetNew(ITestOutputHelper output)
         {
@@ -117,28 +136,28 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 TestOutputHelper.WriteLine($"Ignoring compiler diagnostics: \"{string.Join("\", \"", ignoredDiagnostics)}\"");
             }
 
-            var projectPath = SolutionDirectory.Path;
-            var projectFilePath = GetProjectFilePath(projectPath, languageName);
+            var projectDirectory = SolutionDirectory.Path;
+            var projectFilePath = GetProjectFilePath(projectDirectory, languageName);
 
-            CreateNewProject(templateName, projectPath, languageName, TestOutputHelper);
+            CreateNewProject(templateName, projectDirectory, languageName, TestOutputHelper);
 
             await AssertProjectLoadsCleanlyAsync(projectFilePath, ignoredDiagnostics ?? []);
 
             return;
 
-            static string GetProjectFilePath(string projectPath, string languageName)
+            static string GetProjectFilePath(string projectDirectory, string languageName)
             {
-                var projectName = new DirectoryInfo(projectPath).Name;
+                var projectName = new DirectoryInfo(projectDirectory).Name;
                 var projectExtension = languageName switch
                 {
                     LanguageNames.CSharp => "csproj",
                     LanguageNames.VisualBasic => "vbproj",
                     _ => throw new ArgumentOutOfRangeException(nameof(languageName), actualValue: languageName, message: "Only C# and VB.NET projects are supported.")
                 };
-                return Path.Combine(projectPath, $"{projectName}.{projectExtension}");
+                return Path.Combine(projectDirectory, $"{projectName}.{projectExtension}");
             }
 
-            static void CreateNewProject(string templateName, string outputPath, string languageName, ITestOutputHelper output)
+            static void CreateNewProject(string templateName, string outputDirectory, string languageName, ITestOutputHelper output)
             {
                 var language = languageName switch
                 {
@@ -147,23 +166,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                     _ => throw new ArgumentOutOfRangeException(nameof(languageName), actualValue: languageName, message: "Only C# and VB.NET projects are supported.")
                 };
 
-                var newResult = RunDotNet($"new \"{templateName}\" -o \"{outputPath}\" --language \"{language}\"", output);
+                var tempGlobalJsonPath = Path.Combine(outputDirectory, "global.json");
+                File.Copy(s_globalJsonPath, tempGlobalJsonPath);
 
-                if (DotNetSdkLocator.SdkVersion is not null)
-                {
-                    // When SdkVersion is populated we know that we located our dotnet CLI via a global.json.
-                    // We need to write a global.json to the ouput directory to ensure that the project will
-                    // be loaded with the same SDK.
-                    var globalJsonPath = Path.Combine(outputPath, "global.json");
-                    File.WriteAllText(globalJsonPath, $$"""
-                        {
-                            "sdk": {
-                                "version": "{{DotNetSdkLocator.SdkVersion}}"
-                            }
-                        }
-                        """);
-                    output.WriteLine($"Wrote global.json to pin the project to the {DotNetSdkLocator.SdkVersion} SDK.");
-                }
+                var newResult = RunDotNet($"new \"{templateName}\" -o \"{outputDirectory}\" --language \"{language}\"", output, outputDirectory);
 
                 // Most templates invoke restore as a post-creation action. However, some, like the
                 // Maui templates, do not run restore since they require additional workloads to be
@@ -176,7 +182,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 try
                 {
                     // Attempt a restore and see if we are instructed to install additional workloads.
-                    var restoreResult = RunDotNet($"restore", output, workingDirectory: outputPath);
+                    var restoreResult = RunDotNet($"restore", output, outputDirectory);
                 }
                 catch (InvalidOperationException ex) when (ex.Message.Contains("command: dotnet workload restore"))
                 {
@@ -191,8 +197,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
                 AssertEx.Empty(workspace.Diagnostics, $"The following workspace diagnostics are being reported for the template.");
 
-                var compilation = await project.GetCompilationAsync();
-                Assert.NotNull(compilation);
+                var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
 
                 // Unnecessary using directives are reported with a severity of Hidden
                 var nonHiddenDiagnostics = compilation!.GetDiagnostics()
@@ -219,12 +224,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         {
             var dotNetExeName = "dotnet" + (Path.DirectorySeparatorChar == '/' ? "" : ".exe");
 
-            // If the Sdk wasn't discovered, then attempt to use the system install of dotnet.
-            var fileName = DotNetSdkLocator.SdkPath is not null
-                ? Path.Combine(DotNetSdkLocator.SdkPath!, dotNetExeName)
-                : dotNetExeName;
-
-            var result = ProcessUtilities.Run(fileName, arguments, workingDirectory, additionalEnvironmentVars: [new KeyValuePair<string, string>("DOTNET_CLI_UI_LANGUAGE", "en")]);
+            var result = ProcessUtilities.Run(dotNetExeName, arguments, workingDirectory, additionalEnvironmentVars: [new KeyValuePair<string, string>("DOTNET_CLI_UI_LANGUAGE", "en")]);
 
             if (result.ExitCode != 0)
             {
