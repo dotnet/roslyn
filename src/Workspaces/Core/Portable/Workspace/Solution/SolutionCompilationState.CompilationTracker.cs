@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     ValidateCompilationTreesMatchesProjectState(finalState.FinalCompilationWithGeneratedDocuments, ProjectState, finalState.GeneratorInfo);
                 }
-                else if (state is InProgressState inProgressState)
+                else if (state is InProgressState { IntermediateProjects.Count: > 0 } inProgressState)
                 {
                     ValidateCompilationTreesMatchesProjectState(inProgressState.CompilationWithoutGeneratedDocuments, inProgressState.IntermediateProjects[0].oldState, generatorInfo: null);
 
