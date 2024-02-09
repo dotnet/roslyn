@@ -1066,7 +1066,6 @@ internal sealed partial class SolutionCompilationState
                     async cancellationToken =>
                     {
                         // Keep in sync with the function below.
-
                         var (unifiedState, relatedDocumentIds) = UnifyLinkedDocuments(this, documentId, cancellationToken);
 
                         using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(relatedDocumentIds.Length, out var statesAndTrees);
@@ -1077,7 +1076,6 @@ internal sealed partial class SolutionCompilationState
                     cancellationToken =>
                     {
                         // Keep in sync with the function above.
-
                         var (unifiedState, relatedDocumentIds) = UnifyLinkedDocuments(this, documentId, cancellationToken);
 
                         using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(relatedDocumentIds.Length, out var statesAndTrees);
