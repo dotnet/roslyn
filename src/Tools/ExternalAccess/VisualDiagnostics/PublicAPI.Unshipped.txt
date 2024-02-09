@@ -1,6 +1,13 @@
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IVisualDiagnosticsLanguageService
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IVisualDiagnosticsLanguageService.CreateDiagnosticsSessionAsync(System.Guid processId) -> System.Threading.Tasks.Task
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IVisualDiagnosticsLanguageService.InitializeAsync() -> System.Threading.Tasks.Task
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IVisualDiagnosticsLanguageService.StopDiagnosticsSessionAsync(System.Guid processId) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IVisualDiagnosticsLanguageService.InitializeAsync(Microsoft.ServiceHub.Framework.IServiceBroker serviceBroker, System.Threading.CancellationToken token) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IVisualDiagnosticsLanguageService.StartDebuggingSessionAsync(Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.ProcessInfo info, System.Threading.CancellationToken token) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IVisualDiagnosticsLanguageService.StopDebuggingSessionAsync(Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.ProcessInfo info, System.Threading.CancellationToken token) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.ProcessInfo
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.ProcessInfo.LocalProcessId.get -> uint?
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.ProcessInfo.Path.get -> string
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.ProcessInfo.ProcessId.get -> System.Guid
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.ProcessInfo.ProcessInfo() -> void
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.ProcessInfo.ProcessInfo(System.Guid processId, uint? localProcessId, string path) -> void
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.IBrokeredDebuggerServices
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.IBrokeredDebuggerServices.HotReloadSessionNotificationService.get -> System.Threading.Tasks.ValueTask<Microsoft.VisualStudio.Debugger.Contracts.HotReload.IHotReloadSessionNotificationService>
+override Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.ProcessInfo.ToString() -> string

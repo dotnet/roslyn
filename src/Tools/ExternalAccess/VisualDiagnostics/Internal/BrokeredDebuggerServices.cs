@@ -50,6 +50,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal
             _serviceBroker = serviceBroker;
         }
 
+        public Task<IServiceBroker> ServiceBrokerAsync()
+        {
+            return Task.FromResult<IServiceBroker>(_serviceBroker);
+        }
+
         public async Task<IHotReloadSessionNotificationService?> HotReloadSessionNotificationServiceAsync()
         {
             if (_hotReloadSessionNotificationService == null)

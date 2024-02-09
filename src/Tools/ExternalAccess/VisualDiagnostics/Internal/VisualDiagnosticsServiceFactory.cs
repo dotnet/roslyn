@@ -3,16 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
-using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.ServiceHub.Framework;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -41,14 +42,17 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
         return new OnInitializedService(lspServices, lspWorkspaceManager, _lspWorkspaceRegistrationService, _brokeredDebuggerServices);
     }
 
-    private class OnInitializedService : ILspService, IOnInitialized, IDisposable
+    private class OnInitializedService : ILspService, IOnInitialized, IObserver<HotReloadNotificationType>, IDisposable
     {
         private readonly LspServices _lspServices;
         private readonly LspWorkspaceManager _lspWorkspaceManager;
         private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
         private readonly Lazy<IBrokeredDebuggerServices> _brokeredDebuggerServices;
-        private System.Timers.Timer _timer;
-
+        private readonly Dictionary<Workspace, IVisualDiagnosticsLanguageService> _visualDiagnosticsLanguageServiceRegistar;
+        private readonly System.Timers.Timer _timer;
+        private List<ProcessInfo> _debugProcesses;
+        private CancellationToken _cancellationToken;
+        private IDisposable? _adviseHotReloadSessionNotificationService;
 
         public OnInitializedService(LspServices lspServices, LspWorkspaceManager lspWorkspaceManager, LspWorkspaceRegistrationService lspWorkspaceRegistrationService, Lazy<IBrokeredDebuggerServices> brokeredDebuggerServices)
         {
@@ -58,84 +62,131 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
             _brokeredDebuggerServices = brokeredDebuggerServices;
             _timer = new System.Timers.Timer();
             _timer.Interval = 1000;
-            _timer.Elapsed += _timer_Elapsed;
+            _timer.Elapsed += Timer_Elapsed;
+            _visualDiagnosticsLanguageServiceRegistar = new();
+            _debugProcesses = new List<ProcessInfo>();
         }
 
-        private async void _timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private async void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            IManagedHotReloadService? manageHotReloadService = await _brokeredDebuggerServices.Value.ManagedHotReloadServiceAsync().ConfigureAwait(false);
-            if (manageHotReloadService != null)
-            {
-                Debug.WriteLine("IManagedHotReloadService Broker Proxy Available");
-            }
-            else
-            {
-                Debug.WriteLine("IManagedHotReloadService Broker Proxy Not Yet Available");
-            }
-
+            // Let
             IHotReloadSessionNotificationService? hotReloadSessionNotificationService = await _brokeredDebuggerServices.Value.HotReloadSessionNotificationServiceAsync().ConfigureAwait(false);
             if (hotReloadSessionNotificationService != null)
             {
-                Debug.WriteLine("hotReloadSessionNotificationService Broker Proxy Available");
-            }
-            else
-            {
-                Debug.WriteLine("hotReloadSessionNotificationService Broker Proxy Not Yet Available");
+                this._timer.Stop();
+                _ = InitializeHotReloadSessionNotificationServiceAsync(hotReloadSessionNotificationService);
             }
         }
 
         public void Dispose()
         {
-            if (_lspWorkspaceManager != null)
-            {
-                _lspWorkspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;
-            }
+            _adviseHotReloadSessionNotificationService?.Dispose();
+            (_brokeredDebuggerServices as IDisposable)?.Dispose();
         }
 
         public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
-            // _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
+            _cancellationToken = cancellationToken;
+            // Start the timer because the broker service may not be initialize immediately, wait a couple millisec to get the debugger service
             _timer.Start();
             return Task.CompletedTask;
         }
 
-        private async void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
+        public void OnCompleted()
         {
-            if (e.DocumentId is not null && e.Kind is WorkspaceChangeKind.DocumentChanged)
+        }
+
+        public void OnError(Exception error)
+        {
+        }
+
+        public void OnNext(HotReloadNotificationType value)
+        {
+            _ = HandleNotificationAsync(value);
+        }
+
+        private async Task HandleNotificationAsync(HotReloadNotificationType value)
+        {
+            IHotReloadSessionNotificationService? notificationService = await _brokeredDebuggerServices.Value.HotReloadSessionNotificationServiceAsync().ConfigureAwait(false);
+            if (notificationService != null)
             {
-                IHotReloadSessionNotificationService? notificationService = await _brokeredDebuggerServices.Value.HotReloadSessionNotificationServiceAsync().ConfigureAwait(false);
-                if (notificationService != null)
+                HotReloadSessionInfo info = await notificationService.FetchHotReloadSessionInfoAsync(_cancellationToken).ConfigureAwait(false);
+                switch (value)
                 {
-                    CancellationToken token = new CancellationToken();
-                    HotReloadSessionInfo info = await notificationService.FetchHotReloadSessionInfoAsync(token).ConfigureAwait(false);
-                }
-
-                IManagedHotReloadAgentManagerService? managedHotReloadAgentManagerService = await _brokeredDebuggerServices.Value.ManagedHotReloadAgentManagerServiceAsync().ConfigureAwait(false);
-                if(managedHotReloadAgentManagerService != null)
-                {
-                    CancellationToken token = new CancellationToken();
-                }
-
-                IManagedHotReloadService? manageHotReloadService = await _brokeredDebuggerServices.Value.ManagedHotReloadServiceAsync().ConfigureAwait(false);
-                if (manageHotReloadService != null)
-                {
-                    CancellationToken token = new CancellationToken();
-                }
-
-
-                Workspace workspace = this._lspWorkspaceRegistrationService.GetAllRegistrations().Where(w => w.Kind == WorkspaceKind.Host).FirstOrDefault();
-                if (workspace != null)
-                {
-                    IVisualDiagnosticsLanguageService? visualDiagnosticsLanguageService = workspace.Services.GetService<IVisualDiagnosticsLanguageService>();
-                    visualDiagnosticsLanguageService?.InitializeAsync();
-                    visualDiagnosticsLanguageService?.CreateDiagnosticsSessionAsync(Guid.NewGuid());
+                    case HotReloadNotificationType.Started:
+                        await StartVisualDiagnosticsAsync(info).ConfigureAwait(false);
+                        break;
+                    case HotReloadNotificationType.Ended:
+                        await StopVisualDiagnosticsAsync(info).ConfigureAwait(false);
+                        break;
                 }
             }
         }
 
-        private Task InitializeHotReloadSessionNotificationService()
+        private async Task InitializeHotReloadSessionNotificationServiceAsync(IHotReloadSessionNotificationService hotReloadSessionNotificationService)
         {
-            return Task.CompletedTask;
+            // Subscribe to the hotReload SessionNotification Service  
+            _adviseHotReloadSessionNotificationService = await hotReloadSessionNotificationService.SubscribeAsync(this, _cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task StartVisualDiagnosticsAsync(HotReloadSessionInfo info)
+        {
+            foreach (ManagedEditAndContinueProcessInfo processInfo in info.Processes)
+            {
+                ProcessInfo diagnosticsProcessInfo = new(processInfo.ProcessId, processInfo.LocalProcessId, processInfo.PathToTargetAssembly);
+                IVisualDiagnosticsLanguageService? visualDiagnosticsLanguageService = await EnsureVisualDiagnosticsLanguageServiceAsync(diagnosticsProcessInfo).ConfigureAwait(false);
+                if (visualDiagnosticsLanguageService != null)
+                {
+                    visualDiagnosticsLanguageService?.StartDebuggingSessionAsync(diagnosticsProcessInfo, _cancellationToken);
+                    _debugProcesses.Add(diagnosticsProcessInfo);
+                }
+            }
+        }
+
+        private async Task StopVisualDiagnosticsAsync(HotReloadSessionInfo info)
+        {
+            // Info is the new list, so if process is in new list, no need to call StopDebugSessionAsync
+            foreach (ProcessInfo trackedDebuggedProcess in _debugProcesses)
+            {
+                if (!info.Processes.Any(item => item.ProcessId == trackedDebuggedProcess.ProcessId))
+                {
+                    IVisualDiagnosticsLanguageService? visualDiagnosticsLanguageService = await EnsureVisualDiagnosticsLanguageServiceAsync(trackedDebuggedProcess).ConfigureAwait(false);
+                    visualDiagnosticsLanguageService?.StopDebuggingSessionAsync(trackedDebuggedProcess, _cancellationToken);
+                }
+            }
+            // Save the new list. 
+            _debugProcesses = info.Processes.Select(_debugProcesses => new ProcessInfo(_debugProcesses.ProcessId, _debugProcesses.LocalProcessId, _debugProcesses.PathToTargetAssembly)).ToList();
+        }
+
+        private async Task<IVisualDiagnosticsLanguageService?> EnsureVisualDiagnosticsLanguageServiceAsync(ProcessInfo processInfo)
+        {
+            // TODO: Get the right workspace given the processInfo
+            Workspace workspace = ProcessInfoToWorkspace(processInfo);
+            if (workspace != null)
+            {
+                IVisualDiagnosticsLanguageService? visualDiagnosticsLanguageService = null;
+                if (!_visualDiagnosticsLanguageServiceRegistar.TryGetValue(workspace, out visualDiagnosticsLanguageService))
+                {
+                    visualDiagnosticsLanguageService = workspace.Services.GetService<IVisualDiagnosticsLanguageService>();
+                    IServiceBroker? serviceProvider = await _brokeredDebuggerServices.Value.ServiceBrokerAsync().ConfigureAwait(false);
+                    visualDiagnosticsLanguageService?.InitializeAsync(serviceProvider, _cancellationToken).ConfigureAwait(false);
+                    if (visualDiagnosticsLanguageService != null)
+                    {
+                        _visualDiagnosticsLanguageServiceRegistar.Add(workspace, visualDiagnosticsLanguageService);
+                    }
+                }
+                // Could be null of we can't get the service
+                return visualDiagnosticsLanguageService;
+            }
+
+            return null;
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Need to determine if multiple workspace exists in LSP server")]
+        private Workspace ProcessInfoToWorkspace(ProcessInfo processInfo)
+        {
+            // Review: Does LSP supports more than one host workspace for a given process? For a given process name with path, should we retrieve the proper Workspace or it's always the host Workspace below?
+            return this._lspWorkspaceRegistrationService.GetAllRegistrations().Where(w => w.Kind == WorkspaceKind.Host).FirstOrDefault();
         }
     }
 }

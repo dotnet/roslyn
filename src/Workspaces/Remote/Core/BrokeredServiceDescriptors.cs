@@ -71,6 +71,8 @@ internal static class BrokeredServiceDescriptors
     public static readonly ServiceRpcDescriptor SolutionSnapshotProvider = CreateClientServiceDescriptor("SolutionSnapshotProvider", new Version(0, 1));
     public static readonly ServiceRpcDescriptor DebuggerManagedHotReloadService = CreateDebuggerServiceDescriptor("ManagedHotReloadService", new Version(0, 1));
     public static readonly ServiceRpcDescriptor HotReloadLoggerService = CreateDebuggerServiceDescriptor("HotReloadLogger", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor HotReloadSessionNotificationService = CreateDebuggerServiceDescriptor("HotReloadSessionNotificationService", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor ManagedHotReloadAgentManagerService = CreateDebuggerServiceDescriptor("ManagedHotReloadAgentManagerService", new Version(0, 1));
 
     public static ServiceMoniker CreateMoniker(string namespaceName, string componentName, string serviceName, Version? version)
         => new(namespaceName + "." + componentName + "." + serviceName, version);

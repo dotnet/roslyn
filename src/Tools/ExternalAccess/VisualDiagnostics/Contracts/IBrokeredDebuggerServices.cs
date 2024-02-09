@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts
 {
     internal interface IBrokeredDebuggerServices
     {
+        Task<IServiceBroker> ServiceBrokerAsync();
         Task<IHotReloadSessionNotificationService?> HotReloadSessionNotificationServiceAsync();
         Task<IManagedHotReloadAgentManagerService?> ManagedHotReloadAgentManagerServiceAsync();
 
