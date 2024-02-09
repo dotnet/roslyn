@@ -137,62 +137,58 @@ namespace Microsoft.CodeAnalysis
                     if (state is null)
                         return null;
 
-                    // Determine the old/stale compilation to help seed the non-final state with.
-                    var staleCompilationWithGeneratedDocuments = state switch
+                    if (state is FinalCompilationTrackerState finalState)
                     {
-                        FinalCompilationTrackerState finalState => finalState.FinalCompilationWithGeneratedDocuments,
-                        InProgressState inProgressState => inProgressState.StaleCompilationWithGeneratedDocuments,
-                        _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
-                    };
-
-                    var pendingTranslationSteps = UpdatePendingTranslationSteps(oldProjectState, state, translate);
-
-                    var newState = InProgressState.Create(
-                        state.IsFrozen,
-                        state.CompilationWithoutGeneratedDocuments,
-                        state.GeneratorInfo,
-                        staleCompilationWithGeneratedDocuments,
-                        pendingTranslationSteps);
-                    return newState;
-                }
-
-                static ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> UpdatePendingTranslationSteps(
-                    ProjectState oldProjectState,
-                    CompilationTrackerState state,
-                    CompilationAndGeneratorDriverTranslationAction? translate)
-                {
-                    if (state is FinalCompilationTrackerState)
-                    {
-                        return translate is null
-                            ? []
-                            : [(oldProjectState, translate)];
+                        // Roll back from the final state to an inprogress state.
+                        var newState = InProgressState.Create(
+                            finalState.IsFrozen,
+                            finalState.CompilationWithoutGeneratedDocuments,
+                            finalState.GeneratorInfo,
+                            finalState.FinalCompilationWithGeneratedDocuments,
+                            translate is null ? [] : [(oldProjectState, translate)]);
+                        return newState;
                     }
-                    else if (state is InProgressState { PendingTranslationSteps: var pendingTranslationSteps })
+                    else if (state is InProgressState inProgressState)
                     {
-                        if (translate is null)
-                            return pendingTranslationSteps;
-
-                        // We have a translation action; are we able to merge it with the prior one?
-                        if (!pendingTranslationSteps.IsEmpty)
-                        {
-                            var (priorState, priorAction) = pendingTranslationSteps.Last();
-                            var mergedTranslation = translate.TryMergeWithPrior(priorAction);
-                            if (mergedTranslation != null)
-                            {
-                                // We can replace the prior action with this new one
-                                return pendingTranslationSteps.SetItem(
-                                    pendingTranslationSteps.Count - 1,
-                                    (oldState: priorState, mergedTranslation));
-                            }
-                        }
-
-                        // Just add it to the end
-                        return pendingTranslationSteps.Add((oldProjectState, translate));
+                        var newState = InProgressState.Create(
+                            inProgressState.IsFrozen,
+                            inProgressState.CompilationWithoutGeneratedDocuments,
+                            inProgressState.GeneratorInfo,
+                            inProgressState.StaleCompilationWithGeneratedDocuments,
+                            UpdatePendingTranslationSteps(oldProjectState, inProgressState, translate));
+                        return newState;
                     }
                     else
                     {
                         throw ExceptionUtilities.UnexpectedValue(state.GetType());
                     }
+                }
+
+                static ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> UpdatePendingTranslationSteps(
+                    ProjectState oldProjectState,
+                    InProgressState state,
+                    CompilationAndGeneratorDriverTranslationAction? translate)
+                {
+                    var pendingTranslationSteps = state.PendingTranslationSteps;
+                    if (translate is null)
+                        return pendingTranslationSteps;
+
+                    // We have a translation action; are we able to merge it with the prior one?
+                    if (!pendingTranslationSteps.IsEmpty)
+                    {
+                        var (priorState, priorAction) = pendingTranslationSteps.Last();
+                        var mergedTranslation = translate.TryMergeWithPrior(priorAction);
+                        if (mergedTranslation != null)
+                        {
+                            // We can replace the prior action with this new one
+                            return pendingTranslationSteps.SetItem(
+                                pendingTranslationSteps.Count - 1,
+                                (oldState: priorState, mergedTranslation));
+                        }
+                    }
+
+                    // Just add it to the end
+                    return pendingTranslationSteps.Add((oldProjectState, translate));
                 }
             }
 
