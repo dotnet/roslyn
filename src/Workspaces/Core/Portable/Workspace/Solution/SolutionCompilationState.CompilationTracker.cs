@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis
                     compilationState, docState, tree, cancellationToken);
             }
 
-            public ICompilationTracker FreezePartialStateWorker(
+            private ICompilationTracker FreezePartialStateWorker(
                 SolutionCompilationState compilationState,
                 DocumentState? docState,
                 SyntaxTree? tree,
