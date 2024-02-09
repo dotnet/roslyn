@@ -18,25 +18,39 @@ namespace Microsoft.CodeAnalysis
         {
             /// <summary>
             /// The base type of all <see cref="CompilationTracker"/> states. The state of a <see
-            /// cref="CompilationTracker" /> starts at <see cref="NoCompilationState"/>, and then will progress through
+            /// cref="CompilationTracker" /> starts at null, and then will progress through
             /// the other states until it finally reaches <see cref="FinalState" />.
             /// </summary>
             private abstract class CompilationTrackerState
             {
-                ///// <summary>
-                ///// The base <see cref="CompilationTrackerState"/> that starts with everything empty.
-                ///// </summary>
-                //public static readonly CompilationTrackerState Empty = new NoCompilationState(
-                //    new CompilationTrackerGeneratorInfo(
-                //        documents: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
-                //        driver: null,
-                //        documentsAreFinal: false));
+                /// <summary>
+                /// The best compilation that is available that source generators have not ran on. May be an
+                /// in-progress, full declaration, a final compilation.
+                /// </summary>
+                public Compilation CompilationWithoutGeneratedDocuments { get; }
+
+                public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
+
+                protected CompilationTrackerState(Compilation compilationWithoutGeneratedDocuments, CompilationTrackerGeneratorInfo generatorInfo)
+                {
+                    CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
+                    GeneratorInfo = generatorInfo;
+
+#if DEBUG
+                    // As a sanity check, we should never see the generated trees inside of the compilation that should
+                    // not have generated trees.
+                    foreach (var generatedDocument in generatorInfo.Documents.States.Values)
+                    {
+                        Contract.ThrowIfTrue(compilationWithoutGeneratedDocuments.SyntaxTrees.Contains(generatedDocument.GetSyntaxTree(CancellationToken.None)));
+                    }
+#endif
+                }
 
                 /// <summary>
                 /// Returns a <see cref="AllSyntaxTreesParsedState"/> if <paramref name="intermediateProjects"/> is
                 /// empty, otherwise a <see cref="InProgressState"/>.
                 /// </summary>
-                public static WithCompilationTrackerState Create(
+                public static CompilationTrackerState Create(
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? compilationWithGeneratedDocuments,
@@ -54,49 +68,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// State used when we potentially have some information (like prior generated documents)
-            /// but no compilation.
-            /// </summary>
-            private sealed class NoCompilationState : CompilationTrackerState
-            {
-                public static readonly NoCompilationState Instance = new();
-
-                private NoCompilationState()
-                {
-                }
-            }
-
-            private abstract class WithCompilationTrackerState : CompilationTrackerState
-            {
-                /// <summary>
-                /// The best compilation that is available that source generators have not ran on. May be an
-                /// in-progress, full declaration, a final compilation.
-                /// </summary>
-                public Compilation CompilationWithoutGeneratedDocuments { get; }
-
-                public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
-
-                public WithCompilationTrackerState(Compilation compilationWithoutGeneratedDocuments, CompilationTrackerGeneratorInfo generatorInfo)
-                {
-                    CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
-                    GeneratorInfo = generatorInfo;
-
-#if DEBUG
-                    // As a sanity check, we should never see the generated trees inside of the compilation that should
-                    // not have generated trees.
-                    foreach (var generatedDocument in generatorInfo.Documents.States.Values)
-                    {
-                        Contract.ThrowIfTrue(compilationWithoutGeneratedDocuments.SyntaxTrees.Contains(generatedDocument.GetSyntaxTree(CancellationToken.None)));
-                    }
-#endif
-                }
-            }
-
-            /// <summary>
             /// A state where we are holding onto a previously built compilation, and have a known set of transformations
             /// that could get us to a more final state.
             /// </summary>
-            private sealed class InProgressState : WithCompilationTrackerState
+            private sealed class InProgressState : CompilationTrackerState
             {
                 /// <summary>
                 /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
@@ -135,7 +110,7 @@ namespace Microsoft.CodeAnalysis
             private sealed class AllSyntaxTreesParsedState(
                 Compilation compilationWithoutGeneratedDocuments,
                 CompilationTrackerGeneratorInfo generatorInfo,
-                Compilation? compilationWithGeneratedDocuments) : WithCompilationTrackerState(compilationWithoutGeneratedDocuments, generatorInfo)
+                Compilation? compilationWithGeneratedDocuments) : CompilationTrackerState(compilationWithoutGeneratedDocuments, generatorInfo)
             {
                 /// <summary>
                 /// The result of taking the original completed compilation that had generated documents and updating them by
@@ -156,7 +131,7 @@ namespace Microsoft.CodeAnalysis
             /// cref="Solution.GetOriginatingProject(ISymbol)"/>.  If <see cref="Compilation"/>s from other <see
             /// cref="CompilationTrackerState"/>s are passed out, then these other APIs will not function correctly.
             /// </summary>
-            private sealed class FinalState : WithCompilationTrackerState
+            private sealed class FinalState : CompilationTrackerState
             {
                 /// <summary>
                 /// Specifies whether <see cref="FinalCompilationWithGeneratedDocuments"/> and all compilations it
