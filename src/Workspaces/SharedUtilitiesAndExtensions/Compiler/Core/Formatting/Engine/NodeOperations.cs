@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public void Dispose()
         {
+            if (this == Empty)
+                return;
+
             // Intentionally don't call ClearAndFree as these pooled lists can easily exceed the threshold
             IndentBlockOperation.Clear();
             s_indentBlockOperationPool.Free(IndentBlockOperation);
