@@ -536,9 +536,8 @@ namespace Microsoft.CodeAnalysis
                         compilation = compilation.AddSyntaxTrees(trees);
 
                         // We only got here when we had no compilation state at all.  So we couldn't have gotten
-                        // here from a frozen state (as a frozen state always ensures we have a
-                        // WithCompilationTrackerState).  As such, we can safely still preserve that we're not
-                        // frozen here.
+                        // here from a frozen state (as a frozen state always ensures we have an InProgressState).
+                        // As such, we can safely still preserve that we're not frozen here.
                         var inProgressState = InProgressState.Create(
                             isFrozen: false, compilation, CompilationTrackerGeneratorInfo.Empty, staleCompilationWithGeneratedDocuments: null,
                             ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty);
