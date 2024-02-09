@@ -389,7 +389,11 @@ ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'SyncLock l' ... nd Syn
     IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'SyncLock l' ... nd SyncLock')
 ]]>.Value
 
-            Dim expectedDiagnostics = String.Empty
+            Dim expectedDiagnostics = <![CDATA[
+BC42508: A value of type 'System.Threading.Lock' in SyncLock will use likely unintended monitor-based locking. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock l'BIND:"SyncLock l"
+                 ~
+]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of SyncLockBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
@@ -518,7 +522,11 @@ Namespace System.Threading
     End Class
 End Namespace]]>.Value
 
-            Dim expectedDiagnostics = String.Empty
+            Dim expectedDiagnostics = <![CDATA[
+BC42508: A value of type 'System.Threading.Lock' in SyncLock will use likely unintended monitor-based locking. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock l
+                 ~
+]]>.Value
 
             Dim expectedFlowGraph = <![CDATA[
 Block[B0] - Entry
