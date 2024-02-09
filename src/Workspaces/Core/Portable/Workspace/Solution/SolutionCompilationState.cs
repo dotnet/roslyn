@@ -54,14 +54,15 @@ internal sealed partial class SolutionCompilationState
 
     private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
 
-    // Lock for the partial compilation state listed below.
-    private NonReentrantLock? _stateLockBackingField;
-    private NonReentrantLock StateLock => LazyInitializer.EnsureInitialized(ref _stateLockBackingField, NonReentrantLock.Factory);
+    /// <summary>
+    /// Lock for <see cref="_cachedFrozenDocumentState"/>
+    /// </summary>
+    private readonly SemaphoreSlim _cachedFrozenDocumentStateLock = new(initialCount: 1);
 
     /// <summary>
     /// Mapping of DocumentId to the frozen compilation state we produced for it the last time we were queried.
     /// </summary>
-    private readonly Dictionary<DocumentId, SolutionCompilationState> _cachedFrozenDocumentState = new();
+    private readonly Dictionary<DocumentId, AsyncLazy<SolutionCompilationState>> _cachedFrozenDocumentState = new();
 
     private AsyncLazy<SolutionCompilationState> _cachedFrozenSnapshot;
 
@@ -1057,48 +1058,66 @@ internal sealed partial class SolutionCompilationState
         if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
             return this;
 
-        var currentCompilationState = this;
-        var currentDocumentState = this.SolutionState.GetRequiredDocumentState(documentId);
+        AsyncLazy<SolutionCompilationState>? lazyState;
+        using (_cachedFrozenDocumentStateLock.DisposableWait(cancellationToken))
+        {
+            if (!_cachedFrozenDocumentState.TryGetValue(documentId, out lazyState))
+            {
+                lazyState = new AsyncLazy<SolutionCompilationState>(
+                    cancellationToken => Task.FromResult(ComputeFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken)),
+                    cancellationToken => ComputeFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken));
+                _cachedFrozenDocumentState.Add(documentId, lazyState);
+            }
+        }
 
-        // We want all linked versions of this document to also be present in the frozen solution snapshot (that way
-        // features like 'completion' can see that there are linked docs and give messages about symbols not being
-        // available in certain project contexts). We do this in a slightly hacky way for perf though. Specifically,
-        // instead of parsing *all* the sibling files (which can be expensive, especially for a file linked in many
-        // projects/tfms), we only parse this single tree.  We then use that same tree across all siblings.  That's
-        // technically inaccurate, but we can accept that as the primary purpose of 'frozen partial' is to get a
-        // snapshot *fast* that is allowed to be *inaccurate*.
-        //
-        // Note: this does mean that some *potentially* desirable feature behaviors may not be possible.  For example,
-        // because of this unification, all targets will see the user in the same parsed #if region.  That means, if the
-        // user is in a conditionally-disabled region in the primary target, they will also be in such a region in all
-        // other targets.  This would prevent such a feature from using the information from other targets (perhaps
-        // where it is not conditionally-disabled) to drive a richer experience here.  We consider that acceptable given
-        // the perf benefit.  But we could consider relaxing this in the future.
-        //
-        // Note: this is very different from the logic we have in the workspace to 'UnifyLinkedDocumentContents'. In
-        // that case, we only share trees when completely safe and accurate to do so (for example, where no
-        // directives are involved).  As that is used for the real solution snapshot, it must be correct.  The
-        // frozen-partial snapshot is different as it is a fork that is already allowed to be inaccurate for perf
-        // reasons (for example, missing trees, or missing references).
-        //
-        // The 'forceEvenIfTreesWouldDiffer' flag here allows us to share the doc contents even in the case where
-        // correctness might be violated.
-        //
-        // Note: this forking can still be expensive.  It would be nice to do this as one large fork step rather than N
-        // medium sized ones.
-        //
-        // Note: GetRelatedDocumentIds will include `documentId` as well.  But that's ok.  Calling
-        // WithDocumentContentsFrom with the current document state no-ops immediately, returning back the same
-        // compilation state instance.  So in the case where there are no linked documents, there is no cost here.  And
-        // there is no additional cost processing the initiating document in this loop.
-        var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId);
-        foreach (var siblingId in allDocumentIds)
-            currentCompilationState = currentCompilationState.WithDocumentContentsFrom(siblingId, currentDocumentState, forceEvenIfTreesWouldDiffer: true);
+        return lazyState.GetValue(cancellationToken);
 
-        return WithFrozenPartialCompilationIncludingSpecificDocumentWorker(currentCompilationState, documentId, cancellationToken);
+        SolutionCompilationState ComputeFrozenPartialCompilationIncludingSpecificDocument(
+            DocumentId documentId, CancellationToken cancellationToken)
+        {
+            var currentCompilationState = this;
+            var currentDocumentState = this.SolutionState.GetRequiredDocumentState(documentId);
+
+            // We want all linked versions of this document to also be present in the frozen solution snapshot (that way
+            // features like 'completion' can see that there are linked docs and give messages about symbols not being
+            // available in certain project contexts). We do this in a slightly hacky way for perf though. Specifically,
+            // instead of parsing *all* the sibling files (which can be expensive, especially for a file linked in many
+            // projects/tfms), we only parse this single tree.  We then use that same tree across all siblings.  That's
+            // technically inaccurate, but we can accept that as the primary purpose of 'frozen partial' is to get a
+            // snapshot *fast* that is allowed to be *inaccurate*.
+            //
+            // Note: this does mean that some *potentially* desirable feature behaviors may not be possible.  For example,
+            // because of this unification, all targets will see the user in the same parsed #if region.  That means, if the
+            // user is in a conditionally-disabled region in the primary target, they will also be in such a region in all
+            // other targets.  This would prevent such a feature from using the information from other targets (perhaps
+            // where it is not conditionally-disabled) to drive a richer experience here.  We consider that acceptable given
+            // the perf benefit.  But we could consider relaxing this in the future.
+            //
+            // Note: this is very different from the logic we have in the workspace to 'UnifyLinkedDocumentContents'. In
+            // that case, we only share trees when completely safe and accurate to do so (for example, where no
+            // directives are involved).  As that is used for the real solution snapshot, it must be correct.  The
+            // frozen-partial snapshot is different as it is a fork that is already allowed to be inaccurate for perf
+            // reasons (for example, missing trees, or missing references).
+            //
+            // The 'forceEvenIfTreesWouldDiffer' flag here allows us to share the doc contents even in the case where
+            // correctness might be violated.
+            //
+            // Note: this forking can still be expensive.  It would be nice to do this as one large fork step rather than N
+            // medium sized ones.
+            //
+            // Note: GetRelatedDocumentIds will include `documentId` as well.  But that's ok.  Calling
+            // WithDocumentContentsFrom with the current document state no-ops immediately, returning back the same
+            // compilation state instance.  So in the case where there are no linked documents, there is no cost here.  And
+            // there is no additional cost processing the initiating document in this loop.
+            var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId);
+            foreach (var siblingId in allDocumentIds)
+                currentCompilationState = currentCompilationState.WithDocumentContentsFrom(siblingId, currentDocumentState, forceEvenIfTreesWouldDiffer: true);
+
+            return ComputeFrozenPartialCompilationIncludingSpecificDocumentWorker(currentCompilationState, documentId, cancellationToken);
+        }
 
         // Intentionally static, so we only operate on @this, not `this`.
-        static SolutionCompilationState WithFrozenPartialCompilationIncludingSpecificDocumentWorker(
+        static SolutionCompilationState ComputeFrozenPartialCompilationIncludingSpecificDocumentWorker(
             SolutionCompilationState @this, DocumentId documentId, CancellationToken cancellationToken)
         {
             try
@@ -1116,16 +1135,7 @@ internal sealed partial class SolutionCompilationState
                     statesAndTrees.Add((documentState, documentState.GetSyntaxTree(cancellationToken)));
                 }
 
-                using (@this.StateLock.DisposableWait(cancellationToken))
-                {
-                    if (!@this._cachedFrozenDocumentState.TryGetValue(documentId, out var compilationState))
-                    {
-                        compilationState = ComputeFrozenPartialState(@this, statesAndTrees, cancellationToken);
-                        @this._cachedFrozenDocumentState.Add(documentId, compilationState);
-                    }
-
-                    return compilationState;
-                }
+                return ComputeFrozenPartialState(@this, statesAndTrees, cancellationToken);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
