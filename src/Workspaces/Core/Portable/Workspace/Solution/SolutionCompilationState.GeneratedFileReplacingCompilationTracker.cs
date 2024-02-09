@@ -59,9 +59,8 @@ namespace Microsoft.CodeAnalysis
 
             public ICompilationTracker FreezePartialState(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                // If we already computed generator docs, just return this as the frozen tracker.  We wouldn't need to
-                // run generators again anyways.
-                return this;
+                // Ensure the underlying tracker is totally frozen, and then ensure our replaced generated doc is present.
+                return new GeneratedFileReplacingCompilationTracker(UnderlyingTracker.FreezePartialState(compilationState, cancellationToken), replacementDocumentState);
             }
 
             public ICompilationTracker FreezePartialStateWithTree(SolutionCompilationState compilationState, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
