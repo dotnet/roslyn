@@ -35,14 +35,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private AsyncLazy<Solution> _cachedFrozenSolution;
 
-        /// <summary>
-        /// Mapping of DocumentId to the frozen solution we produced for it the last time we were queried.  Use <see
-        /// cref="_cachedFrozenGate"/> to access.
-        /// </summary>
-        private readonly Dictionary<DocumentId, Solution> _cachedFrozenDocumentState = new();
-
-        private readonly SemaphoreSlim _cachedFrozenGate = new(initialCount: 1);
-
         private Solution(SolutionCompilationState compilationState)
         {
             _projectIdToProjectMap = [];
@@ -1488,21 +1480,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
-            // in progress solutions are disabled for some testing
-            if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
-                return this;
-
-            using (_cachedFrozenGate.DisposableWait(cancellationToken))
-            {
-                if (!_cachedFrozenDocumentState.TryGetValue(documentId, out var frozenSolution))
-                {
-                    var newCompilationState = this.CompilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
-                    frozenSolution = new Solution(newCompilationState);
-                    _cachedFrozenDocumentState.Add(documentId, frozenSolution);
-                }
-
-                return frozenSolution;
-            }
+            var newCompilationState = this.CompilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
+            return new Solution(newCompilationState);
         }
 
         internal async Task<Solution> WithMergedLinkedFileChangesAsync(

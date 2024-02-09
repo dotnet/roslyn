@@ -1053,6 +1053,10 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState WithFrozenPartialCompilationIncludingSpecificDocument(
         DocumentId documentId, CancellationToken cancellationToken)
     {
+        // in progress solutions are disabled for some testing
+        if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
+            return this;
+
         var currentCompilationState = this;
         var currentDocumentState = this.SolutionState.GetRequiredDocumentState(documentId);
 
