@@ -13,6 +13,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class IOperationTests_ILockStatement : SemanticModelTestBase
     {
+        private const string LockTypeDefinition = """
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public Scope EnterLockScope()
+                    {
+                        Console.Write("E");
+                        return new Scope();
+                    }
+
+                    public ref struct Scope
+                    {
+                        public void Dispose()
+                        {
+                            Console.Write("D");
+                        }
+                    }
+                }
+            }
+            """;
+
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ILockStatement_ObjectLock_FieldReference()
@@ -376,6 +398,32 @@ ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'lock (new o ... }')
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<LockStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.IOperation)]
+        public void ILockStatement_LockObject()
+        {
+            var source = """
+                using System;
+                using System.Threading;
+
+                Lock l = new Lock();
+                /*<bind>*/lock (l)
+                {
+                }/*</bind>*/
+                """;
+
+            var expectedOperationTree = """
+                ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'lock (l) ... }')
+                  Expression:
+                    ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock) (Syntax: 'l')
+                  Body:
+                    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+                """;
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<LockStatementSyntax>([source, LockTypeDefinition], expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -1024,6 +1072,92 @@ Block[B6] - Exit
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedGraph, expectedDiagnostics);
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        public void LockFlow_LockObject()
+        {
+            var source = """
+                using System;
+                using System.Threading;
+
+                class C
+                {
+                    void M()
+                    /*<bind>*/{
+                        Lock l = new Lock();
+                        lock (l)
+                        {
+                        }
+                    }/*</bind>*/
+                }
+                """;
+
+            var expectedFlowGraph = """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Entering: {R1}
+                .locals {R1}
+                {
+                    Locals: [System.Threading.Lock l]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (1)
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l = new Lock()')
+                              Left:
+                                ILocalReferenceOperation: l (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l = new Lock()')
+                              Right:
+                                IObjectCreationOperation (Constructor: System.Threading.Lock..ctor()) (OperationKind.ObjectCreation, Type: System.Threading.Lock) (Syntax: 'new Lock()')
+                                  Arguments(0)
+                                  Initializer:
+                                    null
+                        Next (Regular) Block[B2]
+                            Entering: {R2}
+                    .locals {R2}
+                    {
+                        CaptureIds: [0]
+                        Block[B2] - Block
+                            Predecessors: [B1]
+                            Statements (1)
+                                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l')
+                                  Value:
+                                    IInvocationOperation ( System.Threading.Lock.Scope System.Threading.Lock.EnterLockScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l')
+                                      Instance Receiver:
+                                        ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock) (Syntax: 'l')
+                                      Arguments(0)
+                            Next (Regular) Block[B3]
+                                Entering: {R3} {R4}
+                        .try {R3, R4}
+                        {
+                            Block[B3] - Block
+                                Predecessors: [B2]
+                                Statements (0)
+                                Next (Regular) Block[B5]
+                                    Finalizing: {R5}
+                                    Leaving: {R4} {R3} {R2} {R1}
+                        }
+                        .finally {R5}
+                        {
+                            Block[B4] - Block
+                                Predecessors (0)
+                                Statements (1)
+                                    IInvocationOperation ( void System.Threading.Lock.Scope.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'l')
+                                      Instance Receiver:
+                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l')
+                                      Arguments(0)
+                                Next (StructuredExceptionHandling) Block[null]
+                        }
+                    }
+                }
+                Block[B5] - Exit
+                    Predecessors: [B3]
+                    Statements (0)
+                """;
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>([source, LockTypeDefinition], expectedFlowGraph, expectedDiagnostics);
         }
     }
 }
