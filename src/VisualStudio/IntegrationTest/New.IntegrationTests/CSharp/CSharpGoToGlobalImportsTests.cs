@@ -29,7 +29,15 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.SolutionExplorer.OpenFileAsync(
                 ProjectName, "Class1.cs", HangMitigatingCancellationToken);
 
-            await TestServices.InheritanceMargin.EnableOptionsAndEnsureGlyphsAppearAsync(LanguageName, 1, HangMitigatingCancellationToken);
+            await TestServices.InheritanceMargin.EnableOptionsAsync(LanguageName, HangMitigatingCancellationToken);
+            await TestServices.InheritanceMargin.SetTextAndEnsureGlyphsAppearAsync("""
+                namespace N
+                {
+                    class C
+                    {
+                    }
+                }
+                """, 1, HangMitigatingCancellationToken);
             await TestServices.InheritanceMargin.ClickTheGlyphOnLine(1, HangMitigatingCancellationToken);
 
             // Move focus to menu item 'System'
