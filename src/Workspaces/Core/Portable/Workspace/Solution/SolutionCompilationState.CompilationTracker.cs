@@ -198,7 +198,8 @@ namespace Microsoft.CodeAnalysis
                 CancellationToken cancellationToken)
             {
                 GetPartialCompilationState(
-                    compilationState, docState?.Id,
+                    compilationState,
+                    docState?.Id,
                     out var inProgressProject,
                     out var compilationPair,
                     out var generatorInfo,
