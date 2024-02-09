@@ -362,6 +362,38 @@ ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'SyncLock o' ... nd Syn
             VerifyOperationTreeAndDiagnosticsForTest(Of SyncLockBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <Fact, CompilerTrait(CompilerFeature.IOperation)>
+        Public Sub ILockStatement_LockObject()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System.Threading
+
+Public Class C
+    Public Sub M()
+        Dim l As New Lock()
+        SyncLock l'BIND:"SyncLock l"
+        End SyncLock
+    End Sub
+End Class
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+End Namespace]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'SyncLock l' ... nd SyncLock')
+  Expression:
+    ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock) (Syntax: 'l')
+  Body:
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'SyncLock l' ... nd SyncLock')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of SyncLockBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub LockFlow_04()
@@ -461,6 +493,101 @@ Block[B0] - Entry
     }
 }
 
+Block[B6] - Exit
+    Predecessors: [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        Public Sub LockFlow_LockObject()
+            Dim source = <![CDATA[
+Imports System.Threading
+
+Public Class C
+    Sub M(l As Lock) 'BIND:"Sub M"
+        SyncLock l
+        End SyncLock
+    End Sub
+End Class
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+End Namespace]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [<anonymous local> As System.Boolean]
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l')
+              Value:
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'l')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (WideningReference)
+                  Operand:
+                    IParameterReferenceOperation: l (OperationKind.ParameterReference, Type: System.Threading.Lock) (Syntax: 'l')
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IInvocationOperation (Sub System.Threading.Monitor.Enter(obj As System.Object, ByRef lockTaken As System.Boolean)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'l')
+                  Instance Receiver:
+                    null
+                  Arguments(2):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'l')
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'l')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: lockTaken) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'l')
+                        ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'l')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B6]
+                Finalizing: {R4}
+                Leaving: {R3} {R2} {R1}
+    }
+    .finally {R4}
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if False (Regular) to Block[B5]
+                ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'l')
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IInvocationOperation (Sub System.Threading.Monitor.Exit(obj As System.Object)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'l')
+                  Instance Receiver:
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'l')
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'l')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B3] [B4]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
 Block[B6] - Exit
     Predecessors: [B2]
     Statements (0)
