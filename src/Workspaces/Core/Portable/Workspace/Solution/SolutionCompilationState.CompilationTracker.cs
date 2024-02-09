@@ -540,11 +540,11 @@ namespace Microsoft.CodeAnalysis
                         // here from a frozen state (as a frozen state always ensures we have a
                         // WithCompilationTrackerState).  As such, we can safely still preserve that we're not
                         // frozen here.
-                        var allSyntaxTreesParsedState = new InProgressState(
+                        var inProgressState = new InProgressState(
                             isFrozen: false, compilation, CompilationTrackerGeneratorInfo.Empty, staleCompilationWithGeneratedDocuments: null,
                             ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty);
-                        WriteState(allSyntaxTreesParsedState);
-                        return allSyntaxTreesParsedState;
+                        WriteState(inProgressState);
+                        return inProgressState;
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                     {
@@ -565,16 +565,13 @@ namespace Microsoft.CodeAnalysis
                             var (compilationWithoutGeneratedDocuments, staleCompilationWithGeneratedDocuments, generatorInfo) =
                                 await ApplyFirstTransformationAsync(currentState).ConfigureAwait(false);
 
-                            // We have updated state, so store this new result; this allows us to drop the intermediate state we already processed
-                            // even if we were to get cancelled at a later point.
+                            // We have updated state, so store this new result; this allows us to drop the intermediate
+                            // state we already processed even if we were to get cancelled at a later point.
                             //
-                            // As long as we have intermediate projects, we'll still keep creating InProgressStates.  But
-                            // once it becomes empty we'll produce an AllSyntaxTreesParsedState and we'll break the loop.
-                            //
-                            // Preserve the current frozen bit.  Specifically, once states become frozen, we continually make
-                            // all states forked from those states frozen as well.  This ensures we don't attempt to move
-                            // generator docs back to the uncomputed state from that point onwards.  We'll just keep
-                            // whateverZ generated docs we have.
+                            // Preserve the current frozen bit.  Specifically, once states become frozen, we continually
+                            // make all states forked from those states frozen as well.  This ensures we don't attempt
+                            // to move generator docs back to the uncomputed state from that point onwards.  We'll just
+                            // keep whatever generated docs we have.
                             currentState = CompilationTrackerState.CreateInProgressState(
                                 currentState.IsFrozen,
                                 compilationWithoutGeneratedDocuments,
@@ -606,8 +603,8 @@ namespace Microsoft.CodeAnalysis
                     // staleCompilationWithGeneratedDocuments null so we avoid doing any transformations of it multiple
                     // times. Otherwise the transformations below and in FinalizeCompilationAsync will try to update
                     // both at once, which is functionally fine but just unnecessary work. This function is always
-                    // allowed to return null for AllSyntaxTreesParsedState.StaleCompilationWithGeneratedDocuments in
-                    // the end, so there's no harm there.
+                    // allowed to return null for InProgress.StaleCompilationWithGeneratedDocuments in the end, so
+                    // there's no harm there.
                     if (staleCompilationWithGeneratedDocuments == compilationWithoutGeneratedDocuments)
                         staleCompilationWithGeneratedDocuments = null;
 
@@ -640,11 +637,11 @@ namespace Microsoft.CodeAnalysis
                 // state.
                 // </summary>
                 // <param name="compilationWithStaleGeneratedTrees">The compilation from a prior run that contains
-                // generated trees, which match the states included in <paramref name="allSyntaxTreesParsedState"/>'s
+                // generated trees, which match the states included in <paramref name="inProgressState"/>'s
                 // generator info. If a generator run here produces the same set of generated documents as are in <paramref
-                // name="allSyntaxTreesParsedState"/>'s generator info, and we don't need to make any other changes to
+                // name="inProgressState"/>'s generator info, and we don't need to make any other changes to
                 // references, we can then use this compilation instead of re-adding source generated files again to the
-                // compilation that <paramref name="allSyntaxTreesParsedState"/> points to.</param>
+                // compilation that <paramref name="inProgressState"/> points to.</param>
                 async Task<FinalState> FinalizeCompilationAsync(
                     InProgressState inProgressState)
                 {
