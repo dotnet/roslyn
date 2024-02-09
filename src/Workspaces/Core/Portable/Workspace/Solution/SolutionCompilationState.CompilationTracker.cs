@@ -641,8 +641,7 @@ namespace Microsoft.CodeAnalysis
                 // name="inProgressState"/>'s generator info, and we don't need to make any other changes to
                 // references, we can then use this compilation instead of re-adding source generated files again to the
                 // compilation that <paramref name="inProgressState"/> points to.</param>
-                async Task<FinalState> FinalizeCompilationAsync(
-                    InProgressState inProgressState)
+                async Task<FinalState> FinalizeCompilationAsync(InProgressState inProgressState)
                 {
                     try
                     {
