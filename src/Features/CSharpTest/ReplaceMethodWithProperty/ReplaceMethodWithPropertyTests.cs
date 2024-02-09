@@ -3012,5 +3012,45 @@ index: 1);
                 }
                 """);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestUpdateGetReferenceGeneratedPart()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                partial class C
+                {
+                    int [||]GetGoo()
+                    {
+                    }
+                }
+                        </Document>
+                        <DocumentFromSourceGenerator>
+                partial class C
+                {
+                    void Bar()
+                    {
+                        var x = GetGoo();
+                    }
+                }
+                        </DocumentFromSourceGenerator>
+                    </Project>
+                </Workspace>
+                """,
+                """
+                class C
+                {
+                    int Goo
+                    {
+                        get
+                        {
+                        }
+                    }
+                }
+                """);
+        }
     }
 }
