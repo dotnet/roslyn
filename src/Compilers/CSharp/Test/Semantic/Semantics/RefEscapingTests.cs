@@ -7591,5 +7591,33 @@ public struct Vec4
                 //         return M2(x);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "x").WithArguments("S.implicit operator S(in int)", "x").WithLocation(5, 19));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefReturn()
+        {
+            var source = """
+                class C
+                {
+                    static ref readonly int M1(int x)
+                    {
+                        return ref M2(x);
+                    }
+
+                    static ref readonly int M2(in S s) => throw null;
+                }
+
+                struct S
+                {
+                    public static implicit operator S(in int x) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,20): error CS8347: Cannot use a result of 'C.M2(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         return ref M2(x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M2(x)").WithArguments("C.M2(in S)", "s").WithLocation(5, 20),
+                // (5,23): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref M2(x);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(5, 23));
+        }
     }
 }

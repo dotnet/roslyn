@@ -3249,6 +3249,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return GetRefEscape(assignment.Left, scopeOfTheContainingExpression);
+
+                case BoundKind.Conversion:
+                    Debug.Assert(expr is BoundConversion conversion &&
+                        (!conversion.Conversion.IsUserDefined ||
+                        conversion.Conversion.Method.RefKind == RefKind.None));
+                    break;
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
@@ -3587,6 +3593,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return CheckRefEscape(node, conversion.Operand, escapeFrom, escapeTo, checkingReceiver, diagnostics);
                     }
+
+                    Debug.Assert(!conversion.Conversion.IsUserDefined ||
+                        conversion.Conversion.Method.RefKind == RefKind.None);
                     break;
 
                 case BoundKind.ThrowExpression:
