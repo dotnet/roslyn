@@ -1452,7 +1452,6 @@ namespace Microsoft.CodeAnalysis
         /// Returns a solution instance where every project is frozen at whatever current state it is in
         /// </summary>
         /// <param name="cancellationToken"></param>
-        /// <returns></returns>
         internal Task<Solution> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
             => this.CachedFrozenSolution.GetValueAsync(cancellationToken);
 
