@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -689,96 +690,148 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
         public async Task TestWithMismatchedDefault1()
         {
             await TestInRegularAndScriptAsync(
-    """
-    interface IRepro
-    {
-        void A(int value);
-    }
+                """
+                interface IRepro
+                {
+                    void A(int value);
+                }
 
-    class Repro : IRepro
-    {
-        public void [||]A(int value = 1)
-        {
-        }
-    }
-    """,
-    """
-    interface IRepro
-    {
-        void A(int value);
-    }
+                class Repro : IRepro
+                {
+                    public void [||]A(int value = 1)
+                    {
+                    }
+                }
+                """,
+                """
+                interface IRepro
+                {
+                    void A(int value);
+                }
 
-    class Repro : IRepro
-    {
-        void IRepro.A(int value = 1)
-        {
-        }
-    }
-    """);
+                class Repro : IRepro
+                {
+                    void IRepro.A(int value = 1)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
         public async Task TestWithMismatchedDefault2()
         {
             await TestInRegularAndScriptAsync(
-    """
-    interface IRepro
-    {
-        void A(int value = 0);
-    }
+                """
+                interface IRepro
+                {
+                    void A(int value = 0);
+                }
 
-    class Repro : IRepro
-    {
-        public void [||]A(int value)
-        {
-        }
-    }
-    """,
-    """
-    interface IRepro
-    {
-        void A(int value = 0);
-    }
+                class Repro : IRepro
+                {
+                    public void [||]A(int value)
+                    {
+                    }
+                }
+                """,
+                """
+                interface IRepro
+                {
+                    void A(int value = 0);
+                }
 
-    class Repro : IRepro
-    {
-        void IRepro.A(int value)
-        {
-        }
-    }
-    """);
+                class Repro : IRepro
+                {
+                    void IRepro.A(int value)
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestPreserveReadOnly()
         {
             await TestInRegularAndScriptAsync(
-    """
-    interface IRepro
-    {
-        void A();
-    }
+                """
+                interface IRepro
+                {
+                    void A();
+                }
 
-    class Repro : IRepro
-    {
-        public readonly void [||]A()
-        {
-        }
-    }
-    """,
-    """
-    interface IRepro
-    {
-        void A();
-    }
+                class Repro : IRepro
+                {
+                    public readonly void [||]A()
+                    {
+                    }
+                }
+                """,
+                """
+                interface IRepro
+                {
+                    void A();
+                }
 
-    class Repro : IRepro
-    {
-        readonly void IRepro.A()
-        {
+                class Repro : IRepro
+                {
+                    readonly void IRepro.A()
+                    {
+                    }
+                }
+                """);
         }
-    }
-    """);
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72024")]
+        public async Task TestFieldEvent()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+
+                interface IGoo { event Action E; }
+
+                class C : IGoo
+                {
+                    public event Action [||]E;
+                }
+                """,
+                """
+                using System;
+                
+                interface IGoo { event Action E; }
+                
+                class C : IGoo
+                {
+                    public event Action IGoo.E { add { } remove { } };
+                }
+                """, index: SingleMember);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72024")]
+        public async Task TestPropertyEvent()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+
+                interface IGoo { event Action E; }
+
+                class C : IGoo
+                {
+                    public event Action [||]E { add { } remove { } };
+                }
+                """,
+                """
+                using System;
+                
+                interface IGoo { event Action E; }
+                
+                class C : IGoo
+                {
+                    public event Action IGoo.E { add { } remove { } };
+                }
+                """, index: SingleMember);
         }
     }
 }
