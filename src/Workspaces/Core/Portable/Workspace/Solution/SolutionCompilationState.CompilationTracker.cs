@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis
                         // build this compilation at a time.
                         using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                         {
-                            return await BuildFinalStateAsync(compilationState, cancellationToken).ConfigureAwait(false);
+                            return await BuildFinalStateAsync().ConfigureAwait(false);
                         }
                     }
                 }
@@ -487,14 +487,14 @@ namespace Microsoft.CodeAnalysis
                 // Builds the compilation matching the project state. In the process of building, also
                 // produce in progress snapshots that can be accessed from other threads.
                 // </summary>
-                async Task<FinalState> BuildFinalStateAsync(
-                    SolutionCompilationState compilationState,
-                    CancellationToken cancellationToken)
+                async Task<FinalState> BuildFinalStateAsync()
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var state = ReadState();
 
+                    // if we already have a compilation, we must be already done!  This can happen if two threads were
+                    // waiting to build, and we came in after the other succeeded.
                     if (state is FinalState finalState)
                         return finalState;
 
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis
                     var expandedInProgressState = state switch
                     {
                         // We've got nothing.  Build it from scratch :(
-                        null => await BuildInProgressStateFromScratchAsync(cancellationToken).ConfigureAwait(false),
+                        null => await BuildInProgressStateFromScratchAsync().ConfigureAwait(false),
 
                         // We must have an in progress compilation. Build off of that.
                         InProgressState inProgressState => inProgressState,
@@ -519,8 +519,7 @@ namespace Microsoft.CodeAnalysis
                 [PerformanceSensitive(
                     "https://github.com/dotnet/roslyn/issues/23582",
                     Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
-                async Task<InProgressState> BuildInProgressStateFromScratchAsync(
-                    CancellationToken cancellationToken)
+                async Task<InProgressState> BuildInProgressStateFromScratchAsync()
                 {
                     try
                     {
