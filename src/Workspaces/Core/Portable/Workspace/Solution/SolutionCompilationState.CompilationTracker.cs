@@ -161,29 +161,38 @@ namespace Microsoft.CodeAnalysis
                     CompilationTrackerState state,
                     CompilationAndGeneratorDriverTranslationAction? translate)
                 {
-                    var pendingTranslationSteps = state is InProgressState inProgressState
-                        ? inProgressState.PendingTranslationSteps
-                        : [];
-
-                    if (translate is null)
-                        return pendingTranslationSteps;
-
-                    // We have a translation action; are we able to merge it with the prior one?
-                    if (!pendingTranslationSteps.IsEmpty)
+                    if (state is FinalCompilationTrackerState)
                     {
-                        var (priorState, priorAction) = pendingTranslationSteps.Last();
-                        var mergedTranslation = translate.TryMergeWithPrior(priorAction);
-                        if (mergedTranslation != null)
-                        {
-                            // We can replace the prior action with this new one
-                            return pendingTranslationSteps.SetItem(
-                                pendingTranslationSteps.Count - 1,
-                                (oldState: priorState, mergedTranslation));
-                        }
+                        return translate is null
+                            ? []
+                            : [(oldProjectState, translate)];
                     }
+                    else if (state is InProgressState { PendingTranslationSteps: var pendingTranslationSteps })
+                    {
+                        if (translate is null)
+                            return pendingTranslationSteps;
 
-                    // Just add it to the end
-                    return pendingTranslationSteps.Add((oldProjectState, translate));
+                        // We have a translation action; are we able to merge it with the prior one?
+                        if (!pendingTranslationSteps.IsEmpty)
+                        {
+                            var (priorState, priorAction) = pendingTranslationSteps.Last();
+                            var mergedTranslation = translate.TryMergeWithPrior(priorAction);
+                            if (mergedTranslation != null)
+                            {
+                                // We can replace the prior action with this new one
+                                return pendingTranslationSteps.SetItem(
+                                    pendingTranslationSteps.Count - 1,
+                                    (oldState: priorState, mergedTranslation));
+                            }
+                        }
+
+                        // Just add it to the end
+                        return pendingTranslationSteps.Add((oldProjectState, translate));
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(state.GetType());
+                    }
                 }
             }
 
