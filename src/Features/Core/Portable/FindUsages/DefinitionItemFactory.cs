@@ -120,11 +120,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             if (!metadataLocations.IsEmpty)
             {
                 Contract.ThrowIfNull(originatingProjectId);
-
-                properties = properties
-                    .Add(DefinitionItem.MetadataSymbolKey, SymbolKey.CreateString(definition))
-                    .Add(DefinitionItem.MetadataSymbolOriginatingProjectIdGuid, originatingProjectId.Id.ToString())
-                    .Add(DefinitionItem.MetadataSymbolOriginatingProjectIdDebugName, originatingProjectId.DebugName ?? "");
+                properties = properties.WithMetadataSymbolProperties(definition, originatingProjectId);
             }
 
             if (sourceLocations.IsEmpty && metadataLocations.IsEmpty)
@@ -145,6 +141,22 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 nameDisplayParts, properties, displayableProperties, displayIfNoReferences);
         }
 
+        internal static ImmutableDictionary<string, string> WithMetadataSymbolProperties(this ImmutableDictionary<string, string> properties, ISymbol symbol, ProjectId originatingProjectId)
+            => properties
+                .Add(DefinitionItem.MetadataSymbolKey, SymbolKey.CreateString(symbol))
+                .Add(DefinitionItem.MetadataSymbolOriginatingProjectIdGuid, originatingProjectId.Id.ToString())
+                .Add(DefinitionItem.MetadataSymbolOriginatingProjectIdDebugName, originatingProjectId.DebugName ?? "");
+
+        internal static AssemblyLocation GetMetadataLocation(IAssemblySymbol assembly, Solution solution, out ProjectId originatingProjectId)
+        {
+            var info = solution.CompilationState.GetOriginatingProjectInfo(assembly);
+            Contract.ThrowIfNull(info);
+            Contract.ThrowIfNull(info.ReferencedThrough);
+
+            originatingProjectId = info.ProjectId;
+            return new AssemblyLocation(assembly.Identity.Name, assembly.Identity.Version, info.ReferencedThrough.Value.FilePath);
+        }
+
         internal static ImmutableArray<AssemblyLocation> GetMetadataLocations(ISymbol definition, Solution solution, out ProjectId? originatingProjectId)
         {
             originatingProjectId = null;
@@ -158,12 +170,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             if (assembly != null)
             {
                 // symbol is defined within a single metadata assembly:
-                var info = solution.CompilationState.GetOriginatingProjectInfo(assembly);
-                Contract.ThrowIfNull(info);
-                Contract.ThrowIfNull(info.ReferencedThrough);
-
-                originatingProjectId = info.ProjectId;
-                return [new AssemblyLocation(assembly.Identity.Name, assembly.Identity.Version, info.ReferencedThrough.Value.FilePath)];
+                return [GetMetadataLocation(assembly, solution, out originatingProjectId)];
             }
 
             if (definition is INamespaceSymbol namespaceSymbol)

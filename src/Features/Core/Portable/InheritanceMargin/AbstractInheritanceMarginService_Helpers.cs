@@ -718,13 +718,17 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             {
                 if (location.IsInMetadata)
                 {
+                    Contract.ThrowIfNull(symbol.ContainingAssembly);
+
+                    var metadataLocation = DefinitionItemFactory.GetMetadataLocation(symbol.ContainingAssembly, solution, out var originatingProjectId);
+
                     return DefinitionItem.Create(
                         tags: [],
                         displayParts: [],
                         sourceSpans: [],
                         classifiedSpans: [],
-                        metadataLocations: [],
-                        properties: ImmutableDictionary<string, string>.Empty.Add(DefinitionItem.MetadataSymbolKey, SymbolKey.CreateString(symbol)));
+                        metadataLocations: [metadataLocation],
+                        properties: ImmutableDictionary<string, string>.Empty.WithMetadataSymbolProperties(symbol, originatingProjectId));
                 }
 
                 if (location.IsInSource && location.IsVisibleSourceLocation() && solution.GetDocument(location.SourceTree) is { } document)

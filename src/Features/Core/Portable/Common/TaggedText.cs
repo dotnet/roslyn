@@ -86,10 +86,13 @@ namespace Microsoft.CodeAnalysis
     internal static class TaggedTextExtensions
     {
         public static ImmutableArray<TaggedText> ToTaggedText(
-            this IEnumerable<SymbolDisplayPart>? displayParts, TaggedTextStyle style = TaggedTextStyle.None, bool includeNavigationHints = true)
+            this IEnumerable<SymbolDisplayPart>? displayParts, TaggedTextStyle style = TaggedTextStyle.None, Func<ISymbol?, string?>? getNavigationHint = null, bool includeNavigationHints = true)
         {
             if (displayParts == null)
                 return [];
+
+            // To support CodeGeneration symbols, which do not support ToDisplayString we need to be able to override it.
+            getNavigationHint ??= static symbol => symbol?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
 
             return displayParts.SelectAsArray(d =>
                 new TaggedText(
@@ -97,7 +100,7 @@ namespace Microsoft.CodeAnalysis
                     d.ToString(),
                     style,
                     includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? GetNavigationTarget(d.Symbol) : null,
-                    includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? d.Symbol?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat) : null));
+                    includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? getNavigationHint(d.Symbol) : null));
         }
 
         private static string GetTag(SymbolDisplayPart part)

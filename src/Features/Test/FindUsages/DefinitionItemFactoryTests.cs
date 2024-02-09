@@ -606,7 +606,7 @@ public class DefinitionItemFactoryTests
     }
 
     [Fact]
-    public async Task ToClassifiedDefinitionItemAsync_Tuple()
+    public async Task ToClassifiedDefinitionItemAsync_TupleSyntax()
     {
         using var workspace = TestWorkspace.CreateCSharp("class C { (int a, int b) F; }");
 
@@ -614,29 +614,209 @@ public class DefinitionItemFactoryTests
         var project = solution.Projects.Single();
         var compilation = await project.GetCompilationAsync();
         Contract.ThrowIfNull(compilation);
-        var c = compilation.GetMember<IFieldSymbol>("C.F").Type;
-        var t = c.OriginalDefinition;
-        var i = compilation.GetSpecialType(SpecialType.System_Int32);
+        var tuple = (INamedTypeSymbol)compilation.GetMember<IFieldSymbol>("C.F").Type;
+        var t1 = tuple.TypeParameters[0];
+        var t2 = tuple.TypeParameters[1];
+        var genericTuple = tuple.OriginalDefinition;
         var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
         var searchOptions = FindReferencesSearchOptions.Default;
 
-        var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(c, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
+        var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(tuple, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
 
-        VerifyDefinitionItem(item, project, [(c, nameof(c)), (i, nameof(i)), (t, nameof(t))],
+        VerifyDefinitionItem(item, project, [(tuple, nameof(tuple)), (genericTuple, nameof(genericTuple)), (t1, nameof(t1)), (t2, nameof(t2))],
             displayParts:
             [
                 (tag: "Punctuation", text: "(", TaggedTextStyle.None, target: null, hint: null),
-                (tag: "TypeParameter", text: "T1", TaggedTextStyle.None, target: "7 \"C#\" (Y 0 \"T1\" (D (N \"System\" 0 (N \"\" 1 (U (S \"System.ValueTuple\" 5) 4) 3) 2) \"ValueTuple\" 2 ! 0 0 0 (% 0) 1) 0)", hint: "T1"),
+                (tag: "TypeParameter", text: "T1", TaggedTextStyle.None, target: SymbolKey.CreateString(t1), hint: "T1"),
                 (tag: "Punctuation", text: ",", TaggedTextStyle.None, target: null, hint: null),
                 (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
-                (tag: "TypeParameter", text: "T2", TaggedTextStyle.None, target: "7 \"C#\" (Y 0 \"T2\" (D (N \"System\" 0 (N \"\" 1 (U (S \"System.ValueTuple\" 5) 4) 3) 2) \"ValueTuple\" 2 ! 0 0 0 (% 0) 1) 0)", hint: "T2"),
+                (tag: "TypeParameter", text: "T2", TaggedTextStyle.None, target: SymbolKey.CreateString(t2), hint: "T2"),
                 (tag: "Punctuation", text: ")", TaggedTextStyle.None, target: null, hint: null)
             ],
             nameDisplayParts:
             [
-                (tag: "Keyword", text: "dynamic", TaggedTextStyle.None, target: SymbolKey.CreateString(c), hint: "dynamic")
+                (tag: "Punctuation", text: "(", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "TypeParameter", text: "T1", TaggedTextStyle.None, target: SymbolKey.CreateString(t1), hint: "T1"),
+                (tag: "Punctuation", text: ",", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "TypeParameter", text: "T2", TaggedTextStyle.None, target: SymbolKey.CreateString(t2), hint: "T2"),
+                (tag: "Punctuation", text: ")", TaggedTextStyle.None, target: null, hint: null)
+            ],
+            // the symbol has source location because it defines names for items in source:
+            sourceSpans:
+            [
+                "test1.cs [10..24)"
+            ],
+            // the symbol has metadata locations because the generic type is in metadata:
+            metadataLocations:
+            [
+                "System.ValueTuple 4.0.1.0 ''"
+            ],
+            tags:
+            [
+                "Structure",
+                "Public"
+            ],
+            properties:
+            [
+                ("MetadataSymbolOriginatingProjectIdDebugName", "Test"),
+                ("RQNameKey1", "Agg(NsName(System),AggName(ValueTuple,TypeVarCnt(2)))"),
+                ("Primary", ""),
+                ("MetadataSymbolKey", SymbolKey.CreateString(genericTuple)),
+                ("MetadataSymbolOriginatingProjectIdGuid", project.Id.Id.ToString())
+            ]);
+    }
+
+    [Fact]
+    public async Task ToClassifiedDefinitionItemAsync_ValueTuple()
+    {
+        using var workspace = TestWorkspace.CreateCSharp("class C { System.ValueTuple<int, int> F; }");
+
+        var solution = workspace.CurrentSolution;
+        var project = solution.Projects.Single();
+        var compilation = await project.GetCompilationAsync();
+        Contract.ThrowIfNull(compilation);
+        var tuple = (INamedTypeSymbol)compilation.GetMember<IFieldSymbol>("C.F").Type;
+        var t1 = tuple.TypeParameters[0];
+        var t2 = tuple.TypeParameters[1];
+        var genericTuple = tuple.OriginalDefinition;
+        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var searchOptions = FindReferencesSearchOptions.Default;
+
+        var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(tuple, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
+
+        VerifyDefinitionItem(item, project, [(tuple, nameof(tuple)), (genericTuple, nameof(genericTuple)), (t1, nameof(t1)), (t2, nameof(t2))],
+            displayParts:
+            [
+                (tag: "Punctuation", text: "(", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "TypeParameter", text: "T1", TaggedTextStyle.None, target: SymbolKey.CreateString(t1), hint: "T1"),
+                (tag: "Punctuation", text: ",", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "TypeParameter", text: "T2", TaggedTextStyle.None, target: SymbolKey.CreateString(t2), hint: "T2"),
+                (tag: "Punctuation", text: ")", TaggedTextStyle.None, target: null, hint: null)
+            ],
+            nameDisplayParts:
+            [
+                (tag: "Punctuation", text: "(", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "TypeParameter", text: "T1", TaggedTextStyle.None, target: SymbolKey.CreateString(t1), hint: "T1"),
+                (tag: "Punctuation", text: ",", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "TypeParameter", text: "T2", TaggedTextStyle.None, target: SymbolKey.CreateString(t2), hint: "T2"),
+                (tag: "Punctuation", text: ")", TaggedTextStyle.None, target: null, hint: null)
+            ],
+            metadataLocations:
+            [
+                "System.ValueTuple 4.0.1.0 ''"
+            ],
+            tags:
+            [
+                "Structure",
+                "Public"
+            ],
+            properties:
+            [
+                ("MetadataSymbolOriginatingProjectIdDebugName", "Test"),
+                ("RQNameKey1", "Agg(NsName(System),AggName(ValueTuple,TypeVarCnt(2)))"),
+                ("Primary", ""),
+                ("MetadataSymbolKey", SymbolKey.CreateString(genericTuple)),
+                ("MetadataSymbolOriginatingProjectIdGuid", project.Id.Id.ToString())
+            ]);
+    }
+
+    [Fact]
+    public async Task ToClassifiedDefinitionItemAsync_GenericInstatiation_Source()
+    {
+        using var workspace = TestWorkspace.CreateCSharp("class C<T1, T2> { C<int, string> F; }");
+
+        var solution = workspace.CurrentSolution;
+        var project = solution.Projects.Single();
+        var compilation = await project.GetCompilationAsync();
+        Contract.ThrowIfNull(compilation);
+        var type = (INamedTypeSymbol)compilation.GetMember<IFieldSymbol>("C.F").Type;
+        var t1 = type.TypeParameters[0];
+        var t2 = type.TypeParameters[1];
+        var genericType = type.OriginalDefinition;
+        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var searchOptions = FindReferencesSearchOptions.Default;
+
+        var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(type, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
+
+        VerifyDefinitionItem(item, project, [(type, nameof(type)), (genericType, nameof(genericType)), (t1, nameof(t1)), (t2, nameof(t2))],
+            displayParts:
+            [
+                (tag: "Keyword", text: "class", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Class", text: "C", TaggedTextStyle.None, target: SymbolKey.CreateString(genericType), hint: "C<T1, T2>"),
+                (tag: "Punctuation", text: "<", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "TypeParameter", text: "T1", TaggedTextStyle.None, target: SymbolKey.CreateString(t1), hint: "T1"),
+                (tag: "Punctuation", text: ",", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "TypeParameter", text: "T2", TaggedTextStyle.None, target: SymbolKey.CreateString(t2), hint: "T2"),
+                (tag: "Punctuation", text: ">", TaggedTextStyle.None, target: null, hint: null)
+            ],
+            nameDisplayParts:
+            [
+                (tag: "Class", text: "C", TaggedTextStyle.None, target: SymbolKey.CreateString(genericType), hint: "C<T1, T2>")
+            ],
+            sourceSpans:
+            [
+                "test1.cs [6..7)"
+            ],
+            tags:
+            [
+                "Class",
+                "Internal"
+            ],
+            properties:
+            [
+                ("Primary", ""),
+                ("RQNameKey1", "Agg(AggName(C,TypeVarCnt(2)))")
+            ]);
+    }
+
+    [Fact]
+    public async Task ToClassifiedDefinitionItemAsync_GenericInstatiation_Metadata()
+    {
+        using var workspace = TestWorkspace.CreateCSharp("""
+            using System.Collections.Generic;
+            class C { Dictionary<int, string> F; }
+            """);
+
+        var solution = workspace.CurrentSolution;
+        var project = solution.Projects.Single();
+        var compilation = await project.GetCompilationAsync();
+        Contract.ThrowIfNull(compilation);
+        var type = (INamedTypeSymbol)compilation.GetMember<IFieldSymbol>("C.F").Type;
+        var t1 = type.TypeParameters[0];
+        var t2 = type.TypeParameters[1];
+        var genericType = type.OriginalDefinition;
+        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var searchOptions = FindReferencesSearchOptions.Default;
+
+        var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(type, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
+
+        VerifyDefinitionItem(item, project, [(type, nameof(type)), (genericType, nameof(genericType)), (t1, nameof(t1)), (t2, nameof(t2))],
+            displayParts:
+            [
+                (tag: "Keyword", text: "class", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Class", text: "Dictionary", TaggedTextStyle.None, target: SymbolKey.CreateString(genericType), hint: "Dictionary<TKey, TValue>"),
+                (tag: "Punctuation", text: "<", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "TypeParameter", text: "TKey", TaggedTextStyle.None, target: SymbolKey.CreateString(t1), hint: "TKey"),
+                (tag: "Punctuation", text: ",", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "TypeParameter", text: "TValue", TaggedTextStyle.None, target: SymbolKey.CreateString(t2), hint: "TValue"),
+                (tag: "Punctuation", text: ">", TaggedTextStyle.None, target: null, hint: null)
+            ],
+            nameDisplayParts:
+            [
+                (tag: "Class", text: "Dictionary", TaggedTextStyle.None, target: SymbolKey.CreateString(genericType), hint: "Dictionary<TKey, TValue>")
             ],
             sourceSpans: [],
+            metadataLocations:
+            [
+                "mscorlib 4.0.0.0 'Z:\\FxReferenceAssembliesUri'"
+            ],
             tags:
             [
                 "Class",
@@ -644,8 +824,11 @@ public class DefinitionItemFactoryTests
             ],
             properties:
             [
-                ("NonNavigable", ""),
-                ("Primary", "")
+                ("MetadataSymbolKey", SymbolKey.CreateString(genericType)),
+                ("MetadataSymbolOriginatingProjectIdDebugName", "Test"),
+                ("MetadataSymbolOriginatingProjectIdGuid", project.Id.Id.ToString()),
+                ("Primary", ""),
+                ("RQNameKey1", "Agg(NsName(System),NsName(Collections),NsName(Generic),AggName(Dictionary,TypeVarCnt(2)))")
             ]);
     }
 
