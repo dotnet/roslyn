@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis
                     forkedTrackerState,
                     this.SkeletonReferenceCache.Clone());
 
-                static CompilationTrackerState ForkTrackerState(
+                static CompilationTrackerState? ForkTrackerState(
                     ProjectState oldProjectState,
                     CompilationTrackerState? state,
                     CompilationAndGeneratorDriverTranslationAction? translate)
