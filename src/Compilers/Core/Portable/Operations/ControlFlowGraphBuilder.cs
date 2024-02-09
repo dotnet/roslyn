@@ -4203,12 +4203,12 @@ oneMoreTime:
             var lockStatement = (LockOperation)operation;
 
             // `lock (l) { }` on value of type `System.Threading.Lock` is lowered to `using (l.EnterLockScope()) { }`.
-            if (lockStatement.LockTypeInfo is (var enterLockScope, var disposeMethod))
+            if (lockStatement.LockTypeInfo is { } lockTypeInfo)
             {
                 HandleUsingOperationParts(
-                    resources: enterLockScope,
+                    resources: lockTypeInfo.EnterLockScope,
                     body: lockStatement.Body,
-                    disposeMethod: disposeMethod,
+                    disposeMethod: lockTypeInfo.DisposeMethod,
                     disposeArguments: ImmutableArray<IArgumentOperation>.Empty,
                     locals: ImmutableArray<ILocalSymbol>.Empty,
                     isAsynchronous: false);

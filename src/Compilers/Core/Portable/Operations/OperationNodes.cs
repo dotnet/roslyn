@@ -704,6 +704,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class LockOperation
     {
-        public (IOperation EnterLockScope, IMethodSymbol DisposeMethod)? LockTypeInfo { get; init; }
+        public (IOperation EnterLockScope, IMethodSymbol? DisposeMethod)? LockTypeInfo { get; init; }
     }
 }

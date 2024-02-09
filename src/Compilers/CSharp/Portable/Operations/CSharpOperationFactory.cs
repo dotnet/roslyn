@@ -2052,22 +2052,44 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundLockStatement.Syntax;
             bool isImplicit = boundLockStatement.WasCompilerGenerated;
 
-            (IOperation, IMethodSymbol)? lockTypeInfo =
-                boundLockStatement.Argument is { Type: { } argType, Syntax: var argSyntax } argExpression &&
-                argType.IsWellKnownTypeLock() &&
-                LockBinder.TryFindLockTypeInfo(argType, CSharp.BindingDiagnosticBag.Discarded, argSyntax) is { } binderInfo
-                    ? (CreateBoundCallOperation(BoundCall.Synthesized(
-                            argSyntax,
-                            argExpression,
-                            initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
-                            binderInfo.EnterLockScopeMethod)),
-                        binderInfo.ScopeDisposeMethod.GetPublicSymbol())
-                    : null;
-
             return new LockOperation(lockedValue, body, lockTakenSymbol, _semanticModel, syntax, isImplicit)
             {
-                LockTypeInfo = lockTypeInfo,
+                LockTypeInfo = getLockTypeInfo(),
             };
+
+            (IOperation EnterLockScope, IMethodSymbol? DisposeMethod)? getLockTypeInfo()
+            {
+                if (boundLockStatement.Argument is { Type: { } argType, Syntax: SyntaxNode argSyntax } argExpression &&
+                    argType.IsWellKnownTypeLock())
+                {
+                    if (LockBinder.TryFindLockTypeInfo(argType, CSharp.BindingDiagnosticBag.Discarded, argSyntax) is { } lockTypeInfo)
+                    {
+                        return new()
+                        {
+                            EnterLockScope = CreateBoundCallOperation(BoundCall.Synthesized(
+                                argSyntax,
+                                argExpression,
+                                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                                lockTypeInfo.EnterLockScopeMethod)),
+                            DisposeMethod = lockTypeInfo.ScopeDisposeMethod.GetPublicSymbol()
+                        };
+                    }
+
+                    return new()
+                    {
+                        EnterLockScope = new InvalidOperation(
+                            ImmutableArray.Create(Create(argExpression)),
+                            _semanticModel,
+                            argSyntax,
+                            type: null,
+                            constantValue: null,
+                            isImplicit: true),
+                        DisposeMethod = null
+                    };
+                }
+
+                return null;
+            }
         }
 
         private IInvalidOperation CreateBoundBadStatementOperation(BoundBadStatement boundBadStatement)
