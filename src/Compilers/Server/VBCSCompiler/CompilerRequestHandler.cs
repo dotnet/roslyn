@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public string? LibDirectory { get; }
         public string[] Arguments { get; }
 
-        public RunRequest( string requestId, string language, string? workingDirectory, string? tempDirectory, string? libDirectory, string[] arguments)
+        public RunRequest(string requestId, string language, string? workingDirectory, string? tempDirectory, string? libDirectory, string[] arguments)
         {
             RequestId = requestId;
             Language = language;
