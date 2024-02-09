@@ -1014,19 +1014,22 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState ComputeFrozenSnapshot(CancellationToken cancellationToken)
     {
-        var newIdToProjectStateMap = this.SolutionState.ProjectStates;
-        var newIdToTrackerMap = _projectIdToTrackerMap;
+        var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
+        var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
 
-        foreach (var (projectId, projectState) in newIdToProjectStateMap)
+        foreach (var (projectId, projectState) in this.SolutionState.ProjectStates)
         {
             // if we don't have one or it is stale, create a new partial solution
             var tracker = GetCompilationTracker(projectId);
             var newTracker = tracker.FreezePartialState(this, cancellationToken);
 
-            Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(projectId));
-            newIdToProjectStateMap = newIdToProjectStateMap.SetItem(projectId, newTracker.ProjectState);
-            newIdToTrackerMap = newIdToTrackerMap.SetItem(projectId, newTracker);
+            Contract.ThrowIfFalse(newIdToProjectStateMapBuilder.ContainsKey(projectId));
+            newIdToProjectStateMapBuilder[projectId] = newTracker.ProjectState;
+            newIdToTrackerMapBuilder[projectId] = newTracker;
         }
+
+        var newIdToProjectStateMap = newIdToProjectStateMapBuilder.ToImmutable();
+        var newIdToTrackerMap = newIdToTrackerMapBuilder.ToImmutable();
 
         var newState = this.SolutionState.Branch(
             idToProjectStateMap: newIdToProjectStateMap,
