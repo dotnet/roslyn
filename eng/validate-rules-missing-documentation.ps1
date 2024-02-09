@@ -12,9 +12,8 @@ try {
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
 
-  $dotnet = Ensure-DotnetSdk
   $projectFilePath = Join-Path $RepoRoot "src\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj"
-  Exec-Console $dotnet "build $projectFilePath -t:GenerateRulesMissingDocumentation -p:RoslynEnforceCodeStyle=false -p:RunAnalyzersDuringBuild=false -p:ContinuousIntegrationBuild=$ci -c Release"
+  Exec-DotNet "build $projectFilePath -t:GenerateRulesMissingDocumentation -p:RoslynEnforceCodeStyle=false -p:RunAnalyzersDuringBuild=false -p:ContinuousIntegrationBuild=$ci -c Release"
 
   if ($LASTEXITCODE -ne 0) {
     Write-Host "Failed with exit code $LASTEXITCODE."

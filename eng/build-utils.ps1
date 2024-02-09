@@ -12,8 +12,6 @@ $PublishDataUrl = "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/conf
 
 $binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $false }
 $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
-$bootstrapDir = if (Test-Path variable:bootstrapDir) { $bootstrapDir } else { "" }
-$bootstrapConfiguration = if (Test-Path variable:bootstrapConfiguration) { $bootstrapConfiguration } else { "Release" }
 $properties = if (Test-Path variable:properties) { $properties } else { @() }
 $originalTemp = $env:TEMP;
 
@@ -89,7 +87,11 @@ function Exec-Block([scriptblock]$cmd) {
   }
 }
 
-function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useConsole = $true) {
+function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useConsole = $true, [switch]$echoCommand = $true) {
+  if ($echoCommand) {
+    Write-Host "$command $commandArgs"
+  }
+
   if ($useConsole) {
     $exitCode = Exec-Process $command $commandArgs
     if ($exitCode -ne 0) { 
@@ -151,26 +153,38 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
 #   $args = "/p:ManualBuild=true Test.proj"
 #   Exec-Command $msbuild $args
 # 
-function Exec-Command([string]$command, [string]$commandArgs) {
-  Exec-CommandCore -command $command -commandArgs $commandargs -useConsole:$false
-}
-
-# Functions exactly like Exec-Command but lets the process re-use the current 
-# console. This means items like colored output will function correctly.
-#
-# In general this command should be used in place of
-#   Exec-Command $msbuild $args | Out-Host
-#
-function Exec-Console([string]$command, [string]$commandArgs) {
-  Exec-CommandCore -command $command -commandArgs $commandargs -useConsole:$true
+# The -useConsole argument controls if the process should re-use the current
+# console for output or return output as a string
+function Exec-Command([string]$command, [string]$commandArgs, [switch]$useConsole = $false, [switch]$echoCommand = $true) {
+  if ($args -ne "") {
+    throw "Extra arguments passed to Exec-Command: $args"
+  }
+  Exec-CommandCore -command $command -commandArgs $commandArgs -useConsole:$useConsole -echoCommand:$echoCommand
 }
 
 # Handy function for executing a powershell script in a clean environment with 
 # arguments.  Prefer this over & sourcing a script as it will both use a clean
 # environment and do proper error checking
-function Exec-Script([string]$script, [string]$scriptArgs = "") {
-  Exec-Command "pwsh" "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs"
+# 
+# The -useConsole argument controls if the process should re-use the current
+# console for output or return output as a string
+function Exec-Script([string]$script, [string]$scriptArgs = "", [switch]$useConsole = $true, [switch]$echoCommand = $true) {
+  if ($args -ne "") {
+    throw "Extra arguments passed to Exec-Script: $args"
+  }
+  Exec-CommandCore -command "pwsh" -commandArgs "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs" -useConsole:$useConsole -echoCommand:$echoCommand
 }
+
+# Handy function for executing a dotnet command without having to track down the 
+# proper dotnet executable or ensure it's on the path.
+function Exec-DotNet([string]$commandArgs = "", [switch]$useConsole = $true, [switch]$echoCommand = $true) {
+  if ($args -ne "") {
+    throw "Extra arguments passed to Exec-DotNet: $args"
+  }
+  $dotnet = Ensure-DotNetSdk
+  Exec-CommandCore -command $dotnet -commandArgs $commandArgs -useConsole:$useConsole -echoCommand:$echoCommand
+}
+
 
 # Ensure the proper .NET Core SDK is available. Returns the location to the dotnet.exe.
 function Ensure-DotnetSdk() {
@@ -260,91 +274,6 @@ function Get-PackageDir([string]$name, [string]$version = "") {
   $p = Join-Path $p $name.ToLowerInvariant()
   $p = Join-Path $p $version
   return $p
-}
-
-# Create a bootstrap build of the compiler.  Returns the directory where the bootstrap build
-# is located.
-#
-# Important to not set $script:bootstrapDir here yet as we're actually in the process of
-# building the bootstrap.
-function Make-BootstrapBuild([string]$bootstrapToolset = "") {
-
-  function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [string]$configuration = $script:configuration) {
-    # Because we override the C#/VB toolset to build against our LKG package, it is important
-    # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
-    # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
-    # MSBuildAdditionalCommandLineArgs=
-    $args = "/p:TreatWarningsAsErrors=true /nologo /nodeReuse:false /p:Configuration=$configuration /v:m ";
-
-    if ($warnAsError) {
-      $args += " /warnaserror"
-    }
-
-    if ($runAnalyzers) {
-      $args += " /p:RunAnalyzersDuringBuild=true"
-    }
-
-    if ($binaryLog) {
-      if ($logFileName -eq "") {
-        $logFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
-      }
-      $logFileName = [IO.Path]::ChangeExtension($logFileName, ".binlog")
-      $logFilePath = Join-Path $LogDir $logFileName
-      $args += " /bl:$logFilePath"
-    }
-
-    if ($officialBuildId) {
-      $args += " /p:OfficialBuildId=" + $officialBuildId
-    }
-
-    if ($ci) {
-      $args += " /p:ContinuousIntegrationBuild=true"
-    }
-
-    if ($bootstrapDir -ne "") {
-      $args += " /p:BootstrapBuildPath=$bootstrapDir"
-    }
-
-    $args += " $buildArgs"
-    $args += " $projectFilePath"
-    $args += " $properties"
-
-    $buildTool = InitializeBuildTool
-    Exec-Console $buildTool.Path "$($buildTool.Command) $args"
-  }
-
-  Write-Host "Building bootstrap compiler"
-
-  $dir = Join-Path $ArtifactsDir "Bootstrap"
-  Remove-Item -re $dir -ErrorAction SilentlyContinue
-  Create-Directory $dir
-
-  if ($bootstrapToolset -eq "" -or $bootstrapToolset -eq "AnyCPU") {
-    $projectPath = "src\NuGet\Microsoft.Net.Compilers.Toolset\AnyCpu\Microsoft.Net.Compilers.Toolset.Package.csproj"
-    $packageName = "Microsoft.Net.Compilers.Toolset"
-  }
-  elseif ($bootstrapToolset -eq "Framework") {
-    $projectPath = "src\NuGet\Microsoft.Net.Compilers.Toolset\Framework\Microsoft.Net.Compilers.Toolset.Framework.Package.csproj"
-    $packageName = "Microsoft.Net.Compilers.Toolset.Framework"
-  }
-  else {
-    throw "Unsupported bootstrap toolset $bootstrapToolset"
-  }
-
-  Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:RunAnalyzersDuringBuild=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false" -logFileName "Bootstrap" -configuration $bootstrapConfiguration
-  $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"
-  Unzip (Join-Path $dir $packageFile.Name) $dir
-
-  Write-Host "Cleaning Bootstrap compiler artifacts"
-  Run-MSBuild $projectPath "/t:Clean" -logFileName "BootstrapClean"
-
-  # Work around NuGet bug that doesn't correctly re-generate our project.assets.json files.
-  # Deleting everything forces a regen
-  # https://github.com/NuGet/Home/issues/12437
-  Remove-Item -Recurse -Force (Join-Path $ArtifactsDir "bin")
-  Remove-Item -Recurse -Force (Join-Path $ArtifactsDir "obj")
-
-  return $dir
 }
 
 function Subst-TempDir() {
