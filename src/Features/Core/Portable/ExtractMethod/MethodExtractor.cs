@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var insertionPointAnnotation = new SyntaxAnnotation();
 
             var finalRoot = document.Root.ReplaceSyntax(
-                nodes: new[] { insertionPointNode },
+                nodes: [insertionPointNode],
                 // intentionally using 'n' (new) here.  We want to see any updated sub tokens that were updated in computeReplacementToken
                 computeReplacementNode: (o, n) => n.WithAdditionalAnnotations(insertionPointAnnotation),
                 tokens: tokenMap.Keys,

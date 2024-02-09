@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected readonly TypeCompilationState CompilationState;
 
         protected readonly BindingDiagnosticBag Diagnostics;
-        protected readonly VariableSlotAllocator? slotAllocatorOpt;
+        protected readonly VariableSlotAllocator? slotAllocator;
 
         private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderMap;
 
-        protected MethodToClassRewriter(VariableSlotAllocator? slotAllocatorOpt, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        protected MethodToClassRewriter(VariableSlotAllocator? slotAllocator, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CompilationState = compilationState;
             this.Diagnostics = diagnostics;
-            this.slotAllocatorOpt = slotAllocatorOpt;
+            this.slotAllocator = slotAllocator;
             this._placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
         }
 

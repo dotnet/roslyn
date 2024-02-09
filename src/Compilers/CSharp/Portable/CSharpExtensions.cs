@@ -1619,6 +1619,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(node, cancellationToken);
         }
+
+        /// <summary>
+        /// Given a local function declaration syntax, get the corresponding symbol.
+        /// </summary>
+#pragma warning disable RS0026
+        public static IMethodSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, LocalFunctionStatementSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore RS0026
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(node, cancellationToken);
+        }
         #endregion
     }
 }

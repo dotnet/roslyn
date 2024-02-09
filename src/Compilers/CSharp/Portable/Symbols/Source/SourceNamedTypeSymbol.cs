@@ -1876,10 +1876,16 @@ next:;
                         }
                     }
 
-                    if (!reported_ERR_InlineArrayUnsupportedElementFieldModifier &&
-                        (!fieldSupported || elementType.Type.IsPointerOrFunctionPointer() || elementType.IsRestrictedType()))
+                    if (!reported_ERR_InlineArrayUnsupportedElementFieldModifier)
                     {
-                        diagnostics.Add(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, elementField.TryGetFirstLocation() ?? GetFirstLocation());
+                        if (!fieldSupported || elementType.Type.IsPointerOrFunctionPointer() || elementType.IsRestrictedType())
+                        {
+                            diagnostics.Add(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, elementField.TryGetFirstLocation() ?? GetFirstLocation());
+                        }
+                        else if (this.IsRestrictedType())
+                        {
+                            diagnostics.Add(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, GetFirstLocation());
+                        }
                     }
                 }
                 else

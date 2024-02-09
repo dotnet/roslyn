@@ -14,9 +14,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatements
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsSplitIntoNestedIfStatements)]
-    public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionTest
+    public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpSplitIntoNestedIfStatementsCodeRefactoringProvider();
 
         [Theory]

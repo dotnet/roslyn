@@ -647,7 +647,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, @"""Hi!""").WithArguments(@"""Hi!""").WithLocation(4, 30)
                 };
 
-            comp.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, cancellationToken: default).Verify(expected);
+            comp.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, symbolFilter: null, cancellationToken: default).Verify(expected);
             comp.VerifyDiagnostics(expected);
         }
 
@@ -675,7 +675,7 @@ namespace Test
                 Diagnostic(ErrorCode.ERR_EOFExpected, @"""Hi!""").WithLocation(4, 30)
                 };
 
-            comp.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, cancellationToken: default).Verify(expected);
+            comp.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, symbolFilter: null, cancellationToken: default).Verify(expected);
             comp.VerifyDiagnostics(expected);
         }
 

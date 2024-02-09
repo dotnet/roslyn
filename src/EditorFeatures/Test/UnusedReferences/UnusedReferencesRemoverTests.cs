@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
     [Trait(Traits.Feature, Traits.Features.UnusedReferences)]
     public class UnusedReferencesRemoverTests
     {
-        private static readonly string[] Empty = Array.Empty<string>();
+        private static readonly string[] Empty = [];
 
         private const string UsedAssemblyName = "Used.dll";
         private const string UsedAssemblyPath = $"/libs/{UsedAssemblyName}";

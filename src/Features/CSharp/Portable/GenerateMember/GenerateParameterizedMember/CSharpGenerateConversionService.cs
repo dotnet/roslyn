@@ -208,15 +208,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             }
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: ImmutableArray<AttributeData>.Empty,
+                attributes: [],
                 accessibility: default,
                 modifiers: default,
                 returnType: typeToGenerateIn,
                 refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: null,
-                typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
-                parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(parameterSymbol, "v")),
+                typeParameters: [],
+                parameters: [CodeGenerationSymbolFactory.CreateParameterSymbol(parameterSymbol, "v")],
                 methodKind: MethodKind.Conversion);
         }
 

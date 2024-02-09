@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public virtual ImmutableArray<ISymbol> GetMembers()
-            => ImmutableArray.Create<ISymbol>();
+            => [];
 
         public ImmutableArray<ISymbol> GetMembers(string name)
             => GetMembers().WhereAsArray(s => s.Name == name);
 
         public virtual ImmutableArray<INamedTypeSymbol> GetTypeMembers()
-            => ImmutableArray.Create<INamedTypeSymbol>();
+            => [];
 
         public ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name)
             => GetTypeMembers().WhereAsArray(s => s.Name == name);

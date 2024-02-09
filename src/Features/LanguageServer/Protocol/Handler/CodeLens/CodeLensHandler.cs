@@ -16,9 +16,9 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using LSP = Roslyn.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using StreamJsonRpc;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
@@ -53,7 +53,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
         if (!referencesCodeLensEnabled && !testsCodeLensEnabled)
         {
             // No code lenses are enabled, just return.
-            return Array.Empty<LSP.CodeLens>();
+            return [];
         }
 
         var codeLensMemberFinder = document.GetRequiredLanguageService<ICodeLensMemberFinder>();
@@ -61,7 +61,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
 
         if (members.IsEmpty)
         {
-            return Array.Empty<LSP.CodeLens>();
+            return [];
         }
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);

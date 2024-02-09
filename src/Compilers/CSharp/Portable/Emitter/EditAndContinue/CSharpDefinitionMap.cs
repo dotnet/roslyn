@@ -30,11 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         CSharpSymbolMatcher? previousSourceToCurrentSource,
         EmitBaseline baseline) : DefinitionMap(edits, baseline)
     {
+        private readonly MetadataDecoder _metadataDecoder = metadataDecoder;
         private readonly CSharpSymbolMatcher _sourceToPrevious = previousSourceToCurrentSource ?? sourceToMetadata;
 
-        public override SymbolMatcher SourceToMetadataSymbolMatcher => sourceToMetadata;
+        public override SymbolMatcher SourceToMetadataSymbolMatcher { get; } = sourceToMetadata;
         public override SymbolMatcher SourceToPreviousSymbolMatcher => _sourceToPrevious;
-        public override SymbolMatcher PreviousSourceToMetadataSymbolMatcher => previousSourceToMetadata;
+        public override SymbolMatcher PreviousSourceToMetadataSymbolMatcher { get; } = previousSourceToMetadata;
 
         protected override ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol)
         {
@@ -121,17 +122,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             Debug.Assert(!handle.IsNil);
 
-            var localInfos = metadataDecoder.GetLocalsOrThrow(handle);
+            var localInfos = _metadataDecoder.GetLocalsOrThrow(handle);
             var result = CreateLocalSlotMap(debugInfo, localInfos);
             Debug.Assert(result.Length == localInfos.Length);
             return result;
         }
 
         protected override ITypeSymbolInternal? TryGetStateMachineType(MethodDefinitionHandle methodHandle)
-            => metadataDecoder.Module.HasStateMachineAttribute(methodHandle, out var typeName) ? metadataDecoder.GetTypeSymbolForSerializedType(typeName) : null;
+            => _metadataDecoder.Module.HasStateMachineAttribute(methodHandle, out var typeName) ? _metadataDecoder.GetTypeSymbolForSerializedType(typeName) : null;
 
         protected override IMethodSymbolInternal GetMethodSymbol(MethodDefinitionHandle methodHandle)
-            => (IMethodSymbolInternal)metadataDecoder.GetSymbolForILToken(methodHandle);
+            => (IMethodSymbolInternal)_metadataDecoder.GetSymbolForILToken(methodHandle);
 
         /// <summary>
         /// Match local declarations to names to generate a map from
@@ -193,10 +194,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             out int suffixIndex,
             out char idSeparator,
             out bool isDisplayClass,
+            out bool isDisplayClassParentField,
             out bool hasDebugIds)
         {
             suffixIndex = 0;
             isDisplayClass = false;
+            isDisplayClassParentField = false;
             hasDebugIds = false;
             idSeparator = GeneratedNameConstants.IdSeparator;
 
@@ -205,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return false;
             }
 
-            if (generatedKind is not (GeneratedNameKind.LambdaDisplayClass or GeneratedNameKind.LambdaMethod or GeneratedNameKind.LocalFunction))
+            if (generatedKind is not (GeneratedNameKind.LambdaDisplayClass or GeneratedNameKind.LambdaMethod or GeneratedNameKind.LocalFunction or GeneratedNameKind.DisplayClassLocalOrField))
             {
                 return false;
             }
@@ -214,9 +217,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(name.Length >= closeBracketOffset + 1);
 
             isDisplayClass = generatedKind == GeneratedNameKind.LambdaDisplayClass;
+            isDisplayClassParentField = generatedKind == GeneratedNameKind.DisplayClassLocalOrField;
 
             suffixIndex = closeBracketOffset + 2;
-            hasDebugIds = name.AsSpan(suffixIndex).StartsWith(GeneratedNameConstants.SuffixSeparator.AsSpan(), StringComparison.Ordinal);
+            hasDebugIds = !isDisplayClassParentField && name.AsSpan(suffixIndex).StartsWith(GeneratedNameConstants.SuffixSeparator.AsSpan(), StringComparison.Ordinal);
 
             if (hasDebugIds)
             {

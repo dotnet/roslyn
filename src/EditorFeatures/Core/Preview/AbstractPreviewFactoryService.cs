@@ -468,10 +468,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             // Create PreviewWorkspaces around the buffers to be displayed on the left and right
             // so that all IDE services (colorizer, squiggles etc.) light up in these buffers.
-            using var leftWorkspace = new ReferenceCountedDisposable<PreviewWorkspace>(new PreviewWorkspace(oldDocument.Project.Solution));
+            //
+            // Performance: Replace related documents to oldBuffer and newBuffer in these workspaces with the 
+            // relating SourceText. This prevents cascading forks as taggers call to
+            // GetOpenTextDocumentInCurrentContextWithChanges would eventually wind up
+            // calling Solution.WithDocumentText using the related ids.
+            var leftSolution = oldDocument.Project.Solution;
+            var allLeftIds = leftSolution.GetRelatedDocumentIds(oldDocument.Id);
+            leftSolution = leftSolution.WithDocumentText(allLeftIds, oldBuffer.AsTextContainer().CurrentText, PreservationMode.PreserveIdentity);
+
+            using var leftWorkspace = new ReferenceCountedDisposable<PreviewWorkspace>(new PreviewWorkspace(leftSolution));
             leftWorkspace.Target.OpenDocument(oldDocument.Id, oldBuffer.AsTextContainer());
 
-            using var rightWorkspace = new ReferenceCountedDisposable<PreviewWorkspace>(new PreviewWorkspace(newDocument.Project.Solution));
+            var rightSolution = newDocument.Project.Solution;
+            var allRightIds = rightSolution.GetRelatedDocumentIds(newDocument.Id);
+            rightSolution = rightSolution.WithDocumentText(allRightIds, newBuffer.AsTextContainer().CurrentText, PreservationMode.PreserveIdentity);
+
+            using var rightWorkspace = new ReferenceCountedDisposable<PreviewWorkspace>(new PreviewWorkspace(rightSolution));
             rightWorkspace.Target.OpenDocument(newDocument.Id, newBuffer.AsTextContainer());
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)

@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -337,19 +338,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.True(errorReported);
         }
 
-        private static (TestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+        private static (EditorTestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
             CodeFixProvider codefix,
             bool includeConfigurationFixProviders = false,
             bool throwExceptionInFixerCreation = false,
-            TestHostDocument? additionalDocument = null,
+            EditorTestHostDocument? additionalDocument = null,
             string code = "class Program { }")
             => ServiceSetup(ImmutableArray.Create(codefix), includeConfigurationFixProviders, throwExceptionInFixerCreation, additionalDocument, code);
 
-        private static (TestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+        private static (EditorTestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
             ImmutableArray<CodeFixProvider> codefixers,
             bool includeConfigurationFixProviders = false,
             bool throwExceptionInFixerCreation = false,
-            TestHostDocument? additionalDocument = null,
+            EditorTestHostDocument? additionalDocument = null,
             string code = "class Program { }")
         {
             var fixers = codefixers.Select(codefix =>
@@ -357,7 +358,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 () => throwExceptionInFixerCreation ? throw new Exception() : codefix,
                 new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
 
-            var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
+            var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             if (additionalDocument != null)
             {
                 workspace.Projects.Single().AddAdditionalDocument(additionalDocument);
@@ -388,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         private static void GetDocumentAndExtensionManager(
             DiagnosticAnalyzerService diagnosticService,
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             out TextDocument document,
             out EditorLayerExtensionManager.ExtensionManager extensionManager,
             MockAnalyzerReference? analyzerReference = null,
@@ -397,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         private static void GetDocumentAndExtensionManager(
             DiagnosticAnalyzerService diagnosticService,
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             out TextDocument document,
             out EditorLayerExtensionManager.ExtensionManager extensionManager,
             out DiagnosticIncrementalAnalyzer diagnosticIncrementalAnalyzer,
@@ -900,7 +904,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var analyzerReference = new MockAnalyzerReference(fixers, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
 
             // Verify available code fixes for .txt additional document
-            var tuple = ServiceSetup(fixers, additionalDocument: new TestHostDocument("Additional Document", filePath: "test.txt"));
+            var tuple = ServiceSetup(fixers, additionalDocument: new EditorTestHostDocument("Additional Document", filePath: "test.txt"));
             using var workspace = tuple.workspace;
             GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var txtDocument, out var extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
             var txtDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(txtDocument, TextSpan.FromBounds(0, 1), CodeActionOptions.DefaultProvider, CancellationToken.None);
@@ -917,7 +921,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.Equal($"Additional Document{fixer1.Title}", changedtxtDocument.GetTextSynchronously(CancellationToken.None).ToString());
 
             // Verify available code fixes for .log additional document
-            tuple = ServiceSetup(fixers, additionalDocument: new TestHostDocument("Additional Document", filePath: "test.log"));
+            tuple = ServiceSetup(fixers, additionalDocument: new EditorTestHostDocument("Additional Document", filePath: "test.log"));
             using var workspace2 = tuple.workspace;
             GetDocumentAndExtensionManager(tuple.analyzerService, workspace2, out var logDocument, out extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
             var logDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(logDocument, TextSpan.FromBounds(0, 1), CodeActionOptions.DefaultProvider, CancellationToken.None);
@@ -981,8 +985,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 #pragma warning disable RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
         [ExportCodeFixProvider(
             LanguageNames.CSharp,
-            DocumentKinds = new[] { nameof(TextDocumentKind.AdditionalDocument) },
-            DocumentExtensions = new[] { ".txt" })]
+            DocumentKinds = [nameof(TextDocumentKind.AdditionalDocument)],
+            DocumentExtensions = [".txt"])]
         [Shared]
         internal sealed class AdditionalFileFixerWithDocumentKindsAndExtensions : AbstractAdditionalFileCodeFixProvider
         {
@@ -991,7 +995,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         [ExportCodeFixProvider(
             LanguageNames.CSharp,
-            DocumentKinds = new[] { nameof(TextDocumentKind.AdditionalDocument) })]
+            DocumentKinds = [nameof(TextDocumentKind.AdditionalDocument)])]
         [Shared]
         internal sealed class AdditionalFileFixerWithDocumentKinds : AbstractAdditionalFileCodeFixProvider
         {
@@ -1000,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         [ExportCodeFixProvider(
             LanguageNames.CSharp,
-            DocumentExtensions = new[] { ".txt" })]
+            DocumentExtensions = [".txt"])]
         [Shared]
         internal sealed class AdditionalFileFixerWithDocumentExtensions : AbstractAdditionalFileCodeFixProvider
         {

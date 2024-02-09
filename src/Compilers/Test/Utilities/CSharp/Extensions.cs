@@ -955,7 +955,7 @@ internal static class Extensions
         return result;
     }
 
-    public static void Verify(this ImmutableBindingDiagnostic<AssemblySymbol> actual, params Microsoft.CodeAnalysis.Test.Utilities.DiagnosticDescription[] expected)
+    public static void Verify(this ReadOnlyBindingDiagnostic<AssemblySymbol> actual, params Microsoft.CodeAnalysis.Test.Utilities.DiagnosticDescription[] expected)
     {
         actual.Diagnostics.Verify(expected);
     }

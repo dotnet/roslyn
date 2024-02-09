@@ -23,10 +23,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// </summary>
         ImmutableArray<DocumentId> GetVisibleDocuments();
 
-#if false // Not used in unit testing crawling
-        event EventHandler<DocumentId?> ActiveDocumentChanged;
-#endif
-
         /// <summary>
         /// Raised when a text buffer that's not part of a workspace is changed.
         /// </summary>

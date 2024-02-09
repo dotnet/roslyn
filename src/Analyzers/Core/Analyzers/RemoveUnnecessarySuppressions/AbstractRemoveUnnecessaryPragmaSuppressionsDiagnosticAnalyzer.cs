@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         private readonly Lazy<ImmutableHashSet<int>> _lazySupportedCompilerErrorCodes;
 
         protected AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_removeUnnecessarySuppressionDescriptor), GeneratedCodeAnalysisFlags.None)
+            : base([s_removeUnnecessarySuppressionDescriptor], GeneratedCodeAnalysisFlags.None)
         {
             _lazySupportedCompilerErrorCodes = new Lazy<ImmutableHashSet<int>>(GetSupportedCompilerErrorCodes);
         }
@@ -61,13 +61,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 var compilerAnalyzerType = assembly.GetType(compilerAnalyzerTypeName)!;
                 var methodInfo = compilerAnalyzerType.GetMethod("GetSupportedErrorCodes", BindingFlags.Instance | BindingFlags.NonPublic)!;
                 var compilerAnalyzerInstance = Activator.CreateInstance(compilerAnalyzerType);
-                var supportedCodes = methodInfo.Invoke(compilerAnalyzerInstance, Array.Empty<object>()) as IEnumerable<int>;
-                return supportedCodes?.ToImmutableHashSet() ?? ImmutableHashSet<int>.Empty;
+                var supportedCodes = methodInfo.Invoke(compilerAnalyzerInstance, []) as IEnumerable<int>;
+                return supportedCodes?.ToImmutableHashSet() ?? [];
             }
             catch (Exception ex)
             {
                 Debug.Fail(ex.Message);
-                return ImmutableHashSet<int>.Empty;
+                return [];
             }
         }
 
@@ -521,8 +521,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 }
 
                 var suppressionInfo = diagnostic.GetSuppressionInfo(compilationWithAnalyzers.Compilation);
-                if (suppressionInfo == null)
+                if (suppressionInfo == null || !suppressionInfo.ProgrammaticSuppressions.IsEmpty)
                 {
+                    // Skip diagnostics that are not suppressed in source or suppressed via programmatic suppressions from suppressors.
                     continue;
                 }
 
@@ -644,11 +645,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                             pragmasToIsUsedMap.TryGetValue(togglePragma, out var isToggleUsed) &&
                             !isToggleUsed)
                         {
-                            additionalLocations = ImmutableArray.Create(togglePragma.GetLocation());
+                            additionalLocations = [togglePragma.GetLocation()];
                         }
                         else
                         {
-                            additionalLocations = ImmutableArray<Location>.Empty;
+                            additionalLocations = [];
                         }
 
                         var diagnostic = Diagnostic.Create(s_removeUnnecessarySuppressionDescriptor, pragma.GetLocation(), severity, additionalLocations, properties: null);

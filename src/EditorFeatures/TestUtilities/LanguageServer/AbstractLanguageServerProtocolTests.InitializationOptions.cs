@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Roslyn.Test.Utilities
 {
@@ -15,7 +15,7 @@ namespace Roslyn.Test.Utilities
     {
         internal readonly record struct InitializationOptions()
         {
-            internal string[] SourceGeneratedMarkups { get; init; } = Array.Empty<string>();
+            internal string[] SourceGeneratedMarkups { get; init; } = [];
             // Use this to specify the containing folders for each document.
             // Its count need to be same as documents' count.
             internal string[]? DocumentFileContainingFolders { get; init; } = null;

@@ -334,18 +334,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (classOrStructType.TypeKind is not TypeKind.Class and not TypeKind.Struct)
             {
-                return ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
+                return [];
             }
 
             if (!interfacesOrAbstractClasses.Any())
             {
-                return ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
+                return [];
             }
 
             if (!interfacesOrAbstractClasses.All(i => i.TypeKind == TypeKind.Interface) &&
                 !interfacesOrAbstractClasses.All(i => i.IsAbstractClass()))
             {
-                return ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
+                return [];
             }
 
             var typesToImplement = GetTypesToImplement(classOrStructType, interfacesOrAbstractClasses, allowReimplementation, cancellationToken);

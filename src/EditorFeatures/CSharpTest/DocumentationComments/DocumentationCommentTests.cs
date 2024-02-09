@@ -494,8 +494,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538699")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538699")]
         public void TypingCharacter_VoidMethod2()
         {
             var code =
@@ -745,8 +744,7 @@ C()
             VerifyTypingCharacter(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/59081")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59081")]
         public void TypingCharacter_NotInTopLevel()
         {
             var code = @"
@@ -766,8 +764,7 @@ Console.WriteLine();
             VerifyTypingCharacter(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/59081")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59081")]
         public void TypingCharacter_NotInNamespace()
         {
             var code = @"
@@ -807,8 +804,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/4817")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4817")]
         public void PressingEnter_InsertComment_Class1_AutoGenerateXmlDocCommentsOff()
         {
             var code =
@@ -959,8 +955,7 @@ $$
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
         public void PressingEnter_NotInterleavedInClassName1()
         {
             var code =
@@ -977,8 +972,7 @@ $$ C
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
         public void PressingEnter_NotInterleavedInClassName2()
         {
             var code =
@@ -995,8 +989,7 @@ $$C
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537513")]
         public void PressingEnter_NotInterleavedInClassName3()
         {
             var code =
@@ -1014,8 +1007,7 @@ $$C
         }
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537514")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537532")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537532")]
         public void PressingEnter_NotAfterClassName1()
         {
             var code =
@@ -1032,8 +1024,7 @@ $$
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537552")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537552")]
         public void PressingEnter_NotAfterClassName2()
         {
             var code =
@@ -1050,8 +1041,7 @@ $$
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537535")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537535")]
         public void PressingEnter_NotAfterCtorName()
         {
             var code =
@@ -1070,8 +1060,7 @@ $$
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537511")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537511")]
         public void PressingEnter_NotInsideCtor()
         {
             var code =
@@ -1096,8 +1085,7 @@ $$
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537550")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537550")]
         public void PressingEnter_NotBeforeDocComment()
         {
             var code =
@@ -1277,8 +1265,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538702")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538702")]
         public void PressingEnter_InsertSlashes8()
         {
             var code =
@@ -1367,8 +1354,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/4817")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4817")]
         public void PressingEnter_InsertSlashes12_AutoGenerateXmlDocCommentsOff()
         {
             var code =
@@ -1413,8 +1399,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538701")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538701")]
         public void PressingEnter_DoNotInsertSlashes2()
         {
             var code =
@@ -1456,8 +1441,7 @@ C()
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542426")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542426")]
         public void PressingEnter_PreserveParams()
         {
             var code =
@@ -1479,8 +1463,7 @@ static void Main(string[] args)
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2091")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2091")]
         public void PressingEnter_InTextBeforeSpace()
         {
             const string code =
@@ -1509,8 +1492,7 @@ static void Main(string[] args)
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2108")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2108")]
         public void PressingEnter_Indentation1()
         {
             const string code =
@@ -1539,8 +1521,7 @@ static void Main(string[] args)
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2108")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2108")]
         public void PressingEnter_Indentation2()
         {
             const string code =
@@ -1569,8 +1550,7 @@ static void Main(string[] args)
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2108")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2108")]
         public void PressingEnter_Indentation3()
         {
             const string code =
@@ -1599,8 +1579,7 @@ static void Main(string[] args)
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2108")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2108")]
         public void PressingEnter_Indentation4()
         {
             const string code =
@@ -1629,8 +1608,7 @@ static void Main(string[] args)
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2108")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2108")]
         public void PressingEnter_Indentation5_UseTabs()
         {
             const string code =
@@ -1659,8 +1637,7 @@ static void Main(string[] args)
             VerifyPressingEnter(code, expected, useTabs: true);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5486")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/5486")]
         public void PressingEnter_Selection1()
         {
             var code =
@@ -1682,8 +1659,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/5486")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/5486")]
         public void PressingEnter_Selection2()
         {
             var code =
@@ -1845,8 +1821,7 @@ struct R(string S, int I);";
             VerifyInsertCommentCommand(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/4817")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4817")]
         public void Command_Class_AutoGenerateXmlDocCommentsOff()
         {
             var code =
@@ -1868,8 +1843,7 @@ class C
             });
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
         public void Command_BeforeClass1()
         {
             var code =
@@ -1885,8 +1859,7 @@ class C { }";
             VerifyInsertCommentCommand(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
         public void Command_BeforeClass2()
         {
             var code =
@@ -1904,8 +1877,7 @@ class C { }";
             VerifyInsertCommentCommand(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538714")]
         public void Command_BeforeClass3()
         {
             var code =
@@ -1927,8 +1899,7 @@ class C { }";
             VerifyInsertCommentCommand(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527604")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527604")]
         public void Command_Class_NotIfMultilineDocCommentExists()
         {
             var code =
@@ -2005,8 +1976,7 @@ class C
             VerifyInsertCommentCommand(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
         public void Command_FirstClassOnLine()
         {
             var code = @"$$class C { } class D { }";
@@ -2020,8 +1990,7 @@ class C { } class D { }";
             VerifyInsertCommentCommand(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
         public void Command_NotOnSecondClassOnLine()
         {
             var code = @"class C { } $$class D { }";
@@ -2031,8 +2000,7 @@ class C { } class D { }";
             VerifyInsertCommentCommand(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
         public void Command_FirstMethodOnLine()
         {
             var code =
@@ -2053,8 +2021,7 @@ class C { } class D { }";
             VerifyInsertCommentCommand(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")]
         public void Command_NotOnSecondMethodOnLine()
         {
             var code =
@@ -2072,8 +2039,7 @@ class C { } class D { }";
             VerifyInsertCommentCommand(code, expected);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917904")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917904")]
         public void TestUseTab()
         {
             var code =
@@ -2103,8 +2069,7 @@ public class Class1
             VerifyTypingCharacter(code, expected, useTabs: true);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
         public void TestOpenLineAbove1()
         {
             const string code =
@@ -2133,8 +2098,7 @@ public class Class1
             VerifyOpenLineAbove(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
         public void TestOpenLineAbove2()
         {
             const string code =
@@ -2163,8 +2127,7 @@ public class Class1
             VerifyOpenLineAbove(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
         public void TestOpenLineAbove3()
         {
             const string code =
@@ -2195,8 +2158,7 @@ $$
             VerifyOpenLineAbove(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
         public void TestOpenLineAbove4_Tabs()
         {
             const string code =
@@ -2225,8 +2187,7 @@ $$
             VerifyOpenLineAbove(code, expected, useTabs: true);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
         public void TestOpenLineBelow1()
         {
             const string code =
@@ -2255,8 +2216,7 @@ $$
             VerifyOpenLineBelow(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
         public void TestOpenLineBelow2()
         {
             const string code =
@@ -2285,8 +2245,7 @@ $$
             VerifyOpenLineBelow(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
         public void TestOpenLineBelow3()
         {
             const string code =
@@ -2305,8 +2264,7 @@ $$
             VerifyOpenLineBelow(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2090")]
         public void TestOpenLineBelow4_Tabs()
         {
             const string code =
@@ -2335,8 +2293,7 @@ $$
             VerifyOpenLineBelow(code, expected, useTabs: true);
         }
 
-        [WorkItem(468638, @"https://devdiv.visualstudio.com/DevDiv/NET%20Developer%20Experience%20IDE/_workitems/edit/468638")]
-        [WpfFact]
+        [WpfFact, WorkItem(468638, @"https://devdiv.visualstudio.com/DevDiv/NET%20Developer%20Experience%20IDE/_workitems/edit/468638")]
         public void VerifyEnterWithTrimNewLineEditorConfigOption()
         {
             const string code =
@@ -2400,12 +2357,12 @@ class C
             get { return '/'; }
         }
 
-        internal override ICommandHandler CreateCommandHandler(TestWorkspace workspace)
+        internal override ICommandHandler CreateCommandHandler(EditorTestWorkspace workspace)
         {
             return workspace.ExportProvider.GetCommandHandler<DocumentationCommentCommandHandler>(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.CSharpContentType);
         }
 
-        protected override TestWorkspace CreateTestWorkspace(string code)
-            => TestWorkspace.CreateCSharp(code);
+        protected override EditorTestWorkspace CreateTestWorkspace(string code)
+            => EditorTestWorkspace.CreateCSharp(code);
     }
 }

@@ -1064,6 +1064,11 @@ namespace System
                     case WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T:
                     case WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T:
                     case WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T:
+                    case WellKnownMember.System_Span_T__ToArray:
+                    case WellKnownMember.System_ReadOnlySpan_T__ToArray:
+                    case WellKnownMember.System_Span_T__CopyTo_Span_T:
+                    case WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T:
+                    case WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan:
                         // Not always available.
                         continue;
                 }
@@ -2398,7 +2403,69 @@ public class Test
             compilation.VerifyEmitDiagnostics(
                 // (9,27): error CS0656: Missing compiler required member 'System.Object.ToString'
                 //         Console.WriteLine(c + "3");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"c + ""3""").WithArguments("System.Object", "ToString").WithLocation(9, 27)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(9, 27)
+                );
+        }
+
+        [Fact]
+        public void System_Object__ToString_3Args()
+        {
+            var source = """
+                using System;
+
+                public class Test
+                {
+                    static void Main()
+                    {
+                        char c = 'c';
+                        int i = 2;
+                        Console.WriteLine(c + "3" + i);
+                    }
+                }
+                """;
+
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Object__ToString);
+            compilation.VerifyEmitDiagnostics(
+                // (9,27): error CS0656: Missing compiler required member 'System.Object.ToString'
+                //         Console.WriteLine(c + "3" + i);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(9, 27),
+                // (9,37): error CS0656: Missing compiler required member 'System.Object.ToString'
+                //         Console.WriteLine(c + "3" + i);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "i").WithArguments("System.Object", "ToString").WithLocation(9, 37)
+                );
+        }
+
+        [Fact]
+        public void System_Object__ToString_4Args()
+        {
+            var source = """
+                using System;
+
+                public class Test
+                {
+                    static void Main()
+                    {
+                        char c = 'c';
+                        int i = 2;
+                        double d = 0.7;
+                        Console.WriteLine(c + "3" + i + d);
+                    }
+                }
+                """;
+
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Object__ToString);
+            compilation.VerifyEmitDiagnostics(
+                // (10,27): error CS0656: Missing compiler required member 'System.Object.ToString'
+                //         Console.WriteLine(c + "3" + i + d);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(10, 27),
+                // (10,37): error CS0656: Missing compiler required member 'System.Object.ToString'
+                //         Console.WriteLine(c + "3" + i + d);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "i").WithArguments("System.Object", "ToString").WithLocation(10, 37),
+                // (10,41): error CS0656: Missing compiler required member 'System.Object.ToString'
+                //         Console.WriteLine(c + "3" + i + d);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Object", "ToString").WithLocation(10, 41)
                 );
         }
 

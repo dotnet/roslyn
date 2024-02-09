@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics;
 using Roslyn.Test.Utilities.TestGenerators;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
@@ -174,14 +175,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1874763")]
         public void OverflowOnFluentCall_ExtensionMethods()
         {
-            int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration, RuntimeUtilities.IsDesktopRuntime) switch
+            int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration, RuntimeUtilities.IsDesktopRuntime, RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) switch
             {
-                (8, ExecutionConfiguration.Debug, false) => 750,
-                (8, ExecutionConfiguration.Release, false) => 750, // Should be ~3_400, but is flaky.
-                (4, ExecutionConfiguration.Debug, true) => 450,
-                (4, ExecutionConfiguration.Release, true) => 1_600,
-                (8, ExecutionConfiguration.Debug, true) => 1_100,
-                (8, ExecutionConfiguration.Release, true) => 3_300,
+                (8, ExecutionConfiguration.Debug, false, false) => 750,
+                (8, ExecutionConfiguration.Release, false, false) => 750, // Should be ~3_400, but is flaky.
+                (4, ExecutionConfiguration.Debug, true, false) => 450,
+                (4, ExecutionConfiguration.Release, true, false) => 1_600,
+                (8, ExecutionConfiguration.Debug, true, false) => 1_100,
+                (8, ExecutionConfiguration.Release, true, false) => 3_300,
+                (_, _, _, true) => 200,
                 _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}, Desktop: {RuntimeUtilities.IsDesktopRuntime}")
             };
 

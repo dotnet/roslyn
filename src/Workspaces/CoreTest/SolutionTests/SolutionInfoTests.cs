@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#");
 
             Assert.Throws<ArgumentNullException>(() => SolutionInfo.Create(null, version));
-            Assert.Throws<ArgumentNullException>(() => SolutionInfo.Create(solutionId, version, projects: new[] { projectInfo, null }));
+            Assert.Throws<ArgumentNullException>(() => SolutionInfo.Create(solutionId, version, projects: [projectInfo, null]));
         }
 
         [Fact]
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var version = VersionStamp.Default;
             var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(), version, "proj", "assembly", "C#");
 
-            var info1 = SolutionInfo.Create(solutionId, version, projects: new[] { projectInfo });
+            var info1 = SolutionInfo.Create(solutionId, version, projects: [projectInfo]);
             Assert.Same(projectInfo, ((ImmutableArray<ProjectInfo>)info1.Projects).Single());
 
             var info2 = SolutionInfo.Create(solutionId, version);
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var info3 = SolutionInfo.Create(solutionId, version, projects: new ProjectInfo[0]);
             Assert.True(((ImmutableArray<ProjectInfo>)info3.Projects).IsEmpty);
 
-            var info4 = SolutionInfo.Create(solutionId, version, projects: ImmutableArray<ProjectInfo>.Empty);
+            var info4 = SolutionInfo.Create(solutionId, version, projects: []);
             Assert.True(((ImmutableArray<ProjectInfo>)info4.Projects).IsEmpty);
         }
 

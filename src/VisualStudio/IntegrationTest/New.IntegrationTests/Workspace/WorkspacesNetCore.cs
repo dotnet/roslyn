@@ -22,7 +22,8 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.Workspaces
         {
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72018")]
+        [Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/34264")]
         public override async Task MetadataReference()
@@ -30,7 +31,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.Workspaces
             await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(WorkspacesNetCore), HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddCustomProjectAsync(ProjectName, ".csproj", @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 </Project>", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class1.cs", contents: string.Empty, open: true, cancellationToken: HangMitigatingCancellationToken);

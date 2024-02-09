@@ -23,12 +23,12 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 {
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             {
                 Uri = r.identifier.Uri,
                 Value = r.resultId
-            }).ToArray() ?? Array.Empty<PreviousResultId>();
+            }).ToArray() ?? [];
             return new WorkspaceDiagnosticParams
             {
                 PreviousResultId = previousResultsLsp,
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                     globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, true);
                 },
                 ServerKind = serverKind,
-                SourceGeneratedMarkups = sourceGeneratedMarkups ?? Array.Empty<string>(),
+                SourceGeneratedMarkups = sourceGeneratedMarkups ?? [],
                 AdditionalAnalyzers = additionalAnalyzers
             };
         }

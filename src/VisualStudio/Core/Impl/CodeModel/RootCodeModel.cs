@@ -141,8 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var compilation = GetCompilation();
             var typeSymbol = CodeModelService.GetTypeSymbolFromFullName(name, compilation);
             if (typeSymbol == null ||
-                typeSymbol.TypeKind == TypeKind.Error ||
-                typeSymbol.TypeKind == TypeKind.Unknown)
+                typeSymbol.TypeKind is TypeKind.Error or TypeKind.Unknown)
             {
                 return null;
             }

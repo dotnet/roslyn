@@ -1664,7 +1664,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="trueStatements">The statements that are executed if the condition is true.</param>
         /// <param name="falseStatement">A single statement that is executed if the condition is false.</param>
         public SyntaxNode IfStatement(SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, SyntaxNode falseStatement)
-            => IfStatement(condition, trueStatements, new[] { falseStatement });
+            => IfStatement(condition, trueStatements, [falseStatement]);
 
         /// <summary>
         /// Creates a switch statement that branches to individual sections based on the value of the specified expression.
@@ -1688,7 +1688,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a single-case section a switch statement.
         /// </summary>
         public SyntaxNode SwitchSection(SyntaxNode caseExpression, IEnumerable<SyntaxNode> statements)
-            => SwitchSection(new[] { caseExpression }, statements);
+            => SwitchSection([caseExpression], statements);
 
         /// <summary>
         /// Creates a default section for a switch statement.

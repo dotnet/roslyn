@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             if (lookup == null)
             {
-                return ImmutableArray<DiagnosticData>.Empty;
+                return [];
             }
 
             ImmutableArray<DiagnosticData>.Builder? builder = null;
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 builder.AddRange(items.Select(d => CreateLiveDiagnostic(descriptor, d)));
             }
 
-            return builder == null ? ImmutableArray<DiagnosticData>.Empty : builder.ToImmutable();
+            return builder == null ? [] : builder.ToImmutable();
         }
 
         private static DiagnosticData CreateLiveDiagnostic(DiagnosticDescriptor descriptor, DiagnosticData diagnostic)

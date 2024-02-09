@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             if (typeLibAttributeType == null || typeLibFlagsType == null || shortType == null)
             {
-                return ImmutableArray<IMethodSymbol>.Empty;
+                return [];
             }
 
             var candidateConstructors = typeLibAttributeType.Constructors

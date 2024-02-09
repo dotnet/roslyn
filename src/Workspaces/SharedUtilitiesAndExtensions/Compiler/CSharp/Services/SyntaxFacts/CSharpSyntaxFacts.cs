@@ -529,6 +529,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                 return true;
             }
 
+            if (token.Kind() is SyntaxKind.OpenBracketToken or SyntaxKind.CloseBracketToken
+                && token.Parent.IsKind(SyntaxKind.CollectionExpression))
+            {
+                return true;
+            }
+
             return false;
         }
 

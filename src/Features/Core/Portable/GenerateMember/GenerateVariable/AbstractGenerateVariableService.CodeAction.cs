@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     syntaxFactory, _semanticDocument, "System.NotImplementedException");
 
                 return _state.TypeToGenerateIn.TypeKind != TypeKind.Interface && _refKind != RefKind.None
-                    ? ImmutableArray.Create(throwStatement)
+                    ? [throwStatement]
                     : default;
             }
 

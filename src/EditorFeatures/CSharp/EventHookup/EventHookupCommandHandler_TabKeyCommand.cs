@@ -286,8 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 name: eventHandlerMethodName,
                 typeParameters: default,
                 parameters: delegateInvokeMethod.Parameters,
-                statements: ImmutableArray.Create(
-                    CodeGenerationHelpers.GenerateThrowStatement(syntaxFactory, semanticDocument, "System.NotImplementedException")));
+                statements: [CodeGenerationHelpers.GenerateThrowStatement(syntaxFactory, semanticDocument, "System.NotImplementedException")]);
         }
 
         private void BeginInlineRename(ITextView textView, int plusEqualTokenEndPosition, CancellationToken cancellationToken)

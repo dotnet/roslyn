@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return ImmutableArray<int>.Empty;
+                return [];
             }
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return ImmutableArray.Create<CustomModifier>();
+                return [];
             }
         }
 
