@@ -181,9 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
         /// <returns>Whether the constructor body matches the pattern described</returns>
         public static bool IsSimplePrimaryConstructor(
             IConstructorBodyOperation operation,
-            ref ImmutableArray<IPropertySymbol> properties,
-            ImmutableArray<IParameterSymbol> parameters)
+            ImmutableArray<IPropertySymbol> properties,
+            ImmutableArray<IParameterSymbol> parameters,
+            out ImmutableArray<IPropertySymbol> orderedProperties)
         {
+            orderedProperties = default;
             if (GetBlockOfMethodBody(operation) is not { Operations.Length: int opLength } ||
                 opLength != properties.Length)
             {
@@ -194,25 +196,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
                 assignment => (assignment as IParameterReferenceOperation)?.Parameter);
 
             // we must assign to all the properties (keys) and use all the parameters (values)
-            if (assignmentValues.Keys.SetEquals(properties) &&
-                assignmentValues.Values.SetEquals(parameters))
+            if (!assignmentValues.Keys.SetEquals(properties) ||
+                !assignmentValues.Values.SetEquals(parameters))
             {
-                // order properties in order of the parameters that they were assigned to
-                // e.g if we originally have Properties: [int Y, int X]
-                // and constructor:
-                // public C(int x, int y)
-                // {
-                //     X = x;
-                //     Y = y;
-                // }
-                // then we would re-order the properties to: [int X, int Y]
-                properties = properties
-                    .OrderBy(property => parameters.IndexOf(assignmentValues[property]))
-                    .AsImmutable();
-                return true;
+                return false;
             }
 
-            return false;
+            // order properties in order of the parameters that they were assigned to
+            // e.g if we originally have Properties: [int Y, int X]
+            // and constructor:
+            // public C(int x, int y)
+            // {
+            //     X = x;
+            //     Y = y;
+            // }
+            // then we would re-order the properties to: [int X, int Y]
+            orderedProperties = properties
+                .OrderBy(property => parameters.IndexOf(assignmentValues[property]))
+                .AsImmutable();
+            return true;
         }
 
         /// <summary>
