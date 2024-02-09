@@ -145,45 +145,45 @@ namespace Microsoft.CodeAnalysis
                         _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
                     };
 
-                    var intermediateProjects = UpdateIntermediateProjects(oldProjectState, state, translate);
+                    var pendingTranslationSteps = UpdatePendingTranslationSteps(oldProjectState, state, translate);
 
                     var newState = InProgressState.Create(
                         state.IsFrozen,
                         state.CompilationWithoutGeneratedDocuments,
                         state.GeneratorInfo,
                         staleCompilationWithGeneratedDocuments,
-                        intermediateProjects);
+                        pendingTranslationSteps);
                     return newState;
                 }
 
-                static ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> UpdateIntermediateProjects(
+                static ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> UpdatePendingTranslationSteps(
                     ProjectState oldProjectState,
                     CompilationTrackerState state,
                     CompilationAndGeneratorDriverTranslationAction? translate)
                 {
-                    var intermediateProjects = state is InProgressState inProgressState
+                    var pendingTranslationSteps = state is InProgressState inProgressState
                         ? inProgressState.PendingTranslationSteps
                         : [];
 
                     if (translate is null)
-                        return intermediateProjects;
+                        return pendingTranslationSteps;
 
                     // We have a translation action; are we able to merge it with the prior one?
-                    if (!intermediateProjects.IsEmpty)
+                    if (!pendingTranslationSteps.IsEmpty)
                     {
-                        var (priorState, priorAction) = intermediateProjects.Last();
+                        var (priorState, priorAction) = pendingTranslationSteps.Last();
                         var mergedTranslation = translate.TryMergeWithPrior(priorAction);
                         if (mergedTranslation != null)
                         {
                             // We can replace the prior action with this new one
-                            return intermediateProjects.SetItem(
-                                intermediateProjects.Count - 1,
+                            return pendingTranslationSteps.SetItem(
+                                pendingTranslationSteps.Count - 1,
                                 (oldState: priorState, mergedTranslation));
                         }
                     }
 
                     // Just add it to the end
-                    return intermediateProjects.Add((oldProjectState, translate));
+                    return pendingTranslationSteps.Add((oldProjectState, translate));
                 }
             }
 
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis
                         // frozen here.
                         var allSyntaxTreesParsedState = InProgressState.Create(
                             isFrozen: false, compilation, CompilationTrackerGeneratorInfo.Empty, staleCompilationWithGeneratedDocuments: null,
-                            intermediateProjects: []);
+                            pendingTranslationSteps: []);
 
                         WriteState(allSyntaxTreesParsedState);
                         return allSyntaxTreesParsedState;

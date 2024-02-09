@@ -96,15 +96,15 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? staleCompilationWithGeneratedDocuments,
-                    ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
+                    ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
                     : base(isFrozen,
                            compilationWithoutGeneratedDocuments,
                            generatorInfo)
                 {
                     // Note: Intermediate projects can be empty.
-                    Contract.ThrowIfTrue(intermediateProjects is null);
+                    Contract.ThrowIfTrue(pendingTranslationSteps is null);
 
-                    PendingTranslationSteps = intermediateProjects;
+                    PendingTranslationSteps = pendingTranslationSteps;
                     StaleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments;
                 }
 
@@ -113,9 +113,9 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? staleCompilationWithGeneratedDocuments,
-                    ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
+                    ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
                 {
-                    Contract.ThrowIfTrue(intermediateProjects is null);
+                    Contract.ThrowIfTrue(pendingTranslationSteps is null);
 
                     // If we're not frozen, transition back to the non-final state as we def want to rerun generators
                     // for either of these non-final states.
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis
                     // If we don't have any intermediate projects to process, just initialize our
                     // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
                     // if our referenced projects are changing, so we'll have to rerun to consume changes.
-                    return new InProgressState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, staleCompilationWithGeneratedDocuments, intermediateProjects);
+                    return new InProgressState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, staleCompilationWithGeneratedDocuments, pendingTranslationSteps);
                 }
             }
 
