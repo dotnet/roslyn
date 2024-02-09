@@ -22,7 +22,8 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.Workspaces
         {
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72018")]
+        [Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/34264")]
         public override async Task MetadataReference()

@@ -995,7 +995,13 @@ namespace Microsoft.CodeAnalysis
             where TNamespaceOrTypeSymbol : class
             where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
         {
-            var dictionary = new Dictionary<TKey, ImmutableArray<TNamedTypeSymbol>>(comparer);
+            // Initialize dictionary capacity to avoid resize allocations during Add calls.
+            // Most iterations through the loop add an entry. If map is smaller than the
+            // smallest capacity dictionary will use, we'll let it grow organically as
+            // it's possible we might not add anything to the dictionary.
+            var capacity = map.Count > 3 ? map.Count : 0;
+
+            var dictionary = new Dictionary<TKey, ImmutableArray<TNamedTypeSymbol>>(capacity, comparer);
 
             foreach (var (name, members) in map)
             {
