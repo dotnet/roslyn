@@ -68,26 +68,6 @@ namespace Microsoft.CodeAnalysis
                     }
 #endif
                 }
-
-                public static InProgressState CreateInProgressState(
-                    bool isFrozen,
-                    Compilation compilationWithoutGeneratedDocuments,
-                    CompilationTrackerGeneratorInfo generatorInfo,
-                    Compilation? compilationWithGeneratedDocuments,
-                    ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
-                {
-                    Contract.ThrowIfTrue(intermediateProjects is null);
-
-                    // If we're not frozen, transition back to the non-final state as we def want to rerun generators
-                    // for either of these non-final states.
-                    if (!isFrozen)
-                        generatorInfo = generatorInfo.WithDocumentsAreFinal(false);
-
-                    // If we don't have any intermediate projects to process, just initialize our
-                    // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
-                    // if our referenced projects are changing, so we'll have to rerun to consume changes.
-                    return new InProgressState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, compilationWithGeneratedDocuments, intermediateProjects);
-                }
             }
 
             /// <summary>
@@ -110,7 +90,7 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public Compilation? StaleCompilationWithGeneratedDocuments { get; }
 
-                public InProgressState(
+                private InProgressState(
                     bool isFrozen,
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
@@ -128,6 +108,26 @@ namespace Microsoft.CodeAnalysis
 
                     this.IntermediateProjects = intermediateProjects;
                     this.StaleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments;
+                }
+
+                public static InProgressState Create(
+                    bool isFrozen,
+                    Compilation compilationWithoutGeneratedDocuments,
+                    CompilationTrackerGeneratorInfo generatorInfo,
+                    Compilation? staleCompilationWithGeneratedDocuments,
+                    ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
+                {
+                    Contract.ThrowIfTrue(intermediateProjects is null);
+
+                    // If we're not frozen, transition back to the non-final state as we def want to rerun generators
+                    // for either of these non-final states.
+                    if (!isFrozen)
+                        generatorInfo = generatorInfo.WithDocumentsAreFinal(false);
+
+                    // If we don't have any intermediate projects to process, just initialize our
+                    // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
+                    // if our referenced projects are changing, so we'll have to rerun to consume changes.
+                    return new InProgressState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, staleCompilationWithGeneratedDocuments, intermediateProjects);
                 }
             }
 

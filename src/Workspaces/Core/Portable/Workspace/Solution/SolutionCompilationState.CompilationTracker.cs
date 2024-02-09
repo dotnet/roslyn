@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis
 
                     var intermediateProjects = UpdateIntermediateProjects(oldProjectState, state, translate);
 
-                    var newState = CompilationTrackerState.CreateInProgressState(
+                    var newState = InProgressState.Create(
                         state.IsFrozen,
                         state.CompilationWithoutGeneratedDocuments,
                         state.GeneratorInfo,
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis
                         // here from a frozen state (as a frozen state always ensures we have a
                         // WithCompilationTrackerState).  As such, we can safely still preserve that we're not
                         // frozen here.
-                        var inProgressState = new InProgressState(
+                        var inProgressState = InProgressState.Create(
                             isFrozen: false, compilation, CompilationTrackerGeneratorInfo.Empty, staleCompilationWithGeneratedDocuments: null,
                             ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty);
                         WriteState(inProgressState);
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis
                             // make all states forked from those states frozen as well.  This ensures we don't attempt
                             // to move generator docs back to the uncomputed state from that point onwards.  We'll just
                             // keep whatever generated docs we have.
-                            currentState = CompilationTrackerState.CreateInProgressState(
+                            currentState = InProgressState.Create(
                                 currentState.IsFrozen,
                                 compilationWithoutGeneratedDocuments,
                                 generatorInfo,
