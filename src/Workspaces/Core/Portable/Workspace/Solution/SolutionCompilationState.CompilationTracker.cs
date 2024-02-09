@@ -137,40 +137,38 @@ namespace Microsoft.CodeAnalysis
                     if (state is null)
                         return null;
 
-                    if (state is FinalCompilationTrackerState finalState)
+                    var (compilationWithoutGeneratedDocuments, staleCompilationWithGeneratedDocuments) = state switch
                     {
-                        // Roll back from the final state to an in progress state.
-                        var newState = InProgressState.Create(
-                            finalState.IsFrozen,
-                            compilationWithoutGeneratedDocuments: finalState.CompilationWithoutGeneratedDocuments,
-                            finalState.GeneratorInfo,
-                            staleCompilationWithGeneratedDocuments: finalState.FinalCompilationWithGeneratedDocuments,
-                            translate is null ? [] : [(oldProjectState, translate)]);
-                        return newState;
-                    }
-                    else if (state is InProgressState inProgressState)
-                    {
-                        // Tack the translation action onto the existing set of translation actions in the current in progress state.
-                        var newState = InProgressState.Create(
-                            inProgressState.IsFrozen,
-                            compilationWithoutGeneratedDocuments: inProgressState.CompilationWithoutGeneratedDocuments,
-                            inProgressState.GeneratorInfo,
-                            staleCompilationWithGeneratedDocuments: inProgressState.StaleCompilationWithGeneratedDocuments,
-                            UpdatePendingTranslationSteps(oldProjectState, inProgressState, translate));
-                        return newState;
-                    }
-                    else
-                    {
-                        throw ExceptionUtilities.UnexpectedValue(state.GetType());
-                    }
+                        InProgressState inProgressState => (inProgressState.CompilationWithoutGeneratedDocuments, inProgressState.StaleCompilationWithGeneratedDocuments),
+                        FinalCompilationTrackerState finalState => (finalState.CompilationWithoutGeneratedDocuments, finalState.FinalCompilationWithGeneratedDocuments),
+                        _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
+                    };
+
+                    var finalSteps = UpdatePendingTranslationSteps(
+                        oldProjectState,
+                        state switch
+                        {
+                            InProgressState { PendingTranslationSteps: var pendingTranslationSteps } => pendingTranslationSteps,
+                            FinalCompilationTrackerState => [],
+                            _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
+                        },
+                        translate);
+
+                    var newState = InProgressState.Create(
+                        state.IsFrozen,
+                        compilationWithoutGeneratedDocuments,
+                        state.GeneratorInfo,
+                        staleCompilationWithGeneratedDocuments,
+                        finalSteps);
+
+                    return newState;
                 }
 
                 static ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> UpdatePendingTranslationSteps(
                     ProjectState oldProjectState,
-                    InProgressState state,
+                    ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps,
                     CompilationAndGeneratorDriverTranslationAction? translate)
                 {
-                    var pendingTranslationSteps = state.PendingTranslationSteps;
                     if (translate is null)
                         return pendingTranslationSteps;
 
