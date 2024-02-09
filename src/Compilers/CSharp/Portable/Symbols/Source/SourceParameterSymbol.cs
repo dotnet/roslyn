@@ -225,9 +225,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected ScopedKind CalculateEffectiveScopeIgnoringAttributes()
         {
             var declaredScope = this.DeclaredScope;
-            return declaredScope == ScopedKind.None && ParameterHelpers.IsRefScopedByDefault(this) ?
-                ScopedKind.ScopedRef :
-                declaredScope;
+
+            if (declaredScope == ScopedKind.None)
+            {
+                if (ParameterHelpers.IsRefScopedByDefault(this))
+                {
+                    return ScopedKind.ScopedRef;
+                }
+                else if (IsParams && Type.IsRefLikeType)
+                {
+                    return ScopedKind.ScopedValue;
+                }
+            }
+
+            return declaredScope;
         }
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
