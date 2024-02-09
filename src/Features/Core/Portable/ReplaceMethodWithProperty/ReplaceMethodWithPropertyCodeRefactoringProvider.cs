@@ -212,6 +212,10 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
         IEnumerable<ReferenceLocation> setReferences,
         CancellationToken cancellationToken)
     {
+        // No point updating references in generated code, it will just get regenerated based on the changes to actual code.
+        if (originalDocument.Id.IsSourceGenerated)
+            return originalDocument.Project.Solution;
+
         var root = await originalDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var editor = new SyntaxEditor(root, originalDocument.Project.Solution.Services);

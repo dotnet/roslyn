@@ -3020,14 +3020,12 @@ index: 1);
                 """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document>
-                partial class C
+                        <Document>partial class C
                 {
                     int [||]GetGoo()
                     {
                     }
-                }
-                        </Document>
+                }</Document>
                         <DocumentFromSourceGenerator>
                 partial class C
                 {
@@ -3041,7 +3039,7 @@ index: 1);
                 </Workspace>
                 """,
                 """
-                class C
+                partial class C
                 {
                     int Goo
                     {
