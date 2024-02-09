@@ -18,18 +18,58 @@ namespace Microsoft.CodeAnalysis
         {
             /// <summary>
             /// The base type of all <see cref="CompilationTracker"/> states. The state of a <see
-            /// cref="CompilationTracker" /> starts at <see cref="NoCompilationState"/>, and then will progress through
-            /// <see cref="AllSyntaxTreesParsedState"/> when the initial compilation, with all parsed syntax trees in
-            /// it, then through <see cref="InProgressState"/> (when there are translation actions to perform), back to
-            /// <see cref="AllSyntaxTreesParsedState"/> once all those translation actions are collapsed, and then
-            /// finally to <see cref="FinalCompilationTrackerState"/> once source generators have been run.
-            /// <para/>
-            /// These states can also move back to <see cref="AllSyntaxTreesParsedState"/> or <see
-            /// cref="InProgressState"/> when forking from a complete <see cref="FinalCompilationTrackerState"/> when a
-            /// project changes.
+            /// cref="CompilationTracker" /> starts at null, and then will progress through the other states until it
+            /// finally reaches <see cref="FinalCompilationTrackerState" />.
             /// </summary>
             private abstract class CompilationTrackerState
             {
+                /// <summary>
+                /// Whether the generated documents in <see cref="GeneratorInfo"/> are frozen and generators should
+                /// never be ran again, ever, even if a document is later changed. This is used to ensure that when we
+                /// produce a frozen solution for partial semantics, further downstream forking of that solution won't
+                /// rerun generators. This is because of two reasons:
+                /// <list type="number">
+                /// <item>Generally once we've produced a frozen solution with partial semantics, we now want speed rather
+                /// than accuracy; a generator running in a later path will still cause issues there.</item>
+                /// <item>The frozen solution with partial semantics makes no guarantee that other syntax trees exist or
+                /// whether we even have references -- it's pretty likely that running a generator might produce worse results
+                /// than what we originally had.</item>
+                /// </list>
+                /// </summary>
+                public readonly bool IsFrozen;
+
+                /// <summary>
+                /// The best compilation that is available that source generators have not ran on. May be an
+                /// in-progress, full declaration, a final compilation.
+                /// </summary>
+                public Compilation CompilationWithoutGeneratedDocuments { get; }
+
+                public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
+
+                protected CompilationTrackerState(
+                    bool isFrozen,
+                    Compilation compilationWithoutGeneratedDocuments,
+                    CompilationTrackerGeneratorInfo generatorInfo)
+                {
+                    IsFrozen = isFrozen;
+                    CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
+                    GeneratorInfo = generatorInfo;
+
+                    // When in the frozen state, all documents must be final. We never want to run generators for frozen
+                    // states as the point is to be fast (while potentially incomplete).
+                    if (IsFrozen)
+                        Contract.ThrowIfFalse(generatorInfo.DocumentsAreFinal);
+
+#if DEBUG
+                    // As a sanity check, we should never see the generated trees inside of the compilation that should
+                    // not have generated trees.
+                    foreach (var generatedDocument in generatorInfo.Documents.States.Values)
+                    {
+                        Contract.ThrowIfTrue(compilationWithoutGeneratedDocuments.SyntaxTrees.Contains(generatedDocument.GetSyntaxTree(CancellationToken.None)));
+                    }
+#endif
+                }
+
                 /// <summary>
                 /// Returns a <see cref="AllSyntaxTreesParsedState"/> if <paramref name="intermediateProjects"/> is
                 /// empty, otherwise a <see cref="InProgressState"/>.
@@ -58,77 +98,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// State used when we potentially have some information (like prior generated documents)
-            /// but no compilation.
-            /// </summary>
-            private sealed class NoCompilationState : CompilationTrackerState
-            {
-                public static readonly NoCompilationState Instance = new();
-
-                private NoCompilationState()
-                {
-                }
-            }
-
-            /// <summary>
-            /// Root type for all tracker states that have a primordial (non source-generator) compilation that can
-            /// be obtained.
-            /// </summary>
-            private abstract class WithCompilationTrackerState : CompilationTrackerState
-            {
-                /// <summary>
-                /// Whether the generated documents in <see cref="GeneratorInfo"/> are frozen and generators should
-                /// never be ran again, ever, even if a document is later changed. This is used to ensure that when we
-                /// produce a frozen solution for partial semantics, further downstream forking of that solution won't
-                /// rerun generators. This is because of two reasons:
-                /// <list type="number">
-                /// <item>Generally once we've produced a frozen solution with partial semantics, we now want speed rather
-                /// than accuracy; a generator running in a later path will still cause issues there.</item>
-                /// <item>The frozen solution with partial semantics makes no guarantee that other syntax trees exist or
-                /// whether we even have references -- it's pretty likely that running a generator might produce worse results
-                /// than what we originally had.</item>
-                /// </list>
-                /// </summary>
-                public readonly bool IsFrozen;
-
-                /// <summary>
-                /// The best compilation that is available that source generators have not ran on. May be an
-                /// in-progress, full declaration, a final compilation.
-                /// </summary>
-                public Compilation CompilationWithoutGeneratedDocuments { get; }
-
-                public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
-
-                public WithCompilationTrackerState(
-                    bool isFrozen,
-                    Compilation compilationWithoutGeneratedDocuments,
-                    CompilationTrackerGeneratorInfo generatorInfo)
-                {
-                    IsFrozen = isFrozen;
-                    CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
-                    GeneratorInfo = generatorInfo;
-
-                    // When in the frozen state, all documents must be final. We never want to run generators for frozen
-                    // states as the point is to be fast (while potentially incomplete).
-                    if (IsFrozen)
-                        Contract.ThrowIfFalse(generatorInfo.DocumentsAreFinal);
-
-#if DEBUG
-                    // As a sanity check, we should never see the generated trees inside of the compilation that should
-                    // not have generated trees.
-                    foreach (var generatedDocument in generatorInfo.Documents.States.Values)
-                    {
-                        Contract.ThrowIfTrue(compilationWithoutGeneratedDocuments.SyntaxTrees.Contains(generatedDocument.GetSyntaxTree(CancellationToken.None)));
-                    }
-#endif
-                }
-            }
-
-            /// <summary>
             /// Root type for all compilation tracker that have a compilation, but are not the final <see
             /// cref="FinalCompilationTrackerState"/>
             /// </summary>
-            private abstract class NonFinalWithCompilationTrackerState : WithCompilationTrackerState
+            private abstract class NonFinalWithCompilationTrackerState : CompilationTrackerState
             {
                 /// <summary>
                 /// The result of taking the original completed compilation that had generated documents and updating
@@ -216,7 +189,7 @@ namespace Microsoft.CodeAnalysis
             /// cref="Compilation"/>s from other <see cref="CompilationTrackerState"/>s are passed out, then these other
             /// APIs will not function correctly.
             /// </summary>
-            private sealed class FinalCompilationTrackerState : WithCompilationTrackerState
+            private sealed class FinalCompilationTrackerState : CompilationTrackerState
             {
                 /// <summary>
                 /// Specifies whether <see cref="FinalCompilationWithGeneratedDocuments"/> and all compilations it

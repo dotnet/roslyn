@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Access via the <see cref="ReadState"/> and <see cref="WriteState"/> methods.
             /// </summary>
-            private CompilationTrackerState _stateDoNotAccessDirectly;
+            private CompilationTrackerState? _stateDoNotAccessDirectly;
 
             // guarantees only one thread is building at a time
             private readonly SemaphoreSlim _buildLock = new(initialCount: 1);
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
 
             private CompilationTracker(
                 ProjectState project,
-                CompilationTrackerState state,
+                CompilationTrackerState? state,
                 SkeletonReferenceCache cachedSkeletonReferences)
             {
                 Contract.ThrowIfNull(project);
@@ -71,11 +71,11 @@ namespace Microsoft.CodeAnalysis
             /// and will have no extra information beyond the project itself.
             /// </summary>
             public CompilationTracker(ProjectState project)
-                : this(project, NoCompilationState.Instance, cachedSkeletonReferences: new())
+                : this(project, state: null, cachedSkeletonReferences: new())
             {
             }
 
-            private CompilationTrackerState ReadState()
+            private CompilationTrackerState? ReadState()
                 => Volatile.Read(ref _stateDoNotAccessDirectly);
 
             private void WriteState(CompilationTrackerState state)
@@ -89,9 +89,7 @@ namespace Microsoft.CodeAnalysis
                 get
                 {
                     var state = this.ReadState();
-                    return state is WithCompilationTrackerState withCompilationTrackerState
-                        ? withCompilationTrackerState.GeneratorInfo.Driver
-                        : null;
+                    return state?.GeneratorInfo.Driver;
                 }
             }
 
@@ -133,31 +131,12 @@ namespace Microsoft.CodeAnalysis
 
                 static CompilationTrackerState ForkTrackerState(
                     ProjectState oldProjectState,
-                    CompilationTrackerState state,
+                    CompilationTrackerState? state,
                     CompilationAndGeneratorDriverTranslationAction? translate)
                 {
-                    if (state is WithCompilationTrackerState withCompilationTrackerState)
-                    {
-                        return ForkWithCompilationTrackerState(oldProjectState, withCompilationTrackerState, translate);
-                    }
-                    else if (state is NoCompilationState noCompilationState)
-                    {
-                        // This is a singleton.  We just stay in this state.  That's fine as there's no driver or
-                        // compilation to track this translate step.  We'll always just have to produce the full
-                        // compilation/sg docs if we're in this state.
-                        return noCompilationState;
-                    }
-                    else
-                    {
-                        throw ExceptionUtilities.UnexpectedValue(state.GetType());
-                    }
-                }
+                    if (state is null)
+                        return null;
 
-                static NonFinalWithCompilationTrackerState ForkWithCompilationTrackerState(
-                    ProjectState oldProjectState,
-                    WithCompilationTrackerState state,
-                    CompilationAndGeneratorDriverTranslationAction? translate)
-                {
                     // Determine the old/stale compilation to help seed the non-final state with.
                     var staleCompilationWithGeneratedDocuments = state switch
                     {
@@ -179,7 +158,7 @@ namespace Microsoft.CodeAnalysis
 
                 static ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> UpdateIntermediateProjects(
                     ProjectState oldProjectState,
-                    WithCompilationTrackerState state,
+                    CompilationTrackerState state,
                     CompilationAndGeneratorDriverTranslationAction? translate)
                 {
                     var intermediateProjects = state is InProgressState inProgressState
@@ -317,13 +296,9 @@ namespace Microsoft.CodeAnalysis
                 CancellationToken cancellationToken)
             {
                 var state = ReadState();
-                var compilationWithoutGeneratedDocuments = state is WithCompilationTrackerState withCompilationState1
-                    ? withCompilationState1.CompilationWithoutGeneratedDocuments
-                    : null;
+                var compilationWithoutGeneratedDocuments = state?.CompilationWithoutGeneratedDocuments;
 
-                generatorInfo = state is WithCompilationTrackerState withCompilationState2
-                    ? withCompilationState2.GeneratorInfo
-                    : CompilationTrackerGeneratorInfo.Empty;
+                generatorInfo = state?.GeneratorInfo ?? CompilationTrackerGeneratorInfo.Empty;
 
                 // check whether we can bail out quickly for typing case
                 var inProgressState = state as InProgressState;
@@ -531,15 +506,15 @@ namespace Microsoft.CodeAnalysis
                     var allSyntaxTreesParsedState = state switch
                     {
                         // If we're already there, then there's nothing to do.
-                        AllSyntaxTreesParsedState allParsedState
-                            => allParsedState,
+                        AllSyntaxTreesParsedState allParsedState => allParsedState,
+
                         // We've got nothing.  Build it from scratch :(
-                        NoCompilationState noCompilationState
-                            => await BuildAllSyntaxTreesParsedStateFromNoCompilationStateAsync().ConfigureAwait(false),
+                        null => await BuildAllSyntaxTreesParsedStateFromNoCompilationStateAsync().ConfigureAwait(false),
 
                         // We must have an in progress compilation. Build off of that.
                         InProgressState inProgressState
                             => await BuildAllSyntaxTreesParsedStateFromInProgressStateAsync(inProgressState).ConfigureAwait(false),
+
                         _ => throw ExceptionUtilities.UnexpectedValue(state.GetType())
                     };
 
@@ -588,7 +563,7 @@ namespace Microsoft.CodeAnalysis
                         // This is guaranteed by an in progress state.  Which means we know we'll get into the while loop below.
                         Contract.ThrowIfTrue(initialState.IntermediateProjects.IsEmpty);
 
-                        WithCompilationTrackerState currentState = initialState;
+                        NonFinalWithCompilationTrackerState currentState = initialState;
                         while (currentState is InProgressState inProgressState)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
@@ -826,14 +801,12 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
             {
-                var state = ReadState();
-
                 if (ProjectState.LanguageServices == fromProject.LanguageServices)
                 {
                     // if we have a compilation and its the correct language, use a simple compilation reference in any
                     // state it happens to be in right now
-                    if (state is WithCompilationTrackerState withCompilationState)
-                        return withCompilationState.CompilationWithoutGeneratedDocuments.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
+                    if (ReadState() is CompilationTrackerState compilationState)
+                        return compilationState.CompilationWithoutGeneratedDocuments.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
                 }
                 else
                 {
@@ -950,8 +923,11 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Validates the compilation is consistent and we didn't have a bug in producing it. This only runs under a feature flag.
             /// </summary>
-            private void ValidateState(CompilationTrackerState state)
+            private void ValidateState(CompilationTrackerState? state)
             {
+                if (state is null)
+                    return;
+
                 if (!_validateStates)
                     return;
 
