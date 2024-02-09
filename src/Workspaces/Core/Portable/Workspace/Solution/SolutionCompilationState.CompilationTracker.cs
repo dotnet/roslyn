@@ -142,9 +142,9 @@ namespace Microsoft.CodeAnalysis
                         // Roll back from the final state to an in progress state.
                         var newState = InProgressState.Create(
                             finalState.IsFrozen,
-                            finalState.CompilationWithoutGeneratedDocuments,
+                            compilationWithoutGeneratedDocuments: finalState.CompilationWithoutGeneratedDocuments,
                             finalState.GeneratorInfo,
-                            finalState.FinalCompilationWithGeneratedDocuments,
+                            staleCompilationWithGeneratedDocuments: finalState.FinalCompilationWithGeneratedDocuments,
                             translate is null ? [] : [(oldProjectState, translate)]);
                         return newState;
                     }
@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis
                         // Tack the translation action onto the existing set of translation actions in the current in progress state.
                         var newState = InProgressState.Create(
                             inProgressState.IsFrozen,
-                            inProgressState.CompilationWithoutGeneratedDocuments,
+                            compilationWithoutGeneratedDocuments: inProgressState.CompilationWithoutGeneratedDocuments,
                             inProgressState.GeneratorInfo,
-                            inProgressState.StaleCompilationWithGeneratedDocuments,
+                            staleCompilationWithGeneratedDocuments: inProgressState.StaleCompilationWithGeneratedDocuments,
                             UpdatePendingTranslationSteps(oldProjectState, inProgressState, translate));
                         return newState;
                     }
