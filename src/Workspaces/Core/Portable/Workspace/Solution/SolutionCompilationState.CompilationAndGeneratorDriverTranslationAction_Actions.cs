@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
             {
                 public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    var syntaxTrees = new List<SyntaxTree>(documents.Length);
+                    using var _ = ArrayBuilder<SyntaxTree>.GetInstance(documents.Length, out var syntaxTrees);
                     foreach (var document in documents)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
@@ -125,8 +125,7 @@ namespace Microsoft.CodeAnalysis
             {
                 public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    var syntaxTrees = new List<SyntaxTree>(capacity: state.DocumentStates.Count);
-
+                    using var _ = ArrayBuilder<SyntaxTree>.GetInstance(state.DocumentStates.Count, out var syntaxTrees);
                     foreach (var documentState in state.DocumentStates.GetStatesInCompilationOrder())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
