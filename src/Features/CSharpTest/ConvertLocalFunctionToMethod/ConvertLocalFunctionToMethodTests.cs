@@ -1092,5 +1092,45 @@ $@"class C
                 }
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72024")]
+        public async Task TestLocalFunctionInField()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+
+                class C
+                {
+                    private Action a = () =>
+                    {
+                        var s = default(S);
+                        SetValue(3);
+                        void [||]SetValue(int value) => s.Value = value;
+                    }
+                }
+                struct S
+                {
+                    public int Value;
+                }
+                """,
+                """
+                using System;
+
+                class C
+                {
+                    private Action a = () =>
+                    {
+                        var s = default(S);
+                        SetValue(3);
+                        void SetValue(int value) => s.Value = value;
+                    }
+                }
+                struct S
+                {
+                    public int Value;
+                }
+                """);
+        }
     }
 }
