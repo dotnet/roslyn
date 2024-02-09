@@ -14,10 +14,6 @@ namespace Roslyn.LanguageServer.Protocol
         ///
         /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workDoneProgressOptions">Language Server Protocol specification</see> for additional information.
         /// </summary>
-        bool WorkDoneProgress
-        {
-            get;
-            set;
-        }
+        bool WorkDoneProgress { get; init; }
     }
 }
