@@ -2754,7 +2754,7 @@ class Program{
             await AutoFormatOnSemicolonAsync(
                 code,
                 expected,
-                SyntaxKind.OpenBraceToken);
+                SyntaxKind.None);
         }
 
         [WpfTheory]
