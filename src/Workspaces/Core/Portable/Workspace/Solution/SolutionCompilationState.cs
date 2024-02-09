@@ -1059,20 +1059,43 @@ internal sealed partial class SolutionCompilationState
         {
             if (!_cachedFrozenDocumentState.TryGetValue(documentId, out lazyState))
             {
+                // Initialize the lazy computation associated with this particular document.  We pass very similar async
+                // and sync computation methods so that for the rare legacy callers that synchronously get this frozen
+                // solution, we have a path that doesn't do sync blocking on an async call.
                 lazyState = new AsyncLazy<SolutionCompilationState>(
-                    cancellationToken => ComputeFrozenPartialCompilationIncludingSpecificDocumentAsync(documentId, synchronous: false, cancellationToken),
-                    cancellationToken => ComputeFrozenPartialCompilationIncludingSpecificDocumentAsync(documentId, synchronous: true, cancellationToken).GetAwaiter().GetResult());
+                    async cancellationToken =>
+                    {
+                        // Keep in sync with the function below.
+
+                        var (unifiedState, relatedDocumentIds) = UnifyLinkedDocuments(this, documentId, cancellationToken);
+
+                        using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(relatedDocumentIds.Length, out var statesAndTrees);
+                        await AddDocumentStatesAsyncSyntaxTreesAsync(unifiedState, relatedDocumentIds, statesAndTrees, cancellationToken).ConfigureAwait(false);
+
+                        return ComputeFrozenPartialState(unifiedState, statesAndTrees, cancellationToken);
+                    },
+                    cancellationToken =>
+                    {
+                        // Keep in sync with the function above.
+
+                        var (unifiedState, relatedDocumentIds) = UnifyLinkedDocuments(this, documentId, cancellationToken);
+
+                        using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(relatedDocumentIds.Length, out var statesAndTrees);
+                        AddDocumentStatesAsyncSyntaxTreesSync(unifiedState, relatedDocumentIds, statesAndTrees, cancellationToken);
+
+                        return ComputeFrozenPartialState(unifiedState, statesAndTrees, cancellationToken);
+                    });
                 _cachedFrozenDocumentState.Add(documentId, lazyState);
             }
         }
 
         return lazyState;
 
-        Task<SolutionCompilationState> ComputeFrozenPartialCompilationIncludingSpecificDocumentAsync(
-            DocumentId documentId, bool synchronous, CancellationToken cancellationToken)
+        static (SolutionCompilationState unifiedState, ImmutableArray<DocumentId> relatedDocumentIds) UnifyLinkedDocuments(
+            SolutionCompilationState @this, DocumentId documentId, CancellationToken cancellationToken)
         {
-            var currentCompilationState = this;
-            var currentDocumentState = this.SolutionState.GetRequiredDocumentState(documentId);
+            var unifiedState = @this;
+            var currentDocumentState = @this.SolutionState.GetRequiredDocumentState(documentId);
 
             // We want all linked versions of this document to also be present in the frozen solution snapshot (that way
             // features like 'completion' can see that there are linked docs and give messages about symbols not being
@@ -1105,41 +1128,43 @@ internal sealed partial class SolutionCompilationState
             // WithDocumentContentsFrom with the current document state no-ops immediately, returning back the same
             // compilation state instance.  So in the case where there are no linked documents, there is no cost here.  And
             // there is no additional cost processing the initiating document in this loop.
-            var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId);
-            foreach (var siblingId in allDocumentIds)
-                currentCompilationState = currentCompilationState.WithDocumentContentsFrom(siblingId, currentDocumentState, forceEvenIfTreesWouldDiffer: true);
+            var relatedDocumentIds = @this.SolutionState.GetRelatedDocumentIds(documentId);
+            foreach (var siblingId in relatedDocumentIds)
+                unifiedState = unifiedState.WithDocumentContentsFrom(siblingId, currentDocumentState, forceEvenIfTreesWouldDiffer: true);
 
-            return ComputeFrozenPartialCompilationIncludingSpecificDocumentWorkerAsync(
-                currentCompilationState, documentId, synchronous, cancellationToken);
+            return (unifiedState, relatedDocumentIds);
         }
 
-        // Intentionally static, so we only operate on @this, not `this`.
-        static async Task<SolutionCompilationState> ComputeFrozenPartialCompilationIncludingSpecificDocumentWorkerAsync(
-            SolutionCompilationState @this, DocumentId documentId, bool synchronous, CancellationToken cancellationToken)
+        // We grab all the contents of linked files as well to ensure that our snapshot is correct wrt to the
+        // set of linked document ids our state says are in it.  Note: all of these trees should share the same
+        // green trees, as that is setup in our outer caller.  This helps ensure that the cost here is low for
+        // files with lots of linked siblings.
+
+        static async Task AddDocumentStatesAsyncSyntaxTreesAsync(
+            SolutionCompilationState @this,
+            ImmutableArray<DocumentId> relatedDocumentIds,
+            ArrayBuilder<(DocumentState, SyntaxTree)> statesAndTrees,
+            CancellationToken cancellationToken)
         {
-            try
+            foreach (var currentDocumentId in relatedDocumentIds)
             {
-                var allDocumentIds = @this.SolutionState.GetRelatedDocumentIds(documentId);
-                using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(allDocumentIds.Length, out var statesAndTrees);
-
-                // We grab all the contents of linked files as well to ensure that our snapshot is correct wrt to the
-                // set of linked document ids our state says are in it.  Note: all of these trees should share the same
-                // green trees, as that is setup in our outer caller.  This helps ensure that the cost here is low for
-                // files with lots of linked siblings.
-                foreach (var currentDocumentId in allDocumentIds)
-                {
-                    var documentState = @this.SolutionState.GetRequiredDocumentState(currentDocumentId);
-                    var syntaxTree = synchronous
-                        ? documentState.GetSyntaxTree(cancellationToken)
-                        : await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    statesAndTrees.Add((documentState, syntaxTree));
-                }
-
-                return ComputeFrozenPartialState(@this, statesAndTrees, cancellationToken);
+                var documentState = @this.SolutionState.GetRequiredDocumentState(currentDocumentId);
+                var syntaxTree = await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                statesAndTrees.Add((documentState, syntaxTree));
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+        }
+
+        static void AddDocumentStatesAsyncSyntaxTreesSync(
+            SolutionCompilationState @this,
+            ImmutableArray<DocumentId> relatedDocumentIds,
+            ArrayBuilder<(DocumentState, SyntaxTree)> statesAndTrees,
+            CancellationToken cancellationToken)
+        {
+            foreach (var currentDocumentId in relatedDocumentIds)
             {
-                throw ExceptionUtilities.Unreachable();
+                var documentState = @this.SolutionState.GetRequiredDocumentState(currentDocumentId);
+                var syntaxTree = documentState.GetSyntaxTree(cancellationToken);
+                statesAndTrees.Add((documentState, syntaxTree));
             }
         }
 
