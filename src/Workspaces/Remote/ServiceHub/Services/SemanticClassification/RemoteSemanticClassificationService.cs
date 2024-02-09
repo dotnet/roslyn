@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (options.ForceFrozenPartialSemanticsForCrossProcessOperations)
                 {
                     // Frozen partial semantics is not automatically passed to OOP, so enable it explicitly when desired
-                    document = document.WithFrozenPartialSemantics(cancellationToken);
+                    document = await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 using var _ = Classifier.GetPooledList(out var temp);

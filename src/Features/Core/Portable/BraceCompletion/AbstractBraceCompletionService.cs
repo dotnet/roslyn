@@ -38,22 +38,24 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
 
         public abstract bool AllowOverType(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken);
 
-        public Task<bool> HasBraceCompletionAsync(BraceCompletionContext context, Document document, CancellationToken cancellationToken)
+        public async Task<bool> HasBraceCompletionAsync(BraceCompletionContext context, Document document, CancellationToken cancellationToken)
         {
             if (!context.HasCompletionForOpeningBrace(OpeningBrace))
             {
-                return Task.FromResult(false);
+                return false;
             }
 
             var openingToken = context.GetOpeningToken();
             if (!NeedsSemantics)
             {
-                return Task.FromResult(IsValidOpenBraceTokenAtPosition(context.Document.Text, openingToken, context.OpeningPoint));
+                return IsValidOpenBraceTokenAtPosition(context.Document.Text, openingToken, context.OpeningPoint);
             }
 
             // Pass along a document with frozen partial semantics.  Brace completion is a highly latency sensitive
             // operation.  We don't want to wait on things like source generators to figure things out.
-            return IsValidOpenBraceTokenAtPositionAsync(document.WithFrozenPartialSemantics(cancellationToken), openingToken, context.OpeningPoint, cancellationToken);
+            return await IsValidOpenBraceTokenAtPositionAsync(
+                await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false),
+                openingToken, context.OpeningPoint, cancellationToken).ConfigureAwait(false);
         }
 
         public BraceCompletionResult GetBraceCompletion(BraceCompletionContext context)

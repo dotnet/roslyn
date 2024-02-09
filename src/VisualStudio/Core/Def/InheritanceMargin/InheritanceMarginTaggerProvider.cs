@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // Use FrozenSemantics Version of document to get the semantics ready, therefore we could have faster
             // response. (Since the full load might take a long time)
             // We also subscribe to CompilationAvailableTaggerEventSource, so this will finally reach the correct state.
-            document = document.WithFrozenPartialSemantics(cancellationToken);
+            document = await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
 
             var spanToSearch = spanToTag.SnapshotSpan.Span.ToTextSpan();
             var stopwatch = SharedStopwatch.StartNew();

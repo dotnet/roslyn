@@ -131,7 +131,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
             // The document might not be frozen, so make sure we freeze it here to avoid triggering source generator
             // which is not needed for snippet completion and will cause perf issue.
-            var newDocument = document.WithText(originalText).WithFrozenPartialSemantics(cancellationToken);
+            var newDocument = await document
+                .WithText(originalText)
+                .WithFrozenPartialSemanticsAsync(cancellationToken)
+                .ConfigureAwait(false);
             return (newDocument, span.Start);
         }
     }

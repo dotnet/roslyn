@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -23,13 +24,13 @@ namespace Microsoft.CodeAnalysis
         // TODO: make this public. Tracked by https://github.com/dotnet/roslyn/issues/50546
         internal SourceGeneratedDocumentIdentity Identity => State.Identity;
 
-        internal override Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
+        internal override Task<Document> WithFrozenPartialSemanticsAsync(CancellationToken cancellationToken)
         {
             // For us to implement frozen partial semantics here with a source generated document,
             // we'd need to potentially deal with the combination where that happens on a snapshot that was already
             // forked; rather than trying to deal with that combo we'll just fall back to not doing anything special
             // which is allowed.
-            return this;
+            return Task.FromResult<Document>(this);
         }
     }
 }

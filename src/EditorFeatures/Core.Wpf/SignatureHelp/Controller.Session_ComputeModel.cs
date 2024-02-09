@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         this.Computation.ThreadingContext.ThrowIfNotOnBackgroundThread();
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var document = Controller.DocumentProvider.GetDocument(caretPosition.Snapshot, cancellationToken);
+                        var document = await Controller.DocumentProvider.GetDocumentAsync(caretPosition.Snapshot, cancellationToken).ConfigureAwait(false);
                         if (document == null)
                         {
                             return currentModel;

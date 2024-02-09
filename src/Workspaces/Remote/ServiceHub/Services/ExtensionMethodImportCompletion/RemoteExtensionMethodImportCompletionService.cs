@@ -44,7 +44,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 var assetSyncTime = stopwatch.Elapsed;
 
                 // Completion always uses frozen-partial semantic in-proc, which is not automatically passed to OOP, so enable it explicitly
-                var document = solution.GetRequiredDocument(documentId).WithFrozenPartialSemantics(cancellationToken);
+                var document = await solution
+                    .GetRequiredDocument(documentId)
+                    .WithFrozenPartialSemanticsAsync(cancellationToken)
+                    .ConfigureAwait(false);
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var symbol = SymbolKey.ResolveString(receiverTypeSymbolKeyData, compilation, cancellationToken: cancellationToken).GetAnySymbol();
 

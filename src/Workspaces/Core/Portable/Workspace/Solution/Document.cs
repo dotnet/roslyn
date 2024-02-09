@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis
         /// generators when getting its compilation.  However, all other projects will still run generators when their
         /// compilations are requested.
         /// </summary>
-        internal virtual Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
+        internal virtual async Task<Document> WithFrozenPartialSemanticsAsync(CancellationToken cancellationToken)
         {
             var solution = this.Project.Solution;
 
@@ -450,7 +450,8 @@ namespace Microsoft.CodeAnalysis
             if (solution.PartialSemanticsEnabled &&
                 this.Project.SupportsCompilation)
             {
-                var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
+                var newSolution = await this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocumentAsync(
+                    this.Id, cancellationToken).ConfigureAwait(false);
                 return newSolution.GetRequiredDocument(this.Id);
             }
             else

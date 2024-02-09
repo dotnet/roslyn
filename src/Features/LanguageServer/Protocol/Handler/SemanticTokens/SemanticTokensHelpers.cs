@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
             // results but will speed up how quickly we can respond to the client's request.
-            var document = contextDocument.WithFrozenPartialSemantics(cancellationToken);
+            var document = await contextDocument.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
             var project = document.Project;
             var options = globalOptions.GetClassificationOptions(project.Language) with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
 

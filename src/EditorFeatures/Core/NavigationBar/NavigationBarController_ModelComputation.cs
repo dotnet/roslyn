@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 if (workspace is null)
                     return null;
 
-                var document = textSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
+                var document = await textSnapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
                 if (document == null)
                     return null;
 

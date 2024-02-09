@@ -1051,13 +1051,9 @@ internal sealed partial class SolutionCompilationState
     /// <para/>
     /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
     /// </summary>
-    public async Task<SolutionCompilationState> WithFrozenPartialCompilationIncludingSpecificDocumentAsync(
+    public AsyncLazy<SolutionCompilationState> WithFrozenPartialCompilationIncludingSpecificDocument(
         DocumentId documentId, CancellationToken cancellationToken)
     {
-        // in progress solutions are disabled for some testing
-        if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
-            return this;
-
         AsyncLazy<SolutionCompilationState>? lazyState;
         using (_cachedFrozenDocumentStateLock.DisposableWait(cancellationToken))
         {
@@ -1070,7 +1066,7 @@ internal sealed partial class SolutionCompilationState
             }
         }
 
-        return await lazyState.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        return lazyState;
 
         Task<SolutionCompilationState> ComputeFrozenPartialCompilationIncludingSpecificDocumentAsync(
             DocumentId documentId, bool synchronous, CancellationToken cancellationToken)

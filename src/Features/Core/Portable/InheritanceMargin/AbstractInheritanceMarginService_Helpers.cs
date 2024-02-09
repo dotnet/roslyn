@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // work we need to do running source generators or producing skeleton references.
             if (document != null && frozenPartialSemantics)
             {
-                document = document.WithFrozenPartialSemantics(cancellationToken);
+                document = await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
                 project = document.Project;
             }
 
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             CancellationToken cancellationToken)
         {
             if (frozenPartialSemantics)
-                document = document.WithFrozenPartialSemantics(cancellationToken);
+                document = await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 

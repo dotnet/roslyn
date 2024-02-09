@@ -1478,9 +1478,34 @@ namespace Microsoft.CodeAnalysis
         /// at least the syntax tree for the document.
         /// <para/> This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
         /// </summary>
-        internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
+        internal async Task<Solution> WithFrozenPartialCompilationIncludingSpecificDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
-            var newCompilationState = this.CompilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
+            // in progress solutions are disabled for some testing
+            if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
+                return this;
+
+            var newCompilationState = await this.CompilationState
+                .WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken)
+                .GetValueAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return new Solution(newCompilationState);
+        }
+
+        /// <summary>
+        /// Synchronous version of <see cref="WithFrozenPartialCompilationIncludingSpecificDocumentAsync"/>. Only around
+        /// for legacy synchronous features.  Modern features should use the the async version.
+        /// </summary>
+        internal Solution WithFrozenPartialCompilationIncludingSpecificDocument_LegacySynchronousFeaturesOnly(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            // in progress solutions are disabled for some testing
+            if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
+                return this;
+
+            var newCompilationState = this.CompilationState
+                .WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken)
+                .GetValue(cancellationToken);
+
             return new Solution(newCompilationState);
         }
 

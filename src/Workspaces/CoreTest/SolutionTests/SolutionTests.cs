@@ -3279,15 +3279,15 @@ End Class";
                 .WithDocumentFilePath(did, "document path");
 
             var doc = solution.GetDocument(did);
-            var text = await doc.GetTextAsync().ConfigureAwait(false);
+            var text = await doc.GetTextAsync();
 
-            var diagnostic = await doc.State.GetLoadDiagnosticAsync(CancellationToken.None).ConfigureAwait(false);
+            var diagnostic = await doc.State.GetLoadDiagnosticAsync(CancellationToken.None);
 
             Assert.Equal(@"C:\doesnotexist.cs: (0,0)-(0,0)", diagnostic.Location.GetLineSpan().ToString());
             Assert.Equal("", text.ToString());
 
             // Verify invariant: The compilation is guaranteed to have a syntax tree for each document of the project (even if the contnet fails to load).
-            var compilation = await doc.Project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false);
+            var compilation = await doc.Project.GetCompilationAsync(CancellationToken.None);
             var syntaxTree = compilation.SyntaxTrees.Single();
             Assert.Equal("", syntaxTree.ToString());
         }
@@ -3440,7 +3440,7 @@ public class C : A {
             project = project.AddDocument("Extra.cs", SourceText.From("class Extra { }")).Project;
 
             var documentToFreeze = project.AddDocument("DocumentToFreeze.cs", SourceText.From(""));
-            var frozenDocument = documentToFreeze.WithFrozenPartialSemantics(CancellationToken.None);
+            var frozenDocument = await documentToFreeze.WithFrozenPartialSemanticsAsync(CancellationToken.None);
 
             // Because we had no compilation produced yet, we expect that only the DocumentToFreeze is in the compilation
             Assert.NotSame(frozenDocument, documentToFreeze);
@@ -3472,7 +3472,7 @@ public class C : A {
             var documentToFreezeChanged = solution.GetDocument(documentToFreezeOriginal.Id);
             var tree = await documentToFreezeChanged.GetSyntaxTreeAsync();
 
-            var frozenDocument = documentToFreezeChanged.WithFrozenPartialSemantics(CancellationToken.None);
+            var frozenDocument = await documentToFreezeChanged.WithFrozenPartialSemanticsAsync(CancellationToken.None);
 
             Assert.NotSame(frozenDocument, documentToFreezeChanged);
 
@@ -3517,7 +3517,7 @@ public class C : A {
             var documentToFreezeChanged = solution.GetDocument(documentToFreezeOriginal.Id);
             var tree = await documentToFreezeChanged.GetSyntaxTreeAsync();
 
-            var frozenDocument = documentToFreezeChanged.WithFrozenPartialSemantics(CancellationToken.None);
+            var frozenDocument = await documentToFreezeChanged.WithFrozenPartialSemanticsAsync(CancellationToken.None);
 
             Assert.NotSame(frozenDocument, documentToFreezeChanged);
 
@@ -3574,7 +3574,8 @@ public class C : A {
             var document = workspace.AddDocument(project2.Id, "Test.cs", SourceText.From(""));
 
             // Nothing should have incomplete references, and everything should build
-            var frozenSolution = document.WithFrozenPartialSemantics(CancellationToken.None).Project.Solution;
+            var frozenDocument = await document.WithFrozenPartialSemanticsAsync(CancellationToken.None);
+            var frozenSolution = frozenDocument.Project.Solution;
 
             Assert.True(await frozenSolution.GetProject(project1.Id).HasSuccessfullyLoadedAsync(CancellationToken.None));
             Assert.True(await frozenSolution.GetProject(project2.Id).HasSuccessfullyLoadedAsync(CancellationToken.None));
@@ -3593,7 +3594,7 @@ public class C : A {
 
             // Freeze semantics -- this should give us a compilation and state that don't include the additional file,
             // since the compilation won't represent that either
-            var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+            var frozenDocument = await project.Documents.Single().WithFrozenPartialSemanticsAsync(CancellationToken.None);
 
             Assert.Empty(frozenDocument.Project.AdditionalDocuments);
         }
@@ -3607,7 +3608,7 @@ public class C : A {
                 .AddDocument("RegularDocument2.cs", "// Source File", filePath: "RegularDocument2.cs").Project;
 
             // Freeze semantics -- that document should be there, but nothing else will be yet.
-            var frozenDocument = project.Documents.First().WithFrozenPartialSemantics(CancellationToken.None);
+            var frozenDocument = await project.Documents.First().WithFrozenPartialSemanticsAsync(CancellationToken.None);
 
             Assert.Single(frozenDocument.Project.Documents);
             var singleTree = Assert.Single((await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
@@ -3628,7 +3629,7 @@ public class C : A {
 
             // Freeze semantics -- with the new document; this should still give us a project with a single document, the previous
             // tree having been removed.
-            var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+            var frozenDocument = await project.Documents.Single().WithFrozenPartialSemanticsAsync(CancellationToken.None);
 
             Assert.Single(frozenDocument.Project.Documents);
             var singleTree = Assert.Single((await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
@@ -3649,7 +3650,7 @@ public class C : A {
 
             // Freeze semantics -- with the new document; this should still give us a project with two documents: the new
             // one will be added, and the old one will stay around since the name differed.
-            var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+            var frozenDocument = await project.Documents.Single().WithFrozenPartialSemanticsAsync(CancellationToken.None);
 
             Assert.Equal(2, frozenDocument.Project.Documents.Count());
             var treesInCompilation = (await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees;
@@ -3670,7 +3671,7 @@ public class C : A {
             var originalCompilation = await document.Project.GetCompilationAsync();
             document = document.WithText(SourceText.From("// Source File with Changes"));
 
-            var frozenDocument = document.WithFrozenPartialSemantics(CancellationToken.None);
+            var frozenDocument = await document.WithFrozenPartialSemanticsAsync(CancellationToken.None);
 
             Assert.Contains(await frozenDocument.GetSyntaxTreeAsync(), (await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
         }
@@ -3703,7 +3704,9 @@ public class C : A {
             // was the first or last change made, so covering "first", "middle" and "last" ensures that's covered.
             var documentIdToFreeze = documentToFreeze == 1 ? documentId1 : documentToFreeze == 2 ? documentId2 : documentId3;
 
-            var frozen = solution.GetRequiredDocument(documentIdToFreeze).WithFrozenPartialSemantics(CancellationToken.None);
+            var frozen = await solution
+                .GetRequiredDocument(documentIdToFreeze)
+                .WithFrozenPartialSemanticsAsync(CancellationToken.None);
 
             var tree = await frozen.GetSyntaxTreeAsync();
             Assert.Contains("Changed", tree.ToString());
@@ -3764,7 +3767,7 @@ public class C : A {
 
             {
                 // Now get the frozen version of each document.  Freezing will update the siblings to have the same tree contents.
-                var frozenDoc1 = document1.WithFrozenPartialSemantics(CancellationToken.None);
+                var frozenDoc1 = await document1.WithFrozenPartialSemanticsAsync(CancellationToken.None);
                 var frozenDoc2 = frozenDoc1.Project.Solution.GetRequiredDocument(document2.Id);
 
                 var frozenDoc1Root = await frozenDoc1.GetRequiredSyntaxRootAsync(CancellationToken.None);
@@ -3779,7 +3782,7 @@ public class C : A {
 
             {
                 // Now get the frozen version of each document.  Freezing will update the siblings to have the same tree contents.
-                var frozenDoc2 = document2.WithFrozenPartialSemantics(CancellationToken.None);
+                var frozenDoc2 = await document2.WithFrozenPartialSemanticsAsync(CancellationToken.None);
                 var frozenDoc1 = frozenDoc2.Project.Solution.GetRequiredDocument(document1.Id);
 
                 var frozenDoc1Root = await frozenDoc1.GetRequiredSyntaxRootAsync(CancellationToken.None);

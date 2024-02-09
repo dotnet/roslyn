@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -289,9 +290,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         return VSConstants.E_FAIL;
                     }
 
-                    var document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
+                    var document = snapshot.AsText().GetOpenDocumentInCurrentContextWithChanges();
                     if (document != null)
                     {
+                        document = document.Project.Solution
+                            .WithFrozenPartialCompilationIncludingSpecificDocument_LegacySynchronousFeaturesOnly(document.Id, cancellationToken)
+                            .GetRequiredDocument(document.Id);
+
                         var point = nullablePoint.Value;
                         var length = 0;
                         if (pCodeSpan != null && pCodeSpan.Length > 0)

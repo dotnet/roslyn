@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 // When navigating, just use the partial semantics workspace.  Navigation doesn't need the fully bound
                 // compilations to be created, and it can save us a lot of costly time building skeleton assemblies.
                 var textSnapshot = _subjectBuffer.CurrentSnapshot;
-                var document = textSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
+                var document = await textSnapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
                 if (document != null)
                 {
                     var navBarService = document.GetRequiredLanguageService<INavigationBarItemService>();

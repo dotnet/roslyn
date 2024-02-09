@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                 if (hasX)
                 {
                     var doc2Z = cs.GetDocument(document2.Id);
-                    var partialDoc2Z = doc2Z.WithFrozenPartialSemantics(CancellationToken.None);
+                    var partialDoc2Z = await doc2Z.WithFrozenPartialSemanticsAsync(CancellationToken.None);
                     var compilation2Z = await partialDoc2Z.Project.GetCompilationAsync();
                     var classDz = compilation2Z.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
                     var classCz = classDz.BaseType;

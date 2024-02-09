@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (forceFrozenPartialSemanticsForCrossProcessOperations)
                 {
                     // Frozen partial semantics is not automatically passed to OOP, so enable it explicitly when desired
-                    document = document.WithFrozenPartialSemantics(cancellationToken);
+                    document = await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 var navigationBarService = document.GetRequiredLanguageService<INavigationBarItemService>();

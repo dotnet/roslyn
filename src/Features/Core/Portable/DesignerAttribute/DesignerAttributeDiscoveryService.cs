@@ -123,9 +123,9 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 if (priorityDocumentId != null)
                 {
                     // Create a frozen snapshot guaranteed to have this document in it.
-                    var priorityDocument = solution
+                    var priorityDocument = await solution
                         .GetRequiredDocument(priorityDocumentId)
-                        .WithFrozenPartialSemantics(cancellationToken);
+                        .WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
 
                     await ProcessProjectAsync(priorityDocument.Project, priorityDocument, callback, cancellationToken).ConfigureAwait(false);
                 }
