@@ -58,7 +58,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             {
                 "blazor" or "blazorwasm" or "blazorwasm-empty" =>
                     [
-                        "CS0246", // The type or namespace name {'csharp_blazor_project'|'App'} could not be found (are you missing a using directive or an assembly reference?)
+                        // The type or namespace name {'csharp_blazor_project'|'App'} could not be found
+                        // (are you missing a using directive or an assembly reference?)
+                        // Bug: https://github.com/dotnet/roslyn/issues/72015
+                        "CS0246",
                     ],
                 _ => Array.Empty<string>(),
             };
@@ -71,7 +74,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         public async Task ValidateVisualBasicTemplateProjects(string templateName)
         {
             var ignoredDiagnostics = !ExecutionConditionUtil.IsWindows
-                ? ["BC30002"] // Type 'Global.Microsoft.VisualBasic.ApplicationServices.ApplicationBase' is not defined.
+                ? [
+                    // Type 'Global.Microsoft.VisualBasic.ApplicationServices.ApplicationBase' is not defined.
+                    // Bug: https://github.com/dotnet/roslyn/issues/72014
+                    "BC30002",
+                  ]
                 : Array.Empty<string>();
 
             await AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.VisualBasic, ignoredDiagnostics);
