@@ -36,6 +36,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
             // Navigate to 'System'
             await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.InheritanceMargin], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"global using global::System;$$", assertCaretPosition: true);
 
