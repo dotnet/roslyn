@@ -24,6 +24,21 @@ namespace Microsoft.CodeAnalysis
             private abstract class CompilationTrackerState
             {
                 /// <summary>
+                /// Whether the generated documents in <see cref="GeneratorInfo"/> are frozen and generators should
+                /// never be ran again, ever, even if a document is later changed. This is used to ensure that when we
+                /// produce a frozen solution for partial semantics, further downstream forking of that solution won't
+                /// rerun generators. This is because of two reasons:
+                /// <list type="number">
+                /// <item>Generally once we've produced a frozen solution with partial semantics, we now want speed rather
+                /// than accuracy; a generator running in a later path will still cause issues there.</item>
+                /// <item>The frozen solution with partial semantics makes no guarantee that other syntax trees exist or
+                /// whether we even have references -- it's pretty likely that running a generator might produce worse results
+                /// than what we originally had.</item>
+                /// </list>
+                /// </summary>
+                public readonly bool IsFrozen;
+
+                /// <summary>
                 /// The best compilation that is available that source generators have not ran on. May be an
                 /// in-progress, full declaration, a final compilation.
                 /// </summary>
@@ -31,10 +46,18 @@ namespace Microsoft.CodeAnalysis
 
                 public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
 
-                protected CompilationTrackerState(Compilation compilationWithoutGeneratedDocuments, CompilationTrackerGeneratorInfo generatorInfo)
+                public CompilationTrackerState(
+                    bool isFrozen,
+                    Compilation compilationWithoutGeneratedDocuments,
+                    CompilationTrackerGeneratorInfo generatorInfo)
                 {
+                    IsFrozen = isFrozen;
                     CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
                     GeneratorInfo = generatorInfo;
+
+                    // When in the frozen state, all documents must be final. We never want to run generators for frozen
+                    // states as the point is to be fast (while potentially incomplete).
+                    Contract.ThrowIfTrue(IsFrozen && !generatorInfo.DocumentsAreFinal);
 
 #if DEBUG
                     // As a sanity check, we should never see the generated trees inside of the compilation that should
@@ -51,6 +74,7 @@ namespace Microsoft.CodeAnalysis
                 /// empty, otherwise a <see cref="InProgressState"/>.
                 /// </summary>
                 public static CompilationTrackerState Create(
+                    bool isFrozen,
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? compilationWithGeneratedDocuments,
@@ -58,12 +82,17 @@ namespace Microsoft.CodeAnalysis
                 {
                     Contract.ThrowIfTrue(intermediateProjects is null);
 
+                    // If we're not frozen, transition back to the non-final state as we def want to rerun generators
+                    // for either of these non-final states.
+                    if (!isFrozen)
+                        generatorInfo = generatorInfo.WithDocumentsAreFinal(false);
+
                     // If we don't have any intermediate projects to process, just initialize our
                     // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
                     // if our referenced projects are changing, so we'll have to rerun to consume changes.
                     return intermediateProjects.IsEmpty
-                        ? new AllSyntaxTreesParsedState(compilationWithoutGeneratedDocuments, generatorInfo.WithDocumentsAreFinal(false), compilationWithGeneratedDocuments)
-                        : new InProgressState(compilationWithoutGeneratedDocuments, generatorInfo, compilationWithGeneratedDocuments, intermediateProjects);
+                        ? new AllSyntaxTreesParsedState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, compilationWithGeneratedDocuments)
+                        : new InProgressState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, compilationWithGeneratedDocuments, intermediateProjects);
                 }
             }
 
@@ -88,15 +117,21 @@ namespace Microsoft.CodeAnalysis
                 public Compilation? CompilationWithGeneratedDocuments { get; }
 
                 public InProgressState(
+                    bool isFrozen,
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? compilationWithGeneratedDocuments,
                     ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
-                    : base(compilationWithoutGeneratedDocuments,
-                           generatorInfo.WithDocumentsAreFinal(false)) // since we have a set of transformations to make, we'll always have to run generators again
+                    : base(isFrozen,
+                           compilationWithoutGeneratedDocuments,
+                           generatorInfo)
                 {
                     Contract.ThrowIfTrue(intermediateProjects is null);
-                    Contract.ThrowIfTrue(intermediateProjects.Count == 0);
+                    Contract.ThrowIfTrue(intermediateProjects.IsEmpty);
+
+                    // If we're not in the frozen state, the documents must *not* be final.  We're not a FinalState, and
+                    // as such, we must still determine what the up to date generated docs are.
+                    Contract.ThrowIfTrue(!IsFrozen && generatorInfo.DocumentsAreFinal);
 
                     this.IntermediateProjects = intermediateProjects;
                     this.CompilationWithGeneratedDocuments = compilationWithGeneratedDocuments;
@@ -107,10 +142,7 @@ namespace Microsoft.CodeAnalysis
             /// A built compilation for the tracker that contains the fully built DeclarationTable,
             /// but may not have references initialized
             /// </summary>
-            private sealed class AllSyntaxTreesParsedState(
-                Compilation compilationWithoutGeneratedDocuments,
-                CompilationTrackerGeneratorInfo generatorInfo,
-                Compilation? compilationWithGeneratedDocuments) : CompilationTrackerState(compilationWithoutGeneratedDocuments, generatorInfo)
+            private sealed class AllSyntaxTreesParsedState : CompilationTrackerState
             {
                 /// <summary>
                 /// The result of taking the original completed compilation that had generated documents and updating them by
@@ -118,7 +150,21 @@ namespace Microsoft.CodeAnalysis
                 /// the generators have not been rerun, but may be reusable if the generators are later found to give the
                 /// same output.
                 /// </summary>
-                public Compilation? CompilationWithGeneratedDocuments { get; } = compilationWithGeneratedDocuments;
+                public Compilation? CompilationWithGeneratedDocuments { get; }
+
+                public AllSyntaxTreesParsedState(
+                    bool isFrozen,
+                    Compilation compilationWithoutGeneratedDocuments,
+                    CompilationTrackerGeneratorInfo generatorInfo,
+                    Compilation? compilationWithGeneratedDocuments) : base(
+                        isFrozen, compilationWithoutGeneratedDocuments, generatorInfo)
+                {
+                    // If we're not in the frozen state, the documents must *not* be final.  We're not a FinalState, and
+                    // as such, we must still determine what the up to date generated docs are.
+                    Contract.ThrowIfTrue(!IsFrozen && generatorInfo.DocumentsAreFinal);
+
+                    CompilationWithGeneratedDocuments = compilationWithGeneratedDocuments;
+                }
             }
 
             /// <summary>
@@ -158,12 +204,13 @@ namespace Microsoft.CodeAnalysis
                 public readonly Compilation FinalCompilationWithGeneratedDocuments;
 
                 private FinalState(
+                    bool isFrozen,
                     Compilation finalCompilationWithGeneratedDocuments,
                     Compilation compilationWithoutGeneratedDocuments,
                     bool hasSuccessfullyLoaded,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     UnrootedSymbolSet unrootedSymbolSet)
-                    : base(compilationWithoutGeneratedDocuments, generatorInfo)
+                    : base(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo)
                 {
                     Contract.ThrowIfFalse(generatorInfo.DocumentsAreFinal);
                     Contract.ThrowIfNull(finalCompilationWithGeneratedDocuments);
@@ -184,6 +231,7 @@ namespace Microsoft.CodeAnalysis
                 /// <param name="projectId">Not held onto</param>
                 /// <param name="metadataReferenceToProjectId">Not held onto</param>
                 public static FinalState Create(
+                    bool isFrozen,
                     Compilation finalCompilationWithGeneratedDocuments,
                     Compilation compilationWithoutGeneratedDocuments,
                     bool hasSuccessfullyLoaded,
@@ -201,6 +249,7 @@ namespace Microsoft.CodeAnalysis
                     RecordAssemblySymbols(projectId, finalCompilation, metadataReferenceToProjectId);
 
                     return new FinalState(
+                        isFrozen,
                         finalCompilationWithGeneratedDocuments,
                         compilationWithoutGeneratedDocuments,
                         hasSuccessfullyLoaded,
