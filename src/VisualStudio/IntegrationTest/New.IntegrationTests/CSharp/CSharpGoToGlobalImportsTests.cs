@@ -21,7 +21,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         {
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72018")]
         public async Task TestGlobalImports()
         {
             // Make sure no glyph is in the margin at first.
