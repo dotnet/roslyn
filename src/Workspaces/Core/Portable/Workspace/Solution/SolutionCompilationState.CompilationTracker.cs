@@ -303,8 +303,8 @@ namespace Microsoft.CodeAnalysis
                 // check whether we can bail out quickly for typing case
                 var inProgressState = state as InProgressState;
 
-                inProgressProject = inProgressState != null && inProgressState.PendingTranslationSteps.Count > 0
-                    ? inProgressState.PendingTranslationSteps.First().oldState
+                inProgressProject = inProgressState is { PendingTranslationSteps: [(var oldState, _), ..] }
+                    ? oldState
                     : this.ProjectState;
 
                 // all changes left for this document is modifying the given document; since the compilation is already fully up to date
