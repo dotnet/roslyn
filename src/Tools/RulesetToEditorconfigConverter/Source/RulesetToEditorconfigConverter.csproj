@@ -5,7 +5,7 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <IsShipping>true</IsShipping>
     <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
-    <!-- Excluded from source build. Otherwise this should be conditionalized to only be set when DotNetBuildFromSource != true -->
+    <!-- Excluded from source build. Otherwise this should be conditionalized to only be set when DotNetBuildSourceOnly != true -->
     <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForExecution)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
   <ItemGroup>
