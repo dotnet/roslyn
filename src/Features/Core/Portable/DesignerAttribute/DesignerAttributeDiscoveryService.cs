@@ -165,12 +165,22 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             // change if anything it depends on changes).
             var lazyProjectVersion = AsyncLazy.Create(project.GetSemanticVersionAsync);
 
-            await ScanForDesignerCategoryUsageAsync(
-                project, specificDocument, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
-
-            // If we scanned just a specific document in the project, now scan the rest of the files.
             if (specificDocument != null)
-                await ScanForDesignerCategoryUsageAsync(project, specificDocument: null, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
+            {
+                // Scan that specific document first.
+                await ScanForDesignerCategoryUsageAsync(
+                    project, specificDocument, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
+
+                // The scan the entire project.  Note: this will no-op on the specific-document as it will have just
+                // computed and cached the data for it.
+                await ScanForDesignerCategoryUsageAsync(
+                    project, specificDocument: null, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await ScanForDesignerCategoryUsageAsync(
+                    project, specificDocument: null, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private async Task ScanForDesignerCategoryUsageAsync(
