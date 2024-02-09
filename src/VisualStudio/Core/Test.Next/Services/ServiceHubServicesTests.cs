@@ -147,10 +147,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using var connection = client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callback);
 
+            var priorityDocument = solution.Projects.Single().Documents.Single().Id;
             var invokeTask = connection.TryInvokeAsync(
                 solution,
                 (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
-                    callbackId, checksum, priorityDocument: null, cancellationToken),
+                    callbackId, checksum, priorityDocument, cancellationToken),
                 cancellationTokenSource.Token);
 
             var infos = await callback.Infos;
@@ -160,9 +161,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal("Form", info.Category);
             Assert.Equal(solution.Projects.Single().Documents.Single().Id, info.DocumentId);
 
+            // Let the discovery know it can stop processing.
             cancellationTokenSource.Cancel();
 
-            Assert.True(await invokeTask);
+            try
+            {
+                await invokeTask;
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
 
         private class DesignerAttributeComputerCallback : IDesignerAttributeDiscoveryService.ICallback
