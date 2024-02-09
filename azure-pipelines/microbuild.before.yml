@@ -1,7 +1,4 @@
 steps:
-- task: ComponentGovernanceComponentDetection@0
-  displayName: 🔍 Component Detection
-
 - task: notice@0
   displayName: 🛠️ Generate NOTICE file
   inputs:
