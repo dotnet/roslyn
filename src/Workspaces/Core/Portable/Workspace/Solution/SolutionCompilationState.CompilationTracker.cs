@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (state is FinalCompilationTrackerState finalState)
                     {
-                        // Roll back from the final state to an inprogress state.
+                        // Roll back from the final state to an in progress state.
                         var newState = InProgressState.Create(
                             finalState.IsFrozen,
                             finalState.CompilationWithoutGeneratedDocuments,
@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     else if (state is InProgressState inProgressState)
                     {
+                        // Tack the translation action onto the existing set of translation actions in the current in progress state.
                         var newState = InProgressState.Create(
                             inProgressState.IsFrozen,
                             inProgressState.CompilationWithoutGeneratedDocuments,
