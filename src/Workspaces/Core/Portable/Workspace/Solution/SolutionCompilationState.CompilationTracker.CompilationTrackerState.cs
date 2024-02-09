@@ -124,9 +124,6 @@ namespace Microsoft.CodeAnalysis
                     if (!isFrozen)
                         generatorInfo = generatorInfo.WithDocumentsAreFinal(false);
 
-                    // If we don't have any intermediate projects to process, just initialize our
-                    // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
-                    // if our referenced projects are changing, so we'll have to rerun to consume changes.
                     return new InProgressState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, staleCompilationWithGeneratedDocuments, intermediateProjects);
                 }
             }
