@@ -23,11 +23,5 @@ public class WorkspacesDesktop : WorkspaceBase
         await InitializeWithDefaultSolution();
         await base.MetadataReference();
     }
-
-    [IdeFact]
-    public override Task ProjectReference()
-    {
-        return base.ProjectReference();
-    }
 }
 
