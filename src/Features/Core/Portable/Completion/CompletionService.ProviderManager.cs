@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 if (project is null || project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
                 {
                     // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict completions in Interactive
-                    return ImmutableArray<CompletionProvider>.Empty;
+                    return [];
                 }
 
                 // On primary completion paths, don't load providers if they are not already cached,
@@ -114,12 +114,12 @@ namespace Microsoft.CodeAnalysis.Completion
                     return providers;
 
                 _projectProvidersWorkQueue.AddWork(project.AnalyzerReferences);
-                return ImmutableArray<CompletionProvider>.Empty;
+                return [];
             }
 
             private ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string>? roles)
             {
-                roles ??= ImmutableHashSet<string>.Empty;
+                roles ??= [];
 
                 lock (_gate)
                 {
@@ -134,18 +134,17 @@ namespace Microsoft.CodeAnalysis.Completion
 
                 ImmutableArray<CompletionProvider> GetImportedAndBuiltInProvidersWorker(ImmutableHashSet<string> roles)
                 {
-                    using var _ = ArrayBuilder<CompletionProvider>.GetInstance(out var providers);
-                    providers.AddRange(GetLazyImportedProviders()
-                        .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
-                        .Select(lz => lz.Value));
-
+                    return
+                    [
+                        .. GetLazyImportedProviders()
+                            .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
+                            .Select(lz => lz.Value),
+                        // We need to keep supporting built-in providers for a while longer since this is a public API.
+                        // https://github.com/dotnet/roslyn/issues/42367
 #pragma warning disable 0618
-                    // We need to keep supporting built-in providers for a while longer since this is a public API.
-                    // https://github.com/dotnet/roslyn/issues/42367
-                    providers.AddRange(_service.GetBuiltInProviders());
+                        .. _service.GetBuiltInProviders(),
 #pragma warning restore 0618
-
-                    return providers.ToImmutable();
+                    ];
                 }
             }
 
@@ -212,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     }
                 }
 
-                return ImmutableArray<CompletionProvider>.Empty;
+                return [];
             }
 
             public void LoadProviders()
@@ -258,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 : AbstractProjectExtensionProvider<ProjectCompletionProvider, CompletionProvider, ExportCompletionProviderAttribute>
             {
                 protected override ImmutableArray<string> GetLanguages(ExportCompletionProviderAttribute exportAttribute)
-                    => ImmutableArray.Create(exportAttribute.Language);
+                    => [exportAttribute.Language];
 
                 protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CompletionProvider> extensions)
                 {

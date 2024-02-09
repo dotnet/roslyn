@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
     [Trait(Traits.Feature, Traits.Features.BraceMatching)]
     public class CSharpBraceMatcherTests : AbstractBraceMatcherTests
     {
-        protected override TestWorkspace CreateWorkspaceFromCode(string code, ParseOptions options)
-            => TestWorkspace.CreateCSharp(code, options);
+        protected override EditorTestWorkspace CreateWorkspaceFromCode(string code, ParseOptions options)
+            => EditorTestWorkspace.CreateCSharp(code, options);
 
         [Fact]
         public async Task TestEmptyFile()
@@ -621,8 +621,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         public async Task TestConditionalDirectiveWithSingleMatchingDirective()
         {
             var code = """
@@ -643,8 +642,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         public async Task TestConditionalDirectiveWithTwoMatchingDirectives()
         {
             var code = """
@@ -667,8 +665,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         public async Task TestConditionalDirectiveWithAllMatchingDirectives()
         {
             var code = """
@@ -693,8 +690,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         public async Task TestRegionDirective()
         {
             var code = """
@@ -715,8 +711,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         public async Task TestInterleavedDirectivesInner()
         {
             var code = """
@@ -755,8 +750,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         public async Task TestInterleavedDirectivesOuter()
         {
             var code = """
@@ -795,8 +789,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         public async Task TestUnmatchedDirective1()
         {
             var code = """
@@ -815,8 +808,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         public async Task TestUnmatchedDirective2()
         {
             var code = """
@@ -835,8 +827,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7534")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7534")]
         public async Task TestUnmatchedConditionalDirective()
         {
             var code = """
@@ -861,8 +852,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/7534")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7534")]
         public async Task TestUnmatchedConditionalDirective2()
         {
             var code = """

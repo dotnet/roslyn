@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public bool HasDiagnostics => _diagnostics?.Count > 0;
 
-        public ImmutableArray<Diagnostic> Diagnostics => _diagnostics?.ToImmutable() ?? ImmutableArray<Diagnostic>.Empty;
+        public ImmutableArray<Diagnostic> Diagnostics => _diagnostics?.ToImmutable() ?? [];
 
         public ImmutableArray<Diagnostic>.Builder DiagnosticsBuilder
         {
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return;
             }
 
-            if (node.IsKind(SyntaxKind.GenericName) && TrySimplify(node))
+            if (TrySimplify(node))
             {
                 // found a match. report it and stop processing.
                 return;

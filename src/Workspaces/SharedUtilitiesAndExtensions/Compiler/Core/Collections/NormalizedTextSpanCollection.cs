@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Shared
                 value.Append(s.ToString());
             }
 
-            value.Append("}");
+            value.Append('}');
 
             return value.ToString();
         }

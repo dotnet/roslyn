@@ -19,10 +19,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         // This is the order that we look for used references. We set this processing order because we
         // want to favor transitive references when possible. For instance we process Projects before
         // Packages, since a particular Package could be brought in transitively by a Project reference.
-        private static readonly ImmutableArray<ReferenceType> s_processingOrder = ImmutableArray.Create(
-            ReferenceType.Project,
-            ReferenceType.Package,
-            ReferenceType.Assembly);
+        private static readonly ImmutableArray<ReferenceType> s_processingOrder = [ReferenceType.Project, ReferenceType.Package, ReferenceType.Assembly];
 
         public static async Task<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(
             Solution solution,

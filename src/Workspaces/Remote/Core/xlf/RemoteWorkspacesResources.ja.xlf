@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_SourceGeneration">
         <source>Source generation</source>
-        <target state="new">Source generation</target>
+        <target state="translated">ソースの生成</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">

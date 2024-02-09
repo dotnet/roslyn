@@ -4,37 +4,37 @@
     <body>
       <trans-unit id="DocumentUriSerializationError">
         <source>Unable to deserialize Uri. Unexpected value encountered: {0}</source>
-        <target state="new">Unable to deserialize Uri. Unexpected value encountered: {0}</target>
+        <target state="translated">Nie można zdeserializować identyfikatora Uri. Napotkano nieoczekiwaną wartość: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="MarkupContentSerializationError">
         <source>Unable to deserialize MarkupContent. Unexpected value encountered: {0}</source>
-        <target state="new">Unable to deserialize MarkupContent. Unexpected value encountered: {0}</target>
+        <target state="translated">Nie można zdeserializować elementu MarkupContent. Napotkano nieoczekiwaną wartość: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="NestedSumType">
         <source>A SumType cannot have another SumType as type parameter.</source>
-        <target state="new">A SumType cannot have another SumType as type parameter.</target>
+        <target state="translated">Typ SumType nie może mieć innego typu SumType jako parametru typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="NoSumTypeMatch">
         <source>None of the SumType type parameters could be deserialized</source>
-        <target state="new">None of the SumType type parameters could be deserialized</target>
+        <target state="translated">Nie można zdeserializować żadnego z parametrów typu SumType</target>
         <note />
       </trans-unit>
       <trans-unit id="StringEnumMissingConstructor">
         <source>Type {0} is missing a contructor that takes a single string as parameter.</source>
-        <target state="new">Type {0} is missing a contructor that takes a single string as parameter.</target>
+        <target state="translated">W typie {0} brakuje konstruktora, który przyjmuje pojedynczy ciąg jako parametr.</target>
         <note />
       </trans-unit>
       <trans-unit id="StringEnumSerializationError">
         <source>Unable to deserialize string-based enum. Unexpected data encountered: {0}</source>
-        <target state="new">Unable to deserialize string-based enum. Unexpected data encountered: {0}</target>
+        <target state="translated">Nie można zdeserializować wyliczenia opartego na ciągach. Napotkano nieoczekiwane dane: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="TextDocumentSyncSerializationError">
         <source>Unable to deserialize TextDocumentSyncOptions.  Unexpected value encountered: {0}</source>
-        <target state="new">Unable to deserialize TextDocumentSyncOptions.  Unexpected value encountered: {0}</target>
+        <target state="translated">Nie można zdeserializować elementu TextDocumentSyncOptions. Napotkano nieoczekiwaną wartość: {0}</target>
         <note />
       </trans-unit>
     </body>

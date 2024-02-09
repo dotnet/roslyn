@@ -152,14 +152,14 @@ namespace Microsoft.CodeAnalysis.Rename
                 var shouldIncludeSymbol = await ShouldIncludeSymbolAsync(referencedSymbol, originalSymbol, solution, false, cancellationToken).ConfigureAwait(false);
                 if (!shouldIncludeSymbol)
                 {
-                    return ImmutableArray<RenameLocation>.Empty;
+                    return [];
                 }
 
                 // Namespaces are definitions and references all in one. Since every definition
                 // location is also a reference, we'll ignore it's definitions.
                 if (referencedSymbol.Kind == SymbolKind.Namespace)
                 {
-                    return ImmutableArray<RenameLocation>.Empty;
+                    return [];
                 }
 
                 var results = ArrayBuilder<RenameLocation>.GetInstance();

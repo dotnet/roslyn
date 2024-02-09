@@ -15,9 +15,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNumericLiteral;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)]
-public sealed class ConvertNumericLiteralTests : AbstractCSharpCodeActionTest
+public sealed class ConvertNumericLiteralTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpConvertNumericLiteralCodeRefactoringProvider();
 
     protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)

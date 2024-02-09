@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         public override void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken)
         {
             var queryOrLinqInvocationExpression = CreateQueryExpressionOrLinqInvocation(
-                _selectExpression, Enumerable.Empty<SyntaxToken>(), Enumerable.Empty<SyntaxToken>(), convertToQuery);
+                _selectExpression, [], [], convertToQuery);
 
             var previous = ForEachInfo.ForEachStatement.GetPreviousStatement();
 

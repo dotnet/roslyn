@@ -860,10 +860,8 @@ namespace System.Runtime.CompilerServices
                 //         M(new Z().Q);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(D1)", "Program.M(D2)").WithLocation(5, 9)
                 );
-            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                );
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: "2");
+            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "2");
         }
 
         // Test suggested by @VSadov

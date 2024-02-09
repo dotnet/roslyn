@@ -352,7 +352,7 @@ End Class</Document>
 	End Sub
 End Class</Test>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, openDocuments:=False)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml, openDocuments:=False)
                 Dim document = workspace.Documents.Single()
                 Dim optionsService = workspace.GetService(Of EditorOptionsService)()
                 Dim textBuffer = document.GetTextBuffer()
@@ -405,7 +405,7 @@ End Class</Test>
                                                    </Import>)
             Next
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim expansionClient = New SnippetExpansionClient(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Guids.VisualBasicDebuggerLanguageId,
@@ -440,7 +440,7 @@ End Class</Test>
         End Function
 
         Public Sub TestFormatting(workspaceXmlWithSubjectBufferDocument As XElement, surfaceBufferDocumentXml As XElement, expectedSurfaceBuffer As XElement)
-            Using workspace = TestWorkspace.Create(workspaceXmlWithSubjectBufferDocument)
+            Using workspace = EditorTestWorkspace.Create(workspaceXmlWithSubjectBufferDocument)
                 Dim subjectBufferDocument = workspace.Documents.Single()
 
                 Dim surfaceBufferDocument = workspace.CreateProjectionBufferDocument(

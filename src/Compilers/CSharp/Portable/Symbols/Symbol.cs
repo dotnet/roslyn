@@ -48,11 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return false; }
         }
 
-        internal virtual void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+#nullable enable
+        internal virtual void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
             // must be overridden by source symbols, no-op for other symbols
             Debug.Assert(!this.RequiresCompletion);
         }
+#nullable disable
 
         internal virtual bool HasComplete(CompletionPart part)
         {
@@ -952,14 +954,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             => syntaxRef.SyntaxTree == tree &&
                 (!definedWithinSpan.HasValue || syntaxRef.Span.IntersectsWith(definedWithinSpan.Value));
 
-        internal static void ForceCompleteMemberByLocation(SourceLocation locationOpt, Symbol member, CancellationToken cancellationToken)
+#nullable enable
+        internal static void ForceCompleteMemberConditionally(SourceLocation? locationOpt, Predicate<Symbol>? filter, Symbol member, CancellationToken cancellationToken)
         {
-            if (locationOpt == null || member.IsDefinedInSourceTree(locationOpt.SourceTree, locationOpt.SourceSpan, cancellationToken))
+            if ((locationOpt == null || member.IsDefinedInSourceTree(locationOpt.SourceTree, locationOpt.SourceSpan, cancellationToken))
+                && (filter == null || filter(member)))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                member.ForceComplete(locationOpt, cancellationToken);
+                member.ForceComplete(locationOpt, filter, cancellationToken);
             }
         }
+#nullable disable
 
         /// <summary>
         /// Returns the Documentation Comment ID for the symbol, or null if the symbol doesn't

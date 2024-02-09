@@ -103,15 +103,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var forEachDocuments = IsForEachProperty(symbol)
                 ? await FindDocumentsWithForEachStatementsAsync(project, documents, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<Document>.Empty;
+                : [];
 
             var elementAccessDocument = symbol.IsIndexer
                 ? await FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync(project, documents, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<Document>.Empty;
+                : [];
 
             var indexerMemberCrefDocument = symbol.IsIndexer
                 ? await FindDocumentWithIndexerMemberCrefAsync(project, documents, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<Document>.Empty;
+                : [];
 
             var documentsWithGlobalAttributes = await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, cancellationToken).ConfigureAwait(false);
             return ordinaryDocuments.Concat(forEachDocuments, elementAccessDocument, indexerMemberCrefDocument, documentsWithGlobalAttributes);
@@ -144,11 +144,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var forEachReferences = IsForEachProperty(symbol)
                 ? await FindReferencesInForEachStatementsAsync(symbol, state, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<FinderLocation>.Empty;
+                : [];
 
             var indexerReferences = symbol.IsIndexer
                 ? await FindIndexerReferencesAsync(symbol, state, options, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<FinderLocation>.Empty;
+                : [];
 
             var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
                 symbol, state, cancellationToken).ConfigureAwait(false);
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 // Looking for individual get/set references.  Don't find anything here. 
                 // these results will be provided by the PropertyAccessorSymbolReferenceFinder
-                return ImmutableArray<FinderLocation>.Empty;
+                return [];
             }
 
             var syntaxFacts = state.SyntaxFacts;

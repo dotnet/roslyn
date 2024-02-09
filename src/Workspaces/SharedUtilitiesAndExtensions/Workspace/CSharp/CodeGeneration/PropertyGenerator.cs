@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return accessors[0] == null && accessors[1] == null
                 ? null
-                : SyntaxFactory.AccessorList(accessors.WhereNotNull().ToSyntaxList());
+                : SyntaxFactory.AccessorList([.. accessors.WhereNotNull()]);
         }
 
         private static AccessorDeclarationSyntax? GenerateAccessorDeclaration(

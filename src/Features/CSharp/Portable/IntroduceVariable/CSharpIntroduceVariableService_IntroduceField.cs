@@ -44,11 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 MakeFieldModifiers(isConstant, inScript: oldType.IsScriptClass),
                 SyntaxFactory.VariableDeclaration(
                     GetTypeSymbol(document, expression, cancellationToken).GenerateTypeSyntax(),
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(
-                            newNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
-                            null,
-                            SyntaxFactory.EqualsValueClause(expression.WithoutTrivia()))))).WithAdditionalAnnotations(Formatter.Annotation);
+                    [SyntaxFactory.VariableDeclarator(
+                        newNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
+                        null,
+                        SyntaxFactory.EqualsValueClause(expression.WithoutTrivia()))])).WithAdditionalAnnotations(Formatter.Annotation);
 
             if (oldTypeDeclaration != null)
             {
@@ -184,15 +183,15 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         {
             if (isConstant)
             {
-                return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword), SyntaxFactory.Token(SyntaxKind.ConstKeyword));
+                return [SyntaxFactory.Token(SyntaxKind.PrivateKeyword), SyntaxFactory.Token(SyntaxKind.ConstKeyword)];
             }
             else if (inScript)
             {
-                return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
+                return [SyntaxFactory.Token(SyntaxKind.PrivateKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)];
             }
             else
             {
-                return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
+                return [SyntaxFactory.Token(SyntaxKind.PrivateKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)];
             }
         }
     }

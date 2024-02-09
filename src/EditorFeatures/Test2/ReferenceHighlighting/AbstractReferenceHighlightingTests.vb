@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
             GetType(NoCompilationContentTypeLanguageService))
 
         Protected Async Function VerifyHighlightsAsync(test As XElement, testHost As TestHost, Optional optionIsEnabled As Boolean = True) As Task
-            Using workspace = TestWorkspace.Create(test, composition:=s_composition.WithTestHostParts(testHost))
+            Using workspace = EditorTestWorkspace.Create(test, composition:=s_composition.WithTestHostParts(testHost))
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractReferenceHighlightingTests)}.{NameOf(Me.VerifyHighlightsAsync)} creates asynchronous taggers")
 
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                     document, snapshot, New SnapshotPoint(snapshot, caretPosition))
                 Await tagProducer.GetTestAccessor().ProduceTagsAsync(context)
 
-                Dim producedTags = From tag In context.tagSpans
+                Dim producedTags = From tag In context.TagSpans
                                    Order By tag.Span.Start
                                    Let spanType = If(tag.Tag.Type = DefinitionHighlightTag.TagId, "Definition",
                                        If(tag.Tag.Type = WrittenReferenceHighlightTag.TagId, "WrittenReference", "Reference"))

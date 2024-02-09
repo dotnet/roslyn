@@ -98,11 +98,12 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);
+            Contract.ThrowIfNull(reader);
 
             // deserialize bits to object
-            var result = Serializer.Deserialize<T>(data.Kind, reader, CancellationToken.None);
+            var result = Serializer.Deserialize(data.Kind, reader, CancellationToken.None);
             Contract.ThrowIfNull<object?>(result);
-            return result;
+            return (T)result;
         }
 
         public async Task<Solution> GetSolutionAsync(SolutionAssetStorage.Scope scope)
@@ -220,8 +221,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         internal async Task VerifySolutionStateSerializationAsync(Solution solution, Checksum solutionChecksum)
         {
-            var solutionObjectFromSyncObject = await GetValueAsync<SolutionStateChecksums>(solutionChecksum);
-            Contract.ThrowIfFalse(solution.CompilationState.TryGetStateChecksums(out var solutionObjectFromSolution));
+            var solutionCompilationObjectFromSyncObject = await GetValueAsync<SolutionCompilationStateChecksums>(solutionChecksum);
+            Contract.ThrowIfFalse(solution.CompilationState.TryGetStateChecksums(out var solutionCompilationObjectFromSolution));
+
+            SolutionCompilationStateEqual(solutionCompilationObjectFromSolution, solutionCompilationObjectFromSyncObject);
+
+            var solutionObjectFromSyncObject = await GetValueAsync<SolutionStateChecksums>(solutionCompilationObjectFromSyncObject.SolutionState);
+            Contract.ThrowIfFalse(solution.CompilationState.SolutionState.TryGetStateChecksums(out var solutionObjectFromSolution));
 
             SolutionStateEqual(solutionObjectFromSolution, solutionObjectFromSyncObject);
         }
@@ -240,14 +246,19 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             AssertEx.Equal(collection1.Children, collection2.Children);
         }
 
+        internal void SolutionCompilationStateEqual(SolutionCompilationStateChecksums solutionObject1, SolutionCompilationStateChecksums solutionObject2)
+        {
+            Assert.Equal(solutionObject1.Checksum, solutionObject2.Checksum);
+            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocumentIdentity, solutionObject2.FrozenSourceGeneratedDocumentIdentity);
+            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocumentText, solutionObject2.FrozenSourceGeneratedDocumentText);
+        }
+
         internal void SolutionStateEqual(SolutionStateChecksums solutionObject1, SolutionStateChecksums solutionObject2)
         {
             Assert.Equal(solutionObject1.Checksum, solutionObject2.Checksum);
             Assert.Equal(solutionObject1.Attributes, solutionObject2.Attributes);
             AssertChecksumCollectionEqual(solutionObject1.Projects, solutionObject2.Projects);
             AssertChecksumCollectionEqual(solutionObject1.AnalyzerReferences, solutionObject2.AnalyzerReferences);
-            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocumentIdentity, solutionObject2.FrozenSourceGeneratedDocumentIdentity);
-            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocumentText, solutionObject2.FrozenSourceGeneratedDocumentText);
 
             ProjectStatesEqual(ToProjectObjects(solutionObject1.Projects.Checksums), ToProjectObjects(solutionObject2.Projects.Checksums));
         }

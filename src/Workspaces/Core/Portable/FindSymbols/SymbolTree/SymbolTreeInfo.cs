@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     assemblySymbol ??= await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
                     if (assemblySymbol is null)
-                        return ImmutableArray<ISymbol>.Empty;
+                        return [];
 
                     Bind(index, assemblySymbol.GlobalNamespace, ref results.AsRef(), cancellationToken);
                 }

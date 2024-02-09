@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
 {
     [Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
-    public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public ValidateFormatStringTests(ITestOutputHelper logger)
            : base(logger)
@@ -625,13 +625,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
         [Fact]
         public async Task TestOption_Ignored()
         {
-            var source = @"class Program
-{
-    static void Main(string[] args)
-    {
-        string.Format(""This [|{1}|] is my test"", ""teststring1"");
-    }     
-}";
+            var source = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        string.Format("This [|{1}|] is my test", "teststring1");
+                    }     
+                }
+                """;
             await TestDiagnosticInfoAsync(
                 source,
                 options: null,
