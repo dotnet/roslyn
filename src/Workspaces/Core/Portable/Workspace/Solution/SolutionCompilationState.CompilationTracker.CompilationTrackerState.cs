@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis
                 /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
                 /// the state of the project prior to the mutation.
                 /// </summary>
-                public ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> IntermediateProjects { get; }
+                public ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> PendingTranslationSteps { get; }
 
                 /// <summary>
                 /// The result of taking the original completed compilation that had generated documents and updating
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis
                     // Note: Intermediate projects can be empty.
                     Contract.ThrowIfTrue(intermediateProjects is null);
 
-                    IntermediateProjects = intermediateProjects;
+                    PendingTranslationSteps = intermediateProjects;
                     StaleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments;
                 }
 
