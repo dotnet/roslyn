@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 }
                 else
                 {
-                    // Lengths were the same, this is either a case insensitive or sensitive prefix match.
+                    // Lengths were not the same, this is either a case insensitive or sensitive prefix match.
                     return new PatternMatch(
                         PatternMatchKind.Prefix, punctuationStripped, isCaseSensitive: _compareInfo.IsPrefix(candidate, patternChunk.Text),
                         matchedSpan: GetMatchedSpan(0, patternChunk.Text.Length));
@@ -256,10 +256,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             // only after we've tried all other forms first.  This is the weakest of all matches.  For example, if
             // user types 'bin' we want to match 'OperatorBinary' (start of word) or 'BinaryInformationNode' (camel
             // humps) before matching 'Combine'.
-            // 
-            // We only do this for strings longer than three characters to avoid too many false positives when the
-            // user has only barely started writing a word.
-            if (patternIsLowercase && caseInsensitiveIndex > 0 && patternChunk.Text.Length >= 3)
+            if (patternIsLowercase && caseInsensitiveIndex > 0)
             {
                 var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, CompareOptions.None);
                 if (caseSensitiveIndex > 0)

@@ -383,15 +383,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
-        public void MatchMultiWordPattern_LowercaseSubstring1()
-            => Assert.Null(TryMatchMultiWordPattern("Operator", "a"));
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
-        public void MatchMultiWordPattern_LowercaseSubstring2()
+        public void MatchMultiWordPattern_LowercaseSubstringStartOfWord()
         {
             var match = TryMatchMultiWordPattern("Goo[|A|]ttribute", "a");
             AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
             Assert.False(match.First().IsCaseSensitive);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68188")]
+        public void MatchMultiWordPattern_LowercaseSubstringLongPattern()
+        {
+            var match = TryMatchMultiWordPattern("Av[|ailab|]leUid", "ailab");
+            AssertContainsType(PatternMatchKind.LowercaseSubstring, match);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68188")]
+        public void MatchMultiWordPattern_LowercaseSubstringShortPattern()
+        {
+            var match = TryMatchMultiWordPattern("AvailableU[|id|]", "id");
+            AssertContainsType(PatternMatchKind.LowercaseSubstring, match);
         }
 
         [Fact]
