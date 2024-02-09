@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
@@ -229,8 +230,11 @@ class C
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
             // There are a lot of results, no point transcribing them all into a test
-            Assert.Contains(results, r => r.GetText() == "public void Dispose()" && Path.GetFileName(r.GetDocumentName()) == "FileImplementation.cs");
-            Assert.Contains(results, r => r.GetText() == "void Stream.Dispose()" && r.GetDocumentName() == "Stream");
+            AssertEx.Contains(results, r => r.GetText() == "public void Dispose()" && Path.GetFileName(r.GetDocumentName()) == "FileImplementation.cs", Inspect);
+            AssertEx.Contains(results, r => r.GetText() == "void Stream.Dispose()" && Path.GetFileName(r.GetDocumentName()) == "Stream.dll", Inspect);
+
+            static string Inspect(ITableEntryHandle2 entry)
+                => $"Text: '{entry.GetText()}' DocumentName: '{entry.GetDocumentName()}'";
         }
     }
 }

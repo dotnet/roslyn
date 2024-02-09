@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
     internal static class DefinitionItemFactory
     {
         private static readonly SymbolDisplayFormat s_namePartsFormat = new(
-            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
+            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType,
+            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining);
 
         public static DefinitionItem ToNonClassifiedDefinitionItem(
             this ISymbol definition,
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             bool isPrimary,
             bool includeHiddenLocations)
         {
-            var sourceLocations = GetSourceLocations(solution, locations, includeHiddenLocations);
+            var sourceLocations = GetSourceLocations(definition, locations, solution, includeHiddenLocations);
 
             return ToDefinitionItem(
                 definition,
@@ -66,22 +67,25 @@ namespace Microsoft.CodeAnalysis.FindUsages
             bool includeHiddenLocations,
             CancellationToken cancellationToken)
         {
-            // Assembly and Module locations include all source documents; displaying all of them is not useful.
-            // We could consider creating a definition item that points to the project source instead.
-            var sourceLocations = (definition.Kind is SymbolKind.Assembly or SymbolKind.NetModule) ? [] : GetSourceLocations(solution, definition.Locations, includeHiddenLocations);
-
+            var sourceLocations = GetSourceLocations(definition, definition.Locations, solution, includeHiddenLocations);
             var classifiedSpans = await ClassifyDocumentSpansAsync(classificationOptions, sourceLocations, cancellationToken).ConfigureAwait(false);
             return ToDefinitionItem(definition, sourceLocations, classifiedSpans, solution, options, isPrimary);
         }
 
         public static async ValueTask<DefinitionItem> ToClassifiedDefinitionItemAsync(
-            this SymbolGroup group, OptionsProvider<ClassificationOptions> classificationOptions, Solution solution, FindReferencesSearchOptions options, bool isPrimary, bool includeHiddenLocations, CancellationToken cancellationToken)
+            this SymbolGroup group,
+            OptionsProvider<ClassificationOptions> classificationOptions,
+            Solution solution,
+            FindReferencesSearchOptions options,
+            bool isPrimary,
+            bool includeHiddenLocations,
+            CancellationToken cancellationToken)
         {
             // Make a single definition item that knows about all the locations of all the symbols in the group.
             var definition = group.Symbols.First();
-            var allLocations = group.Symbols.SelectManyAsArray(s => s.Locations);
+            var locations = group.Symbols.SelectManyAsArray(s => s.Locations);
 
-            var sourceLocations = GetSourceLocations(solution, allLocations, includeHiddenLocations);
+            var sourceLocations = GetSourceLocations(definition, locations, solution, includeHiddenLocations);
             var classifiedSpans = await ClassifyDocumentSpansAsync(classificationOptions, sourceLocations, cancellationToken).ConfigureAwait(false);
             return ToDefinitionItem(definition, sourceLocations, classifiedSpans, solution, options, isPrimary);
         }
@@ -177,6 +181,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
             {
                 using var metadataLocations = TemporaryArray<AssemblyLocation>.Empty;
 
+                // Global namespace has a metadata location for each referenced assembly.
+                // It is not useful to display these locations.
+                if (namespaceSymbol.IsGlobalNamespace)
+                {
+                    return [];
+                }
+
                 // only shared namespace symbols don't have containing assembly:
                 Contract.ThrowIfTrue(namespaceSymbol.ConstituentNamespaces.IsEmpty);
 
@@ -206,8 +217,15 @@ namespace Microsoft.CodeAnalysis.FindUsages
             return [];
         }
 
-        private static ImmutableArray<DocumentSpan> GetSourceLocations(Solution solution, ImmutableArray<Location> locations, bool includeHiddenLocations)
+        private static ImmutableArray<DocumentSpan> GetSourceLocations(ISymbol definition, ImmutableArray<Location> locations, Solution solution, bool includeHiddenLocations)
         {
+            // Assembly, module and global namespace locations include all source documents; displaying all of them is not useful.
+            // We could consider creating a definition item that points to the project source instead.
+            if (definition is { Kind: SymbolKind.Assembly or SymbolKind.NetModule } or INamespaceSymbol { IsGlobalNamespace: true })
+            {
+                return [];
+            }
+
             using var source = TemporaryArray<DocumentSpan>.Empty;
 
             foreach (var location in locations)

@@ -420,7 +420,85 @@ public class DefinitionItemFactoryTests
             ]);
     }
 
-    // TODO: Namespace in C#, VB, Meta
+    [Fact]
+    public async Task ToClassifiedDefinitionItemAsync_Namespace_Global_Source()
+    {
+        using var workspace = TestWorkspace.CreateCSharp("namespace N {}");
+
+        var solution = workspace.CurrentSolution;
+        var project = solution.Projects.Single();
+        var compilation = await project.GetCompilationAsync();
+        Contract.ThrowIfNull(compilation);
+        var symbol = compilation.Assembly.GlobalNamespace;
+        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var searchOptions = FindReferencesSearchOptions.Default;
+
+        var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(symbol, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
+
+        VerifyDefinitionItem(item, project, [(symbol, nameof(symbol))],
+            // navigation target is generally not provided for namespaces
+            displayParts:
+            [
+                (tag: "Keyword", text: "namespace", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Text", text: "<global namespace>", TaggedTextStyle.None, target: SymbolKey.CreateString(symbol), hint: "")
+            ],
+            nameDisplayParts:
+            [
+                (tag: "Text", text: "<global namespace>", TaggedTextStyle.None, target: SymbolKey.CreateString(symbol), hint: "")
+            ],
+            sourceSpans: [],
+            tags:
+            [
+                "Namespace"
+            ],
+            properties:
+            [
+                ("NonNavigable", ""),
+                ("Primary", ""),
+                ("RQNameKey1", "Ns()")
+            ]);
+    }
+
+    [Fact]
+    public async Task ToClassifiedDefinitionItemAsync_Namespace_Global_SourceAndMetadata()
+    {
+        using var workspace = TestWorkspace.CreateCSharp("namespace N {}");
+
+        var solution = workspace.CurrentSolution;
+        var project = solution.Projects.Single();
+        var compilation = await project.GetCompilationAsync();
+        Contract.ThrowIfNull(compilation);
+        var symbol = compilation.GlobalNamespace;
+        var classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider();
+        var searchOptions = FindReferencesSearchOptions.Default;
+
+        var item = await DefinitionItemFactory.ToClassifiedDefinitionItemAsync(symbol, classificationOptions, solution, searchOptions, isPrimary: true, includeHiddenLocations: true, CancellationToken.None);
+
+        VerifyDefinitionItem(item, project,
+            // navigation target is generally not provided for namespaces
+            displayParts:
+            [
+                (tag: "Keyword", text: "namespace", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Text", text: "<global namespace>", TaggedTextStyle.None, target: SymbolKey.CreateString(symbol), hint: "")
+            ],
+            nameDisplayParts:
+            [
+                (tag: "Text", text: "<global namespace>", TaggedTextStyle.None, target: SymbolKey.CreateString(symbol), hint: "")
+            ],
+            sourceSpans: [],
+            tags:
+            [
+                "Namespace"
+            ],
+            properties:
+            [
+                ("NonNavigable", ""),
+                ("Primary", ""),
+                ("RQNameKey1", "Ns()")
+            ]);
+    }
 
     [Fact]
     public async Task ToClassifiedDefinitionItemAsync_Class()
