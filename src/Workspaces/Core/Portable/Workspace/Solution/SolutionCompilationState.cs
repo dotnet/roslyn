@@ -1051,7 +1051,7 @@ internal sealed partial class SolutionCompilationState
     /// <para/>
     /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
     /// </summary>
-    public SolutionCompilationState WithFrozenPartialCompilationIncludingSpecificDocument(
+    public async Task<SolutionCompilationState> WithFrozenPartialCompilationIncludingSpecificDocumentAsync(
         DocumentId documentId, CancellationToken cancellationToken)
     {
         // in progress solutions are disabled for some testing
@@ -1064,16 +1064,16 @@ internal sealed partial class SolutionCompilationState
             if (!_cachedFrozenDocumentState.TryGetValue(documentId, out lazyState))
             {
                 lazyState = new AsyncLazy<SolutionCompilationState>(
-                    cancellationToken => Task.FromResult(ComputeFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken)),
-                    cancellationToken => ComputeFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken));
+                    cancellationToken => ComputeFrozenPartialCompilationIncludingSpecificDocumentAsync(documentId, synchronous: false, cancellationToken),
+                    cancellationToken => ComputeFrozenPartialCompilationIncludingSpecificDocumentAsync(documentId, synchronous: true, cancellationToken).GetAwaiter().GetResult());
                 _cachedFrozenDocumentState.Add(documentId, lazyState);
             }
         }
 
-        return lazyState.GetValue(cancellationToken);
+        return await lazyState.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-        SolutionCompilationState ComputeFrozenPartialCompilationIncludingSpecificDocument(
-            DocumentId documentId, CancellationToken cancellationToken)
+        Task<SolutionCompilationState> ComputeFrozenPartialCompilationIncludingSpecificDocumentAsync(
+            DocumentId documentId, bool synchronous, CancellationToken cancellationToken)
         {
             var currentCompilationState = this;
             var currentDocumentState = this.SolutionState.GetRequiredDocumentState(documentId);
@@ -1113,12 +1113,13 @@ internal sealed partial class SolutionCompilationState
             foreach (var siblingId in allDocumentIds)
                 currentCompilationState = currentCompilationState.WithDocumentContentsFrom(siblingId, currentDocumentState, forceEvenIfTreesWouldDiffer: true);
 
-            return ComputeFrozenPartialCompilationIncludingSpecificDocumentWorker(currentCompilationState, documentId, cancellationToken);
+            return ComputeFrozenPartialCompilationIncludingSpecificDocumentWorkerAsync(
+                currentCompilationState, documentId, synchronous, cancellationToken);
         }
 
         // Intentionally static, so we only operate on @this, not `this`.
-        static SolutionCompilationState ComputeFrozenPartialCompilationIncludingSpecificDocumentWorker(
-            SolutionCompilationState @this, DocumentId documentId, CancellationToken cancellationToken)
+        static async Task<SolutionCompilationState> ComputeFrozenPartialCompilationIncludingSpecificDocumentWorkerAsync(
+            SolutionCompilationState @this, DocumentId documentId, bool synchronous, CancellationToken cancellationToken)
         {
             try
             {
@@ -1132,7 +1133,10 @@ internal sealed partial class SolutionCompilationState
                 foreach (var currentDocumentId in allDocumentIds)
                 {
                     var documentState = @this.SolutionState.GetRequiredDocumentState(currentDocumentId);
-                    statesAndTrees.Add((documentState, documentState.GetSyntaxTree(cancellationToken)));
+                    var syntaxTree = synchronous
+                        ? documentState.GetSyntaxTree(cancellationToken)
+                        : await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    statesAndTrees.Add((documentState, syntaxTree));
                 }
 
                 return ComputeFrozenPartialState(@this, statesAndTrees, cancellationToken);
