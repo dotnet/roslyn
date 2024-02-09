@@ -789,23 +789,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                 """
                 using System;
 
-                interface IGoo { event Action E; }
+                interface IGoo { event Action E; void M(); }
 
                 class C : IGoo
                 {
-                    public event Action [||]E;
+                    public event Action E;
+                    public void [||]M() { }
                 }
                 """,
                 """
                 using System;
                 
-                interface IGoo { event Action E; }
+                interface IGoo { event Action E; void M(); }
                 
                 class C : IGoo
                 {
-                    public event Action IGoo.E { add { } remove { } };
+                    public event Action E;
+                    void IGoo.M() { }
                 }
-                """, index: SingleMember);
+                """, index: SameInterface);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72024")]
@@ -829,7 +831,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                 
                 class C : IGoo
                 {
-                    public event Action IGoo.E { add { } remove { } };
+                    event Action IGoo.E { add { } remove { } };
                 }
                 """, index: SingleMember);
         }
