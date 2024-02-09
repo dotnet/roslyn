@@ -147,6 +147,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using var connection = client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callback);
 
+            // Actually pass in the document to scan.  Otherwise the test takes several seconds waiting to do the slow
+            // sweep of the entire solution.
             var priorityDocument = solution.Projects.Single().Documents.Single().Id;
             var invokeTask = connection.TryInvokeAsync(
                 solution,
