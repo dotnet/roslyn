@@ -80,8 +80,7 @@ End Class", HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentTokenTypeAsync("identifier", HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
-        public async Task ProjectReference()
+        public virtual async Task ProjectReference()
         {
             await InitializeWithDefaultSolution();
             var csProj2 = "CSProj2";
