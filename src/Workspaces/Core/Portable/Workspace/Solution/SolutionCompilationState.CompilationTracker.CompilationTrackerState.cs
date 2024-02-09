@@ -69,11 +69,7 @@ namespace Microsoft.CodeAnalysis
 #endif
                 }
 
-                /// <summary>
-                /// Returns a <see cref="AllSyntaxTreesParsedState"/> if <paramref name="intermediateProjects"/> is
-                /// empty, otherwise a <see cref="InProgressState"/>.
-                /// </summary>
-                public static CompilationTrackerState Create(
+                public static InProgressState CreateInProgressState(
                     bool isFrozen,
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
@@ -90,9 +86,7 @@ namespace Microsoft.CodeAnalysis
                     // If we don't have any intermediate projects to process, just initialize our
                     // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
                     // if our referenced projects are changing, so we'll have to rerun to consume changes.
-                    return intermediateProjects.IsEmpty
-                        ? new AllSyntaxTreesParsedState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, compilationWithGeneratedDocuments)
-                        : new InProgressState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, compilationWithGeneratedDocuments, intermediateProjects);
+                    return new InProgressState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, compilationWithGeneratedDocuments, intermediateProjects);
                 }
             }
 
@@ -114,56 +108,26 @@ namespace Microsoft.CodeAnalysis
                 /// the generators have not been rerun, but may be reusable if the generators are later found to give the
                 /// same output.
                 /// </summary>
-                public Compilation? CompilationWithGeneratedDocuments { get; }
+                public Compilation? StaleCompilationWithGeneratedDocuments { get; }
 
                 public InProgressState(
                     bool isFrozen,
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
-                    Compilation? compilationWithGeneratedDocuments,
+                    Compilation? staleCompilationWithGeneratedDocuments,
                     ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
                     : base(isFrozen,
                            compilationWithoutGeneratedDocuments,
                            generatorInfo)
                 {
                     Contract.ThrowIfTrue(intermediateProjects is null);
-                    Contract.ThrowIfTrue(intermediateProjects.IsEmpty);
 
                     // If we're not in the frozen state, the documents must *not* be final.  We're not a FinalState, and
                     // as such, we must still determine what the up to date generated docs are.
                     Contract.ThrowIfTrue(!IsFrozen && generatorInfo.DocumentsAreFinal);
 
                     this.IntermediateProjects = intermediateProjects;
-                    this.CompilationWithGeneratedDocuments = compilationWithGeneratedDocuments;
-                }
-            }
-
-            /// <summary>
-            /// A built compilation for the tracker that contains the fully built DeclarationTable,
-            /// but may not have references initialized
-            /// </summary>
-            private sealed class AllSyntaxTreesParsedState : CompilationTrackerState
-            {
-                /// <summary>
-                /// The result of taking the original completed compilation that had generated documents and updating them by
-                /// apply the <see cref="CompilationAndGeneratorDriverTranslationAction" />; this is not a correct snapshot in that
-                /// the generators have not been rerun, but may be reusable if the generators are later found to give the
-                /// same output.
-                /// </summary>
-                public Compilation? CompilationWithGeneratedDocuments { get; }
-
-                public AllSyntaxTreesParsedState(
-                    bool isFrozen,
-                    Compilation compilationWithoutGeneratedDocuments,
-                    CompilationTrackerGeneratorInfo generatorInfo,
-                    Compilation? compilationWithGeneratedDocuments) : base(
-                        isFrozen, compilationWithoutGeneratedDocuments, generatorInfo)
-                {
-                    // If we're not in the frozen state, the documents must *not* be final.  We're not a FinalState, and
-                    // as such, we must still determine what the up to date generated docs are.
-                    Contract.ThrowIfTrue(!IsFrozen && generatorInfo.DocumentsAreFinal);
-
-                    CompilationWithGeneratedDocuments = compilationWithGeneratedDocuments;
+                    this.StaleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments;
                 }
             }
 
