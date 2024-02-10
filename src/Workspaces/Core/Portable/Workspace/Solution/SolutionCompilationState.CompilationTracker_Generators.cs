@@ -43,14 +43,6 @@ internal partial class SolutionCompilationState
                 var generatedSyntaxTrees = await generatorInfo.Documents.States.Values.SelectAsArrayAsync(
                     static (state, cancellationToken) => state.GetSyntaxTreeAsync(cancellationToken), cancellationToken).ConfigureAwait(false);
 
-                if (generatedSyntaxTrees.IsEmpty)
-                    return (compilationWithoutGeneratedFiles, generatorInfo.Documents, generatorInfo.Driver);
-
-                // Try to reuse the last compilation produced.
-                if (CanReuseStaleCompilation(compilationWithStaleGeneratedTrees, generatedSyntaxTrees))
-                    return (compilationWithStaleGeneratedTrees, generatorInfo.Documents, generatorInfo.Driver);
-
-                // Couldn't reuse the prior compilation, create the new one with all the generated docs added.
                 var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(generatedSyntaxTrees);
                 return (compilationWithGeneratedFiles, generatorInfo.Documents, generatorInfo.Driver);
             }
@@ -69,34 +61,6 @@ internal partial class SolutionCompilationState
                 generatorInfo.Driver,
                 compilationWithStaleGeneratedTrees,
                 cancellationToken).ConfigureAwait(false);
-
-            bool CanReuseStaleCompilation(
-                [NotNullWhen(true)] Compilation? compilationWithStaleGeneratedTrees, ImmutableArray<SyntaxTree> generatedSyntaxTrees)
-            {
-                // Have to have the stale compilation in order to reuse it.
-                if (compilationWithStaleGeneratedTrees is null)
-                    return false;
-
-                // If the parse options changed, we could get entirely different trees, so can't reuse in that case.
-                if (!compilationWithStaleGeneratedTrees.Options.Equals(compilationWithoutGeneratedFiles.Options))
-                    return false;
-
-                // If stale compilation doesn't have all the normal and generated trees, we def can't reuse it.
-                if (compilationWithStaleGeneratedTrees.SyntaxTrees.Count() !=
-                    (compilationWithoutGeneratedFiles.SyntaxTrees.Count() + generatedSyntaxTrees.Length))
-                {
-                    return false;
-                }
-
-                if (compilationWithoutGeneratedFiles.SyntaxTrees.Any(t => !compilationWithStaleGeneratedTrees.ContainsSyntaxTree(t)))
-                    return false;
-
-                if (generatedSyntaxTrees.Any(t => !compilationWithStaleGeneratedTrees.ContainsSyntaxTree(t)))
-                    return false;
-
-                // Looks good.  The stale compilation has all the trees we want, and the right parse options.  Just reuse that.
-                return true;
-            }
         }
 
         private async Task<(Compilation compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments, GeneratorDriver? generatorDriver)> ComputeNewGeneratorInfoAsync(
