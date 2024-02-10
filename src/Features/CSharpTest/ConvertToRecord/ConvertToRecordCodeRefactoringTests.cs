@@ -4452,6 +4452,34 @@ public class ConvertToRecordCodeRefactoringTests
         await TestRefactoringAsync(initialMarkup, changedMarkup);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72032")]
+    public async Task TestConstructorWithoutBody()
+    {
+        var initialMarkup = """
+            namespace N
+            {
+                public class [|C|]
+                {
+                    public int P { get; private set; }
+
+                    public extern C();
+                }
+            }
+            """;
+        var fixedMarkup = """
+            namespace N
+            {
+                public record [|C|](int P)
+                {
+                    public int P { get; private set; } = P;
+            
+                    public extern C();
+                }
+            }
+            """;
+        await TestRefactoringAsync(initialMarkup, fixedMarkup);
+    }
+
     #region selection
 
     [Fact]
