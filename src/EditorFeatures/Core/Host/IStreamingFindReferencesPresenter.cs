@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,28 +28,38 @@ internal interface IStreamingFindUsagesPresenter
     /// etc. etc.
     /// </summary>
     /// <param name="title">A title to display to the user in the presentation of the results.</param>
-    /// <param name="supportsReferences">Whether or not showing references is supported.
-    /// If true, then the presenter can group by definition, showing references underneath.
-    /// It can also show messages about no references being found at the end of the search.
-    /// If false, the presenter will not group by definitions, and will show the definition
-    /// items in isolation.</param>
+    /// <param name="options">Options</param>
     /// <returns>A cancellation token that will be triggered if the presenter thinks the search
     /// should stop.  This can normally happen if the presenter view is closed, or recycled to
     /// start a new search in it.  Callers should only use this if they intend to report results
     /// asynchronously and thus relinquish their own control over cancellation from their own
     /// surrounding context.  If the caller intends to populate the presenter synchronously,
     /// then this cancellation token can be ignored.</returns>
-    (FindUsagesContext context, CancellationToken cancellationToken) StartSearch(string title, bool supportsReferences);
-
-    /// <summary>
-    /// Call this method to display the Containing Type, Containing Member, or Kind columns
-    /// </summary>
-    (FindUsagesContext context, CancellationToken cancellationToken) StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn);
+    (FindUsagesContext context, CancellationToken cancellationToken) StartSearch(string title, StreamingFindUsagesPresenterOptions options);
 
     /// <summary>
     /// Clears all the items from the presenter.
     /// </summary>
     void ClearAll();
+}
+
+/// <summary>
+/// <see cref="IStreamingFindUsagesPresenter.StartSearch(string, StreamingFindUsagesPresenterOptions)"/> options.
+/// </summary>
+/// <param name="SupportsReferences">
+/// Whether or not showing references is supported.
+/// If true, then the presenter can group by definition, showing references underneath.
+/// It can also show messages about no references being found at the end of the search.
+/// If false, the presenter will not group by definitions, and will show the definition
+/// items in isolation.</param>
+/// <param name="IncludeContainingTypeAndMemberColumns"></param>
+/// <param name="IncludeKindColumn"></param>
+internal readonly record struct StreamingFindUsagesPresenterOptions(
+    bool SupportsReferences = false,
+    bool IncludeContainingTypeAndMemberColumns = false,
+    bool IncludeKindColumn = false)
+{
+    public static readonly StreamingFindUsagesPresenterOptions Default = new();
 }
 
 internal static class IStreamingFindUsagesPresenterExtensions
@@ -121,7 +132,7 @@ internal static class IStreamingFindUsagesPresenterExtensions
             //
             // We ignore the cancellation token returned by StartSearch as we're in a context where
             // we've computed all the results and we're synchronously populating the UI with it.
-            var (context, _) = presenter.StartSearch(title, supportsReferences: false);
+            var (context, _) = presenter.StartSearch(title, StreamingFindUsagesPresenterOptions.Default);
             try
             {
                 foreach (var item in navigableItems)
