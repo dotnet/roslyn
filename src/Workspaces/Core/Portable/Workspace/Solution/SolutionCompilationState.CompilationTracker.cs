@@ -948,7 +948,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    throw ExceptionUtilities.UnexpectedValue(state.GetType())
+                    throw ExceptionUtilities.UnexpectedValue(state.GetType());
                 }
             }
 
