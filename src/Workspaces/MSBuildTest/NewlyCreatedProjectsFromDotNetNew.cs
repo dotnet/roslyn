@@ -173,8 +173,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                     _ => throw new ArgumentOutOfRangeException(nameof(languageName), actualValue: languageName, message: "Only C# and VB.NET projects are supported.")
                 };
 
-                var tempGlobalJsonPath = Path.Combine(outputDirectory, "global.json");
-                File.Copy(s_globalJsonPath, tempGlobalJsonPath);
+                TryCopyGlobalJson(outputDirectory);
 
                 var newResult = RunDotNet($"new \"{templateName}\" -o \"{outputDirectory}\" --language \"{language}\"", output, outputDirectory);
 
@@ -194,6 +193,18 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 catch (InvalidOperationException ex) when (ex.Message.Contains("command: dotnet workload restore"))
                 {
                     throw new InvalidOperationException($"The '{templateName}' template requires additional dotnet workloads to be installed. It should be excluded during template discovery. " + ex.Message);
+                }
+            }
+
+            static async void TryCopyGlobalJson(string outputDirectory)
+            {
+                var tempGlobalJsonPath = Path.Combine(outputDirectory, "global.json");
+                try
+                {
+                    File.Copy(s_globalJsonPath, tempGlobalJsonPath);
+                }
+                catch (FileNotFoundException)
+                {
                 }
             }
 
