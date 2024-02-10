@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 }
             }
 
-            static async void TryCopyGlobalJson(string outputDirectory)
+            static void TryCopyGlobalJson(string outputDirectory)
             {
                 var tempGlobalJsonPath = Path.Combine(outputDirectory, "global.json");
                 try
