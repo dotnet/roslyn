@@ -8875,6 +8875,7 @@ using System.Runtime.InteropServices;
 public abstract class C1
 {
     public abstract void f(ref int a, out dynamic b, ref dynamic c, out object d); 
+    public abstract void f(ref bool a, out dynamic b, ref dynamic c, out object d); 
 }
 
 public class C
@@ -8889,8 +8890,6 @@ public class C
         c1.f(d, out d, ref lo, out ld);
     }
 }
-
-
 ";
             CompileAndVerifyIL(source, "C.M", @"
 {
@@ -8954,6 +8953,70 @@ public class C
   IL_0086:  ldloca.s   V_1
   IL_0088:  callvirt   ""void <>A{00009200}<System.Runtime.CompilerServices.CallSite, C1, object, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, C1, object, ref object, ref object, ref object)""
   IL_008d:  ret
+}
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        public void InvokeMember_CallSiteRefOutOmitted_03()
+        {
+            string source = @"
+using System.Runtime.InteropServices;
+
+[ComImport, Guid(""0002095E-0000-0000-C000-000000000046"")]
+public abstract class C1
+{
+    public abstract void f(ref bool a, out dynamic b, ref dynamic c, out object d); 
+}
+
+public class C
+{
+    dynamic d = true;
+
+    public void M(C1 c1)
+    {
+        object lo = null;
+        dynamic ld;
+
+        c1.f(d, out d, ref lo, out ld);
+    }
+}
+";
+            CompileAndVerifyIL(source, "C.M", @"
+{
+      // Code size       91 (0x5b)
+  .maxstack  5
+  .locals init (object V_0, //lo
+                object V_1, //ld
+                bool V_2)
+  IL_0000:  ldnull
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.1
+  IL_0003:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<>o__1.<>p__0""
+  IL_0008:  brtrue.s   IL_002e
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldtoken    ""bool""
+  IL_0010:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0015:  ldtoken    ""C""
+  IL_001a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_001f:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
+  IL_0024:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0029:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<>o__1.<>p__0""
+  IL_002e:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<>o__1.<>p__0""
+  IL_0033:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, bool> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>>.Target""
+  IL_0038:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<>o__1.<>p__0""
+  IL_003d:  ldarg.0
+  IL_003e:  ldfld      ""dynamic C.d""
+  IL_0043:  callvirt   ""bool System.Func<System.Runtime.CompilerServices.CallSite, object, bool>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
+  IL_0048:  stloc.2
+  IL_0049:  ldloca.s   V_2
+  IL_004b:  ldarg.0
+  IL_004c:  ldflda     ""dynamic C.d""
+  IL_0051:  ldloca.s   V_0
+  IL_0053:  ldloca.s   V_1
+  IL_0055:  callvirt   ""void C1.f(ref bool, out dynamic, ref dynamic, out object)""
+  IL_005a:  ret
 }
 ").VerifyDiagnostics();
         }
