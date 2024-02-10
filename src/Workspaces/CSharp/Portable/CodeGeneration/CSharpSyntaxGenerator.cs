@@ -2747,7 +2747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     var index = IndexOf(GetSubDeclarations(fullDecl), declaration);
 
                     // replace declaration with multiple declarations
-                    return ReplaceRange(root, fullDecl, SplitAndReplace(fullDecl, index, new[] { newDeclaration }));
+                    return ReplaceRange(root, fullDecl, SplitAndReplace(fullDecl, index, [newDeclaration]));
                 }
 
                 // attempt normal replace
@@ -3055,8 +3055,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var newNode = node.WithTrailingTrivia(node.GetTrailingTrivia().AddRange(previousToken.TrailingTrivia));
                 var newPreviousToken = previousToken.WithTrailingTrivia(default(SyntaxTriviaList));
                 return root.ReplaceSyntax(
-                    nodes: new[] { node }, computeReplacementNode: (o, r) => newNode,
-                    tokens: new[] { previousToken }, computeReplacementToken: (o, r) => newPreviousToken,
+                    nodes: [node], computeReplacementNode: (o, r) => newNode,
+                    tokens: [previousToken], computeReplacementToken: (o, r) => newPreviousToken,
                     trivia: null, computeReplacementTrivia: null);
             }
 

@@ -85,30 +85,7 @@ internal static class ConvertToRecordEngine
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         // first see if we need to re-order our primary constructor parameters.
-        var propertiesToAssign = positionalParameterInfos.SelectAsArray(info => info.Symbol);
-        var primaryConstructor = typeDeclaration.Members
-            .OfType<ConstructorDeclarationSyntax>()
-            .FirstOrDefault(constructor =>
-            {
-                var constructorSymbol = (IMethodSymbol)semanticModel
-                    .GetRequiredDeclaredSymbol(constructor, cancellationToken);
-                var constructorOperation = (IConstructorBodyOperation)semanticModel
-                    .GetRequiredOperation(constructor, cancellationToken);
-                // We want to make sure that each type in the parameter list corresponds
-                // to exactly one positional parameter type, but they don't need to be in the same order.
-                // We can't use something like set equality because some parameter types may be duplicate.
-                // So, we order the types in a consistent way (by name) and then compare the lists of types.
-                return constructorSymbol.Parameters.SelectAsArray(parameter => parameter.Type)
-                                .OrderBy(type => type.Name)
-                        .SequenceEqual(propertiesToAssign.SelectAsArray(s => s.Type)
-                                .OrderBy(type => type.Name),
-                            SymbolEqualityComparer.Default) &&
-                    // make sure that we do all the correct assignments. There may be multiple constructors
-                    // that meet the parameter condition but only one actually assigns all properties.
-                    // If successful, we set propertiesToAssign in the order of the parameters.
-                    ConvertToRecordHelpers.IsSimplePrimaryConstructor(
-                        constructorOperation, ref propertiesToAssign, constructorSymbol.Parameters);
-            });
+        var (primaryConstructor, propertiesToAssign) = TryFindPrimaryConstructor();
 
         var solutionEditor = new SolutionEditor(document.Project.Solution);
         // we must refactor usages first because usages can appear within the class definition and
@@ -174,14 +151,14 @@ internal static class ConvertToRecordEngine
             }
             else
             {
-                var constructorSymbol = (IMethodSymbol)semanticModel
-                    .GetRequiredDeclaredSymbol(constructor, cancellationToken);
-                var constructorOperation = (IConstructorBodyOperation)semanticModel
-                    .GetRequiredOperation(constructor, cancellationToken);
+                var constructorSymbol = semanticModel.GetRequiredDeclaredSymbol(constructor, cancellationToken);
+                var constructorOperation = (IConstructorBodyOperation?)semanticModel.GetOperation(constructor, cancellationToken);
+                if (constructorOperation is null)
+                    continue;
 
                 // check for copy constructor
-                if (constructorSymbol.Parameters.Length == 1 &&
-                    constructorSymbol.Parameters[0].Type.Equals(type))
+                if (constructorSymbol is { Parameters: [{ Type: var parameterType }] } &&
+                    parameterType.Equals(type))
                 {
                     if (ConvertToRecordHelpers.IsSimpleCopyConstructor(
                         constructorOperation, expectedFields, constructorSymbol.Parameters.First()))
@@ -352,6 +329,47 @@ internal static class ConvertToRecordEngine
                 propertiesToAddAsParams, recordKeyword, constructorTrivia, baseList));
 
         return solutionEditor.GetChangedSolution();
+
+        (ConstructorDeclarationSyntax? constructor, ImmutableArray<IPropertySymbol> propertiesToAssign) TryFindPrimaryConstructor()
+        {
+            var propertiesToAssign = positionalParameterInfos.SelectAsArray(info => info.Symbol);
+            var orderedPropertyTypesToAssign = propertiesToAssign.SelectAsArray(s => s.Type).OrderBy(type => type.Name);
+
+            foreach (var member in typeDeclaration.Members)
+            {
+                if (member is not ConstructorDeclarationSyntax constructor)
+                    continue;
+
+                var constructorSymbol = semanticModel.GetRequiredDeclaredSymbol(constructor, cancellationToken);
+                var constructorOperation = (IConstructorBodyOperation?)semanticModel.GetOperation(constructor, cancellationToken);
+                if (constructorOperation is null)
+                    continue;
+
+                // We want to make sure that each type in the parameter list corresponds
+                // to exactly one positional parameter type, but they don't need to be in the same order.
+                // We can't use something like set equality because some parameter types may be duplicate.
+                // So, we order the types in a consistent way (by name) and then compare the lists of types.
+                var orderedParameterTypes = constructorSymbol.Parameters
+                    .SelectAsArray(parameter => parameter.Type)
+                    .OrderBy(type => type.Name);
+
+                if (!orderedParameterTypes.SequenceEqual(orderedPropertyTypesToAssign))
+                    continue;
+
+                // make sure that we do all the correct assignments. There may be multiple constructors
+                // that meet the parameter condition but only one actually assigns all properties.
+                // If successful, we set propertiesToAssign in the order of the parameters.
+                if (!ConvertToRecordHelpers.IsSimplePrimaryConstructor(
+                        constructorOperation, propertiesToAssign, constructorSymbol.Parameters, out var orderedPropertiesToAssign))
+                {
+                    continue;
+                }
+
+                return (constructor, orderedPropertiesToAssign);
+            }
+
+            return (null, propertiesToAssign);
+        }
     }
 
     private static RecordDeclarationSyntax CreateRecordDeclaration(

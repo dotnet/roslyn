@@ -4151,11 +4151,7 @@ outerDefault:
             //   exists from the argument to the type of the corresponding parameter, or
             // - for a ref or out parameter, the type of the argument is identical to the type of the corresponding parameter. 
 
-            // effective RefKind has to match unless argument expression is of the type dynamic. 
-            // This is a bug in Dev11 which we also implement. 
-            //       The spec is correct, this is not an intended behavior. We don't fix the bug to avoid a breaking change.
-            if (!(argRefKind == parRefKind ||
-                 (argRefKind == RefKind.None && argument.HasDynamicType())))
+            if (argRefKind != parRefKind)
             {
                 return Conversion.NoConversion;
             }

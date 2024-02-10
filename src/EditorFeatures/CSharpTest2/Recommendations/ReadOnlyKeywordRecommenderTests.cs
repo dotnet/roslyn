@@ -468,8 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestInRefStructBeforeRef()
             => await VerifyKeywordAsync(@"$$ ref struct { }");
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         public async Task TestAfterNew()
             => await VerifyAbsenceAsync(@"new $$");
 

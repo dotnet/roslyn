@@ -40,8 +40,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         if (_assetCache.TryGetAsset<T>(checksum, out var asset))
             return asset;
 
-        using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
-        var checksums = pooledObject.Object;
+        using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
         checksums.Add(checksum);
 
         await this.SynchronizeAssetsAsync(assetHint, checksums, cancellationToken).ConfigureAwait(false);

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
     [ExportEmbeddedLanguageDocumentHighlighter(
         PredefinedEmbeddedLanguageNames.Regex,
-        new[] { LanguageNames.CSharp, LanguageNames.VisualBasic },
+        [LanguageNames.CSharp, LanguageNames.VisualBasic],
         supportsUnannotatedAPIs: true, "Regex", "Regexp"), Shared]
     internal sealed class RegexDocumentHighlighter : IEmbeddedLanguageDocumentHighlighter
     {

@@ -1970,5 +1970,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
                 markup,
                 expectedSuccess: false);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestStruct4()
+        {
+            var markup =
+                """
+                namespace Test
+                {
+                    struct $$Whatever
+                    {
+                        public int I { get; set; }
+                    }
+                }
+                """;
+
+            var expectedInterfaceCode =
+                """
+                namespace Test
+                {
+                    interface IWhatever
+                    {
+                        int I { get; set; }
+                    }
+                }
+                """;
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedInterfaceCode: expectedInterfaceCode);
+        }
     }
 }

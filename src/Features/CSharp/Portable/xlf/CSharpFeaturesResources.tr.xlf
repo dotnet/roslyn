@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
         <source>Cannot determine valid range of statements to extract</source>
-        <target state="new">Cannot determine valid range of statements to extract</target>
+        <target state="translated">Ayıklanacak geçerli deyim aralığı belirlenemedi</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_as_expression">
@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_regular_constructor">
         <source>Convert to regular constructor</source>
-        <target state="new">Convert to regular constructor</target>
+        <target state="translated">Normal oluşturucuya dönüştür</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">

@@ -2764,6 +2764,71 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Local").WithArguments("Local", "2").WithLocation(10, 9));
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicArgWithRefKind_01()
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        dynamic i = 1;
+        
+        local1(i);
+        local1(ref i);
+
+        local2(i);
+        local3(i);
+        
+        void local1(ref int x){ x++; }
+        void local2(ref object x){ }
+        void local3(ref dynamic x){ x++; }
+    }
+}";
+            VerifyDiagnostics(src,
+                // (8,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         local1(i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "ref").WithLocation(8, 16),
+                // (9,20): error CS1503: Argument 1: cannot convert from 'ref dynamic' to 'ref int'
+                //         local1(ref i);
+                Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "ref dynamic", "ref int").WithLocation(9, 20),
+                // (11,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         local2(i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "ref").WithLocation(11, 16),
+                // (12,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         local3(i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "ref").WithLocation(12, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicArgWithRefKind_02()
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        dynamic i = 1;
+        
+        local2(ref i);
+        System.Console.Write(i);
+        local3(ref i);
+        System.Console.Write(i);
+        
+        void local2(ref object x){ ref dynamic y = ref x; y++; }
+        void local3(ref dynamic x){ x++; }
+    }
+}";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
+        }
+
         [WorkItem(3923, "https://github.com/dotnet/roslyn/issues/3923")]
         [Fact]
         public void ExpressionTreeLocalFunctionUsage_01()

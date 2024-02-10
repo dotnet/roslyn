@@ -331,7 +331,7 @@ namespace A { namespace N { } }
             var compilation = GetCompilation(source, LanguageNames.CSharp);
             var symbols = GetDeclaredSymbols(compilation);
             Assert.Equal(5, symbols.Count());
-            Assert.Equal(new[] { "N", "A", "A.B", "A.B.C", "A.N" },
+            Assert.Equal(["N", "A", "A.B", "A.B.C", "A.N"],
                 symbols.Select(s => s.ToDisplayString()));
             TestRoundTrip(symbols, compilation);
         }
@@ -1479,12 +1479,12 @@ public class C
             if (language == LanguageNames.CSharp)
             {
                 var tree = CSharp.SyntaxFactory.ParseSyntaxTree(source, path: path);
-                return CSharp.CSharpCompilation.Create("Test", syntaxTrees: new[] { tree }, references: references);
+                return CSharp.CSharpCompilation.Create("Test", syntaxTrees: [tree], references: references);
             }
             else if (language == LanguageNames.VisualBasic)
             {
                 var tree = VisualBasic.SyntaxFactory.ParseSyntaxTree(source, path: path);
-                return VisualBasic.VisualBasicCompilation.Create("Test", syntaxTrees: new[] { tree }, references: references);
+                return VisualBasic.VisualBasicCompilation.Create("Test", syntaxTrees: [tree], references: references);
             }
 
             throw new NotSupportedException();

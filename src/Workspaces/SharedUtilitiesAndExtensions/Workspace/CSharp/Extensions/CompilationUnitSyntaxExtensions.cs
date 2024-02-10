@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool placeSystemNamespaceFirst,
             params SyntaxAnnotation[] annotations)
         {
-            return root.AddUsingDirectives(new[] { usingDirective }, contextNode, placeSystemNamespaceFirst, annotations);
+            return root.AddUsingDirectives([usingDirective], contextNode, placeSystemNamespaceFirst, annotations);
         }
 
         public static CompilationUnitSyntax AddUsingDirectives(

@@ -5896,9 +5896,9 @@ class A
                 // (35,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
                 // [X(1)]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(35, 2),
-                // (37,2): error CS0121: The call is ambiguous between the following methods or properties: 'XAttribute.XAttribute(ref int)' and 'XAttribute.XAttribute(e1)'
+                // (37,2): error CS0121: The call is ambiguous between the following methods or properties: 'XAttribute.XAttribute(decimal)' and 'XAttribute.XAttribute(e1)'
                 // [X(A.dyn)]
-                Diagnostic(ErrorCode.ERR_AmbigCall, "X(A.dyn)").WithArguments("XAttribute.XAttribute(ref int)", "XAttribute.XAttribute(e1)").WithLocation(37, 2),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "X(A.dyn)").WithArguments("XAttribute.XAttribute(decimal)", "XAttribute.XAttribute(e1)").WithLocation(37, 2),
                 // (38,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
                 // [X(m.NotAConstant() + 2)]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(38, 2));
