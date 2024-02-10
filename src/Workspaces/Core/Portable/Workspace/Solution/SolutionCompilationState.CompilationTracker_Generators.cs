@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -27,24 +29,29 @@ internal partial class SolutionCompilationState
     private partial class CompilationTracker : ICompilationTracker
     {
         private async Task<(Compilation compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments, GeneratorDriver? generatorDriver)> AddExistingOrComputeNewGeneratorInfoAsync(
+            bool isFrozen,
             SolutionCompilationState compilationState,
             Compilation compilationWithoutGeneratedFiles,
             CompilationTrackerGeneratorInfo generatorInfo,
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
-            if (generatorInfo.DocumentsAreFinal)
+            if (isFrozen)
             {
-                // We must have ran generators before, but for some reason had to remake the compilation from
-                // scratch. This could happen if the trees were strongly held, but the compilation was entirely
-                // garbage collected. Just add in the trees we already have. We don't want to rerun since the
-                // consumer of this Solution snapshot has already seen the trees and thus needs to ensure identity
-                // of them.
-                var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(
-                    await generatorInfo.Documents.States.Values.SelectAsArrayAsync(
-                        static (state, cancellationToken) => state.GetSyntaxTreeAsync(cancellationToken), cancellationToken).ConfigureAwait(false));
+                // We're frozen.  So we do not want to go through the expensive cost of running generators.  Instead, we
+                // just whatever prior generated docs we have.
+                var generatedSyntaxTrees = await generatorInfo.Documents.States.Values.SelectAsArrayAsync(
+                    static (state, cancellationToken) => state.GetSyntaxTreeAsync(cancellationToken), cancellationToken).ConfigureAwait(false);
 
-                // Will reuse the generator info since we're reusing all the trees from within it.
+                if (generatedSyntaxTrees.IsEmpty)
+                    return (compilationWithoutGeneratedFiles, generatorInfo.Documents, generatorInfo.Driver);
+
+                // Try to reuse the last compilation produced.
+                if (CanReuseStaleCompilation(compilationWithStaleGeneratedTrees, generatedSyntaxTrees))
+                    return (compilationWithStaleGeneratedTrees, generatorInfo.Documents, generatorInfo.Driver);
+
+                // Couldn't reuse the prior compilation, create the new one with all the generated docs added.
+                var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(generatedSyntaxTrees);
                 return (compilationWithGeneratedFiles, generatorInfo.Documents, generatorInfo.Driver);
             }
 
@@ -62,6 +69,34 @@ internal partial class SolutionCompilationState
                 generatorInfo.Driver,
                 compilationWithStaleGeneratedTrees,
                 cancellationToken).ConfigureAwait(false);
+
+            bool CanReuseStaleCompilation(
+                [NotNullWhen(true)] Compilation? compilationWithStaleGeneratedTrees, ImmutableArray<SyntaxTree> generatedSyntaxTrees)
+            {
+                // Have to have the stale compilation in order to reuse it.
+                if (compilationWithStaleGeneratedTrees is null)
+                    return false;
+
+                // If the parse options changed, we could get entirely different trees, so can't reuse in that case.
+                if (!compilationWithStaleGeneratedTrees.Options.Equals(compilationWithoutGeneratedFiles.Options))
+                    return false;
+
+                // If stale compilation doesn't have all the normal and generated trees, we def can't reuse it.
+                if (compilationWithStaleGeneratedTrees.SyntaxTrees.Count() !=
+                    (compilationWithoutGeneratedFiles.SyntaxTrees.Count() + generatedSyntaxTrees.Length))
+                {
+                    return false;
+                }
+
+                if (compilationWithoutGeneratedFiles.SyntaxTrees.Any(t => !compilationWithStaleGeneratedTrees.ContainsSyntaxTree(t)))
+                    return false;
+
+                if (generatedSyntaxTrees.Any(t => !compilationWithStaleGeneratedTrees.ContainsSyntaxTree(t)))
+                    return false;
+
+                // Looks good.  The stale compilation has all the trees we want, and the right parse options.  Just reuse that.
+                return true;
+            }
         }
 
         private async Task<(Compilation compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments, GeneratorDriver? generatorDriver)> ComputeNewGeneratorInfoAsync(
@@ -232,35 +267,10 @@ internal partial class SolutionCompilationState
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
-            // We have at least one source generator. If we don't already have a generator driver, we'll have to
-            // create one from scratch
-            if (generatorDriver == null)
-            {
-                var additionalTexts = this.ProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText);
-                var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
+            // If we don't already have an existing generator driver, create one from scratch
+            generatorDriver ??= CreateGeneratorDriver(this.ProjectState);
 
-                generatorDriver = compilationFactory.CreateGeneratorDriver(
-                    this.ProjectState.ParseOptions!,
-                    ProjectState.SourceGenerators.ToImmutableArray(),
-                    this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
-                    additionalTexts);
-            }
-            else
-            {
-#if DEBUG
-                // Assert that the generator driver is in sync with our additional document states; there's not a public
-                // API to get this, but we'll reflect in DEBUG-only.
-                var driverType = generatorDriver.GetType();
-                var stateMember = driverType.GetField("_state", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                Contract.ThrowIfNull(stateMember);
-                var additionalTextsMember = stateMember.FieldType.GetField("AdditionalTexts", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                Contract.ThrowIfNull(additionalTextsMember);
-                var state = stateMember.GetValue(generatorDriver);
-                var additionalTexts = (ImmutableArray<AdditionalText>)additionalTextsMember.GetValue(state)!;
-
-                Contract.ThrowIfFalse(additionalTexts.Length == this.ProjectState.AdditionalDocumentStates.Count);
-#endif
-            }
+            CheckGeneratorDriver(generatorDriver, this.ProjectState);
 
             Contract.ThrowIfNull(generatorDriver);
 
@@ -391,6 +401,34 @@ internal partial class SolutionCompilationState
                 }
 
                 return null;
+            }
+
+            static GeneratorDriver CreateGeneratorDriver(ProjectState projectState)
+            {
+                var additionalTexts = projectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText);
+                var compilationFactory = projectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
+
+                return compilationFactory.CreateGeneratorDriver(
+                    projectState.ParseOptions!,
+                    projectState.SourceGenerators.ToImmutableArray(),
+                    projectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
+                    additionalTexts);
+            }
+
+            [Conditional("DEBUG")]
+            static void CheckGeneratorDriver(GeneratorDriver generatorDriver, ProjectState projectState)
+            {
+                // Assert that the generator driver is in sync with our additional document states; there's not a public
+                // API to get this, but we'll reflect in DEBUG-only.
+                var driverType = generatorDriver.GetType();
+                var stateMember = driverType.GetField("_state", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                Contract.ThrowIfNull(stateMember);
+                var additionalTextsMember = stateMember.FieldType.GetField("AdditionalTexts", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                Contract.ThrowIfNull(additionalTextsMember);
+                var state = stateMember.GetValue(generatorDriver);
+                var additionalTexts = (ImmutableArray<AdditionalText>)additionalTextsMember.GetValue(state)!;
+
+                Contract.ThrowIfFalse(additionalTexts.Length == projectState.AdditionalDocumentStates.Count);
             }
         }
     }
