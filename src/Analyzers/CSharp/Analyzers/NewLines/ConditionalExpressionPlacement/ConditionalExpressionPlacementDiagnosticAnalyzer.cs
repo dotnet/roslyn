@@ -26,7 +26,8 @@ internal sealed class ConditionalExpressionPlacementDiagnosticAnalyzer : Abstrac
     }
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
+        // Note: we do not use semantics.  But this means we only reanalyze a method body when it is edited.
+        => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
     protected override void InitializeWorker(AnalysisContext context)
         => context.RegisterSyntaxNodeAction(ProcessConditionalExpression, SyntaxKind.ConditionalExpression);
