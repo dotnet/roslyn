@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private readonly object _boxedProjectGuid;
 
             private readonly SourceText _lineText;
-            private readonly MappedSpanResult _mappedSpanResult;
+            protected readonly MappedSpanResult MappedSpanResult;
 
             protected AbstractDocumentSpanEntry(
                 AbstractTableDataSourceFindUsagesContext context,
@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _boxedProjectGuid = projectGuid;
 
                 _lineText = lineText;
-                _mappedSpanResult = mappedSpanResult;
+                MappedSpanResult = mappedSpanResult;
             }
 
             protected abstract string GetProjectName();
@@ -46,9 +46,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected override object? GetValueWorker(string keyName)
                 => keyName switch
                 {
-                    StandardTableKeyNames.DocumentName => _mappedSpanResult.FilePath,
-                    StandardTableKeyNames.Line => _mappedSpanResult.LinePositionSpan.Start.Line,
-                    StandardTableKeyNames.Column => _mappedSpanResult.LinePositionSpan.Start.Character,
+                    StandardTableKeyNames.DocumentName => MappedSpanResult.FilePath,
+                    StandardTableKeyNames.Line => MappedSpanResult.LinePositionSpan.Start.Line,
+                    StandardTableKeyNames.Column => MappedSpanResult.LinePositionSpan.Start.Character,
                     StandardTableKeyNames.ProjectName => GetProjectName(),
                     StandardTableKeyNames.ProjectGuid => _boxedProjectGuid,
                     StandardTableKeyNames.Text => _lineText.ToString().Trim(),

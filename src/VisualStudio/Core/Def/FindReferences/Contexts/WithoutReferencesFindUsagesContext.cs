@@ -131,10 +131,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 RoslynDefinitionBucket definitionBucket, DefinitionItem definition, CancellationToken cancellationToken)
             {
                 var documentSpan = definition.SourceSpans[0];
-                var (guid, projectName, _) = GetGuidAndProjectInfo(documentSpan.Document);
                 var sourceText = await documentSpan.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-
                 var lineText = AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start);
+
                 var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
                 if (mappedDocumentSpan == null)
                 {
@@ -142,7 +141,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     return null;
                 }
 
-                return new DefinitionItemEntry(this, definitionBucket, projectName, guid, lineText, mappedDocumentSpan.Value);
+                var (guid, projectName, _) = GetGuidAndProjectInfo(documentSpan.Document);
+
+                return new DefinitionItemEntry(
+                    this,
+                    definitionBucket,
+                    projectName,
+                    guid,
+                    lineText,
+                    mappedDocumentSpan.Value,
+                    documentSpan.Document,
+                    ThreadingContext);
             }
         }
     }
