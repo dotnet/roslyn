@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,8 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.RegisterCompilationStartAction(context =>
+            => context.RegisterCompilationStartAction(context =>
             {
                 if (((CSharpCompilation)context.Compilation).LanguageVersion < LanguageVersion.CSharp8)
                 {
@@ -40,44 +41,81 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
 
                 var compilationOptions = context.Compilation.Options;
                 var defaultNullableContext = ((CSharpCompilationOptions)compilationOptions).NullableContextOptions;
-                context.RegisterSyntaxTreeAction(context =>
+                context.RegisterSyntaxTreeAction(context => ProcessSyntaxTree(compilationOptions, defaultNullableContext, context));
+            });
+
+        private void ProcessSyntaxTree(
+            CompilationOptions compilationOptions,
+            NullableContextOptions defaultNullableContext,
+            SyntaxTreeAnalysisContext context)
+        {
+            if (ShouldSkipAnalysis(context, compilationOptions, notification: null))
+                return;
+
+            var root = context.GetAnalysisRoot(findInTrivia: true);
+
+            // Bail out if the root contains no nullable directives.
+            if (!root.ContainsDirective(SyntaxKind.NullableDirectiveTrivia))
+                return;
+
+            NullableContextOptions? currentState = context.Tree.IsGeneratedCode(context.Options, CSharpSyntaxFacts.Instance, context.CancellationToken)
+                ? NullableContextOptions.Disable
+                : defaultNullableContext;
+
+            using var pooledStack = SharedPools.Default<Stack<SyntaxNodeOrToken>>().GetPooledObject();
+            var stack = pooledStack.Object;
+
+            stack.Push(root);
+
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+                if (!current.ContainsDirectives)
+                    continue;
+
+                if (current.IsNode)
                 {
-                    if (ShouldSkipAnalysis(context, compilationOptions, notification: null))
-                        return;
+                    // Add the nodes in reverse so we continue walking in a depth-first fashion.
+                    foreach (var child in current.AsNode()!.ChildNodesAndTokens().Reverse())
+                        stack.Push(child);
+                }
+                else if (current.IsToken)
+                {
+                    foreach (var trivia in current.AsToken().LeadingTrivia)
+                        ProcessTrivia(trivia);
+                }
+            }
 
-                    var root = context.GetAnalysisRoot(findInTrivia: true);
+            return;
 
-                    // Bail out if the root contains no nullable directives.
-                    if (!root.ContainsDirective(SyntaxKind.NullableDirectiveTrivia))
-                        return;
+            void ProcessTrivia(SyntaxTrivia trivia)
+            {
+                if (!trivia.IsDirective)
+                    return;
 
-                    var initialState = context.Tree.IsGeneratedCode(context.Options, CSharpSyntaxFacts.Instance, context.CancellationToken)
-                        ? NullableContextOptions.Disable
-                        : defaultNullableContext;
-
-                    NullableContextOptions? currentState = initialState;
-                    for (var directive = root.GetFirstDirective(); directive is not null; directive = directive.GetNextDirective())
-                    {
-                        if (directive.DirectiveNameToken.IsKind(SyntaxKind.NullableKeyword))
+                var directive = trivia.GetStructure()!;
+                switch (directive.Kind())
+                {
+                    case SyntaxKind.NullableDirectiveTrivia:
                         {
+                            // Report if the nullable directive puts us in the state.
                             var newState = GetNullableContextOptions(defaultNullableContext, currentState, (NullableDirectiveTriviaSyntax)directive);
                             if (newState == currentState)
                                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, directive.GetLocation()));
 
                             currentState = newState;
+                            return;
                         }
-                        else if (directive.DirectiveNameToken.Kind() is
-                            SyntaxKind.IfKeyword or
-                            SyntaxKind.ElifKeyword or
-                            SyntaxKind.ElseKeyword or
-                            SyntaxKind.EndIfKeyword)
-                        {
-                            // Reset the known nullable state when crossing a conditional compilation boundary
-                            currentState = null;
-                        }
-                    }
-                });
-            });
+
+                    case SyntaxKind.IfDirectiveTrivia or
+                         SyntaxKind.ElifDirectiveTrivia or
+                         SyntaxKind.ElseDirectiveTrivia or
+                         SyntaxKind.EndIfDirectiveTrivia:
+                        // Reset the known nullable state when crossing a conditional compilation boundary
+                        currentState = null;
+                        return;
+                }
+            }
         }
 
         internal static NullableContextOptions? GetNullableContextOptions(NullableContextOptions compilationOptions, NullableContextOptions? options, NullableDirectiveTriviaSyntax directive)
