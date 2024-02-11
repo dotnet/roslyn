@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 new TypedConstant(_stringType, TypedConstantKind.Primitive, null),
                 new TypedConstant(_systemType, TypedConstantKind.Primitive, null));
         }
-        
+
         [Fact]
         public void Null_Array()
         {
