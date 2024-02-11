@@ -98,7 +98,7 @@ internal sealed class CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer
             {
                 case SyntaxKind.NullableDirectiveTrivia:
                     {
-                        // Report if the nullable directive puts us in the state.
+                        // Report if the nullable directive puts us in the same state we're already in.
                         var newState = GetNullableContextOptions(defaultNullableContext, currentState, (NullableDirectiveTriviaSyntax)directive);
                         if (newState == currentState)
                             context.ReportDiagnostic(Diagnostic.Create(Descriptor, directive.GetLocation()));
