@@ -33,20 +33,19 @@ internal sealed class CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer
     protected override void InitializeWorker(AnalysisContext context)
         => context.RegisterCompilationStartAction(context =>
         {
-            if (((CSharpCompilation)context.Compilation).LanguageVersion < LanguageVersion.CSharp8)
+            var compilation = (CSharpCompilation)context.Compilation;
+            if (compilation.LanguageVersion < LanguageVersion.CSharp8)
             {
                 // Compilation does not support nullable directives
                 return;
             }
 
-            var compilationOptions = context.Compilation.Options;
-            var defaultNullableContext = ((CSharpCompilationOptions)compilationOptions).NullableContextOptions;
-            context.RegisterSyntaxTreeAction(context => ProcessSyntaxTree(compilationOptions, defaultNullableContext, context));
+            var compilationOptions = compilation.Options;
+            context.RegisterSyntaxTreeAction(context => ProcessSyntaxTree(compilationOptions, context));
         });
 
     private void ProcessSyntaxTree(
-        CompilationOptions compilationOptions,
-        NullableContextOptions defaultNullableContext,
+        CSharpCompilationOptions compilationOptions,
         SyntaxTreeAnalysisContext context)
     {
         if (ShouldSkipAnalysis(context, compilationOptions, notification: null))
@@ -58,6 +57,7 @@ internal sealed class CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer
         if (!root.ContainsDirective(SyntaxKind.NullableDirectiveTrivia))
             return;
 
+        var defaultNullableContext = compilationOptions.NullableContextOptions;
         NullableContextOptions? currentState = context.Tree.IsGeneratedCode(context.Options, CSharpSyntaxFacts.Instance, context.CancellationToken)
             ? NullableContextOptions.Disable
             : defaultNullableContext;
