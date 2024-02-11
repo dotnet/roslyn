@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -99,6 +100,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             EqualityTesting.AssertNotEqual(
                 new TypedConstant(_stringType, TypedConstantKind.Primitive, null),
                 new TypedConstant(_systemType, TypedConstantKind.Primitive, null));
+        }
+        
+        [Fact]
+        public void Null_Array()
+        {
+            TypedConstant nullTypedConstant = new TypedConstant(_arrayType, TypedConstantKind.Array, null);
+
+            Assert.Equal(TypedConstantKind.Array, nullTypedConstant.Kind);
+            Assert.Empty(nullTypedConstant.Values);
+            Assert.True(nullTypedConstant.IsNull);
         }
     }
 }

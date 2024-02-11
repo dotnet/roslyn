@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (this.IsNull)
                 {
-                    return default;
+                    return ImmutableArray<TypedConstant>.Empty;
                 }
 
                 return (ImmutableArray<TypedConstant>)_value!;
