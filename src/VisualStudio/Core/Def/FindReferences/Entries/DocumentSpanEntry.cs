@@ -285,24 +285,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public bool CanNavigateTo()
             {
-                if (_excerptResult.Document is SourceGeneratedDocument)
-                {
-                    var workspace = _excerptResult.Document.Project.Solution.Workspace;
-                    var documentNavigationService = workspace.Services.GetService<IDocumentNavigationService>();
-
-                    return documentNavigationService != null;
-                }
-
-                return false;
+                var workspace = _excerptResult.Document.Project.Solution.Workspace;
+                var documentNavigationService = workspace.Services.GetService<IDocumentNavigationService>();
+                return documentNavigationService != null;
             }
 
             public async Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(CanNavigateTo());
-
-                // If the document is a source generated document, we need to do the navigation ourselves;
-                // this is because the file path given to the table control isn't a real file path to a file
-                // on disk.
 
                 var workspace = _excerptResult.Document.Project.Solution.Workspace;
                 var documentNavigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
