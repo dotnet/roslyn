@@ -24,24 +24,21 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal struct NodeFlagsAndSlotCount
         {
-            private const byte MaxEncodableSlotCount = 15;
-
             /// <summary>
-            /// 4 bits for the SlotCount.  This allows slot counts of 1-14 to be stored as a direct byte.  15 indicates
-            /// that the slot count must be computed.
+            /// 4 bits for the SlotCount.  This allows slot counts of 0-14 to be stored as a direct byte.  All 1s
+            /// indicates that the slot count must be computed.
             /// </summary>
-            private const ushort SlotCountMask = 0b0000000000001111;
+            private const byte SlotCountMask = 0b1111;
+            private const int SlotCountShift = 12;
 
             /// <summary>
             /// 12 bits for the NodeFlags.  This allows for up to 12 distinct bits to be stored to designate interesting
             /// aspects of a node.
             /// </summary>
-            private const ushort NodeFlagsMask = 0b1111111111110000;
-
-            private const int NodeFlagsShift = 4;
+            private const ushort NodeFlagsMask = 0b0000111111111111;
 
             /// <summary>
-            /// First 12 bits are for NodeFlags.  Last 4 are for SlotCount.
+            /// CCCCFFFFFFFFFFFF for Count bits then Flag bits.
             /// </summary>
             private ushort _data;
 
@@ -49,17 +46,19 @@ namespace Microsoft.CodeAnalysis
             {
                 readonly get
                 {
-                    var result = (byte)(_data & SlotCountMask);
-                    return result == MaxEncodableSlotCount ? byte.MaxValue : result;
+                    var shifted = _data >> SlotCountShift;
+                    Debug.Assert(shifted <= SlotCountMask);
+                    var result = (byte)shifted;
+                    return result == SlotCountMask ? byte.MaxValue : result;
                 }
 
                 set
                 {
                     if (value == byte.MaxValue)
-                        value = MaxEncodableSlotCount;
-                    Debug.Assert(value <= 14);
+                        value = SlotCountMask;
+                    Debug.Assert(value <= SlotCountMask);
 
-                    _data = (ushort)(_data | value);
+                    _data = (ushort)(_data | (value << SlotCountShift));
                 }
             }
 
@@ -67,13 +66,13 @@ namespace Microsoft.CodeAnalysis
             {
                 readonly get
                 {
-                    return (NodeFlags)((_data & NodeFlagsMask) >> NodeFlagsShift);
+                    return (NodeFlags)(_data & NodeFlagsMask);
                 }
 
                 set
                 {
-                    Debug.Assert((ushort)value <= (NodeFlagsMask >> NodeFlagsShift));
-                    _data = (ushort)(_data | ((ushort)value << NodeFlagsShift));
+                    Debug.Assert((ushort)value <= NodeFlagsMask);
+                    _data = (ushort)(_data | (ushort)value);
                 }
             }
         }
