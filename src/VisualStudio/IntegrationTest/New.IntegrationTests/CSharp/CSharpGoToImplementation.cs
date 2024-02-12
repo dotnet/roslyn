@@ -230,11 +230,19 @@ class C
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
             // There are a lot of results, no point transcribing them all into a test
+
+            // Doc:
+            // StandardTableKeyNames.DocumentName is the path used to navigate to the entry.
+            // StandardTableKeyNames.DisplayPath is only used for what is displayed to the end user.
+            // If this is not set, then StandardTableKeyNames.DocumentName is displayed to the end user.
+            //
+            // Metadata definitions do not have DocumentName. THey implement custom navigation.
+
             AssertEx.Contains(results, r => r.GetText() == "public void Dispose()" && Path.GetFileName(r.GetDocumentName()) == "FileImplementation.cs", Inspect);
-            AssertEx.Contains(results, r => r.GetText() == "void Stream.Dispose()" && Path.GetFileName(r.GetDocumentName()) == "Stream.dll", Inspect);
+            AssertEx.Contains(results, r => r.GetText() == "void Stream.Dispose()" && Path.GetFileName(r.GetDisplayPath()) == "mscorlib.dll", Inspect);
 
             static string Inspect(ITableEntryHandle2 entry)
-                => $"Text: '{entry.GetText()}' DocumentName: '{entry.GetDocumentName()}'";
+                => $"Text: '{entry.GetText()}' DocumentName: '{entry.GetDocumentName()}' DisplayPath: '{entry.GetDisplayPath()}'";
         }
     }
 }
