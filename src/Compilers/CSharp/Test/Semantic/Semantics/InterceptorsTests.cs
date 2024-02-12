@@ -2616,7 +2616,7 @@ public class InterceptorsTests : CSharpTestBase
         comp.VerifyEmitDiagnostics(
             // C:\Users\me\projects\Program.cs(21,25): error CS9139: Cannot intercept: compilation does not contain a file with path 'C:\Users\me\projects\projects\Program.cs'.
             //     [InterceptsLocation("projects/Program.cs", 15, 11)]
-            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""projects/Program.cs""").WithArguments(@"C:\Users\me\projects\projects\Program.cs").WithLocation(21, 25)
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""projects/Program.cs""").WithArguments(PlatformInformation.IsWindows ? @"C:\Users\me\projects\projects\Program.cs" : "/Users/me/projects/projects/Program.cs").WithLocation(21, 25)
             );
     }
 
@@ -4904,7 +4904,10 @@ partial struct CustomHandler
         else
         {
             var comp = CreateCompilation(new[] { (source, @"/src/Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // /src/Program.cs(14,25): error CS9139: Cannot intercept: compilation does not contain a file with path '/src/C:/src/Program.cs'.
+                //     [InterceptsLocation("C:/src/Program.cs", 9, 11)]
+                Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""C:/src/Program.cs""").WithArguments("/src/C:/src/Program.cs").WithLocation(14, 25));
         }
     }
 
@@ -5070,7 +5073,7 @@ partial struct CustomHandler
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, @"C:\src\Program.cs"), (source2, @"C:\obj\Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        var comp = CreateCompilation(new[] { (source, PlatformInformation.IsWindows ? @"C:\src\Program.cs" : "/src/Program.cs"), (source2, PlatformInformation.IsWindows ? @"C:\obj\Generated.cs" : "/obj/Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics();
     }
 
