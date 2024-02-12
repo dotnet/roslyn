@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Reflection.Emit;
 using System.Text;
 using System.Text.Json.Nodes;
+using Microsoft.Azure.Pipelines.WebApi;
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Authentication;
 using Microsoft.RoslynTools.Extensions;
@@ -159,20 +160,42 @@ internal static class PRTagger
         AzDOConnection devdivConnection,
         HttpClient gitHubClient,
         ILogger logger,
-        int vsBuildNumber,
+        int maxFetchingVsBuildNumber,
         CancellationToken cancellationToken)
     {
         var lastVsBuildNumberReported = await FindTheLastReportedVSBuildAsync(gitHubClient, repoName, logger).ConfigureAwait(false);
+        if (lastVsBuildNumberReported is not null)
+        {
+            logger.LogInformation($"Last reported VS build number: {lastVsBuildNumberReported}.");
+        }
+        else
+        {
+            logger.LogInformation($"Can't find the last reported VS Build info in {repoName}.");
+        }
+
         var builds = await devdivConnection.TryGetBuildsAsync(
             "DD-CB-TestSignVS",
             logger: logger,
-            maxBuildNumberFetch: vsBuildNumber,
+            maxFetchingBuildNumberFetch: maxFetchingVsBuildNumber,
             resultsFilter: BuildResult.Succeeded,
             buildQueryOrder: BuildQueryOrder.FinishTimeDescending).ConfigureAwait(false);
 
-        var vsRepository = await GetVSRepositoryAsync(devdivConnection.GitClient);
         if (builds is not null)
         {
+            if (lastVsBuildNumberReported is not null)
+            {
+                var lastReportedBuildIndex = builds.FindIndex(build => build.BuildNumber == lastVsBuildNumberReported);
+                if (lastReportedBuildIndex == -1)
+                {
+                    logger.LogWarning($"VS build: {lastVsBuildNumberReported} can't be found in the build list. It is likely the tagger hasn't been run for a long time for repo {repoName}.");
+                }
+                else
+                {
+                    builds = builds.Take(lastReportedBuildIndex).ToList();
+                }
+            }
+
+            var vsRepository = await GetVSRepositoryAsync(devdivConnection.GitClient);
             // Find previous VS commit SHA
             var buildInfoTask = builds.Select(async build =>
             {
