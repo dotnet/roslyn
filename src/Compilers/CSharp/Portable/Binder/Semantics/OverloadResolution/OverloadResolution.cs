@@ -1177,6 +1177,14 @@ outerDefault:
 
         public static bool TryInferParamsCollectionIterationType(Binder binder, TypeSymbol type, out TypeWithAnnotations elementType)
         {
+            if (binder.Flags.HasFlag(BinderFlags.AttributeArgument) && !type.IsSZArray())
+            {
+                // Other collection instances won't be valid arguments for an attribute anyway,
+                // but this way we prevent circularity in some edge cases.
+                elementType = default;
+                return false;
+            }
+
             var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(binder.Compilation, type, out elementType);
 
             switch (collectionTypeKind)

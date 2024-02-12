@@ -199,15 +199,15 @@ class Test : System.Attribute
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (2,2): error CS0181: Attribute constructor parameter 'a' has type 'Span<long>', which is not a valid attribute parameter type
+                // (2,2): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Test.Test(params Span<long>)'
                 // [Test()]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.Span<long>").WithLocation(2, 2),
-                // (5,2): error CS0181: Attribute constructor parameter 'a' has type 'Span<long>', which is not a valid attribute parameter type
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test()").WithArguments("a", "Test.Test(params System.Span<long>)").WithLocation(2, 2),
+                // (5,7): error CS1503: Argument 1: cannot convert from 'int' to 'params System.Span<long>'
                 // [Test(1)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.Span<long>").WithLocation(5, 2),
-                // (8,2): error CS0181: Attribute constructor parameter 'a' has type 'Span<long>', which is not a valid attribute parameter type
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params System.Span<long>").WithLocation(5, 7),
+                // (8,2): error CS1729: 'Test' does not contain a constructor that takes 2 arguments
                 // [Test(2, 3)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.Span<long>").WithLocation(8, 2)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(2, 3)").WithArguments("Test", "2").WithLocation(8, 2)
                 );
 
             assertAttributeData("C1");
@@ -229,9 +229,9 @@ class Test : System.Attribute
             {
                 var typeInfo = model.GetTypeInfo(expression);
                 Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-                Assert.Equal("System.Int64", typeInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
 
-                Assert.True(model.GetConversion(expression).IsNumeric);
+                Assert.True(model.GetConversion(expression).IsIdentity);
             }
 
             void assertAttributeData(string name)
@@ -239,11 +239,7 @@ class Test : System.Attribute
                 var attributeData1 = comp.GetTypeByMetadataName(name).GetAttributes().Single();
                 Assert.True(attributeData1.HasErrors);
 
-                var c1Arg = attributeData1.ConstructorArguments.Single();
-                Assert.Equal(TypedConstantKind.Error, c1Arg.Kind);
-                Assert.Equal("System.Span<System.Int64>", c1Arg.Type.ToTestDisplayString());
-                Assert.Null(c1Arg.Value);
-                Assert.Throws<System.InvalidOperationException>(() => c1Arg.Values);
+                Assert.Empty(attributeData1.ConstructorArguments);
             }
         }
 
@@ -319,15 +315,15 @@ class Test : System.Attribute
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (2,2): error CS0181: Attribute constructor parameter 'a' has type 'ReadOnlySpan<long>', which is not a valid attribute parameter type
+                // (2,2): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Test.Test(params ReadOnlySpan<long>)'
                 // [Test()]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.ReadOnlySpan<long>").WithLocation(2, 2),
-                // (5,2): error CS0181: Attribute constructor parameter 'a' has type 'ReadOnlySpan<long>', which is not a valid attribute parameter type
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test()").WithArguments("a", "Test.Test(params System.ReadOnlySpan<long>)").WithLocation(2, 2),
+                // (5,7): error CS1503: Argument 1: cannot convert from 'int' to 'params System.ReadOnlySpan<long>'
                 // [Test(1)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.ReadOnlySpan<long>").WithLocation(5, 2),
-                // (8,2): error CS0181: Attribute constructor parameter 'a' has type 'ReadOnlySpan<long>', which is not a valid attribute parameter type
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params System.ReadOnlySpan<long>").WithLocation(5, 7),
+                // (8,2): error CS1729: 'Test' does not contain a constructor that takes 2 arguments
                 // [Test(2, 3)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.ReadOnlySpan<long>").WithLocation(8, 2)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(2, 3)").WithArguments("Test", "2").WithLocation(8, 2)
                 );
 
             assertAttributeData("C1");
@@ -349,9 +345,9 @@ class Test : System.Attribute
             {
                 var typeInfo = model.GetTypeInfo(expression);
                 Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-                Assert.Equal("System.Int64", typeInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
 
-                Assert.True(model.GetConversion(expression).IsNumeric);
+                Assert.True(model.GetConversion(expression).IsIdentity);
             }
 
             void assertAttributeData(string name)
@@ -359,11 +355,7 @@ class Test : System.Attribute
                 var attributeData1 = comp.GetTypeByMetadataName(name).GetAttributes().Single();
                 Assert.True(attributeData1.HasErrors);
 
-                var c1Arg = attributeData1.ConstructorArguments.Single();
-                Assert.Equal(TypedConstantKind.Error, c1Arg.Kind);
-                Assert.Equal("System.ReadOnlySpan<System.Int64>", c1Arg.Type.ToTestDisplayString());
-                Assert.Null(c1Arg.Value);
-                Assert.Throws<System.InvalidOperationException>(() => c1Arg.Values);
+                Assert.Empty(attributeData1.ConstructorArguments);
             }
         }
 
@@ -572,15 +564,15 @@ class Test : System.Attribute
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (16,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                // (16,2): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Test.Test(params MyCollection)'
                 // [Test()]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(16, 2),
-                // (19,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test()").WithArguments("a", "Test.Test(params MyCollection)").WithLocation(16, 2),
+                // (19,7): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection'
                 // [Test(1)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(19, 2),
-                // (22,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params MyCollection").WithLocation(19, 7),
+                // (22,2): error CS1729: 'Test' does not contain a constructor that takes 2 arguments
                 // [Test(2, 3)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(22, 2)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(2, 3)").WithArguments("Test", "2").WithLocation(22, 2)
                 );
 
             assertAttributeData("C1");
@@ -602,9 +594,9 @@ class Test : System.Attribute
             {
                 var typeInfo = model.GetTypeInfo(expression);
                 Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-                Assert.Equal("System.Int64", typeInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
 
-                Assert.True(model.GetConversion(expression).IsNumeric);
+                Assert.True(model.GetConversion(expression).IsIdentity);
             }
 
             void assertAttributeData(string name)
@@ -612,11 +604,7 @@ class Test : System.Attribute
                 var attributeData1 = comp.GetTypeByMetadataName(name).GetAttributes().Single();
                 Assert.True(attributeData1.HasErrors);
 
-                var c1Arg = attributeData1.ConstructorArguments.Single();
-                Assert.Equal(TypedConstantKind.Error, c1Arg.Kind);
-                Assert.Equal("MyCollection", c1Arg.Type.ToTestDisplayString());
-                Assert.Null(c1Arg.Value);
-                Assert.Throws<System.InvalidOperationException>(() => c1Arg.Values);
+                Assert.Empty(attributeData1.ConstructorArguments);
             }
         }
 
@@ -1180,15 +1168,15 @@ class Test : System.Attribute
             var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (14,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                // (14,2): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Test.Test(params MyCollection)'
                 // [Test()]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(14, 2),
-                // (17,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test()").WithArguments("a", "Test.Test(params MyCollection)").WithLocation(14, 2),
+                // (17,7): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection'
                 // [Test(1)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(17, 2),
-                // (20,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params MyCollection").WithLocation(17, 7),
+                // (20,2): error CS1729: 'Test' does not contain a constructor that takes 2 arguments
                 // [Test(2, 3)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(20, 2)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(2, 3)").WithArguments("Test", "2").WithLocation(20, 2)
                 );
 
             assertAttributeData("C1");
@@ -1210,9 +1198,9 @@ class Test : System.Attribute
             {
                 var typeInfo = model.GetTypeInfo(expression);
                 Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-                Assert.Equal("System.Int64", typeInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
 
-                Assert.True(model.GetConversion(expression).IsNumeric);
+                Assert.True(model.GetConversion(expression).IsIdentity);
             }
 
             void assertAttributeData(string name)
@@ -1220,11 +1208,7 @@ class Test : System.Attribute
                 var attributeData1 = comp.GetTypeByMetadataName(name).GetAttributes().Single();
                 Assert.True(attributeData1.HasErrors);
 
-                var c1Arg = attributeData1.ConstructorArguments.Single();
-                Assert.Equal(TypedConstantKind.Error, c1Arg.Kind);
-                Assert.Equal("MyCollection", c1Arg.Type.ToTestDisplayString());
-                Assert.Null(c1Arg.Value);
-                Assert.Throws<System.InvalidOperationException>(() => c1Arg.Values);
+                Assert.Empty(attributeData1.ConstructorArguments);
             }
         }
 
@@ -2189,15 +2173,15 @@ class Test : System.Attribute
             var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (12,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                // (12,2): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Test.Test(params MyCollection)'
                 // [Test()]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(12, 2),
-                // (15,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test()").WithArguments("a", "Test.Test(params MyCollection)").WithLocation(12, 2),
+                // (15,7): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection'
                 // [Test(1)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(15, 2),
-                // (18,2): error CS0181: Attribute constructor parameter 'a' has type 'MyCollection', which is not a valid attribute parameter type
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params MyCollection").WithLocation(15, 7),
+                // (18,2): error CS1729: 'Test' does not contain a constructor that takes 2 arguments
                 // [Test(2, 3)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "MyCollection").WithLocation(18, 2)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(2, 3)").WithArguments("Test", "2").WithLocation(18, 2)
                 );
 
             assertAttributeData("C1");
@@ -2219,9 +2203,9 @@ class Test : System.Attribute
             {
                 var typeInfo = model.GetTypeInfo(expression);
                 Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-                Assert.Equal("System.Object", typeInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
 
-                Assert.True(model.GetConversion(expression).IsBoxing);
+                Assert.True(model.GetConversion(expression).IsIdentity);
             }
 
             void assertAttributeData(string name)
@@ -2229,11 +2213,7 @@ class Test : System.Attribute
                 var attributeData1 = comp.GetTypeByMetadataName(name).GetAttributes().Single();
                 Assert.True(attributeData1.HasErrors);
 
-                var c1Arg = attributeData1.ConstructorArguments.Single();
-                Assert.Equal(TypedConstantKind.Error, c1Arg.Kind);
-                Assert.Equal("MyCollection", c1Arg.Type.ToTestDisplayString());
-                Assert.Null(c1Arg.Value);
-                Assert.Throws<System.InvalidOperationException>(() => c1Arg.Values);
+                Assert.Empty(attributeData1.ConstructorArguments);
             }
         }
 
@@ -2329,15 +2309,15 @@ class Test : System.Attribute
             var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (4,2): error CS0181: Attribute constructor parameter 'a' has type 'ICollection<long>', which is not a valid attribute parameter type
+                // (4,2): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Test.Test(params IReadOnlyList<long>)'
                 // [Test()]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.Collections.Generic." + @interface + "<long>").WithLocation(4, 2),
-                // (7,2): error CS0181: Attribute constructor parameter 'a' has type 'ICollection<long>', which is not a valid attribute parameter type
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test()").WithArguments("a", "Test.Test(params System.Collections.Generic." + @interface + "<long>)").WithLocation(4, 2),
+                // (7,7): error CS1503: Argument 1: cannot convert from 'int' to 'params System.Collections.Generic.IReadOnlyList<long>'
                 // [Test(1)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.Collections.Generic." + @interface + "<long>").WithLocation(7, 2),
-                // (10,2): error CS0181: Attribute constructor parameter 'a' has type 'ICollection<long>', which is not a valid attribute parameter type
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params System.Collections.Generic." + @interface + "<long>").WithLocation(7, 7),
+                // (10,2): error CS1729: 'Test' does not contain a constructor that takes 2 arguments
                 // [Test(2, 3)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Test").WithArguments("a", "System.Collections.Generic." + @interface + "<long>").WithLocation(10, 2)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(2, 3)").WithArguments("Test", "2").WithLocation(10, 2)
                 );
 
             assertAttributeData("C1");
@@ -2359,9 +2339,9 @@ class Test : System.Attribute
             {
                 var typeInfo = model.GetTypeInfo(expression);
                 Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-                Assert.Equal("System.Int64", typeInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
 
-                Assert.True(model.GetConversion(expression).IsNumeric);
+                Assert.True(model.GetConversion(expression).IsIdentity);
             }
 
             void assertAttributeData(string name)
@@ -2369,11 +2349,7 @@ class Test : System.Attribute
                 var attributeData1 = comp.GetTypeByMetadataName(name).GetAttributes().Single();
                 Assert.True(attributeData1.HasErrors);
 
-                var c1Arg = attributeData1.ConstructorArguments.Single();
-                Assert.Equal(TypedConstantKind.Error, c1Arg.Kind);
-                Assert.Equal("System.Collections.Generic." + @interface + "<System.Int64>", c1Arg.Type.ToTestDisplayString());
-                Assert.Null(c1Arg.Value);
-                Assert.Throws<System.InvalidOperationException>(() => c1Arg.Values);
+                Assert.Empty(attributeData1.ConstructorArguments);
             }
         }
 
@@ -12622,6 +12598,132 @@ class Program
 1: 1 ... 1
 2: 2 ... 3
 ").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Cycle_14_ThroughCollectionBuilderAttribute()
+        {
+            var src = """
+#pragma warning disable CS0436 // The type 'CollectionBuilderAttribute' in '' conflicts with the imported type 'CollectionBuilderAttribute' in 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+
+using System;
+using System.Collections.Generic;
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+    [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+    public sealed class CollectionBuilderAttribute : Attribute
+    {
+        public CollectionBuilderAttribute(Type builderType, string methodName, params CollectionBuilderAttribute p) { }
+        public IEnumerator<long> GetEnumerator() => throw null;
+    }
+
+    public class MyCollectionBuilder
+    {
+        public static CollectionBuilderAttribute Create(ReadOnlySpan<long> items) => throw null;
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            Test();
+            Test(1);
+            Test(2, 3);
+        }
+
+        static void Test(params CollectionBuilderAttribute a)
+        {
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (9,6): error CS7036: There is no argument given that corresponds to the required parameter 'p' of 'CollectionBuilderAttribute.CollectionBuilderAttribute(Type, string, params CollectionBuilderAttribute)'
+                //     [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))").WithArguments("p", "System.Runtime.CompilerServices.CollectionBuilderAttribute.CollectionBuilderAttribute(System.Type, string, params System.Runtime.CompilerServices.CollectionBuilderAttribute)").WithLocation(9, 6),
+                // (12,80): error CS0225: The params parameter must have a valid collection type
+                //         public CollectionBuilderAttribute(Type builderType, string methodName, params CollectionBuilderAttribute p) { }
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(12, 80),
+                // (25,13): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Program.Test(params CollectionBuilderAttribute)'
+                //             Test();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("a", "System.Runtime.CompilerServices.Program.Test(params System.Runtime.CompilerServices.CollectionBuilderAttribute)").WithLocation(25, 13),
+                // (26,18): error CS1503: Argument 1: cannot convert from 'int' to 'params System.Runtime.CompilerServices.CollectionBuilderAttribute'
+                //             Test(1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params System.Runtime.CompilerServices.CollectionBuilderAttribute").WithLocation(26, 18),
+                // (27,13): error CS1501: No overload for method 'Test' takes 2 arguments
+                //             Test(2, 3);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(27, 13),
+                // (30,26): error CS0225: The params parameter must have a valid collection type
+                //         static void Test(params CollectionBuilderAttribute a)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(30, 26)
+                );
+        }
+
+        [Fact]
+        public void Cycle_15_ThroughCollectionBuilderAttribute()
+        {
+            var src = """
+#pragma warning disable CS0436 // The type 'CollectionBuilderAttribute' in '' conflicts with the imported type 'CollectionBuilderAttribute' in 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+
+using System;
+using System.Collections.Generic;
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+    [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+    public sealed class CollectionBuilderAttribute : Attribute
+    {
+        public CollectionBuilderAttribute(Type builderType, params CollectionBuilderAttribute p) { }
+        public IEnumerator<string> GetEnumerator() => throw null;
+    }
+
+    public class MyCollectionBuilder
+    {
+        public static CollectionBuilderAttribute Create(ReadOnlySpan<string> items) => throw null;
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            Test();
+            Test("1");
+            Test("2", "3");
+        }
+
+        static void Test(params CollectionBuilderAttribute a)
+        {
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (9,53): error CS1503: Argument 2: cannot convert from 'string' to 'params System.Runtime.CompilerServices.CollectionBuilderAttribute'
+                //     [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                Diagnostic(ErrorCode.ERR_BadArgType, "nameof(MyCollectionBuilder.Create)").WithArguments("2", "string", "params System.Runtime.CompilerServices.CollectionBuilderAttribute").WithLocation(9, 53),
+                // (12,61): error CS0225: The params parameter must have a valid collection type
+                //         public CollectionBuilderAttribute(Type builderType, params CollectionBuilderAttribute p) { }
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(12, 61),
+                // (25,13): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Program.Test(params CollectionBuilderAttribute)'
+                //             Test();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("a", "System.Runtime.CompilerServices.Program.Test(params System.Runtime.CompilerServices.CollectionBuilderAttribute)").WithLocation(25, 13),
+                // (26,18): error CS1503: Argument 1: cannot convert from 'string' to 'params System.Runtime.CompilerServices.CollectionBuilderAttribute'
+                //             Test("1");
+                Diagnostic(ErrorCode.ERR_BadArgType, @"""1""").WithArguments("1", "string", "params System.Runtime.CompilerServices.CollectionBuilderAttribute").WithLocation(26, 18),
+                // (27,13): error CS1501: No overload for method 'Test' takes 2 arguments
+                //             Test("2", "3");
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(27, 13),
+                // (30,26): error CS0225: The params parameter must have a valid collection type
+                //         static void Test(params CollectionBuilderAttribute a)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(30, 26)
+                );
         }
 
         [Fact]
