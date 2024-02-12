@@ -105,7 +105,7 @@ End Class
 
             // Assert we are in the right file now
             Assert.Equal($"Class1.vb", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
-            Assert.Equal("Alpha As Int32", await TestServices.Editor.GetLineTextAfterCaretAsync(HangMitigatingCancellationToken));
+            Assert.Equal("    Public Shared Alpha", await TestServices.Editor.GetLineTextBeforeCaretAsync(HangMitigatingCancellationToken));
         }
     }
 }
