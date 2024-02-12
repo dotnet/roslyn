@@ -7789,12 +7789,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(left.Type is not null);
 
             var firstResult = new MethodGroupResolution();
+            if (left.Type.IsExtension)
+            {
+                // Extension types cannot be extended with extensions or extension methods
+                return firstResult;
+            }
+
             AnalyzedArguments? actualArguments = null;
 
             foreach (var scope in new ExtensionScopes(this))
             {
+                // PROTOTYPE confirm that we want to exclude type parameters from extension member resolution or leave a comment
                 if (!left.Type.IsTypeParameter()
-                    && !left.Type.IsExtension
                     && tryResolveExtensionTypeMember(this, expression, memberName, analyzedArguments, left, typeArgumentsWithAnnotations,
                         isMethodGroupConversion, returnRefKind, returnType, withDependencies, scope,
                         out MethodGroupResolution extensionResult))

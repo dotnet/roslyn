@@ -1438,7 +1438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // SPEC: of T and the class type object. 
 
                             if (!IsDerivedType(baseType: hiddenContainer, derivedType: hidingContainer, basesBeingResolved, this.Compilation, useSiteInfo: ref useSiteInfo) &&
-                                !isInExtensionHierarchy(hiddenContainer, hidingContainer, basesBeingResolved, this.Compilation, ref useSiteInfo) &&
+                                !extendedTypeIsOrDerivedFrom(hiddenContainer, hidingContainer, basesBeingResolved, this.Compilation, ref useSiteInfo) &&
                                 hiddenContainer.SpecialType != SpecialType.System_Object)
                             {
                                 continue; // not in inheritance relationship, so it cannot hide
@@ -1466,7 +1466,8 @@ symIsHidden:;
 
             return;
 
-            static bool isInExtensionHierarchy(NamedTypeSymbol hiddenContainer, NamedTypeSymbol hidingContainer, ConsList<TypeSymbol> basesBeingResolved, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            // Checks whether we have an extension type whose extended type is or is derived from the hidden container.
+            static bool extendedTypeIsOrDerivedFrom(NamedTypeSymbol hiddenContainer, NamedTypeSymbol hidingContainer, ConsList<TypeSymbol> basesBeingResolved, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 if (!hidingContainer.IsExtension)
                 {

@@ -230,6 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol? underlyingType = null;
             SourceLocation? underlyingTypeLocation = null;
 
+            Debug.Assert(basesBeingResolved == null || !basesBeingResolved.ContainsReference(this.OriginalDefinition));
+
             var newBasesBeingResolved = basesBeingResolved.Prepend(this.OriginalDefinition);
 
             for (int i = 0; i < this.declaration.Declarations.Length; i++)
