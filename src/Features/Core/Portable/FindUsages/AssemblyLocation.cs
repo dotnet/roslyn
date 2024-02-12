@@ -7,6 +7,9 @@ using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis.FindUsages;
 
+/// <summary>
+/// Describes an assembly (source or metadata) that contains a found symbol definition or usage.
+/// </summary>
 [DataContract]
 internal readonly record struct AssemblyLocation(
     [property: DataMember(Order = 0)] string Name,

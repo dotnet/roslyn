@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     guid,
                     lineText,
                     mappedDocumentSpan.Value,
-                    documentSpan.Document,
+                    documentSpan,
                     ThreadingContext);
             }
         }

@@ -6,7 +6,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Utilities;
@@ -20,25 +22,37 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// a <see cref="Document"/>.  Navigation to that location is provided by this type.
         /// Subclasses can be used to provide customized line text to display in the entry.
         /// </summary>
-        private abstract class AbstractDocumentSpanEntry : AbstractItemEntry
+        private abstract class AbstractDocumentSpanEntry(
+            AbstractTableDataSourceFindUsagesContext context,
+            RoslynDefinitionBucket definitionBucket,
+            Guid projectGuid,
+            SourceText lineText,
+            MappedSpanResult mappedSpanResult,
+            IThreadingContext threadingContext)
+            : AbstractItemEntry(definitionBucket, context.Presenter), ISupportsNavigation
         {
-            private readonly object _boxedProjectGuid;
+            private readonly object _boxedProjectGuid = projectGuid;
 
-            private readonly SourceText _lineText;
-            protected readonly MappedSpanResult MappedSpanResult;
+            protected abstract Document Document { get; }
 
-            protected AbstractDocumentSpanEntry(
-                AbstractTableDataSourceFindUsagesContext context,
-                RoslynDefinitionBucket definitionBucket,
-                Guid projectGuid,
-                SourceText lineText,
-                MappedSpanResult mappedSpanResult)
-                : base(definitionBucket, context.Presenter)
+            protected virtual TextSpan NavigateToTargetSpan
+                => mappedSpanResult.Span;
+
+            public bool CanNavigateTo()
+                => true;
+
+            public async Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
             {
-                _boxedProjectGuid = projectGuid;
+                var document = Document;
+                var documentNavigationService = document.Project.Solution.Services.GetRequiredService<IDocumentNavigationService>();
 
-                _lineText = lineText;
-                MappedSpanResult = mappedSpanResult;
+                await documentNavigationService.TryNavigateToSpanAsync(
+                    threadingContext,
+                    document.Project.Solution.Workspace,
+                    document.Id,
+                    NavigateToTargetSpan,
+                    options,
+                    cancellationToken).ConfigureAwait(false);
             }
 
             protected abstract string GetProjectName();
@@ -46,12 +60,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected override object? GetValueWorker(string keyName)
                 => keyName switch
                 {
-                    StandardTableKeyNames.DocumentName => MappedSpanResult.FilePath,
-                    StandardTableKeyNames.Line => MappedSpanResult.LinePositionSpan.Start.Line,
-                    StandardTableKeyNames.Column => MappedSpanResult.LinePositionSpan.Start.Character,
+                    StandardTableKeyNames.DocumentName => mappedSpanResult.FilePath,
+                    StandardTableKeyNames.Line => mappedSpanResult.LinePositionSpan.Start.Line,
+                    StandardTableKeyNames.Column => mappedSpanResult.LinePositionSpan.Start.Character,
                     StandardTableKeyNames.ProjectName => GetProjectName(),
                     StandardTableKeyNames.ProjectGuid => _boxedProjectGuid,
-                    StandardTableKeyNames.Text => _lineText.ToString().Trim(),
+                    StandardTableKeyNames.Text => lineText.ToString().Trim(),
                     _ => null,
                 };
 

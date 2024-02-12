@@ -199,6 +199,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
                         continue;
                     }
 
+                    // Each constituent definition that appears in metadata has a containing metadata assembly.
+                    // Determine which metadata reference brought the containing assembly into the compilation
+                    // and display in the results the assembly name and version, and the file path of that reference.
+
                     var containingAssembly = constituentNamespace.ContainingAssembly;
                     Contract.ThrowIfNull(containingAssembly);
 
@@ -221,7 +225,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
             // Assembly, module and global namespace locations include all source documents; displaying all of them is not useful.
             // We could consider creating a definition item that points to the project source instead.
-            if (definition is { Kind: SymbolKind.Assembly or SymbolKind.NetModule } or INamespaceSymbol { IsGlobalNamespace: true })
+            if (definition is IAssemblySymbol or IModuleSymbol or INamespaceSymbol { IsGlobalNamespace: true })
             {
                 return [];
             }

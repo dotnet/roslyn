@@ -4,25 +4,19 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     internal partial class StreamingFindUsagesPresenter
     {
         /// <summary>
-        /// Shows a DefinitionItem as a Row in the FindReferencesWindow.  Only used for
-        /// GoToDefinition/FindImplementations.  In these operations, we don't want to 
-        /// create a DefinitionBucket.  So we instead just so the symbol as a normal row.
+        /// Entry created for a definition with a single source location.
         /// </summary>
         private class DefinitionItemEntry(
             AbstractTableDataSourceFindUsagesContext context,
@@ -31,38 +25,21 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             Guid projectGuid,
             SourceText lineText,
             MappedSpanResult mappedSpanResult,
-            Document document,
+            DocumentSpan documentSpan,
             IThreadingContext threadingContext)
-            : AbstractDocumentSpanEntry(context, definitionBucket, projectGuid, lineText, mappedSpanResult), ISupportsNavigation
+            : AbstractDocumentSpanEntry(context, definitionBucket, projectGuid, lineText, mappedSpanResult, threadingContext)
         {
+            protected override Document Document
+                => documentSpan.Document;
+
+            protected override TextSpan NavigateToTargetSpan
+                => documentSpan.SourceSpan;
+
             protected override string GetProjectName()
                 => projectName;
 
             protected override IList<Inline> CreateLineTextInlines()
                 => DefinitionBucket.DefinitionItem.DisplayParts.ToInlines(Presenter.ClassificationFormatMap, Presenter.TypeMap);
-
-            public bool CanNavigateTo()
-            {
-                var workspace = document.Project.Solution.Workspace;
-                var documentNavigationService = workspace.Services.GetService<IDocumentNavigationService>();
-                return documentNavigationService != null;
-            }
-
-            public async Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
-            {
-                Contract.ThrowIfFalse(CanNavigateTo());
-
-                var workspace = document.Project.Solution.Workspace;
-                var documentNavigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-
-                await documentNavigationService.TryNavigateToSpanAsync(
-                    threadingContext,
-                    workspace,
-                    document.Id,
-                    MappedSpanResult.Span,
-                    options,
-                    cancellationToken).ConfigureAwait(false);
-            }
         }
     }
 }
