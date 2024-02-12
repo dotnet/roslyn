@@ -3,6 +3,8 @@
 // See the License.txt file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Reflection.Emit;
 using System.Text;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Logging;
@@ -31,7 +33,6 @@ internal static class PRTagger
     /// <param name="logger"></param>
     /// <returns>Exit code indicating whether issue was successfully created.</returns>
     public static async Task<int> TagPRs(
-        ImmutableArray<(string vsBuild, string vsCommitSha, string previousVsCommitSha)> vsBuildsAndCommitSha,
         RoslynToolsSettings settings,
         AzDOConnection devdivConnection,
         HttpClient gitHubClient,
@@ -46,6 +47,8 @@ internal static class PRTagger
         // 3. If we found the issue with the same title has been created. It means the issue is created because the last run of the tagger.
         foreach (var product in VSBranchInfo.AllProducts)
         {
+            var vsBuildsAndCommitSha = GetVSBuildsAndCommitsAsync(de)
+
             foreach (var (vsBuild, vsCommitSha, previousVsCommitSha) in vsBuildsAndCommitSha)
             {
                 var result = await TagProductAsync(product, logger, vsCommitSha, vsBuild, previousVsCommitSha, settings, devdivConnection, dncengConnection, gitHubClient).ConfigureAwait(false);
@@ -152,17 +155,21 @@ internal static class PRTagger
     }
 
     public static async Task<ImmutableArray<(string vsBuild, string vsCommit, string previousVsCommitSha)>> GetVSBuildsAndCommitsAsync(
+        string repoName,
         AzDOConnection devdivConnection,
+        HttpClient gitHubClient,
         ILogger logger,
         int vsBuildNumber,
         CancellationToken cancellationToken)
     {
+        var lastVsBuildNumberReported = await FindTheLastReportedVSBuildAsync(gitHubClient, repoName, logger).ConfigureAwait(false);
         var builds = await devdivConnection.TryGetBuildsAsync(
             "DD-CB-TestSignVS",
             logger: logger,
             maxBuildNumberFetch: vsBuildNumber,
             resultsFilter: BuildResult.Succeeded,
             buildQueryOrder: BuildQueryOrder.FinishTimeDescending).ConfigureAwait(false);
+
         var vsRepository = await GetVSRepositoryAsync(devdivConnection.GitClient);
         if (builds is not null)
         {
@@ -286,9 +293,76 @@ internal static class PRTagger
 
         var content = await response.Content.ReadAsStringAsync();
         var jsonResponseContent = JsonObject.Parse(content)!;
-        // https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28
-        // total_count is required in response schema
         var issueNumber = int.Parse(jsonResponseContent["total_count"]!.ToString());
         return issueNumber != 0;
+    }
+
+    private static async Task<string?> FindTheLastReportedVSBuildAsync(
+        HttpClient client,
+        string repoName,
+        ILogger logger)
+    {
+        var jsonResponse = await SearchIssuesOnGitHubAsync(client, repoName, logger, label: InsertionLabel).ConfigureAwait(false);
+        var totalCountNumber = TotalCountNumber(jsonResponse);
+        if (totalCountNumber == 0)
+        {
+            logger.LogInformation($"No existing issue has been found for repo: {repoName}.");
+            return null;
+        }
+
+        // 'Items' is required in response schema.
+        // https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28
+        var lastReportedIssue = jsonResponse["Items"]!.AsArray().First();
+        var lastReportedIssueTitle = lastReportedIssue!["title"]!.ToString();
+        return lastReportedIssueTitle["[Automated] PRs inserted in VS build".Length..];
+
+    }
+
+    private static int TotalCountNumber(JsonNode response)
+    {
+        // https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28
+        // total_count is required in response schema
+        return int.Parse(response["total_count"]!.ToString());
+    }
+
+    /// <summary>
+    /// Search issues by using <param name="title"/> and <param name="label"/> in <param name="repoName"/>
+    /// By default this is ordered from new to old. See https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28#ranking-search-results
+    /// </summary>
+    /// <param name="client"></param>
+    /// <param name="repoName"></param>
+    /// <param name="logger"></param>
+    /// <param name="title"></param>
+    /// <param name="label"></param>
+    /// <returns></returns>
+    private static async Task<JsonNode> SearchIssuesOnGitHubAsync(
+        HttpClient client,
+        string repoName,
+        ILogger logger,
+        string? title = null,
+        string? label = null)
+    {
+        // If title and label are both null, there is nothing to search.
+        Debug.Assert(title is null && label is null);
+        var queryBuilder = new StringBuilder();
+        queryBuilder.Append("search/issues?q=");
+        if (title is not null)
+        {
+            queryBuilder.Append($"{title}+");
+        }
+
+        if (label is not null)
+        {
+            queryBuilder.Append($"label:{label}+");
+        }
+
+        queryBuilder.Append($"is:issue+repo:dotnet/{repoName}");
+        var query = queryBuilder.ToString();
+
+        logger.LogInformation($"Searching query is {query}.");
+        var response = await client.GetAsync(query).ConfigureAwait(false);
+        var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+        var jsonResponseContent = JsonObject.Parse(content)!;
+        return jsonResponseContent;
     }
 }
