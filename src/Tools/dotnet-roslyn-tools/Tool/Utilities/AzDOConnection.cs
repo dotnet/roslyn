@@ -40,7 +40,7 @@ internal sealed class AzDOConnection : IDisposable
         ProjectClient = Connection.GetClient<ProjectHttpClient>();
     }
 
-    public async Task<List<Build>?> TryGetBuildsAsync(string pipelineName, string? buildNumber = null, ILogger? logger = null, int? maxFetchingBuildNumberFetch = null, BuildResult? resultsFilter = null, BuildQueryOrder? buildQueryOrder = null)
+    public async Task<List<Build>?> TryGetBuildsAsync(string pipelineName, string? buildNumber = null, ILogger? logger = null, int? maxFetchingVsBuildNumber = null, BuildResult? resultsFilter = null, BuildQueryOrder? buildQueryOrder = null)
     {
         try
         {
@@ -51,7 +51,7 @@ internal sealed class AzDOConnection : IDisposable
                 buildNumber: buildNumber,
                 resultFilter: resultsFilter,
                 queryOrder: buildQueryOrder,
-                top: maxFetchingBuildNumberFetch);
+                top: maxFetchingVsBuildNumber);
             return builds;
         }
         catch (VssUnauthorizedException ex)

@@ -44,11 +44,10 @@ internal static class PRTaggerCommand
                 return -1;
             }
 
-            var vsBuildNumber = context.ParseResult.GetValueForOption(maxVsBuildCheckNumber);
-            logger.LogInformation($"Check {vsBuildNumber} VS Builds");
+            var maxFetchingVSBuildNumber = context.ParseResult.GetValueForOption(maxVsBuildCheckNumber);
+            logger.LogInformation($"Check {maxFetchingVSBuildNumber} VS Builds");
 
             using var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
-            var buildsAndCommits = await PRTagger.PRTagger.GetVSBuildsAndCommitsAsync(devdivConnection, logger, vsBuildNumber, CancellationToken.None).ConfigureAwait(false);
 
             var client = new HttpClient
             {
@@ -63,11 +62,11 @@ internal static class PRTaggerCommand
                 settings.GitHubToken);
 
             return await PRTagger.PRTagger.TagPRs(
-                vsBuildsAndCommitSha: buildsAndCommits,
                 settings,
                 devdivConnection,
                 client,
-                logger).ConfigureAwait(false);
+                logger,
+                maxFetchingVSBuildNumber).ConfigureAwait(false);
         }
     }
 }

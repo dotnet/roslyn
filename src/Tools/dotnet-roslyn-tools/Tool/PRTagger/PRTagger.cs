@@ -37,8 +37,10 @@ internal static class PRTagger
         RoslynToolsSettings settings,
         AzDOConnection devdivConnection,
         HttpClient gitHubClient,
-        ILogger logger)
+        ILogger logger,
+        int maxFetchingVSBuildNumber)
     {
+        var cancellationToken = CancellationToken.None;
         using var dncengConnection = new AzDOConnection(settings.DncEngAzureDevOpsBaseUri, "internal", settings.DncEngAzureDevOpsToken);
         // vsBuildsAndCommitSha is ordered from new to old.
         // For each of the product, check if the product is changed from the newest build, keep creating issues if the product has change.
@@ -48,11 +50,18 @@ internal static class PRTagger
         // 3. If we found the issue with the same title has been created. It means the issue is created because the last run of the tagger.
         foreach (var product in VSBranchInfo.AllProducts)
         {
-            var vsBuildsAndCommitSha = GetVSBuildsAndCommitsAsync(de)
+            // We currently only support creating issues for GitHub repos
+            if (!product.RepoHttpBaseUrl.Contains("github.com"))
+            {
+                return -1;
+            }
+
+            var gitHubRepoName = product.RepoHttpBaseUrl.Split('/').Last();
+            var vsBuildsAndCommitSha = await GetVSBuildsAndCommitsAsync(gitHubRepoName, devdivConnection, gitHubClient, logger, maxFetchingVSBuildNumber, cancellationToken).ConfigureAwait(false);
 
             foreach (var (vsBuild, vsCommitSha, previousVsCommitSha) in vsBuildsAndCommitSha)
             {
-                var result = await TagProductAsync(product, logger, vsCommitSha, vsBuild, previousVsCommitSha, settings, devdivConnection, dncengConnection, gitHubClient).ConfigureAwait(false);
+                var result = await TagProductAsync(product, gitHubRepoName, logger, vsCommitSha, vsBuild, previousVsCommitSha, settings, devdivConnection, dncengConnection, gitHubClient).ConfigureAwait(false);
                 if (result is TagResult.Failed or TagResult.IssueAlreadyCreated)
                 {
                     break;
@@ -64,16 +73,9 @@ internal static class PRTagger
     }
 
     private static async Task<TagResult> TagProductAsync(
-        IProduct product, ILogger logger, string vsCommitSha, string vsBuild, string previousVsCommitSha, RoslynToolsSettings settings, AzDOConnection devdivConnection, AzDOConnection dncengConnection, HttpClient gitHubClient)
+        IProduct product, string gitHubRepoName, ILogger logger, string vsCommitSha, string vsBuild, string previousVsCommitSha, RoslynToolsSettings settings, AzDOConnection devdivConnection, AzDOConnection dncengConnection, HttpClient gitHubClient)
     {
         var connections = new[] { devdivConnection, dncengConnection };
-        // We currently only support creating issues for GitHub repos
-        if (!product.RepoHttpBaseUrl.Contains("github.com"))
-        {
-            return TagResult.Failed;
-        }
-
-        var gitHubRepoName = product.RepoHttpBaseUrl.Split('/').Last();
         logger.LogInformation($"GitHub repo: {gitHubRepoName}");
 
         // Get associated product build for current and previous VS commit SHAs
@@ -155,7 +157,7 @@ internal static class PRTagger
         return await TryCreateIssueAsync(gitHubClient, issueTitle, gitHubRepoName, prDescription.ToString(), logger).ConfigureAwait(false);
     }
 
-    public static async Task<ImmutableArray<(string vsBuild, string vsCommit, string previousVsCommitSha)>> GetVSBuildsAndCommitsAsync(
+    private static async Task<ImmutableArray<(string vsBuild, string vsCommit, string previousVsCommitSha)>> GetVSBuildsAndCommitsAsync(
         string repoName,
         AzDOConnection devdivConnection,
         HttpClient gitHubClient,
@@ -176,7 +178,7 @@ internal static class PRTagger
         var builds = await devdivConnection.TryGetBuildsAsync(
             "DD-CB-TestSignVS",
             logger: logger,
-            maxFetchingBuildNumberFetch: maxFetchingVsBuildNumber,
+            maxFetchingVsBuildNumber: maxFetchingVsBuildNumber,
             resultsFilter: BuildResult.Succeeded,
             buildQueryOrder: BuildQueryOrder.FinishTimeDescending).ConfigureAwait(false);
 
