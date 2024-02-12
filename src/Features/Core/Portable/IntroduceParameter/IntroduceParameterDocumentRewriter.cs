@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
             private readonly CodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
             private readonly bool _allOccurrences = allOccurrences;
 
-            public async Task<SyntaxNode> RewriteDocumentAsync(Compilation compilation, Document document, List<SyntaxNode> invocations, CancellationToken cancellationToken)
+            public async Task<SyntaxNode> RewriteDocumentAsync(Compilation compilation, Document document, List<TExpressionSyntax> invocations, CancellationToken cancellationToken)
             {
                 var insertionIndex = GetInsertionIndex(compilation);
 
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
             /// }
             /// </summary>
             private async Task<SyntaxNode> ModifyDocumentInvocationsTrampolineOverloadAndIntroduceParameterAsync(Compilation compilation, Document currentDocument,
-                List<SyntaxNode> invocations, int insertionIndex, CancellationToken cancellationToken)
+                List<TExpressionSyntax> invocations, int insertionIndex, CancellationToken cancellationToken)
             {
                 var invocationSemanticModel = await currentDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var root = await currentDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -237,6 +237,12 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
                     var parameterToArgumentMap = new Dictionary<IParameterSymbol, int>();
                     foreach (var invocation in invocations)
                     {
+                        // Skipping object creation expressions since they should not have the option to trampoline.
+                        if (invocation is TObjectCreationExpressionSyntax)
+                        {
+                            continue;
+                        }
+
                         var argumentListSyntax = _syntaxFacts.GetArgumentListOfInvocationExpression(invocation);
                         if (argumentListSyntax == null)
                             continue;
@@ -475,7 +481,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
             /// }
             /// </summary>
             private async Task<SyntaxNode> ModifyDocumentInvocationsAndIntroduceParameterAsync(Compilation compilation, Document document, int insertionIndex,
-                List<SyntaxNode> invocations, CancellationToken cancellationToken)
+                List<TExpressionSyntax> invocations, CancellationToken cancellationToken)
             {
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var editor = new SyntaxEditor(root, _generator);

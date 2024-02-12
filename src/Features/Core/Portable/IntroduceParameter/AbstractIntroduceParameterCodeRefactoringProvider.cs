@@ -254,10 +254,10 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
         /// <summary>
         /// Locates all the call sites of the method that introduced the parameter
         /// </summary>
-        protected static async Task<Dictionary<Document, List<SyntaxNode>>> FindCallSitesAsync(
+        protected static async Task<Dictionary<Document, List<TExpressionSyntax>>> FindCallSitesAsync(
             Document document, IMethodSymbol methodSymbol, CancellationToken cancellationToken)
         {
-            var methodCallSites = new Dictionary<Document, List<SyntaxNode>>();
+            var methodCallSites = new Dictionary<Document, List<TExpressionSyntax>>();
             var progress = new StreamingProgressCollector();
             await SymbolFinder.FindReferencesAsync(
                 methodSymbol, document.Project.Solution, progress,
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
                         reference = reference.GetRequiredParent();
 
                     // Only adding items that are of type InvocationExpressionSyntax or TObjectCreationExpressionSyntax
-                    var invocationOrCreation = reference as TObjectCreationExpressionSyntax ?? (SyntaxNode?)(reference as TInvocationExpressionSyntax);
+                    var invocationOrCreation = reference as TObjectCreationExpressionSyntax ?? (TExpressionSyntax?)(reference as TInvocationExpressionSyntax);
                     if (invocationOrCreation is null)
                         continue;
 
