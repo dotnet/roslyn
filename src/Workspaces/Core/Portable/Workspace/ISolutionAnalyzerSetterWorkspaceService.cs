@@ -14,4 +14,10 @@ namespace Microsoft.CodeAnalysis.Host
     {
         void SetAnalyzerReferences(ImmutableArray<AnalyzerReference> references);
     }
+
+    internal sealed class DefaultSolutionAnalyzerSetter(Workspace workspace) : ISolutionAnalyzerSetterWorkspaceService
+    {
+        public void SetAnalyzerReferences(ImmutableArray<AnalyzerReference> references)
+            => workspace.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged);
+    }
 }
