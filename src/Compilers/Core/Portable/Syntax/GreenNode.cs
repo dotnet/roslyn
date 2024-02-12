@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
         protected NodeFlags flags
         {
             get => _nodeFlagsAndSlotCount.NodeFlags;
-            set => _nodeFlagsAndSlotCount.NodeFlags |= value;
+            set => _nodeFlagsAndSlotCount.NodeFlags = value;
         }
 
         private byte _slotCount
