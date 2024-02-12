@@ -7593,7 +7593,7 @@ public struct Vec4
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
-        public void UserDefinedCast_RefReturn()
+        public void UserDefinedCast_RefReturn_01()
         {
             var source = """
                 class C
@@ -7618,6 +7618,37 @@ public struct Vec4
                 // (5,23): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         return ref M2(x);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(5, 23));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefReturn_02()
+        {
+            var source = """
+                class C
+                {
+                    static ref readonly int M1(int x)
+                    {
+                        return ref M2(x);
+                    }
+
+                    static ref readonly int M2(in S s) => throw null;
+                }
+
+                struct S
+                {
+                    public static implicit operator ref S(in int x) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,20): error CS8347: Cannot use a result of 'C.M2(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         return ref M2(x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M2(x)").WithArguments("C.M2(in S)", "s").WithLocation(5, 20),
+                // (5,23): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref M2(x);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(5, 23),
+                // (13,37): error CS1073: Unexpected token 'ref'
+                //     public static implicit operator ref S(in int x) => throw null;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(13, 37));
         }
     }
 }
