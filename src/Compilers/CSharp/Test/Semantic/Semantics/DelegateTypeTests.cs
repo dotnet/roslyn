@@ -6461,11 +6461,8 @@ class Program
             CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
-        //[InlineData(CSharp.LanguageVersion.Preview)]
-        [InlineData(LanguageVersionFacts.CSharpNext)] // uncomment the line above when this is replaced with C# 13
-        [InlineData(CSharp.LanguageVersion.CSharp12)]
-        public void OverloadResolution_CandidateOrdering_ParamsArray(LanguageVersion languageVersion)
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_ParamsArray()
         {
             var source = """
                 using System;
@@ -6491,20 +6488,20 @@ class Program
                     static public void Test2(this Program p, long[] a) => Console.Write(a.Length);
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                // (7,18): error CS8917: The delegate type could not be inferred.
-                //         var x1 = new Program().Test1;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
-                // (8,18): error CS8917: The delegate type could not be inferred.
-                //         var x2 = new Program().Test2;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+            }
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
-        //[InlineData(CSharp.LanguageVersion.Preview)]
-        [InlineData(LanguageVersionFacts.CSharpNext)] // uncomment the line above when this is replaced with C# 13
-        [InlineData(CSharp.LanguageVersion.CSharp12)]
-        public void OverloadResolution_CandidateOrdering_ParamsArray_CustomDelegateType(LanguageVersion languageVersion)
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_ParamsArray_CustomDelegateType()
         {
             var source = """
                 using System;
@@ -6532,15 +6529,15 @@ class Program
 
                 delegate void D(params long[] a);
                 """;
-            CompileAndVerify(source, expectedOutput: "00",
-                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CompileAndVerify(source, expectedOutput: "00",
+                    parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+            }
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
-        //[InlineData(CSharp.LanguageVersion.Preview)]
-        [InlineData(LanguageVersionFacts.CSharpNext)] // uncomment the line above when this is replaced with C# 13
-        [InlineData(CSharp.LanguageVersion.CSharp12)]
-        public void OverloadResolution_CandidateOrdering_DefaultValue(LanguageVersion languageVersion)
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_DefaultValue()
         {
             var source = """
                 using System;
@@ -6566,20 +6563,20 @@ class Program
                     static public void Test2(this Program p, long a) => Console.Write(a);
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                // (7,18): error CS8917: The delegate type could not be inferred.
-                //         var x1 = new Program().Test1;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
-                // (8,18): error CS8917: The delegate type could not be inferred.
-                //         var x2 = new Program().Test2;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+            }
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
-        //[InlineData(CSharp.LanguageVersion.Preview)]
-        [InlineData(LanguageVersionFacts.CSharpNext)] // uncomment the line above when this is replaced with C# 13
-        [InlineData(CSharp.LanguageVersion.CSharp12)]
-        public void OverloadResolution_CandidateOrdering_DefaultValue_DifferentValues(LanguageVersion languageVersion)
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_DefaultValue_DifferentValues()
         {
             var source = """
                 using System;
@@ -6605,20 +6602,20 @@ class Program
                     static public void Test2(this Program p, long a = 4) => Console.Write(a);
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                // (7,18): error CS8917: The delegate type could not be inferred.
-                //         var x1 = new Program().Test1;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
-                // (8,18): error CS8917: The delegate type could not be inferred.
-                //         var x2 = new Program().Test2;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+            }
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
-        //[InlineData(CSharp.LanguageVersion.Preview)]
-        [InlineData(LanguageVersionFacts.CSharpNext)] // uncomment the line above when this is replaced with C# 13
-        [InlineData(CSharp.LanguageVersion.CSharp12)]
-        public void OverloadResolution_CandidateOrdering_DefaultValue_SameValues(LanguageVersion languageVersion)
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_DefaultValue_SameValues()
         {
             var source = """
                 using System;
@@ -6644,20 +6641,20 @@ class Program
                     static public void Test2(this Program p, long a = 2) => Console.Write(a);
                 }
                 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                // (7,18): error CS8917: The delegate type could not be inferred.
-                //         var x1 = new Program().Test1;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
-                // (8,18): error CS8917: The delegate type could not be inferred.
-                //         var x2 = new Program().Test2;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+            }
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
-        //[InlineData(CSharp.LanguageVersion.Preview)]
-        [InlineData(LanguageVersionFacts.CSharpNext)] // uncomment the line above when this is replaced with C# 13
-        [InlineData(CSharp.LanguageVersion.CSharp12)]
-        public void OverloadResolution_CandidateOrdering_DefaultValue_CustomDelegateType(LanguageVersion languageVersion)
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_DefaultValue_CustomDelegateType()
         {
             var source = """
                 using System;
@@ -6685,15 +6682,15 @@ class Program
                 
                 delegate void D(long a = 3);
                 """;
-            CompileAndVerify(source, expectedOutput: "33",
-                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CompileAndVerify(source, expectedOutput: "33",
+                    parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+            }
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
-        //[InlineData(CSharp.LanguageVersion.Preview)]
-        [InlineData(LanguageVersionFacts.CSharpNext)] // uncomment the line above when this is replaced with C# 13
-        [InlineData(CSharp.LanguageVersion.CSharp12)]
-        public void OverloadResolution_CandidateOrdering_DefaultValue_CustomDelegateType_DifferentValues(LanguageVersion languageVersion)
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_DefaultValue_CustomDelegateType_DifferentValues()
         {
             var source = """
                 using System;
@@ -6721,15 +6718,15 @@ class Program
                 
                 delegate void D(long a = 3);
                 """;
-            CompileAndVerify(source, expectedOutput: "33",
-                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CompileAndVerify(source, expectedOutput: "33",
+                    parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+            }
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
-        //[InlineData(CSharp.LanguageVersion.Preview)]
-        [InlineData(LanguageVersionFacts.CSharpNext)] // uncomment the line above when this is replaced with C# 13
-        [InlineData(CSharp.LanguageVersion.CSharp12)]
-        public void OverloadResolution_CandidateOrdering_DefaultValue_CustomDelegateType_SameValues(LanguageVersion languageVersion)
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_DefaultValue_CustomDelegateType_SameValues()
         {
             var source = """
                 using System;
@@ -6757,8 +6754,11 @@ class Program
                 
                 delegate void D(long a = 3);
                 """;
-            CompileAndVerify(source, expectedOutput: "33",
-                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CompileAndVerify(source, expectedOutput: "33",
+                    parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+            }
         }
 
         [Fact]
