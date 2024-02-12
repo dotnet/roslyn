@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             if (symbol.MethodKind is not MethodKind.Ordinary and
                 not MethodKind.Constructor)
             {
-                return ImmutableArray.Create((EnvDTE.CodeElement)Parent);
+                return [(EnvDTE.CodeElement)Parent];
             }
 
             var overloadsBuilder = ArrayBuilder<EnvDTE.CodeElement>.GetInstance();

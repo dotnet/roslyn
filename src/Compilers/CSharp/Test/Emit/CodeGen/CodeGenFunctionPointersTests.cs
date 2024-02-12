@@ -3218,9 +3218,9 @@ unsafe class C
                 // (18,44): error CS8757: No overload for 'M4' matches function pointer 'delegate*<ref object, void>'
                 //         delegate*<ref object, void> ptr6 = &M4;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M4").WithArguments("M4", "delegate*<ref object, void>").WithLocation(18, 44),
-                // (19,44): error CS8759: Cannot create a function pointer for 'C.M1(ref object)' because it is not a static method
+                // (19,43): error CS8757: No overload for 'M1' matches function pointer 'delegate*<in object, void>'
                 //         delegate*<in object, void> ptr7 = &M1;
-                Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "M1").WithArguments("C.M1(ref object)").WithLocation(19, 44),
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M1").WithArguments("M1", "delegate*<in object, void>").WithLocation(19, 43),
                 // (20,43): error CS8757: No overload for 'M3' matches function pointer 'delegate*<in object, void>'
                 //         delegate*<in object, void> ptr8 = &M3;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M3").WithArguments("M3", "delegate*<in object, void>").WithLocation(20, 43),

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             return ReturnStatement(
                 SwitchExpression(
                     (ExpressionSyntax)target,
-                    SeparatedList(sections.Select(section => AsSwitchExpressionArmSyntax(section, feature)))));
+                    [.. sections.Select(section => AsSwitchExpressionArmSyntax(section, feature))]));
         }
 
         private static SwitchExpressionArmSyntax AsSwitchExpressionArmSyntax(AnalyzedSwitchSection section, Feature feature)
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                 expression: (ExpressionSyntax)expression,
                 closeParenToken: ifStatement.CloseParenToken.WithPrependedLeadingTrivia(ElasticMarker),
                 openBraceToken: block?.OpenBraceToken ?? Token(SyntaxKind.OpenBraceToken),
-                sections: List(sectionList.Cast<SwitchSectionSyntax>()),
+                sections: [.. sectionList.Cast<SwitchSectionSyntax>()],
                 closeBraceToken: block?.CloseBraceToken.WithoutLeadingTrivia() ?? Token(SyntaxKind.CloseBraceToken));
         }
 

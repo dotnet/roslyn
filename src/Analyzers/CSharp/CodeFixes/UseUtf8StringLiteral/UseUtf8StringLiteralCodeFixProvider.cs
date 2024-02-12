@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.UseUtf8StringLiteralDiagnosticId);
+            [IDEDiagnosticIds.UseUtf8StringLiteralDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

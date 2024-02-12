@@ -9,14 +9,12 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
-using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -26,6 +24,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
@@ -3733,8 +3732,7 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<AssemblyIdentity>.Empty;
             }
 
-            var builder = ArrayBuilder<AssemblyIdentity>.GetInstance();
-
+            using var builder = TemporaryArray<AssemblyIdentity>.Empty;
             foreach (var argument in diagnostic.Arguments)
             {
                 if (argument is AssemblyIdentity id)
@@ -3743,7 +3741,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutableAndClear();
         }
 
         internal abstract bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code);

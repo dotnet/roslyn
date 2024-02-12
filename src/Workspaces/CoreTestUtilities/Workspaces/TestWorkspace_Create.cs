@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool isMarkup = true,
             bool openDocuments = false)
         {
-            return CreateCSharp([file], Array.Empty<string>(), parseOptions, compilationOptions, composition, metadataReferences, isMarkup, openDocuments);
+            return CreateCSharp([file], [], parseOptions, compilationOptions, composition, metadataReferences, isMarkup, openDocuments);
         }
 
         public static TestWorkspace CreateCSharp(
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string[] metadataReferences = null,
             bool openDocuments = false)
         {
-            return CreateVisualBasic([file], Array.Empty<string>(), parseOptions, compilationOptions, composition, metadataReferences, openDocuments);
+            return CreateVisualBasic([file], [], parseOptions, compilationOptions, composition, metadataReferences, openDocuments);
         }
 
         public static TestWorkspace CreateVisualBasic(

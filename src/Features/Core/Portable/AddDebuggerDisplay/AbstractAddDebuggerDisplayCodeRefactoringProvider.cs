@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             }
 
             var newAttribute = generator
-                .Attribute(generator.TypeExpression(debuggerAttributeTypeSymbol), new[] { attributeArgument })
+                .Attribute(generator.TypeExpression(debuggerAttributeTypeSymbol), [attributeArgument])
                 .WithAdditionalAnnotations(
                     Simplifier.Annotation,
                     Simplifier.AddImportsAnnotation);
@@ -165,13 +165,13 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                         DebuggerDisplayMethodName,
                         returnType: generator.TypeExpression(SpecialType.System_String),
                         accessibility: Accessibility.Private,
-                        statements: new[]
-                        {
+                        statements:
+                        [
                             generator.ReturnStatement(generator.InvocationExpression(
                                 generator.MemberAccessExpression(
                                     generator.ThisExpression(),
                                     generator.IdentifierName("ToString"))))
-                        }));
+                        ]));
             }
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());

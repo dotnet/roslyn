@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                     {
                                         var primaryDiagnostic = dxs.First();
                                         return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, fixerMetadata, fallbackOptions,
-                                            ImmutableArray.Create(primaryDiagnostic), uniqueDiagosticToEquivalenceKeysMap,
+                                            [primaryDiagnostic], uniqueDiagosticToEquivalenceKeysMap,
                                             diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
                                     }
                                     else
@@ -747,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var extensionManager = textDocument.Project.Solution.Services.GetRequiredService<IExtensionManager>();
             var fixes = await extensionManager.PerformFunctionAsync(fixer,
                  () => getFixes(diagnostics),
-                defaultValue: ImmutableArray<CodeFix>.Empty).ConfigureAwait(false);
+                defaultValue: []).ConfigureAwait(false);
 
             if (fixes.IsDefaultOrEmpty)
                 return null;
@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return extensionManager.PerformFunction(
                     fixer,
                     () => ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => GetAndTestFixableDiagnosticIds(f)),
-                    defaultValue: ImmutableArray<DiagnosticId>.Empty);
+                    defaultValue: []);
             }
 
             try
@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     logger.Value.LogException(fixer, e);
                 }
 
-                return ImmutableArray<DiagnosticId>.Empty;
+                return [];
             }
         }
 

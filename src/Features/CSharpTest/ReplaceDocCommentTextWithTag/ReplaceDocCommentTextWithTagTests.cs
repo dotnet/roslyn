@@ -456,8 +456,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDocCommentTextWi
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22278")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22278")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/31208")]
         public async Task TestApplicableKeyword()
         {

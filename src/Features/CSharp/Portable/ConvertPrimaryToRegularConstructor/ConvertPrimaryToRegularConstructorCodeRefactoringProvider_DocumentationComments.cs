@@ -70,7 +70,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         }
         else
         {
-            var updatedTrivia = Trivia(docComment.WithContent(List(content)));
+            var updatedTrivia = Trivia(docComment.WithContent([.. content]));
             return typeDeclaration.WithLeadingTrivia(triviaList.Replace(trivia, updatedTrivia));
         }
 
@@ -101,7 +101,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
             else
             {
                 // Otherwise, replace with newlines stripped.
-                content[^1] = xmlText.WithTextTokens(TokenList(tokens.Take(lastIndex)));
+                content[^1] = xmlText.WithTextTokens([.. tokens.Take(lastIndex)]);
             }
         }
     }
@@ -136,7 +136,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
                 content[^1] = content[^1].WithTrailingTrivia(EndOfLine(""));
 
-                var finalTrivia = DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(content));
+                var finalTrivia = DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, [.. content]);
                 return constructor.WithLeadingTrivia(Trivia(finalTrivia));
             }
         }

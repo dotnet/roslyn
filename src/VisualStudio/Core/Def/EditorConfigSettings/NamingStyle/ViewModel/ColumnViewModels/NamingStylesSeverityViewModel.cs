@@ -50,12 +50,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingSty
         public string SelectedSeverityValue { get; set; }
 
         public static ImmutableArray<string> Severities { get; } =
-            ImmutableArray.Create(
+            [
                 ServicesVSResources.Disabled,
                 ServicesVSResources.Refactoring_Only,
                 ServicesVSResources.Suggestion,
                 ServicesVSResources.Warning,
                 ServicesVSResources.Error
-            );
+,
+            ];
     }
 }

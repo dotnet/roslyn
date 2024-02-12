@@ -5,7 +5,6 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.FindUsages
-Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
     Friend Class MockStreamingFindUsagesPresenter
@@ -14,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
         Public ReadOnly Context As SimpleFindUsagesContext
         Private ReadOnly _action As Action
 
-        Public Sub New(globalOptions As IGlobalOptionService, action As Action)
+        Public Sub New(action As Action)
             _action = action
-            Context = New SimpleFindUsagesContext(globalOptions)
+            Context = New SimpleFindUsagesContext()
         End Sub
 
         Public Sub ClearAll() Implements IStreamingFindUsagesPresenter.ClearAll

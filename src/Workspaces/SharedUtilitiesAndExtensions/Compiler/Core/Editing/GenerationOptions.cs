@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.Editing
             group: CodeStyleOptionGroups.Usings,
             isEditorConfigOption: true);
 
-        public static readonly ImmutableArray<IOption2> AllOptions = ImmutableArray.Create<IOption2>(
-            PlaceSystemNamespaceFirst,
-            SeparateImportDirectiveGroups);
+        public static readonly ImmutableArray<IOption2> AllOptions = [PlaceSystemNamespaceFirst, SeparateImportDirectiveGroups];
     }
 }

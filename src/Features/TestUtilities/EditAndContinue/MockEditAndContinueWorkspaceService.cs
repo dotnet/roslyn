@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public void BreakStateOrCapabilitiesChanged(DebuggingSessionId sessionId, bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
-            documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
+            documentsToReanalyze = [];
             BreakStateOrCapabilitiesChangedImpl?.Invoke(inBreakState, out documentsToReanalyze);
         }
 
         public void CommitSolutionUpdate(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
-            documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
+            documentsToReanalyze = [];
             CommitSolutionUpdateImpl?.Invoke(out documentsToReanalyze);
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public void EndDebuggingSession(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
-            documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
+            documentsToReanalyze = [];
             EndDebuggingSessionImpl?.Invoke(out documentsToReanalyze);
         }
 

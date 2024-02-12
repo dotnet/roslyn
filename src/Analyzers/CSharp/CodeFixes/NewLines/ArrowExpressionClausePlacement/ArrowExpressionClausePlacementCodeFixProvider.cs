@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ArrowExpressionClausePlacement
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.ArrowExpressionClausePlacementDiagnosticId);
+            => [IDEDiagnosticIds.ArrowExpressionClausePlacementDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ArrowExpressionClausePlacement
             context.RegisterCodeFix(
                 CodeAction.Create(
                     CSharpCodeFixesResources.Place_token_on_following_line,
-                    c => UpdateDocumentAsync(document, ImmutableArray.Create(diagnostic), c),
+                    c => UpdateDocumentAsync(document, [diagnostic], c),
                     nameof(CSharpCodeFixesResources.Place_token_on_following_line)),
                 context.Diagnostics);
             return Task.CompletedTask;

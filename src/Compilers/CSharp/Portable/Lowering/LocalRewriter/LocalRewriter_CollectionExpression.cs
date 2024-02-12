@@ -312,32 +312,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int numberIncludingLastSpread;
                 bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread);
 
-                if (numberIncludingLastSpread == 0 && elements.Length == 0)
+                if (elements.Length == 0)
                 {
+                    Debug.Assert(numberIncludingLastSpread == 0);
                     // arrayOrList = Array.Empty<ElementType>();
                     arrayOrList = CreateEmptyArray(syntax, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType));
                 }
                 else
                 {
                     var typeArgs = ImmutableArray.Create(elementType);
-                    var synthesizedType = _factory.ModuleBuilderOpt.EnsureReadOnlyListTypeExists(syntax, hasKnownLength: useKnownLength, _diagnostics.DiagnosticBag).Construct(typeArgs);
+                    var kind = useKnownLength
+                        ? numberIncludingLastSpread == 0 && elements.Length == 1 && SynthesizedReadOnlyListTypeSymbol.CanCreateSingleElement(_compilation)
+                            ? SynthesizedReadOnlyListKind.SingleElement
+                            : SynthesizedReadOnlyListKind.Array
+                        : SynthesizedReadOnlyListKind.List;
+                    var synthesizedType = _factory.ModuleBuilderOpt.EnsureReadOnlyListTypeExists(syntax, kind: kind, _diagnostics.DiagnosticBag).Construct(typeArgs);
                     if (synthesizedType.IsErrorType())
                     {
                         return BadExpression(node);
                     }
 
-                    BoundExpression fieldValue;
-                    if (useKnownLength)
+                    BoundExpression fieldValue = kind switch
                     {
+                        // fieldValue = e1;
+                        SynthesizedReadOnlyListKind.SingleElement => this.VisitExpression((BoundExpression)elements.Single()),
                         // fieldValue = new ElementType[] { e1, ..., eN };
-                        var arrayType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType);
-                        fieldValue = CreateAndPopulateArray(node, arrayType);
-                    }
-                    else
-                    {
+                        SynthesizedReadOnlyListKind.Array => CreateAndPopulateArray(node, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType)),
                         // fieldValue = new List<ElementType> { e1, ..., eN };
-                        fieldValue = CreateAndPopulateList(node, elementType, elements);
-                    }
+                        SynthesizedReadOnlyListKind.List => CreateAndPopulateList(node, elementType, elements),
+                        var v => throw ExceptionUtilities.UnexpectedValue(v)
+                    };
 
                     // arrayOrList = new <>z__ReadOnlyList<ElementType>(fieldValue);
                     arrayOrList = new BoundObjectCreationExpression(syntax, synthesizedType.Constructors.Single(), fieldValue) { WasCompilerGenerated = true };
@@ -538,11 +542,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _factory.Call(rewrittenSpreadExpression, listToArrayMethod.AsMember((NamedTypeSymbol)spreadExpression.Type!));
                 }
 
-                if (TryGetSpanConversion(spreadExpression.Type, out var asSpanMethod))
+                if (TryGetSpanConversion(spreadExpression.Type, writableOnly: false, out var asSpanMethod))
                 {
                     var spanType = CallAsSpanMethod(spreadExpression, asSpanMethod).Type!.OriginalDefinition;
-                    if (tryGetToArrayMethod(spanType, WellKnownType.System_Span_T, WellKnownMember.System_Span_T__ToArray, out var toArrayMethod)
-                        || tryGetToArrayMethod(spanType, WellKnownType.System_ReadOnlySpan_T, WellKnownMember.System_ReadOnlySpan_T__ToArray, out toArrayMethod))
+                    if (tryGetToArrayMethod(spanType, WellKnownType.System_ReadOnlySpan_T, WellKnownMember.System_ReadOnlySpan_T__ToArray, out var toArrayMethod)
+                        || tryGetToArrayMethod(spanType, WellKnownType.System_Span_T, WellKnownMember.System_Span_T__ToArray, out toArrayMethod))
                     {
                         var rewrittenSpreadExpression = CallAsSpanMethod(VisitExpression(spreadExpression), asSpanMethod);
                         return _factory.Call(rewrittenSpreadExpression, toArrayMethod.AsMember((NamedTypeSymbol)rewrittenSpreadExpression.Type!));
@@ -649,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // https://github.com/dotnet/roslyn/issues/71270
                     // Could save the targetSpan to temp in the enclosing scope, but need to make sure we are async-safe etc.
-                    if (!TryConvertToSpanOrReadOnlySpan(arrayTemp, out var targetSpan))
+                    if (!TryConvertToSpan(arrayTemp, writableOnly: true, out var targetSpan))
                         return false;
 
                     PerformCopyToOptimization(sideEffects, localsBuilder, indexTemp, targetSpan, rewrittenSpreadOperand, spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod);
@@ -668,14 +672,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if type is convertible to Span or ReadOnlySpan.
-        /// If non-identity conversion, also returns a non-null asSpanMethod.
+        /// For the purpose of optimization, conversions to ReadOnlySpan and/or Span are known on the following types:
+        /// System.Array, System.Span, System.ReadOnlySpan, System.Collections.Immutable.ImmutableArray, and System.Collections.Generic.List.
         /// </summary>
+        /// <param name="asSpanMethod">Not-null if non-identity conversion was found.</param>
+        /// <returns>
+        /// If <paramref name="writableOnly"/> is 'true', will only return 'true' with a conversion to Span.
+        /// If <paramref name="writableOnly"/> is 'false', may return either a conversion to ReadOnlySpan or to Span, depending on the source type.
+        /// For System.Array and 'false' argument for <paramref name="writableOnly"/>, only a conversion to ReadOnlySpan may be returned.
+        /// For System.Array and 'true' argument for <paramref name="writableOnly"/>, only a conversion to Span may be returned.
+        /// For System.Span, only a conversion to System.Span is may be returned.
+        /// For System.ReadOnlySpan, only a conversion to System.ReadOnlySpan may be returned.
+        /// For System.Collections.Immutable.ImmutableArray, only a conversion to System.ReadOnlySpan may be returned.
+        /// For System.Collections.Generic.List, only a conversion to System.Span may be returned.
+        /// </returns>
         /// <remarks>We are assuming that the well-known types we are converting to/from do not have constraints on their type parameters.</remarks>
-        private bool TryGetSpanConversion(TypeSymbol type, out MethodSymbol? asSpanMethod)
+        private bool TryGetSpanConversion(TypeSymbol type, bool writableOnly, out MethodSymbol? asSpanMethod)
         {
             if (type is ArrayTypeSymbol { IsSZArray: true } arrayType
-                && _factory.WellKnownMethod(WellKnownMember.System_Span_T__ctor_Array, isOptional: true) is { } spanCtorArray)
+                && _factory.WellKnownMethod(writableOnly ? WellKnownMember.System_Span_T__ctor_Array : WellKnownMember.System_ReadOnlySpan_T__ctor_Array, isOptional: true) is { } spanCtorArray)
             {
                 // conversion to 'object' will fail if, for example, 'arrayType.ElementType' is a pointer.
                 var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
@@ -692,14 +707,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.ConsiderEverything)
-                || namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything))
+            if ((!writableOnly && namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything))
+                || namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.ConsiderEverything))
             {
                 asSpanMethod = null;
                 return true;
             }
 
-            if (namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T), TypeCompareKind.ConsiderEverything)
+            if (!writableOnly
+                && namedType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T), TypeCompareKind.ConsiderEverything)
                 && _factory.WellKnownMethod(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan, isOptional: true) is { } immutableArrayAsSpanMethod)
             {
                 asSpanMethod = immutableArrayAsSpanMethod.AsMember(namedType);
@@ -717,12 +733,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private bool TryConvertToSpanOrReadOnlySpan(BoundExpression expression, [NotNullWhen(true)] out BoundExpression? span)
+        private bool TryConvertToSpan(BoundExpression expression, bool writableOnly, [NotNullWhen(true)] out BoundExpression? span)
         {
             var type = expression.Type;
             Debug.Assert(type is not null);
 
-            if (!TryGetSpanConversion(type, out var asSpanMethod))
+            if (!TryGetSpanConversion(type, writableOnly, out var asSpanMethod))
             {
                 span = null;
                 return false;
@@ -768,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_factory.WellKnownMethod(WellKnownMember.System_Span_T__Slice_Int_Int, isOptional: true) is not { } spanSliceMethod)
                 return null;
 
-            if (!TryConvertToSpanOrReadOnlySpan(rewrittenSpreadOperand, out var spreadOperandAsSpan))
+            if (!TryConvertToSpan(rewrittenSpreadOperand, writableOnly: false, out var spreadOperandAsSpan))
                 return null;
 
             if ((getSpanMethodsForSpread(WellKnownType.System_ReadOnlySpan_T, WellKnownMember.System_ReadOnlySpan_T__get_Length, WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T)

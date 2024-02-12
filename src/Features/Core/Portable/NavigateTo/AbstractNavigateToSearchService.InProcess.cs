@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     internal abstract partial class AbstractNavigateToSearchService
     {
         private static readonly ImmutableArray<(PatternMatchKind roslynKind, NavigateToMatchKind vsKind)> s_kindPairs =
-            ImmutableArray.Create(
+            [
                 (PatternMatchKind.Exact, NavigateToMatchKind.Exact),
                 (PatternMatchKind.Prefix, NavigateToMatchKind.Prefix),
                 (PatternMatchKind.NonLowercaseSubstring, NavigateToMatchKind.Substring),
@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 (PatternMatchKind.CamelCaseSubstring, NavigateToMatchKind.CamelCaseSubstring),
                 (PatternMatchKind.CamelCaseNonContiguousSubstring, NavigateToMatchKind.CamelCaseNonContiguousSubstring),
                 (PatternMatchKind.Fuzzy, NavigateToMatchKind.Fuzzy),
-                // Map our value to 'Fuzzy' as that's the lower value the platform supports.
-                (PatternMatchKind.LowercaseSubstring, NavigateToMatchKind.Fuzzy));
+                (PatternMatchKind.LowercaseSubstring, NavigateToMatchKind.Fuzzy),
+            ];
 
         private static async Task SearchProjectInCurrentProcessAsync(
             Project project, ImmutableArray<Document> priorityDocuments,
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Document? document, DeclaredSymbolInfo declaredSymbolInfo, CancellationToken cancellationToken)
         {
             if (document == null)
-                return ImmutableArray<ProjectId>.Empty;
+                return [];
 
             using var _ = ArrayBuilder<ProjectId>.GetInstance(out var result);
 

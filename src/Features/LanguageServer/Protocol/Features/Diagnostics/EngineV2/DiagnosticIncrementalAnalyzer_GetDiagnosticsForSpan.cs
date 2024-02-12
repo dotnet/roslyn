@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 using (_addOperationScope is object ? RoslynEventSource.LogInformationalBlock(FunctionId.DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync, analyzerTypeName, cancellationToken) : default)
                 {
                     var diagnostics = await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false);
-                    return diagnostics?.ToImmutableArrayOrEmpty() ?? ImmutableArray<DiagnosticData>.Empty;
+                    return diagnostics?.ToImmutableArrayOrEmpty() ?? [];
                 }
             }
 

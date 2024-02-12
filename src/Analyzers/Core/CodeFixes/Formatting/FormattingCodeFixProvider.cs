@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.FormattingDiagnosticId);
+            => [IDEDiagnosticIds.FormattingDiagnosticId];
 
         protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 

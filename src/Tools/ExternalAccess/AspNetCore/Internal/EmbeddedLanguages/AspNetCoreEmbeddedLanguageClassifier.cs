@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLang
 {
     [ExportEmbeddedLanguageClassifier(
         nameof(AspNetCoreEmbeddedLanguageClassifier),
-        new[] { LanguageNames.CSharp },
+        [LanguageNames.CSharp],
         supportsUnannotatedAPIs: false,
         // Add more syntax names here in the future if there are additional cases ASP.Net would like to light up on.
-        identifiers: new[] { "Route" }), Shared]
+        identifiers: ["Route"]), Shared]
     internal class AspNetCoreEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
     {
         [ImportingConstructor]

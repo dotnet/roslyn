@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Options
                    OptionGroup.Default,
                    name ?? throw new ArgumentNullException(nameof(name)),
                    defaultValue,
-                   storageLocations: ImmutableArray<OptionStorageLocation>.Empty,
+                   storageLocations: [],
                    storageMapping: null,
                    isEditorConfigOption: false)
         {

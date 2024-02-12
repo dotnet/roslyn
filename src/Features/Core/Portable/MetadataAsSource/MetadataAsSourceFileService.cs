@@ -305,6 +305,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public bool IsNavigableMetadataSymbol(ISymbol symbol)
         {
+            symbol = symbol.OriginalDefinition;
+
             if (!symbol.Locations.Any(static l => l.IsInMetadata))
             {
                 return false;

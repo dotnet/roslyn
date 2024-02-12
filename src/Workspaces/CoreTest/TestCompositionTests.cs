@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertEx.SetEqual(new[] { assembly1 }, composition2.Assemblies);
             Assert.Empty(composition2.RemoveAssemblies(assembly1).Assemblies);
 
-            var composition3 = composition2.WithAssemblies(ImmutableHashSet.Create(assembly2));
+            var composition3 = composition2.WithAssemblies([assembly2]);
             AssertEx.SetEqual(new[] { assembly2 }, composition3.Assemblies);
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Empty(composition3.Parts);
             Assert.Empty(composition3.ExcludedPartTypes);
 
-            var composition4 = composition2.WithParts(ImmutableHashSet.Create(type2));
+            var composition4 = composition2.WithParts([type2]);
             AssertEx.SetEqual(new[] { type2 }, composition4.Parts);
             Assert.Empty(composition3.ExcludedPartTypes);
         }
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Empty(composition3.ExcludedPartTypes);
             Assert.Empty(composition3.Parts);
 
-            var composition4 = composition2.WithExcludedPartTypes(ImmutableHashSet.Create(type2));
+            var composition4 = composition2.WithExcludedPartTypes([type2]);
             AssertEx.SetEqual(new[] { type2 }, composition4.ExcludedPartTypes);
             Assert.Empty(composition4.Parts);
         }

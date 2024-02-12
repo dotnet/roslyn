@@ -46,7 +46,7 @@ namespace Roslyn.Utilities
                 }
 
                 _current = _next.GetEnumerator();
-                _next = ImmutableArray<T>.Empty;
+                _next = [];
                 return _current.MoveNext();
             }
 

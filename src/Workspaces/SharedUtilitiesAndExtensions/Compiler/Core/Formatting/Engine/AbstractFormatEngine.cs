@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             using (Logger.LogBlock(FunctionId.Formatting_Format, FormatSummary, cancellationToken))
             {
                 // setup environment
-                var nodeOperations = CreateNodeOperations(cancellationToken);
+                using var nodeOperations = CreateNodeOperations(cancellationToken);
 
                 var tokenStream = new TokenStream(this.TreeData, Options, this.SpanToFormat, CreateTriviaFactory());
                 using var tokenOperations = s_tokenPairListPool.GetPooledObject();
@@ -162,13 +162,17 @@ namespace Microsoft.CodeAnalysis.Formatting
             return nodeOperations;
         }
 
-        private static void AddOperations<T>(List<T> operations, List<T> scratch, SyntaxNode node, Action<List<T>, SyntaxNode> addOperations)
+        private static void AddOperations<T>(SegmentedList<T> operations, List<T> scratch, SyntaxNode node, Action<List<T>, SyntaxNode> addOperations)
         {
             Debug.Assert(scratch.Count == 0);
 
             addOperations(scratch, node);
+            foreach (var operation in scratch)
+            {
+                if (operation is not null)
+                    operations.Add(operation);
+            }
 
-            operations.AddRangeWhere(scratch, static item => item is not null);
             scratch.Clear();
         }
 
