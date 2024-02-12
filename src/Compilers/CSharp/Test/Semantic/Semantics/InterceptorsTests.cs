@@ -2612,11 +2612,11 @@ public class InterceptorsTests : CSharpTestBase
                 public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
             }
             """;
-        var comp = CreateCompilation(new[] { (source, "/Users/me/projects/Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        var comp = CreateCompilation(new[] { (source, PlatformInformation.IsWindows ? @"C:\Users\me\projects\Program.cs" : "/Users/me/projects/Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
-            // /Users/me/projects/Program.cs(21,25): error CS9140: Cannot intercept: compilation does not contain a file with path 'projects/Program.cs'. Did you mean to use path '/Users/me/projects/Program.cs'?
+            // C:\Users\me\projects\Program.cs(21,25): error CS9139: Cannot intercept: compilation does not contain a file with path 'C:\Users\me\projects\projects\Program.cs'.
             //     [InterceptsLocation("projects/Program.cs", 15, 11)]
-            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, @"""projects/Program.cs""").WithArguments("projects/Program.cs", "/Users/me/projects/Program.cs").WithLocation(21, 25)
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""projects/Program.cs""").WithArguments(@"C:\Users\me\projects\projects\Program.cs").WithLocation(21, 25)
             );
     }
 
@@ -4616,7 +4616,7 @@ partial struct CustomHandler
         comp.VerifyEmitDiagnostics(
             // C:\My\Machine\Specific\Path\Program.cs(11,25): error CS9139: Cannot intercept: compilation does not contain a file with path 'C:\_\Program.cs'.
             //     [InterceptsLocation(@"\_\Program.cs", 5, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"@""\_\Program.cs""").WithArguments(PlatformInformation.IsWindows ? @"C:\_\Program.cs" : "/_/Program.cs").WithLocation(11, 25));
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"@""\_\Program.cs""").WithArguments(PlatformInformation.IsWindows ? @"C:\_\Program.cs" : "/_//_/Program.cs").WithLocation(11, 25));
     }
 
     [Fact]
@@ -4743,9 +4743,13 @@ partial struct CustomHandler
             options: TestOptions.DebugExe.WithSourceReferenceResolver(
                 new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)));
         comp.VerifyEmitDiagnostics(
-            // C:\My\Machine\Specific\Path\Program.cs(11,25): error CS9139: Cannot intercept: compilation does not contain a file with path 'C:\_\Program.cs'.
-            //     [InterceptsLocation(@"/_/Program.cs", 5, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"@""/_/Program.cs""").WithArguments(PlatformInformation.IsWindows ? @"C:\_\Program.cs" : "/_/Program.cs").WithLocation(11, 25));
+            PlatformInformation.IsWindows
+                // C:\My\Machine\Specific\Path\Program.cs(11,25): error CS9139: Cannot intercept: compilation does not contain a file with path 'C:\_\Program.cs'.
+                //     [InterceptsLocation(@"/_/Program.cs", 5, 3)]
+                ? Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"@""/_/Program.cs""").WithArguments(PlatformInformation.IsWindows ? @"C:\_\Program.cs" : "/_/Program.cs").WithLocation(11, 25)
+                // /My/Machine/Specific/Path/Program.cs(11,25): error CS9140: Cannot intercept: compilation does not contain a file with path '/_/Program.cs'. Did you mean to use path '\_/Program.cs'?
+                //     [InterceptsLocation(@"/_/Program.cs", 5, 3)]
+                : Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, @"@""/_/Program.cs""").WithArguments("/_/Program.cs", @"\_/Program.cs").WithLocation(11, 25));
     }
 
     [Fact]
@@ -4892,8 +4896,16 @@ partial struct CustomHandler
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source, @"C:\src\Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
-        verifier.VerifyDiagnostics();
+        if (PlatformInformation.IsWindows)
+        {
+            var verifier = CompileAndVerify(new[] { (source, @"C:\src\Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+        else
+        {
+            var comp = CreateCompilation(new[] { (source, @"/src/Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 
     [Fact]
@@ -4923,7 +4935,7 @@ partial struct CustomHandler
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { (source, @"C:\src\Program.cs"), (source2, @"C:\obj\Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
+        var verifier = CompileAndVerify(new[] { (source, PlatformInformation.IsWindows ? @"C:\src\Program.cs" : "/src/Program.cs"), (source2, PlatformInformation.IsWindows ? @"C:\obj\Generated.cs" : "/obj/Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -4991,11 +5003,11 @@ partial struct CustomHandler
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, @"src\Program.cs"), (source2, @"C:\obj\Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        var comp = CreateCompilation(new[] { (source, PlatformInformation.IsWindows ? @"src\Program.cs" : "src/Program.cs"), (source2, PlatformInformation.IsWindows ? @"C:\obj\Generated.cs" : "/obj/Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // C:\obj\Generated.cs(6,25): error CS9139: Cannot intercept: compilation does not contain a file with path 'C:\src\Program.cs'.
             //     [InterceptsLocation("../src/Program.cs", 6, 11)]
-            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""../src/Program.cs""").WithArguments(@"C:\src\Program.cs").WithLocation(6, 25)
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""../src/Program.cs""").WithArguments(PlatformInformation.IsWindows ? @"C:\src\Program.cs" : "/src/Program.cs").WithLocation(6, 25)
             );
     }
 
@@ -5027,7 +5039,7 @@ partial struct CustomHandler
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, @"C:\src\Program.cs"), (source2, @"C:\obj\Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        var comp = CreateCompilation(new[] { (source, PlatformInformation.IsWindows ? @"C:\src\Program.cs" : "/src/Program.cs"), (source2, PlatformInformation.IsWindows ? @"C:\obj\Generated.cs" : "/obj/Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics();
     }
 
@@ -5089,7 +5101,7 @@ partial struct CustomHandler
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, @"C:\src\Program.cs"), (source2, @"C:\obj\Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        var comp = CreateCompilation(new[] { (source, PlatformInformation.IsWindows ? @"C:\src\Program.cs" : "/src/Program.cs"), (source2, PlatformInformation.IsWindows ? @"C:\obj\Generated.cs" : "/obj/Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics();
     }
 
