@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (objectCreationExpression.Constructor.OriginalDefinition == _F.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference))
                         {
                             Debug.Assert(objectCreationExpression.Arguments.Length == 1);
-                            return objectCreationExpression.UpdateArgumentsAndInitializer([Spill(builder, objectCreationExpression.Arguments[0])],
+                            return objectCreationExpression.UpdateArgumentsAndInitializer([Spill(builder, objectCreationExpression.Arguments[0], objectCreationExpression.ArgumentRefKindsOpt[0])],
                                                                                           objectCreationExpression.ArgumentRefKindsOpt,
                                                                                           objectCreationExpression.InitializerExpressionOpt);
                         }

@@ -2275,7 +2275,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
                 IL_006f:  ldarg.0
                 IL_0070:  ldloca.s   V_4
                 IL_0072:  call       "string System.Runtime.CompilerServices.TaskAwaiter<string>.GetResult()"
-                IL_0077:  stfld      "string Test.<M>d__1.<>7__wrap1"
+                IL_0077:  stfld      "string Test.<M>d__1.<>7__wrap2"
                 IL_007c:  call       "System.Threading.Tasks.Task<char> Test.GetCharAsync()"
                 IL_0081:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<char> System.Threading.Tasks.Task<char>.GetAwaiter()"
                 IL_0086:  stloc.s    V_5
@@ -2312,7 +2312,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
                 IL_00d9:  stloc.2
                 IL_00da:  ldarg.0
                 IL_00db:  ldloc.2
-                IL_00dc:  stfld      "char Test.<M>d__1.<>7__wrap2"
+                IL_00dc:  stfld      "char Test.<M>d__1.<>7__wrap1"
                 IL_00e1:  call       "System.Threading.Tasks.Task<string> Test.GetStringAsync()"
                 IL_00e6:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<string> System.Threading.Tasks.Task<string>.GetAwaiter()"
                 IL_00eb:  stloc.s    V_4
@@ -2348,10 +2348,10 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
                 IL_0136:  call       "string System.Runtime.CompilerServices.TaskAwaiter<string>.GetResult()"
                 IL_013b:  stloc.3
                 IL_013c:  ldarg.0
-                IL_013d:  ldfld      "string Test.<M>d__1.<>7__wrap1"
+                IL_013d:  ldfld      "string Test.<M>d__1.<>7__wrap2"
                 IL_0142:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                 IL_0147:  ldarg.0
-                IL_0148:  ldflda     "char Test.<M>d__1.<>7__wrap2"
+                IL_0148:  ldflda     "char Test.<M>d__1.<>7__wrap1"
                 IL_014d:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
                 IL_0152:  ldloc.3
                 IL_0153:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
@@ -4756,7 +4756,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
                 IL_0073:  ldarg.0
                 IL_0074:  ldloca.s   V_5
                 IL_0076:  call       "string System.Runtime.CompilerServices.TaskAwaiter<string>.GetResult()"
-                IL_007b:  stfld      "string Test.<M>d__1.<>7__wrap1"
+                IL_007b:  stfld      "string Test.<M>d__1.<>7__wrap3"
                 IL_0080:  call       "System.Threading.Tasks.Task<char> Test.GetCharAsync()"
                 IL_0085:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<char> System.Threading.Tasks.Task<char>.GetAwaiter()"
                 IL_008a:  stloc.s    V_6
@@ -4793,7 +4793,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
                 IL_00dd:  stloc.2
                 IL_00de:  ldarg.0
                 IL_00df:  ldloc.2
-                IL_00e0:  stfld      "char Test.<M>d__1.<>7__wrap2"
+                IL_00e0:  stfld      "char Test.<M>d__1.<>7__wrap1"
                 IL_00e5:  call       "System.Threading.Tasks.Task<char> Test.GetCharAsync()"
                 IL_00ea:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<char> System.Threading.Tasks.Task<char>.GetAwaiter()"
                 IL_00ef:  stloc.s    V_6
@@ -4830,7 +4830,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
                 IL_0142:  stloc.3
                 IL_0143:  ldarg.0
                 IL_0144:  ldloc.3
-                IL_0145:  stfld      "char Test.<M>d__1.<>7__wrap3"
+                IL_0145:  stfld      "char Test.<M>d__1.<>7__wrap2"
                 IL_014a:  call       "System.Threading.Tasks.Task<string> Test.GetStringAsync()"
                 IL_014f:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<string> System.Threading.Tasks.Task<string>.GetAwaiter()"
                 IL_0154:  stloc.s    V_5
@@ -4866,13 +4866,13 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
                 IL_01a2:  call       "string System.Runtime.CompilerServices.TaskAwaiter<string>.GetResult()"
                 IL_01a7:  stloc.s    V_4
                 IL_01a9:  ldarg.0
-                IL_01aa:  ldfld      "string Test.<M>d__1.<>7__wrap1"
+                IL_01aa:  ldfld      "string Test.<M>d__1.<>7__wrap3"
                 IL_01af:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
                 IL_01b4:  ldarg.0
-                IL_01b5:  ldflda     "char Test.<M>d__1.<>7__wrap2"
+                IL_01b5:  ldflda     "char Test.<M>d__1.<>7__wrap1"
                 IL_01ba:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
                 IL_01bf:  ldarg.0
-                IL_01c0:  ldflda     "char Test.<M>d__1.<>7__wrap3"
+                IL_01c0:  ldflda     "char Test.<M>d__1.<>7__wrap2"
                 IL_01c5:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
                 IL_01ca:  ldloc.s    V_4
                 IL_01cc:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
