@@ -15,9 +15,69 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal abstract partial class GreenNode
     {
+        /// <summary>
+        /// Combination of <see cref="NodeFlags"/> and <see cref="SlotCount"/> stored in a single 16bit value.
+        /// </summary>
+        internal struct NodeFlagsAndSlotCount
+        {
+            private const byte MaxEncodableSlotCount = 15;
+
+            /// <summary>
+            /// 4 bits for the SlotCount.  This allows slot counts of 1-14 to be stored as a direct byte.  15 indicates
+            /// that the slot count must be computed.
+            /// </summary>
+            private const ushort SlotCountMask = 0b0000000000001111;
+
+            /// <summary>
+            /// 12 bits for the NodeFlags.  This allows for up to 12 distinct bits to be stored to designate interesting
+            /// aspects of a node.
+            /// </summary>
+            private const ushort NodeFlagsMask = 0b1111111111110000;
+
+            private const int NodeFlagsShift = 4;
+
+            /// <summary>
+            /// First 12 bits are for NodeFlags.  Last 4 are for SlotCount.
+            /// </summary>
+            private ushort _data;
+
+            public byte SlotCount
+            {
+                readonly get
+                {
+                    var result = (byte)(_data & SlotCountMask);
+                    return result == MaxEncodableSlotCount ? byte.MaxValue : result;
+                }
+
+                set
+                {
+                    if (value == byte.MaxValue)
+                        value = MaxEncodableSlotCount;
+                    Debug.Assert(value <= 14);
+
+                    _data = (ushort)(_data | value);
+                }
+            }
+
+            public NodeFlags NodeFlags
+            {
+                readonly get
+                {
+                    return (NodeFlags)((_data & NodeFlagsMask) >> NodeFlagsShift);
+                }
+
+                set
+                {
+                    Debug.Assert((ushort)value <= (NodeFlagsMask >> NodeFlagsShift));
+                    _data = (ushort)(_data | ((ushort)value << NodeFlagsShift));
+                }
+            }
+        }
+
         private string GetDebuggerDisplay()
         {
             return this.GetType().Name + " " + this.KindText + " " + this.ToString();
@@ -26,9 +86,14 @@ namespace Microsoft.CodeAnalysis
         internal const int ListKind = 1;
 
         private readonly ushort _kind;
-        protected NodeFlags flags;
-        private byte _slotCount;
+        protected NodeFlagsAndSlotCount _nodeFlagsAndSlotCount;
         private int _fullWidth;
+
+        protected NodeFlags flags
+        {
+            get => _nodeFlagsAndSlotCount.NodeFlags;
+            set => _nodeFlagsAndSlotCount.NodeFlags |= value;
+        }
 
         private static readonly ConditionalWeakTable<GreenNode, DiagnosticInfo[]> s_diagnosticsTable =
             new ConditionalWeakTable<GreenNode, DiagnosticInfo[]>();
@@ -141,7 +206,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                int count = _slotCount;
+                int count = _nodeFlagsAndSlotCount.SlotCount;
                 if (count == byte.MaxValue)
                 {
                     count = GetSlotCount();
@@ -152,7 +217,7 @@ namespace Microsoft.CodeAnalysis
 
             protected set
             {
-                _slotCount = (byte)value;
+                _nodeFlagsAndSlotCount.SlotCount = (byte)value;
             }
         }
 
@@ -168,7 +233,7 @@ namespace Microsoft.CodeAnalysis
         // for slot counts >= byte.MaxValue
         protected virtual int GetSlotCount()
         {
-            return _slotCount;
+            return _nodeFlagsAndSlotCount.SlotCount;
         }
 
         public virtual int GetSlotOffset(int index)
@@ -234,8 +299,13 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region Flags 
+
+        /// <summary>
+        /// Special flags a node can have.  Note: while this is typed as being `ushort`, we can only practically use 12
+        /// of those 16 bits as we use the remaining 4 bits to store the slot count of a node.
+        /// </summary>
         [Flags]
-        internal enum NodeFlags : byte
+        internal enum NodeFlags : ushort
         {
             None = 0,
             ContainsDiagnostics = 1 << 0,
