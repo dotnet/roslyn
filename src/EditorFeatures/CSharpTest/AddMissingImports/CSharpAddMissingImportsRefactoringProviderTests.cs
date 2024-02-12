@@ -23,10 +23,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
     public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
-        {
-            var pasteTrackingService = workspace.ExportProvider.GetExportedValue<PasteTrackingService>();
-            return new CSharpAddMissingImportsRefactoringProvider(pasteTrackingService);
-        }
+            => new CSharpAddMissingImportsRefactoringProvider();
 
         protected override void InitializeWorkspace(EditorTestWorkspace workspace, TestParameters parameters)
         {
@@ -340,8 +337,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31768")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31768")]
         public async Task AddMissingImports_AddMultipleImports_NoPreviousImports()
         {
             var code = """

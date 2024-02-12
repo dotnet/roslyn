@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Shell.TableControl;
+using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
@@ -204,6 +205,40 @@ class C
             await TestServices.Editor.PlaceCaretAsync("AbstractEditorTest", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
             Assert.Equal("AbstractEditorTest.cs [embedded] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+        }
+
+        [IdeTheory]
+        [InlineData("ValueTuple<int> valueTuple1;")]
+        [InlineData("ValueTuple<int, int> valueTuple2;")]
+        [InlineData("ValueTuple<int, int, int> valueTuple3;")]
+        [InlineData("ValueTuple<int, int, int, int> valueTuple4;")]
+        [InlineData("ValueTuple<int, int, int, int, int> valueTuple5;")]
+        [InlineData("ValueTuple<int, int, int, int, int, int> valueTuple6;")]
+        [InlineData("ValueTuple<int, int, int, int, int, int, int> valueTuple7;")]
+        [InlineData("ValueTuple<int, int, int, int, int, int, int, int> valueTuple8;")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71680")]
+        public async Task TestGotoDefinitionWithValueTuple(string expression)
+        {
+            var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, language: LanguageName, false);
+
+            await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync(
+@$"using System;
+
+class C
+{{
+    void M()
+    {{
+        {expression}
+    }}
+}}", HangMitigatingCancellationToken);
+
+            await TestServices.Editor.PlaceCaretAsync("ValueTuple", charsOffset: -1, HangMitigatingCancellationToken);
+
+            await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
+            Assert.Equal($"ValueTuple [{FeaturesResources.Decompiled}] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
         }
     }
 }

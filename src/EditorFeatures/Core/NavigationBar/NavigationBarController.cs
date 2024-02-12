@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             var documents = _subjectBuffer.CurrentSnapshot.GetRelatedDocumentsWithChanges();
             if (!documents.Any())
             {
-                projectItems = ImmutableArray<NavigationBarProjectItem>.Empty;
+                projectItems = [];
                 selectedProjectItem = null;
                 return;
             }

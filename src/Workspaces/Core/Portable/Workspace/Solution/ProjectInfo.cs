@@ -608,9 +608,9 @@ namespace Microsoft.CodeAnalysis
                 var projectId = ProjectId.ReadFrom(reader);
 
                 // var version = VersionStamp.ReadFrom(reader);
-                var name = reader.ReadString();
-                var assemblyName = reader.ReadString();
-                var language = reader.ReadString();
+                var name = reader.ReadRequiredString();
+                var assemblyName = reader.ReadRequiredString();
+                var language = reader.ReadRequiredString();
                 var filePath = reader.ReadString();
                 var outputFilePath = reader.ReadString();
                 var outputRefFilePath = reader.ReadString();

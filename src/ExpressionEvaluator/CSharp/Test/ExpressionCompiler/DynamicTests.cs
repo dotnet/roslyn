@@ -1493,10 +1493,7 @@ class C
             {
                 Assert.Equal(CustomTypeInfo.PayloadTypeId, customTypeInfoId);
                 // Include leading count byte.
-                var builder = ArrayBuilder<byte>.GetInstance();
-                builder.Add((byte)expectedBytes.Length);
-                builder.AddRange(expectedBytes);
-                expectedBytes = builder.ToArrayAndFree();
+                expectedBytes = [(byte)expectedBytes.Length, .. expectedBytes];
                 Assert.Equal(expectedBytes, customTypeInfo);
             }
         }

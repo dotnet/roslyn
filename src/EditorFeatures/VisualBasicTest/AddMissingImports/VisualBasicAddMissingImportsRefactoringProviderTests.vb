@@ -4,7 +4,6 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -19,8 +18,7 @@ Namespace Microsoft.CodeAnalysis.AddMissingImports
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
-            Dim pasteTrackingService = workspace.ExportProvider.GetExportedValue(Of PasteTrackingService)()
-            Return New VisualBasicAddMissingImportsRefactoringProvider(pasteTrackingService)
+            Return New VisualBasicAddMissingImportsRefactoringProvider()
         End Function
 
         Protected Overrides Sub InitializeWorkspace(workspace As EditorTestWorkspace, parameters As TestParameters)

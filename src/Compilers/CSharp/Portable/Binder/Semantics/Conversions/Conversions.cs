@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -182,8 +181,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(elementType is { });
-
             var elements = node.Elements;
+
+            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+            {
+                if (!_binder.HasCollectionExpressionApplicableConstructor(syntax, targetType, BindingDiagnosticBag.Discarded))
+                {
+                    return Conversion.NoConversion;
+                }
+
+                if (elements.Length > 0 &&
+                    !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, elementType, BindingDiagnosticBag.Discarded))
+                {
+                    return Conversion.NoConversion;
+                }
+            }
+
             var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
             foreach (var element in elements)
             {

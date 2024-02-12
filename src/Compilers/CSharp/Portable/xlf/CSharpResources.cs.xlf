@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRefLangVersion">
         <source>Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</source>
-        <target state="translated">Argument {0} nelze předat s klíčovým slovem ref ve verzi jazyka {1}. Pokud chcete argumenty ref předat parametrům in, upgradujte na verzi jazyka {2} nebo vyšší.</target>
+        <target state="translated">Argument {0} nelze předat s klíčovým slovem ref v jazykové verzi {1}. Pokud chcete argumenty ref předat parametrům in, upgradujte na verzi jazyka {2} nebo vyšší.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
@@ -409,22 +409,22 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidType">
         <source>The CollectionBuilderAttribute builder type must be a non-generic class or struct.</source>
-        <target state="translated">Typ tvůrce CollectionBuilderAttribute musí být neobecná třída nebo struktura.</target>
+        <target state="translated">Typ sestavení CollectionBuilderAttribute musí být neobecná třída nebo struktura.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
         <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="translated">Nelze najít přístupnou metodu '{0}' s očekávaným podpisem: statická metoda s jedním parametrem typu ReadOnlySpan&lt;{1}&gt; a návratovým typem '{2}'.</target>
+        <target state="translated">Nepodařilo se najít přístupnou metodu {0} s očekávaným podpisem: statická metoda s jedním parametrem typu ReadOnlySpan&lt;{1}&gt; a návratovým typem {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">
         <source>'{0}' has a CollectionBuilderAttribute but no element type.</source>
-        <target state="translated">'{0}' má collectionBuilderAttribute, ale žádný typ elementu.</target>
+        <target state="translated">{0} má CollectionBuilderAttribute, ale žádný typ prvku.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionEscape">
         <source>A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</source>
-        <target state="new">A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</target>
+        <target state="translated">Výraz kolekce typu {0} nelze v tomto kontextu použít, protože může být vystaven mimo aktuální obor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
@@ -432,9 +432,19 @@
         <target state="translated">Tuto verzi {0} nelze použít s výrazy kolekce.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingAdd">
+        <source>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</source>
+        <target state="new">Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingConstructor">
+        <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
+        <target state="new">Collection expression type must have an applicable constructor that can be called with no arguments.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
         <source>There is no target type for the collection expression.</source>
-        <target state="new">There is no target type for the collection expression.</target>
+        <target state="translated">Pro výraz kolekce neexistuje žádný cílový typ.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetNoElementType">
@@ -444,7 +454,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
-        <target state="new">Cannot initialize type '{0}' with a collection expression because the type is not constructible.</target>
+        <target state="translated">Typ {0} nelze inicializovat pomocí výrazu kolekce, protože typ není konstruovatelný.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -634,7 +644,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsCollectionExpression">
         <source>An expression tree may not contain a collection expression.</source>
-        <target state="new">An expression tree may not contain a collection expression.</target>
+        <target state="translated">Strom výrazů nesmí obsahovat výraz kolekce.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -709,7 +719,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion12">
         <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</target>
+        <target state="translated">Funkce {0} není v jazyce C# 12.0 k dispozici. Použijte prosím jazykovou verzi {1} nebo vyšší.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -929,7 +939,7 @@
       </trans-unit>
       <trans-unit id="ERR_InlineArrayForEachNotSupported">
         <source>foreach statement on an inline array of type '{0}' is not supported</source>
-        <target state="translated">Příkaz foreach ve vloženém poli typu '{0}' není podporován.</target>
+        <target state="translated">příkaz foreach u vloženého pole typu {0} není podporován</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayIndexOutOfRange">
@@ -939,7 +949,7 @@
       </trans-unit>
       <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
         <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
-        <target state="translated">Pole vloženého elementu pole nelze deklarovat jako povinné, jen pro čtení, nestálé nebo jako vyrovnávací paměť pevné velikosti.</target>
+        <target state="translated">Pole vloženého prvku pole nelze deklarovat jako povinné, jen pro čtení, nestálé nebo jako vyrovnávací paměť s pevnou velikostí.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -954,7 +964,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorArityNotCompatible">
         <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
-        <target state="translated">Metoda '{0}' musí být neobecná nebo musí mít aritu {1}, aby odpovídala '{2}'.</target>
+        <target state="translated">Metoda {0} musí být neobecná nebo musí mít aritu {1}, aby odpovídala {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
@@ -979,7 +989,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorContainingTypeCannotBeGeneric">
         <source>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</source>
-        <target state="new">Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</target>
+        <target state="translated">Metodu {0} nelze použít jako zachycovací modul, protože jeho nadřazený typ má parametry typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
@@ -1124,7 +1134,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
-        <target state="new">The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</target>
+        <target state="translated">Argument diagnosticId atributu Experimental musí být platný identifikátor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -1649,7 +1659,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefReadOnlyWrongOrdering">
         <source>'readonly' modifier must be specified after 'ref'.</source>
-        <target state="translated">Modifikátor readonly musí být zadaný za ref.</target>
+        <target state="translated">Modifikátor readonly musí být zadán za parametrem ref.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter">
@@ -1864,7 +1874,7 @@
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
         <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
-        <target state="new">Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</target>
+        <target state="translated">Spread operátor .. nejde použít pro proměnné typu {0}, protože {0} neobsahuje veřejnou definici instance nebo rozšíření pro {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
@@ -2129,7 +2139,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
         <source>collection expressions</source>
-        <target state="new">collection expressions</target>
+        <target state="translated">výrazy kolekce</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
@@ -2259,7 +2269,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRefReadonlyParameters">
         <source>ref readonly parameters</source>
-        <target state="translated">ref readonly parameters</target>
+        <target state="translated">parametry ref readonly</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -2319,7 +2329,7 @@
       </trans-unit>
       <trans-unit id="IDS_ImplicitIndexerInitializer">
         <source>implicit indexer initializer</source>
-        <target state="new">implicit indexer initializer</target>
+        <target state="translated">implicitní inicializační výraz indexeru</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Missing">
@@ -2359,7 +2369,7 @@
       </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
         <source>{0} is not a valid C# spread operation</source>
-        <target state="new">{0} is not a valid C# spread operation</target>
+        <target state="translated">{0} není platná operace šíření v jazyce C#</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
@@ -2394,22 +2404,22 @@
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
         <source>Argument {0} should be passed with the 'in' keyword</source>
-        <target state="new">Argument {0} should be passed with the 'in' keyword</target>
+        <target state="translated">Argument {0} by se měl předávat s klíčovým slovem in</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn_Title">
         <source>Argument should be passed with the 'in' keyword</source>
-        <target state="new">Argument should be passed with the 'in' keyword</target>
+        <target state="translated">Argument by se měl předávat s klíčovým slovem in</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedRefOrIn">
         <source>Argument {0} should be passed with 'ref' or 'in' keyword</source>
-        <target state="translated">Argument {0} by se měl předat s klíčovým slovem ref nebo in.</target>
+        <target state="translated">Argument {0} by se měl předávat s klíčovým slovem ref nebo in</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
         <source>Argument should be passed with 'ref' or 'in' keyword</source>
-        <target state="translated">Argument by měl být předán s klíčovým slovem ref nebo in.</target>
+        <target state="translated">Argument by se měl předávat s klíčovým slovem ref nebo in</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed">
@@ -2424,22 +2434,22 @@
       </trans-unit>
       <trans-unit id="WRN_BadArgRef">
         <source>The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
-        <target state="translated">Modifikátor ref pro argument {0} odpovídající parametru in je ekvivalentní k in. Zvažte možnost použít místo toho in.</target>
+        <target state="translated">Modifikátor ref pro argument {0} odpovídající parametru in je ekvivalentem in. Místo toho zvažte použití in.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef_Title">
         <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
-        <target state="translated">Modifikátor ref pro argument odpovídající parametru in je ekvivalentem in. Zvažte možnost použít místo toho in.</target>
+        <target state="translated">Modifikátor ref pro argument odpovídající parametru in je ekvivalentem in. Místo toho zvažte použití in.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
-        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
+        <target state="translated">Je nutné zadat parametr atributu SizeConst.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired_Title">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
-        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
+        <target state="translated">Je nutné zadat parametr atributu SizeConst.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallArgMixing">
@@ -2534,22 +2544,22 @@
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate">
         <source>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
-        <target state="translated">U výrazu kolekce typu '{0}' může dojít k neočekávaným přidělením haldy. Zvažte explicitní vytvoření pole a následného převodu na '{0}', aby přidělení bylo explicitní.</target>
+        <target state="translated">U výrazu kolekce typu {0} může dojít k neočekávanému přidělení haldy. Zvažte explicitní vytvoření pole a následného převodu na {0}, aby bylo přidělení explicitní.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate_Title">
         <source>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
-        <target state="translated">U výrazu kolekce může dojít k neočekávaným přidělením haldy. Zvažte explicitní vytvoření pole a následného převodu na konečný typ, aby bylo přidělení explicitní.</target>
+        <target state="translated">U výrazu kolekce může dojít k neočekávanému přidělení haldy. Zvažte explicitní vytvoření pole a následného převodu na konečný typ, aby bylo přidělení explicitní.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate">
         <source>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
-        <target state="translated">Výraz kolekce typu '{0}' může mít za následek neočekávané přidělení haldy z důvodu použití tečky (..). Zvažte explicitní vytvoření pole a následného převodu na '{0}', aby přidělení bylo explicitní.</target>
+        <target state="translated">Výraz kolekce typu {0} může z důvodu použití spread operátoru .. způsobovat neočekávaná přidělení haldy. Zvažte explicitní vytvoření pole a následného převodu na {0}, aby bylo přidělení explicitní.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title">
         <source>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
-        <target state="translated">Ve výrazu kolekce může dojít k neočekávaným přidělením haldy, protože se používá tečky (.).). Zvažte explicitní vytvoření pole a následného převodu na konečný typ, aby bylo přidělení explicitní.</target>
+        <target state="translated">Výraz kolekce může z důvodu použití spread operátoru .. způsobovat neočekávaná přidělení haldy. Zvažte explicitní vytvoření pole a následného převodu na konečný typ, aby bylo přidělení explicitní.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
@@ -2624,52 +2634,52 @@
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
         <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
-        <target state="translated">Operátor převodu vloženého pole nebude použit pro převod z výrazu deklarujícího typu.</target>
+        <target state="translated">Operátor převodu vloženého pole se nepoužije pro převod z výrazu deklarujícího typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed_Title">
         <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
-        <target state="translated">Operátor převodu vloženého pole nebude použit pro převod z výrazu deklarujícího typu.</target>
+        <target state="translated">Operátor převodu vloženého pole se nepoužije pro převod z výrazu deklarujícího typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayIndexerNotUsed">
         <source>Inline array indexer will not be used for element access expression.</source>
-        <target state="translated">Indexer vloženého pole nebude použit pro výraz přístupu k elementu.</target>
+        <target state="translated">Indexer vloženého pole se nepoužije pro výraz přístupu k prvku.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayIndexerNotUsed_Title">
         <source>Inline array indexer will not be used for element access expression.</source>
-        <target state="translated">Indexer vloženého pole nebude použit pro výraz přístupu k elementu.</target>
+        <target state="translated">Indexer vloženého pole se nepoužije pro výraz přístupu k prvku.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
         <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
-        <target state="new">'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</target>
+        <target state="translated">Funkce jazyka Inline arrays není podporována pro typ vloženého pole, který není platný jako argument typu nebo má typ prvku, který není platný jako argument typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
         <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
-        <target state="new">'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</target>
+        <target state="translated">Funkce jazyka Inline arrays není podporována pro typ vloženého pole, který není platný jako argument typu nebo má typ prvku, který není platný jako argument typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">
         <source>Inline array 'Slice' method will not be used for element access expression.</source>
-        <target state="translated">Metoda Slice vloženého pole nebude použita pro výraz přístupu k elementu.</target>
+        <target state="translated">Metoda Slice vloženého pole se nepoužije pro výraz přístupu k prvku.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed_Title">
         <source>Inline array 'Slice' method will not be used for element access expression.</source>
-        <target state="translated">Metoda Slice vloženého pole nebude použita pro výraz přístupu k elementu.</target>
+        <target state="translated">Metoda Slice vloženého pole se nepoužije pro výraz přístupu k prvku.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_HidingDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</source>
-        <target state="translated">Modifikátor druhu odkazu parametru '{0}' neodpovídá odpovídajícímu parametru '{1}' ve skrytém členu.</target>
+        <target state="translated">Modifikátor druhu odkazu parametru {0} neodpovídá odpovídajícímu parametru {1} ve skrytém členu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_HidingDifferentRefness_Title">
         <source>Reference kind modifier of parameter doesn't match the corresponding parameter in hidden member.</source>
-        <target state="translated">Modifikátor druhu odkazu parametru neodpovídá odpovídajícímu parametru ve skrytém členovi.</target>
+        <target state="translated">Modifikátor druhu odkazu parametru neodpovídá odpovídajícímu parametru ve skrytém členu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterceptorSignatureMismatch">
@@ -2774,7 +2784,7 @@
       </trans-unit>
       <trans-unit id="WRN_OverridingDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</source>
-        <target state="translated">Modifikátor druhu odkazu parametru '{0}' neodpovídá odpovídajícímu parametru '{1}' v přepsaném nebo implementovaném členu.</target>
+        <target state="translated">Modifikátor druhu odkazu parametru {0} neodpovídá odpovídajícímu parametru {1} v přepsaném nebo implementovaném členu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_OverridingDifferentRefness_Title">
@@ -2814,12 +2824,12 @@
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
         <source>Primary constructor parameter '{0}' is shadowed by a member from base.</source>
-        <target state="translated">Primární parametr konstruktoru '{0}' je stínován členem ze základu.</target>
+        <target state="translated">Parametr primárního konstruktoru {0} je stínován členem z báze.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase_Title">
         <source>Primary constructor parameter is shadowed by a member from base</source>
-        <target state="translated">Parametr primárního konstruktoru je stínován členem ze základní třídy.</target>
+        <target state="translated">Parametr primárního konstruktoru je stínován členem z báze</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2889,7 +2899,7 @@
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyNotVariable">
         <source>Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</source>
-        <target state="translated">Argument {0} by měla být proměnná, protože je předána parametru ref readonly.</target>
+        <target state="translated">Argumentem {0} by měla být proměnná, protože se předává parametru ref readonly</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyNotVariable_Title">
@@ -2899,12 +2909,12 @@
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyParameterDefaultValue">
         <source>A default value is specified for 'ref readonly' parameter '{0}', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</source>
-        <target state="translated">Pro parametr ref readonly '{0}' je zadána výchozí hodnota, ale parametr ref readonly by měl být použit pouze pro odkazy. Zvažte deklarování parametru jako in.</target>
+        <target state="translated">Pro parametr ref readonly {0} je zadaná výchozí hodnota, ale parametr ref readonly by se měl používat pouze pro odkazy. Zvažte deklarování parametru jako in.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyParameterDefaultValue_Title">
         <source>A default value is specified for 'ref readonly' parameter, but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</source>
-        <target state="translated">Pro parametr ref readonly je zadána výchozí hodnota, ale parametr ref readonly by měl být použit pouze pro odkazy. Zvažte deklarování parametru jako in.</target>
+        <target state="translated">Pro parametr ref readonly je zadaná výchozí hodnota, ale parametr ref readonly by se měl používat pouze pro odkazy. Zvažte deklarování parametru jako in.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
@@ -4790,7 +4800,7 @@
       </trans-unit>
       <trans-unit id="WRN_TargetDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in target.</source>
-        <target state="translated">Modifikátor druhu odkazu parametru '{0}' neodpovídá odpovídajícímu parametru '{1}' v cíli.</target>
+        <target state="translated">Modifikátor druhu odkazu parametru {0} neodpovídá odpovídajícímu parametru {1} v cíli.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TargetDifferentRefness_Title">
@@ -5065,12 +5075,12 @@
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationRefField">
         <source>Ref field '{0}' should be ref-assigned before use.</source>
-        <target state="translated">'{0}' referenčního pole musí být před použitím přiřazen odkazem.</target>
+        <target state="translated">Před použitím by se mělo přiřadit referenční pole {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationRefField_Title">
         <source>Ref field should be ref-assigned before use.</source>
-        <target state="translated">Před použitím by mělo být přiřazeno referenční pole.</target>
+        <target state="translated">Před použitím by se mělo přiřadit referenční pole.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationThisSupportedVersion">

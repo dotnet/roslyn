@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         cancellationToken).ConfigureAwait(false);
 
                     if (!result.HasValue)
-                        return ImmutableArray<Diagnostic>.Empty;
+                        return [];
 
                     return await result.Value.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
                 }

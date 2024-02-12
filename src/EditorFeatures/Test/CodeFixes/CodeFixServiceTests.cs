@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -358,6 +359,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
 
             var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             if (additionalDocument != null)
             {
                 workspace.Projects.Single().AddAdditionalDocument(additionalDocument);
@@ -981,8 +985,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 #pragma warning disable RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
         [ExportCodeFixProvider(
             LanguageNames.CSharp,
-            DocumentKinds = new[] { nameof(TextDocumentKind.AdditionalDocument) },
-            DocumentExtensions = new[] { ".txt" })]
+            DocumentKinds = [nameof(TextDocumentKind.AdditionalDocument)],
+            DocumentExtensions = [".txt"])]
         [Shared]
         internal sealed class AdditionalFileFixerWithDocumentKindsAndExtensions : AbstractAdditionalFileCodeFixProvider
         {
@@ -991,7 +995,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         [ExportCodeFixProvider(
             LanguageNames.CSharp,
-            DocumentKinds = new[] { nameof(TextDocumentKind.AdditionalDocument) })]
+            DocumentKinds = [nameof(TextDocumentKind.AdditionalDocument)])]
         [Shared]
         internal sealed class AdditionalFileFixerWithDocumentKinds : AbstractAdditionalFileCodeFixProvider
         {
@@ -1000,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         [ExportCodeFixProvider(
             LanguageNames.CSharp,
-            DocumentExtensions = new[] { ".txt" })]
+            DocumentExtensions = [".txt"])]
         [Shared]
         internal sealed class AdditionalFileFixerWithDocumentExtensions : AbstractAdditionalFileCodeFixProvider
         {

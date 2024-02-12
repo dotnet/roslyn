@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return semanticModel.LookupName(expression, cancellationToken);
             }
 
-            return ImmutableArray.Create<ISymbol>();
+            return [];
         }
 
         /// <summary>
@@ -460,6 +460,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static IMethodSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, ConstructorDeclarationSyntax syntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public static IMethodSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, LocalFunctionStatementSyntax syntax, CancellationToken cancellationToken)
         {
             return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
                 ?? throw new InvalidOperationException();

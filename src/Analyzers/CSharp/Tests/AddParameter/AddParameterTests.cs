@@ -20,7 +20,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-    public class AddParameterTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class AddParameterTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public AddParameterTests(ITestOutputHelper logger)
            : base(logger)
@@ -2928,17 +2928,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
         [Fact]
         public async Task Test_PrimaryConstructor_Class()
         {
-            await TestInRegularAndScriptAsync(@"
-var b = ""B"";
-var r = [|new R(1, b)|];
+            await TestInRegularAndScriptAsync("""
+                var b = "B";
+                var r = [|new R(1, b)|];
 
-class R(int A);
-", @"
-var b = ""B"";
-var r = new R(1, b);
+                class R(int A);
+                """, """
+                var b = "B";
+                var r = new R(1, b);
 
-class R(int A, string b);
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12));
+                class R(int A, string b);
+                """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54408")]
@@ -2970,17 +2970,17 @@ class R(int A, string b);
         [Fact]
         public async Task Test_PrimaryConstructor_Struct()
         {
-            await TestInRegularAndScriptAsync(@"
-var b = ""B"";
-var r = [|new R(1, b)|];
+            await TestInRegularAndScriptAsync("""
+                var b = "B";
+                var r = [|new R(1, b)|];
 
-struct R(int A);
-", @"
-var b = ""B"";
-var r = new R(1, b);
+                struct R(int A);
+                """, """
+                var b = "B";
+                var r = new R(1, b);
 
-struct R(int A, string b);
-", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12));
+                struct R(int A, string b);
+                """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56952")]
@@ -3002,13 +3002,15 @@ struct R(int A, string b);
         [Fact]
         public async Task TestNamingConventions_PrimaryConstructor_Class()
         {
-            await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
+            await TestInRegularAndScript1Async("""
+                [|new Test("repro")|];
 
-class Test();
-", @"new Test(""repro"");
+                class Test();
+                """, """
+                new Test("repro");
 
-class Test(string v);
-");
+                class Test(string v);
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56952")]
@@ -3030,13 +3032,15 @@ class Test(string v);
         [Fact]
         public async Task TestNamingConventions_PrimaryConstructor_Struct()
         {
-            await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
+            await TestInRegularAndScript1Async("""
+                [|new Test("repro")|];
 
-struct Test();
-", @"new Test(""repro"");
+                struct Test();
+                """, """
+                new Test("repro");
 
-struct Test(string v);
-");
+                struct Test(string v);
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61715")]

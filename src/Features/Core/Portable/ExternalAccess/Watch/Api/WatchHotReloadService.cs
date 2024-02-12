@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
                 solution,
                 new DebuggerService(_capabilities),
                 NullPdbMatchingSourceTextProvider.Instance,
-                captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                captureMatchingDocuments: [],
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: false,
                 cancellationToken).ConfigureAwait(false);

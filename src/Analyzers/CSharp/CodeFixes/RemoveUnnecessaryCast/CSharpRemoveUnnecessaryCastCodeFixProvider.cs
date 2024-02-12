@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast
         }
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId);
+            [IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId];
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

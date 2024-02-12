@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Text
                 var documentId = workspace.GetDocumentIdInCurrentContext(text.Container);
                 if (documentId == null)
                 {
-                    return ImmutableArray<Document>.Empty;
+                    return [];
                 }
 
                 var solution = workspace.CurrentSolution;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Text
                     // For source generated documents, we won't count them as linked across multiple projects; this is because
                     // the generated documents in each target may have different source so other features might be surprised if we
                     // return the same documents but with different text. So in this case, we'll just return a single document.
-                    return ImmutableArray.Create(solution.WithFrozenSourceGeneratedDocument(documentIdentity, text));
+                    return [solution.WithFrozenSourceGeneratedDocument(documentIdentity, text)];
                 }
 
                 var relatedIds = solution.GetRelatedDocumentIds(documentId);
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Text
                 return relatedIds.SelectAsArray((id, solution) => solution.GetRequiredDocument(id), solution);
             }
 
-            return ImmutableArray<Document>.Empty;
+            return [];
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             }
 
-            return ImmutableArray<Document>.Empty;
+            return [];
         }
 
         /// <summary>

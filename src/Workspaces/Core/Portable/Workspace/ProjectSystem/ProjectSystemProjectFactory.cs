@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// A set of documents that were added by <see cref="ProjectSystemProject.AddSourceTextContainer"/>, and aren't otherwise
         /// tracked for opening/closing.
         /// </summary>
-        public ImmutableHashSet<DocumentId> DocumentsNotFromFiles { get; private set; } = ImmutableHashSet<DocumentId>.Empty;
+        public ImmutableHashSet<DocumentId> DocumentsNotFromFiles { get; private set; } = [];
 
         /// <remarks>Should be updated with <see cref="ImmutableInterlocked"/>.</remarks>
         private ImmutableDictionary<ProjectId, string?> _projectToMaxSupportedLangVersionMap = ImmutableDictionary<ProjectId, string?>.Empty;
@@ -113,10 +113,12 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                 compilationOptions: creationInfo.CompilationOptions,
                 parseOptions: creationInfo.ParseOptions);
 
-            await ApplyChangeToWorkspaceAsync(async w =>
+            await ApplyChangeToWorkspaceAsync(w =>
             {
-                await w.SetCurrentSolutionAsync(
-                    useAsync: true,
+                // We call the synchronous SetCurrentSolution which is fine here since we've already acquired our outer lock so this will
+                // never block. But once we remove the ProjectSystemProjectFactory lock in favor of everybody calling the newer overloads of
+                // SetCurrentSolution, this should become async again.
+                w.SetCurrentSolution(
                     oldSolution =>
                     {
                         // If we don't have any projects and this is our first project being added, then we'll create a
@@ -127,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                                 SolutionId.CreateNewId(SolutionPath),
                                 VersionStamp.Create(),
                                 SolutionPath,
-                                projects: new[] { projectInfo },
+                                projects: [projectInfo],
                                 analyzerReferences: w.CurrentSolution.AnalyzerReferences).WithTelemetryId(SolutionTelemetryId);
                             var newSolution = w.CreateSolution(solutionInfo);
 
@@ -148,8 +150,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                             : (WorkspaceChangeKind.ProjectAdded, projectId, documentId: null);
                     },
                     onBeforeUpdate: null,
-                    onAfterUpdate: null,
-                    CancellationToken.None).ConfigureAwait(false);
+                    onAfterUpdate: null);
             }).ConfigureAwait(false);
 
             return project;
@@ -195,11 +196,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// <summary>
         /// Applies a single operation to the workspace. <paramref name="action"/> should be a call to one of the protected Workspace.On* methods.
         /// </summary>
-        public async ValueTask ApplyChangeToWorkspaceAsync(Func<Workspace, ValueTask> action, CancellationToken cancellationToken = default)
+        public async ValueTask ApplyChangeToWorkspaceAsync(Action<Workspace> action, CancellationToken cancellationToken = default)
         {
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                await action(Workspace).ConfigureAwait(false);
+                action(Workspace);
             }
         }
 

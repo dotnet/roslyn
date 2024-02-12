@@ -157,7 +157,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected virtual TestComposition GetComposition()
             => FeaturesTestCompositions.Features
                 .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
-                .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+                .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService))
+                .AddAssemblies(typeof(DiagnosticService).Assembly);
 
         protected virtual void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
@@ -479,17 +480,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 parameters.treatPositionIndicatorsAsCode);
 
             const string UnnecessaryMarkupKey = "Unnecessary";
-            var unnecessarySpans = initialSpanMap.GetOrAdd(UnnecessaryMarkupKey, _ => ImmutableArray<TextSpan>.Empty);
+            var unnecessarySpans = initialSpanMap.GetOrAdd(UnnecessaryMarkupKey, _ => []);
 
             MarkupTestFile.GetSpans(
                 expectedMarkup,
                 out var expected, out var expectedSpanMap,
                 parameters.treatPositionIndicatorsAsCode);
 
-            var conflictSpans = expectedSpanMap.GetOrAdd("Conflict", _ => ImmutableArray<TextSpan>.Empty);
-            var renameSpans = expectedSpanMap.GetOrAdd("Rename", _ => ImmutableArray<TextSpan>.Empty);
-            var warningSpans = expectedSpanMap.GetOrAdd("Warning", _ => ImmutableArray<TextSpan>.Empty);
-            var navigationSpans = expectedSpanMap.GetOrAdd("Navigation", _ => ImmutableArray<TextSpan>.Empty);
+            var conflictSpans = expectedSpanMap.GetOrAdd("Conflict", _ => []);
+            var renameSpans = expectedSpanMap.GetOrAdd("Rename", _ => []);
+            var warningSpans = expectedSpanMap.GetOrAdd("Warning", _ => []);
+            var navigationSpans = expectedSpanMap.GetOrAdd("Navigation", _ => []);
 
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {

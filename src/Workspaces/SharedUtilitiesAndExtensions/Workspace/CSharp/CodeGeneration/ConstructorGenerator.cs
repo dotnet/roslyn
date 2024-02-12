@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static ArgumentListSyntax GenerateArgumentList(ImmutableArray<SyntaxNode> arguments)
-            => SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments.Select(ArgumentGenerator.GenerateArgument)));
+            => SyntaxFactory.ArgumentList([.. arguments.Select(ArgumentGenerator.GenerateArgument)]);
 
         private static BlockSyntax GenerateBlock(
             IMethodSymbol constructor)

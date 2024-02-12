@@ -120,6 +120,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 selectedItem.DisplayText));
         }
 
-        public override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet<char>.Empty;
+        public override ImmutableHashSet<char> TriggerCharacters => [];
     }
 }

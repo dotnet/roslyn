@@ -997,7 +997,7 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                 }
                 """,
 
-parseOptions: Options.Regular);
+parseOptions: TestOptions.Regular);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
@@ -1099,7 +1099,7 @@ parseOptions: Options.Regular);
                 }
                 """,
 
-parseOptions: Options.Regular);
+parseOptions: TestOptions.Regular);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
@@ -1961,7 +1961,7 @@ parseOptions: Options.Regular);
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
         }
 
         [Fact]
@@ -2006,7 +2006,7 @@ parseOptions: Options.Regular);
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
@@ -3846,7 +3846,7 @@ class Program
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
         }
 
         [Fact]

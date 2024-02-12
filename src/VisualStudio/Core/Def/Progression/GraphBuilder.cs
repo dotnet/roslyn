@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -76,22 +77,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     return;
                 }
 
-                var project = _solution.Projects.FirstOrDefault(
-                    p => string.Equals(p.FilePath, projectPath.OriginalString, StringComparison.OrdinalIgnoreCase));
-                if (project == null)
+                var docIdsWithPath = _solution.GetDocumentIdsWithFilePath(filePath.OriginalString);
+                Document? document = null;
+                Project? project = null;
+
+                foreach (var docIdWithPath in docIdsWithPath)
+                {
+                    var projectState = _solution.GetProjectState(docIdWithPath.ProjectId);
+                    if (projectState == null)
+                    {
+                        FatalError.ReportAndCatch(new Exception("GetDocumentIdsWithFilePath returned a document in a project that does not exist."));
+                        continue;
+                    }
+
+                    if (string.Equals(projectState.FilePath, projectPath.OriginalString))
+                    {
+                        project = _solution.GetRequiredProject(projectState.Id);
+                        document = project.GetDocument(docIdWithPath);
+                        break;
+                    }
+                }
+
+                if (document == null || project == null)
                 {
                     return;
                 }
 
                 _nodeToContextProjectMap.Add(inputNode, project);
-
-                var document = project.Documents.FirstOrDefault(
-                    d => string.Equals(d.FilePath, filePath.OriginalString, StringComparison.OrdinalIgnoreCase));
-                if (document == null)
-                {
-                    return;
-                }
-
                 _nodeToContextDocumentMap.Add(inputNode, document);
             }
         }
@@ -353,9 +365,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         // This property will be used for drag-and-drop case.
                         var commonLabel = new System.Text.StringBuilder();
                         commonLabel.Append(typeSymbol.Name);
-                        commonLabel.Append("<");
+                        commonLabel.Append('<');
                         commonLabel.Append(string.Join(", ", typeSymbol.TypeParameters.Select(t => t.Name)));
-                        commonLabel.Append(">");
+                        commonLabel.Append('>');
                         node[Microsoft.VisualStudio.ArchitectureTools.ProgressiveReveal.ProgressiveRevealSchema.CommonLabel] = commonLabel.ToString();
 
                         return;

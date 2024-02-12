@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
             if (ifStatement.Parent is ElseClauseSyntax &&
                 ifStatement.Statement is BlockSyntax block)
             {
-                return block.WithStatements(SyntaxFactory.SingletonList(statement))
+                return block.WithStatements([statement])
                             .WithAdditionalAnnotations(Formatter.Annotation);
             }
 

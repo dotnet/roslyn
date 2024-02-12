@@ -504,8 +504,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // but no argument was supplied for it then the first such method is 
                         // the best bad method.
                         case MemberResolutionKind.RequiredParameterMissing:
-                            // CONSIDER: for consistency with dev12, we would goto default except in omitted ref cases.
-                            ReportMissingRequiredParameter(firstSupported, diagnostics, delegateTypeBeingInvoked, symbols, location);
+                            if ((binder.Flags & BinderFlags.CollectionExpressionConversionValidation) != 0)
+                            {
+                                if (receiver is null)
+                                {
+                                    Debug.Assert(firstSupported.Member is MethodSymbol { MethodKind: MethodKind.Constructor });
+                                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingConstructor, location);
+                                }
+                                else
+                                {
+                                    Debug.Assert(firstSupported.Member is MethodSymbol { Name: "Add" });
+                                    int argumentOffset = arguments.IsExtensionMethodInvocation ? 1 : 0;
+                                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingAdd, location, arguments.Arguments[argumentOffset].Type, firstSupported.Member);
+                                }
+                            }
+                            else
+                            {
+                                // CONSIDER: for consistency with dev12, we would goto default except in omitted ref cases.
+                                ReportMissingRequiredParameter(firstSupported, diagnostics, delegateTypeBeingInvoked, symbols, location);
+                            }
                             return;
 
                         // NOTE: For some reason, there is no specific handling for this result kind.
@@ -1092,9 +1109,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // ErrorCode.ERR_BadArgTypesForCollectionAdd or ErrorCode.ERR_InitializerAddHasParamModifiers
                 // as there is no explicit call to Add method.
 
-                foreach (var parameter in method.GetParameters())
+                int argumentOffset = arguments.IsExtensionMethodInvocation ? 1 : 0;
+                var parameters = method.GetParameters();
+
+                for (int i = argumentOffset; i < parameters.Length; i++)
                 {
-                    if (parameter.RefKind != RefKind.None)
+                    if (parameters[i].RefKind != RefKind.None)
                     {
                         //  The best overloaded method match '{0}' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
                         diagnostics.Add(ErrorCode.ERR_InitializerAddHasParamModifiers, location, symbols, method);
@@ -1102,8 +1122,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                //  The best overloaded Add method '{0}' for the collection initializer has some invalid arguments
-                diagnostics.Add(ErrorCode.ERR_BadArgTypesForCollectionAdd, location, symbols, method);
+                if (flags.Includes(BinderFlags.CollectionExpressionConversionValidation))
+                {
+                    Debug.Assert(arguments.Arguments.Count == argumentOffset + 1);
+                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingAdd, location, arguments.Arguments[argumentOffset].Type, method);
+                }
+                else
+                {
+                    //  The best overloaded Add method '{0}' for the collection initializer has some invalid arguments
+                    diagnostics.Add(ErrorCode.ERR_BadArgTypesForCollectionAdd, location, symbols, method);
+                }
             }
 
             foreach (var arg in badArg.Result.BadArgumentsOpt.TrueBits())

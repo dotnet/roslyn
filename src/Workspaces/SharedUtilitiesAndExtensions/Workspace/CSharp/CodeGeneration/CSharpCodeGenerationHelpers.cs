@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 {
                     return RemoveLeadingDirectiveTrivia(
                         fieldDeclarationNode.WithDeclaration(
-                            variableDeclarationNode.WithVariables(SyntaxFactory.SingletonSeparatedList(variableDeclaratorNode)))) as T;
+                            variableDeclarationNode.WithVariables([variableDeclaratorNode]))) as T;
                 }
 
                 return RemoveLeadingDirectiveTrivia(reusableSyntaxNode) as T;

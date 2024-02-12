@@ -15,11 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
     internal class DiscardSyntaxClassifier : AbstractSyntaxClassifier
     {
-        public override ImmutableArray<Type> SyntaxNodeTypes { get; } = ImmutableArray.Create(
-            typeof(DiscardDesignationSyntax),
-            typeof(DiscardPatternSyntax),
-            typeof(ParameterSyntax),
-            typeof(IdentifierNameSyntax));
+        public override ImmutableArray<Type> SyntaxNodeTypes { get; } = [typeof(DiscardDesignationSyntax), typeof(DiscardPatternSyntax), typeof(ParameterSyntax), typeof(IdentifierNameSyntax)];
 
         public override void AddClassifications(
            SyntaxNode syntax,

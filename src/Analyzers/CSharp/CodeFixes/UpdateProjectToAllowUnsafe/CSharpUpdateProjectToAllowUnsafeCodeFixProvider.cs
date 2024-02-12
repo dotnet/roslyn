@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpdateProjectToAllowUnsafe
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CS0227);
+            [CS0227];
 
         public override FixAllProvider? GetFixAllProvider()
         {

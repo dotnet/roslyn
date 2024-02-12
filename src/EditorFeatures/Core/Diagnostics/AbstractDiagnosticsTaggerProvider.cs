@@ -42,11 +42,13 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
     {
         GlobalOptions = globalOptions;
 
-        _diagnosticsTaggerProviders = ImmutableArray.Create(
+        _diagnosticsTaggerProviders =
+        [
             CreateDiagnosticsTaggerProvider(DiagnosticKind.CompilerSyntax),
             CreateDiagnosticsTaggerProvider(DiagnosticKind.CompilerSemantic),
             CreateDiagnosticsTaggerProvider(DiagnosticKind.AnalyzerSyntax),
-            CreateDiagnosticsTaggerProvider(DiagnosticKind.AnalyzerSemantic));
+            CreateDiagnosticsTaggerProvider(DiagnosticKind.AnalyzerSemantic),
+        ];
 
         return;
 
@@ -59,7 +61,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
     // identically.
 
     protected abstract ImmutableArray<IOption2> Options { get; }
-    protected virtual ImmutableArray<IOption2> FeatureOptions { get; } = ImmutableArray<IOption2>.Empty;
+    protected virtual ImmutableArray<IOption2> FeatureOptions { get; } = [];
 
     protected abstract bool IsEnabled { get; }
 
@@ -76,7 +78,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
     /// <param name="diagnosticData">the diagnostic containing the location(s).</param>
     /// <returns>an array of locations that should have the tag applied.</returns>
     protected virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
-        => diagnosticData.DataLocation is not null ? ImmutableArray.Create(diagnosticData.DataLocation) : ImmutableArray<DiagnosticDataLocation>.Empty;
+        => diagnosticData.DataLocation is not null ? [diagnosticData.DataLocation] : [];
 
     public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
     {

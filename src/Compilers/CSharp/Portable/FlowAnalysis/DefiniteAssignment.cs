@@ -2774,7 +2774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = new StringBuilder();
             builder.Append("[assigned ");
             AppendBitNames(state.Assigned, builder);
-            builder.Append("]");
+            builder.Append(']');
             return builder.ToString();
         }
 
@@ -2795,7 +2795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (id.ContainingSlot > 0)
             {
                 AppendBitName(id.ContainingSlot, builder);
-                builder.Append(".");
+                builder.Append('.');
             }
 
             builder.Append(

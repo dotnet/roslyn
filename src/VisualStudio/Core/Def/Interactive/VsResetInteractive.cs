@@ -30,27 +30,29 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
+    // TODO: convert to MEF component
     internal sealed class VsResetInteractive : ResetInteractive
     {
         private readonly VisualStudioWorkspace _workspace;
         private readonly EnvDTE.DTE _dte;
-        private readonly IComponentModel _componentModel;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly IVsMonitorSelection _monitorSelection;
         private readonly IVsSolutionBuildManager _buildManager;
 
         internal VsResetInteractive(
             VisualStudioWorkspace workspace,
             EnvDTE.DTE dte,
-            IComponentModel componentModel,
+            EditorOptionsService editorOptionsService,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             IVsMonitorSelection monitorSelection,
             IVsSolutionBuildManager buildManager,
             Func<string, string> createReference,
             Func<string, string> createImport)
-            : base(componentModel.GetService<EditorOptionsService>(), createReference, createImport)
+            : base(editorOptionsService, createReference, createImport)
         {
             _workspace = workspace;
             _dte = dte;
-            _componentModel = componentModel;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _monitorSelection = monitorSelection;
             _buildManager = buildManager;
         }
@@ -298,7 +300,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             => _dte.ExecuteCommand("Build.Cancel");
 
         protected override IUIThreadOperationExecutor GetUIThreadOperationExecutor()
-            => _componentModel.GetService<IUIThreadOperationExecutor>();
+            => _uiThreadOperationExecutor;
 
         /// <summary>
         /// Return namespaces that can be resolved in the latest interactive compilation.

@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryCast
     <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
     Partial Public Class RemoveUnnecessaryCastTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer(),
@@ -926,6 +926,23 @@ Module M
         Goo([|CStr(Nothing)|])
     End Sub
     Sub Goo(ParamArray x As Object())
+        Console.WriteLine(x.Length)
+    End Sub
+End Module
+</File>
+
+            Await TestMissingAsync(markup)
+        End Function
+
+        <Fact>
+        Public Async Function TestDoNotRemoveNecessaryCastPassedToIllegalParamArray() As Task
+            Dim markup =
+<File>
+Module M
+    Sub Main()
+        Goo([|CObj(Nothing)|])
+    End Sub
+    Sub Goo(ParamArray x As Object)
         Console.WriteLine(x.Length)
     End Sub
 End Module

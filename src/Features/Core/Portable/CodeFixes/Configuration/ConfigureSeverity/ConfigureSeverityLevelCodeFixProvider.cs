@@ -22,12 +22,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
     internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigurationFixProvider
     {
         private static readonly ImmutableArray<(string value, string title)> s_editorConfigSeverityStrings =
-            ImmutableArray.Create(
+            [
                 (EditorConfigSeverityStrings.None, WorkspacesResources.None),
                 (EditorConfigSeverityStrings.Silent, FeaturesResources.Silent),
                 (EditorConfigSeverityStrings.Suggestion, WorkspacesResources.Suggestion),
                 (EditorConfigSeverityStrings.Warning, WorkspacesResources.Warning),
-                (EditorConfigSeverityStrings.Error, WorkspacesResources.Error));
+                (EditorConfigSeverityStrings.Error, WorkspacesResources.Error),
+            ];
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -1037,8 +1036,7 @@ class TestClass
             await TestInRegularAndScriptAsync(text, expected, options: UseUnderscorePrefixedFieldName);
         }
 
-        [Fact]
-        [WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
+        [Fact, WorkItem(28013, "https://github.com/dotnet/roslyn/issues/26992")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/30208")]
         public async Task PropertyNameEqualsToClassNameExceptFirstCharCasingWhichCausesFieldNameCollisionByDefault()
         {
@@ -1231,10 +1229,10 @@ class TestClass
                 testWorkspace,
                 file1AfterRefactor,
                 action,
-                conflictSpans: ImmutableArray<TextSpan>.Empty,
-                renameSpans: ImmutableArray<TextSpan>.Empty,
-                warningSpans: ImmutableArray<TextSpan>.Empty,
-                navigationSpans: ImmutableArray<TextSpan>.Empty,
+                conflictSpans: [],
+                renameSpans: [],
+                warningSpans: [],
+                navigationSpans: [],
                 parameters: null);
         }
 
@@ -1278,10 +1276,10 @@ class TestClass
                 testWorkspace,
                 file2AfterRefactor,
                 action,
-                conflictSpans: ImmutableArray<TextSpan>.Empty,
-                renameSpans: ImmutableArray<TextSpan>.Empty,
-                warningSpans: ImmutableArray<TextSpan>.Empty,
-                navigationSpans: ImmutableArray<TextSpan>.Empty,
+                conflictSpans: [],
+                renameSpans: [],
+                warningSpans: [],
+                navigationSpans: [],
                 parameters: null);
         }
 

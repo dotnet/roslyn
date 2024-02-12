@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             return generator.InterpolatedStringExpression(
                 generator.CreateInterpolatedStringStartToken(isVerbatim),
-                new[] { newNode },
+                [newNode],
                 generator.CreateInterpolatedStringEndToken()).WithTriviaFrom(literalExpression);
         }
 

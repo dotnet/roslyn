@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
 
             return stringExpression.Update(
                 newStartToken,
-                SyntaxFactory.List(newContents),
+                [.. newContents],
                 stringExpression.StringEndToken);
         }
 

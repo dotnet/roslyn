@@ -1321,8 +1321,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/69696")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69696")]
         public async Task LineContinuationInString2()
         {
             var code = $@"[|
@@ -1343,8 +1342,7 @@ End Module
             await VerifyAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/69696")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69696")]
         public async Task LineContinuationInString3()
         {
             var code = $@"[|

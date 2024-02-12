@@ -84,9 +84,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             FullXmlFragment = fullXmlFragment;
 
-            ParameterNames = ImmutableArray<string>.Empty;
-            TypeParameterNames = ImmutableArray<string>.Empty;
-            ExceptionTypes = ImmutableArray<string>.Empty;
+            ParameterNames = [];
+            TypeParameterNames = [];
+            ExceptionTypes = [];
         }
 
         /// <summary>
@@ -158,9 +158,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     }
                 }
 
-                _comment.ParameterNames = _parameterNamesBuilder == null ? ImmutableArray<string>.Empty : _parameterNamesBuilder.ToImmutable();
-                _comment.TypeParameterNames = _typeParameterNamesBuilder == null ? ImmutableArray<string>.Empty : _typeParameterNamesBuilder.ToImmutable();
-                _comment.ExceptionTypes = _exceptionTypesBuilder == null ? ImmutableArray<string>.Empty : _exceptionTypesBuilder.ToImmutable();
+                _comment.ParameterNames = _parameterNamesBuilder == null ? [] : _parameterNamesBuilder.ToImmutable();
+                _comment.TypeParameterNames = _typeParameterNamesBuilder == null ? [] : _typeParameterNamesBuilder.ToImmutable();
+                _comment.ExceptionTypes = _exceptionTypesBuilder == null ? [] : _exceptionTypesBuilder.ToImmutable();
 
                 return _comment;
             }
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 // If the exception wasn't found, TryGetValue will set "texts" to a default value.
                 // To be friendly, we want to return an empty array rather than a null array.
-                texts = ImmutableArray.Create<string>();
+                texts = [];
             }
 
             return texts;
