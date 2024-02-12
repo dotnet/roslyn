@@ -233,7 +233,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                             await Task.WhenAll(concurrentlyExecutingTasksArray.Select(kvp => kvp.Key)).NoThrowAwaitable(captureContext: false);
                         }
 
-                        Debug.Assert(!concurrentlyExecutingTasks.Any(), "The tasks should have all been drained before continuing");
+                        Debug.Assert(!concurrentlyExecutingTasks.Any(t => !t.Key.IsCompleted), "The tasks should have all been drained before continuing");
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
                         await WrapStartRequestTaskAsync(work.StartRequestAsync(context, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
