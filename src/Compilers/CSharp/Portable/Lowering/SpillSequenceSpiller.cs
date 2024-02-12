@@ -479,12 +479,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.ObjectCreationExpression:
                         var objectCreationExpression = (BoundObjectCreationExpression)expression;
 
-                        if (objectCreationExpression.Constructor.OriginalDefinition == _F.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference))
+                        if (refKind == RefKind.None &&
+                            objectCreationExpression.InitializerExpressionOpt is null &&
+                            objectCreationExpression.Constructor.OriginalDefinition == _F.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference))
                         {
                             Debug.Assert(objectCreationExpression.Arguments.Length == 1);
                             return objectCreationExpression.UpdateArgumentsAndInitializer([Spill(builder, objectCreationExpression.Arguments[0], objectCreationExpression.ArgumentRefKindsOpt[0])],
                                                                                           objectCreationExpression.ArgumentRefKindsOpt,
-                                                                                          objectCreationExpression.InitializerExpressionOpt);
+                                                                                          newInitializerExpression: null);
                         }
 
                         goto default;
