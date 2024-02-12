@@ -237,6 +237,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
                     var parameterToArgumentMap = new Dictionary<IParameterSymbol, int>();
                     foreach (var invocation in invocations)
                     {
+                        // Skipping object creation expressions since they should not have the option to trampoline.
                         if (invocation is TObjectCreationExpressionSyntax)
                         {
                             continue;
