@@ -1225,15 +1225,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ = typeDeclaration.ParameterList;
                     Binder outerBinder = VisitCore(memberSyntax);
                     SourceNamedTypeSymbol type = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);
-                    if (type is not null)
-                    {
-                        var primaryConstructor = type.PrimaryConstructor;
+                    var primaryConstructor = type.PrimaryConstructor;
 
-                        if (primaryConstructor.SyntaxRef.SyntaxTree == memberSyntax.SyntaxTree &&
-                            primaryConstructor.GetSyntax() == memberSyntax)
-                        {
-                            return new WithParametersBinder(primaryConstructor.Parameters, nextBinder);
-                        }
+                    if (primaryConstructor.SyntaxRef.SyntaxTree == memberSyntax.SyntaxTree &&
+                        primaryConstructor.GetSyntax() == memberSyntax)
+                    {
+                        return new WithParametersBinder(primaryConstructor.Parameters, nextBinder);
                     }
                 }
 
@@ -1404,7 +1401,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MemberDeclarationSyntax memberSyntax = curr as MemberDeclarationSyntax;
                 if (memberSyntax != null)
                 {
-                    // CONSIDER: require that the xml syntax precede the start of the member span?
+                    // Require that the xml syntax precedes the start of the member span.
+                    if (memberSyntax.SpanStart < xmlSyntax.SpanStart)
+                    {
+                        return null;
+                    }
+
                     return memberSyntax;
                 }
                 curr = curr.Parent;
