@@ -2,19 +2,31 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Composition;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 {
+    [Export(typeof(ISourceLinkService))]
+    [Shared]
+    [PartNotDiscoverable]
     internal class TestSourceLinkService : ISourceLinkService
     {
-        private readonly string? _pdbFilePath;
-        private readonly string? _sourceFilePath;
+        private string? _pdbFilePath;
+        private string? _sourceFilePath;
 
-        public TestSourceLinkService(string? pdbFilePath = null, string? sourceFilePath = null)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TestSourceLinkService()
+        {
+        }
+
+        public void Initialize(string? pdbFilePath = null, string? sourceFilePath = null)
         {
             _pdbFilePath = pdbFilePath;
             _sourceFilePath = sourceFilePath;

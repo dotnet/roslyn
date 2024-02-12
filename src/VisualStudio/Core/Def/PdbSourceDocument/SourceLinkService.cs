@@ -21,14 +21,14 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
     {
         private readonly IDebuggerSymbolLocatorService _debuggerSymbolLocatorService;
         private readonly IDebuggerSourceLinkService _debuggerSourceLinkService;
-        private readonly IPdbSourceDocumentLogger? _logger;
+        private readonly IPdbSourceDocumentLogger _logger;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SourceLinkService(
             IDebuggerSymbolLocatorService debuggerSymbolLocatorService,
             IDebuggerSourceLinkService debuggerSourceLinkService,
-            [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger)
+            IPdbSourceDocumentLogger logger)
         {
             _debuggerSymbolLocatorService = debuggerSymbolLocatorService;
             _debuggerSourceLinkService = debuggerSourceLinkService;
@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
             {
                 return new PdbFilePathResult(result.SymbolFilePath);
             }
-            else if (_logger is not null)
+            else
             {
                 // We log specific info from the debugger if there is a failure, but the caller will log general failure
                 // information otherwise
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
             {
                 return new SourceFilePathResult(result.Path);
             }
-            else if (_logger is not null && result.Log is not null)
+            else if (result.Log is not null)
             {
                 // We log specific info from the debugger if there is a failure, but the caller will log general failure
                 // information otherwise.

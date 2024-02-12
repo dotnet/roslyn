@@ -25,11 +25,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 internal sealed class VSTypeScriptNavigateToSearchService(
     [Import(AllowDefault = true)] IVSTypeScriptNavigateToSearchService? searchService) : INavigateToSearchService
 {
-    private readonly IVSTypeScriptNavigateToSearchService? _searchService = searchService;
+    // 'searchService' is a required import, but MEF 2 does not support silent part rejection when a required import
+    // is missing so we combine AllowDefault with a null check in the constructor to defer the exception until the
+    // part is instantiated.
+    private readonly IVSTypeScriptNavigateToSearchService _searchService = searchService ?? throw new ArgumentNullException(nameof(searchService));
 
-    public IImmutableSet<string> KindsProvided => _searchService?.KindsProvided ?? ImmutableHashSet<string>.Empty;
+    public IImmutableSet<string> KindsProvided => _searchService.KindsProvided ?? ImmutableHashSet<string>.Empty;
 
-    public bool CanFilter => _searchService?.CanFilter ?? false;
+    public bool CanFilter => _searchService.CanFilter;
 
     public async Task SearchDocumentAsync(
         Document document,
@@ -38,12 +41,9 @@ internal sealed class VSTypeScriptNavigateToSearchService(
         Func<INavigateToSearchResult, Task> onResultFound,
         CancellationToken cancellationToken)
     {
-        if (_searchService != null)
-        {
-            var results = await _searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            foreach (var result in results)
-                await onResultFound(Convert(result)).ConfigureAwait(false);
-        }
+        var results = await _searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+        foreach (var result in results)
+            await onResultFound(Convert(result)).ConfigureAwait(false);
     }
 
     public async Task SearchProjectsAsync(
@@ -74,13 +74,10 @@ internal sealed class VSTypeScriptNavigateToSearchService(
         {
             if (processedProjects.Add(project))
             {
-                if (_searchService != null)
-                {
-                    var results = await _searchService.SearchProjectAsync(
-                        project, priorityDocuments.WhereAsArray(d => d.Project == project), searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-                    foreach (var result in results)
-                        await onResultFound(project, Convert(result)).ConfigureAwait(false);
-                }
+                var results = await _searchService.SearchProjectAsync(
+                    project, priorityDocuments.WhereAsArray(d => d.Project == project), searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                foreach (var result in results)
+                    await onResultFound(project, Convert(result)).ConfigureAwait(false);
 
                 await onProjectCompleted().ConfigureAwait(false);
             }

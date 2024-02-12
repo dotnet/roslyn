@@ -18,8 +18,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
     [ExportLanguageService(typeof(IFormattingService), InternalLanguageNames.TypeScript), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class VSTypeScriptFormattingService([Import(AllowDefault = true)] IVSTypeScriptFormattingServiceImplementation impl) : IFormattingService
+    internal sealed class VSTypeScriptFormattingService([Import(AllowDefault = true)] IVSTypeScriptFormattingServiceImplementation? impl) : IFormattingService
     {
+        // 'impl' is a required import, but MEF 2 does not support silent part rejection when a required import is
+        // missing so we combine AllowDefault with a null check in the constructor to defer the exception until the part
+        // is instantiated.
         private readonly IVSTypeScriptFormattingServiceImplementation _impl = impl ?? throw new ArgumentNullException(nameof(impl));
 
         public Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, LineFormattingOptions lineFormattingOptions, SyntaxFormattingOptions? syntaxFormattingOptions, CancellationToken cancellationToken)

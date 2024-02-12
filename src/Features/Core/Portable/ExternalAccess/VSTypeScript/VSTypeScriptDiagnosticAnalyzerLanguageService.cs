@@ -15,8 +15,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class VSTypeScriptDiagnosticAnalyzerLanguageService(
-        [Import(AllowDefault = true)] IVSTypeScriptDiagnosticAnalyzerImplementation? implementation = null) : ILanguageService
+        [Import(AllowDefault = true)] IVSTypeScriptDiagnosticAnalyzerImplementation? implementation) : ILanguageService
     {
-        internal readonly IVSTypeScriptDiagnosticAnalyzerImplementation? Implementation = implementation;
+        // 'implementation' is a required import, but MEF 2 does not support silent part rejection when a required
+        // import is missing so we combine AllowDefault with a null check in the constructor to defer the exception
+        // until the part is instantiated.
+        internal readonly IVSTypeScriptDiagnosticAnalyzerImplementation Implementation = implementation ?? throw new ArgumentNullException(nameof(implementation));
     }
 }

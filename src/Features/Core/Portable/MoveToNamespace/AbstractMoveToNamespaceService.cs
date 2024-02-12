@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(Document document, int position, CancellationToken cancellationToken);
         Task<MoveToNamespaceResult> MoveToNamespaceAsync(MoveToNamespaceAnalysisResult analysisResult, string targetNamespace, CodeCleanupOptionsProvider options, CancellationToken cancellationToken);
         MoveToNamespaceOptionsResult GetChangeNamespaceOptions(Document document, string defaultNamespace, ImmutableArray<string> namespaces);
-        IMoveToNamespaceOptionsService OptionsService { get; }
+        IMoveToNamespaceOptionsService? OptionsService { get; }
     }
 
     internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax>
@@ -43,9 +41,9 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         protected abstract string GetNamespaceName(SyntaxNode namespaceSyntax);
         protected abstract bool IsContainedInNamespaceDeclaration(TNamespaceDeclarationSyntax namespaceSyntax, int position);
 
-        public IMoveToNamespaceOptionsService OptionsService { get; }
+        public IMoveToNamespaceOptionsService? OptionsService { get; }
 
-        protected AbstractMoveToNamespaceService(IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
+        protected AbstractMoveToNamespaceService(IMoveToNamespaceOptionsService? moveToNamespaceOptionsService)
             => OptionsService = moveToNamespaceOptionsService;
 
         public async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
@@ -74,10 +72,10 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             int position,
             CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var token = root.FindToken(position);
-            var node = token.Parent;
+            var node = token.GetRequiredParent();
 
             var moveToNamespaceAnalysisResult = await TryAnalyzeNamespaceAsync(document, node, position, cancellationToken).ConfigureAwait(false);
 
@@ -90,7 +88,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             return moveToNamespaceAnalysisResult ?? MoveToNamespaceAnalysisResult.Invalid;
         }
 
-        private async Task<MoveToNamespaceAnalysisResult> TryAnalyzeNamespaceAsync(
+        private async Task<MoveToNamespaceAnalysisResult?> TryAnalyzeNamespaceAsync(
             Document document, SyntaxNode node, int position, CancellationToken cancellationToken)
         {
             var declarationSyntax = node.FirstAncestorOrSelf<TNamespaceDeclarationSyntax>();
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             // The underlying ChangeNamespace service doesn't support nested namespace declaration.
             if (GetNamespaceInSpineCount(declarationSyntax) == 1)
             {
-                var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
+                var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
                 if (await changeNamespaceService.CanChangeNamespaceAsync(document, declarationSyntax, cancellationToken).ConfigureAwait(false))
                 {
                     var namespaceName = GetNamespaceName(declarationSyntax);
@@ -126,14 +124,14 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 return MoveToNamespaceAnalysisResult.Invalid;
             }
 
-            SyntaxNode container = null;
+            SyntaxNode? container = null;
 
             // Moving one of the many members declared in global namespace is not currently supported,
             // but if it's the only member declared, then that's fine.
             if (namespaceInSpineCount == 0)
             {
-                container = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                container = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
                 if (syntaxFacts.GetMembersOfCompilationUnit(container).Count > 1)
                 {
@@ -145,7 +143,12 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             {
                 // If we are inside a namespace declaration, then find it as the container.
                 container ??= GetContainingNamespace(namedTypeDeclarationSyntax);
-                var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
+
+                // Container is either non-null as the containing namespace, or the syntax root of the document for
+                // cases where a type was defined in the global namespace.
+                RoslynDebug.AssertNotNull(container);
+
+                var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
 
                 if (await changeNamespaceService.CanChangeNamespaceAsync(document, container, cancellationToken).ConfigureAwait(false))
                 {
@@ -157,7 +160,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             return MoveToNamespaceAnalysisResult.Invalid;
         }
 
-        private static TNamespaceDeclarationSyntax GetContainingNamespace(TNamedTypeDeclarationSyntax namedTypeSyntax)
+        private static TNamespaceDeclarationSyntax? GetContainingNamespace(TNamedTypeDeclarationSyntax namedTypeSyntax)
             => namedTypeSyntax.FirstAncestorOrSelf<TNamespaceDeclarationSyntax>();
 
         private static int GetNamespaceInSpineCount(SyntaxNode node)
@@ -187,20 +190,20 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
         private static async Task<ImmutableArray<ISymbol>> GetMemberSymbolsAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             switch (container)
             {
                 case TNamespaceDeclarationSyntax namespaceNode:
                     var namespaceMembers = syntaxFacts.GetMembersOfBaseNamespaceDeclaration(namespaceNode);
-                    return namespaceMembers.SelectAsArray(member => semanticModel.GetDeclaredSymbol(member, cancellationToken));
+                    return namespaceMembers.SelectAsArray(member => semanticModel.GetRequiredDeclaredSymbol(member, cancellationToken));
                 case TCompilationUnitSyntax compilationUnit:
                     var compilationUnitMembers = syntaxFacts.GetMembersOfCompilationUnit(compilationUnit);
                     // We are trying to move a selected type from global namespace to the target namespace.
                     // This is supported if the selected type is the only member declared in the global namespace in this document.
                     // (See `TryAnalyzeNamedTypeAsync`)
                     Debug.Assert(compilationUnitMembers.Count == 1);
-                    return compilationUnitMembers.SelectAsArray(member => semanticModel.GetDeclaredSymbol(member, cancellationToken));
+                    return compilationUnitMembers.SelectAsArray(member => semanticModel.GetRequiredDeclaredSymbol(member, cancellationToken));
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(container);
@@ -259,15 +262,15 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 MoveTypeOperationKind.MoveTypeNamespaceScope,
                 fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
-            var modifiedDocument = modifiedSolution.GetDocument(document.Id);
+            var modifiedDocument = modifiedSolution.GetRequiredDocument(document.Id);
 
             // Since MoveTypeService doesn't handle linked files, we need to merge the diff ourselves, 
             // otherwise, we will end up with multiple linked documents with different content.
             var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var mergedSolution = await PropagateChangeToLinkedDocumentsAsync(modifiedDocument, formattingOptions, cancellationToken).ConfigureAwait(false);
-            var mergedDocument = mergedSolution.GetDocument(document.Id);
+            var mergedDocument = mergedSolution.GetRequiredDocument(document.Id);
 
-            var syntaxRoot = await mergedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxRoot = await mergedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxNode = syntaxRoot.GetAnnotatedNodes(AbstractMoveTypeService.NamespaceScopeMovedAnnotation).SingleOrDefault();
 
             // The type might be declared in global namespace
@@ -316,7 +319,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
         private static async Task<IEnumerable<string>> GetNamespacesAsync(Document document, CancellationToken cancellationToken)
         {
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             return compilation.GlobalNamespace.GetAllNamespaces(cancellationToken)
                 .Where(n => n.NamespaceKind == NamespaceKind.Module && n.ContainingAssembly == compilation.Assembly)
@@ -328,6 +331,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             string defaultNamespace,
             ImmutableArray<string> namespaces)
         {
+            Contract.ThrowIfNull(OptionsService);
+
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
 
             return OptionsService.GetChangeNamespaceOptions(
