@@ -4637,5 +4637,29 @@ class C
 
             Assert.Single(frozenCompilation2.References.Where(r => r is CompilationReference c && c.Compilation == frozenCompilation1));
         }
+
+        [Fact]
+        public async Task TestFrozenPartialSolution6()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project1 = workspace.CurrentSolution.AddProject("CSharpProject1", "CSharpProject1", LanguageNames.CSharp);
+            project1 = project1.AddDocument("Doc1", SourceText.From("class Doc1 { }")).Project;
+
+            // If we freeze
+            var compilation1 = await project1.GetCompilationAsync();
+            var syntaxTree1 = await project1.Documents.Single().GetSyntaxTreeAsync();
+
+            var frozenSolution = await project1.Solution.WithFrozenPartialCompilationsAsync(CancellationToken.None);
+
+            var forkedProject1 = frozenSolution.WithDocumentText(project1.Documents.Single().Id, SourceText.From("class Doc2 { }")).GetProject(project1.Id);
+            var forkedDocument1 = forkedProject1.Documents.Single();
+            var forkedSyntaxTree1 = await forkedDocument1.GetSyntaxTreeAsync();
+
+            Assert.NotEqual(syntaxTree1, forkedSyntaxTree1);
+
+            var forkedCompilation1 = await forkedProject1.GetCompilationAsync();
+            Assert.NotEqual(compilation1, forkedCompilation1);
+            Assert.True(forkedCompilation1.ContainsSyntaxTree(forkedSyntaxTree1));
+        }
     }
 }
