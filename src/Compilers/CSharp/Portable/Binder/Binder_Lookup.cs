@@ -1475,7 +1475,7 @@ symIsHidden:;
                 }
 
                 var extendedType = hidingContainer.ExtendedTypeNoUseSiteDiagnostics;
-                if (hiddenContainer.Equals(extendedType, TypeCompareKind.ConsiderEverything))
+                if (hiddenContainer.Equals(extendedType, TypeCompareKind.AllIgnoreOptions))
                 {
                     return true;
                 }

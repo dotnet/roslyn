@@ -21967,6 +21967,47 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension EOuter for I
     }
 
     [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Invocation_Interface_FromUnderlyingTypeBase(bool isExplicit)
+    {
+        var source = $$"""
+E.M();
+E.Method();
+
+public interface IBase
+{
+    public static void Method() { System.Console.Write("Method "); }
+}
+
+public interface I : IBase { }
+
+public static {{(isExplicit ? "explicit" : "implicit")}} extension E for I
+{
+    public static void M() { Method(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: "Method Method").VerifyDiagnostics();
+        verifier.VerifyIL("E.M", """
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       "void IBase.Method()"
+  IL_0005:  ret
+}
+""");
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "Method()");
+        Assert.Equal("void IBase.Method()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation)); // PROTOTYPE need to fix the semantic model
+
+        var typeReceiverInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E.Method()");
+        Assert.Equal("void IBase.Method()", model.GetSymbolInfo(typeReceiverInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(typeReceiverInvocation)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
     public void UnderlyingTypeMemberLookup_Static_Field_Interface(bool isExplicit)
     {
         var source = $$"""
@@ -21986,6 +22027,31 @@ public static {{(isExplicit ? "explicit" : "implicit")}} extension E for I { }
         var model = comp.GetSemanticModel(tree);
         var simpleInvocation = GetSyntax<IdentifierNameSyntax>(tree, "Field");
         Assert.Equal("System.Int32 I.Field", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Field_Interface_FromUnderlyingTypeBase(bool isExplicit)
+    {
+        var source = $$"""
+System.Console.Write(E.Field);
+
+public interface IBase
+{
+    public static int Field = 1;
+}
+
+public interface I : IBase { }
+
+public static {{(isExplicit ? "explicit" : "implicit")}} extension E for I { }
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var simpleInvocation = GetSyntax<IdentifierNameSyntax>(tree, "Field");
+        Assert.Equal("System.Int32 IBase.Field", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(simpleInvocation));
     }
 
