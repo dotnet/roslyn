@@ -61,10 +61,10 @@ internal sealed partial class SolutionCompilationState
     /// <summary>
     /// Mapping of DocumentId to the frozen compilation state we produced for it the last time we were queried.
     /// </summary>
-    private readonly Dictionary<DocumentId, SolutionCompilationState> _cachedFrozenDocumentState = new();
+    private readonly Dictionary<DocumentId, SolutionCompilationState> _cachedFrozenDocumentState = [];
 
     private readonly AsyncLazy<SolutionCompilationState> _cachedFrozenSnapshot;
- 
+
     private SolutionCompilationState(
         SolutionState solution,
         bool partialSemanticsEnabled,
