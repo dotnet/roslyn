@@ -18,20 +18,31 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
     public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
     {
-        private static readonly string s_globalJsonPath;
+        // When running on Helix the machine will only have the expected SDK
+        // installed. However, when running on developer machines there could
+        // be any number of SDKs installed. We will locate the Roslyn global.json
+        // and use it to ensure our tests are run with the proper SDK.
+        private static readonly string? s_globalJsonPath;
 
         // The Maui templates require additional dotnet workloads to be installed.
         // Running `dotnet workload restore` will install workloads but may require
-        // admin permissions. In addition a restart may be required after workload
+        // admin permissions. Additionally, a restart may be required after workload
         // installation.
         private const bool ExcludeMauiTemplates = true;
 
-        protected ITestOutputHelper TestOutputHelper { get; set; }
+        protected ITestOutputHelper TestOutputHelper { get; }
 
         static NewlyCreatedProjectsFromDotNetNew()
         {
-            // We'll use the same global.json as we use for our own build.
-            s_globalJsonPath = Path.Combine(GetSolutionFolder(), "global.json");
+            // When running on developer machines we will try and use the same global.json
+            // as we use for our own build.
+            var globalJsonPath = Path.Combine(GetSolutionFolder(), "global.json");
+
+            // When running on Helix we will not locate a global.json file.
+            if (File.Exists(globalJsonPath))
+            {
+                s_globalJsonPath = globalJsonPath;
+            }
 
             static string GetSolutionFolder()
             {
@@ -123,6 +134,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 var columns = line.Split(new[] { "  " }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(c => c.Trim())
                     .ToArray();
+
+                // Some templates may list multiple short names for the same template. It
+                // will suffice to take the first short name.
                 var templateShortName = columns[1].Split(',').First();
 
                 if (ExcludeMauiTemplates && templateShortName.StartsWith("maui"))
@@ -198,14 +212,14 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             static void TryCopyGlobalJson(string outputDirectory)
             {
+                // When running in Helix we will not find a global.json to copy.
+                if (s_globalJsonPath is null)
+                {
+                    return;
+                }
+
                 var tempGlobalJsonPath = Path.Combine(outputDirectory, "global.json");
-                try
-                {
-                    File.Copy(s_globalJsonPath, tempGlobalJsonPath);
-                }
-                catch (FileNotFoundException)
-                {
-                }
+                File.Copy(s_globalJsonPath, tempGlobalJsonPath);
             }
 
             static async Task AssertProjectLoadsCleanlyAsync(string projectFilePath, string[] ignoredDiagnostics)
@@ -242,7 +256,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         {
             var dotNetExeName = "dotnet" + (Path.DirectorySeparatorChar == '/' ? "" : ".exe");
 
-            var result = ProcessUtilities.Run(dotNetExeName, arguments, workingDirectory, additionalEnvironmentVars: [new KeyValuePair<string, string>("DOTNET_CLI_UI_LANGUAGE", "en")]);
+            // Ensure output is in english since we will be parsing values from it.
+            Dictionary<string, string> additionalEnvironmentVars = new()
+            {
+                ["DOTNET_CLI_UI_LANGUAGE"] = "en"
+            };
+
+            var result = ProcessUtilities.Run(dotNetExeName, arguments, workingDirectory, additionalEnvironmentVars);
 
             if (result.ExitCode != 0)
             {
