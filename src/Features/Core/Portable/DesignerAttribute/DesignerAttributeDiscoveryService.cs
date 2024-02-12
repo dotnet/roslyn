@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
@@ -27,15 +26,13 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     [ExportWorkspaceService(typeof(IDesignerAttributeDiscoveryService)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed partial class DesignerAttributeDiscoveryService(IAsynchronousOperationListenerProvider listenerProvider) : IDesignerAttributeDiscoveryService
+    internal sealed partial class DesignerAttributeDiscoveryService() : IDesignerAttributeDiscoveryService
     {
         /// <summary>
         /// Cache from the individual references a project has, to a boolean specifying if reference knows about the
         /// System.ComponentModel.DesignerCategoryAttribute attribute.
         /// </summary>
         private static readonly ConditionalWeakTable<MetadataId, AsyncLazy<bool>> s_metadataIdToDesignerAttributeInfo = new();
-
-        private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
 
         /// <summary>
         /// Protects mutable state in this type.
@@ -104,12 +101,44 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             }
         }
 
-        public async ValueTask ProcessSolutionAsync(
+        public async ValueTask ProcessPriorityDocumentAsync(
             Solution solution,
-            DocumentId? priorityDocumentId,
+            DocumentId priorityDocumentId,
             IDesignerAttributeDiscoveryService.ICallback callback,
             CancellationToken cancellationToken)
         {
+            if (!solution.GetRequiredProject(priorityDocumentId.ProjectId).SupportsCompilation)
+                return;
+
+            // Create a frozen snapshot guaranteed to have this document in it.  Note: it's important that we do
+            // this, and not just depend on the solution.WithFrozenPartialCompilationsAsync below.  Very
+            // importantly, that solution may not contain this document yet.  This does mean we'll process two
+            // separate solutions.
+            var frozenDocument = solution
+                .GetRequiredDocument(priorityDocumentId)
+                .WithFrozenPartialSemantics(cancellationToken);
+
+            var frozenProject = frozenDocument.Project;
+
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var lazyProjectVersion = AsyncLazy.Create(frozenDocument.Project.GetSemanticVersionAsync);
+
+                await ScanForDesignerCategoryUsageAsync(
+                    frozenDocument.Project, frozenDocument, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public async ValueTask ProcessSolutionAsync(
+            Solution solution,
+            IDesignerAttributeDiscoveryService.ICallback callback,
+            CancellationToken cancellationToken)
+        {
+            // Freeze the entire solution at this point.  We don't want to run generators (as they are very unlikely
+            // to contribute any changes that would affect which types we think are designable), and we want to be 
+            // very fast to update the ui as a user types.
+            var frozenSolution = await solution.WithFrozenPartialCompilationsAsync(cancellationToken).ConfigureAwait(false);
+
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 // Remove any documents that are now gone.
@@ -119,39 +148,16 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                         _documentToLastReportedInformation.TryRemove(docId, out _);
                 }
 
-                // Handle the priority doc first.
-                if (priorityDocumentId != null)
-                {
-                    // Create a frozen snapshot guaranteed to have this document in it.
-                    var priorityDocument = solution
-                        .GetRequiredDocument(priorityDocumentId)
-                        .WithFrozenPartialSemantics(cancellationToken);
-
-                    await ProcessProjectAsync(priorityDocument.Project, priorityDocument, callback, cancellationToken).ConfigureAwait(false);
-                }
-
-                // Freeze the entire solution at this point.  We don't want to run generators (as they are very unlikely
-                // to contribute any changes that would affect which types we think are designable), and we want to be 
-                // very fast to update the ui as a user types.
-                solution = await solution.WithFrozenPartialCompilationsAsync(cancellationToken).ConfigureAwait(false);
-
-                // Wait a little after the priority document and process the rest at a lower priority.
-                await _listener.Delay(DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
-
                 // Process the rest of the projects in dependency order so that their data is ready when we hit the 
                 // projects that depend on them.
-                var dependencyGraph = solution.GetProjectDependencyGraph();
+                var dependencyGraph = frozenSolution.GetProjectDependencyGraph();
                 foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
-                {
-                    if (projectId != priorityDocumentId?.ProjectId)
-                        await ProcessProjectAsync(solution.GetRequiredProject(projectId), specificDocument: null, callback, cancellationToken).ConfigureAwait(false);
-                }
+                    await ProcessProjectAsync(frozenSolution.GetRequiredProject(projectId), callback, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task ProcessProjectAsync(
             Project project,
-            Document? specificDocument,
             IDesignerAttributeDiscoveryService.ICallback callback,
             CancellationToken cancellationToken)
         {
@@ -159,28 +165,13 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 return;
 
             // Defer expensive work until it's actually needed.
-
             // The top level project version for this project.  We only care if anything top level changes here.
             // Downstream impact will already happen due to us keying off of the references a project has (which will
             // change if anything it depends on changes).
             var lazyProjectVersion = AsyncLazy.Create(project.GetSemanticVersionAsync);
 
-            if (specificDocument != null)
-            {
-                // Scan that specific document first.
-                await ScanForDesignerCategoryUsageAsync(
-                    project, specificDocument, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
-
-                // The scan the entire project.  Note: this will no-op on the specific-document as it will have just
-                // computed and cached the data for it.
-                await ScanForDesignerCategoryUsageAsync(
-                    project, specificDocument: null, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                await ScanForDesignerCategoryUsageAsync(
-                    project, specificDocument: null, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
-            }
+            await ScanForDesignerCategoryUsageAsync(
+                project, specificDocument: null, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task ScanForDesignerCategoryUsageAsync(

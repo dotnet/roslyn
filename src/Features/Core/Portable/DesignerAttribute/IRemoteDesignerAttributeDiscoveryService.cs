@@ -23,8 +23,8 @@ internal interface IRemoteDesignerAttributeDiscoveryService
         ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
     }
 
-    ValueTask DiscoverDesignerAttributesAsync(
-        RemoteServiceCallbackId callbackId, Checksum solutionChecksum, DocumentId? priorityDocument, CancellationToken cancellationToken);
+    ValueTask DiscoverDesignerAttributesAsync(RemoteServiceCallbackId callbackId, Checksum solutionChecksum, CancellationToken cancellationToken);
+    ValueTask DiscoverDesignerAttributesAsync(RemoteServiceCallbackId callbackId, Checksum solutionChecksum, DocumentId priorityDocument, CancellationToken cancellationToken);
 }
 
 [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteDesignerAttributeDiscoveryService)), Shared]

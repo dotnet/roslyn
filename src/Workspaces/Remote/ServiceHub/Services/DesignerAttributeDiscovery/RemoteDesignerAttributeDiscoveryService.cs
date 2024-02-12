@@ -33,7 +33,6 @@ internal sealed class RemoteDesignerAttributeDiscoveryService(
     public ValueTask DiscoverDesignerAttributesAsync(
         RemoteServiceCallbackId callbackId,
         Checksum solutionChecksum,
-        DocumentId? priorityDocument,
         CancellationToken cancellationToken)
     {
         return RunServiceAsync(
@@ -42,6 +41,23 @@ internal sealed class RemoteDesignerAttributeDiscoveryService(
             {
                 var service = solution.Services.GetRequiredService<IDesignerAttributeDiscoveryService>();
                 return service.ProcessSolutionAsync(
+                    solution, new CallbackWrapper(callback, callbackId), cancellationToken);
+            },
+            cancellationToken);
+    }
+
+    public ValueTask DiscoverDesignerAttributesAsync(
+        RemoteServiceCallbackId callbackId,
+        Checksum solutionChecksum,
+        DocumentId priorityDocument,
+        CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(
+            solutionChecksum,
+            solution =>
+            {
+                var service = solution.Services.GetRequiredService<IDesignerAttributeDiscoveryService>();
+                return service.ProcessPriorityDocumentAsync(
                     solution, priorityDocument, new CallbackWrapper(callback, callbackId), cancellationToken);
             },
             cancellationToken);

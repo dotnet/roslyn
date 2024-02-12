@@ -16,6 +16,13 @@ internal partial interface IDesignerAttributeDiscoveryService : IWorkspaceServic
         ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
     }
 
-    ValueTask ProcessSolutionAsync(
-        Solution solution, DocumentId? priorityDocumentId, ICallback callback, CancellationToken cancellationToken);
+    /// <summary>
+    /// Called to process the entire solution.  May take a while.
+    /// </summary>
+    ValueTask ProcessSolutionAsync(Solution solution, ICallback callback, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Called to process a single document.  Should be used to quickly process the document a user is editing.
+    /// </summary>
+    ValueTask ProcessPriorityDocumentAsync(Solution solution, DocumentId priorityDocumentId, ICallback callback, CancellationToken cancellationToken);
 }
