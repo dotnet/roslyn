@@ -98,12 +98,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // We don't have access to the original trigger, but we know the completion list is already present.
                 // It is safe to recompute with the invoked trigger as we will get all the items and filter down based on the current trigger.
                 var originalTrigger = CompletionTrigger.Invoke;
-                result = await CalculateListAsync(request, document, position, originalTrigger, completionOptions, completionService, completionListCache, cancellationToken).ConfigureAwait(false);
+                result = await CalculateListAsync(document, position, originalTrigger, completionOptions, completionService, completionListCache, cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 // This is a new completion request, clear out the last result Id for incomplete results.
-                result = await CalculateListAsync(request, document, position, completionTrigger, completionOptions, completionService, completionListCache, cancellationToken).ConfigureAwait(false);
+                result = await CalculateListAsync(document, position, completionTrigger, completionOptions, completionService, completionListCache, cancellationToken).ConfigureAwait(false);
             }
 
             if (result == null)
@@ -133,7 +133,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         private static async Task<(CompletionList CompletionList, long ResultId)?> CalculateListAsync(
-            LSP.CompletionParams request,
             Document document,
             int position,
             CompletionTrigger completionTrigger,
@@ -150,7 +149,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             // Cache the completion list so we can avoid recomputation in the resolve handler
-            var resultId = completionListCache.UpdateCache(new CompletionListCache.CacheEntry(request.TextDocument, completionList));
+            var resultId = completionListCache.UpdateCache(new CompletionListCache.CacheEntry(completionList));
 
             return (completionList, resultId);
         }
