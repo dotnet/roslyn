@@ -237,6 +237,11 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
                     var parameterToArgumentMap = new Dictionary<IParameterSymbol, int>();
                     foreach (var invocation in invocations)
                     {
+                        if (invocation is TObjectCreationExpressionSyntax)
+                        {
+                            continue;
+                        }
+
                         var argumentListSyntax = _syntaxFacts.GetArgumentListOfInvocationExpression(invocation);
                         if (argumentListSyntax == null)
                             continue;
