@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -42,8 +43,7 @@ internal sealed partial class AssetProvider
 
                 // second, get direct children of the solution
                 {
-                    using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
-                    var checksums = pooledObject.Object;
+                    using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
 
                     solutionChecksumObject.AddAllTo(checksums);
                     checksums.Remove(solutionChecksumObject.Checksum);
@@ -70,8 +70,7 @@ internal sealed partial class AssetProvider
         private async ValueTask SynchronizeProjectAssets_NoLockAsync(ProjectStateChecksums projectChecksum, CancellationToken cancellationToken)
         {
             // get children of project checksum objects at once
-            using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
-            var checksums = pooledObject.Object;
+            using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
 
             checksums.Add(projectChecksum.Info);
             checksums.Add(projectChecksum.CompilationOptions);

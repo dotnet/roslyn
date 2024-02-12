@@ -49,7 +49,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { edits },
+                [edits],
                 [
                     DocumentResults(
                         active,
@@ -281,7 +281,7 @@ class C
 
             edits.VerifySemantics(
                 active,
-                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Swap"), preserveLocalVariables: true) },
+                semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Swap"), preserveLocalVariables: true)],
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
@@ -488,7 +488,7 @@ class C
 
             edits.VerifySemantics(
                 active,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), syntaxMap[0]) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), syntaxMap[0])]);
         }
 
         [Fact]
@@ -572,7 +572,7 @@ class C
             var srcB2 = "partial class C { void F(byte x) {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcA1, srcA2),
@@ -595,7 +595,7 @@ class C
             var srcB2 = "partial class C { <AS:0>void F(byte x)</AS:0> {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcA1, srcA2),
@@ -774,11 +774,10 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -860,12 +859,11 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.this[]")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -939,7 +937,7 @@ class C<T>
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(active,
-                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: true) },
+                semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: true)],
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
@@ -1043,7 +1041,7 @@ class C<T>
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(active,
-                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true) },
+                semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true)],
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
@@ -1145,7 +1143,7 @@ class C<T>
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(active,
-                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: true) },
+                semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: true)],
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
@@ -1245,7 +1243,7 @@ class C<T>
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(active,
-                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true) },
+                semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: true)],
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 

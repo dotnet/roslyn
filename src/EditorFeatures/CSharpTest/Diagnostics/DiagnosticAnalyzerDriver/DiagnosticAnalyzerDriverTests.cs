@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
                 exceptions.Add(e);
             }
 
-            Assert.True(exceptions.Count == 0);
+            Assert.Empty(exceptions);
         }
 
         [Fact]

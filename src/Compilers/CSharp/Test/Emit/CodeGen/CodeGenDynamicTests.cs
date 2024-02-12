@@ -8817,11 +8817,9 @@ public class C
 ");
         }
 
-        /// <summary>
-        /// ref/out can be omitted at call-site.
-        /// </summary>
         [Fact]
-        public void InvokeMember_CallSiteRefOutOmitted()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        public void InvokeMember_CallSiteRefOutOmitted_01()
         {
             string source = @"
 public class C
@@ -8840,6 +8838,8 @@ public class C
         dynamic ld;
 
         f(d, d, ref lo, out ld);
+
+        f(ref d, out d, ref lo, out ld);
     }
 
     public void f(ref long a, out int b, ref dynamic c, out object d) 
@@ -8848,17 +8848,60 @@ public class C
         d = null;
     }
 }";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (17,11): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         f(d, d, ref lo, out ld);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "d").WithArguments("1", "ref").WithLocation(17, 11),
+                // (17,14): error CS1620: Argument 2 must be passed with the 'out' keyword
+                //         f(d, d, ref lo, out ld);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "d").WithArguments("2", "out").WithLocation(17, 14),
+                // (19,15): error CS1503: Argument 1: cannot convert from 'ref dynamic' to 'ref int'
+                //         f(ref d, out d, ref lo, out ld);
+                Diagnostic(ErrorCode.ERR_BadArgType, "d").WithArguments("1", "ref dynamic", "ref int").WithLocation(19, 15),
+                // (19,22): error CS1503: Argument 2: cannot convert from 'out dynamic' to 'out int'
+                //         f(ref d, out d, ref lo, out ld);
+                Diagnostic(ErrorCode.ERR_BadArgType, "d").WithArguments("2", "out dynamic", "out int").WithLocation(19, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        public void InvokeMember_CallSiteRefOutOmitted_02()
+        {
+            string source = @"
+using System.Runtime.InteropServices;
+
+[ComImport, Guid(""0002095E-0000-0000-C000-000000000046"")]
+public abstract class C1
+{
+    public abstract void f(ref int a, out dynamic b, ref dynamic c, out object d); 
+    public abstract void f(ref bool a, out dynamic b, ref dynamic c, out object d); 
+}
+
+public class C
+{
+    dynamic d = true;
+
+    public void M(C1 c1)
+    {
+        object lo = null;
+        dynamic ld;
+
+        c1.f(d, out d, ref lo, out ld);
+    }
+}
+";
             CompileAndVerifyIL(source, "C.M", @"
 {
-  // Code size      141 (0x8d)
+  // Code size      142 (0x8e)
   .maxstack  9
   .locals init (object V_0, //lo
                 object V_1) //ld
   IL_0000:  ldnull
   IL_0001:  stloc.0
-  IL_0002:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00009000}<System.Runtime.CompilerServices.CallSite, C, object, object, object, object>> C.<>o__2.<>p__0""
-  IL_0007:  brtrue.s   IL_0067
-  IL_0009:  ldc.i4     0x102
+  IL_0002:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00009200}<System.Runtime.CompilerServices.CallSite, C1, object, object, object, object>> C.<>o__1.<>p__0""
+  IL_0007:  brtrue.s   IL_0068
+  IL_0009:  ldc.i4     0x100
   IL_000e:  ldstr      ""f""
   IL_0013:  ldnull
   IL_0014:  ldtoken    ""C""
@@ -8879,39 +8922,103 @@ public class C
   IL_0037:  stelem.ref
   IL_0038:  dup
   IL_0039:  ldc.i4.2
-  IL_003a:  ldc.i4.0
-  IL_003b:  ldnull
-  IL_003c:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_0041:  stelem.ref
-  IL_0042:  dup
-  IL_0043:  ldc.i4.3
-  IL_0044:  ldc.i4.s   9
-  IL_0046:  ldnull
-  IL_0047:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_004c:  stelem.ref
-  IL_004d:  dup
-  IL_004e:  ldc.i4.4
-  IL_004f:  ldc.i4.s   17
-  IL_0051:  ldnull
-  IL_0052:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_0057:  stelem.ref
-  IL_0058:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_005d:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00009000}<System.Runtime.CompilerServices.CallSite, C, object, object, object, object>> System.Runtime.CompilerServices.CallSite<<>A{00009000}<System.Runtime.CompilerServices.CallSite, C, object, object, object, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0062:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00009000}<System.Runtime.CompilerServices.CallSite, C, object, object, object, object>> C.<>o__2.<>p__0""
-  IL_0067:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00009000}<System.Runtime.CompilerServices.CallSite, C, object, object, object, object>> C.<>o__2.<>p__0""
-  IL_006c:  ldfld      ""<>A{00009000}<System.Runtime.CompilerServices.CallSite, C, object, object, object, object> System.Runtime.CompilerServices.CallSite<<>A{00009000}<System.Runtime.CompilerServices.CallSite, C, object, object, object, object>>.Target""
-  IL_0071:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00009000}<System.Runtime.CompilerServices.CallSite, C, object, object, object, object>> C.<>o__2.<>p__0""
-  IL_0076:  ldarg.0
-  IL_0077:  ldarg.0
-  IL_0078:  ldfld      ""dynamic C.d""
-  IL_007d:  ldarg.0
-  IL_007e:  ldfld      ""dynamic C.d""
-  IL_0083:  ldloca.s   V_0
-  IL_0085:  ldloca.s   V_1
-  IL_0087:  callvirt   ""void <>A{00009000}<System.Runtime.CompilerServices.CallSite, C, object, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, C, object, object, ref object, ref object)""
-  IL_008c:  ret
+  IL_003a:  ldc.i4.s   17
+  IL_003c:  ldnull
+  IL_003d:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0042:  stelem.ref
+  IL_0043:  dup
+  IL_0044:  ldc.i4.3
+  IL_0045:  ldc.i4.s   9
+  IL_0047:  ldnull
+  IL_0048:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_004d:  stelem.ref
+  IL_004e:  dup
+  IL_004f:  ldc.i4.4
+  IL_0050:  ldc.i4.s   17
+  IL_0052:  ldnull
+  IL_0053:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0058:  stelem.ref
+  IL_0059:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_005e:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00009200}<System.Runtime.CompilerServices.CallSite, C1, object, object, object, object>> System.Runtime.CompilerServices.CallSite<<>A{00009200}<System.Runtime.CompilerServices.CallSite, C1, object, object, object, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0063:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00009200}<System.Runtime.CompilerServices.CallSite, C1, object, object, object, object>> C.<>o__1.<>p__0""
+  IL_0068:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00009200}<System.Runtime.CompilerServices.CallSite, C1, object, object, object, object>> C.<>o__1.<>p__0""
+  IL_006d:  ldfld      ""<>A{00009200}<System.Runtime.CompilerServices.CallSite, C1, object, object, object, object> System.Runtime.CompilerServices.CallSite<<>A{00009200}<System.Runtime.CompilerServices.CallSite, C1, object, object, object, object>>.Target""
+  IL_0072:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00009200}<System.Runtime.CompilerServices.CallSite, C1, object, object, object, object>> C.<>o__1.<>p__0""
+  IL_0077:  ldarg.1
+  IL_0078:  ldarg.0
+  IL_0079:  ldfld      ""dynamic C.d""
+  IL_007e:  ldarg.0
+  IL_007f:  ldflda     ""dynamic C.d""
+  IL_0084:  ldloca.s   V_0
+  IL_0086:  ldloca.s   V_1
+  IL_0088:  callvirt   ""void <>A{00009200}<System.Runtime.CompilerServices.CallSite, C1, object, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, C1, object, ref object, ref object, ref object)""
+  IL_008d:  ret
 }
-");
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        public void InvokeMember_CallSiteRefOutOmitted_03()
+        {
+            string source = @"
+using System.Runtime.InteropServices;
+
+[ComImport, Guid(""0002095E-0000-0000-C000-000000000046"")]
+public abstract class C1
+{
+    public abstract void f(ref bool a, out dynamic b, ref dynamic c, out object d); 
+}
+
+public class C
+{
+    dynamic d = true;
+
+    public void M(C1 c1)
+    {
+        object lo = null;
+        dynamic ld;
+
+        c1.f(d, out d, ref lo, out ld);
+    }
+}
+";
+            CompileAndVerifyIL(source, "C.M", @"
+{
+      // Code size       91 (0x5b)
+  .maxstack  5
+  .locals init (object V_0, //lo
+                object V_1, //ld
+                bool V_2)
+  IL_0000:  ldnull
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.1
+  IL_0003:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<>o__1.<>p__0""
+  IL_0008:  brtrue.s   IL_002e
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldtoken    ""bool""
+  IL_0010:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0015:  ldtoken    ""C""
+  IL_001a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_001f:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
+  IL_0024:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0029:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<>o__1.<>p__0""
+  IL_002e:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<>o__1.<>p__0""
+  IL_0033:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, bool> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>>.Target""
+  IL_0038:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, bool>> C.<>o__1.<>p__0""
+  IL_003d:  ldarg.0
+  IL_003e:  ldfld      ""dynamic C.d""
+  IL_0043:  callvirt   ""bool System.Func<System.Runtime.CompilerServices.CallSite, object, bool>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
+  IL_0048:  stloc.2
+  IL_0049:  ldloca.s   V_2
+  IL_004b:  ldarg.0
+  IL_004c:  ldflda     ""dynamic C.d""
+  IL_0051:  ldloca.s   V_0
+  IL_0053:  ldloca.s   V_1
+  IL_0055:  callvirt   ""void C1.f(ref bool, out dynamic, ref dynamic, out object)""
+  IL_005a:  ret
+}
+").VerifyDiagnostics();
         }
 
         [Fact]

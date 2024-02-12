@@ -378,7 +378,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     case (uint)_LIB_LISTTYPE.LLT_NAMESPACES:
                         if (namespaceName.Length > 0)
                         {
-                            namespaceName.Append(".");
+                            namespaceName.Append('.');
                         }
 
                         namespaceName.Append(rgSymbolNodes[count].pszName);
@@ -387,7 +387,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     case (uint)_LIB_LISTTYPE.LLT_CLASSES:
                         if (className.Length > 0)
                         {
-                            className.Append(".");
+                            className.Append('.');
                         }
 
                         className.Append(rgSymbolNodes[count].pszName);

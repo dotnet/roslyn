@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
             {
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor,
                     operatorToken.GetLocation(),
-                    additionalLocations: new[] { operation.Syntax.GetLocation() },
+                    additionalLocations: [operation.Syntax.GetLocation()],
                     properties: properties.ToImmutable()));
             }
 

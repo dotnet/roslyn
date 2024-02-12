@@ -101,8 +101,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         }
 
         var sourceText = semanticModel.SyntaxTree.GetText(cancellationToken);
-        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
-        var analysisResult = AnalyzeInvocation(sourceText, state, invocation, expressionType, allowInterfaceConversion, addMatches: true, cancellationToken);
+        var allowSemanticsChange = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
+        var analysisResult = AnalyzeInvocation(sourceText, state, invocation, expressionType, allowSemanticsChange, addMatches: true, cancellationToken);
         if (analysisResult is null)
             return;
 
@@ -125,7 +125,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         FluentState state,
         InvocationExpressionSyntax invocation,
         INamedTypeSymbol? expressionType,
-        bool allowInterfaceConversion,
+        bool allowSemanticsChange,
         bool addMatches,
         CancellationToken cancellationToken)
     {
@@ -136,7 +136,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             return null;
 
         if (!CanReplaceWithCollectionExpression(
-                state.SemanticModel, invocation, expressionType, isSingletonInstance: false, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
+                state.SemanticModel, invocation, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
         {
             return null;
         }

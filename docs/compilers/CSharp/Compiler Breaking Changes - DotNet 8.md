@@ -1,5 +1,33 @@
 # This document lists known breaking changes in Roslyn after .NET 7 all the way to .NET 8.
 
+## Ref modifiers of dynamic arguments should be compatible with ref modifiers of corresponding parameters
+
+***Introduced in Visual Studio 2022 version 17.10***
+
+Ref modifiers of dynamic arguments should be compatible with ref modifiers of corresponding parameters
+at compile time. This can cause an overload resolution involving dynamic arguments to fail at compile time
+instead of runtime.
+
+Previously, a mismatch was allowed at compile time, delaying the overload resolution failure to
+runtime.
+
+For example, the following code used to compile without an error, but was failing with
+exception: "Microsoft.CSharp.RuntimeBinder.RuntimeBinderException: The best overloaded method match for 'C.f(ref object)' has some invalid arguments" 
+It is going to produce a compilation error now.
+```csharp
+public class C
+{
+    public void f(ref dynamic a) 
+    {
+    }
+    
+    public void M(dynamic d)
+    {
+        f(d); // error CS1620: Argument 1 must be passed with the 'ref' keyword
+    }
+}
+```
+
 ## Collection expression target type must have constructor and `Add` method
 
 ***Introduced in Visual Studio 2022 version 17.10***

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var lastTokenWithAsset = block.CloseBraceToken.CopyAnnotationsTo(lastToken).WithAppendedTrailingTrivia(block.CloseBraceToken.GetAllTrivia());
 
                 // create new block with new tokens
-                block = block.ReplaceTokens(new[] { firstToken, lastToken }, (o, c) => (o == firstToken) ? firstTokenWithAsset : lastTokenWithAsset);
+                block = block.ReplaceTokens([firstToken, lastToken], (o, c) => (o == firstToken) ? firstTokenWithAsset : lastTokenWithAsset);
 
                 // return only statements without the wrapping block
                 return ImmutableArray.CreateRange(block.Statements);
@@ -292,13 +292,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 var variable = declaration.Declaration.Variables[0].WithInitializer(SyntaxFactory.EqualsValueClause(assignmentExpression.Right));
-                using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var result);
-
-                result.Add(declaration.WithDeclaration(
-                    declaration.Declaration.WithVariables([variable])));
-                result.AddRange(statements.Skip(2));
-
-                return result.ToImmutable();
+                return
+                [
+                    declaration.WithDeclaration(
+                        declaration.Declaration.WithVariables([variable])),
+                    .. statements.Skip(2),
+                ];
             }
         }
     }

@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="node">The node already existing in the tree that the new nodes will be placed before. This must be a node this is contained within a syntax list.</param>
         /// <param name="newNode">The node to place before the existing node. This node must be of a compatible type to be placed in the same list containing the existing node.</param>
         public void InsertBefore(SyntaxNode node, SyntaxNode newNode)
-            => InsertBefore(node, new[] { newNode });
+            => InsertBefore(node, [newNode]);
 
         /// <summary>
         /// Insert the new nodes after the specified node already existing in the tree.
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="node">The node already existing in the tree that the new nodes will be placed after. This must be a node this is contained within a syntax list.</param>
         /// <param name="newNode">The node to place after the existing node. This node must be of a compatible type to be placed in the same list containing the existing node.</param>
         public void InsertAfter(SyntaxNode node, SyntaxNode newNode)
-            => this.InsertAfter(node, new[] { newNode });
+            => this.InsertAfter(node, [newNode]);
 
         private void CheckNodeInOriginalTree(SyntaxNode node)
         {

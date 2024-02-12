@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (this.Visit(symbol.ContainingSymbol))
                     {
-                        _builder.Append(".");
+                        _builder.Append('.');
                     }
 
                     _builder.Append(EncodeName(symbol.Name));
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (this.Visit(symbol.ContainingSymbol))
                     {
-                        _builder.Append(".");
+                        _builder.Append('.');
                     }
 
                     _builder.Append(EncodeName(symbol.Name));
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (this.Visit(symbol.ContainingSymbol))
                     {
-                        _builder.Append(".");
+                        _builder.Append('.');
                     }
 
                     var name = EncodePropertyName(symbol.Name);
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (this.Visit(symbol.ContainingSymbol))
                     {
-                        _builder.Append(".");
+                        _builder.Append('.');
                         _builder.Append(EncodeName(symbol.Name));
                     }
 
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (!symbol.ReturnsVoid)
                     {
-                        _builder.Append("~");
+                        _builder.Append('~');
                         this.GetReferenceGenerator(symbol).Visit(symbol.ReturnType);
                     }
 
@@ -481,24 +481,24 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (parameters.Length > 0)
                     {
-                        _builder.Append("(");
+                        _builder.Append('(');
 
                         for (int i = 0, n = parameters.Length; i < n; i++)
                         {
                             if (i > 0)
                             {
-                                _builder.Append(",");
+                                _builder.Append(',');
                             }
 
                             var p = parameters[i];
                             this.GetReferenceGenerator(p.ContainingSymbol).Visit(p.Type);
                             if (p.RefKind != RefKind.None)
                             {
-                                _builder.Append("@");
+                                _builder.Append('@');
                             }
                         }
 
-                        _builder.Append(")");
+                        _builder.Append(')');
                     }
                 }
 
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (this.Visit(symbol.ContainingSymbol))
                     {
-                        _builder.Append(".");
+                        _builder.Append('.');
                     }
 
                     _builder.Append(EncodeName(symbol.Name));
@@ -522,14 +522,14 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (this.Visit(symbol.ContainingSymbol))
                     {
-                        _builder.Append(".");
+                        _builder.Append('.');
                     }
 
                     _builder.Append(EncodeName(symbol.Name));
 
                     if (symbol.TypeParameters.Length > 0)
                     {
-                        _builder.Append("`");
+                        _builder.Append('`');
                         _builder.Append(symbol.TypeParameters.Length);
                     }
 
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (this.Visit(symbol.ContainingSymbol))
                 {
-                    _builder.Append(".");
+                    _builder.Append('.');
                 }
 
                 _builder.Append(EncodeName(symbol.Name));
@@ -588,24 +588,24 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (symbol.OriginalDefinition == symbol)
                     {
-                        _builder.Append("`");
+                        _builder.Append('`');
                         _builder.Append(symbol.TypeParameters.Length);
                     }
                     else if (symbol.TypeArguments.Length > 0)
                     {
-                        _builder.Append("{");
+                        _builder.Append('{');
 
                         for (int i = 0, n = symbol.TypeArguments.Length; i < n; i++)
                         {
                             if (i > 0)
                             {
-                                _builder.Append(",");
+                                _builder.Append(',');
                             }
 
                             this.Visit(symbol.TypeArguments[i]);
                         }
 
-                        _builder.Append("}");
+                        _builder.Append('}');
                     }
                 }
 
@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis
             {
                 this.Visit(symbol.ElementType);
 
-                _builder.Append("[");
+                _builder.Append('[');
 
                 for (int i = 0, n = symbol.Rank; i < n; i++)
                 {
@@ -631,11 +631,11 @@ namespace Microsoft.CodeAnalysis
 
                     if (i > 0)
                     {
-                        _builder.Append(",");
+                        _builder.Append(',');
                     }
                 }
 
-                _builder.Append("]");
+                _builder.Append(']');
 
                 return true;
             }
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis
             public override bool VisitPointerType(IPointerTypeSymbol symbol)
             {
                 this.Visit(symbol.PointedAtType);
-                _builder.Append("*");
+                _builder.Append('*');
                 return true;
             }
 
@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis
                     declarer.Visit(symbol.ContainingSymbol);
                     Debug.Assert(!declarer.Failed);
 
-                    _builder.Append(":");
+                    _builder.Append(':');
                 }
 
                 if (symbol.DeclaringMethod != null)
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis
                     // get count of all type parameter preceding the declaration of the type parameters containing symbol.
                     var container = symbol.ContainingSymbol?.ContainingSymbol;
                     var b = GetTotalTypeParameterCount(container as INamedTypeSymbol);
-                    _builder.Append("`");
+                    _builder.Append('`');
                     _builder.Append(b + symbol.Ordinal);
                 }
 
