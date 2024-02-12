@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis
                 var newProjectReferences = new List<ProjectReference>();
                 metadataReferences.AddRange(this.ProjectState.MetadataReferences);
 
-                metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
+                metadataReferenceToProjectId = [];
 
                 foreach (var projectReference in this.ProjectState.ProjectReferences)
                 {

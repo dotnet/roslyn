@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
             else
             {
                 leadingTriviaToKeep = new List<SyntaxTrivia>(leadingTrivia);
-                leadingTriviaToStrip = new List<SyntaxTrivia>();
+                leadingTriviaToStrip = [];
             }
 
             // Now, consume as many banners as we can.  s_fileBannerMatcher will only be matched at

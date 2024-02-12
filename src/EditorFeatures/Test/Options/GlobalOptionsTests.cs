@@ -44,7 +44,7 @@ public class GlobalOptionsTests
     [Export(typeof(IGlobalOptionService)), Shared, PartNotDiscoverable]
     internal class TestGlobalOptions : IGlobalOptionService
     {
-        public readonly List<OptionKey2> AccessedOptionKeys = new();
+        public readonly List<OptionKey2> AccessedOptionKeys = [];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

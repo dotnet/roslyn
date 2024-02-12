@@ -60,7 +60,7 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
-                    return new List<T>();
+                    return [];
                 }
             });
 

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (globalAliasInfoCount > 0)
             {
-                globalAliasInfo = new HashSet<(string alias, string name, int arity)>();
+                globalAliasInfo = [];
 
                 for (var i = 0; i < globalAliasInfoCount; i++)
                 {

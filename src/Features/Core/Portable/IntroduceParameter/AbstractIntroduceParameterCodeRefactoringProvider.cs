@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
 
             // Adding the original document to ensure that it will be seen again when processing the call sites
             // in order to update the original expression and containing method.
-            methodCallSites.Add(document, new List<SyntaxNode>());
+            methodCallSites.Add(document, []);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             foreach (var refLocation in referencedLocations)
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
 
                     if (!methodCallSites.TryGetValue(refLocation.Document, out var list))
                     {
-                        list = new List<SyntaxNode>();
+                        list = [];
                         methodCallSites.Add(refLocation.Document, list);
                     }
 

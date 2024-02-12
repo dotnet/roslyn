@@ -28,7 +28,7 @@ namespace Roslyn.Collections.Immutable
     internal sealed class ImmutableHashMap<TKey, TValue> : IImmutableDictionary<TKey, TValue>
         where TKey : notnull
     {
-        private static readonly ImmutableHashMap<TKey, TValue> s_emptySingleton = new();
+        private static readonly ImmutableHashMap<TKey, TValue> s_emptySingleton = [];
 
         /// <summary>
         /// The root node of the tree that stores this map.

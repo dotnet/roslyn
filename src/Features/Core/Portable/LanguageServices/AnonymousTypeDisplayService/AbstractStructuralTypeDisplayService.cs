@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
             var transitiveStructuralTypeReferences = GetTransitiveStructuralTypeReferences(directStructuralTypeReferences);
             transitiveStructuralTypeReferences = OrderStructuralTypes(transitiveStructuralTypeReferences, orderSymbol);
 
-            IList<SymbolDisplayPart> typeParts = new List<SymbolDisplayPart>();
+            IList<SymbolDisplayPart> typeParts = [];
 
             if (transitiveStructuralTypeReferences.Length > 0)
             {

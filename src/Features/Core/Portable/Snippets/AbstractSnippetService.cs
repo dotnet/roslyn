@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Snippets
     internal abstract class AbstractSnippetService(IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> lazySnippetProviders) : ISnippetService
     {
         private readonly ImmutableArray<Lazy<ISnippetProvider, LanguageMetadata>> _lazySnippetProviders = lazySnippetProviders.ToImmutableArray();
-        private readonly Dictionary<string, ISnippetProvider> _identifierToProviderMap = new();
+        private readonly Dictionary<string, ISnippetProvider> _identifierToProviderMap = [];
         private readonly object _snippetProvidersLock = new();
         private ImmutableArray<ISnippetProvider> _snippetProviders;
 
