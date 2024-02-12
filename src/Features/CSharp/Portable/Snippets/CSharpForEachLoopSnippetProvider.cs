@@ -31,22 +31,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
         }
 
-        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            var targetToken = syntaxContext.TargetToken;
+            var syntaxContext = context.SyntaxContext;
+            var token = syntaxContext.TargetToken;
 
             // Allow `foreach` snippet after `await` as expression statement
             // So `await $$` is a valid position, but `var result = await $$` is not
             // The second check if for case when completions are invoked after `await` in non-async context. In such cases parser treats `await` as identifier
-            if (targetToken is { RawKind: (int)SyntaxKind.AwaitKeyword, Parent: ExpressionSyntax { Parent: ExpressionStatementSyntax } } ||
-                targetToken is { RawKind: (int)SyntaxKind.IdentifierToken, ValueText: "await", Parent: IdentifierNameSyntax { Parent: ExpressionStatementSyntax } })
+            if (token is { RawKind: (int)SyntaxKind.AwaitKeyword, Parent: ExpressionSyntax { Parent: ExpressionStatementSyntax } } ||
+                token is { RawKind: (int)SyntaxKind.IdentifierToken, ValueText: "await", Parent: IdentifierNameSyntax { Parent: ExpressionStatementSyntax } })
             {
                 return true;
             }
 
-            return await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
+            return base.IsValidSnippetLocation(in context, cancellationToken);
         }
 
         protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)

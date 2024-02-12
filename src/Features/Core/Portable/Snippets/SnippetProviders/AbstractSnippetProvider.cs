@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Implemented by each SnippetProvider to determine if that particular position is a valid
         /// location for the snippet to be inserted.
         /// </summary>
-        protected abstract Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken);
+        protected abstract bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Generates the new snippet's TextChanges that are being inserted into the document.
@@ -60,21 +60,21 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Determines if the location is valid for a snippet,
         /// if so, then it creates a SnippetData.
         /// </summary>
-        public async Task<SnippetData?> GetSnippetDataAsync(Document document, int position, CancellationToken cancellationToken)
+        public ValueTask<SnippetData?> GetSnippetDataAsync(SnippetContext context, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
+            var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxTree = context.SyntaxContext.SyntaxTree;
+            if (syntaxFacts.IsInNonUserCode(syntaxTree, context.Position, cancellationToken))
             {
-                return null;
+                return ValueTaskFactory.FromResult<SnippetData?>(null);
             }
 
-            if (!await IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false))
+            if (!IsValidSnippetLocation(in context, cancellationToken))
             {
-                return null;
+                return ValueTaskFactory.FromResult<SnippetData?>(null);
             }
 
-            return new SnippetData(Description, Identifier, AdditionalFilterTexts);
+            return ValueTaskFactory.FromResult<SnippetData?>(new SnippetData(Description, Identifier, AdditionalFilterTexts));
         }
 
         /// <summary>

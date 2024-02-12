@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// aggregated array to avoid unnecessary allocations.
         /// </remarks>
         Task<(ImmutableArray<ImmutableArray<CompletionItem>>, bool)> GetAllTopLevelTypesAsync(
-            Project project,
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
             CompletionOptions options,
