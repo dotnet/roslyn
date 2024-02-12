@@ -31,6 +31,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
@@ -4660,6 +4661,55 @@ class C
             var forkedCompilation1 = await forkedProject1.GetCompilationAsync();
             Assert.NotEqual(compilation1, forkedCompilation1);
             Assert.True(forkedCompilation1.ContainsSyntaxTree(forkedSyntaxTree1));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestFrozenPartialSolution7(bool freeze)
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project1 = workspace.CurrentSolution.AddProject("CSharpProject1", "CSharpProject1", LanguageNames.CSharp);
+            project1 = project1.AddDocument("Doc1", SourceText.From("class Doc1 { }")).Project;
+
+            var invokeIndex = 1;
+            project1 = project1.AddAnalyzerReference(new TestGeneratorReference(new CallbackGenerator(() =>
+            {
+                var index = invokeIndex++;
+                return ("hintname" + index, "// source" + index);
+            })));
+
+            var compilation1 = await project1.GetCompilationAsync();
+            var syntaxTree1 = await project1.Documents.Single().GetSyntaxTreeAsync();
+            var generatedDocuments = await project1.GetSourceGeneratedDocumentsAsync();
+
+            Assert.Single(generatedDocuments);
+            Assert.Equal("// source1", generatedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
+
+            var frozenSolution = freeze
+                ? await project1.Solution.WithFrozenPartialCompilationsAsync(CancellationToken.None)
+                : project1.Solution;
+
+            var forkedProject1 = frozenSolution.WithDocumentText(project1.Documents.Single().Id, SourceText.From("class Doc2 { }")).GetProject(project1.Id);
+            var forkedDocument1 = forkedProject1.Documents.Single();
+            var forkedSyntaxTree1 = await forkedDocument1.GetSyntaxTreeAsync();
+            var forkedGeneratedDocuments = await forkedProject1.GetSourceGeneratedDocumentsAsync();
+
+            Assert.Single(forkedGeneratedDocuments);
+            Assert.NotEqual(syntaxTree1, forkedSyntaxTree1);
+
+            var forkedCompilation1 = await forkedProject1.GetCompilationAsync();
+
+            Assert.NotEqual(compilation1, forkedCompilation1);
+            Assert.True(forkedCompilation1.ContainsSyntaxTree(forkedSyntaxTree1));
+
+            Assert.NotSame(generatedDocuments.Single(), forkedGeneratedDocuments.Single());
+            if (freeze)
+            {
+                Assert.Equal("// source1", forkedGeneratedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
+            }
+            else
+            {
+                Assert.Equal("// source2", forkedGeneratedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
+            }
         }
     }
 }
