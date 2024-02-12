@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new AccessibilityViewModel(Accessibility.Public, "Public", specification),
                     new AccessibilityViewModel(Accessibility.Friend, "Friend", specification),
                     new AccessibilityViewModel(Accessibility.Private, "Private", specification),
-                    new AccessibilityViewModel(Accessibility.Protected , "Protected", specification),
+                    new AccessibilityViewModel(Accessibility.Protected, "Protected", specification),
                     new AccessibilityViewModel(Accessibility.ProtectedOrInternal, "Protected Friend", specification),
                     new AccessibilityViewModel(Accessibility.ProtectedAndInternal, "Private Protected", specification),
                     new AccessibilityViewModel(Accessibility.NotApplicable, "Local", specification),
