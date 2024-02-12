@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         : [];
 
                     var result = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
-                        completionContext.Document,
-                        completionContext.Position,
+                        syntaxContext,
                         receiverTypeSymbol,
                         namespaceInScope,
                         inferredTypes,

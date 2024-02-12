@@ -28,15 +28,15 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         public override ImmutableArray<string> AdditionalFilterTexts { get; } = ["WriteLine"];
 
-        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
         {
-            var consoleSymbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
+            var consoleSymbol = GetConsoleSymbolFromMetaDataName(context.SyntaxContext.SemanticModel.Compilation);
             if (consoleSymbol is null)
             {
                 return false;
             }
 
-            return await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
+            return base.IsValidSnippetLocation(in context, cancellationToken);
         }
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
@@ -95,7 +95,8 @@ namespace Microsoft.CodeAnalysis.Snippets
             var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts.IsExpressionStatement);
             Contract.ThrowIfNull(snippetExpressionNode);
 
-            var consoleSymbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var consoleSymbol = GetConsoleSymbolFromMetaDataName(compilation);
             var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, SymbolAnnotation.Create(consoleSymbol!), Formatter.Annotation);
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
@@ -124,12 +125,8 @@ namespace Microsoft.CodeAnalysis.Snippets
             return openParenToken;
         }
 
-        private static async Task<INamedTypeSymbol?> GetSymbolFromMetaDataNameAsync(Document document, CancellationToken cancellationToken)
-        {
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = compilation.GetBestTypeByMetadataName(typeof(Console).FullName!);
-            return symbol;
-        }
+        private static INamedTypeSymbol? GetConsoleSymbolFromMetaDataName(Compilation compilation)
+            => compilation.GetBestTypeByMetadataName(typeof(Console).FullName!);
 
         protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
         {
