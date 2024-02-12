@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 var lazyProjectVersion = AsyncLazy.Create(frozenProject.GetSemanticVersionAsync);
 
                 await ScanForDesignerCategoryUsageAsync(
-                    frozenDocument.Project, frozenDocument, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
+                    frozenProject, frozenDocument, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
             }
         }
 
