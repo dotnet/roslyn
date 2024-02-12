@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var lazyProjectVersion = AsyncLazy.Create(frozenDocument.Project.GetSemanticVersionAsync);
+                var lazyProjectVersion = AsyncLazy.Create(frozenProject.GetSemanticVersionAsync);
 
                 await ScanForDesignerCategoryUsageAsync(
                     frozenDocument.Project, frozenDocument, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
