@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfTypeImportCompletionItem();
 
-        protected abstract ImmutableArray<AliasDeclarationTypeNode> GetAliasDeclarationNodes(SyntaxNode node);
-
         protected override void WarmUpCacheInBackground(Document document)
         {
             var typeImportCompletionService = document.GetRequiredLanguageService<ITypeImportCompletionService>();
@@ -40,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var typeImportCompletionService = completionContext.Document.GetRequiredLanguageService<ITypeImportCompletionService>();
 
                 var (itemsFromAllAssemblies, isPartialResult) = await typeImportCompletionService.GetAllTopLevelTypesAsync(
-                    completionContext.Document.Project,
                     syntaxContext,
                     forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
                     completionContext.CompletionOptions,
@@ -62,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// Multiple aliases might live under same namespace.
         /// Key is the namespace of the symbol, value is the name of the symbol.
         /// </summary>
-        private MultiDictionary<string, string> GetAliasTypeDictionary(
+        private static MultiDictionary<string, string> GetAliasTypeDictionary(
             Document document,
             SyntaxContext syntaxContext,
             CancellationToken cancellationToken)
@@ -70,43 +67,37 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var dictionary = new MultiDictionary<string, string>(syntaxFactsService.StringComparer);
 
-            var nodeToCheck = syntaxContext.LeftToken.Parent;
-            if (nodeToCheck == null)
+            foreach (var scope in syntaxContext.SemanticModel.GetImportScopes(syntaxContext.Position, cancellationToken))
             {
-                return dictionary;
-            }
-
-            // In case the caret is at the beginning of the file, take the root node.
-            var aliasDeclarations = GetAliasDeclarationNodes(nodeToCheck);
-            foreach (var aliasNode in aliasDeclarations)
-            {
-                var symbol = syntaxContext.SemanticModel.GetDeclaredSymbol(aliasNode, cancellationToken);
-                if (symbol is IAliasSymbol { Target: ITypeSymbol { TypeKind: not TypeKind.Error } target })
+                foreach (var symbol in scope.Aliases)
                 {
-                    // If the target type is a type constructs from generics type, e.g.
-                    // using AliasBar = Bar<int>
-                    // namespace Foo
-                    // {
-                    //      public class Bar<T>
-                    //      {
-                    //      }
-                    // }
-                    // namespace Foo2
-                    // {
-                    //      public class Main
-                    //      {
-                    //          $$
-                    //      }
-                    // }
-                    // In such case, user might want to type Bar<string> and still want 'using Foo'.
-                    // We shouldn't try to filter the CompletionItem for Bar<T> later.
-                    // so just ignore the Bar<int> here.
-                    var typeParameter = target.GetTypeParameters();
-                    if (typeParameter.IsEmpty)
+                    if (symbol is { Target: ITypeSymbol { TypeKind: not TypeKind.Error } target })
                     {
-                        var namespaceOfTarget = target.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.NameFormat);
-                        var typeNameOfTarget = target.Name;
-                        dictionary.Add(namespaceOfTarget, typeNameOfTarget);
+                        // If the target type is a type constructs from generics type, e.g.
+                        // using AliasBar = Bar<int>
+                        // namespace Foo
+                        // {
+                        //      public class Bar<T>
+                        //      {
+                        //      }
+                        // }
+                        // namespace Foo2
+                        // {
+                        //      public class Main
+                        //      {
+                        //          $$
+                        //      }
+                        // }
+                        // In such case, user might want to type Bar<string> and still want 'using Foo'.
+                        // We shouldn't try to filter the CompletionItem for Bar<T> later.
+                        // so just ignore the Bar<int> here.
+                        var typeParameter = target.GetTypeParameters();
+                        if (typeParameter.IsEmpty)
+                        {
+                            var namespaceOfTarget = target.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.NameFormat);
+                            var typeNameOfTarget = target.Name;
+                            dictionary.Add(namespaceOfTarget, typeNameOfTarget);
+                        }
                     }
                 }
             }

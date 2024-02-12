@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public void AddIndentBlockOperations(
-            List<IndentBlockOperation> operations,
+            SegmentedList<IndentBlockOperation> operations,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(operations);
@@ -272,39 +272,21 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public void AddSuppressOperations(
-            List<SuppressOperation> operations,
+            SegmentedList<SuppressOperation> operations,
             CancellationToken cancellationToken)
         {
-            var valuePairs = new SegmentedArray<(SuppressOperation operation, bool shouldSuppress, bool onSameLine)>(operations.Count);
-
             // TODO: think about a way to figure out whether it is already suppressed and skip the expensive check below.
-            for (var i = 0; i < operations.Count; i++)
+            foreach (var operation in operations)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
-                var operation = operations[i];
 
                 // if an operation contains elastic trivia itself and the operation is not marked to ignore the elastic trivia 
                 // ignore the operation 
                 if (operation.ContainsElasticTrivia(_tokenStream) && !operation.Option.IsOn(SuppressOption.IgnoreElasticWrapping))
-                {
-                    // don't bother to calculate line alignment between tokens 
-                    valuePairs[i] = (operation, shouldSuppress: false, onSameLine: false);
                     continue;
-                }
 
                 var onSameLine = _tokenStream.TwoTokensOriginallyOnSameLine(operation.StartToken, operation.EndToken);
-                valuePairs[i] = (operation, shouldSuppress: true, onSameLine);
-            }
-
-            foreach (var (operation, shouldSuppress, onSameLine) in valuePairs)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (shouldSuppress)
-                {
-                    AddSuppressOperation(operation, onSameLine);
-                }
+                AddSuppressOperation(operation, onSameLine);
             }
         }
 
