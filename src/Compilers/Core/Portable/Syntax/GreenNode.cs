@@ -85,13 +85,19 @@ namespace Microsoft.CodeAnalysis
         internal const int ListKind = 1;
 
         private readonly ushort _kind;
-        protected NodeFlagsAndSlotCount _nodeFlagsAndSlotCount;
+        private NodeFlagsAndSlotCount _nodeFlagsAndSlotCount;
         private int _fullWidth;
 
         protected NodeFlags flags
         {
             get => _nodeFlagsAndSlotCount.NodeFlags;
             set => _nodeFlagsAndSlotCount.NodeFlags |= value;
+        }
+
+        private byte _slotCount
+        {
+            get => _nodeFlagsAndSlotCount.SlotCount;
+            set => _nodeFlagsAndSlotCount.SlotCount = value;
         }
 
         private static readonly ConditionalWeakTable<GreenNode, DiagnosticInfo[]> s_diagnosticsTable =
@@ -205,7 +211,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                int count = _nodeFlagsAndSlotCount.SlotCount;
+                int count = _slotCount;
                 if (count == byte.MaxValue)
                 {
                     count = GetSlotCount();
@@ -216,7 +222,7 @@ namespace Microsoft.CodeAnalysis
 
             protected set
             {
-                _nodeFlagsAndSlotCount.SlotCount = (byte)value;
+                _slotCount = (byte)value;
             }
         }
 
@@ -232,7 +238,7 @@ namespace Microsoft.CodeAnalysis
         // for slot counts >= byte.MaxValue
         protected virtual int GetSlotCount()
         {
-            return _nodeFlagsAndSlotCount.SlotCount;
+            return _slotCount;
         }
 
         public virtual int GetSlotOffset(int index)
