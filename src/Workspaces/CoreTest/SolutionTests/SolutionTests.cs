@@ -4629,7 +4629,7 @@ class C
             Assert.True(frozenCompilation1.ContainsSyntaxTree(await frozenProject1.Documents.Single().GetSyntaxTreeAsync()));
 
             var frozenProject2 = frozenSolution.GetProject(project2.Id);
-            Assert.Empty(frozenProject2.Documents);
+            Assert.Single(frozenProject2.Documents);
 
             var frozenCompilation2 = await frozenProject2.GetCompilationAsync();
             Assert.Single(frozenCompilation2.SyntaxTrees);
