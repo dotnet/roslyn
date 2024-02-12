@@ -4480,7 +4480,7 @@ public class ConvertToRecordCodeRefactoringTests
         await TestRefactoringAsync(initialMarkup, fixedMarkup);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72067")]
     public async Task TestMovePropertiesAndRefactorInitializer_SourceGeneratedDocuments()
     {
         await new RefactoringTest
