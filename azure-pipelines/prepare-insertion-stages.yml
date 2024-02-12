@@ -33,32 +33,33 @@ stages:
           SymbolsAgentPath: $(Pipeline.Workspace)/symbols-legacy
           azureSubscription: Symbols Upload (DevDiv)
 
-  # - job: push
-  #   displayName: azure-public/vs-impl feed
-  #   ${{ if parameters.ArchiveSymbols }}:
-  #     dependsOn: symbol_archive
-  #   pool:
-  #     name: AzurePipelines-EO
-  #     demands:
-  #     - ImageOverride -equals AzurePipelinesUbuntu20.04compliantGPT
-  #     os: Linux
-  #   templateContext:
-  #     outputParentDirectory: $(Pipeline.Workspace)
-  #     outputs:
-  #     - output: nuget
-  #       displayName: 📦 Push nuget packages
-  #       packagesToPush: '$(Pipeline.Workspace)/deployables-Windows/NuGet/*.nupkg'
-  #       packageParentPath: $(Pipeline.Workspace)/deployables-Windows/NuGet
-  #       allowPackageConflicts: true
-  #       nuGetFeedType: external
-  #       publishFeedCredentials: azure-public/vs-impl
-  #   steps:
-  #   - checkout: none
-  #   - download: current
-  #     artifact: Variables-Windows
-  #     displayName: 🔻 Download Variables-Windows artifact
-  #   - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
-  #     displayName: ⚙️ Set pipeline variables based on artifacts
-  #   - download: current
-  #     artifact: deployables-Windows
-  #     displayName: 🔻 Download deployables-Windows artifact
+  - ${{ if false }}: # Switch to true to enable, but leave the condition to avoid merge conflicts later.
+    - job: push
+      displayName: azure-public/vs-impl feed
+      ${{ if parameters.ArchiveSymbols }}:
+        dependsOn: symbol_archive
+      pool:
+        name: AzurePipelines-EO
+        demands:
+        - ImageOverride -equals AzurePipelinesUbuntu20.04compliantGPT
+        os: Linux
+      templateContext:
+        outputParentDirectory: $(Pipeline.Workspace)
+        outputs:
+        - output: nuget
+          displayName: 📦 Push nuget packages
+          packagesToPush: '$(Pipeline.Workspace)/deployables-Windows/NuGet/*.nupkg'
+          packageParentPath: $(Pipeline.Workspace)/deployables-Windows/NuGet
+          allowPackageConflicts: true
+          nuGetFeedType: external
+          publishFeedCredentials: azure-public/vs-impl
+      steps:
+      - checkout: none
+      - download: current
+        artifact: Variables-Windows
+        displayName: 🔻 Download Variables-Windows artifact
+      - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
+        displayName: ⚙️ Set pipeline variables based on artifacts
+      - download: current
+        artifact: deployables-Windows
+        displayName: 🔻 Download deployables-Windows artifact
