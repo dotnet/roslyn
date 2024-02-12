@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
@@ -19,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// <summary>
         /// Retrieves all possible types of snippets for a particular position
         /// </summary>
-        Task<ImmutableArray<SnippetData>> GetSnippetsAsync(Document document, int position, CancellationToken cancellationToken);
+        Task<ImmutableArray<SnippetData>> GetSnippetsAsync(SnippetContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the corresponding provider from a snippet identifier.
