@@ -69,6 +69,7 @@ jobs:
             displayName: 📢 Publish ${{ artifact_name }}-Windows
             targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-Windows
             artifactName: ${{ artifact_name }}-Windows
+            condition: succeededOrFailed()
       - output: pipelineArtifact
         displayName: 📢 Publish VSInsertion-Windows
         targetPath: $(Build.ArtifactStagingDirectory)/VSInsertion-Windows
