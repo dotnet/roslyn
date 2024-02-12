@@ -535,37 +535,26 @@ Block[B0] - Entry
         Entering: {R1}
 .locals {R1}
 {
-    Locals: [<anonymous local> As System.Boolean]
     CaptureIds: [0]
     Block[B1] - Block
         Predecessors: [B0]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
               Value:
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'l')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningReference)
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'l')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (DelegateRelaxationLevelNone)
                   Operand:
-                    IParameterReferenceOperation: l (OperationKind.ParameterReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
+                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
+                      Children(1):
+                          IParameterReferenceOperation: l (OperationKind.ParameterReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
         Next (Regular) Block[B2]
             Entering: {R2} {R3}
     .try {R2, R3}
     {
         Block[B2] - Block
             Predecessors: [B1]
-            Statements (1)
-                IInvocationOperation (Sub System.Threading.Monitor.Enter(obj As System.Object, ByRef lockTaken As System.Boolean)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'l')
-                  Instance Receiver:
-                    null
-                  Arguments(2):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'l')
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: lockTaken) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
-                        ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'l')
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Statements (0)
             Next (Regular) Block[B6]
                 Finalizing: {R4}
                 Leaving: {R3} {R2} {R1}
@@ -575,20 +564,18 @@ Block[B0] - Entry
         Block[B3] - Block
             Predecessors (0)
             Statements (0)
-            Jump if False (Regular) to Block[B5]
-                ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'l')
+            Jump if True (Regular) to Block[B5]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'l')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'l')
             Next (Regular) Block[B4]
         Block[B4] - Block
             Predecessors: [B3]
             Statements (1)
-                IInvocationOperation (Sub System.Threading.Monitor.Exit(obj As System.Object)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'l')
+                IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'l')
                   Instance Receiver:
-                    null
-                  Arguments(1):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'l')
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'l')
+                  Arguments(0)
             Next (Regular) Block[B5]
         Block[B5] - Block
             Predecessors: [B3] [B4]
