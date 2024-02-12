@@ -63,13 +63,14 @@ internal sealed partial class SolutionCompilationState
     /// </summary>
     private readonly Dictionary<DocumentId, SolutionCompilationState> _cachedFrozenDocumentState = new();
 
-    private AsyncLazy<SolutionCompilationState> _cachedFrozenSnapshot;
-
+    private readonly AsyncLazy<SolutionCompilationState> _cachedFrozenSnapshot;
+ 
     private SolutionCompilationState(
         SolutionState solution,
         bool partialSemanticsEnabled,
         ImmutableDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
-        SourceGeneratedDocumentState? frozenSourceGeneratedDocument)
+        SourceGeneratedDocumentState? frozenSourceGeneratedDocument,
+        AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot)
     {
         SolutionState = solution;
         PartialSemanticsEnabled = partialSemanticsEnabled;
@@ -78,7 +79,7 @@ internal sealed partial class SolutionCompilationState
 
         // when solution state is changed, we recalculate its checksum
         _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectId: null, c));
-        _cachedFrozenSnapshot = AsyncLazy.Create(c => Task.FromResult(ComputeFrozenSnapshot(c)));
+        _cachedFrozenSnapshot = cachedFrozenSnapshot ?? AsyncLazy.Create(c => Task.FromResult(ComputeFrozenSnapshot(c)));
 
         CheckInvariants();
     }
@@ -90,7 +91,8 @@ internal sealed partial class SolutionCompilationState
               solution,
               partialSemanticsEnabled,
               projectIdToTrackerMap: ImmutableDictionary<ProjectId, ICompilationTracker>.Empty,
-              frozenSourceGeneratedDocument: null)
+              frozenSourceGeneratedDocument: null,
+              cachedFrozenSnapshot: null)
     {
     }
 
@@ -109,7 +111,8 @@ internal sealed partial class SolutionCompilationState
     private SolutionCompilationState Branch(
         SolutionState newSolutionState,
         ImmutableDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
-        Optional<SourceGeneratedDocumentState?> frozenSourceGeneratedDocument = default)
+        Optional<SourceGeneratedDocumentState?> frozenSourceGeneratedDocument = default,
+        AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
     {
         projectIdToTrackerMap ??= _projectIdToTrackerMap;
         var newFrozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument.HasValue ? frozenSourceGeneratedDocument.Value : _frozenSourceGeneratedDocumentState;
@@ -125,7 +128,8 @@ internal sealed partial class SolutionCompilationState
             newSolutionState,
             PartialSemanticsEnabled,
             projectIdToTrackerMap,
-            newFrozenSourceGeneratedDocumentState);
+            newFrozenSourceGeneratedDocumentState,
+            cachedFrozenSnapshot);
     }
 
     /// <inheritdoc cref="SolutionState.ForkProject"/>
@@ -1036,10 +1040,9 @@ internal sealed partial class SolutionCompilationState
             dependencyGraph: SolutionState.CreateDependencyGraph(this.SolutionState.ProjectIds, newIdToProjectStateMap));
         var newCompilationState = this.Branch(
             newState,
-            newIdToTrackerMap);
-
-        // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.
-        newCompilationState._cachedFrozenSnapshot = _cachedFrozenSnapshot;
+            newIdToTrackerMap,
+            // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.
+            cachedFrozenSnapshot: _cachedFrozenSnapshot);
 
         return newCompilationState;
     }
