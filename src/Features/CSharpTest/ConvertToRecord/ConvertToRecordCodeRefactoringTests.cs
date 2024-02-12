@@ -4480,6 +4480,53 @@ public class ConvertToRecordCodeRefactoringTests
         await TestRefactoringAsync(initialMarkup, fixedMarkup);
     }
 
+    [Fact]
+    public async Task TestMovePropertiesAndRefactorInitializer_SourceGeneratedDocuments()
+    {
+        await new RefactoringTest
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    namespace N
+                    {
+                        public class [|C|]
+                        {
+                            public int P { get; init; }
+                            public bool B { get; init; }
+                        }
+                    }
+                    """
+                },
+                GeneratedSources =
+                {
+                    ("file.cs",
+                     """
+                     public static class D
+                     {
+                         public static C GetC()
+                         {
+                             return new C
+                             {
+                                 P = 0,
+                                 B = false
+                             };
+                         }
+                     }
+                     """)
+                }
+            },
+            FixedCode = """
+                namespace N
+                {
+                    public record C(int P, bool B);
+                }
+                """
+        }.RunAsync();
+    }
+
     #region selection
 
     [Fact]
