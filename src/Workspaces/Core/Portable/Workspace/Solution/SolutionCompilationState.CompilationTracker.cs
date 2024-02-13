@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis
                             isFrozen,
                             compilationWithGeneratedDocuments,
                             compilationWithoutGeneratedDocuments,
-                            hasSuccessfullyLoaded && !isFrozen,
+                            hasSuccessfullyLoaded,
                             nextGeneratorInfo,
                             this.ProjectState.Id,
                             metadataReferenceToProjectId);
