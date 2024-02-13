@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
 
                 set
                 {
-                    if (value == byte.MaxValue)
+                    if (value >= MaxSlotCount)
                         value = MaxSlotCount;
                     Debug.Assert(value <= MaxSlotCount);
 
