@@ -74,20 +74,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             Assert.True(actualRegions.Length == 0, $"Expected no regions but found {actualRegions.Length}.");
         }
 
-        protected static RegionData Region(string textSpanName, string hintSpanName, string primaryTextSpanName, string primaryHintSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
-            => new RegionData(textSpanName, hintSpanName, primaryTextSpanName, primaryHintSpanName, bannerText, autoCollapse, isDefaultCollapsed);
-
         protected static RegionData Region(string textSpanName, string hintSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
-            => new RegionData(textSpanName, hintSpanName, primaryTextSpanName: null, primaryHintSpanName: null, bannerText, autoCollapse, isDefaultCollapsed);
+            => new(textSpanName, hintSpanName, bannerText, autoCollapse, isDefaultCollapsed);
 
         protected static RegionData Region(string textSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
-            => new RegionData(textSpanName, textSpanName, primaryTextSpanName: null, primaryHintSpanName: null, bannerText, autoCollapse, isDefaultCollapsed);
+            => new(textSpanName, textSpanName, bannerText, autoCollapse, isDefaultCollapsed);
 
         private static BlockSpan CreateBlockSpan(
             RegionData regionData,
             IDictionary<string, ImmutableArray<TextSpan>> spans)
         {
-            var (textSpanName, hintSpanName, primaryTextSpanName, primaryHintSpanName, bannerText, autoCollapse, isDefaultCollapsed) = regionData;
+            var (textSpanName, hintSpanName, bannerText, autoCollapse, isDefaultCollapsed) = regionData;
 
             Assert.True(spans.ContainsKey(textSpanName) && spans[textSpanName].Length == 1, $"Test did not specify '{textSpanName}' span.");
             Assert.True(spans.ContainsKey(hintSpanName) && spans[hintSpanName].Length == 1, $"Test did not specify '{hintSpanName}' span.");
@@ -95,25 +92,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             var textSpan = spans[textSpanName][0];
             var hintSpan = spans[hintSpanName][0];
 
-            TextSpan? primaryTextSpan = null, primaryHintSpan = null;
-            if (primaryTextSpanName != null || primaryHintSpanName != null)
-            {
-                Contract.ThrowIfNull(primaryTextSpanName);
-                Contract.ThrowIfNull(primaryHintSpanName);
-                Assert.True(spans.ContainsKey(primaryTextSpanName) && spans[primaryTextSpanName].Length == 1, $"Test did not specify '{primaryTextSpanName}' span.");
-                Assert.True(spans.ContainsKey(primaryHintSpanName) && spans[primaryHintSpanName].Length == 1, $"Test did not specify '{primaryHintSpanName}' span.");
-
-                primaryTextSpan = spans[primaryTextSpanName][0];
-                primaryHintSpan = spans[primaryHintSpanName][0];
-            }
-
             return new BlockSpan(
                 isCollapsible: true,
                 textSpan: textSpan,
                 hintSpan: hintSpan,
-                //primarySpans: primaryTextSpan is null || primaryHintSpan is null
-                //    ? null
-                //    : (primaryTextSpan.Value, primaryHintSpan.Value),
                 type: BlockTypes.Nonstructural,
                 bannerText: bannerText,
                 autoCollapse: autoCollapse,
@@ -132,64 +114,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
         }
     }
 
-    public readonly struct RegionData
-    {
-        public readonly string TextSpanName;
-        public readonly string HintSpanName;
-        public readonly string? PrimaryTextSpanName;
-        public readonly string? PrimaryHintSpanName;
-        public readonly string BannerText;
-        public readonly bool AutoCollapse;
-        public readonly bool IsDefaultCollapsed;
-
-        public RegionData(string textSpanName, string hintSpanName, string? primaryTextSpanName, string? primaryHintSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed)
-        {
-            TextSpanName = textSpanName;
-            HintSpanName = hintSpanName;
-            PrimaryTextSpanName = primaryTextSpanName;
-            PrimaryHintSpanName = primaryHintSpanName;
-            BannerText = bannerText;
-            AutoCollapse = autoCollapse;
-            IsDefaultCollapsed = isDefaultCollapsed;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is RegionData other
-                && TextSpanName == other.TextSpanName
-                && HintSpanName == other.HintSpanName
-                && BannerText == other.BannerText
-                && AutoCollapse == other.AutoCollapse
-                && IsDefaultCollapsed == other.IsDefaultCollapsed;
-        }
-
-        public override int GetHashCode()
-        {
-            var hashCode = -1426774128;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(TextSpanName);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(HintSpanName);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(BannerText);
-            hashCode = hashCode * -1521134295 + AutoCollapse.GetHashCode();
-            hashCode = hashCode * -1521134295 + IsDefaultCollapsed.GetHashCode();
-            return hashCode;
-        }
-
-        public void Deconstruct(
-            out string textSpanName,
-            out string hintSpanName,
-            out string? primaryTextSpanName,
-            out string? primaryHintSpanName,
-            out string bannerText,
-            out bool autoCollapse,
-            out bool isDefaultCollapsed)
-        {
-            textSpanName = this.TextSpanName;
-            hintSpanName = this.HintSpanName;
-            primaryTextSpanName = PrimaryTextSpanName;
-            primaryHintSpanName = PrimaryHintSpanName;
-            bannerText = this.BannerText;
-            autoCollapse = this.AutoCollapse;
-            isDefaultCollapsed = this.IsDefaultCollapsed;
-        }
-    }
+    public readonly record struct RegionData(
+        string TextSpanName,
+        string HintSpanName,
+        string BannerText,
+        bool AutoCollapse,
+        bool IsDefaultCollapsed);
 }
