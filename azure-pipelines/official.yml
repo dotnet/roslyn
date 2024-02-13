@@ -68,7 +68,6 @@ extends:
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
           BuildConfiguration: Release
           NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
-          Packaging.EnableSBOMSigning: false
         jobs:
         - template: /azure-pipelines/build.yml@self
           parameters:
@@ -103,7 +102,6 @@ extends:
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
           BuildConfiguration: Release
           NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
-          Packaging.EnableSBOMSigning: false
         jobs:
         - template: /azure-pipelines/build.yml@self
           parameters:
