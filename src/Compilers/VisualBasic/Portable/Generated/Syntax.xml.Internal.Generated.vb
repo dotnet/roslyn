@@ -8178,6 +8178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._argumentList = argumentList
             End If
 
+            SetFlags(NodeFlags.ContainsAttributes)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, target As AttributeTargetSyntax, name As TypeSyntax, argumentList As ArgumentListSyntax, context As ISyntaxFactoryContext)
@@ -8196,6 +8197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._argumentList = argumentList
             End If
 
+            SetFlags(NodeFlags.ContainsAttributes)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), target As AttributeTargetSyntax, name As TypeSyntax, argumentList As ArgumentListSyntax)
@@ -8213,6 +8215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._argumentList = argumentList
             End If
 
+            SetFlags(NodeFlags.ContainsAttributes)
         End Sub
 
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
