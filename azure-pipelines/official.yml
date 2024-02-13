@@ -65,9 +65,7 @@ extends:
       stages:
       - stage: Build
         variables:
-          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-          BuildConfiguration: Release
-          NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
+        - template: /azure-pipelines/BuildStageVariables.yml@self
         jobs:
         - template: /azure-pipelines/build.yml@self
           parameters:
@@ -99,9 +97,7 @@ extends:
       stages:
       - stage: Build
         variables:
-          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-          BuildConfiguration: Release
-          NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
+        - template: /azure-pipelines/BuildStageVariables.yml@self
         jobs:
         - template: /azure-pipelines/build.yml@self
           parameters:
