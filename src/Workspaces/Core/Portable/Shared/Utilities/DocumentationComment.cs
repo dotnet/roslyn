@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                             if (_exceptionTextBuilders == null || !_exceptionTextBuilders.ContainsKey(type))
                             {
                                 (_exceptionTypesBuilder ??= ImmutableArray.CreateBuilder<string>()).Add(type);
-                                (_exceptionTextBuilders ??= new Dictionary<string, ImmutableArray<string>.Builder>()).Add(type, ImmutableArray.CreateBuilder<string>());
+                                (_exceptionTextBuilders ??= []).Add(type, ImmutableArray.CreateBuilder<string>());
                             }
 
                             _exceptionTextBuilders[type].Add(exceptionText);
@@ -315,9 +315,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        private readonly Dictionary<string, string> _parameterTexts = new();
-        private readonly Dictionary<string, string> _typeParameterTexts = new();
-        private readonly Dictionary<string, ImmutableArray<string>> _exceptionTexts = new();
+        private readonly Dictionary<string, string> _parameterTexts = [];
+        private readonly Dictionary<string, string> _typeParameterTexts = [];
+        private readonly Dictionary<string, ImmutableArray<string>> _exceptionTexts = [];
 
         /// <summary>
         /// Returns the text for a given parameter, or null if no documentation was given for the parameter.

@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly NonReentrantLock _gate = new();
 
             // metadata references are held weakly, so even though this is a cache that enables reuse, it does not control lifetime.
-            private readonly Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>> _references
-                = new();
+            private readonly Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>> _references = [];
 
             public MetadataReference GetAddOrUpdate(string path, MetadataReferenceProperties properties)
             {

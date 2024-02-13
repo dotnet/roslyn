@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         protected readonly InlineRenameService InlineRenameService;
         private readonly IGlobalOptionService _globalOptionService;
-        protected readonly Dictionary<ITextBuffer, TBufferState> UndoManagers = new Dictionary<ITextBuffer, TBufferState>();
+        protected readonly Dictionary<ITextBuffer, TBufferState> UndoManagers = [];
         protected readonly Stack<ActiveSpanState> UndoStack = new Stack<ActiveSpanState>();
         protected readonly Stack<ActiveSpanState> RedoStack = new Stack<ActiveSpanState>();
         protected ActiveSpanState initialState;

@@ -41,18 +41,18 @@ namespace Microsoft.CodeAnalysis.Formatting
         // anchor token to anchor data map.
         // unlike anchorTree that would return anchor data for given span in the tree, it will return
         // anchorData based on key which is anchor token.
-        private readonly SegmentedDictionary<SyntaxToken, AnchorData> _anchorBaseTokenMap = new();
+        private readonly SegmentedDictionary<SyntaxToken, AnchorData> _anchorBaseTokenMap = [];
 
         // hashset to prevent duplicate entries in the trees.
-        private readonly HashSet<TextSpan> _indentationMap = new();
-        private readonly HashSet<TextSpan> _suppressWrappingMap = new();
-        private readonly HashSet<TextSpan> _suppressSpacingMap = new();
-        private readonly HashSet<TextSpan> _suppressFormattingMap = new();
-        private readonly HashSet<TextSpan> _anchorMap = new();
+        private readonly HashSet<TextSpan> _indentationMap = [];
+        private readonly HashSet<TextSpan> _suppressWrappingMap = [];
+        private readonly HashSet<TextSpan> _suppressSpacingMap = [];
+        private readonly HashSet<TextSpan> _suppressFormattingMap = [];
+        private readonly HashSet<TextSpan> _anchorMap = [];
 
         // used for selection based formatting case. it contains operations that will define
         // what indentation to use as a starting indentation. (we always use 0 for formatting whole tree case)
-        private List<IndentBlockOperation> _initialIndentBlockOperations = new();
+        private List<IndentBlockOperation> _initialIndentBlockOperations = [];
 
         public FormattingContext(AbstractFormatEngine engine, TokenStream tokenStream)
         {

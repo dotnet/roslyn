@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var type = _semanticModel.GetSpeculativeTypeInfo(_contextPosition, statement.Declaration.Type, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
                 Contract.ThrowIfNull(type);
 
-                map.GetOrAdd(type, _ => new List<LocalDeclarationStatementSyntax>()).Add(statement);
+                map.GetOrAdd(type, _ => []).Add(statement);
             }
 
             private static IEnumerable<LocalDeclarationStatementSyntax> GetMergedDeclarationStatements(

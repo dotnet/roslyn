@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// via the AddIdentifier and RemoveIdentifier helpers.
         /// </summary>
         private readonly Dictionary<string, List<SyntaxToken>> _currentIdentifiersInScope = new Dictionary<string, List<SyntaxToken>>(identifierComparer);
-        private readonly HashSet<SyntaxToken> _conflictingTokensToReport = new();
+        private readonly HashSet<SyntaxToken> _conflictingTokensToReport = [];
 
         public IEnumerable<SyntaxToken> ConflictingTokens => _conflictingTokensToReport;
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             else
             {
                 // No identifiers yet, so record the first one
-                _currentIdentifiersInScope.Add(name, new List<SyntaxToken> { token });
+                _currentIdentifiersInScope.Add(name, [token]);
             }
         }
 

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     {
         private class MockFindUsagesContext : FindUsagesContext
         {
-            public readonly List<DefinitionItem> Result = new();
+            public readonly List<DefinitionItem> Result = [];
 
             public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {

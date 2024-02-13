@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
     {
         private class NodesAndTokensToReduceComputer : CSharpSyntaxRewriter
         {
-            private readonly List<NodeOrTokenToReduce> _nodesAndTokensToReduce = new();
+            private readonly List<NodeOrTokenToReduce> _nodesAndTokensToReduce = [];
             private readonly Func<SyntaxNodeOrToken, bool> _isNodeOrTokenOutsideSimplifySpans;
 
             private bool _simplifyAllDescendants;

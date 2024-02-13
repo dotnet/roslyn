@@ -572,7 +572,7 @@ public class CSharpTestMethodFinderTests
         var testMethods = await testMethodFinder.GetPotentialTestMethodsAsync(workspace.CurrentSolution.GetRequiredDocument(testDocument.Id), span, CancellationToken.None);
         var semanticModel = await workspace.CurrentSolution.GetRequiredDocument(testDocument.Id).GetRequiredSemanticModelAsync(CancellationToken.None);
 
-        List<string> unmatchedTestNames = new();
+        List<string> unmatchedTestNames = [];
 
         foreach (var expectedTestName in expectedTestNames)
         {

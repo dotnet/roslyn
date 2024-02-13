@@ -393,7 +393,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Async Function AssertCompletionItemsContainAll(ParamArray displayText As String()) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim items = GetCompletionItems()
-            Assert.True(displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v)))
+            Assert.All(displayText, Sub(v) Assert.Contains(v, items.Select(Function(i) i.DisplayText)))
         End Function
 
         Public Async Function AssertCompletionItemsContain(displayText As String, displayTextSuffix As String) As Task
