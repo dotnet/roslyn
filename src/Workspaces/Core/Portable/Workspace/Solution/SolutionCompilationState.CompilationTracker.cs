@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis
                                 // instead. We'll find the old document ID, remove that state, and then add ours.
                                 pendingActions = [
                                     (inProgressProject, new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction([oldState])),
-                                (inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
+                                    (inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
                                 inProgressProject = inProgressProject
                                     .RemoveDocuments([oldState.Id])
                                     .AddDocuments([docState]);
