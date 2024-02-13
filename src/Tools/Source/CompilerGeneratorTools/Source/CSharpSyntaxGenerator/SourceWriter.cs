@@ -173,6 +173,10 @@ namespace CSharpSyntaxGenerator
                 WriteLine(", DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)");
                 WriteLine("  : base(kind, diagnostics, annotations)");
                 OpenBlock();
+                if (node.Name == "AttributeSyntax")
+                {
+                    WriteLine("this.Flags |= NodeFlags.ContainsAttributes;");
+                }
                 WriteCtorBody(valueFields, nodeFields);
                 CloseBlock();
 
@@ -185,6 +189,10 @@ namespace CSharpSyntaxGenerator
                 WriteLine(", SyntaxFactoryContext context)");
                 WriteLine("  : base(kind)");
                 OpenBlock();
+                if (node.Name == "AttributeSyntax")
+                {
+                    WriteLine("this.Flags |= NodeFlags.ContainsAttributes;");
+                }
                 WriteLine("this.SetFactoryContext(context);");
                 WriteCtorBody(valueFields, nodeFields);
                 CloseBlock();
@@ -198,6 +206,10 @@ namespace CSharpSyntaxGenerator
                 WriteLine(")");
                 WriteLine("  : base(kind)");
                 OpenBlock();
+                if (node.Name == "AttributeSyntax")
+                {
+                    WriteLine("this.Flags |= NodeFlags.ContainsAttributes;");
+                }
                 WriteCtorBody(valueFields, nodeFields);
                 CloseBlock();
                 WriteLine();

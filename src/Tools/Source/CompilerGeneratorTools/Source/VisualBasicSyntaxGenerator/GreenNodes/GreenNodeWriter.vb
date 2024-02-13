@@ -377,6 +377,11 @@ Friend Class GreenNodeWriter
             End If
         End If
 
+
+        If nodeStructure.Name = "AttributeSyntax" Then
+            _writer.WriteLine("Me.Flags = Me.Flags Or NodeFlags.ContainsAttributes")
+        End If
+
         ' Generate code to initialize this class
 
         If contextual Then
