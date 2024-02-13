@@ -293,7 +293,7 @@ namespace CSharpSyntaxGenerator
         {
             if (node.Name == "AttributeSyntax")
             {
-                WriteLine("this.flags |= NodeFlags.ContainsAttributes;");
+                WriteLine("SetFlags(NodeFlags.ContainsAttributes);");
             }
 
             // constructor body
