@@ -14,7 +14,7 @@ namespace Analyzer.Utilities.Lightup
     {
         private static readonly PropertyInfo? PropertyAccessor = typeof(INamedTypeSymbol).GetProperty("IsFileLocal", BindingFlags.Public | BindingFlags.Instance);
 
-        private static readonly Func<INamedTypeSymbol, bool> MemberAccessor = PropertyAccessor is null ? _ => false : symbol => (bool)PropertyAccessor.GetValue(symbol);
+        private static readonly Func<INamedTypeSymbol, bool> MemberAccessor = PropertyAccessor is null ? _ => false : symbol => (bool)PropertyAccessor.GetValue(symbol)!;
 
         public INamedTypeSymbol WrappedSymbol { get; }
 
