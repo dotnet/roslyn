@@ -149,12 +149,15 @@ try {
         "(?m)^\s+- microbuild`r?`n"=""
     }
     Replace-Placeholders -Path "azure-pipelines\official.yml" -Replacements $YmlReplacements
+    Replace-Placeholders -Path "azure-pipelines.yml" -Replacements $YmlReplacements
+
+    $YmlReplacements = @{}
     if ($CodeCovToken) {
         $YmlReplacements['(codecov_token: ).*(#.*)'] = "`$1$CodeCovToken"
     } else {
         $YmlReplacements['(codecov_token: ).*(#.*)'] = "#`$1`$2"
     }
-    Replace-Placeholders -Path "azure-pipelines.yml" -Replacements $YmlReplacements
+    Replace-Placeholders -Path "azure-pipelines/BuildStageVariables.yml" -Replacements $YmlReplacements
 
     Replace-Placeholders -Path "azure-pipelines/variables/InsertVersionsValues.ps1" -Replacements @{
         'LibraryName' = $LibraryName;
