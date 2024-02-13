@@ -26,8 +26,8 @@
     <UsagePattern IdentityGlob="System.Configuration.ConfigurationManager/7.0*" />
     <UsagePattern IdentityGlob="System.Diagnostics.EventLog/7.0*" />
     <UsagePattern IdentityGlob="System.Security.Cryptography.ProtectedData/7.0*" />
-    <UsagePattern IdentityGlob="Microsoft.Extensions.Configuration*/7.0*" />
+    <UsagePattern IdentityGlob="Microsoft.Extensions.Configuration*/8.0*" />
     <UsagePattern IdentityGlob="Microsoft.Extensions.Logging*/8.0*" />
-    <UsagePattern IdentityGlob="Microsoft.Extensions.Options.ConfigurationExtension*/7.0*" />
+    <UsagePattern IdentityGlob="Microsoft.Extensions.Options.ConfigurationExtension*/8.0*" />
   </IgnorePatterns>
 </UsageData>
