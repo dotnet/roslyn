@@ -15864,6 +15864,7 @@ internal sealed partial class AttributeSyntax : CSharpSyntaxNode
     internal AttributeSyntax(SyntaxKind kind, NameSyntax name, AttributeArgumentListSyntax? argumentList, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
       : base(kind, diagnostics, annotations)
     {
+        this.Flags |= NodeFlags.ContainsAttributes;
         this.SlotCount = 2;
         this.AdjustFlagsAndWidth(name);
         this.name = name;
@@ -15877,6 +15878,7 @@ internal sealed partial class AttributeSyntax : CSharpSyntaxNode
     internal AttributeSyntax(SyntaxKind kind, NameSyntax name, AttributeArgumentListSyntax? argumentList, SyntaxFactoryContext context)
       : base(kind)
     {
+        this.Flags |= NodeFlags.ContainsAttributes;
         this.SetFactoryContext(context);
         this.SlotCount = 2;
         this.AdjustFlagsAndWidth(name);
@@ -15891,6 +15893,7 @@ internal sealed partial class AttributeSyntax : CSharpSyntaxNode
     internal AttributeSyntax(SyntaxKind kind, NameSyntax name, AttributeArgumentListSyntax? argumentList)
       : base(kind)
     {
+        this.Flags |= NodeFlags.ContainsAttributes;
         this.SlotCount = 2;
         this.AdjustFlagsAndWidth(name);
         this.name = name;

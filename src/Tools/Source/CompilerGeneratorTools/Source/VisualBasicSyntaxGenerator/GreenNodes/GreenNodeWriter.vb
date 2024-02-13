@@ -377,11 +377,6 @@ Friend Class GreenNodeWriter
             End If
         End If
 
-
-        If nodeStructure.Name = "AttributeSyntax" Then
-            _writer.WriteLine("Me.Flags = Me.Flags Or NodeFlags.ContainsAttributes")
-        End If
-
         ' Generate code to initialize this class
 
         If contextual Then
@@ -423,6 +418,10 @@ Friend Class GreenNodeWriter
         'TODO: BLUE
         If StructureTypeName(nodeStructure) = "DirectiveTriviaSyntax" Then
             _writer.WriteLine("            SetFlags(NodeFlags.ContainsDirectives)")
+        End If
+
+        If StructureTypeName(nodeStructure) = "AttributeSyntax" Then
+            _writer.WriteLine("Me.Flags = Me.Flags Or NodeFlags.ContainsAttributes")
         End If
 
         ' Generate End Sub
