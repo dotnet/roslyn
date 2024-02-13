@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
@@ -111,7 +112,7 @@ public class CompletingHandler : IRequestHandler<int, string, TestRequestContext
             {
                 return "I completed!";
             }
-            await Task.Delay(100);
+            await Task.Delay(100, cancellationToken).NoThrowAwaitable();
         }
     }
 }
@@ -130,7 +131,7 @@ public class CancellingHandler : IRequestHandler<int, string, TestRequestContext
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await Task.Delay(100);
+            await Task.Delay(100, cancellationToken).NoThrowAwaitable();
         }
     }
 }

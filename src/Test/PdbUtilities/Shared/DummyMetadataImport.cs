@@ -25,7 +25,7 @@ namespace Roslyn.Test.PdbUtilities
         public DummyMetadataImport(MetadataReader metadataReaderOpt, IDisposable metadataOwnerOpt)
         {
             _metadataReaderOpt = metadataReaderOpt;
-            _pinnedBuffers = new List<GCHandle>();
+            _pinnedBuffers = [];
             _metadataOwnerOpt = metadataOwnerOpt;
         }
 

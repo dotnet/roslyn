@@ -323,7 +323,7 @@ class B : C, A
             result = (await SymbolFinder.FindReferencesAsync(boo, solution)).ToList();
             Assert.Equal(2, result.Count); // 2 symbols found
 
-            expectedMatchedLines = new HashSet<int> { 3, 13, 14 };
+            expectedMatchedLines = [3, 13, 14];
             result.ForEach((reference) => Verify(reference, expectedMatchedLines));
 
             Assert.Empty(expectedMatchedLines);
@@ -334,7 +334,7 @@ class B : C, A
             result = (await SymbolFinder.FindReferencesAsync(boo, solution)).ToList();
             Assert.Equal(2, result.Count); // 2 symbols found
 
-            expectedMatchedLines = new HashSet<int> { 7, 12 };
+            expectedMatchedLines = [7, 12];
             result.ForEach((reference) => Verify(reference, expectedMatchedLines));
 
             Assert.Empty(expectedMatchedLines);
@@ -502,7 +502,7 @@ abstract class C<T> where T : unmanaged         // Line 4
             var constraint = comp.GetTypeByMetadataName("C`1").TypeParameters.Single().ConstraintTypes.Single();
             var result = (await SymbolFinder.FindReferencesAsync(constraint, solution)).Single();
 
-            Verify(result, new HashSet<int> { 1, 4 });
+            Verify(result, [1, 4]);
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1177764")]

@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
         private sealed class ObjectWithRealAsyncMethod
         {
-            private readonly List<TaskCompletionSource<object?>> _completionSources = new List<TaskCompletionSource<object?>>();
+            private readonly List<TaskCompletionSource<object?>> _completionSources = [];
 
             public Task WaitAsync()
             {

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
         /// File watching tokens from <see cref="_fileReferenceChangeContext"/> that are watching metadata references. These are only created once we are actually applying a batch because
         /// we don't determine until the batch is applied if the file reference will actually be a file reference or it'll be a converted project reference.
         /// </summary>
-        private readonly Dictionary<PortableExecutableReference, IWatchedFile> _metadataReferenceFileWatchingTokens = new();
+        private readonly Dictionary<PortableExecutableReference, IWatchedFile> _metadataReferenceFileWatchingTokens = [];
 
         /// <summary>
         /// Stores the caller for a previous disposal of a reference produced by this class, to track down a double-dispose issue.
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
         /// update the workspace. We need cancellation tokens for those so we can cancel them either when a flurry of events come in (so we only do the delay after the last
         /// modification), or when we know the project is going away entirely.
         /// </summary>
-        private readonly Dictionary<string, CancellationTokenSource> _metadataReferenceRefreshCancellationTokenSources = new();
+        private readonly Dictionary<string, CancellationTokenSource> _metadataReferenceRefreshCancellationTokenSources = [];
 
         public FileWatchedPortableExecutableReferenceFactory(
             SolutionServices solutionServices,

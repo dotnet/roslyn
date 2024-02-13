@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         /// The set of languages that have loaded that care about this service.  If one language loads and has an
         /// appropriate <see cref="_perLanguageOptions"/> also enabled, then this service will start working.
         /// </summary>
-        private readonly ConcurrentSet<string> _registeredLanguages = new();
+        private readonly ConcurrentSet<string> _registeredLanguages = [];
 
         /// <summary>
         /// Option that controls if this service is enabled or not (regardless of language).

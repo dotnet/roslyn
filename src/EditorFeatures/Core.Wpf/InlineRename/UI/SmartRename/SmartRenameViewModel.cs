@@ -33,7 +33,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
 
     public RenameFlyoutViewModel BaseViewModel { get; }
 
-    public ObservableCollection<string> SuggestedNames { get; } = new ObservableCollection<string>();
+    public ObservableCollection<string> SuggestedNames { get; } = [];
 
     public bool IsAvailable => _smartRenameSession.IsAvailable;
 

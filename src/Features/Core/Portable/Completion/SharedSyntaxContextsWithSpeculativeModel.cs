@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             _document = document;
             _position = position;
-            _cache = new();
+            _cache = [];
             _lazyRelatedDocumentIds = new(_document.GetLinkedDocumentIds, isThreadSafe: true);
         }
 

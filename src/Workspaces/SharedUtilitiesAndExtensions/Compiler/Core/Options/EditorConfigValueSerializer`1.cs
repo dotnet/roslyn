@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Options
         public static readonly EditorConfigValueSerializer<T> Unsupported = new(
             parseValue: _ => throw new NotSupportedException("Option does not support serialization to editorconfig format"),
             serializeValue: _ => throw new NotSupportedException("Option does not support serialization to editorconfig format"));
-        private readonly ConcurrentDictionary<string, Optional<T>> _cachedValues = new();
+        private readonly ConcurrentDictionary<string, Optional<T>> _cachedValues = [];
 
         bool IEditorConfigValueSerializer.TryParse(string value, out object? result)
         {

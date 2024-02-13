@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             /// </item>
             /// </list>
             /// </summary>
-            private readonly List<(DocumentationCommentListType type, int index, bool renderedItem)> _listStack = new();
+            private readonly List<(DocumentationCommentListType type, int index, bool renderedItem)> _listStack = [];
 
             /// <summary>
             /// The top item of the stack indicates the hyperlink to apply to text rendered at the current location. It
