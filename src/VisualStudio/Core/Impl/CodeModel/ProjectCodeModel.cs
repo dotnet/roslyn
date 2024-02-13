@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
@@ -20,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     /// </summary>
     internal sealed class ProjectCodeModel : IProjectCodeModel
     {
-        private readonly NonReentrantLock _guard = new NonReentrantLock();
+        private readonly SemaphoreSlim _guard = new(initialCount: 1);
         private readonly IThreadingContext _threadingContext;
         private readonly ProjectId _projectId;
         private readonly ICodeModelInstanceFactory _codeModelInstanceFactory;

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     public sealed class MSBuildWorkspace : Workspace
     {
         // used to serialize access to public methods
-        private readonly NonReentrantLock _serializationLock = new();
+        private readonly SemaphoreSlim _serializationLock = new(initialCount: 1);
 
         private readonly MSBuildProjectLoader _loader;
         private readonly Microsoft.Extensions.Logging.ILoggerFactory _loggerFactory;

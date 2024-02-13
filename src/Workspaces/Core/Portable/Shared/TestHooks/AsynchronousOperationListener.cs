@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal sealed partial class AsynchronousOperationListener : IAsynchronousOperationListener, IAsynchronousOperationWaiter
     {
-        private readonly NonReentrantLock _gate = new();
+        private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = [];
         private CancellationTokenSource _expeditedDelayCancellationTokenSource;
@@ -111,13 +111,13 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         private void Increment_NoLock()
         {
-            Contract.ThrowIfFalse(_gate.LockHeldByMe());
+            Contract.ThrowIfTrue(_gate.CurrentCount > 0);
             _counter++;
         }
 
         private void Decrement_NoLock(AsyncToken token)
         {
-            Contract.ThrowIfFalse(_gate.LockHeldByMe());
+            Contract.ThrowIfTrue(_gate.CurrentCount > 0);
 
             _counter--;
             if (_counter == 0)

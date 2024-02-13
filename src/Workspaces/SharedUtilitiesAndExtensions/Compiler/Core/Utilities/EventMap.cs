@@ -6,13 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Roslyn.Utilities
 {
     internal class EventMap
     {
-        private readonly NonReentrantLock _guard = new();
+        private readonly SemaphoreSlim _guard = new(initialCount: 1);
 
         private readonly Dictionary<string, object> _eventNameToRegistries = [];
 
@@ -76,7 +77,7 @@ namespace Roslyn.Utilities
         private ImmutableArray<Registry<TEventHandler>> GetRegistries_NoLock<TEventHandler>(string eventName)
             where TEventHandler : class
         {
-            _guard.AssertHasLock();
+            Contract.ThrowIfTrue(_guard.CurrentCount > 0);
             if (_eventNameToRegistries.TryGetValue(eventName, out var registries))
             {
                 return (ImmutableArray<Registry<TEventHandler>>)registries;
@@ -88,8 +89,7 @@ namespace Roslyn.Utilities
         private void SetRegistries_NoLock<TEventHandler>(string eventName, ImmutableArray<Registry<TEventHandler>> registries)
             where TEventHandler : class
         {
-            _guard.AssertHasLock();
-
+            Contract.ThrowIfTrue(_guard.CurrentCount > 0);
             _eventNameToRegistries[eventName] = registries;
         }
 

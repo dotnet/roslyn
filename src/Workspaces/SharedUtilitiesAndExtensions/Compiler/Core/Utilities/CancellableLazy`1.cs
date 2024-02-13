@@ -10,13 +10,13 @@ namespace Roslyn.Utilities
 {
     internal class CancellableLazy<T>
     {
-        private NonReentrantLock? _gate;
+        private SemaphoreSlim? _gate;
         private Func<CancellationToken, T>? _valueFactory;
         private T? _value;
 
         public CancellableLazy(Func<CancellationToken, T> valueFactory)
         {
-            _gate = new NonReentrantLock();
+            _gate = new SemaphoreSlim(initialCount: 1);
             _valueFactory = valueFactory;
         }
 
