@@ -50,13 +50,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 
     internal sealed class VSTypeScriptDefinitionItem
     {
-        private sealed class ExternalDefinitionItem(VSTypeScriptDefinitionItemNavigator navigator, ImmutableArray<string> tags, ImmutableArray<TaggedText> displayParts) : DefinitionItem(tags,
-                   displayParts,
-                   ImmutableArray<TaggedText>.Empty,
-                   sourceSpans: default,
-                   classifiedSpans: default,
-                   properties: null,
-                   displayIfNoReferences: true)
+        private sealed class ExternalDefinitionItem(VSTypeScriptDefinitionItemNavigator navigator, ImmutableArray<string> tags, ImmutableArray<TaggedText> displayParts)
+            : DefinitionItem(
+                tags,
+                displayParts,
+                ImmutableArray<TaggedText>.Empty,
+                sourceSpans: default,
+                metadataLocations: [],
+                classifiedSpans: default,
+                properties: null,
+                displayableProperties: ImmutableDictionary<string, string>.Empty,
+                displayIfNoReferences: true)
         {
             private readonly VSTypeScriptDefinitionItemNavigator _navigator = navigator;
 
