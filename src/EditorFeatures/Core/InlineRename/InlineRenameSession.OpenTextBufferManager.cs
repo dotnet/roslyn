@@ -45,12 +45,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             /// The list of active tracking spans that are updated with the session's replacement text.
             /// These are also the only spans the user can edit during an inline rename session.
             /// </summary>
-            private readonly Dictionary<TextSpan, RenameTrackingSpan> _referenceSpanToLinkedRenameSpanMap = new Dictionary<TextSpan, RenameTrackingSpan>();
+            private readonly Dictionary<TextSpan, RenameTrackingSpan> _referenceSpanToLinkedRenameSpanMap = [];
 
-            private readonly List<RenameTrackingSpan> _conflictResolutionRenameTrackingSpans = new List<RenameTrackingSpan>();
-            private readonly IList<IReadOnlyRegion> _readOnlyRegions = new List<IReadOnlyRegion>();
+            private readonly List<RenameTrackingSpan> _conflictResolutionRenameTrackingSpans = [];
+            private readonly IList<IReadOnlyRegion> _readOnlyRegions = [];
 
-            private readonly IList<ITextView> _textViews = new List<ITextView>();
+            private readonly IList<ITextView> _textViews = [];
 
             private TextSpan? _activeSpan;
 

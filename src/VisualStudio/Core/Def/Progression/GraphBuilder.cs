@@ -31,9 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private readonly ISet<GraphNode> _createdNodes = new HashSet<GraphNode>();
         private readonly IList<Tuple<GraphNode, GraphProperty, object>> _deferredPropertySets = new List<Tuple<GraphNode, GraphProperty, object>>();
 
-        private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = new();
-        private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = new();
-        private readonly Dictionary<GraphNode, ISymbol> _nodeToSymbolMap = new();
+        private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = [];
+        private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = [];
+        private readonly Dictionary<GraphNode, ISymbol> _nodeToSymbolMap = [];
 
         /// <summary>
         /// The input solution. Never null.

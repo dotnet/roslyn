@@ -10887,7 +10887,7 @@ class AnotherBuilder
 }";
             await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters: new List<CompletionFilter> { FilterSet.FieldFilter, FilterSet.TargetTypedFilter });
+                matchingFilters: [FilterSet.FieldFilter, FilterSet.TargetTypedFilter]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
@@ -10906,7 +10906,7 @@ class AnotherBuilder
 }";
             await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters: new List<CompletionFilter> { FilterSet.FieldFilter });
+                matchingFilters: [FilterSet.FieldFilter]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
@@ -10924,7 +10924,7 @@ class AnotherBuilder
 }";
             await VerifyItemExistsAsync(
                 markup, "GetHashCode",
-                matchingFilters: new List<CompletionFilter> { FilterSet.MethodFilter });
+                matchingFilters: [FilterSet.MethodFilter]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
@@ -10942,11 +10942,11 @@ class AnotherBuilder
 }";
             await VerifyItemExistsAsync(
                 markup, "c",
-                matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter, FilterSet.TargetTypedFilter });
+                matchingFilters: [FilterSet.LocalAndParameterFilter, FilterSet.TargetTypedFilter]);
 
             await VerifyItemExistsAsync(
                 markup, "C",
-                matchingFilters: new List<CompletionFilter> { FilterSet.ClassFilter });
+                matchingFilters: [FilterSet.ClassFilter]);
         }
 
         [Fact]
@@ -11007,7 +11007,7 @@ class C
 ";
             await VerifyItemIsAbsentAsync(
                 markup, "",
-                matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter });
+                matchingFilters: [FilterSet.LocalAndParameterFilter]);
         }
 
         [Theory]
@@ -11480,7 +11480,7 @@ $@"public class C
             await VerifyItemExistsAsync(
                 markup, "Bar",
                 expectedDescriptionOrNull: $"{targetType} C.Bar({expectedParameterList}) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})",
-                matchingFilters: new List<CompletionFilter> { FilterSet.MethodFilter, FilterSet.TargetTypedFilter });
+                matchingFilters: [FilterSet.MethodFilter, FilterSet.TargetTypedFilter]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

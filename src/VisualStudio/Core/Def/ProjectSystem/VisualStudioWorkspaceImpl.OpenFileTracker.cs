@@ -51,8 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// The IVsHierarchies we have subscribed to to watch for any changes to this moniker. We track this per moniker, so
             /// when a document is closed we know what we have to incrementally unsubscribe from rather than having to unsubscribe from everything.
             /// </summary>
-            private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker
-                = new();
+            private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker = [];
 
             /// <summary>
             /// Boolean flag to indicate if any <see cref="TextDocument"/> has been opened in the workspace.

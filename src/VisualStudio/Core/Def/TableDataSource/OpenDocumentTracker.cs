@@ -13,8 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         where TItem : TableItem
     {
         private readonly object _gate = new();
-        private readonly Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>> _map =
-            new();
+        private readonly Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>> _map = [];
 
         private readonly Workspace _workspace;
 
@@ -32,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 if (!_map.TryGetValue(documentId, out var secondMap))
                 {
-                    secondMap = new Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>();
+                    secondMap = [];
                     _map.Add(documentId, secondMap);
                 }
 

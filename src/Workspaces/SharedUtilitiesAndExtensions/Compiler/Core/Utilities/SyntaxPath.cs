@@ -39,7 +39,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private readonly List<PathSegment> _segments = new();
+        private readonly List<PathSegment> _segments = [];
         private readonly int _kind;
         private readonly bool _trackKinds;
 

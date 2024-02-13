@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly struct AnalyzerConfigOptionsCache(AnalyzerConfigSet configSet)
         {
-            private readonly ConcurrentDictionary<string, AnalyzerConfigData> _sourcePathToResult = new();
+            private readonly ConcurrentDictionary<string, AnalyzerConfigData> _sourcePathToResult = [];
             private readonly Func<string, AnalyzerConfigData> _computeFunction = path => new AnalyzerConfigData(configSet.GetOptionsForSourcePath(path));
             private readonly Lazy<AnalyzerConfigData> _global = new Lazy<AnalyzerConfigData>(() => new AnalyzerConfigData(configSet.GlobalConfigOptions));
 

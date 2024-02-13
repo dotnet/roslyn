@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         private class AutoClosingViewProperty<TProperty, TTextView> where TTextView : ITextView
         {
             private readonly TTextView _textView;
-            private readonly Dictionary<object, TProperty> _map = new();
+            private readonly Dictionary<object, TProperty> _map = [];
 
             public static bool GetOrCreateValue(
                 TTextView textView,

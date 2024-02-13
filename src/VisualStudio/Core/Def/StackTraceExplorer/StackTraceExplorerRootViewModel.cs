@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             _typeMap = typeMap;
         }
 
-        public ObservableCollection<StackTraceExplorerTab> Tabs { get; } = new();
+        public ObservableCollection<StackTraceExplorerTab> Tabs { get; } = [];
 
         private StackTraceExplorerTab? _selectedTab;
         public StackTraceExplorerTab? SelectedTab
