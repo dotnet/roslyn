@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// List of active debugging sessions (small number of simoultaneously active sessions is expected).
         /// </summary>
-        private readonly List<DebuggingSession> _debuggingSessions = new();
+        private readonly List<DebuggingSession> _debuggingSessions = [];
         private static int s_debuggingSessionId;
 
         [ImportingConstructor]

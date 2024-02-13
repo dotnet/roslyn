@@ -29,7 +29,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     private readonly string? _binaryLogPath;
 
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
-    private readonly Dictionary<BuildHostProcessKind, BuildHostProcess> _processes = new();
+    private readonly Dictionary<BuildHostProcessKind, BuildHostProcess> _processes = [];
 
     public BuildHostProcessManager(ImmutableDictionary<string, string>? globalMSBuildProperties = null, string? binaryLogPath = null, ILoggerFactory? loggerFactory = null)
     {

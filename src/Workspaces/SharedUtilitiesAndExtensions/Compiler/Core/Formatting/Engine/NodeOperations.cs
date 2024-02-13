@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal sealed class NodeOperations : IDisposable
     {
-        private static readonly ObjectPool<SegmentedList<IndentBlockOperation>> s_indentBlockOperationPool = new(() => new());
-        private static readonly ObjectPool<SegmentedList<SuppressOperation>> s_suppressOperationPool = new(() => new());
-        private static readonly ObjectPool<SegmentedList<AlignTokensOperation>> s_alignTokensOperationPool = new(() => new());
-        private static readonly ObjectPool<SegmentedList<AnchorIndentationOperation>> s_anchorIndentationOperationPool = new(() => new());
+        private static readonly ObjectPool<SegmentedList<IndentBlockOperation>> s_indentBlockOperationPool = new(() => []);
+        private static readonly ObjectPool<SegmentedList<SuppressOperation>> s_suppressOperationPool = new(() => []);
+        private static readonly ObjectPool<SegmentedList<AlignTokensOperation>> s_alignTokensOperationPool = new(() => []);
+        private static readonly ObjectPool<SegmentedList<AnchorIndentationOperation>> s_anchorIndentationOperationPool = new(() => []);
 
         public static NodeOperations Empty = new();
 

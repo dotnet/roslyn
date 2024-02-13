@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 private readonly SemanticModel _semanticModel;
                 private readonly ISyntaxFactsService _service;
                 private readonly TextSpan _span;
-                private readonly Dictionary<ISymbol, List<SyntaxToken>> _symbolMap = new();
+                private readonly Dictionary<ISymbol, List<SyntaxToken>> _symbolMap = [];
                 private readonly CancellationToken _cancellationToken;
 
                 public static Dictionary<ISymbol, List<SyntaxToken>> Build(
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         foreach (var sym in symbolInfo.GetAllSymbols())
                         {
                             // add binding result to map
-                            var list = _symbolMap.GetOrAdd(sym, _ => new List<SyntaxToken>());
+                            var list = _symbolMap.GetOrAdd(sym, _ => []);
                             list.Add(token);
                         }
                     }

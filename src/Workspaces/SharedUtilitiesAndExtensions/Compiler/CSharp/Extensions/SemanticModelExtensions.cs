@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     var symbolInfo = semanticModel.GetSymbolInfo(@using.NamespaceOrType);
                     if (symbolInfo.Symbol != null && symbolInfo.Symbol.Kind == SymbolKind.Namespace)
                     {
-                        result ??= new HashSet<INamespaceSymbol>();
+                        result ??= [];
                         result.Add((INamespaceSymbol)symbolInfo.Symbol);
                     }
                 }

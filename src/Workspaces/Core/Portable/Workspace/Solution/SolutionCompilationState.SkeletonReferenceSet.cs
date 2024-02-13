@@ -32,7 +32,7 @@ internal partial class SolutionCompilationState
         /// AssemblyMetadata), this allows higher layers to see that reference instances are the same which allow
         /// reusing the same higher level objects (for example, the set of references a compilation has).
         /// </summary>
-        private readonly Dictionary<MetadataReferenceProperties, PortableExecutableReference> _referenceMap = new();
+        private readonly Dictionary<MetadataReferenceProperties, PortableExecutableReference> _referenceMap = [];
 
         public PortableExecutableReference GetOrCreateMetadataReference(MetadataReferenceProperties properties)
         {

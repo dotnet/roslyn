@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             private readonly ImmutableHashSet<ISymbol> _membersInType;
             private readonly Project _project;
             private readonly ISymbolDeclarationService _declarationService;
-            private readonly HashSet<ISymbol> _dependents = new();
+            private readonly HashSet<ISymbol> _dependents = [];
             private readonly ISymbol _member;
             private readonly CancellationToken _cancellationToken;
 
