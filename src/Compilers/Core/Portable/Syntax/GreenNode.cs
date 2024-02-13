@@ -324,12 +324,13 @@ namespace Microsoft.CodeAnalysis
             ContainsSkippedText = 1 << 3,
             ContainsAnnotations = 1 << 4,
             IsNotMissing = 1 << 5,
+            ContainsAttributes = 1 << 6,
 
-            FactoryContextIsInAsync = 1 << 6,
-            FactoryContextIsInQuery = 1 << 7,
+            FactoryContextIsInAsync = 1 << 7,
+            FactoryContextIsInQuery = 1 << 8,
             FactoryContextIsInIterator = FactoryContextIsInQuery,  // VB does not use "InQuery", but uses "InIterator" instead
 
-            InheritMask = ContainsDiagnostics | ContainsStructuredTrivia | ContainsDirectives | ContainsSkippedText | ContainsAnnotations | IsNotMissing,
+            InheritMask = ContainsDiagnostics | ContainsStructuredTrivia | ContainsDirectives | ContainsSkippedText | ContainsAnnotations | ContainsAttributes | IsNotMissing,
         }
 
         internal NodeFlags Flags
