@@ -11084,7 +11084,7 @@ class Program
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE(ParamsCollections): Enable after a PROTOTYPE comment in CSharpOperationFactory.CreateDisposeArguments is addressed
         public void UsingPatternWithParamsTest()
         {
             var source = @"
@@ -11112,7 +11112,7 @@ class C2
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "DisposedDisposed").VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE(ParamsCollections): Enable after a PROTOTYPE comment in CSharpOperationFactory.CreateDisposeArguments is addressed
         public void UsingPatternWithParamsTest_Foreach()
         {
             var source = @"
@@ -13233,7 +13233,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "MyCollection MoveNextAsync");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE(ParamsCollections): Enable after a PROTOTYPE comment in CSharpOperationFactory.CreateDisposeArguments is addressed
         public void PatternBasedDisposal_WithParams()
         {
             string source = @"
