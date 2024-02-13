@@ -36,12 +36,12 @@ internal static class PRTagger
     public static async Task<int> TagPRs(
         RoslynToolsSettings settings,
         AzDOConnection devdivConnection,
+        AzDOConnection dncengConnection,
         HttpClient gitHubClient,
         ILogger logger,
         int maxFetchingVSBuildNumber)
     {
         var cancellationToken = CancellationToken.None;
-        using var dncengConnection = new AzDOConnection(settings.DncEngAzureDevOpsBaseUri, "internal", settings.DncEngAzureDevOpsToken);
         // vsBuildsAndCommitSha is ordered from new to old.
         // For each of the product, check if the product is changed from the newest build, keep creating issues if the product has change.
         // Stop when
@@ -312,7 +312,7 @@ internal static class PRTagger
         var response = await client.GetAsync($"search/issues?q={title}+repo:dotnet/{repoName}+is:issue+label:{InsertionLabel}").ConfigureAwait(false);
         if (!response.IsSuccessStatusCode)
         {
-            logger.LogError("Failed to search on GitHub");
+            logger.LogError($"Failed to search on GitHub, status code: {response.StatusCode}.");
             throw new Exception($"Error happens when try to search {title} in {repoName}.");
         }
 

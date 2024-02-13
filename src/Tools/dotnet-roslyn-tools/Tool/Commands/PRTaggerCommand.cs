@@ -13,16 +13,16 @@ namespace Microsoft.RoslynTools.Commands;
 internal static class PRTaggerCommand
 {
     private static readonly PRTaggerCommandDefaultHandler s_prTaggerCommandHandler = new();
-    private static readonly Option<int> maxVsBuildCheckNumber = new(new[] { "--vsBuildCheckNumber" }, () => 20, "Maximum number of VS build to check. Tagger would compare each VS build and its parent commit to find the inserted payload.");
+    private static readonly Option<int> maxVsBuildCheckNumber = new(new[] { "--vsBuildCheckNumber" }, () => 50, "Maximum number of VS build to check. Tagger would compare each VS build and its parent commit to find the inserted payload.");
 
     public static Symbol GetCommand()
     {
         var command = new Command("pr-tagger", "Tags PRs inserted in a given VS build.")
         {
+            maxVsBuildCheckNumber,
             CommonOptions.GitHubTokenOption,
             CommonOptions.DevDivAzDOTokenOption,
             CommonOptions.DncEngAzDOTokenOption,
-            maxVsBuildCheckNumber
         };
 
         command.Handler = s_prTaggerCommandHandler;
@@ -47,8 +47,9 @@ internal static class PRTaggerCommand
             var maxFetchingVSBuildNumber = context.ParseResult.GetValueForOption(maxVsBuildCheckNumber);
             logger.LogInformation($"Check {maxFetchingVSBuildNumber} VS Builds");
 
+            // Setup devdiv connection, dnceng connect, and GitHub Client.
             using var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
-
+            using var dncengConnection = new AzDOConnection(settings.DncEngAzureDevOpsBaseUri, "internal", settings.DncEngAzureDevOpsToken);
             var client = new HttpClient
             {
                 BaseAddress = new("https://api.github.com/")
@@ -64,6 +65,7 @@ internal static class PRTaggerCommand
             return await PRTagger.PRTagger.TagPRs(
                 settings,
                 devdivConnection,
+                dncengConnection,
                 client,
                 logger,
                 maxFetchingVSBuildNumber).ConfigureAwait(false);
