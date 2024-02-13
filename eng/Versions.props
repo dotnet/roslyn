@@ -22,9 +22,11 @@
   <PropertyGroup>
     <SystemCommandLineVersion>2.0.0-beta4.24102.1</SystemCommandLineVersion>
     <SystemCompositionVersion>7.0.0</SystemCompositionVersion>
+    <SystemConfigurationConfigurationManagerVersion>8.0.0</SystemConfigurationConfigurationManagerVersion>
     <SystemIOPipelinesVersion>7.0.0</SystemIOPipelinesVersion>
     <SystemCollectionsImmutableVersion>8.0.0</SystemCollectionsImmutableVersion>
     <SystemReflectionMetadataVersion>8.0.0</SystemReflectionMetadataVersion>
+    <SystemSecurityPermissionsVersion>8.0.0</SystemSecurityPermissionsVersion>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
     <SystemTextJsonVersion>7.0.3</SystemTextJsonVersion>
     <MicrosoftBclAsyncInterfacesVersion>7.0.0</MicrosoftBclAsyncInterfacesVersion>

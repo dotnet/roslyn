@@ -182,7 +182,7 @@
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net20" Version="1.0.3" />
     <PackageVersion Include="System.Buffers" Version="4.5.1" />
     <PackageVersion Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
-    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
+    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" />
     <PackageVersion Include="System.Composition" Version="$(SystemCompositionVersion)" />
     <PackageVersion Include="System.ComponentModel.Composition" Version="7.0.0" />
     <PackageVersion Include="System.IO.Hashing" Version="8.0.0" />
@@ -192,6 +192,7 @@
     <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
     <PackageVersion Include="System.Runtime.Loader" Version="4.3.0" />
     <PackageVersion Include="System.Resources.Extensions" Version="7.0.0" />
+    <PackageVersion Include="System.Security.Permissions" Version="$(SystemSecurityPermissionsVersion)" />
     <PackageVersion Include="System.Security.Principal" Version="4.3.0" />
     <PackageVersion Include="System.Text.Encoding.CodePages" Version="7.0.0" />
     <PackageVersion Include="System.Text.Encoding.Extensions" Version="4.3.0" />
