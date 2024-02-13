@@ -32,7 +32,7 @@
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>d099f075e45d2aa6007a22b71b45a08758559f80</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.DependencyInjection" Version="8.0.0">
+    <Dependency Name="Microsoft.Extensions.DependencyInjection" Version="7.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>d099f075e45d2aa6007a22b71b45a08758559f80</Sha>
     </Dependency>
