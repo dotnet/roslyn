@@ -28,14 +28,16 @@ namespace Microsoft.CodeAnalysis
             /// 4 bits for the SlotCount.  This allows slot counts of 0-14 to be stored as a direct byte.  All 1s
             /// indicates that the slot count must be computed.
             /// </summary>
-            private const byte SlotCountMask = 0b1111;
+            private const ushort SlotCountMask = 0b1111000000000000;
+            private const ushort NodeFlagsMask = 0b0000111111111111;
+
             private const int SlotCountShift = 12;
+            private const int MaxSlotCount = 15;
 
             /// <summary>
             /// 12 bits for the NodeFlags.  This allows for up to 12 distinct bits to be stored to designate interesting
             /// aspects of a node.
             /// </summary>
-            private const ushort NodeFlagsMask = 0b0000111111111111;
 
             /// <summary>
             /// CCCCFFFFFFFFFFFF for Count bits then Flag bits.
@@ -47,18 +49,19 @@ namespace Microsoft.CodeAnalysis
                 readonly get
                 {
                     var shifted = _data >> SlotCountShift;
-                    Debug.Assert(shifted <= SlotCountMask);
+                    Debug.Assert(shifted <= MaxSlotCount);
                     var result = (byte)shifted;
-                    return result == SlotCountMask ? byte.MaxValue : result;
+                    return result == MaxSlotCount ? byte.MaxValue : result;
                 }
 
                 set
                 {
                     if (value == byte.MaxValue)
-                        value = SlotCountMask;
-                    Debug.Assert(value <= SlotCountMask);
+                        value = MaxSlotCount;
+                    Debug.Assert(value <= MaxSlotCount);
 
-                    _data = (ushort)(_data | (value << SlotCountShift));
+                    // Clear out everything but the node-flags, and then assign into the slot-count segment.
+                    _data = (ushort)((_data & NodeFlagsMask) | (value << SlotCountShift));
                 }
             }
 
@@ -72,7 +75,9 @@ namespace Microsoft.CodeAnalysis
                 set
                 {
                     Debug.Assert((ushort)value <= NodeFlagsMask);
-                    _data = (ushort)(_data | (ushort)value);
+
+                    // Clear out everything but the slot-count, and then assign into the node-flags segment.
+                    _data = (ushort)((_data & SlotCountMask) | (ushort)value);
                 }
             }
         }
