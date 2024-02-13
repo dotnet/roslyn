@@ -378,7 +378,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 {
                     for (var overriddenMember = member.GetOverriddenMember(); overriddenMember != null; overriddenMember = overriddenMember.GetOverriddenMember())
                     {
-                        overriddenMembers ??= new();
+                        overriddenMembers ??= [];
                         overriddenMembers.Add(overriddenMember);
                     }
                 }
@@ -615,7 +615,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 if (Helpers.IsObjectBrowser(listFlags))
                 {
-                    assemblyIdentitySet ??= new HashSet<AssemblyIdentity>();
+                    assemblyIdentitySet ??= [];
 
                     foreach (var reference in project.MetadataReferences)
                     {

@@ -250,12 +250,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 document.Name, document.Project.Name);
 
             var originalBuffer = _projectionBufferFactoryService.CreatePreviewProjectionBuffer(
-                sourceSpans: new List<object> { firstLine, "\r\n" }, registryService: _contentTypeRegistryService);
+                sourceSpans: [firstLine, "\r\n"], registryService: _contentTypeRegistryService);
 
             var span = new SnapshotSpan(newBuffer.CurrentSnapshot, Span.FromBounds(0, newBuffer.CurrentSnapshot.Length))
                 .CreateTrackingSpan(SpanTrackingMode.EdgeExclusive);
             var changedBuffer = _projectionBufferFactoryService.CreatePreviewProjectionBuffer(
-                sourceSpans: new List<object> { firstLine, "\r\n", span }, registryService: _contentTypeRegistryService);
+                sourceSpans: [firstLine, "\r\n", span], registryService: _contentTypeRegistryService);
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
             return await CreateNewDifferenceViewerAsync(null, workspace, originalBuffer, changedBuffer, zoomLevel, cancellationToken);
@@ -324,10 +324,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var span = new SnapshotSpan(oldBuffer.CurrentSnapshot, Span.FromBounds(0, oldBuffer.CurrentSnapshot.Length))
                 .CreateTrackingSpan(SpanTrackingMode.EdgeExclusive);
             var originalBuffer = _projectionBufferFactoryService.CreatePreviewProjectionBuffer(
-                sourceSpans: new List<object> { firstLine, "\r\n", span }, registryService: _contentTypeRegistryService);
+                sourceSpans: [firstLine, "\r\n", span], registryService: _contentTypeRegistryService);
 
             var changedBuffer = _projectionBufferFactoryService.CreatePreviewProjectionBuffer(
-                sourceSpans: new List<object> { firstLine, "\r\n" }, registryService: _contentTypeRegistryService);
+                sourceSpans: [firstLine, "\r\n"], registryService: _contentTypeRegistryService);
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
             return await CreateNewDifferenceViewerAsync(workspace, null, originalBuffer, changedBuffer, zoomLevel, cancellationToken);

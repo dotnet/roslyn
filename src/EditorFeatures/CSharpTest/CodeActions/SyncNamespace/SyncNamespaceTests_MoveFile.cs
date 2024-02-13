@@ -185,9 +185,11 @@ class Class2
             var defaultNamespace = "A";
             var declaredNamespace = "A.B.C.D.E";
 
-            var expectedFolders = new List<string[]>();
-            expectedFolders.Add(["B", "C", "D", "E"]);
-            expectedFolders.Add(["B.C", "D", "E"]);
+            var expectedFolders = new List<string[]>
+            {
+                (["B", "C", "D", "E"]),
+                (["B.C", "D", "E"])
+            };
 
             var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var documentPath2 = CreateDocumentFilePath(["B.C"], "File2.cs");   // file2 is in <root>\B.C\
@@ -228,10 +230,12 @@ namespace Foo
             var defaultNamespace = "A";
             var declaredNamespace = "A.B.C.D.E";
 
-            var expectedFolders = new List<string[]>();
-            expectedFolders.Add(["B", "C", "D", "E"]);
-            expectedFolders.Add(["B.C", "D", "E"]);
-            expectedFolders.Add(["B", "C.D", "E"]);
+            var expectedFolders = new List<string[]>
+            {
+                (["B", "C", "D", "E"]),
+                (["B.C", "D", "E"]),
+                (["B", "C.D", "E"]),
+            };
 
             var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var documentPath2 = CreateDocumentFilePath(["B", "C.D"], "File2.cs");   // file2 is in <root>\B\C.D\
@@ -275,9 +279,11 @@ namespace Foo
             var defaultNamespace = "A";
             var declaredNamespace = "A.B.C.D.E";
 
-            var expectedFolders = new List<string[]>();
-            expectedFolders.Add(["B", "C", "D", "E"]);
-            expectedFolders.Add(["B.C", "D", "E"]);
+            var expectedFolders = new List<string[]>
+            {
+                (["B", "C", "D", "E"]),
+                (["B.C", "D", "E"]),
+            };
 
             var (folder, filePath) = CreateDocumentFilePath(["B.C"], "File1.cs");                          // file1 is in <root>\B.C\
             var documentPath2 = CreateDocumentFilePath(["B", "Foo"], "File2.cs");   // file2 is in <root>\B\Foo\
@@ -313,8 +319,10 @@ namespace Foo
             var defaultNamespace = "A";
             var declaredNamespace = "A.B.C.D.E";
 
-            var expectedFolders = new List<string[]>();
-            expectedFolders.Add(["B", "C", "D", "E"]);
+            var expectedFolders = new List<string[]>
+            {
+                (["B", "C", "D", "E"]),
+            };
 
             var (folder, filePath) = CreateDocumentFilePath(["Foo.Bar", "Baz"], "File1.cs");  // file1 is in <root>\Foo.Bar\Baz\
             var documentPath2 = CreateDocumentFilePath(["B", "Foo"], "File2.cs");   // file2 is in <root>\B\Foo\
@@ -350,8 +358,10 @@ namespace Foo
             var defaultNamespace = "A";
             var declaredNamespace = "A.B.C.D.E";
 
-            var expectedFolders = new List<string[]>();
-            expectedFolders.Add(["B", "C", "D", "E"]);
+            var expectedFolders = new List<string[]>
+            {
+                (["B", "C", "D", "E"]),
+            };
 
             var (folder, filePath) = CreateDocumentFilePath(["Foo.Bar", "Baz"], "File1.cs");  // file1 is in <root>\Foo.Bar\Baz\
             var documentPath2 = CreateDocumentFilePath(["B", "Foo"], "File2.cs");   // file2 is in <root>\B\Foo\

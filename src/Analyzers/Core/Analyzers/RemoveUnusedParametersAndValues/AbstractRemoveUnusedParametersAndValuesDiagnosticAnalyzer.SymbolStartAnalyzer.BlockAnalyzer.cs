@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 {
                     _symbolStartAnalyzer = symbolStartAnalyzer;
                     _options = options;
-                    _referencedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
+                    _referencedParameters = [];
                 }
 
                 public static void Analyze(OperationBlockStartAnalysisContext context, SymbolStartAnalyzer symbolStartAnalyzer)

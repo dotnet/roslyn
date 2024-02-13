@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            return new HashSet<string>();
+            return [];
         }
 
         protected override bool IsInitializable(ISymbol member, INamedTypeSymbol containingType)

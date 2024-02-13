@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         private sealed class DeclarationFinder : CSharpSyntaxWalker
         {
-            private readonly Dictionary<string, List<SyntaxToken>> _map = new();
+            private readonly Dictionary<string, List<SyntaxToken>> _map = [];
 
             private DeclarationFinder()
                 : base(SyntaxWalkerDepth.Node)
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     var identifier = syntaxToken.ValueText;
                     if (!_map.TryGetValue(identifier, out var list))
                     {
-                        list = new List<SyntaxToken>();
+                        list = [];
                         _map.Add(identifier, list);
                     }
 

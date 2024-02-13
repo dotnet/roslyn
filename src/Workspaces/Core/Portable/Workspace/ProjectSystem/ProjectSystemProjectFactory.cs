@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                 });
         }
 
-        private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new();
+        private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = [];
 
         private ProjectReferenceInformation GetReferenceInfo_NoLock(ProjectId projectId)
         {
@@ -388,8 +388,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
         private sealed class ProjectReferenceInformation
         {
-            public readonly List<string> OutputPaths = new();
-            public readonly List<(string path, ProjectReference projectReference)> ConvertedProjectReferences = new List<(string path, ProjectReference)>();
+            public readonly List<string> OutputPaths = [];
+            public readonly List<(string path, ProjectReference projectReference)> ConvertedProjectReferences = [];
         }
 
         /// <summary>

@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
 
         private class TestReferenceCleanupService : IReferenceCleanupService
         {
-            private readonly List<ReferenceUpdate> _appliedUpdates = new();
+            private readonly List<ReferenceUpdate> _appliedUpdates = [];
             public IReadOnlyList<ReferenceUpdate> AppliedUpdates => _appliedUpdates;
 
             public Task<ImmutableArray<ReferenceInfo>> GetProjectReferencesAsync(string projectPath, CancellationToken cancellationToken)

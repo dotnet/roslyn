@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     var symbolInfo = semanticModel.GetSymbolInfo(@using.NamespaceOrType);
                     if (symbolInfo.Symbol != null && symbolInfo.Symbol.Kind == SymbolKind.Namespace)
                     {
-                        result ??= new HashSet<INamespaceSymbol>();
+                        result ??= [];
                         result.Add((INamespaceSymbol)symbolInfo.Symbol);
                     }
                 }
@@ -460,6 +460,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static IMethodSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, ConstructorDeclarationSyntax syntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
+
+        public static IMethodSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, LocalFunctionStatementSyntax syntax, CancellationToken cancellationToken)
         {
             return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
                 ?? throw new InvalidOperationException();

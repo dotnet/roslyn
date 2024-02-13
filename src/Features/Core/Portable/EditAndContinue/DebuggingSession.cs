@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// MVIDs read from the assembly built for given project id.
         /// Only contains ids for projects that support EnC.
         /// </summary>
-        private readonly Dictionary<ProjectId, (Guid Mvid, Diagnostic Error)> _projectModuleIds = new();
-        private readonly Dictionary<Guid, ProjectId> _moduleIds = new();
+        private readonly Dictionary<ProjectId, (Guid Mvid, Diagnostic Error)> _projectModuleIds = [];
+        private readonly Dictionary<Guid, ProjectId> _moduleIds = [];
         private readonly object _projectModuleIdsGuard = new();
 
         /// <summary>
@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Therefore once an initial baseline is created it needs to be kept alive till the end of the debugging session,
         /// even when it's replaced in <see cref="_projectBaselines"/> by a newer baseline.
         /// </remarks>
-        private readonly Dictionary<ProjectId, ProjectBaseline> _projectBaselines = new();
-        private readonly List<IDisposable> _initialBaselineModuleReaders = new();
+        private readonly Dictionary<ProjectId, ProjectBaseline> _projectBaselines = [];
+        private readonly List<IDisposable> _initialBaselineModuleReaders = [];
         private readonly object _projectEmitBaselinesGuard = new();
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal EditSession EditSession { get; private set; }
 
-        private readonly HashSet<Guid> _modulesPreparedForUpdate = new();
+        private readonly HashSet<Guid> _modulesPreparedForUpdate = [];
         private readonly object _modulesPreparedForUpdateGuard = new();
 
         internal readonly DebuggingSessionId Id;

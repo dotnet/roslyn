@@ -226,20 +226,21 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         {
             Debug.Assert(BatchBuildStarted);
 
-            var targets = new[] { TargetNames.Compile, TargetNames.CoreCompile };
+            var requiredTargets = new[] { TargetNames.Compile, TargetNames.CoreCompile };
+            var optionalTargets = new[] { TargetNames.DesignTimeMarkupCompilation };
 
-            return BuildProjectAsync(project, targets, log, cancellationToken);
+            return BuildProjectAsync(project, requiredTargets, optionalTargets, log, cancellationToken);
         }
 
         private async Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
-            MSB.Evaluation.Project project, string[] targets, DiagnosticLog log, CancellationToken cancellationToken)
+            MSB.Evaluation.Project project, string[] requiredTargets, string[] optionalTargets, DiagnosticLog log, CancellationToken cancellationToken)
         {
             // create a project instance to be executed by build engine.
             // The executed project will hold the final model of the project after execution via msbuild.
             var projectInstance = project.CreateProjectInstance();
 
             // Verify targets
-            foreach (var target in targets)
+            foreach (var target in requiredTargets)
             {
                 if (!projectInstance.Targets.ContainsKey(target))
                 {
@@ -248,9 +249,18 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 }
             }
 
+            var targets = new List<string>(requiredTargets);
+            foreach (var target in optionalTargets)
+            {
+                if (projectInstance.Targets.ContainsKey(target))
+                {
+                    targets.Add(target);
+                }
+            }
+
             _batchBuildLogger?.SetProjectAndLog(projectInstance.FullPath, log);
 
-            var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, targets);
+            var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, targets.ToArray());
 
             var result = await BuildAsync(buildRequestData, cancellationToken).ConfigureAwait(false);
 
