@@ -3946,10 +3946,8 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        /// <param name="forLock">
-        /// If <see langword="true"/>, <paramref name="resources"/> operation is expected to be already visited.
-        /// </param>
-        private void HandleUsingOperationParts(IOperation resources, IOperation body, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous, bool forLock = false)
+        private void HandleUsingOperationParts(IOperation resources, IOperation body, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous,
+            Func<IOperation, IOperation>? visitResource = null)
         {
             var usingRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
             EnterRegion(usingRegion);
@@ -3960,6 +3958,8 @@ oneMoreTime:
 
             if (resources is IVariableDeclarationGroupOperation declarationGroup)
             {
+                Debug.Assert(visitResource is null);
+
                 var resourceQueue = ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)>.GetInstance(declarationGroup.Declarations.Length);
 
                 foreach (IVariableDeclarationOperation declaration in declarationGroup.Declarations)
@@ -3980,7 +3980,7 @@ oneMoreTime:
                 Debug.Assert(resources.Kind != OperationKind.VariableDeclarator);
 
                 EvalStackFrame frame = PushStackFrame();
-                IOperation resource = forLock ? resources : VisitRequired(resources);
+                IOperation resource = visitResource != null ? visitResource(resources) : VisitRequired(resources);
 
                 if (shouldConvertToIDisposableBeforeTry(resource))
                 {
@@ -4208,29 +4208,30 @@ oneMoreTime:
             {
                 if (operation.LockedValue.Type.TryFindLockTypeInfo() is { } lockTypeInfo)
                 {
-                    var lockObject = VisitRequired(operation.LockedValue);
-
-                    var enterLockScope = new InvocationOperation(
-                        targetMethod: lockTypeInfo.EnterLockScopeMethod,
-                        constrainedToType: null,
-                        instance: lockObject,
-                        isVirtual: lockTypeInfo.EnterLockScopeMethod.IsVirtual ||
-                            lockTypeInfo.EnterLockScopeMethod.IsAbstract ||
-                            lockTypeInfo.EnterLockScopeMethod.IsOverride,
-                        arguments: ImmutableArray<IArgumentOperation>.Empty,
-                        semanticModel: null,
-                        syntax: lockObject.Syntax,
-                        type: lockTypeInfo.EnterLockScopeMethod.ReturnType,
-                        isImplicit: true);
-
                     HandleUsingOperationParts(
-                        resources: enterLockScope,
+                        resources: operation.LockedValue,
                         body: operation.Body,
                         disposeMethod: lockTypeInfo.ScopeDisposeMethod,
                         disposeArguments: ImmutableArray<IArgumentOperation>.Empty,
                         locals: ImmutableArray<ILocalSymbol>.Empty,
                         isAsynchronous: false,
-                        forLock: true);
+                        visitResource: (resource) =>
+                        {
+                            var lockObject = VisitRequired(resource);
+
+                            return new InvocationOperation(
+                                targetMethod: lockTypeInfo.EnterLockScopeMethod,
+                                constrainedToType: null,
+                                instance: lockObject,
+                                isVirtual: lockTypeInfo.EnterLockScopeMethod.IsVirtual ||
+                                    lockTypeInfo.EnterLockScopeMethod.IsAbstract ||
+                                    lockTypeInfo.EnterLockScopeMethod.IsOverride,
+                                arguments: ImmutableArray<IArgumentOperation>.Empty,
+                                semanticModel: null,
+                                syntax: lockObject.Syntax,
+                                type: lockTypeInfo.EnterLockScopeMethod.ReturnType,
+                                isImplicit: true);
+                        });
 
                     return FinishVisitingStatement(operation);
                 }
