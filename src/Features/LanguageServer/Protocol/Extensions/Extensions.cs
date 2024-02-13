@@ -78,8 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var documentIds = GetDocumentIds(solution, documentUri);
 
             var documents = documentIds
-                .Select(solution.GetDocument)
-                .Concat(documentIds.Select(solution.GetAdditionalDocument))
+                .Select(solution.GetTextDocument)
                 .WhereNotNull()
                 .ToImmutableArray();
             return documents;
@@ -138,7 +137,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 // this means we can safely call .Single() and not worry about calling FindDocumentInProjectContext.
                 var documentId = solution.GetDocumentIds(documentIdentifier.Uri).Single();
                 return await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-
             }
             else
             {
