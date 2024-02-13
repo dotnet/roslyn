@@ -335,7 +335,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotSame(partialProject, project);
             var partialCompilation = await partialProject.GetRequiredCompilationAsync(CancellationToken.None);
 
-            Assert.Same(fullCompilation, partialCompilation);
+            Assert.NotSame(fullCompilation, partialCompilation);
+            foreach (var tree in fullCompilation.SyntaxTrees.Skip(1))
+                Assert.Contains(tree, partialCompilation.SyntaxTrees);
         }
 
         [Theory, CombinatorialData]

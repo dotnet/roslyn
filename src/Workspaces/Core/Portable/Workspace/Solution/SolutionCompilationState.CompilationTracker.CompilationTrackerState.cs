@@ -205,6 +205,16 @@ namespace Microsoft.CodeAnalysis
                         unrootedSymbolSet);
                 }
 
+                public FinalCompilationTrackerState WithIsFrozen()
+                    => new(isFrozen: true,
+                        FinalCompilationWithGeneratedDocuments,
+                        CompilationWithoutGeneratedDocuments,
+                        // As a policy, all partial-state projects are said to have incomplete references, since the
+                        // state has no guarantees.
+                        hasSuccessfullyLoaded: false,
+                        GeneratorInfo,
+                        UnrootedSymbolSet);
+
                 private static void RecordAssemblySymbols(ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
                 {
                     RecordSourceOfAssemblySymbol(compilation.Assembly, projectId);
