@@ -70,7 +70,7 @@ File-local declarations of this type (`file class InterceptsLocationAttribute`) 
 
 The *referenced syntax tree* of an `[InterceptsLocationAttribute]` is determined using the following rules:
 1. A *mapped path* of each syntax tree is determined by applying [`/pathmap`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.commandlinearguments.pathmap?view=roslyn-dotnet-4.7.0) substitution to `SyntaxTree.FilePath`.
-2. In a given `[InterceptsLocation]` usage, the `filePath` argument value is compared to the *mapped path* of each syntax tree using ordinal string comparison. If exactly one syntax tree matches under this comparison, that is the *referenced syntax tree*.
+2. For a given `[InterceptsLocation]` usage, the `filePath` argument value is compared to the *mapped path* of each syntax tree using ordinal string comparison. If exactly one syntax tree matches under this comparison, that is the *referenced syntax tree*.
 3. If no syntax tree matched by the above comparison, then the `filePath` argument value is resolved relative to path of the containing syntax tree of the `[InterceptsLocation]` usage. Pathmap substitution is applied to the result of this relative resolution. If exactly one syntax tree matches this resolved and mapped path, that is the *referenced syntax tree*.
 4. If neither of the above methods of comparison matched exactly one syntax tree, an error occurs.
 
