@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
-    using LockTypeInfo = (IMethodSymbol? EnterLockScopeMethod, ITypeSymbol? ScopeType, IMethodSymbol? ScopeDisposeMethod);
+    using LockTypeInfo = (IMethodSymbol EnterLockScopeMethod, IMethodSymbol ScopeDisposeMethod);
 
     public static partial class ISymbolExtensions
     {
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis
             };
 
         // Keep consistent with LockBinder.TryFindLockTypeInfo.
-        internal static LockTypeInfo TryFindLockTypeInfo(this ITypeSymbol lockType)
+        internal static LockTypeInfo? TryFindLockTypeInfo(this ITypeSymbol lockType)
         {
             const string EnterLockScopeMethodName = "EnterLockScope";
             const string LockScopeTypeName = "Scope";
@@ -146,27 +146,25 @@ namespace Microsoft.CodeAnalysis
             IMethodSymbol? enterLockScopeMethod = TryFindPublicVoidParameterlessMethod(lockType, EnterLockScopeMethodName);
             if (enterLockScopeMethod is not { ReturnsVoid: false, RefKind: RefKind.None })
             {
-                enterLockScopeMethod = null;
+                return null;
             }
 
-            ITypeSymbol? scopeType = enterLockScopeMethod?.ReturnType;
+            ITypeSymbol? scopeType = enterLockScopeMethod.ReturnType;
             if (!(scopeType is INamedTypeSymbol { Name: LockScopeTypeName, Arity: 0, IsValueType: true, IsRefLikeType: true, DeclaredAccessibility: Accessibility.Public } &&
                 lockType.Equals(scopeType.ContainingType, SymbolEqualityComparer.ConsiderEverything)))
             {
-                scopeType = null;
+                return null;
             }
 
-            IMethodSymbol? disposeMethod = scopeType is null ? null :
-                TryFindPublicVoidParameterlessMethod(scopeType, WellKnownMemberNames.DisposeMethodName);
+            IMethodSymbol? disposeMethod = TryFindPublicVoidParameterlessMethod(scopeType, WellKnownMemberNames.DisposeMethodName);
             if (disposeMethod is not { ReturnsVoid: true })
             {
-                disposeMethod = null;
+                return null;
             }
 
             return new LockTypeInfo
             {
                 EnterLockScopeMethod = enterLockScopeMethod,
-                ScopeType = scopeType,
                 ScopeDisposeMethod = disposeMethod,
             };
         }

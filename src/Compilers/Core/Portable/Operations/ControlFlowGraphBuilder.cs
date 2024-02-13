@@ -4206,33 +4206,51 @@ oneMoreTime:
             // `lock (l) { }` on value of type `System.Threading.Lock` is lowered to `using (l.EnterLockScope()) { }`.
             if (operation.LockedValue.Type?.IsLockType() == true)
             {
-                var lockTypeInfo = operation.LockedValue.Type.TryFindLockTypeInfo();
+                if (operation.LockedValue.Type.TryFindLockTypeInfo() is { } lockTypeInfo)
+                {
+                    var lockObject = VisitRequired(operation.LockedValue);
 
-                var lockObject = VisitRequired(operation.LockedValue);
-
-                var enterLockScope = lockTypeInfo.EnterLockScopeMethod is { } targetMethod
-                    ? new InvocationOperation(
-                        targetMethod: targetMethod,
+                    var enterLockScope = new InvocationOperation(
+                        targetMethod: lockTypeInfo.EnterLockScopeMethod,
                         constrainedToType: null,
                         instance: lockObject,
-                        isVirtual: targetMethod.IsVirtual || targetMethod.IsAbstract || targetMethod.IsOverride,
+                        isVirtual: lockTypeInfo.EnterLockScopeMethod.IsVirtual ||
+                            lockTypeInfo.EnterLockScopeMethod.IsAbstract ||
+                            lockTypeInfo.EnterLockScopeMethod.IsOverride,
                         arguments: ImmutableArray<IArgumentOperation>.Empty,
                         semanticModel: null,
                         syntax: lockObject.Syntax,
-                        type: targetMethod.ReturnType,
-                        isImplicit: true)
-                    : MakeInvalidOperation(type: null, lockObject);
+                        type: lockTypeInfo.EnterLockScopeMethod.ReturnType,
+                        isImplicit: true);
 
-                HandleUsingOperationParts(
-                    resources: enterLockScope,
-                    body: operation.Body,
-                    disposeMethod: lockTypeInfo.ScopeDisposeMethod,
-                    disposeArguments: ImmutableArray<IArgumentOperation>.Empty,
-                    locals: ImmutableArray<ILocalSymbol>.Empty,
-                    isAsynchronous: false,
-                    forLock: true);
+                    HandleUsingOperationParts(
+                        resources: enterLockScope,
+                        body: operation.Body,
+                        disposeMethod: lockTypeInfo.ScopeDisposeMethod,
+                        disposeArguments: ImmutableArray<IArgumentOperation>.Empty,
+                        locals: ImmutableArray<ILocalSymbol>.Empty,
+                        isAsynchronous: false,
+                        forLock: true);
 
-                return FinishVisitingStatement(operation);
+                    return FinishVisitingStatement(operation);
+                }
+                else
+                {
+                    IOperation? underlying = Visit(operation.LockedValue);
+
+                    if (underlying is not null)
+                    {
+                        AddStatement(new ExpressionStatementOperation(
+                            MakeInvalidOperation(type: null, underlying),
+                            semanticModel: null,
+                            operation.Syntax,
+                            IsImplicit(operation)));
+                    }
+
+                    VisitStatement(operation.Body);
+
+                    return FinishVisitingStatement(operation);
+                }
             }
 
             ITypeSymbol objectType = _compilation.GetSpecialType(SpecialType.System_Object);

@@ -532,59 +532,17 @@ BC37329: A value of type 'System.Threading.Lock' in SyncLock will use likely uni
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
-.locals {R1}
-{
-    CaptureIds: [0]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
-              Value:
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'l')
-                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (DelegateRelaxationLevelNone)
-                  Operand:
-                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
-                      Children(1):
-                          IParameterReferenceOperation: l (OperationKind.ParameterReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
-        Next (Regular) Block[B2]
-            Entering: {R2} {R3}
-    .try {R2, R3}
-    {
-        Block[B2] - Block
-            Predecessors: [B1]
-            Statements (0)
-            Next (Regular) Block[B6]
-                Finalizing: {R4}
-                Leaving: {R3} {R2} {R1}
-    }
-    .finally {R4}
-    {
-        Block[B3] - Block
-            Predecessors (0)
-            Statements (0)
-            Jump if True (Regular) to Block[B5]
-                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'l')
-                  Operand:
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'l')
-            Next (Regular) Block[B4]
-        Block[B4] - Block
-            Predecessors: [B3]
-            Statements (1)
-                IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'l')
-                  Instance Receiver:
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'l')
-                  Arguments(0)
-            Next (Regular) Block[B5]
-        Block[B5] - Block
-            Predecessors: [B3] [B4]
-            Statements (0)
-            Next (StructuredExceptionHandling) Block[null]
-    }
-}
-Block[B6] - Exit
-    Predecessors: [B2]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'SyncLock l ... nd SyncLock')
+          Expression:
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
+              Children(1):
+                  IParameterReferenceOperation: l (OperationKind.ParameterReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 

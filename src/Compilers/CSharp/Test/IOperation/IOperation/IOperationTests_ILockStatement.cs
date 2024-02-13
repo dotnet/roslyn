@@ -1756,7 +1756,7 @@ Block[B6] - Exit
                     Locals: [System.Threading.Lock l]
                     Block[B1] - Block
                         Predecessors: [B0]
-                        Statements (1)
+                        Statements (2)
                             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l = new Lock()')
                               Left:
                                 ILocalReferenceOperation: l (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l = new Lock()')
@@ -1765,61 +1765,16 @@ Block[B6] - Exit
                                   Arguments(0)
                                   Initializer:
                                     null
+                            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'lock (l) ... }')
+                              Expression:
+                                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
+                                  Children(1):
+                                      ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
                         Next (Regular) Block[B2]
-                            Entering: {R2}
-                    .locals {R2}
-                    {
-                        CaptureIds: [0]
-                        Block[B2] - Block
-                            Predecessors: [B1]
-                            Statements (1)
-                                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
-                                  Value:
-                                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'l')
-                                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                        (NoConversion)
-                                      Operand:
-                                        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
-                                          Children(1):
-                                              ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
-                            Next (Regular) Block[B3]
-                                Entering: {R3} {R4}
-                        .try {R3, R4}
-                        {
-                            Block[B3] - Block
-                                Predecessors: [B2]
-                                Statements (0)
-                                Next (Regular) Block[B7]
-                                    Finalizing: {R5}
-                                    Leaving: {R4} {R3} {R2} {R1}
-                        }
-                        .finally {R5}
-                        {
-                            Block[B4] - Block
-                                Predecessors (0)
-                                Statements (0)
-                                Jump if True (Regular) to Block[B6]
-                                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'l')
-                                      Operand:
-                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'l')
-                                Next (Regular) Block[B5]
-                            Block[B5] - Block
-                                Predecessors: [B4]
-                                Statements (1)
-                                    IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'l')
-                                      Instance Receiver:
-                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'l')
-                                      Arguments(0)
-                                Next (Regular) Block[B6]
-                            Block[B6] - Block
-                                Predecessors: [B4] [B5]
-                                Statements (0)
-                                Next (StructuredExceptionHandling) Block[null]
-                        }
-                    }
+                            Leaving: {R1}
                 }
-                Block[B7] - Exit
-                    Predecessors: [B3]
+                Block[B2] - Exit
+                    Predecessors: [B1]
                     Statements (0)
                 """;
 
@@ -1872,7 +1827,7 @@ Block[B6] - Exit
                     Locals: [System.Threading.Lock l]
                     Block[B1] - Block
                         Predecessors: [B0]
-                        Statements (1)
+                        Statements (2)
                             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l = new Lock()')
                               Left:
                                 ILocalReferenceOperation: l (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l = new Lock()')
@@ -1881,50 +1836,16 @@ Block[B6] - Exit
                                   Arguments(0)
                                   Initializer:
                                     null
+                            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'lock (l) ... }')
+                              Expression:
+                                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
+                                  Children(1):
+                                      ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
                         Next (Regular) Block[B2]
-                            Entering: {R2}
-                    .locals {R2}
-                    {
-                        CaptureIds: [0]
-                        Block[B2] - Block
-                            Predecessors: [B1]
-                            Statements (1)
-                                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
-                                  Value:
-                                    IInvocationOperation ( System.Threading.Lock.Scope System.Threading.Lock.EnterLockScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsInvalid, IsImplicit) (Syntax: 'l')
-                                      Instance Receiver:
-                                        ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
-                                      Arguments(0)
-                            Next (Regular) Block[B3]
-                                Entering: {R3} {R4}
-                        .try {R3, R4}
-                        {
-                            Block[B3] - Block
-                                Predecessors: [B2]
-                                Statements (0)
-                                Next (Regular) Block[B5]
-                                    Finalizing: {R5}
-                                    Leaving: {R4} {R3} {R2} {R1}
-                        }
-                        .finally {R5}
-                        {
-                            Block[B4] - Block
-                                Predecessors (0)
-                                Statements (1)
-                                    IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'l')
-                                      Instance Receiver:
-                                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'l')
-                                          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                            (NoConversion)
-                                          Operand:
-                                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock.Scope, IsInvalid, IsImplicit) (Syntax: 'l')
-                                      Arguments(0)
-                                Next (StructuredExceptionHandling) Block[null]
-                        }
-                    }
+                            Leaving: {R1}
                 }
-                Block[B5] - Exit
-                    Predecessors: [B3]
+                Block[B2] - Exit
+                    Predecessors: [B1]
                     Statements (0)
                 """;
 
