@@ -44,8 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             var syntaxTree = context.Node.SyntaxTree;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var preference = context.GetAnalyzerOptions().PreferInferredTupleNames;
-            if (!preference.Value ||
-                !CSharpInferredMemberNameSimplifier.CanSimplifyTupleElementName(argument, parseOptions))
+            if (!preference.Value
+                || ShouldSkipAnalysis(context, preference.Notification)
+                || !CSharpInferredMemberNameSimplifier.CanSimplifyTupleElementName(argument, parseOptions))
             {
                 return;
             }
@@ -56,9 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     nameColon.GetLocation(),
-                    preference.Notification.Severity,
-                    additionalLocations: ImmutableArray<Location>.Empty,
-                    additionalUnnecessaryLocations: ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))));
+                    preference.Notification,
+                    additionalLocations: [],
+                    additionalUnnecessaryLocations: [syntaxTree.GetLocation(fadeSpan)]));
         }
 
         private void ReportDiagnosticsIfNeeded(NameEqualsSyntax nameEquals, SyntaxNodeAnalysisContext context)
@@ -81,9 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     nameEquals.GetLocation(),
-                    preference.Notification.Severity,
-                    additionalLocations: ImmutableArray<Location>.Empty,
-                    additionalUnnecessaryLocations: ImmutableArray.Create(context.Node.SyntaxTree.GetLocation(fadeSpan))));
+                    preference.Notification,
+                    additionalLocations: [],
+                    additionalUnnecessaryLocations: [context.Node.SyntaxTree.GetLocation(fadeSpan)]));
         }
     }
 }

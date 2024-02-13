@@ -490,7 +490,7 @@ interface IOther { }
 
             Assert.NotEmpty(immediateDerived);
             AssertEx.SetEqual(immediateDerived.Select(d => d.Name),
-                new[] { "IB1", "IB2", "IB3", "IC2" });
+                ["IB1", "IB2", "IB3", "IC2"]);
             Assert.True(immediateDerived.All(d => d.Interfaces.Contains(rootType)));
 
             var transitiveDerived = await SymbolFinder.FindDerivedInterfacesAsync(
@@ -498,7 +498,7 @@ interface IOther { }
 
             Assert.NotEmpty(transitiveDerived);
             AssertEx.SetEqual(transitiveDerived.Select(d => d.Name),
-                new[] { "IB1", "IB2", "IB3", "IC1", "IC2", "IC3", "ID1" });
+                ["IB1", "IB2", "IB3", "IC1", "IC2", "IC3", "ID1"]);
             Assert.True(transitiveDerived.All(d => d.AllInterfaces.Contains(rootType)), "All results must transitively derive from the type");
             Assert.True(transitiveDerived.Any(d => !d.Interfaces.Contains(rootType)), "At least one result must not immediately derive from the type");
 
@@ -543,14 +543,14 @@ struct OtherStruct { }
             Assert.NotEmpty(immediateImpls);
             Assert.True(immediateImpls.All(d => d.Interfaces.Contains(rootType)));
             AssertEx.SetEqual(immediateImpls.Select(d => d.Name),
-                new[] { "B1", "B2", "B3", "C2", "S1" });
+                ["B1", "B2", "B3", "C2", "S1"]);
 
             var transitiveImpls = await SymbolFinder.FindImplementationsAsync(
                 rootType, solution, transitive: true);
 
             Assert.NotEmpty(transitiveImpls);
             AssertEx.SetEqual(transitiveImpls.Select(d => d.Name),
-                new[] { "B1", "B2", "B3", "C1", "C2", "C3", "D1", "S1" });
+                ["B1", "B2", "B3", "C1", "C2", "C3", "D1", "S1"]);
             Assert.True(transitiveImpls.All(d => d.AllInterfaces.Contains(rootType)), "All results must transitively derive from the type");
             Assert.True(transitiveImpls.Any(d => !d.Interfaces.Contains(rootType)), "At least one result must not immediately derive from the type");
 

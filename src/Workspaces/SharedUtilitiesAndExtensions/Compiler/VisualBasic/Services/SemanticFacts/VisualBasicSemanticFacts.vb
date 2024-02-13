@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetAliasNameSet(model As SemanticModel, cancellationToken As CancellationToken) As ImmutableHashSet(Of String) Implements ISemanticFacts.GetAliasNameSet
-            Dim original = DirectCast(model.GetOriginalSemanticModel(), SemanticModel)
+            Dim original = model.GetOriginalSemanticModel()
 
             If Not original.SyntaxTree.HasCompilationUnitRoot Then
                 Return ImmutableHashSet.Create(Of String)()

@@ -384,7 +384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         End Function
 
         <Extension()>
-        Public Function CreateAssignmentExpressionStatementWithValue(identifier As SyntaxToken, rvalue As ExpressionSyntax) As StatementSyntax
+        Public Function CreateAssignmentExpressionStatementWithValue(identifier As SyntaxToken, rvalue As ExpressionSyntax) As ExecutableStatementSyntax
             Return SyntaxFactory.SimpleAssignmentStatement(SyntaxFactory.IdentifierName(identifier), SyntaxFactory.Token(SyntaxKind.EqualsToken), rvalue).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)
         End Function
 

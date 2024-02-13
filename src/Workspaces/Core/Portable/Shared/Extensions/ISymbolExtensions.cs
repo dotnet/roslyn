@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var container = node as XContainer;
             if (container == null)
             {
-                return new XNode[] { Copy(node, copyAttributeAnnotations: false) };
+                return [Copy(node, copyAttributeAnnotations: false)];
             }
 
             var oldNodes = container.Nodes();
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 container.ReplaceNodes(rewritten);
             }
 
-            return new XNode[] { container };
+            return [container];
         }
 
         private static XNode[] RewriteMany(ISymbol symbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, XNode[] nodes, CancellationToken cancellationToken)
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            visitedSymbols ??= new HashSet<ISymbol>();
+            visitedSymbols ??= [];
             if (!visitedSymbols.Add(symbol))
             {
                 // Prevent recursion
@@ -391,10 +391,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var inheritedDocumentation = GetDocumentationComment(symbol, visitedSymbols, compilation, preferredCulture: null, expandIncludes: true, expandInheritdoc: true, cancellationToken);
                 if (inheritedDocumentation == DocumentationComment.Empty)
                 {
-                    return Array.Empty<XNode>();
+                    return [];
                 }
 
-                var document = XDocument.Parse(inheritedDocumentation.FullXmlFragment);
+                var document = XDocument.Parse(inheritedDocumentation.FullXmlFragment, LoadOptions.PreserveWhitespace);
                 string xpathValue;
                 if (string.IsNullOrEmpty(pathAttribute?.Value))
                 {
@@ -440,20 +440,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             if (index < typeArgs.Length)
                             {
                                 var docId = typeArgs[index].GetDocumentationCommentId();
-                                var replacement = new XElement(DocumentationCommentXmlNames.SeeElementName);
-                                replacement.SetAttributeValue(DocumentationCommentXmlNames.CrefAttributeName, docId);
-                                typeParameterRef.ReplaceWith(replacement);
+                                if (docId != null && !docId.StartsWith("!"))
+                                {
+                                    var replacement = new XElement(DocumentationCommentXmlNames.SeeElementName);
+                                    replacement.SetAttributeValue(DocumentationCommentXmlNames.CrefAttributeName, docId);
+                                    typeParameterRef.ReplaceWith(replacement);
+                                }
                             }
                         }
                     }
                 }
 
                 var loadedElements = TrySelectNodes(document, xpathValue);
-                return loadedElements ?? Array.Empty<XNode>();
+                return loadedElements ?? [];
             }
             catch (XmlException)
             {
-                return Array.Empty<XNode>();
+                return [];
             }
             finally
             {

@@ -290,12 +290,11 @@ static class Program
         Console.WriteLine(x);
     }
 }";
-            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 21 }
             CompileAndVerify(source, expectedOutput:
 @"ABC
 123
 123
-xyz", verify: Verification.FailsILVerify);
+xyz");
         }
 
         [WorkItem(541143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541143")]
@@ -377,8 +376,7 @@ static class Program
     static void Goo<T>(this T x) { }
 }
 ";
-            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 7 }
-            CompileAndVerify(source, expectedOutput: "2", verify: Verification.FailsILVerify);
+            CompileAndVerify(source, expectedOutput: "2");
         }
 
         [WorkItem(528426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528426")]
@@ -875,8 +873,7 @@ static class B
     internal static void F(this object x, object y) { }
     internal static void G(this object x, object y) { }
 }";
-            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 8 }
-            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify);
+            var compilation = CompileAndVerify(source);
             compilation.VerifyIL("N.C.M",
 @"{
   // Code size       71 (0x47)
@@ -942,8 +939,7 @@ static class S2
     internal static void F3(this object x, int y) { }
     internal static void F4(this object x, object y) { }
 }";
-            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 8 }
-            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify);
+            var compilation = CompileAndVerify(source);
             compilation.VerifyIL("N.C.M",
 @"
 {
@@ -1927,8 +1923,7 @@ static class S
         System.Console.Write(c.P * i);
     }
 }";
-            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 11 }
-            CompileAndVerify(source, expectedOutput: "6", verify: Verification.FailsILVerify);
+            CompileAndVerify(source, expectedOutput: "6");
         }
 
         [Fact]
@@ -2379,13 +2374,12 @@ static class E
         Console.WriteLine(""{0}"", o.GetType());
     }
 }";
-            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 12 }
             var compilation = CompileAndVerify(source, expectedOutput:
 @"System.Object
 System.Object
 System.Int32
 B
-B", verify: Verification.FailsILVerify);
+B");
             compilation.VerifyIL("C.M<T1, T2, T3, T4, T5>",
 @"{
   // Code size      112 (0x70)
@@ -2745,9 +2739,8 @@ class Program
             methodSymbol = (MethodSymbol)symbolInfo.Symbol.GetSymbol<MethodSymbol>();
             Assert.False(methodSymbol.IsFromCompilation(compilation));
 
-            parameter = methodSymbol.ThisParameter;
-            Assert.Equal(-1, parameter.Ordinal);
-            Assert.Equal(parameter.ContainingSymbol, methodSymbol);
+            // 9341 is resolved as Won't Fix since ThisParameter property is internal.
+            Assert.Throws<InvalidOperationException>(() => methodSymbol.ThisParameter);
         }
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, Action<ModuleSymbol> validator = null,
@@ -4031,7 +4024,7 @@ public static class C
     public static void M2(in this int p) { }
 }";
 
-            void Validator(ModuleSymbol module)
+            void validator(ModuleSymbol module)
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
@@ -4048,7 +4041,7 @@ public static class C
                 Assert.Equal(RefKind.In, parameter.RefKind);
             }
 
-            CompileAndVerify(source, validator: Validator, options: TestOptions.ReleaseDll);
+            CompileAndVerify(source, validator: validator, options: TestOptions.ReleaseDll);
         }
 
         [Fact]
@@ -4061,7 +4054,7 @@ public static class C
     public static void M2(ref this int p) { }
 }";
 
-            void Validator(ModuleSymbol module)
+            void validator(ModuleSymbol module)
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
@@ -4078,7 +4071,7 @@ public static class C
                 Assert.Equal(RefKind.Ref, parameter.RefKind);
             }
 
-            CompileAndVerify(source, validator: Validator, options: TestOptions.ReleaseDll);
+            CompileAndVerify(source, validator: validator, options: TestOptions.ReleaseDll);
         }
 
         [Fact]
@@ -4106,6 +4099,45 @@ public static class C
 
             reduced = extensionMethod.ReduceExtensionMethod(systemVoidType, compilation);
             Assert.Null(reduced);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68110")]
+        public void DefaultSyntaxValueReentrancy_01()
+        {
+            var source =
+                """
+                #nullable enable
+
+                [A(3, X = 6)]
+                public struct A
+                {
+                    public int X;
+
+                    public A(int x, A a = new A().M(1)) { }
+                }
+
+                public static class AExt
+                {
+                    public static void M(this A s, ref int i) {}
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            var a = compilation.GlobalNamespace.GetTypeMember("A").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
+
+            Assert.Null(a.Parameters[1].ExplicitDefaultValue);
+            Assert.True(a.Parameters[1].HasExplicitDefaultValue);
+
+            compilation.VerifyDiagnostics(
+                // (3,2): error CS0616: 'A' is not an attribute class
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(3, 2),
+                // (3,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A(3, X = 6)").WithLocation(3, 2),
+                // (8,37): error CS1620: Argument 2 must be passed with the 'ref' keyword
+                //     public A(int x, A a = new A().M(1)) { }
+                Diagnostic(ErrorCode.ERR_BadArgRef, "1").WithArguments("2", "ref").WithLocation(8, 37));
         }
     }
 }

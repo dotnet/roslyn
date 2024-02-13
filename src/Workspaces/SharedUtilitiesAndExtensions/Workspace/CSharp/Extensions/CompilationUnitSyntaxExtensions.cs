@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool placeSystemNamespaceFirst,
             params SyntaxAnnotation[] annotations)
         {
-            return root.AddUsingDirectives(new[] { usingDirective }, contextNode, placeSystemNamespaceFirst, annotations);
+            return root.AddUsingDirectives([usingDirective], contextNode, placeSystemNamespaceFirst, annotations);
         }
 
         public static CompilationUnitSyntax AddUsingDirectives(
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var rootWithNewUsings = root.WithUsings(
-                usings.Select(u => u.WithAdditionalAnnotations(annotations)).ToSyntaxList());
+                [.. usings.Select(u => u.WithAdditionalAnnotations(annotations))]);
             if (addBlankLine)
             {
                 var lastUsing = rootWithNewUsings.Usings.Last();

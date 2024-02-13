@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
     /// </summary>
     internal abstract partial class PatternMatcher : IDisposable
     {
-        private static readonly char[] s_dotCharacterArray = { '.' };
+        private static readonly char[] s_dotCharacterArray = ['.'];
 
         public const int NoBonus = 0;
         public const int CamelCaseContiguousBonus = 1;
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     var matchCount = matchSpans.Count;
                     matchedSpans = _includeMatchedSpans
                         ? new NormalizedTextSpanCollection(matchSpans.ToImmutableAndClear()).ToImmutableArray()
-                        : ImmutableArray<TextSpan>.Empty;
+                        : [];
 
                     var camelCaseResult = new CamelCaseResult(firstMatch == 0, contiguous.Value, matchCount, null);
                     return GetCamelCaseKind(camelCaseResult, candidateHumps);
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 else if (currentCandidateHump == candidateHumpCount)
                 {
                     // No match, since we still have more of the pattern to hit
-                    matchedSpans = ImmutableArray<TextSpan>.Empty;
+                    matchedSpans = [];
                     return null;
                 }
 

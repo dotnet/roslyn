@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -129,6 +128,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override Conversion GetInterpolatedStringConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            if (_binder.InParameterDefaultValue || _binder.InAttributeArgument)
+            {
+                // We don't consider when we're in default parameter values or attributes to avoid cycles. This is an error scenario,
+                // so we don't care if we accidentally miss a parameter being applicable.
+                return Conversion.NoConversion;
+            }
+
             if (destination is NamedTypeSymbol { IsInterpolatedStringHandlerType: true })
             {
                 return Conversion.InterpolatedStringHandler;
@@ -161,6 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case CollectionExpressionTypeKind.None:
                     return Conversion.NoConversion;
 
+                case CollectionExpressionTypeKind.ImplementsIEnumerable:
                 case CollectionExpressionTypeKind.CollectionBuilder:
                     {
                         _binder.TryGetCollectionIterationType((Syntax.ExpressionSyntax)syntax, targetType, out elementTypeWithAnnotations);
@@ -173,31 +180,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
+            Debug.Assert(elementType is { });
             var elements = node.Elements;
+
             if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
-                return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType: null, default);
-            }
-            else if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerableT)
-            {
-                var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
-                var ienumerableType = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
-                bool isCompatible = false;
-                foreach (var @interface in allInterfaces)
+                if (!_binder.HasCollectionExpressionApplicableConstructor(syntax, targetType, BindingDiagnosticBag.Discarded))
                 {
-                    if (isCompatibleIEnumerableT(@interface, ienumerableType, elements, ref useSiteInfo))
-                    {
-                        isCompatible = true;
-                        // Don't break so we collect all remaining use-site information
-                    }
+                    return Conversion.NoConversion;
                 }
 
-                return isCompatible
-                    ? Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType: null, default)
-                    : Conversion.NoConversion;
+                if (elements.Length > 0 &&
+                    !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, elementType, BindingDiagnosticBag.Discarded))
+                {
+                    return Conversion.NoConversion;
+                }
             }
 
-            Debug.Assert(elementType is { });
             var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
             foreach (var element in elements)
             {
@@ -213,39 +212,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, builder.ToImmutableAndFree());
 
-            bool isCompatibleIEnumerableT(NamedTypeSymbol targetInterface, NamedTypeSymbol ienumerableType,
-                ImmutableArray<BoundExpression> elements, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                Debug.Assert(ienumerableType.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
-                if (!ReferenceEquals(targetInterface.OriginalDefinition, ienumerableType))
-                {
-                    return false;
-                }
-
-                var targetElementType = targetInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-                return elementsCanAllConvert(elements, targetElementType.Type, ref useSiteInfo);
-            }
-
-            bool elementsCanAllConvert(ImmutableArray<BoundExpression> elements, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                foreach (var element in elements)
-                {
-                    Conversion elementConversion = convertElement(element, elementType, ref useSiteInfo);
-                    if (!elementConversion.Exists)
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            Conversion convertElement(BoundExpression element, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            Conversion convertElement(BoundNode element, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 return element switch
                 {
                     BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
-                    _ => ClassifyImplicitConversionFromExpression(element, elementType, ref useSiteInfo),
+                    _ => ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo),
                 };
             }
         }

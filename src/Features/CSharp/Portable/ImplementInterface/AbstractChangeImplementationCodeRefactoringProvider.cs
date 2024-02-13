@@ -70,9 +70,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             // member.  Interface member names are the expected names that people expect to see
             // (like "GetEnumerator"), instead of the auto-generated names that the compiler makes
             // like: "System.IEnumerable.GetEnumerator"
-            directlyImplementedMembers.AddRange(member, member.ExplicitOrImplicitInterfaceImplementations());
+            var implementations = member.ExplicitOrImplicitInterfaceImplementations();
+            if (implementations.IsEmpty)
+                return;
 
-            var firstImplName = member.ExplicitOrImplicitInterfaceImplementations().First().Name;
+            directlyImplementedMembers.AddRange(member, implementations);
+            var firstImplName = implementations.First().Name;
             var codeAction = CodeAction.Create(
                 string.Format(Implement_0, firstImplName),
                 cancellationToken => ChangeImplementationAsync(project, directlyImplementedMembers, cancellationToken),
@@ -150,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             return (container, explicitName, identifier);
         }
 
-        private static (SyntaxNode?, ExplicitInterfaceSpecifierSyntax?, SyntaxToken) GetContainer(SyntaxToken token)
+        private static (SyntaxNode? declaration, ExplicitInterfaceSpecifierSyntax?, SyntaxToken) GetContainer(SyntaxToken token)
         {
             for (var node = token.Parent; node != null; node = node.Parent)
             {
@@ -228,10 +231,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var documentToImplDeclarations = new OrderedMultiDictionary<Document, (SyntaxNode, ISymbol impl, SetWithInsertionOrder<ISymbol> interfaceMembers)>();
             foreach (var (implMember, interfaceMembers) in implMemberToInterfaceMembers)
             {
-                foreach (var syntaxRef in implMember.DeclaringSyntaxReferences)
+                foreach (var location in implMember.Locations)
                 {
-                    var doc = solution.GetRequiredDocument(syntaxRef.SyntaxTree);
-                    var decl = await syntaxRef.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                    if (location.SourceTree is null)
+                        continue;
+
+                    var doc = solution.GetRequiredDocument(location.SourceTree);
+                    var declToken = location.FindToken(cancellationToken);
+                    var decl = GetContainer(declToken).declaration;
+                    if (decl is null)
+                        continue;
+
                     documentToImplDeclarations.Add(doc, (decl, implMember, interfaceMembers));
                 }
             }

@@ -25,13 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind, CSharpSimplifierOptions>
     {
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest =
-            ImmutableArray.Create(
+            [
                 SyntaxKind.QualifiedName,
                 SyntaxKind.AliasQualifiedName,
                 SyntaxKind.GenericName,
                 SyntaxKind.IdentifierName,
                 SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxKind.QualifiedCref);
+                SyntaxKind.QualifiedCref,
+            ];
 
         protected override bool IsIgnoredCodeBlock(SyntaxNode codeBlock)
         {
@@ -57,6 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var cancellationToken = context.CancellationToken;
 
             var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+            if (ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, GetAllNotifications(options), cancellationToken))
+                return [];
+
             using var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: null, cancellationToken);
             simplifier.Visit(root);
             return simplifier.Diagnostics;
@@ -65,6 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, TextSpanIntervalTree? codeBlockIntervalTree)
         {
             var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+            if (ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, GetAllNotifications(options), context.CancellationToken))
+                return [];
+
             var simplifier = new TypeSyntaxSimplifierWalker(this, context.SemanticModel, options, ignoredSpans: codeBlockIntervalTree, context.CancellationToken);
             simplifier.Visit(root);
             return simplifier.Diagnostics;

@@ -42,9 +42,9 @@
         <target state="translated">Convertir Sub en asincrónico</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">Quitar instrucciones Import innecesarias</target>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
+        <target state="translated">Quitar importaciones innecesarias</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_Return_with_Yield">

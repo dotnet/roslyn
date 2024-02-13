@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
         private readonly string? _versionOpt;
         private readonly bool _includePrerelease;
         private readonly bool _isLocal;
-        private readonly List<string> _projectsWithMatchingVersion = new();
+        private readonly List<string> _projectsWithMatchingVersion = [];
 
         public InstallPackageDirectlyCodeActionOperation(
             IPackageInstallerService installerService,

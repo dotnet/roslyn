@@ -1467,7 +1467,7 @@ oneMoreTime:
             // Condition is necessary, but not sufficient (e.g. might be missing a special or well-known member).
             if (SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(switchCaseLabels.Length))
             {
-                var privateImplClass = _module.GetPrivateImplClass(syntaxNode, _diagnostics.DiagnosticBag);
+                var privateImplClass = _module.GetPrivateImplClass(syntaxNode, _diagnostics.DiagnosticBag).PrivateImplementationDetails;
                 Cci.IReference stringHashMethodRef = privateImplClass.GetMethod(
                     isSpanOrReadOnlySpan
                         ? isReadOnlySpan

@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public int Length => GetStringBuilder().Length;
 
         public CappedStringWriter(int expectedLength)
-            : base(System.Globalization.CultureInfo.InvariantCulture)
         {
             if (expectedLength < 0)
             {

@@ -4,10 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using Humanizer;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var overriddingSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, overriddingIdentifier.Value, cancellationToken);
                 var overriddenSymbol = overriddingSymbol.GetOverriddenMember();
 
-                allSymbols = overriddenSymbol is null ? ImmutableArray<ISymbol?>.Empty : ImmutableArray.Create<ISymbol?>(overriddenSymbol);
+                allSymbols = overriddenSymbol is null ? [] : [overriddenSymbol];
             }
             else
             {
@@ -115,10 +113,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 var skipSymbolInfoLookup = declaredSymbol.IsKind(SymbolKind.RangeVariable);
                 allSymbols = skipSymbolInfoLookup
-                    ? ImmutableArray<ISymbol?>.Empty
+                    ? []
                     : semanticFacts
                         .GetBestOrAllSymbols(semanticModel, bindableParent, token, cancellationToken)
-                        .WhereAsArray(s => !s.Equals(declaredSymbol))
+                        .WhereAsArray(s => s != null && !s.Equals(declaredSymbol))
                         .SelectAsArray(s => MapSymbol(s, type));
             }
 
@@ -140,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     if (namedType.TypeKind == TypeKind.Delegate ||
                         namedType.AssociatedSymbol != null)
                     {
-                        allSymbols = ImmutableArray.Create<ISymbol?>(type);
+                        allSymbols = [type];
                         type = null;
                     }
                 }

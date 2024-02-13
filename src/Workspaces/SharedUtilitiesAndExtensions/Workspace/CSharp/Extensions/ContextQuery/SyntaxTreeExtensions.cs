@@ -2695,6 +2695,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            // Collection expressions
+            // [|
+            // [0, |
+            if (token.Kind() is SyntaxKind.OpenBracketToken or SyntaxKind.DotDotToken or SyntaxKind.CommaToken &&
+                token.Parent.IsKind(SyntaxKind.CollectionExpression))
+            {
+                return true;
+            }
+
+            // Spread elements in collection expressions
+            // [.. |
+            // [0, .. |
+            if (token.Kind() is SyntaxKind.DotDotToken &&
+                token.Parent.IsKind(SyntaxKind.SpreadElement))
+            {
+                return true;
+            }
+
             // $"{ |
             // $@"{ |
             // $"""{ |
@@ -2807,7 +2825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsLastTokenOfNode<ExpressionSyntax>(out var expression))
             {
                 // 'is/as/with' not allowed after a anonymous-method/lambda/method-group.
-                if (expression.IsAnyLambdaOrAnonymousMethod())
+                if (expression is AnonymousFunctionExpressionSyntax)
                     return false;
 
                 var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();

@@ -561,9 +561,9 @@ namespace Microsoft.CodeAnalysis
                 // so that the suppression information is available in the binary logs and verbose build logs.
                 if (diag.ProgrammaticSuppressionInfo != null)
                 {
-                    foreach (var (id, justification) in diag.ProgrammaticSuppressionInfo.Suppressions)
+                    foreach (var suppression in diag.ProgrammaticSuppressionInfo.Suppressions)
                     {
-                        var suppressionDiag = new SuppressionDiagnostic(diag, id, justification);
+                        var suppressionDiag = new SuppressionDiagnostic(diag, suppression.Descriptor.Id, suppression.Descriptor.Justification);
                         if (_reportedDiagnostics.Add(suppressionDiag))
                         {
                             PrintError(suppressionDiag, consoleOutput);
@@ -673,6 +673,18 @@ namespace Microsoft.CodeAnalysis
             foreach (var diag in diagnostics.AsEnumerable())
             {
                 if (diag.IsUnsuppressableError())
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        internal static bool HasSuppressableWarningsOrErrors(DiagnosticBag diagnostics)
+        {
+            foreach (var diag in diagnostics.AsEnumerable())
+            {
+                if (!diag.IsUnsuppressableError())
                 {
                     return true;
                 }
@@ -1032,6 +1044,39 @@ namespace Microsoft.CodeAnalysis
             return existing.WithAdditionalTreeOptions(builder.ToImmutable());
         }
 
+        private CompilerAnalyzerConfigOptionsProvider GetCompilerAnalyzerConfigOptionsProvider(
+            AnalyzerConfigSet? analyzerConfigSet,
+            ImmutableArray<AdditionalText> additionalTextFiles,
+            DiagnosticBag diagnostics,
+            Compilation compilation,
+            ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions)
+        {
+            var analyzerConfigProvider = CompilerAnalyzerConfigOptionsProvider.Empty;
+            if (Arguments.AnalyzerConfigPaths.Length > 0)
+            {
+                Debug.Assert(analyzerConfigSet is object);
+                analyzerConfigProvider = analyzerConfigProvider.WithGlobalOptions(new DictionaryAnalyzerConfigOptions(analyzerConfigSet.GetOptionsForSourcePath(string.Empty).AnalyzerOptions));
+
+                // https://github.com/dotnet/roslyn/issues/31916: The compiler currently doesn't support
+                // configuring diagnostic reporting on additional text files individually.
+                ImmutableArray<AnalyzerConfigOptionsResult> additionalFileAnalyzerOptions =
+                    additionalTextFiles.SelectAsArray(f => analyzerConfigSet.GetOptionsForSourcePath(f.Path));
+
+                foreach (var result in additionalFileAnalyzerOptions)
+                {
+                    diagnostics.AddRange(result.Diagnostics);
+                }
+
+                analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(
+                    analyzerConfigProvider,
+                    compilation.SyntaxTrees,
+                    sourceFileAnalyzerConfigOptions,
+                    additionalTextFiles,
+                    additionalFileAnalyzerOptions);
+            }
+
+            return analyzerConfigProvider;
+        }
         /// <summary>
         /// Perform all the work associated with actual compilation
         /// (parsing, binding, compile, emit), resulting in diagnostics
@@ -1057,39 +1102,35 @@ namespace Microsoft.CodeAnalysis
             analyzerDriver = null;
             generatorTimingInfo = null;
 
-            // Print the diagnostics produced during the parsing stage and exit if there were any errors.
+            // Print the diagnostics produced during the parsing stage and exit if there are any unsuppressible errors.
             compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, cancellationToken);
+
+            DiagnosticBag? analyzerExceptionDiagnostics = null;
+
+            // If there are parsing errors, we want to return immediately.
+            // But first, we need to check two things: 
+            // 1. Whether there are any suppressible warnings,
+            // 2. Whether there are any diagnostic suppressors that could potentially suppress them.
+            // If both conditions are true, run diagnostic suppressors before exiting from this method.
             if (HasUnsuppressableErrors(diagnostics))
             {
+                if (HasSuppressableWarningsOrErrors(diagnostics) && analyzers.Any(a => a is DiagnosticSuppressor))
+                {
+                    var analyzerConfigProvider = GetCompilerAnalyzerConfigOptionsProvider(analyzerConfigSet, additionalTextFiles, diagnostics, compilation, sourceFileAnalyzerConfigOptions);
+
+                    AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(additionalTextFiles, analyzerConfigProvider);
+
+                    (analyzerCts, analyzerExceptionDiagnostics, analyzerDriver) = initializeAnalyzerDriver(analyzerOptions, ref compilation);
+
+                    analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation, analyzerCts.Token);
+                }
                 return;
             }
 
-            DiagnosticBag? analyzerExceptionDiagnostics = null;
             if (!analyzers.IsEmpty || !generators.IsEmpty)
             {
-                var analyzerConfigProvider = CompilerAnalyzerConfigOptionsProvider.Empty;
-                if (Arguments.AnalyzerConfigPaths.Length > 0)
-                {
-                    Debug.Assert(analyzerConfigSet is object);
-                    analyzerConfigProvider = analyzerConfigProvider.WithGlobalOptions(new DictionaryAnalyzerConfigOptions(analyzerConfigSet.GetOptionsForSourcePath(string.Empty).AnalyzerOptions));
-
-                    // TODO(https://github.com/dotnet/roslyn/issues/31916): The compiler currently doesn't support
-                    // configuring diagnostic reporting on additional text files individually.
-                    ImmutableArray<AnalyzerConfigOptionsResult> additionalFileAnalyzerOptions =
-                        additionalTextFiles.SelectAsArray(f => analyzerConfigSet.GetOptionsForSourcePath(f.Path));
-
-                    foreach (var result in additionalFileAnalyzerOptions)
-                    {
-                        diagnostics.AddRange(result.Diagnostics);
-                    }
-
-                    analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(
-                        analyzerConfigProvider,
-                        compilation.SyntaxTrees,
-                        sourceFileAnalyzerConfigOptions,
-                        additionalTextFiles,
-                        additionalFileAnalyzerOptions);
-                }
+                var analyzerConfigProvider =
+                    GetCompilerAnalyzerConfigOptionsProvider(analyzerConfigSet, additionalTextFiles, diagnostics, compilation, sourceFileAnalyzerConfigOptions);
 
                 if (!generators.IsEmpty)
                 {
@@ -1162,33 +1203,22 @@ namespace Microsoft.CodeAnalysis
 
                 if (!analyzers.IsEmpty)
                 {
-                    analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    analyzerExceptionDiagnostics = new DiagnosticBag();
-
-                    // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
-                    //  1. Always filter out 'Hidden' analyzer diagnostics in build.
-                    //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
-                    var severityFilter = SeverityFilter.Hidden;
-                    if (Arguments.ErrorLogPath == null)
-                        severityFilter |= SeverityFilter.Info;
-
-                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
-                        compilation,
-                        analyzers,
-                        analyzerOptions,
-                        new AnalyzerManager(analyzers),
-                        analyzerExceptionDiagnostics.Add,
-                        reportAnalyzer: Arguments.ReportAnalyzer || errorLogger != null,
-                        severityFilter,
-                        trackSuppressedDiagnosticIds: errorLogger != null,
-                        out compilation,
-                        analyzerCts.Token);
+                    (analyzerCts, analyzerExceptionDiagnostics, analyzerDriver) = initializeAnalyzerDriver(analyzerOptions, ref compilation);
                 }
             }
 
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
+
+            // If there are unsuppressable declaration errors, we want to exit early from this method.
+            // But before we do so, we need to run diagnostic suppressors (if any) on all suppressable warnings/errors (if any).
             if (HasUnsuppressableErrors(diagnostics))
             {
+                if (analyzerDriver == null || !analyzerDriver.HasDiagnosticSuppressors || !HasSuppressableWarningsOrErrors(diagnostics))
+                {
+                    return;
+                }
+
+                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation, cancellationToken);
                 return;
             }
 
@@ -1467,6 +1497,33 @@ namespace Microsoft.CodeAnalysis
             if (!WriteTouchedFiles(diagnostics, touchedFilesLogger, finalXmlFilePath))
             {
                 return;
+            }
+
+            (CancellationTokenSource, DiagnosticBag, AnalyzerDriver) initializeAnalyzerDriver(AnalyzerOptions analyzerOptions, ref Compilation compilation)
+            {
+                var analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                var analyzerExceptionDiagnostics = new DiagnosticBag();
+
+                // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
+                //  1. Always filter out 'Hidden' analyzer diagnostics in build.
+                //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
+                var severityFilter = SeverityFilter.Hidden;
+                if (Arguments.ErrorLogPath == null)
+                    severityFilter |= SeverityFilter.Info;
+
+                var analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
+                    compilation,
+                    analyzers,
+                    analyzerOptions,
+                    new AnalyzerManager(analyzers),
+                    analyzerExceptionDiagnostics.Add,
+                    reportAnalyzer: Arguments.ReportAnalyzer || errorLogger != null,
+                    severityFilter,
+                    trackSuppressedDiagnosticIds: errorLogger != null,
+                    out compilation,
+                    analyzerCts.Token);
+
+                return (analyzerCts, analyzerExceptionDiagnostics, analyzerDriver);
             }
         }
 

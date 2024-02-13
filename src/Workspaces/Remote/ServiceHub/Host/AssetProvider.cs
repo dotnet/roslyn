@@ -34,27 +34,26 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     public override async ValueTask<T> GetAssetAsync<T>(
-        ProjectId? hintProject, Checksum checksum, CancellationToken cancellationToken)
+        AssetHint assetHint, Checksum checksum, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(checksum == Checksum.Null);
         if (_assetCache.TryGetAsset<T>(checksum, out var asset))
             return asset;
 
-        using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
-        var checksums = pooledObject.Object;
+        using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
         checksums.Add(checksum);
 
-        await this.SynchronizeAssetsAsync(hintProject, checksums, cancellationToken).ConfigureAwait(false);
+        await this.SynchronizeAssetsAsync(assetHint, checksums, cancellationToken).ConfigureAwait(false);
 
         return GetRequiredAsset<T>(checksum);
     }
 
     public async ValueTask<ImmutableArray<ValueTuple<Checksum, T>>> GetAssetsAsync<T>(
-        ProjectId? hintProject, HashSet<Checksum> checksums, CancellationToken cancellationToken)
+        AssetHint assetHint, HashSet<Checksum> checksums, CancellationToken cancellationToken)
     {
         // bulk synchronize checksums first
         var syncer = new ChecksumSynchronizer(this);
-        await syncer.SynchronizeAssetsAsync(hintProject, checksums, cancellationToken).ConfigureAwait(false);
+        await syncer.SynchronizeAssetsAsync(assetHint, checksums, cancellationToken).ConfigureAwait(false);
 
         // this will be fast since we actually synchronized the checksums above.
         using var _ = ArrayBuilder<ValueTuple<Checksum, T>>.GetInstance(checksums.Count, out var list);
@@ -111,7 +110,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     public async ValueTask SynchronizeAssetsAsync(
-        ProjectId? hintProject, HashSet<Checksum> checksums, CancellationToken cancellationToken)
+        AssetHint assetHint, HashSet<Checksum> checksums, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
         if (checksums.Count == 0)
@@ -127,7 +126,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             }
 
             var checksumsArray = missingChecksums.ToImmutableAndClear();
-            var assets = await RequestAssetsAsync(hintProject, checksumsArray, cancellationToken).ConfigureAwait(false);
+            var assets = await RequestAssetsAsync(assetHint, checksumsArray, cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfTrue(checksumsArray.Length != assets.Length);
 
@@ -137,12 +136,12 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     private async Task<ImmutableArray<object>> RequestAssetsAsync(
-        ProjectId? hintProject, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
+        AssetHint assetHint, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
         if (checksums.Length == 0)
-            return ImmutableArray<object>.Empty;
+            return [];
 
-        return await _assetSource.GetAssetsAsync(_solutionChecksum, hintProject, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
+        return await _assetSource.GetAssetsAsync(_solutionChecksum, assetHint, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
     }
 }

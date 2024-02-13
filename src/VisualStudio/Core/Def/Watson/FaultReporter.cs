@@ -22,15 +22,16 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
     internal static class FaultReporter
     {
         private static readonly object _guard = new();
-        private static ImmutableArray<TelemetrySession> s_telemetrySessions = ImmutableArray<TelemetrySession>.Empty;
-        private static ImmutableArray<TraceSource> s_loggers = ImmutableArray<TraceSource>.Empty;
+        private static ImmutableArray<TelemetrySession> s_telemetrySessions = [];
+        private static ImmutableArray<TraceSource> s_loggers = [];
 
         private static int s_dumpsSubmitted;
 
         public static void InitializeFatalErrorHandlers()
         {
-            FatalError.Handler = static (exception, severity, forceDump) => ReportFault(exception, ConvertSeverity(severity), forceDump);
-            FatalError.CopyHandlerTo(typeof(Compilation).Assembly);
+            FatalError.ErrorReporterHandler handler = static (exception, severity, forceDump) => ReportFault(exception, ConvertSeverity(severity), forceDump);
+            FatalError.SetHandlers(handler, nonFatalHandler: handler);
+            FatalError.CopyHandlersTo(typeof(Compilation).Assembly);
         }
 
         private static FaultSeverity ConvertSeverity(ErrorSeverity severity)
@@ -87,7 +88,13 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         private const int P5MethodNameDefaultIndex = 5;
 
-        private static readonly ImmutableArray<string> UnblameableMethodPrefixes = ImmutableArray.Create("Roslyn.Utilities.Contract.", "System.Linq.");
+        private static readonly ImmutableArray<string> UnblameableMethodPrefixes =
+        [
+            "Microsoft.CodeAnalysis.Shared.Extensions.ISolutionExtensions.GetRequired",
+            "Microsoft.CodeAnalysis.Host.HostLanguageServices.GetRequiredService",
+            "Roslyn.Utilities.Contract.",
+            "System.Linq.",
+        ];
 
         /// <summary>
         /// Report Non-Fatal Watson for a given unhandled exception.

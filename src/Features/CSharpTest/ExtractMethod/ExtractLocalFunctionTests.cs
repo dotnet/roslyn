@@ -17,9 +17,9 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeR
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ExtractMethod
 {
-    public class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest
+    public class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new ExtractMethodCodeRefactoringProvider();
 
         private static int CodeActionIndexWhenExtractMethodMissing => 0;
@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task DoNotOverparenthesize()
+        public async Task DoNotOverParenthesize()
         {
             await TestAsync(
                 """
@@ -694,7 +694,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
                     }
                 }
                 """,
-
                 """
                 using System;
 
@@ -728,15 +727,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
 
                     static void Main()
                     {
-                        Outer(y => Inner(x =>
-                        {
-                            {|Rename:GetX|}(x).Ex();
+                        Outer(y => Inner(x => {|Rename:GetX|}(x).Ex(), y), (object)- -1);
 
-                            static string GetX(string x)
-                            {
-                                return x;
-                            }
-                        }, y), (object)- -1);
+                        static string GetX(string x)
+                        {
+                            return x;
+                        }
                     }
                 }
 
@@ -748,11 +744,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
                 }
                 """,
 
-parseOptions: Options.Regular, index: CodeActionIndex);
+parseOptions: TestOptions.Regular, index: CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task DoNotOverparenthesizeGenerics()
+        public async Task DoNotOverParenthesizeGenerics()
         {
             await TestAsync(
                 """
@@ -799,7 +795,6 @@ parseOptions: Options.Regular, index: CodeActionIndex);
                     }
                 }
                 """,
-
                 """
                 using System;
 
@@ -833,15 +828,12 @@ parseOptions: Options.Regular, index: CodeActionIndex);
 
                     static void Main()
                     {
-                        Outer(y => Inner(x =>
-                        {
-                            {|Rename:GetX|}(x).Ex<int>();
+                        Outer(y => Inner(x => {|Rename:GetX|}(x).Ex<int>(), y), (object)- -1);
 
-                            static string GetX(string x)
-                            {
-                                return x;
-                            }
-                        }, y), (object)- -1);
+                        static string GetX(string x)
+                        {
+                            return x;
+                        }
                     }
                 }
 
@@ -853,7 +845,7 @@ parseOptions: Options.Regular, index: CodeActionIndex);
                 }
                 """,
 
-parseOptions: Options.Regular, index: CodeActionIndex);
+parseOptions: TestOptions.Regular, index: CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -1721,7 +1713,7 @@ parseOptions: Options.Regular, index: CodeActionIndex);
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
             await TestInRegularAndScript1Async(code, expectedCode, CodeActionIndexWhenExtractMethodMissing);
         }
 
@@ -1872,7 +1864,7 @@ parseOptions: Options.Regular, index: CodeActionIndex);
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
             await TestInRegularAndScript1Async(code, expectedCode, CodeActionIndexWhenExtractMethodMissing);
         }
 
@@ -4124,7 +4116,7 @@ class Program
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method }, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)));
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method], new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -4140,7 +4132,7 @@ class Program
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method }, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)));
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method], new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -4872,9 +4864,9 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
-        public async Task TestMissingInGoto()
+        public async Task TestOnGoto()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
                 """
                 delegate int del(int i);
 
@@ -4890,7 +4882,29 @@ class Program
                         return;
                     }
                 }
-                """, new TestParameters(index: CodeActionIndex));
+                """,
+                """
+                delegate int del(int i);
+
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        del q = x =>
+                        {
+                            return {|Rename:NewMethod|}(x);
+                
+                            static int NewMethod(int x)
+                            {
+                                goto label2;
+                                return x * x;
+                            }
+                        };
+                    label2:
+                        return;
+                    }
+                }
+                """, index: CodeActionIndex);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -4938,7 +4952,7 @@ class Program
                     public int Blah => [|this.field|];
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -4952,7 +4966,7 @@ class Program
                     public int this[int i] => [|this.field|];
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -4970,7 +4984,7 @@ class Program
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -4988,7 +5002,7 @@ class Program
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -5006,7 +5020,7 @@ class Program
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -5024,7 +5038,7 @@ class Program
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -5423,9 +5437,9 @@ class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/45422")]
-        public async Task TestMissingOnExtractLocalFunction()
+        public async Task TestOnExtractLocalFunction()
         {
-            await TestMissingInRegularAndScriptAsync("""
+            await TestInRegularAndScriptAsync("""
                 class C
                 {
                     static void M()
@@ -5443,14 +5457,35 @@ class Program
                         }
                     }
                 }
-                """, codeActionIndex: 1);
+                """, """
+                class C
+                {
+                    static void M()
+                    {
+                        if (true)
+                            {|Rename:NewMethod|}();
+
+                        static void NewMethod()
+                        {
+                            static void L()
+                            {
+
+                                static void L2()
+                                {
+                                    var x = 1;
+                                }
+                            }
+                        }
+                    }
+                }
+                """, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/45422")]
-        public async Task TestMissingOnExtractLocalFunctionWithExtraBrace()
+        public async Task TestExtractLocalFunctionWithExtraBrace()
         {
-            await TestMissingInRegularAndScriptAsync("""
+            await TestInRegularAndScript1Async("""
                 class C
                 {
                     static void M()
@@ -5467,7 +5502,27 @@ class Program
                         }
                     }
                 }
-                """, codeActionIndex: 1);
+                """, """
+                class C
+                {
+                    static void M()
+                    {
+                        if (true)
+                            {|Rename:NewMethod|}();
+
+                        static void NewMethod()
+                        {
+                            static void L()
+                            {
+                                static void L2()
+                                {
+                                    var x = 1;
+                                }
+                            }
+                        }
+                    }
+                }
+                """, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]

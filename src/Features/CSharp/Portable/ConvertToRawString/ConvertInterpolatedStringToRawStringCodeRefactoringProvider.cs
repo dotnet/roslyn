@@ -64,6 +64,9 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
     {
         convertParams = default;
 
+        if (stringExpression.StringStartToken.Kind() is not SyntaxKind.InterpolatedStringStartToken and not SyntaxKind.InterpolatedVerbatimStringStartToken)
+            return false;
+
         // Check up front for syntax errors.  Knowing there are none means we don't have a sanity checks later on.
         if (stringExpression.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
             return false;
@@ -445,7 +448,7 @@ internal partial class ConvertInterpolatedStringToRawStringProvider
             }
         }
 
-        return List(contents);
+        return [.. contents];
 
         static InterpolationFormatClauseSyntax? RewriteFormatClause(InterpolationFormatClauseSyntax? formatClause)
         {

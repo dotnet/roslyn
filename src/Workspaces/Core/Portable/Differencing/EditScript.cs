@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             {
                 if (_match.TryGetPartnerInTree2(e, out var pw) && Comparer.GetParent(pw).Equals(x))
                 {
-                    s1 ??= new List<TNode>();
+                    s1 ??= [];
 
                     s1.Add(e);
                 }
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             {
                 if (_match.TryGetPartnerInTree1(e, out var px) && Comparer.GetParent(px).Equals(w))
                 {
-                    s2 ??= new List<TNode>();
+                    s2 ??= [];
 
                     s2.Add(e);
                 }

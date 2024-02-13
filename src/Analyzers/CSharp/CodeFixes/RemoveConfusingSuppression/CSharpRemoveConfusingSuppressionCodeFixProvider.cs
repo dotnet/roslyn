@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.RemoveConfusingSuppressionForIsExpressionDiagnosticId);
+            => [IDEDiagnosticIds.RemoveConfusingSuppressionForIsExpressionDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

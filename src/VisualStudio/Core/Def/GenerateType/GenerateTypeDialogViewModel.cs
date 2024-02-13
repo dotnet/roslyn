@@ -45,12 +45,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         private readonly string _visualBasicExtension = ".vb";
 
         // reserved names that cannot be a folder name or filename
-        private readonly string[] _reservedKeywords = new string[]
-                                                {
+        private readonly string[] _reservedKeywords =
+#pragma warning disable format // https://github.com/dotnet/roslyn/issues/70711 tracks removing this suppression.
+                                                [
                                                     "con", "prn", "aux", "nul",
                                                     "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9",
                                                     "lpt1", "lpt2", "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9", "clock$"
-                                                };
+                                                ];
+#pragma warning restore format
 
         // Below code details with the Access List and the manipulation
         public List<string> AccessList { get; }
@@ -179,12 +181,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
         private void InitialSetup()
         {
-            _accessListMap = new Dictionary<string, Accessibility>();
-            _typeKindMap = new Dictionary<string, TypeKind>();
-            _csharpAccessList = new List<string>();
-            _visualBasicAccessList = new List<string>();
-            _csharpTypeKindList = new List<string>();
-            _visualBasicTypeKindList = new List<string>();
+            _accessListMap = [];
+            _typeKindMap = [];
+            _csharpAccessList = [];
+            _visualBasicAccessList = [];
+            _csharpTypeKindList = [];
+            _visualBasicTypeKindList = [];
 
             // Populate the AccessListMap
             if (!_generateTypeDialogOptions.IsPublicOnlyAccessibility)
@@ -506,7 +508,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 }
 
                 _previouslyPopulatedProject = _selectedProject;
-                _previouslyPopulatedDocumentList = new List<DocumentSelectItem>();
+                _previouslyPopulatedDocumentList = [];
 
                 // Check for the current project
                 if (_selectedProject == _document.Project)
@@ -728,11 +730,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             var dependencyGraph = document.Project.Solution.GetProjectDependencyGraph();
 
             // Initialize the dependencies
-            var projectListing = new List<ProjectSelectItem>();
-
-            // Populate the project list
-            // Add the current project
-            projectListing.Add(new ProjectSelectItem(document.Project));
+            var projectListing = new List<ProjectSelectItem>
+            {
+                // Populate the project list
+                // Add the current project
+                new ProjectSelectItem(document.Project)
+            };
 
             // Add the rest of the projects
             // Adding dependency graph to avoid cyclic dependency

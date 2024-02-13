@@ -81,10 +81,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public ValueTask<ImmutableArray<ActiveStatementSpan>> GetSpansAsync(Solution solution, DocumentId? documentId, string filePath, CancellationToken cancellationToken)
-            => _session?.GetSpansAsync(solution, documentId, filePath, cancellationToken) ?? new(ImmutableArray<ActiveStatementSpan>.Empty);
+            => _session?.GetSpansAsync(solution, documentId, filePath, cancellationToken) ?? new([]);
 
         public ValueTask<ImmutableArray<ActiveStatementTrackingSpan>> GetAdjustedTrackingSpansAsync(TextDocument document, ITextSnapshot snapshot, CancellationToken cancellationToken)
-            => _session?.GetAdjustedTrackingSpansAsync(document, snapshot, cancellationToken) ?? new(ImmutableArray<ActiveStatementTrackingSpan>.Empty);
+            => _session?.GetAdjustedTrackingSpansAsync(document, snapshot, cancellationToken) ?? new([]);
 
         // internal for testing
         internal sealed class TrackingSession
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             /// For each document the array contains spans for all active statements present in the file
             /// (even if they have been deleted, in which case the spans are empty).
             /// </summary>
-            private readonly Dictionary<string, ImmutableArray<ActiveStatementTrackingSpan>> _trackingSpans = new();
+            private readonly Dictionary<string, ImmutableArray<ActiveStatementTrackingSpan>> _trackingSpans = [];
 
             #endregion
 
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var document = await solution.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 if (document == null)
                 {
-                    return ImmutableArray<ActiveStatementSpan>.Empty;
+                    return [];
                 }
 
                 var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                 }
 
-                return ImmutableArray<ActiveStatementSpan>.Empty;
+                return [];
             }
 
             /// <summary>
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     if (document.FilePath == null)
                     {
-                        return ImmutableArray<ActiveStatementTrackingSpan>.Empty;
+                        return [];
                     }
 
                     Debug.Assert(TryGetSnapshot(document, out var s) && s == snapshot);
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // nop
                 }
 
-                return ImmutableArray<ActiveStatementTrackingSpan>.Empty;
+                return [];
             }
         }
     }

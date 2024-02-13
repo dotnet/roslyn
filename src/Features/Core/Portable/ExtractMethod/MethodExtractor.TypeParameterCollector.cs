@@ -10,11 +10,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class MethodExtractor
+    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
     {
         protected class TypeParameterCollector : SymbolVisitor
         {
-            private readonly List<ITypeParameterSymbol> _typeParameters = new();
+            private readonly List<ITypeParameterSymbol> _typeParameters = [];
 
             public static IEnumerable<ITypeParameterSymbol> Collect(ITypeSymbol typeSymbol)
             {

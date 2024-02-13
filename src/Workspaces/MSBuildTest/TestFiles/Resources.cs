@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
 
             result = loader(name);
 
-            cache ??= new Dictionary<string, TResult>();
+            cache ??= [];
 
             cache[name] = result;
 
@@ -138,7 +138,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string ForEmittedOutput => GetText("ProjectFiles.CSharp.ForEmittedOutput.csproj");
                 public static string Issue30174_InspectedLibrary => GetText("Issue30174.InspectedLibrary.InspectedLibrary.csproj");
                 public static string Issue30174_ReferencedLibrary => GetText("Issue30174.ReferencedLibrary.ReferencedLibrary.csproj");
-                public static string MsbuildError => GetText("ProjectFiles.CSharp.MsbuildError.csproj");
+                public static string MSBuildExecutionError => GetText("ProjectFiles.CSharp.MSBuildExecutionError.csproj");
+                public static string MSBuildEvaluationErrorWithSyntax => GetText("ProjectFiles.CSharp.MSBuildEvaluationErrorWithSyntax.csproj");
+                public static string MSBuildEvaluationErrorWithExpressionInputs => GetText("ProjectFiles.CSharp.MSBuildEvaluationErrorWithExpressionInputs.csproj");
                 public static string MallformedAdditionalFilePath => GetText("ProjectFiles.CSharp.MallformedAdditionalFilePath.csproj");
                 public static string NetCoreApp_Project => GetText("NetCoreApp.Project.csproj");
                 public static string NetCoreAppAndLibrary_Project => GetText("NetCoreAppAndLibrary.Project.csproj");

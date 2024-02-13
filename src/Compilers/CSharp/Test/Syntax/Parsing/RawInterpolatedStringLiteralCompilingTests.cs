@@ -2278,4 +2278,22 @@ System.Console.Write(
     {{{1 + 2}}}
     """""");", expectedOutput: "{{{1 + 2}}}");
     }
+
+    [Fact]
+    public void TestNonEscape()
+    {
+        CompileAndVerify(
+@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Console.Write($""""""
+                       \e
+                       """""");
+    }
+}", expectedOutput: "\\e");
+    }
 }

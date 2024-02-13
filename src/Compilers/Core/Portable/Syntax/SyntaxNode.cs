@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -324,7 +325,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="checksumAlgorithm"/> is not supported.</exception>
         public SourceText GetText(Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
-            var builder = new StringBuilder();
+            var builder = new StringBuilder(this.Green.FullWidth);
             this.WriteTo(new StringWriter(builder));
             return new StringBuilderText(builder, encoding, checksumAlgorithm);
         }
@@ -1391,20 +1392,22 @@ recurse:
         /// Serializes the node to the given <paramref name="stream"/>.
         /// Leaves the <paramref name="stream"/> open for further writes.
         /// </summary>
+        [Obsolete(SerializationDeprecationException.Text, error: true)]
         public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default)
+            => throw new SerializationDeprecationException();
+
+        /// <summary>
+        /// Specialized exception subtype to make it easier to search telemetry streams for this specific case.
+        /// </summary>
+        private protected sealed class SerializationDeprecationException : Exception
         {
-            if (stream == null)
-            {
-                throw new ArgumentNullException(nameof(stream));
-            }
+            public const string Text = "Syntax serialization support is no longer supported";
 
-            if (!stream.CanWrite)
+            public SerializationDeprecationException()
+                : base(Text)
             {
-                throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
-            }
 
-            using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
-            writer.WriteValue(Green);
+            }
         }
 
         #region Core Methods

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     updatedProperty,
                     accessibility: accessibility,
                     modifiers: modifiers,
-                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(property) : default,
+                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? [property] : default,
                     name: memberName,
                     getMethod: getAccessor,
                     setMethod: setAccessor);
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     setMethod,
                     attributes: default,
                     accessibility: accessibility,
-                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(property.SetMethod) : default,
+                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? [property.SetMethod] : default,
                     statements: GetSetAccessorStatements(
                         compilation, property, generateAbstractly, propertyGenerationBehavior));
             }
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     getMethod,
                     attributes: default,
                     accessibility: accessibility,
-                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(property.GetMethod) : default,
+                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? [property.GetMethod] : default,
                     statements: GetGetAccessorStatements(
                         compilation, property, generateAbstractly, propertyGenerationBehavior));
             }

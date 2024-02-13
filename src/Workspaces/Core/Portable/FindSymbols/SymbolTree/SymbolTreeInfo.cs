@@ -102,8 +102,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var sortedNodes = SortNodes(unsortedNodes);
 
             return new SymbolTreeInfo(checksum, sortedNodes,
-                new OrderPreservingMultiDictionary<string, string>(),
-                new MultiDictionary<string, ExtensionMethodInfo>());
+                [],
+                []);
         }
 
         public SymbolTreeInfo WithChecksum(Checksum checksum)
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     assemblySymbol ??= await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
                     if (assemblySymbol is null)
-                        return ImmutableArray<ISymbol>.Empty;
+                        return [];
 
                     Bind(index, assemblySymbol.GlobalNamespace, ref results.AsRef(), cancellationToken);
                 }

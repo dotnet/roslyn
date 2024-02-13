@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -24,13 +25,47 @@ internal static class UseCollectionExpressionHelpers
 {
     private static readonly CollectionExpressionSyntax s_emptyCollectionExpression = CollectionExpression();
 
+    private static readonly SymbolEquivalenceComparer s_tupleNamesCanDifferComparer = SymbolEquivalenceComparer.Create(
+        // Not relevant.  We are not comparing method signatures.
+        distinguishRefFromOut: true,
+        // Not relevant.  We are not comparing method signatures.
+        objectAndDynamicCompareEqually: false,
+        // The value we're tweaking.
+        tupleNamesMustMatch: false,
+        // We do not want to ignore this.  `ImmutableArray<string?>` should not be convertible to `ImmutableArray<string>`
+        ignoreNullableAnnotations: false);
+
     public static bool CanReplaceWithCollectionExpression(
         SemanticModel semanticModel,
         ExpressionSyntax expression,
+        INamedTypeSymbol? expressionType,
+        bool isSingletonInstance,
+        bool allowSemanticsChange,
         bool skipVerificationForReplacedNode,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        out bool changesSemantics)
+    {
+        // To keep things simple, all we do is replace the existing expression with the `[]` literal.This is an
+        // 'untyped' collection expression literal, so it tells us if the new code will have any issues moving to
+        // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
+        // types that could accept the collection expression).
+        return CanReplaceWithCollectionExpression(
+            semanticModel, expression, s_emptyCollectionExpression, expressionType, isSingletonInstance, allowSemanticsChange, skipVerificationForReplacedNode, cancellationToken, out changesSemantics);
+    }
+
+    public static bool CanReplaceWithCollectionExpression(
+        SemanticModel semanticModel,
+        ExpressionSyntax expression,
+        CollectionExpressionSyntax replacementExpression,
+        INamedTypeSymbol? expressionType,
+        bool isSingletonInstance,
+        bool allowSemanticsChange,
+        bool skipVerificationForReplacedNode,
+        CancellationToken cancellationToken,
+        out bool changesSemantics)
     {
         var compilation = semanticModel.Compilation;
+        changesSemantics = false;
 
         var topMostExpression = expression.WalkUpParentheses();
         if (topMostExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
@@ -53,7 +88,10 @@ internal static class UseCollectionExpressionHelpers
         if (originalTypeInfo.ConvertedType is null or IErrorTypeSymbol)
             return false;
 
-        if (!IsConstructibleCollectionType(originalTypeInfo.ConvertedType.OriginalDefinition))
+        if (!IsConstructibleCollectionType(compilation, originalTypeInfo.ConvertedType.OriginalDefinition))
+            return false;
+
+        if (expression.IsInExpressionTree(semanticModel, expressionType, cancellationToken))
             return false;
 
         // Conservatively, avoid making this change if the original expression was itself converted. Consider, for
@@ -63,7 +101,7 @@ internal static class UseCollectionExpressionHelpers
         // Note: we can relax this on a case by case basis if we feel like it's acceptable.
         if (originalTypeInfo.Type != null &&
             !originalTypeInfo.Type.Equals(originalTypeInfo.ConvertedType) &&
-            !IsSafeConversionWhenTypesDoNotMatch())
+            !IsSafeConversionWhenTypesDoNotMatch(out changesSemantics))
         {
             return false;
         }
@@ -73,16 +111,13 @@ internal static class UseCollectionExpressionHelpers
         // expression will always succeed, and there's no need to actually validate semantics there.
         // Tracked by https://github.com/dotnet/roslyn/issues/68826
         if (parent is CastExpressionSyntax)
-            return IsConstructibleCollectionType(semanticModel.GetTypeInfo(parent, cancellationToken).Type);
+            return IsConstructibleCollectionType(compilation, semanticModel.GetTypeInfo(parent, cancellationToken).Type);
 
         // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
-        // any issues.  To keep things simple, all we do is replace the existing expression with the `[]` literal. This
-        // is an 'untyped' collection expression literal, so it tells us if the new code will have any issues moving to
-        // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
-        // types that could accept the collection expression).
+        // any issues.
         var speculationAnalyzer = new SpeculationAnalyzer(
             topMostExpression,
-            s_emptyCollectionExpression,
+            replacementExpression,
             semanticModel,
             cancellationToken,
             skipVerificationForReplacedNode,
@@ -111,69 +146,9 @@ internal static class UseCollectionExpressionHelpers
 
         return true;
 
-        bool IsConstructibleCollectionType(ITypeSymbol? type)
+        bool IsSafeConversionWhenTypesDoNotMatch(out bool changesSemantics)
         {
-            // Arrays are always a valid collection expression type.
-            if (type is IArrayTypeSymbol)
-                return true;
-
-            // Has to be a real named type at this point.
-            if (type is INamedTypeSymbol namedType)
-            {
-                // Span<T> and ReadOnlySpan<T> are always valid collection expression types.
-                if (namedType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
-                    namedType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
-                {
-                    return true;
-                }
-
-                // If it has a [CollectionBuilder] attribute on it, it is a valid collection expression type.
-                if (namedType.GetAttributes().Any(a => a.AttributeClass.IsCollectionBuilderAttribute()))
-                    return true;
-
-                // At this point, all that is left are collection-initializer types.  These need to derive from
-                // System.Collections.IEnumerable, and have an invokable no-arg constructor.
-
-                // Abstract type don't have invokable constructors at all.
-                if (namedType.IsAbstract)
-                    return false;
-
-                if (namedType.AllInterfaces.Contains(compilation.IEnumerableType()!))
-                {
-                    // If they have an accessible `public C(int capacity)` constructor, the lang prefers calling that.
-                    var constructors = namedType.Constructors;
-                    var capacityConstructor = GetAccessibleInstanceConstructor(constructors, c => c.Parameters is [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }]);
-                    if (capacityConstructor != null)
-                        return true;
-
-                    var noArgConstructor =
-                        GetAccessibleInstanceConstructor(constructors, c => c.Parameters.IsEmpty) ??
-                        GetAccessibleInstanceConstructor(constructors, c => c.Parameters.All(p => p.IsOptional || p.IsParams));
-                    if (noArgConstructor != null)
-                    {
-                        // If we have a struct, and the constructor we find is implicitly declared, don't consider this
-                        // a constructible type.  It's likely the user would just get the `default` instance of the
-                        // collection (like with ImmutableArray<T>) which would then not actually work.  If the struct
-                        // does have an explicit constructor though, that's a good sign it can actually be constructed
-                        // safely with the no-arg `new S()` call.
-                        if (!(namedType.TypeKind == TypeKind.Struct && noArgConstructor.IsImplicitlyDeclared))
-                            return true;
-                    }
-                }
-            }
-
-            // Anything else is not constructible.
-            return false;
-        }
-
-        IMethodSymbol? GetAccessibleInstanceConstructor(ImmutableArray<IMethodSymbol> constructors, Func<IMethodSymbol, bool> predicate)
-        {
-            var constructor = constructors.FirstOrDefault(c => !c.IsStatic && predicate(c));
-            return constructor is not null && constructor.IsAccessibleWithin(compilation.Assembly) ? constructor : null;
-        }
-
-        bool IsSafeConversionWhenTypesDoNotMatch()
-        {
+            changesSemantics = false;
             var type = originalTypeInfo.Type;
             var convertedType = originalTypeInfo.ConvertedType;
 
@@ -211,8 +186,131 @@ internal static class UseCollectionExpressionHelpers
                 return IsSafeConversionOfArrayToSpanType(semanticModel, expression, cancellationToken);
             }
 
+            // Allow tuple names to be different.  Because we are target typing the names can be picked up by the target type.
+            if (s_tupleNamesCanDifferComparer.Equals(type, convertedType))
+                return true;
+
+            // Before this point are all the changes that we can detect that are always safe to make.
+            if (!allowSemanticsChange)
+                return false;
+
+            // After this point are all the changes that we can detect that may change runtime semantics (for example,
+            // converting an array into a compiler-generated IEnumerable), but which can be ok since the user has opted
+            // into allowing that.
+            changesSemantics = true;
+
+            // In the case of a singleton (like `Array.Empty<T>()`) we don't want to convert to `IList<T>` as that
+            // will replace the code with code that now always allocates.
+            if (isSingletonInstance && IsWellKnownCollectionReadWriteInterface(convertedType))
+                return false;
+
+            // Ok to convert in cases like:
+            //
+            // `IEnumerable<object> obj = Array.Empty<object>();` or
+            // `IEnumerable<string> obj = new[] { "" };`
+            if (IsWellKnownCollectionInterface(convertedType) && type.AllInterfaces.Contains(convertedType))
+                return true;
+
+            // Implicit reference array conversion is acceptable if the user is ok with semantics changing.  For example:
+            //
+            // `object[] obj = new[] { "a" }` or
+            // `IEnumerable<object> obj = new[] { "a" }` or
+            //
+            // Before the change this would be a string-array.  With a collection expression this will become an object[].
+            if (type is IArrayTypeSymbol)
+            {
+                var conversion = compilation.ClassifyConversion(type, convertedType);
+                if (conversion.IsIdentityOrImplicitReference())
+                    return true;
+            }
+
             // Add more cases to support here.
             return false;
+        }
+    }
+
+    public static bool IsWellKnownCollectionInterface(ITypeSymbol type)
+        => IsWellKnownCollectionReadOnlyInterface(type) || IsWellKnownCollectionReadWriteInterface(type);
+
+    public static bool IsWellKnownCollectionReadOnlyInterface(ITypeSymbol type)
+    {
+        return type.OriginalDefinition.SpecialType
+            is SpecialType.System_Collections_Generic_IEnumerable_T
+            or SpecialType.System_Collections_Generic_IReadOnlyCollection_T
+            or SpecialType.System_Collections_Generic_IReadOnlyList_T;
+    }
+
+    public static bool IsWellKnownCollectionReadWriteInterface(ITypeSymbol type)
+    {
+        return type.OriginalDefinition.SpecialType
+            is SpecialType.System_Collections_Generic_ICollection_T
+            or SpecialType.System_Collections_Generic_IList_T;
+    }
+
+    public static bool IsConstructibleCollectionType(Compilation compilation, ITypeSymbol? type)
+    {
+        if (type is null)
+            return false;
+
+        // Arrays are always a valid collection expression type.
+        if (type is IArrayTypeSymbol)
+            return true;
+
+        // Has to be a real named type at this point.
+        if (type is INamedTypeSymbol namedType)
+        {
+            // Span<T> and ReadOnlySpan<T> are always valid collection expression types.
+            if (namedType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
+                namedType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
+            {
+                return true;
+            }
+
+            // If it has a [CollectionBuilder] attribute on it, it is a valid collection expression type.
+            if (namedType.GetAttributes().Any(a => a.AttributeClass.IsCollectionBuilderAttribute()))
+                return true;
+
+            if (IsWellKnownCollectionInterface(namedType))
+                return true;
+
+            // At this point, all that is left are collection-initializer types.  These need to derive from
+            // System.Collections.IEnumerable, and have an invokable no-arg constructor.
+
+            // Abstract type don't have invokable constructors at all.
+            if (namedType.IsAbstract)
+                return false;
+
+            if (namedType.AllInterfaces.Contains(compilation.IEnumerableType()!))
+            {
+                // If they have an accessible `public C(int capacity)` constructor, the lang prefers calling that.
+                var constructors = namedType.Constructors;
+                var capacityConstructor = GetAccessibleInstanceConstructor(constructors, c => c.Parameters is [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }]);
+                if (capacityConstructor != null)
+                    return true;
+
+                var noArgConstructor =
+                    GetAccessibleInstanceConstructor(constructors, c => c.Parameters.IsEmpty) ??
+                    GetAccessibleInstanceConstructor(constructors, c => c.Parameters.All(p => p.IsOptional || p.IsParams));
+                if (noArgConstructor != null)
+                {
+                    // If we have a struct, and the constructor we find is implicitly declared, don't consider this
+                    // a constructible type.  It's likely the user would just get the `default` instance of the
+                    // collection (like with ImmutableArray<T>) which would then not actually work.  If the struct
+                    // does have an explicit constructor though, that's a good sign it can actually be constructed
+                    // safely with the no-arg `new S()` call.
+                    if (!(namedType.TypeKind == TypeKind.Struct && noArgConstructor.IsImplicitlyDeclared))
+                        return true;
+                }
+            }
+        }
+
+        // Anything else is not constructible.
+        return false;
+
+        IMethodSymbol? GetAccessibleInstanceConstructor(ImmutableArray<IMethodSymbol> constructors, Func<IMethodSymbol, bool> predicate)
+        {
+            var constructor = constructors.FirstOrDefault(c => !c.IsStatic && predicate(c));
+            return constructor is not null && constructor.IsAccessibleWithin(compilation.Assembly) ? constructor : null;
         }
     }
 
@@ -478,6 +576,7 @@ internal static class UseCollectionExpressionHelpers
             CollectionElementSyntax collectionElement => IsInTargetTypedCollectionElement(collectionElement),
             AssignmentExpressionSyntax assignmentExpression => IsInTargetTypedAssignmentExpression(assignmentExpression, topExpression),
             BinaryExpressionSyntax binaryExpression => IsInTargetTypedBinaryExpression(binaryExpression, topExpression),
+            LambdaExpressionSyntax lambda => IsInTargetTypedLambdaExpression(lambda, topExpression),
             ArgumentSyntax or AttributeArgumentSyntax => true,
             ReturnStatementSyntax => true,
             ArrowExpressionClauseSyntax => true,
@@ -504,6 +603,9 @@ internal static class UseCollectionExpressionHelpers
             else
                 return false;
         }
+
+        bool IsInTargetTypedLambdaExpression(LambdaExpressionSyntax lambda, ExpressionSyntax expression)
+            => lambda.ExpressionBody == expression && IsInTargetTypedLocation(semanticModel, lambda, cancellationToken);
 
         bool IsInTargetTypedSwitchExpressionArm(SwitchExpressionArmSyntax switchExpressionArm)
         {
@@ -674,12 +776,18 @@ internal static class UseCollectionExpressionHelpers
     public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches<TArrayCreationExpressionSyntax>(
         SemanticModel semanticModel,
         TArrayCreationExpressionSyntax expression,
+        INamedTypeSymbol? expressionType,
+        bool isSingletonInstance,
+        bool allowSemanticsChange,
         Func<TArrayCreationExpressionSyntax, TypeSyntax> getType,
         Func<TArrayCreationExpressionSyntax, InitializerExpressionSyntax?> getInitializer,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        out bool changesSemantics)
         where TArrayCreationExpressionSyntax : ExpressionSyntax
     {
         Contract.ThrowIfFalse(expression is ArrayCreationExpressionSyntax or StackAllocArrayCreationExpressionSyntax);
+
+        changesSemantics = false;
 
         // has to either be `stackalloc X[]` or `stackalloc X[const]`.
         if (getType(expression) is not ArrayTypeSyntax { RankSpecifiers: [{ Sizes: [var size] }, ..] })
@@ -719,11 +827,13 @@ internal static class UseCollectionExpressionHelpers
                             {
                                 Identifier.ValueText: var variableName,
                                 Parent.Parent: LocalDeclarationStatementSyntax localDeclarationStatement
-                            },
+                            } variableDeclarator,
                         })
                     {
                         return default;
                     }
+
+                    var localSymbol = semanticModel.GetRequiredDeclaredSymbol(variableDeclarator, cancellationToken);
 
                     var currentStatement = localDeclarationStatement.GetNextStatement();
                     for (var currentIndex = 0; currentIndex < sizeValue; currentIndex++)
@@ -740,7 +850,7 @@ internal static class UseCollectionExpressionHelpers
                                         Expression: IdentifierNameSyntax { Identifier.ValueText: var elementName },
                                         ArgumentList.Arguments: [var elementArgument],
                                     } elementAccess,
-                                }
+                                } assignmentExpression,
                             } expressionStatement)
                         {
                             return default;
@@ -757,6 +867,14 @@ internal static class UseCollectionExpressionHelpers
                             return default;
                         }
 
+                        // If we have an array whose elements points back to the array itself, then we can't convert
+                        // this to a collection expression.
+                        if (assignmentExpression.Right.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().Any(
+                                i => localSymbol.Equals(semanticModel.GetSymbolInfo(i, cancellationToken).GetAnySymbol())))
+                        {
+                            return default;
+                        }
+
                         // this looks like a good statement, add to the right size of the assignment to track as that's what
                         // we'll want to put in the final collection expression.
                         matches.Add(new(expressionStatement, UseSpread: false));
@@ -767,7 +885,7 @@ internal static class UseCollectionExpressionHelpers
         }
 
         if (!CanReplaceWithCollectionExpression(
-                semanticModel, expression, skipVerificationForReplacedNode: true, cancellationToken))
+                semanticModel, expression, expressionType, isSingletonInstance, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
         {
             return default;
         }
@@ -915,13 +1033,13 @@ internal static class UseCollectionExpressionHelpers
                 if (arguments.Count == 1 &&
                     compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes) &&
                     originalCreateMethod.Parameters is [
-                    {
-                        Type: INamedTypeSymbol
                         {
-                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                            TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-                        } spanType
-                    }])
+                            Type: INamedTypeSymbol
+                            {
+                                Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
+                                TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                            } spanType
+                        }])
                 {
                     if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
                         spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))

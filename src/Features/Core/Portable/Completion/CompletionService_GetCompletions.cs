@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
@@ -40,8 +41,9 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet? options = null,
             CancellationToken cancellationToken = default)
         {
-            // Publicly available options do not affect this API.
-            var completionOptions = CompletionOptions.Default;
+            // Publicly available options do not affect this API. Force complete results from this public API since
+            // external consumers do not have access to Roslyn's waiters.
+            var completionOptions = CompletionOptions.Default with { ForceExpandedCompletionIndexCreation = true };
             var passThroughOptions = options ?? document.Project.Solution.Options;
 
             return GetCompletionsAsync(document, caretPosition, completionOptions, passThroughOptions, trigger, roles, cancellationToken);
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             var triggeredProviders = GetTriggeredProviders(document, providers, caretPosition, options, trigger, roles, text);
 
-            var additionalAugmentingProviders = await GetAugmentingProviders(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
+            var additionalAugmentingProviders = await GetAugmentingProvidersAsync(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
             triggeredProviders = triggeredProviders.Except(additionalAugmentingProviders).ToImmutableArray();
 
             // PERF: Many CompletionProviders compute identical contexts. This actually shows up on the 2-core typing test.
@@ -138,25 +140,28 @@ namespace Microsoft.CodeAnalysis.Completion
                             return triggeredProviders.IsEmpty ? providers.ToImmutableArray() : triggeredProviders;
                         }
 
-                        return ImmutableArray<CompletionProvider>.Empty;
+                        return [];
 
                     default:
                         return providers.ToImmutableArray();
                 }
             }
 
-            static async Task<ImmutableArray<CompletionProvider>> GetAugmentingProviders(
+            static async Task<ImmutableArray<CompletionProvider>> GetAugmentingProvidersAsync(
                 Document document, ImmutableArray<CompletionProvider> triggeredProviders, int caretPosition, CompletionTrigger trigger, CompletionOptions options, CancellationToken cancellationToken)
             {
+                var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
                 var additionalAugmentingProviders = ArrayBuilder<CompletionProvider>.GetInstance(triggeredProviders.Length);
                 if (trigger.Kind == CompletionTriggerKind.Insertion)
                 {
                     foreach (var provider in triggeredProviders)
                     {
-                        if (!await provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false))
-                        {
+                        var isSyntacticTrigger = await extensionManager.PerformFunctionAsync(
+                            provider,
+                            () => provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken),
+                            defaultValue: false).ConfigureAwait(false);
+                        if (!isSyntacticTrigger)
                             additionalAugmentingProviders.Add(provider);
-                        }
                     }
                 }
 
@@ -177,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
             }
 
-            return await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return await document.GetFullOrPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,
@@ -318,8 +323,16 @@ namespace Microsoft.CodeAnalysis.Completion
             SharedSyntaxContextsWithSpeculativeModel? sharedContext,
             CancellationToken cancellationToken)
         {
+            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+
             var context = new CompletionContext(provider, document, position, sharedContext, defaultSpan, triggerInfo, options, cancellationToken);
-            await provider.ProvideCompletionsAsync(context).ConfigureAwait(false);
+
+            // Wrap with extension manager call.  This will ensure this provider is not disabled.  If not, it will ask
+            // it for completions.  If that throws, then the provider will be moved to the disabled state.
+            await extensionManager.PerformActionAsync(
+                provider,
+                () => provider.ProvideCompletionsAsync(context)).ConfigureAwait(false);
+
             return context;
         }
 
@@ -328,8 +341,8 @@ namespace Microsoft.CodeAnalysis.Completion
             // We might need to handle large amount of items with import completion enabled,
             // so use a dedicated pool to minimize array allocations. Set the size of pool to a small
             // number 5 because we don't expect more than a couple of callers at the same time.
-            private static readonly ObjectPool<Dictionary<string, object>> s_uniqueSourcesPool = new(factory: () => new Dictionary<string, object>(), size: 5);
-            private static readonly ObjectPool<List<CompletionItem>> s_sortListPool = new(factory: () => new List<CompletionItem>(), size: 5);
+            private static readonly ObjectPool<Dictionary<string, object>> s_uniqueSourcesPool = new(factory: () => [], size: 5);
+            private static readonly ObjectPool<List<CompletionItem>> s_sortListPool = new(factory: () => [], size: 5);
 
             private readonly Dictionary<string, object> _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
             private readonly CompletionService _service = service;

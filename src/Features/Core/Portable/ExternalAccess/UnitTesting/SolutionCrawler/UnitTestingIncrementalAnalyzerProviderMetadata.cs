@@ -12,31 +12,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
     internal class UnitTestingIncrementalAnalyzerProviderMetadata : WorkspaceKindMetadata
     {
-#if false // Not used in unit testing crawling
-        public bool HighPriorityForActiveFile { get; }
-#endif
         public string Name { get; }
 
         public UnitTestingIncrementalAnalyzerProviderMetadata(IDictionary<string, object> data)
             : base(data)
         {
-#if false // Not used in unit testing crawling
-            this.HighPriorityForActiveFile = (bool)data.GetValueOrDefault("HighPriorityForActiveFile");
-#endif
             this.Name = (string)data.GetValueOrDefault("Name");
         }
 
         public UnitTestingIncrementalAnalyzerProviderMetadata(
             string name,
-#if false // Not used in unit testing crawling
-            bool highPriorityForActiveFile,
-#endif
             params string[] workspaceKinds)
             : base(workspaceKinds)
         {
-#if false // Not used in unit testing crawling
-            this.HighPriorityForActiveFile = highPriorityForActiveFile;
-#endif
             this.Name = name;
         }
 
@@ -44,9 +32,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         {
             return obj is UnitTestingIncrementalAnalyzerProviderMetadata metadata
                 && base.Equals(obj)
-#if false // Not used in unit testing crawling
-                && HighPriorityForActiveFile == metadata.HighPriorityForActiveFile
-#endif
                 && Name == metadata.Name;
         }
 
@@ -54,9 +39,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         {
             var hashCode = 1997033996;
             hashCode = hashCode * -1521134295 + base.GetHashCode();
-#if false // Not used in unit testing crawling
-            hashCode = hashCode * -1521134295 + HighPriorityForActiveFile.GetHashCode();
-#endif
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
             return hashCode;
         }

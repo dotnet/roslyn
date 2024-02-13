@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 {
     internal readonly struct SolutionReplicationContext : IDisposable
     {
-        private static readonly ObjectPool<ConcurrentSet<IDisposable>> s_pool = new(() => new());
+        private static readonly ObjectPool<ConcurrentSet<IDisposable>> s_pool = new(() => []);
 
         private readonly ConcurrentSet<IDisposable> _resources;
 

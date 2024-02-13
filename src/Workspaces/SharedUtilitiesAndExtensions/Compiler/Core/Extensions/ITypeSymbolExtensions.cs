@@ -41,8 +41,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var allInterfaces = type.AllInterfaces;
             if (type is INamedTypeSymbol namedType && namedType.TypeKind == TypeKind.Interface && !allInterfaces.Contains(namedType))
             {
-                var result = new List<INamedTypeSymbol>(allInterfaces.Length + 1);
-                result.Add(namedType);
+                var result = new List<INamedTypeSymbol>(allInterfaces.Length + 1)
+                {
+                    namedType
+                };
                 result.AddRange(allInterfaces);
                 return result;
             }
@@ -444,10 +446,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (containingType == null)
             {
-                return ImmutableArray<T>.Empty;
+                return [];
             }
 
             return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(within).ToImmutableArray();
+        }
+
+        public static ImmutableArray<T> GetAccessibleMembersInThisAndBaseTypes<T>(this ITypeSymbol? containingType, string memberName, ISymbol within) where T : class, ISymbol
+        {
+            if (containingType == null)
+            {
+                return ImmutableArray<T>.Empty;
+            }
+
+            return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(memberName, within).ToImmutableArray();
         }
 
         public static bool? AreMoreSpecificThan(this IList<ITypeSymbol> t1, IList<ITypeSymbol> t2)
@@ -489,7 +501,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (types == null)
             {
-                return ImmutableArray<T>.Empty;
+                return [];
             }
 
             return types.SelectMany(x => x.GetMembers().OfType<T>().Where(m => m.IsAccessibleWithin(within)));
@@ -499,7 +511,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (types == null)
             {
-                return ImmutableArray<T>.Empty;
+                return [];
             }
 
             return types.SelectMany(x => x.GetMembers(memberName).OfType<T>().Where(m => m.IsAccessibleWithin(within)));
@@ -731,17 +743,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsSpanOrReadOnlySpan([NotNullWhen(true)] this ITypeSymbol? type)
-            => type is INamedTypeSymbol
-            {
-                Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                TypeArguments.Length: 1,
-                ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
-            };
+            => type.IsSpan() || type.IsReadOnlySpan();
 
         public static bool IsSpan([NotNullWhen(true)] this ITypeSymbol? type)
             => type is INamedTypeSymbol
             {
                 Name: nameof(Span<int>),
+                TypeArguments.Length: 1,
+                ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
+            };
+
+        public static bool IsReadOnlySpan([NotNullWhen(true)] this ITypeSymbol? type)
+            => type is INamedTypeSymbol
+            {
+                Name: nameof(ReadOnlySpan<int>),
                 TypeArguments.Length: 1,
                 ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
             };

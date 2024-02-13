@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Semantics
 
         protected readonly Regex UnderTestRegex = new Regex(@"\[\|(?<content>.*?)\|\]");
 
-        protected readonly MetadataReference[] References = new[]
-        {
+        protected readonly MetadataReference[] References =
+        [
             MscorlibRef,
             SystemRef,
             SystemCoreRef,
             MsvbRef
-        };
+        ];
 
         protected void Test(string code, string replacementExpression, bool semanticChanges, string expressionToAnalyze = null, bool isBrokenCode = false)
         {

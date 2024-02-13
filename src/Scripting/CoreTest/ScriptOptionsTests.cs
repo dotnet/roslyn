@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             var options = ScriptOptions.Default;
 
             Assert.Throws<ArgumentNullException>("imports", () => options.AddImports((string[])null));
-            Assert.Throws<ArgumentNullException>("imports[0]", () => options.AddImports(new string[] { null }));
+            Assert.Throws<ArgumentNullException>("imports[0]", () => options.AddImports([null]));
 
             Assert.Throws<ArgumentNullException>("imports", () => options.AddImports((IEnumerable<string>)null));
             Assert.Throws<ArgumentNullException>("imports[0]", () => options.AddImports((IEnumerable<string>)new string[] { null }));
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             var options = ScriptOptions.Default;
 
             Assert.Throws<ArgumentNullException>("imports", () => options.WithImports((string[])null));
-            Assert.Throws<ArgumentNullException>("imports[0]", () => options.WithImports(new string[] { null }));
+            Assert.Throws<ArgumentNullException>("imports[0]", () => options.WithImports([null]));
 
             Assert.Throws<ArgumentNullException>("imports", () => options.WithImports((IEnumerable<string>)null));
             Assert.Throws<ArgumentNullException>("imports[0]", () => options.WithImports((IEnumerable<string>)new string[] { null }));
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         [Fact]
         public void Imports_Are_AppliedTo_CompilationOption()
         {
-            var scriptOptions = ScriptOptions.Default.WithImports(new[] { "System", "System.IO" });
+            var scriptOptions = ScriptOptions.Default.WithImports(["System", "System.IO"]);
             var compilation = CSharpScript.Create(string.Empty, scriptOptions).GetCompilation();
             Assert.Equal(scriptOptions.Imports, compilation.Options.GetImports());
         }

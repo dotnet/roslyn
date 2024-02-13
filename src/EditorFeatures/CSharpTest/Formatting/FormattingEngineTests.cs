@@ -434,7 +434,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                     }
                 }
                 """;
-        using var workspace = TestWorkspace.CreateCSharp(code);
+        using var workspace = EditorTestWorkspace.CreateCSharp(code);
         var subjectDocument = workspace.Documents.Single();
         var spans = subjectDocument.SelectedSpans;
 
@@ -474,8 +474,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideSingleLineRegularComment_1()
     {
@@ -503,8 +502,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideSingleLineRegularComment_2()
     {
@@ -532,8 +530,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineRegularComment_1()
     {
@@ -559,8 +556,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineRegularComment_2()
     {
@@ -588,8 +584,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineRegularComment_3()
     {
@@ -617,8 +612,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideSingleLineDocComment_1()
     {
@@ -646,8 +640,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideSingleLineDocComment_2()
     {
@@ -675,8 +668,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineDocComment_1()
     {
@@ -704,8 +696,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineDocComment_2()
     {
@@ -735,8 +726,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideMultiLineDocComment_3()
     {
@@ -766,8 +756,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideInactiveCode()
     {
@@ -801,8 +790,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideStringLiteral()
     {
@@ -828,8 +816,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideCharLiteral()
     {
@@ -855,8 +842,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/449")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/449")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077103")]
     public void NoFormattingInsideCommentsOfPreprocessorDirectives()
     {
@@ -886,8 +872,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void ColonInSwitchCase()
     {
@@ -921,8 +906,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void ColonInDefaultSwitchCase()
     {
@@ -989,8 +973,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void ColonInLabeledStatement()
     {
@@ -1016,8 +999,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInTargetAttribute()
     {
@@ -1039,8 +1021,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInBaseList()
     {
@@ -1058,8 +1039,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInThisConstructor()
     {
@@ -1091,8 +1071,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInConditionalOperator()
     {
@@ -1118,8 +1097,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInArgument()
     {
@@ -1145,8 +1123,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    [WpfFact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/464")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/464")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
     public void DoNotFormatColonInTypeParameter()
     {
@@ -2936,7 +2913,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
 
     private static void AssertFormatAfterTypeChar(string code, string expected, OptionsCollection? globalOptions = null, ParseOptions? parseOptions = null)
     {
-        using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: parseOptions);
+        using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions: parseOptions);
 
         var subjectDocument = workspace.Documents.Single();
 

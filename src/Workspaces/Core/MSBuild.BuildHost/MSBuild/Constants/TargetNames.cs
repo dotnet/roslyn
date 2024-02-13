@@ -8,5 +8,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         public const string Compile = nameof(Compile);
         public const string CoreCompile = nameof(CoreCompile);
+        public const string DesignTimeMarkupCompilation = nameof(DesignTimeMarkupCompilation);
     }
 }

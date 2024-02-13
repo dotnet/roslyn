@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         private void AnalyzeInterpolation(OperationAnalysisContext context)
         {
             var option = context.GetAnalyzerOptions().PreferSimplifiedInterpolation;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 // No point in analyzing if the option is off.
                 return;
@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 Descriptor,
                 firstUnnecessaryLocation,
-                option.Notification.Severity,
-                additionalLocations: ImmutableArray.Create(interpolation.Syntax.GetLocation()),
+                option.Notification,
+                additionalLocations: [interpolation.Syntax.GetLocation()],
                 additionalUnnecessaryLocations: remainingUnnecessaryLocations));
         }
     }

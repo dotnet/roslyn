@@ -32,6 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return expression;
         }
 
+        public static ExpressionSyntax WalkDownSuppressions(this ExpressionSyntax expression)
+        {
+            while (expression is PostfixUnaryExpressionSyntax(SyntaxKind.SuppressNullableWarningExpression) postfixExpression)
+                expression = postfixExpression.Operand;
+
+            return expression;
+        }
+
         public static bool IsQualifiedCrefName(this ExpressionSyntax expression)
             => expression.IsParentKind(SyntaxKind.NameMemberCref) && expression.Parent.IsParentKind(SyntaxKind.QualifiedCref);
 
@@ -640,39 +648,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 expression.IsLeftSideOfAnyAssignExpression())
             {
                 return true;
-            }
-
-            return false;
-        }
-
-        public static bool CanAccessInstanceAndStaticMembersOffOf(
-            this ExpressionSyntax expression,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            // Check for the Color Color case.
-            //
-            // color color: if you bind "A" and you get a symbol and the type of that symbol is
-            // Q; and if you bind "A" *again* as a type and you get type Q, then both A.static
-            // and A.instance are permitted
-            if (expression is IdentifierNameSyntax)
-            {
-                var instanceSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
-
-                if (instanceSymbol is not INamespaceOrTypeSymbol)
-                {
-                    var instanceType = instanceSymbol.GetSymbolType();
-                    if (instanceType != null)
-                    {
-                        var speculativeSymbolInfo = semanticModel.GetSpeculativeSymbolInfo(expression.SpanStart, expression, SpeculativeBindingOption.BindAsTypeOrNamespace);
-                        if (speculativeSymbolInfo.CandidateReason != CandidateReason.NotATypeOrNamespace)
-                        {
-                            var staticType = speculativeSymbolInfo.GetAnySymbol().GetSymbolType();
-
-                            return SymbolEquivalenceComparer.Instance.Equals(instanceType, staticType);
-                        }
-                    }
-                }
             }
 
             return false;

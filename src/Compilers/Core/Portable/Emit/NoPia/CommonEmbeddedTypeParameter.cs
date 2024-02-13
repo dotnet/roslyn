@@ -46,6 +46,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 this.UnderlyingTypeParameter = underlyingTypeParameter;
             }
 
+            public bool IsEncDeleted
+                => false;
+
             protected abstract IEnumerable<Cci.TypeReferenceWithAttributes> GetConstraints(EmitContext context);
             protected abstract bool MustBeReferenceType { get; }
             protected abstract bool MustBeValueType { get; }

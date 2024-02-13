@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -532,8 +533,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract void CheckBase(BindingDiagnosticBag diagnostics);
         protected abstract void CheckInterfaces(BindingDiagnosticBag diagnostics);
 
-        internal override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
+            if (filter?.Invoke(this) == false)
+            {
+                return;
+            }
+
             while (true)
             {
                 // NOTE: cases that depend on GetMembers[ByName] should call RequireCompletionPartMembers.
@@ -583,7 +589,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // force type parameters
                         foreach (var typeParameter in this.TypeParameters)
                         {
-                            typeParameter.ForceComplete(locationOpt, cancellationToken);
+                            // We can't filter out type parameters: if this container was requested, then all its type parameters need to be compiled
+                            typeParameter.ForceComplete(locationOpt, filter: null, cancellationToken);
                         }
 
                         state.NotePartComplete(CompletionPart.TypeParameters);
@@ -624,19 +631,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             bool allCompleted = true;
 
-                            if (locationOpt == null)
+                            if (locationOpt == null && filter == null)
                             {
                                 foreach (var member in members)
                                 {
                                     cancellationToken.ThrowIfCancellationRequested();
-                                    member.ForceComplete(locationOpt, cancellationToken);
+                                    member.ForceComplete(locationOpt, filter: null, cancellationToken);
                                 }
                             }
                             else
                             {
                                 foreach (var member in members)
                                 {
-                                    ForceCompleteMemberByLocation(locationOpt, member, cancellationToken);
+                                    ForceCompleteMemberConditionally(locationOpt, filter, member, cancellationToken);
                                     allCompleted = allCompleted && member.HasComplete(CompletionPart.All);
                                 }
                             }
@@ -861,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return FileIdentifier.Create(syntaxTree);
+                return FileIdentifier.Create(syntaxTree, DeclaringCompilation?.Options?.SourceReferenceResolver);
             }
         }
 
@@ -1398,6 +1405,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _flags.SetHasDeclaredRequiredMembers(hasDeclaredMembers);
                 return hasDeclaredMembers;
             }
+        }
+
+        internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            return HasAsyncMethodBuilderAttribute(this, out builderArgument);
+        }
+
+        /// <summary>
+        /// Returns true if the method has a [AsyncMethodBuilder(typeof(B))] attribute. If so it returns type B.
+        /// Validation of builder type B is left for elsewhere. This method returns B without validation of any kind.
+        /// </summary>
+        internal static bool HasAsyncMethodBuilderAttribute(Symbol symbol, [NotNullWhen(true)] out TypeSymbol? builderArgument)
+        {
+            Debug.Assert(symbol is not null);
+
+            // Find the AsyncMethodBuilder attribute.
+            foreach (var attr in symbol.GetAttributes())
+            {
+                Debug.Assert(attr is SourceAttributeData);
+
+                if (attr.IsTargetAttribute(AttributeDescription.AsyncMethodBuilderAttribute)
+                    && attr.CommonConstructorArguments.Length == 1
+                    && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
+                {
+                    builderArgument = (TypeSymbol)attr.CommonConstructorArguments[0].ValueInternal!;
+                    return true;
+                }
+            }
+
+            builderArgument = null;
+            return false;
         }
 
         internal override ImmutableArray<Symbol> GetMembersUnordered()

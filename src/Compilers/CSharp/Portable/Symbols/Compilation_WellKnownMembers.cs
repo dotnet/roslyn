@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 namedStringArguments = builder.ToImmutableAndFree();
             }
 
-            return new SynthesizedAttributeData(ctorSymbol, arguments, namedStringArguments);
+            return SynthesizedAttributeData.Create(this, ctorSymbol, arguments, namedStringArguments);
         }
 
         internal SynthesizedAttributeData? TrySynthesizeAttribute(
@@ -443,7 +443,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            return new SynthesizedAttributeData(
+            return SynthesizedAttributeData.Create(
+                this,
                 ctorSymbol,
                 arguments: ImmutableArray<TypedConstant>.Empty,
                 namedArguments: ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);

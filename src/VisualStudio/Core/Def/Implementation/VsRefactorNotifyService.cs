@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            rqnames = new string[1] { rqname };
+            rqnames = [rqname];
             return true;
         }
 
@@ -198,7 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 if (!hierarchyToItemIDsMap.TryGetValue(hierarchy, out var itemIDsForCurrentHierarchy))
                 {
-                    itemIDsForCurrentHierarchy = new List<uint>();
+                    itemIDsForCurrentHierarchy = [];
                     hierarchyToItemIDsMap.Add(hierarchy, itemIDsForCurrentHierarchy);
                 }
 

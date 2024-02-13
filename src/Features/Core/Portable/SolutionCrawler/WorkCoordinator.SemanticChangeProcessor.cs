@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly ProjectProcessor _processor;
 
                 private readonly NonReentrantLock _workGate = new();
-                private readonly Dictionary<DocumentId, Data> _pendingWork = new();
+                private readonly Dictionary<DocumentId, Data> _pendingWork = [];
 
                 public SemanticChangeProcessor(
                     IAsynchronousOperationListener listener,
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private readonly IncrementalAnalyzerProcessor _processor;
 
                     private readonly NonReentrantLock _workGate = new();
-                    private readonly Dictionary<ProjectId, Data> _pendingWork = new();
+                    private readonly Dictionary<ProjectId, Data> _pendingWork = [];
 
                     public ProjectProcessor(
                         IAsynchronousOperationListener listener,

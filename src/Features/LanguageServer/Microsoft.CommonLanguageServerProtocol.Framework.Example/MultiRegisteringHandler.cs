@@ -4,7 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
 
@@ -15,20 +15,20 @@ public class MultiRegisteringHandler :
 {
     public bool MutatesSolutionState => throw new System.NotImplementedException();
 
-    [LanguageServerEndpoint(Methods.TextDocumentDidCloseName)]
-    public Task HandleNotificationAsync(DidCloseTextDocumentParams request, ExampleRequestContext requestContext, CancellationToken cancellationToken)
+    [LanguageServerEndpoint(Methods.TextDocumentDidCloseName, LanguageServerConstants.DefaultLanguageName)]
+    Task INotificationHandler<DidCloseTextDocumentParams, ExampleRequestContext>.HandleNotificationAsync(DidCloseTextDocumentParams request, ExampleRequestContext requestContext, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }
 
-    [LanguageServerEndpoint(Methods.TextDocumentDidOpenName)]
-    public Task<SemanticTokensDeltaPartialResult> HandleRequestAsync(DidOpenTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
+    [LanguageServerEndpoint(Methods.TextDocumentDidOpenName, LanguageServerConstants.DefaultLanguageName)]
+    Task<SemanticTokensDeltaPartialResult> IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>.HandleRequestAsync(DidOpenTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }
 
-    [LanguageServerEndpoint(Methods.TextDocumentDidChangeName)]
-    public Task<SemanticTokensDeltaPartialResult> HandleRequestAsync(DidChangeTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
+    [LanguageServerEndpoint(Methods.TextDocumentDidChangeName, LanguageServerConstants.DefaultLanguageName)]
+    Task<SemanticTokensDeltaPartialResult> IRequestHandler<DidChangeTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>.HandleRequestAsync(DidChangeTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }

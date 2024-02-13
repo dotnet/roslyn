@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
             var semanticModel = context.SemanticModel;
 
             var option = context.GetAnalyzerOptions().PreferCoalesceExpression;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             var syntaxFacts = this.SyntaxFacts;
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 ifStatement.GetFirstToken().GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 ImmutableArray.Create(
                     expressionToCoalesce.GetLocation(),
                     ifStatement.GetLocation(),

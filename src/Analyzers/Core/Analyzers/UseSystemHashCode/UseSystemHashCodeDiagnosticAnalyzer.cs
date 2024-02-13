@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             Debug.Assert(elementCount >= 2 || statements.Length >= 2);
 
             var option = context.Options.GetIdeOptions().PreferSystemHashCode;
-            if (option?.Value != true)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             var cancellationToken = context.CancellationToken;
@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 diagnosticLocation,
-                option.Notification.Severity,
-                new[] { operationLocation, declarationLocation },
+                option.Notification,
+                [operationLocation, declarationLocation],
                 ImmutableDictionary<string, string?>.Empty));
         }
     }

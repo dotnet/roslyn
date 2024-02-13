@@ -30,7 +30,7 @@ internal sealed class SimpleFileChangeWatcher : IFileChangeWatcher
         /// The directory watchers for the <see cref="_watchedDirectories"/>.
         /// </summary>
         private readonly ImmutableArray<FileSystemWatcher> _directoryFileSystemWatchers;
-        private readonly ConcurrentSet<IndividualWatchedFile> _individualWatchedFiles = new ConcurrentSet<IndividualWatchedFile>();
+        private readonly ConcurrentSet<IndividualWatchedFile> _individualWatchedFiles = [];
 
         public FileChangeContext(ImmutableArray<WatchedDirectory> watchedDirectories)
         {

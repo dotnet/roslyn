@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedThrowSwitchExpressionExceptionMethod : SynthesizedGlobalMethodSymbol
     {
-        internal SynthesizedThrowSwitchExpressionExceptionMethod(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplType, TypeSymbol returnType, TypeSymbol paramType)
-            : base(containingModule, privateImplType, returnType, PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionFunctionName)
+        internal SynthesizedThrowSwitchExpressionExceptionMethod(SynthesizedPrivateImplementationDetailsType privateImplType, TypeSymbol returnType, TypeSymbol paramType)
+            : base(privateImplType, returnType, PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionFunctionName)
         {
             this.SetParameters(ImmutableArray.Create(SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(paramType), 0, RefKind.None, "unmatchedValue")));
         }

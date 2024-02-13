@@ -31,10 +31,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             var hr = tempPEService.CompileTempPE(
                 pszOutputFileName: Path.Combine(directory.Path, "Output.dll"),
                 sourceCount: 0,
-                fileNames: Array.Empty<string>(),
-                fileContents: Array.Empty<string>(),
+                fileNames: [],
+                fileContents: [],
                 optionCount: 1,
-                optionNames: new[] { "r" },
+                optionNames: ["r"],
                 optionValues: new[] { Path.Combine(directory.Path, "MissingReference.dll") });
 
             Assert.Equal(VSConstants.S_FALSE, hr);

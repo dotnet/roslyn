@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         internal override string Language => LanguageNames.CSharp;
 
-        public override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
+        public override ImmutableHashSet<char> TriggerCharacters => ['.'];
 
         public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)
             => text[insertedCharacterPosition] == '.';
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             char? commitKey,
             CancellationToken cancellationToken)
         {
-            var kind = item.Properties[KindName];
+            var kind = item.GetProperty(KindName);
             return kind switch
             {
                 IndexerKindName => GetIndexerChangeAsync(document, item, cancellationToken),
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             SymbolDescriptionOptions displayOptions,
             CancellationToken cancellationToken)
         {
-            var kind = item.Properties[KindName];
+            var kind = item.GetProperty(KindName);
             return kind switch
             {
                 IndexerKindName => await GetIndexerDescriptionAsync(document, item, displayOptions, cancellationToken).ConfigureAwait(false),

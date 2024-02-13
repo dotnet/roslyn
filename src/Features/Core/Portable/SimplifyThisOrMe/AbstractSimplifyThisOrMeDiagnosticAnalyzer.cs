@@ -30,7 +30,12 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         protected AbstractSimplifyThisOrMeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId,
                    EnforceOnBuildValues.RemoveQualification,
-                   ImmutableHashSet.Create<IOption2>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
+                   [
+                       CodeStyleOptions2.QualifyFieldAccess,
+                       CodeStyleOptions2.QualifyPropertyAccess,
+                       CodeStyleOptions2.QualifyMethodAccess,
+                       CodeStyleOptions2.QualifyEventAccess,
+                   ],
                    fadingOption: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Name_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -58,9 +63,9 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
                 return;
 
             var simplifierOptions = context.GetAnalyzerOptions().GetSimplifierOptions(Simplification);
-
             if (!this.Simplifier.ShouldSimplifyThisMemberAccessExpression(
-                    memberAccessExpression, semanticModel, simplifierOptions, out var thisExpression, out var severity, cancellationToken))
+                    memberAccessExpression, semanticModel, simplifierOptions, out var thisExpression, out var notification, cancellationToken)
+                || ShouldSkipAnalysis(context, notification))
             {
                 return;
             }
@@ -73,7 +78,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             builder["OptionLanguage"] = semanticModel.Language;
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor, thisExpression.GetLocation(), severity,
+                Descriptor, thisExpression.GetLocation(), notification,
                 ImmutableArray.Create(memberAccessExpression.GetLocation()),
                 builder.ToImmutable()));
         }

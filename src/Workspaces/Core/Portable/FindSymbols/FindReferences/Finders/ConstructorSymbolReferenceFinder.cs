@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             result.AddRange(symbol.MethodKind == MethodKind.Constructor
                 ? await FindDocumentsWithImplicitObjectCreationExpressionAsync(project, documents, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<Document>.Empty);
+                : []);
 
             return result.ToImmutable();
         }
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(typeName, project.Services.GetRequiredService<ISyntaxFactsService>(), out var simpleName)
                 ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
-                : ImmutableArray<Document>.Empty;
+                : [];
 
             result.AddRange(documentsWithName);
             result.AddRange(documentsWithAttribute);
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var predefinedType = symbol.ContainingType.SpecialType.ToPredefinedType();
             if (predefinedType == PredefinedType.None)
-                return new(ImmutableArray<FinderLocation>.Empty);
+                return new([]);
 
             var tokens = state.Root
                 .DescendantTokens(descendIntoTrivia: true)
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return TryGetNameWithoutAttributeSuffix(name, state.SyntaxFacts, out var simpleName)
                 ? FindReferencesInDocumentUsingIdentifierAsync(symbol, simpleName, state, cancellationToken)
-                : new(ImmutableArray<FinderLocation>.Empty);
+                : new([]);
         }
 
         private Task<ImmutableArray<FinderLocation>> FindReferencesInImplicitObjectCreationExpressionAsync(

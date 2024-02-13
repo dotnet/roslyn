@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         {
             var clientManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
-            var lspLogger = lspServices.GetRequiredService<ILspServiceLogger>();
+            var lspLogger = lspServices.GetRequiredService<AbstractLspLogger>();
             return new DidChangeConfigurationNotificationHandler(lspLogger, _globalOptionService, clientManager);
         }
     }

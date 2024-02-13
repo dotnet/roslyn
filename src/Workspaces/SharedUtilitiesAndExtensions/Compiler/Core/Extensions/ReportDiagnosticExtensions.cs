@@ -83,27 +83,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static NotificationOption2 ToNotificationOption(this ReportDiagnostic reportDiagnostic, DiagnosticSeverity defaultSeverity)
         {
-            switch (reportDiagnostic.WithDefaultSeverity(defaultSeverity))
+            var isNonDefault = reportDiagnostic != ReportDiagnostic.Default;
+            var notificationOption = reportDiagnostic.WithDefaultSeverity(defaultSeverity) switch
             {
-                case ReportDiagnostic.Error:
-                    return NotificationOption2.Error;
+                ReportDiagnostic.Error => NotificationOption2.Error,
+                ReportDiagnostic.Warn => NotificationOption2.Warning,
+                ReportDiagnostic.Info => NotificationOption2.Suggestion,
+                ReportDiagnostic.Hidden => NotificationOption2.Silent,
+                ReportDiagnostic.Suppress => NotificationOption2.None,
+                _ => throw ExceptionUtilities.UnexpectedValue(reportDiagnostic),
+            };
 
-                case ReportDiagnostic.Warn:
-                    return NotificationOption2.Warning;
-
-                case ReportDiagnostic.Info:
-                    return NotificationOption2.Suggestion;
-
-                case ReportDiagnostic.Hidden:
-                    return NotificationOption2.Silent;
-
-                case ReportDiagnostic.Suppress:
-                    return NotificationOption2.None;
-
-                case ReportDiagnostic.Default:
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(reportDiagnostic);
-            }
+            return notificationOption.WithIsExplicitlySpecified(isNonDefault);
         }
     }
 }

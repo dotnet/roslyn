@@ -5,16 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <inheritdoc/>
-internal class HandlerProvider : IHandlerProvider
+internal class HandlerProvider : AbstractHandlerProvider, IHandlerProvider
 {
     private readonly ILspServices _lspServices;
     private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>? _requestHandlers;
@@ -24,19 +22,17 @@ internal class HandlerProvider : IHandlerProvider
         _lspServices = lspServices;
     }
 
-    /// <summary>
-    /// Get the MethodHandler for a particular request.
-    /// </summary>
-    /// <param name="method">The method name being made.</param>
-    /// <param name="requestType">The requestType for this method.</param>
-    /// <param name="responseType">The responseType for this method.</param>
-    /// <returns>The handler for this request.</returns>
     public IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType)
+        => GetMethodHandler(method, requestType, responseType, LanguageServerConstants.DefaultLanguageName);
+
+    public override IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType, string language)
     {
-        var requestHandlerMetadata = new RequestHandlerMetadata(method, requestType, responseType);
+        var requestHandlerMetadata = new RequestHandlerMetadata(method, requestType, responseType, language);
+        var defaultHandlerMetadata = new RequestHandlerMetadata(method, requestType, responseType, LanguageServerConstants.DefaultLanguageName);
 
         var requestHandlers = GetRequestHandlers();
-        if (!requestHandlers.TryGetValue(requestHandlerMetadata, out var lazyHandler))
+        if (!requestHandlers.TryGetValue(requestHandlerMetadata, out var lazyHandler) &&
+            !requestHandlers.TryGetValue(defaultHandlerMetadata, out lazyHandler))
         {
             throw new InvalidOperationException($"Missing handler for {requestHandlerMetadata.MethodName}");
         }
@@ -44,7 +40,7 @@ internal class HandlerProvider : IHandlerProvider
         return lazyHandler.Value;
     }
 
-    public ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()
+    public override ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()
     {
         var requestHandlers = GetRequestHandlers();
         return requestHandlers.Keys.ToImmutableArray();
@@ -57,7 +53,7 @@ internal class HandlerProvider : IHandlerProvider
     {
         var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IMethodHandler>>();
 
-        var methodHash = new HashSet<string>();
+        var methodHash = new HashSet<(string methodName, string language)>();
 
         if (lspServices.SupportsGetRegisteredServices())
         {
@@ -68,14 +64,15 @@ internal class HandlerProvider : IHandlerProvider
                 var requestResponseTypes = ConvertHandlerTypeToRequestResponseTypes(handlerType);
                 foreach (var requestResponseType in requestResponseTypes)
                 {
-                    var method = GetRequestHandlerMethod(handlerType, requestResponseType.RequestType, requestResponseType.RequestContext, requestResponseType.ResponseType);
+                    var (method, languages) = GetRequestHandlerMethod(handlerType, requestResponseType.RequestType, requestResponseType.RequestContext, requestResponseType.ResponseType);
 
-                    // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
-                    // and then lookup the correct handler for the specified method.
+                    foreach (var language in languages)
+                    {
+                        CheckForDuplicates(method, language, methodHash);
 
-                    CheckForDuplicates(method, methodHash);
-
-                    requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestResponseType.RequestType, requestResponseType.ResponseType), new Lazy<IMethodHandler>(() =>
+                        // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
+                        // and then lookup the correct handler for the specified method.
+                        requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestResponseType.RequestType, requestResponseType.ResponseType, language), new Lazy<IMethodHandler>(() =>
                         {
                             var lspService = lspServices.TryGetService(handlerType);
                             if (lspService is null)
@@ -85,6 +82,7 @@ internal class HandlerProvider : IHandlerProvider
 
                             return (IMethodHandler)lspService;
                         }));
+                    }
                 }
             }
         }
@@ -97,10 +95,14 @@ internal class HandlerProvider : IHandlerProvider
             var requestResponseTypes = ConvertHandlerTypeToRequestResponseTypes(handlerType);
             foreach (var requestResponseType in requestResponseTypes)
             {
-                var method = GetRequestHandlerMethod(handlerType, requestResponseType.RequestType, requestResponseType.RequestContext, requestResponseType.ResponseType);
-                CheckForDuplicates(method, methodHash);
+                var (method, languages) = GetRequestHandlerMethod(handlerType, requestResponseType.RequestType, requestResponseType.RequestContext, requestResponseType.ResponseType);
 
-                requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestResponseType.RequestType, requestResponseType.ResponseType), new Lazy<IMethodHandler>(() => handler));
+                foreach (var language in languages)
+                {
+                    CheckForDuplicates(method, language, methodHash);
+
+                    requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestResponseType.RequestType, requestResponseType.ResponseType, language), new Lazy<IMethodHandler>(() => handler));
+                }
             }
         }
 
@@ -108,15 +110,15 @@ internal class HandlerProvider : IHandlerProvider
 
         return requestHandlerDictionary.ToImmutable();
 
-        static void CheckForDuplicates(string methodName, HashSet<string> existingMethods)
+        static void CheckForDuplicates(string methodName, string language, HashSet<(string methodName, string language)> existingMethods)
         {
-            if (!existingMethods.Add(methodName))
+            if (!existingMethods.Add((methodName, language)))
             {
                 throw new InvalidOperationException($"Method {methodName} was implemented more than once.");
             }
         }
 
-        static string GetRequestHandlerMethod(Type handlerType, Type? requestType, Type contextType, Type? responseType)
+        static (string name, IEnumerable<string> languages) GetRequestHandlerMethod(Type handlerType, Type? requestType, Type contextType, Type? responseType)
         {
             // Get the LSP method name from the handler's method name attribute.
             var methodAttribute = GetMethodAttributeFromClassOrInterface(handlerType);
@@ -130,24 +132,54 @@ internal class HandlerProvider : IHandlerProvider
                 }
             }
 
-            return methodAttribute.Method;
+            return (methodAttribute.Method, methodAttribute.Languages);
 
             static LanguageServerEndpointAttribute? GetMethodAttributeFromHandlerMethod(Type handlerType, Type? requestType, Type contextType, Type? responseType)
             {
-                var methodInfo = (requestType != null, responseType != null) switch
-                {
-                    (true, true) => handlerType.GetMethod(nameof(IRequestHandler<object, object, object>.HandleRequestAsync), new Type[] { requestType!, contextType, typeof(CancellationToken) }),
-                    (false, true) => handlerType.GetMethod(nameof(IRequestHandler<object, object>.HandleRequestAsync), new Type[] { contextType, typeof(CancellationToken) }),
-                    (true, false) => handlerType.GetMethod(nameof(INotificationHandler<object, object>.HandleNotificationAsync), new Type[] { requestType!, contextType, typeof(CancellationToken) }),
-                    (false, false) => handlerType.GetMethod(nameof(INotificationHandler<object>.HandleNotificationAsync), new Type[] { contextType, typeof(CancellationToken) })
-                };
+                const string handleRequestName = nameof(IRequestHandler<object, object, object>.HandleRequestAsync);
+                const string handleNotificationName = nameof(INotificationHandler<object, object>.HandleNotificationAsync);
 
-                if (methodInfo is null)
+                foreach (var methodInfo in handlerType.GetRuntimeMethods())
                 {
-                    throw new InvalidOperationException("Somehow we are missing the method for our registered handler");
+                    if (MethodInfoMatches(methodInfo))
+                        return methodInfo.GetCustomAttribute<LanguageServerEndpointAttribute>();
                 }
 
-                return methodInfo.GetCustomAttribute<LanguageServerEndpointAttribute>();
+                throw new InvalidOperationException("Somehow we are missing the method for our registered handler");
+
+                bool MethodInfoMatches(MethodInfo methodInfo)
+                {
+                    switch (requestType != null, responseType != null)
+                    {
+                        case (true, true):
+                            return (methodInfo.Name == handleRequestName || methodInfo.Name.EndsWith("." + handleRequestName)) &&
+                                TypesMatch(methodInfo, [requestType!, contextType, typeof(CancellationToken)]);
+                        case (false, true):
+                            return (methodInfo.Name == handleRequestName || methodInfo.Name.EndsWith("." + handleRequestName)) &&
+                                TypesMatch(methodInfo, [contextType, typeof(CancellationToken)]);
+                        case (true, false):
+                            return (methodInfo.Name == handleNotificationName || methodInfo.Name.EndsWith("." + handleNotificationName)) &&
+                                TypesMatch(methodInfo, [requestType!, contextType, typeof(CancellationToken)]);
+                        case (false, false):
+                            return (methodInfo.Name == handleNotificationName || methodInfo.Name.EndsWith("." + handleNotificationName)) &&
+                                TypesMatch(methodInfo, [contextType, typeof(CancellationToken)]);
+                    }
+                }
+
+                bool TypesMatch(MethodInfo methodInfo, Type[] types)
+                {
+                    var parameters = methodInfo.GetParameters();
+                    if (parameters.Length != types.Length)
+                        return false;
+
+                    for (int i = 0, n = parameters.Length; i < n; i++)
+                    {
+                        if (!Equals(types[i], parameters[i].ParameterType))
+                            return false;
+                    }
+
+                    return true;
+                }
             }
 
             static LanguageServerEndpointAttribute? GetMethodAttributeFromClassOrInterface(Type type)

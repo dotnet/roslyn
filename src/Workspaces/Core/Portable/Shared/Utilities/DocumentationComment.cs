@@ -78,15 +78,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Used for <see cref="CommentBuilder.TrimEachLine"/> method, to prevent new allocation of string
         /// </summary>
-        private static readonly string[] s_NewLineAsStringArray = new string[] { "\n" };
+        private static readonly string[] s_NewLineAsStringArray = ["\n"];
 
         private DocumentationComment(string fullXmlFragment)
         {
             FullXmlFragment = fullXmlFragment;
 
-            ParameterNames = ImmutableArray<string>.Empty;
-            TypeParameterNames = ImmutableArray<string>.Empty;
-            ExceptionTypes = ImmutableArray<string>.Empty;
+            ParameterNames = [];
+            TypeParameterNames = [];
+            ExceptionTypes = [];
         }
 
         /// <summary>
@@ -158,9 +158,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     }
                 }
 
-                _comment.ParameterNames = _parameterNamesBuilder == null ? ImmutableArray<string>.Empty : _parameterNamesBuilder.ToImmutable();
-                _comment.TypeParameterNames = _typeParameterNamesBuilder == null ? ImmutableArray<string>.Empty : _typeParameterNamesBuilder.ToImmutable();
-                _comment.ExceptionTypes = _exceptionTypesBuilder == null ? ImmutableArray<string>.Empty : _exceptionTypesBuilder.ToImmutable();
+                _comment.ParameterNames = _parameterNamesBuilder == null ? [] : _parameterNamesBuilder.ToImmutable();
+                _comment.TypeParameterNames = _typeParameterNamesBuilder == null ? [] : _typeParameterNamesBuilder.ToImmutable();
+                _comment.ExceptionTypes = _exceptionTypesBuilder == null ? [] : _exceptionTypesBuilder.ToImmutable();
 
                 return _comment;
             }
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                             if (_exceptionTextBuilders == null || !_exceptionTextBuilders.ContainsKey(type))
                             {
                                 (_exceptionTypesBuilder ??= ImmutableArray.CreateBuilder<string>()).Add(type);
-                                (_exceptionTextBuilders ??= new Dictionary<string, ImmutableArray<string>.Builder>()).Add(type, ImmutableArray.CreateBuilder<string>());
+                                (_exceptionTextBuilders ??= []).Add(type, ImmutableArray.CreateBuilder<string>());
                             }
 
                             _exceptionTextBuilders[type].Add(exceptionText);
@@ -315,9 +315,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        private readonly Dictionary<string, string> _parameterTexts = new();
-        private readonly Dictionary<string, string> _typeParameterTexts = new();
-        private readonly Dictionary<string, ImmutableArray<string>> _exceptionTexts = new();
+        private readonly Dictionary<string, string> _parameterTexts = [];
+        private readonly Dictionary<string, string> _typeParameterTexts = [];
+        private readonly Dictionary<string, ImmutableArray<string>> _exceptionTexts = [];
 
         /// <summary>
         /// Returns the text for a given parameter, or null if no documentation was given for the parameter.
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 // If the exception wasn't found, TryGetValue will set "texts" to a default value.
                 // To be friendly, we want to return an empty array rather than a null array.
-                texts = ImmutableArray.Create<string>();
+                texts = [];
             }
 
             return texts;

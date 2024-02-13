@@ -11,12 +11,13 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
@@ -74,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 vsServerCapabilities.SupportsDiagnosticRequests = true;
                 vsServerCapabilities.SpellCheckingProvider = true;
                 vsServerCapabilities.Experimental ??= new Dictionary<string, bool>();
+                vsServerCapabilities.MapCodeProvider = true;
                 var experimental = (Dictionary<string, bool>)vsServerCapabilities.Experimental;
                 experimental[SimplifyMethodHandler.SimplifyMethodMethodName] = true;
                 experimental[FormatNewFileHandler.FormatNewFileMethodName] = true;

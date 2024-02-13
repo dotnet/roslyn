@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     [DataContract]
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public sealed class DocumentId : IEquatable<DocumentId>, IObjectWritable
+    public sealed class DocumentId : IEquatable<DocumentId>
     {
         [DataMember(Order = 0)]
         public ProjectId ProjectId { get; }
@@ -87,11 +87,9 @@ namespace Microsoft.CodeAnalysis
         public static bool operator !=(DocumentId? left, DocumentId? right)
             => !(left == right);
 
-        bool IObjectWritable.ShouldReuseInSerialization => true;
-
-        void IObjectWritable.WriteTo(ObjectWriter writer)
+        internal void WriteTo(ObjectWriter writer)
         {
-            ProjectId.WriteTo(writer);
+            this.ProjectId.WriteTo(writer);
             writer.WriteGuid(Id);
             writer.WriteBoolean(IsSourceGenerated);
             writer.WriteString(DebugName);

@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -28,25 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 this.contextualKind = contextualKind;
                 this.valueText = valueText;
-            }
-
-            internal SyntaxIdentifierExtended(ObjectReader reader)
-                : base(reader)
-            {
-                this.contextualKind = (SyntaxKind)reader.ReadInt16();
-                this.valueText = reader.ReadString();
-            }
-
-            static SyntaxIdentifierExtended()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(SyntaxIdentifierExtended), r => new SyntaxIdentifierExtended(r));
-            }
-
-            internal override void WriteTo(ObjectWriter writer)
-            {
-                base.WriteTo(writer);
-                writer.WriteInt16((short)this.contextualKind);
-                writer.WriteString(this.valueText);
             }
 
             public override SyntaxKind ContextualKind

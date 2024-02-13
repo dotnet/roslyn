@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// </summary>
         private static readonly LinkedList<string> s_logs = new();
 
-        private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel = new();
+        private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel = [];
 
         // Interfaces that abstract out the external functionality we need.  Used so we can easily
         // mock behavior during tests.
@@ -234,6 +234,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             private async Task<(bool succeeded, TimeSpan delay)> DownloadFullDatabaseWorkerAsync(FileInfo databaseFileInfo, CancellationToken cancellationToken)
             {
+                // Will hit https://az700632.vo.msecnd.net/pub/RoslynNuGetSearch/Elfie_V1/Latest.xml. Providing this
+                // link in the source to make it easy for maintainers to hit the endpoint to see if it succeeds and that
+                // the data and http headers are what are expected.
                 var serverPath = Invariant($"Elfie_V{AddReferenceDatabaseTextFileFormatVersion}/Latest.xml");
 
                 LogInfo($"Downloading and processing full database: {serverPath}");
@@ -370,6 +373,10 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
 
                 // Now attempt to download and apply patch file.
+                //
+                // Will hit https://az700632.vo.msecnd.net/pub/RoslynNuGetSearch/Elfie_V1/{db_version}_Patch.xml.
+                // Providing this link in the source to make it easy for maintainers to hit the endpoint to see if it
+                // succeeds and that the data and http headers are what are expected.
                 var serverPath = Invariant($"Elfie_V{AddReferenceDatabaseTextFileFormatVersion}/{database.DatabaseVersion}_Patch.xml");
 
                 LogInfo("Downloading and processing patch file: " + serverPath);

@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private class Node<TExtension, TMetadata>(Lazy<TExtension, TMetadata> extension)
         {
             public readonly Lazy<TExtension, TMetadata> Extension = extension;
-            public readonly HashSet<Node<TExtension, TMetadata>> ExtensionsBeforeMeSet = new();
+            public readonly HashSet<Node<TExtension, TMetadata>> ExtensionsBeforeMeSet = [];
 
             public void CheckForCycles()
-                => this.CheckForCycles(new HashSet<Node<TExtension, TMetadata>>());
+                => this.CheckForCycles([]);
 
             private void CheckForCycles(
                 HashSet<Node<TExtension, TMetadata>> seenNodes)

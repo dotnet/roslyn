@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void DisplayAndId_BadPath()
         {
-            var loader = new TestAnalyzerAssemblyLoader(loadFromPath: _ => throw new Exception());
+            var loader = new ThrowingLoader();
             var refBadPath = new AnalyzerFileReference(PathUtilities.CombinePathsUnchecked(TempRoot.Root, "\0<>|*.xyz"), loader);
             Assert.Equal("\0<>|*", refBadPath.Display);
             Assert.Equal("\0<>|*", refBadPath.Id);
@@ -67,8 +67,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var path2 = Path.Combine(TempRoot.Root, "dir", "..", "dir");
 
             // Equals/GetHashCode should not load the analyzer
-            var loader1 = new TestAnalyzerAssemblyLoader(loadFromPath: _ => throw new InvalidOperationException());
-            var loader2 = new TestAnalyzerAssemblyLoader(loadFromPath: _ => throw new InvalidOperationException());
+            var loader1 = new ThrowingLoader();
+            var loader2 = new ThrowingLoader();
 
             var refA = new AnalyzerFileReference(path1, loader1);
             var refB = new AnalyzerFileReference(path1, loader1);
@@ -742,5 +742,12 @@ public class Generator : ISourceGenerator
         public void Initialize(IncrementalGeneratorInitializationContext context) => throw new NotImplementedException();
 
         public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
+    }
+
+    file sealed class ThrowingLoader : IAnalyzerAssemblyLoaderInternal
+    {
+        public void AddDependencyLocation(string fullPath) { }
+        public bool IsHostAssembly(Assembly assembly) => false;
+        public Assembly LoadFromPath(string fullPath) => throw new Exception();
     }
 }

@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             Location sourceLocation,
             bool expectNullResult)
         {
-            using var workspace = (TestWorkspace)project.Solution.Workspace;
+            using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
 
             var service = workspace.GetService<IMetadataAsSourceFileService>();
             try
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 ? $"PreprocessorSymbols=\"{string.Join(";", preprocessorSymbols)}\""
                 : "";
 
-            var workspace = TestWorkspace.Create(@$"
+            var workspace = EditorTestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"" {preprocessorSymbolsAttribute}>
     </Project>
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
         protected static void CompileTestSource(string dllFilePath, string sourceCodePath, string? pdbFilePath, string assemblyName, SourceText source, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb, Encoding? fallbackEncoding = null)
         {
-            CompileTestSource(dllFilePath, new[] { sourceCodePath }, pdbFilePath, assemblyName, new[] { source }, project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb, fallbackEncoding);
+            CompileTestSource(dllFilePath, [sourceCodePath], pdbFilePath, assemblyName, [source], project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb, fallbackEncoding);
         }
 
         protected static void CompileTestSource(string dllFilePath, string[] sourceCodePaths, string? pdbFilePath, string assemblyName, SourceText[] sources, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb, Encoding? fallbackEncoding = null)

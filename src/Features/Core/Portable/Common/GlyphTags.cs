@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
                 Glyph.Snippet => WellKnownTagArrays.Snippet,
                 Glyph.CompletionWarning => WellKnownTagArrays.Warning,
                 Glyph.StatusInformation => WellKnownTagArrays.StatusInformation,
-                _ => ImmutableArray<string>.Empty,
+                _ => [],
             };
     }
 }

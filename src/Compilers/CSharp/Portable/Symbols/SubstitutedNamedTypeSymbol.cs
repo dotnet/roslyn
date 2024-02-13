@@ -442,6 +442,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _underlyingType.HasCollectionBuilderAttribute(out builderType, out methodName);
         }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            return _underlyingType.HasAsyncMethodBuilderAttribute(out builderArgument);
+        }
 #nullable disable
 
         internal override IEnumerable<MethodSymbol> GetMethodsToEmit()

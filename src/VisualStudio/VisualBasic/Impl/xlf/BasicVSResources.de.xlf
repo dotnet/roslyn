@@ -62,8 +62,8 @@
         <target state="translated">Vereinfachte Objekterstellung bevorzugen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_Imports">
-        <source>Remove unnecessary Imports</source>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
         <target state="translated">Unnötige Import-Direktiven entfernen</target>
         <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>

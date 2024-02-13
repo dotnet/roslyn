@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             for (var i = containers.Length - 1; i >= 0; i--)
             {
-                currentSymbol = CodeGenerationSymbolFactory.CreateNamespaceSymbol(containers[i], members: new[] { currentSymbol });
+                currentSymbol = CodeGenerationSymbolFactory.CreateNamespaceSymbol(containers[i], members: [currentSymbol]);
             }
 
             return currentSymbol;

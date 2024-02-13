@@ -5,19 +5,19 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal partial class SymbolTreeInfo : IObjectWritable
+internal partial class SymbolTreeInfo
 {
     private const string PrefixSymbolTreeInfo = "<SymbolTreeInfo>";
     private static readonly Checksum SerializationFormatChecksum = Checksum.Create("25");
@@ -106,8 +106,6 @@ internal partial class SymbolTreeInfo : IObjectWritable
         return TryReadSymbolTreeInfo(reader, checksum);
     }
 
-    bool IObjectWritable.ShouldReuseInSerialization => true;
-
     public void WriteTo(ObjectWriter writer)
     {
         writer.WriteInt32(_nodes.Length);
@@ -194,7 +192,7 @@ internal partial class SymbolTreeInfo : IObjectWritable
     }
 
     private static SymbolTreeInfo? TryReadSymbolTreeInfo(
-        ObjectReader reader, Checksum checksum)
+        ObjectReader? reader, Checksum checksum)
     {
         if (reader == null)
             return null;
@@ -206,7 +204,7 @@ internal partial class SymbolTreeInfo : IObjectWritable
 
             for (var i = 0; i < nodeCount; i++)
             {
-                var name = reader.ReadString();
+                var name = reader.ReadRequiredString();
                 var groupCount = reader.ReadInt32();
                 for (var j = 0; j < groupCount; j++)
                 {
@@ -238,17 +236,17 @@ internal partial class SymbolTreeInfo : IObjectWritable
             }
             else
             {
-                receiverTypeNameToExtensionMethodMap = new();
+                receiverTypeNameToExtensionMethodMap = [];
 
                 for (var i = 0; i < keyCount; i++)
                 {
-                    var typeName = reader.ReadString();
+                    var typeName = reader.ReadRequiredString();
                     var valueCount = reader.ReadInt32();
 
                     for (var j = 0; j < valueCount; j++)
                     {
-                        var containerName = reader.ReadString();
-                        var name = reader.ReadString();
+                        var containerName = reader.ReadRequiredString();
+                        var name = reader.ReadRequiredString();
 
                         receiverTypeNameToExtensionMethodMap.Add(typeName, new ExtensionMethodInfo(containerName, name));
                     }

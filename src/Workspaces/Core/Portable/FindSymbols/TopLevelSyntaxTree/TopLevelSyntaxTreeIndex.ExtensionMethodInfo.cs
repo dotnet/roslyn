@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -50,10 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var (name, indices) in ReceiverTypeNameToExtensionMethodMap)
                 {
                     writer.WriteString(name);
-                    writer.WriteInt32(indices.Length);
-
-                    foreach (var declaredSymbolInfoIndex in indices)
-                        writer.WriteInt32(declaredSymbolInfoIndex);
+                    writer.WriteArray(indices, static (w, i) => w.WriteInt32(i));
                 }
             }
 
@@ -65,16 +63,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var count = reader.ReadInt32();
 
                     for (var i = 0; i < count; ++i)
-                    {
-                        var typeName = reader.ReadString();
-                        var arrayLength = reader.ReadInt32();
-                        using var _ = ArrayBuilder<int>.GetInstance(arrayLength, out var builder);
-
-                        for (var j = 0; j < arrayLength; ++j)
-                            builder.Add(reader.ReadInt32());
-
-                        receiverTypeNameToExtensionMethodMapBuilder[typeName] = builder.ToImmutableAndClear();
-                    }
+                        receiverTypeNameToExtensionMethodMapBuilder[reader.ReadRequiredString()] = reader.ReadArray(static r => r.ReadInt32());
 
                     return new ExtensionMethodInfo(receiverTypeNameToExtensionMethodMapBuilder.ToImmutable());
                 }

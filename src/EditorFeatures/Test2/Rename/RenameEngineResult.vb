@@ -131,9 +131,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 ' features that need to call each part independently and operate on the intermediary values.
 
                 Dim locations = Renamer.FindRenameLocationsAsync(
-                    solution, symbol, renameOptions, CodeActionOptions.DefaultProvider, CancellationToken.None).GetAwaiter().GetResult()
+                    solution, symbol, renameOptions, CancellationToken.None).GetAwaiter().GetResult()
 
-                Return locations.ResolveConflictsAsync(symbol, renameTo, nonConflictSymbolKeys:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
+                Return locations.ResolveConflictsAsync(symbol, renameTo, nonConflictSymbolKeys:=Nothing, CodeActionOptions.DefaultProvider, CancellationToken.None).GetAwaiter().GetResult()
             Else
                 ' This tests that rename properly works when the entire call is remoted to OOP and the final result is
                 ' marshaled back.

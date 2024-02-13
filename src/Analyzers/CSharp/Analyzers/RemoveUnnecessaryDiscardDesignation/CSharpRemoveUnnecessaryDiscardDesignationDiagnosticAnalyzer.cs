@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
 
         private void AnalyzeDiscardDesignation(SyntaxNodeAnalysisContext context)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 

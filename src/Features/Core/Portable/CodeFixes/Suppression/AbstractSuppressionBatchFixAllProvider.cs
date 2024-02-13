@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         result.Add((diagnostics.First(), currentAction));
                     }
 
-                    foreach (var nestedAction in currentAction.NestedCodeActions)
+                    foreach (var nestedAction in currentAction.NestedActions)
                     {
                         builder.Push(nestedAction);
                     }
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         private static readonly Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue =
-            _ => new ConcurrentBag<(CodeAction, Document)>();
+            _ => [];
 
         private static async Task GetChangedDocumentsAsync(
             Solution oldSolution,

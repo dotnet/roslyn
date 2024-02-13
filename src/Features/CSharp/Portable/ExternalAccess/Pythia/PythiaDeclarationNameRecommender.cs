@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia
             CancellationToken cancellationToken)
         {
             if (_lazyImplementation is null || nameInfo.PossibleSymbolKinds.IsEmpty)
-                return ImmutableArray<(string, Glyph)>.Empty;
+                return [];
 
             var context = new PythiaDeclarationNameContext(syntaxContext);
             var result = await _lazyImplementation.Value.ProvideRecommendationsAsync(context, cancellationToken).ConfigureAwait(false);

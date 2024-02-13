@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             else if (node.GetEmbeddedStatement() is { } embeddedStatement)
                 return ImmutableArray.Create<SyntaxNode>(embeddedStatement);
             else
-                return ImmutableArray<SyntaxNode>.Empty;
+                return [];
         }
     }
 }

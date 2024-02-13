@@ -29,6 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.ITypeDefinitionMember,
         Cci.IMethodDefinition
     {
+        bool Cci.IDefinition.IsEncDeleted
+            => false;
+
         Cci.IGenericMethodInstanceReference Cci.IMethodReference.AsGenericMethodInstanceReference
         {
             get
@@ -137,14 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return (ushort)AdaptedMethodSymbol.Arity;
-            }
-        }
-
-        bool Cci.IMethodReference.IsGeneric
-        {
-            get
-            {
-                return AdaptedMethodSymbol.IsGenericMethod;
             }
         }
 
@@ -293,15 +288,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ((MethodSymbol)AdaptedMethodSymbol.OriginalDefinition).GetCciAdapter();
             }
         }
-
+#nullable enable
         Cci.ITypeDefinition Cci.ITypeDefinitionMember.ContainingTypeDefinition
         {
             get
             {
                 CheckDefinitionInvariant();
 
-                var synthesizedGlobalMethod = AdaptedMethodSymbol.OriginalDefinition as SynthesizedGlobalMethodSymbol;
-                if ((object)synthesizedGlobalMethod != null)
+                if (AdaptedMethodSymbol.OriginalDefinition is SynthesizedGlobalMethodSymbol synthesizedGlobalMethod)
                 {
                     return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;
                 }
@@ -315,11 +309,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return PEModuleBuilder.MemberVisibility(AdaptedMethodSymbol);
+                return AdaptedMethodSymbol.MetadataVisibility;
             }
         }
 
-        Cci.IMethodBody Cci.IMethodDefinition.GetBody(EmitContext context)
+        bool Cci.IMethodDefinition.HasBody
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return Cci.DefaultImplementations.HasBody(this);
+            }
+        }
+
+        Cci.IMethodBody? Cci.IMethodDefinition.GetBody(EmitContext context)
         {
             CheckDefinitionInvariant();
             return ((PEModuleBuilder)context.Module).GetMethodBody(AdaptedMethodSymbol);
@@ -422,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AdaptedMethodSymbol.GetDllImportData() != null;
             }
         }
-
+#nullable disable
         Cci.IPlatformInvokeInformation Cci.IMethodDefinition.PlatformInvokeData
         {
             get

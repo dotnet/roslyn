@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS8421);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS8421];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
             return WrapFixAsync(
                 context.Document,
-                ImmutableArray.Create(diagnostic),
+                [diagnostic],
                 (document, localFunction, captures) =>
                 {
                     context.RegisterCodeFix(

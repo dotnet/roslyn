@@ -53,7 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             WasConverted = 1 << 8,
 
-            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted,
+            ParamsArray = 1 << 9,
+
+            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted | ParamsArray,
         }
 
         protected new BoundNode MemberwiseClone()
@@ -149,6 +151,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(original is BoundExpression || !original.IsSuppressed);
             this.IsSuppressed = original.IsSuppressed;
+
+            if (original.IsParamsArray)
+            {
+                this.IsParamsArray = true;
+            }
+
 #if DEBUG
             this.WasConverted = original.WasConverted;
 #endif
@@ -318,6 +326,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 #endif
+
+        public bool IsParamsArray
+        {
+            get
+            {
+                return (_attributes & BoundNodeAttributes.ParamsArray) != 0;
+            }
+            protected set
+            {
+                Debug.Assert((_attributes & BoundNodeAttributes.ParamsArray) == 0, "ParamsArray flag should not be set twice or reset");
+                Debug.Assert(value);
+                Debug.Assert(this is BoundArrayCreation { Bounds: [BoundLiteral { WasCompilerGenerated: true }], InitializerOpt: BoundArrayInitialization { WasCompilerGenerated: true }, WasCompilerGenerated: true });
+
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.ParamsArray;
+                }
+            }
+        }
 
         public BoundKind Kind
         {

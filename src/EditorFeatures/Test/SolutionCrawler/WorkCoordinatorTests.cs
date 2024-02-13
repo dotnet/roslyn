@@ -1016,8 +1016,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
 
-            var document = new TestHostDocument();
-            var project = new TestHostProject(workspace, document);
+            var document = new EditorTestHostDocument();
+            var project = new EditorTestHostProject(workspace, document);
             workspace.AddTestProject(project);
 
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -1051,8 +1051,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
 
-            var document = new TestHostDocument();
-            var project = new TestHostProject(workspace, additionalDocuments: new[] { document });
+            var document = new EditorTestHostDocument();
+            var project = new EditorTestHostProject(workspace, additionalDocuments: new[] { document });
             workspace.AddTestProject(project);
 
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -1079,8 +1079,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
 
-            var document = new TestHostDocument();
-            var project = new TestHostProject(workspace, analyzerConfigDocuments: new[] { document });
+            var document = new EditorTestHostDocument();
+            var project = new EditorTestHostProject(workspace, analyzerConfigDocuments: new[] { document });
             workspace.AddTestProject(project);
 
             await WaitWaiterAsync(workspace.ExportProvider);
@@ -1522,11 +1522,11 @@ class C
 
         private static async Task InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
         {
-            using var workspace = TestWorkspace.Create(
+            using var workspace = EditorTestWorkspace.Create(
                 language,
                 compilationOptions: null,
                 parseOptions: null,
-                new[] { code },
+                [code],
                 composition: EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(IIncrementalAnalyzerProvider)).AddParts(typeof(AnalyzerProviderNoWaitNoBlock)),
                 workspaceKind: SolutionCrawlerWorkspaceKind);
 
@@ -1558,14 +1558,14 @@ class C
             Assert.Equal(expectDocumentAnalysis ? 1 : 0, analyzer.DocumentIds.Count);
         }
 
-        private static Task<Analyzer> ExecuteOperationAsync(TestWorkspace workspace, Action<TestWorkspace> operation)
+        private static Task<Analyzer> ExecuteOperationAsync(EditorTestWorkspace workspace, Action<EditorTestWorkspace> operation)
             => ExecuteOperationAsync(workspace, w =>
             {
                 operation(w);
                 return Task.CompletedTask;
             });
 
-        private static async Task<Analyzer> ExecuteOperationAsync(TestWorkspace workspace, Func<TestWorkspace, Task> operation)
+        private static async Task<Analyzer> ExecuteOperationAsync(EditorTestWorkspace workspace, Func<EditorTestWorkspace, Task> operation)
         {
             var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
             Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
@@ -1602,7 +1602,7 @@ class C
             }
         }
 
-        private static async Task WaitAsync(SolutionCrawlerRegistrationService service, TestWorkspace workspace)
+        private static async Task WaitAsync(SolutionCrawlerRegistrationService service, EditorTestWorkspace workspace)
         {
             await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -1688,7 +1688,7 @@ class C
             documentTrackingService.SetActiveDocument(null);
         }
 
-        private class WorkCoordinatorWorkspace : TestWorkspace
+        private class WorkCoordinatorWorkspace : EditorTestWorkspace
         {
             private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures
                 .AddParts(typeof(TestDocumentTrackingService))
@@ -1801,18 +1801,18 @@ class C
             public readonly ManualResetEventSlim BlockEvent;
             public readonly ManualResetEventSlim RunningEvent;
 
-            public readonly HashSet<DocumentId> SyntaxDocumentIds = new HashSet<DocumentId>();
-            public readonly HashSet<DocumentId> DocumentIds = new HashSet<DocumentId>();
-            public readonly HashSet<DocumentId> NonSourceDocumentIds = new HashSet<DocumentId>();
-            public readonly HashSet<ProjectId> ProjectIds = new HashSet<ProjectId>();
+            public readonly HashSet<DocumentId> SyntaxDocumentIds = [];
+            public readonly HashSet<DocumentId> DocumentIds = [];
+            public readonly HashSet<DocumentId> NonSourceDocumentIds = [];
+            public readonly HashSet<ProjectId> ProjectIds = [];
 
-            public readonly HashSet<DocumentId> InvalidateDocumentIds = new HashSet<DocumentId>();
-            public readonly HashSet<ProjectId> InvalidateProjectIds = new HashSet<ProjectId>();
+            public readonly HashSet<DocumentId> InvalidateDocumentIds = [];
+            public readonly HashSet<ProjectId> InvalidateProjectIds = [];
 
-            public readonly HashSet<DocumentId> OpenedDocumentIds = new HashSet<DocumentId>();
-            public readonly HashSet<DocumentId> OpenedNonSourceDocumentIds = new HashSet<DocumentId>();
-            public readonly HashSet<DocumentId> ClosedDocumentIds = new HashSet<DocumentId>();
-            public readonly HashSet<DocumentId> ClosedNonSourceDocumentIds = new HashSet<DocumentId>();
+            public readonly HashSet<DocumentId> OpenedDocumentIds = [];
+            public readonly HashSet<DocumentId> OpenedNonSourceDocumentIds = [];
+            public readonly HashSet<DocumentId> ClosedDocumentIds = [];
+            public readonly HashSet<DocumentId> ClosedNonSourceDocumentIds = [];
 
             private readonly IGlobalOptionService _globalOptions;
 
@@ -1994,7 +1994,7 @@ class C
 
         private class Analyzer2 : IIncrementalAnalyzer
         {
-            public readonly List<DocumentId> DocumentIds = new List<DocumentId>();
+            public readonly List<DocumentId> DocumentIds = [];
 
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
