@@ -49,35 +49,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                        editorOptionsService)
         End Sub
 
-        Public Shared Function GetSnippetExpansionClient(
-                threadingContext As IThreadingContext,
-                textView As ITextView,
-                subjectBuffer As ITextBuffer,
-                signatureHelpControllerProvider As SignatureHelpControllerProvider,
-                editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
-                editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
-                argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-                editorOptionsService As EditorOptionsService) As AbstractSnippetExpansionClient
-
-            Dim expansionClient As AbstractSnippetExpansionClient = Nothing
-
-            If Not textView.Properties.TryGetProperty(GetType(AbstractSnippetExpansionClient), expansionClient) Then
-                expansionClient = New SnippetExpansionClient(
-                    threadingContext,
-                    Guids.VisualBasicDebuggerLanguageId,
-                    textView,
-                    subjectBuffer,
-                    signatureHelpControllerProvider,
-                    editorCommandHandlerServiceFactory,
-                    editorAdaptersFactoryService,
-                    argumentProviders,
-                    editorOptionsService)
-                textView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), expansionClient)
-            End If
-
-            Return expansionClient
-        End Function
-
         Protected Overrides Function InsertEmptyCommentAndGetEndPositionTrackingSpan() As ITrackingSpan
             Dim endSpanInSurfaceBuffer(1) As VsTextSpan
             If ExpansionSession.GetEndSpan(endSpanInSurfaceBuffer) <> VSConstants.S_OK Then

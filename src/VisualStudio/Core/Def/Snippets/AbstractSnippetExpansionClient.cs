@@ -43,6 +43,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using MSXML;
 using Roslyn.Utilities;
 using CommonFormattingHelpers = Microsoft.CodeAnalysis.Editor.Shared.Utilities.CommonFormattingHelpers;
+using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
@@ -154,6 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     return VSConstants.E_INVALIDARG;
             }
         }
+
         protected abstract ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan();
         internal abstract Document AddImports(Document document, AddImportPlacementOptions addImportOptions, SyntaxFormattingOptions formattingOptions, int position, XElement snippetNode, CancellationToken cancellationToken);
         protected abstract string FallbackDefaultLiteral { get; }
@@ -174,6 +176,73 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 && descriptionNode?.text == s_fullMethodCallDescriptionSentinel)
             {
                 return VSConstants.S_OK;
+            }
+
+            var newLineEndingType = EOLTYPE.eolNONE;
+            string? newLineEnding = null;
+            var lineData = new LINEDATAEX[1];
+            if (pBuffer is IVsTextLayer layer
+                && ErrorHandler.Succeeded(layer.GetLineDataEx((int)GLDE_FLAGS.gldeDefault, tsInSurfaceBuffer[0].iEndLine, iStartIndex: 0, iEndIndex: 0, lineData, pMarkerData: null)))
+            {
+BeginningOfLineEndingsLoop:
+                switch (lineData[0].iEolType)
+                {
+                    case EOLTYPE.eolCRLF:
+                        newLineEndingType = EOLTYPE.eolCRLF;
+                        newLineEnding = "\r\n";
+                        break;
+
+                    case EOLTYPE.eolCR:
+                        newLineEndingType = EOLTYPE.eolCR;
+                        newLineEnding = "\r";
+                        break;
+
+                    case EOLTYPE.eolLF:
+                        newLineEndingType = EOLTYPE.eolLF;
+                        newLineEnding = "\n";
+                        break;
+
+                    case EOLTYPE.eolUNI_LINESEP:
+                        newLineEndingType = EOLTYPE.eolUNI_LINESEP;
+                        newLineEnding = "\x2028";
+                        break;
+
+                    case (EOLTYPE)_EOLTYPE2.eolUNI_NEL:
+                        newLineEndingType = (EOLTYPE)_EOLTYPE2.eolUNI_NEL;
+                        newLineEnding = "\x0085";
+                        break;
+
+                    case EOLTYPE.eolEOF:
+                        // See if there is a line above us, if not, just use CRLF
+                        if (tsInSurfaceBuffer[0].iStartLine == 0)
+                        {
+                            newLineEndingType = EOLTYPE.eolCRLF;
+                            newLineEnding = "\r\n";
+                        }
+                        else
+                        {
+                            // If there is a line above us, use that line's lineending.
+                            layer.ReleaseLineDataEx(lineData);
+
+                            if (ErrorHandler.Succeeded(layer.GetLineDataEx((int)GLDE_FLAGS.gldeDefault, tsInSurfaceBuffer[0].iStartLine - 1, iStartIndex: 0, iEndIndex: 0, lineData, pMarkerData: null)))
+                            {
+                                if (lineData[0].iEolType != EOLTYPE.eolEOF)
+                                {
+                                    goto BeginningOfLineEndingsLoop;
+                                }
+                            }
+
+                            // Default, just use CRLF
+                            newLineEndingType = EOLTYPE.eolCRLF;
+                            newLineEnding = "\r\n";
+                        }
+
+                        break;
+                }
+
+                layer.ReleaseLineDataEx(lineData);
+
+                // Now go through the snippet text and replace all line endings with newLineEnding
             }
 
             // Formatting a snippet isn't cancellable.
@@ -220,6 +289,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var endPositionTrackingSpan = isFullSnippetFormat ? InsertEmptyCommentAndGetEndPositionTrackingSpan() : null;
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(SubjectBuffer.CurrentSnapshot, snippetTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot));
+
+            // If the snippet spans more than one line and a specific line ending is expected, normalize the line
+            // endings inside the snippet span before continuing.
+            if (newLineEnding is not null && tsInSurfaceBuffer[0].iEndLine > tsInSurfaceBuffer[0].iStartLine && pBuffer is IVsTextLines lines)
+            {
+                var totalOffset = 0;
+                using var edit = SubjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
+                for (var currentLine = tsInSurfaceBuffer[0].iEndLine - 1; currentLine >= tsInSurfaceBuffer[0].iStartLine; currentLine--)
+                {
+                    if (ErrorHandler.Succeeded(lines.GetLineDataEx((int)GLDE_FLAGS.gldeDefault, currentLine, iStartIndex: 0, iEndIndex: 0, lineData, pMarkerData: null)))
+                    {
+                        var extractedLineData = (lineData[0].iEolType, lineData[0].iLength);
+                        lines.ReleaseLineDataEx(lineData);
+
+                        if (extractedLineData.iEolType != newLineEndingType && ErrorHandler.Succeeded(lines.GetPositionOfLine(currentLine, out var positionOfLine)))
+                        {
+                            var actualLength = extractedLineData.iEolType == EOLTYPE.eolCRLF ? 2 : 1;
+                            edit.Replace(positionOfLine + extractedLineData.iLength, actualLength, newLineEnding);
+                            totalOffset += newLineEnding.Length - actualLength;
+                        }
+                    }
+                }
+
+                edit.Apply();
+                formattingSpan = new TextSpan(formattingSpan.Start, formattingSpan.Length + totalOffset);
+            }
 
             SubjectBuffer.FormatAndApplyToBuffer(formattingSpan, EditorOptionsService, CancellationToken.None);
 
@@ -522,6 +617,50 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             if (expansion.InsertExpansion(textSpan, textSpan, this, LanguageServiceGuid, out _state._expansionSession) == VSConstants.S_OK)
+            {
+                // This expansion is not derived from a symbol, so make sure the state isn't tracking any symbol
+                // information
+                Debug.Assert(!_state.IsFullMethodCallSnippet);
+                return true;
+            }
+
+            return false;
+        }
+
+        public virtual bool TryInsertSpecificExpansion(IXMLDOMNode snippet, int startPositionInSubjectBuffer, int endPositionInSubjectBuffer, CancellationToken cancellationToken)
+        {
+            var textViewModel = TextView.TextViewModel;
+            if (textViewModel == null)
+            {
+                Debug.Assert(TextView.IsClosed);
+                return false;
+            }
+
+            // The expansion itself needs to be created in the data buffer, so map everything up
+            var triggerSpan = SubjectBuffer.CurrentSnapshot.GetSpan(startPositionInSubjectBuffer, endPositionInSubjectBuffer - startPositionInSubjectBuffer);
+            if (!TryGetSpanOnHigherBuffer(triggerSpan, textViewModel.DataBuffer, out var dataBufferSpan))
+            {
+                return false;
+            }
+
+            var buffer = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer);
+            if (buffer is not IVsExpansion expansion)
+            {
+                return false;
+            }
+
+            buffer.GetLineIndexOfPosition(dataBufferSpan.Start.Position, out var startLine, out var startIndex);
+            buffer.GetLineIndexOfPosition(dataBufferSpan.End.Position, out var endLine, out var endIndex);
+
+            var textSpan = new VsTextSpan
+            {
+                iStartLine = startLine,
+                iStartIndex = startIndex,
+                iEndLine = endLine,
+                iEndIndex = endIndex
+            };
+
+            if (expansion.InsertSpecificExpansion(snippet, textSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
             {
                 // This expansion is not derived from a symbol, so make sure the state isn't tracking any symbol
                 // information

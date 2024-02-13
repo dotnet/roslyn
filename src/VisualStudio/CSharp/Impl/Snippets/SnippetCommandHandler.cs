@@ -5,21 +5,15 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -27,7 +21,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 
@@ -45,21 +38,27 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         ICommandHandler<SurroundWithCommandArgs>,
         IChainedCommandHandler<TypeCharCommandArgs>
     {
-        private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _argumentProviders;
+        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+        private readonly Lazy<ISnippetExpansionClientFactory> _expansionClientFactory;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public SnippetCommandHandler(
             IThreadingContext threadingContext,
-            SignatureHelpControllerProvider signatureHelpControllerProvider,
-            IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             SVsServiceProvider serviceProvider,
-            [ImportMany] IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
-            EditorOptionsService editorOptionsService)
-            : base(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, editorOptionsService, serviceProvider)
+            EditorOptionsService editorOptionsService,
+            Lazy<VisualStudioWorkspace> workspace)
+            : base(threadingContext, editorOptionsService, serviceProvider)
         {
-            _argumentProviders = argumentProviders.ToImmutableArray();
+            _editorAdaptersFactoryService = editorAdaptersFactoryService;
+            _expansionClientFactory = new Lazy<ISnippetExpansionClientFactory>(
+                () =>
+                {
+                    return workspace.Value.Services
+                        .GetLanguageServices(LanguageNames.CSharp)
+                        .GetRequiredService<ISnippetExpansionClientFactory>();
+                });
         }
 
         public bool ExecuteCommand(SurroundWithCommandArgs args, CommandExecutionContext context)
@@ -115,26 +114,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             nextCommandHandler();
         }
 
-        protected override AbstractSnippetExpansionClient GetSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer)
-        {
-            if (!textView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient expansionClient))
-            {
-                expansionClient = new SnippetExpansionClient(
-                    ThreadingContext,
-                    Guids.CSharpLanguageServiceId,
-                    textView,
-                    subjectBuffer,
-                    SignatureHelpControllerProvider,
-                    EditorCommandHandlerServiceFactory,
-                    EditorAdaptersFactoryService,
-                    _argumentProviders,
-                    EditorOptionsService);
-
-                textView.Properties.AddProperty(typeof(AbstractSnippetExpansionClient), expansionClient);
-            }
-
-            return expansionClient;
-        }
+        protected override ISnippetExpansionClientFactory GetSnippetExpansionClientFactory()
+            => _expansionClientFactory.Value;
 
         protected override bool TryInvokeInsertionUI(ITextView textView, ITextBuffer subjectBuffer, bool surroundWith = false)
         {
@@ -144,8 +125,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             }
 
             expansionManager.InvokeInsertionUI(
-                EditorAdaptersFactoryService.GetViewAdapter(textView),
-                GetSnippetExpansionClient(textView, subjectBuffer),
+                _editorAdaptersFactoryService.GetViewAdapter(textView),
+                GetSnippetExpansionClientFactory().GetSnippetExpansionClient(textView, subjectBuffer),
                 Guids.CSharpLanguageServiceId,
                 bstrTypes: surroundWith ? ["SurroundsWith"] : ["Expansion", "SurroundsWith"],
                 iCountTypes: surroundWith ? 1 : 2,

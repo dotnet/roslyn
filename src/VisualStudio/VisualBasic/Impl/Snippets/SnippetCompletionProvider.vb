@@ -7,23 +7,18 @@ Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor
-Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
-Imports Microsoft.VisualStudio.Editor
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Editor.Commanding
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     <ExportCompletionProviderMef1("SnippetCompletionProvider", LanguageNames.VisualBasic)>
@@ -31,29 +26,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Inherits LSPCompletionProvider
         Implements ICustomCommitCompletionProvider
 
-        Private ReadOnly _threadingContext As IThreadingContext
-        Private ReadOnly _signatureHelpControllerProvider As SignatureHelpControllerProvider
-        Private ReadOnly _editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory
-        Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
-        Private ReadOnly _argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))
-        Private ReadOnly _editorOptionsService As EditorOptionsService
+        Private ReadOnly _expansionClientFactory As Lazy(Of ISnippetExpansionClientFactory)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(
-            threadingContext As IThreadingContext,
-            signatureHelpControllerProvider As SignatureHelpControllerProvider,
-            editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
-            editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
-            <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-            editorOptionsService As EditorOptionsService)
-
-            _threadingContext = threadingContext
-            _signatureHelpControllerProvider = signatureHelpControllerProvider
-            _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory
-            _editorAdaptersFactoryService = editorAdaptersFactoryService
-            _argumentProviders = argumentProviders.ToImmutableArray()
-            _editorOptionsService = editorOptionsService
+        Public Sub New(workspace As Lazy(Of VisualStudioWorkspace))
+            _expansionClientFactory = New Lazy(Of ISnippetExpansionClientFactory)(
+                Function()
+                    Return workspace.Value.Services _
+                        .GetLanguageServices(LanguageNames.VisualBasic) _
+                        .GetRequiredService(Of ISnippetExpansionClientFactory)()
+                End Function)
         End Sub
 
         Friend Overrides ReadOnly Property Language As String
@@ -123,15 +106,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                           subjectBuffer As ITextBuffer,
                           triggerSnapshot As ITextSnapshot,
                           commitChar As Char?) Implements ICustomCommitCompletionProvider.Commit
-            Dim snippetClient = SnippetExpansionClient.GetSnippetExpansionClient(
-                _threadingContext,
-                textView,
-                subjectBuffer,
-                _signatureHelpControllerProvider,
-                _editorCommandHandlerServiceFactory,
-                _editorAdaptersFactoryService,
-                _argumentProviders,
-                _editorOptionsService)
+            Dim snippetClient = _expansionClientFactory.Value.GetSnippetExpansionClient(textView, subjectBuffer)
 
             Dim trackingSpan = triggerSnapshot.CreateTrackingSpan(completionItem.Span.ToSpan(), SpanTrackingMode.EdgeInclusive)
             Dim currentSpan = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot)

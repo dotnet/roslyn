@@ -8,8 +8,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
-Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
-Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -24,10 +22,8 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Editor.Commanding
 Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Moq
-Imports MSXML
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
@@ -55,20 +51,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             SnippetCommandHandler = If(languageName = LanguageNames.CSharp,
                 DirectCast(New CSharp.Snippets.SnippetCommandHandler(
                     Workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                    Workspace.ExportProvider.GetExportedValue(Of SignatureHelpControllerProvider)(),
-                    Workspace.ExportProvider.GetExportedValue(Of IEditorCommandHandlerServiceFactory)(),
                     Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(),
                     mockSVsServiceProvider.Object,
-                    Workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)(),
-                    editorOptionsService), AbstractSnippetCommandHandler),
+                    editorOptionsService,
+                    Workspace.ExportProvider.GetExport(Of VisualStudioWorkspace)), AbstractSnippetCommandHandler),
                 New VisualBasic.Snippets.SnippetCommandHandler(
                     Workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                    Workspace.ExportProvider.GetExportedValue(Of SignatureHelpControllerProvider)(),
-                    Workspace.ExportProvider.GetExportedValue(Of IEditorCommandHandlerServiceFactory)(),
                     Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(),
                     mockSVsServiceProvider.Object,
-                    Workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)(),
-                    editorOptionsService))
+                    editorOptionsService,
+                    Workspace.ExportProvider.GetExport(Of VisualStudioWorkspace)))
 
             SnippetExpansionClient = New MockSnippetExpansionClient(
                 Workspace.ExportProvider.GetExportedValue(Of IThreadingContext),

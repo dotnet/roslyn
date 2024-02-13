@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServer.Client.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -15,16 +14,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     [Shared]
     internal sealed class LanguageServerSnippetExpanderAdapter : ILanguageServerSnippetExpander
     {
-        private readonly LanguageServerSnippetExpander _languageServerSnippetExpander;
+        private readonly ISemanticSnippetExpander _semanticSnippetExpander;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LanguageServerSnippetExpanderAdapter(LanguageServerSnippetExpander languageServerSnippetExpander)
+        public LanguageServerSnippetExpanderAdapter(ISemanticSnippetExpander semanticSnippetExpander)
         {
-            _languageServerSnippetExpander = languageServerSnippetExpander;
+            _semanticSnippetExpander = semanticSnippetExpander;
         }
 
         public bool TryExpand(string lspSnippetText, SnapshotSpan snapshotSpan, ITextView textView)
-            => _languageServerSnippetExpander.TryExpand(lspSnippetText, snapshotSpan, textView);
+            => _semanticSnippetExpander.TryExpand(lspSnippetText, snapshotSpan, textView);
     }
 }

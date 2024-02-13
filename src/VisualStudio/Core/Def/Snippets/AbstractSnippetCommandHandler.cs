@@ -7,9 +7,7 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
@@ -17,7 +15,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -38,31 +35,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         ICommandHandler<InsertSnippetCommandArgs>,
         IChainedCommandHandler<AutomaticLineEnderCommandArgs>
     {
-        protected readonly SignatureHelpControllerProvider SignatureHelpControllerProvider;
-        protected readonly IEditorCommandHandlerServiceFactory EditorCommandHandlerServiceFactory;
-        protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
-        protected readonly EditorOptionsService EditorOptionsService;
-        protected readonly SVsServiceProvider ServiceProvider;
+        private readonly EditorOptionsService _editorOptionsService;
+        private readonly SVsServiceProvider _serviceProvider;
 
         public string DisplayName => FeaturesResources.Snippets;
 
         public AbstractSnippetCommandHandler(
             IThreadingContext threadingContext,
-            SignatureHelpControllerProvider signatureHelpControllerProvider,
-            IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             EditorOptionsService editorOptionsService,
             SVsServiceProvider serviceProvider)
             : base(threadingContext)
         {
-            SignatureHelpControllerProvider = signatureHelpControllerProvider;
-            EditorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
-            EditorAdaptersFactoryService = editorAdaptersFactoryService;
-            EditorOptionsService = editorOptionsService;
-            ServiceProvider = serviceProvider;
+            _editorOptionsService = editorOptionsService;
+            _serviceProvider = serviceProvider;
         }
 
-        protected abstract AbstractSnippetExpansionClient GetSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer);
+        protected abstract ISnippetExpansionClientFactory GetSnippetExpansionClientFactory();
         protected abstract bool IsSnippetExpansionContext(Document document, int startPosition, CancellationToken cancellationToken);
         protected abstract bool TryInvokeInsertionUI(ITextView textView, ITextBuffer subjectBuffer, bool surroundWith = false);
 
@@ -299,12 +287,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            return GetSnippetExpansionClient(textView, subjectBuffer).TryInsertExpansion(span.Value.Start, span.Value.End, cancellationToken);
+            return GetSnippetExpansionClientFactory().GetSnippetExpansionClient(textView, subjectBuffer).TryInsertExpansion(span.Value.Start, span.Value.End, cancellationToken);
         }
 
         protected bool TryGetExpansionManager(out IVsExpansionManager expansionManager)
         {
-            var textManager = (IVsTextManager2)ServiceProvider.GetService(typeof(SVsTextManager));
+            var textManager = (IVsTextManager2)_serviceProvider.GetService(typeof(SVsTextManager));
             if (textManager == null)
             {
                 expansionManager = null;
@@ -323,7 +311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            return EditorOptionsService.GlobalOptions.GetOption(SnippetsOptionsStorage.Snippets) &&
+            return _editorOptionsService.GlobalOptions.GetOption(SnippetsOptionsStorage.Snippets) &&
                 // TODO (https://github.com/dotnet/roslyn/issues/5107): enable in interactive
                 !(Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace) && workspace.Kind == WorkspaceKind.Interactive);
         }
