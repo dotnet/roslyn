@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Threading;
 using NuGet.SolutionRestoreManager;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using Xunit.Harness;
 using Reference = VSLangProj.Reference;
 using VSProject = VSLangProj.VSProject;
 using VSProject3 = VSLangProj140.VSProject3;
@@ -670,6 +671,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             {
                 return string.Empty;
             }
+
+            IdeStateCollector.RegisterCustomState("Build Output", () =>
+            {
+                var content = wpfTextViewHost.TextView.TextSnapshot.GetText();
+                return content;
+            });
 
             // Find the build summary line
             for (var index = lines.Count - 1; index >= 0; index--)

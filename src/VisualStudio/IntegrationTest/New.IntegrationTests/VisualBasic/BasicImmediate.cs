@@ -46,9 +46,9 @@ End Module
             await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
             await TestServices.ImmediateWindow.ShowAsync(HangMitigatingCancellationToken);
             await TestServices.ImmediateWindow.ClearAllAsync(HangMitigatingCancellationToken);
-            await TestServices.Input.SendWithoutActivateAsync("?", HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync("?n", HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, HangMitigatingCancellationToken);
-            await TestServices.Input.SendWithoutActivateAsync(["n1", VirtualKeyCode.TAB, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync(["1", VirtualKeyCode.TAB, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             Assert.Contains("?n1Var\r\n42", await TestServices.ImmediateWindow.GetTextAsync(HangMitigatingCancellationToken));
         }
     }

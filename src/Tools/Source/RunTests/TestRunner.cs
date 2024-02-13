@@ -264,6 +264,8 @@ namespace RunTests
                 var logDirectory = Path.Combine("%HELIX_WORKITEM_ROOT%", "artifacts", "log", options.Configuration);
                 if (options.TestVsi)
                 {
+                    command.AppendLine($@"call {Path.Combine(relativePathToTestAssemblies, "RunTests", "Debug", "net8.0")}\rehydrate.cmd");
+
                     command.AppendLine($"set XUNIT_LOGS={logDirectory}");
                     command.AppendLine("echo %XUNIT_LOGS%");
 
