@@ -166,7 +166,10 @@ namespace Microsoft.CodeAnalysis
                     : base(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo)
                 {
                     Contract.ThrowIfNull(finalCompilationWithGeneratedDocuments);
-                    HasSuccessfullyLoaded = hasSuccessfullyLoaded;
+
+                    // As a policy, all partial-state projects are said to have incomplete references, since the
+                    // state has no guarantees.
+                    HasSuccessfullyLoaded = hasSuccessfullyLoaded && !isFrozen;
                     FinalCompilationWithGeneratedDocuments = finalCompilationWithGeneratedDocuments;
                     UnrootedSymbolSet = unrootedSymbolSet;
 
@@ -209,9 +212,7 @@ namespace Microsoft.CodeAnalysis
                     => new(isFrozen: true,
                         FinalCompilationWithGeneratedDocuments,
                         CompilationWithoutGeneratedDocuments,
-                        // As a policy, all partial-state projects are said to have incomplete references, since the
-                        // state has no guarantees.
-                        hasSuccessfullyLoaded: false,
+                        HasSuccessfullyLoaded,
                         GeneratorInfo,
                         UnrootedSymbolSet);
 

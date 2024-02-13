@@ -192,6 +192,13 @@ namespace Microsoft.CodeAnalysis
                 DocumentState docState,
                 CancellationToken cancellationToken)
             {
+                GetPartialCompilationState(
+                    docState.Id,
+                    out var inProgressProject,
+                    out var compilationPair,
+                    out var generatorInfo,
+                    cancellationToken);
+
                 // If we're already finalized, and no change has been made to this document.  Then just return what we
                 // have (just with the frozen bit flipped so that any future forks keep things frozen).
                 var state = this.ReadState();
@@ -206,13 +213,6 @@ namespace Microsoft.CodeAnalysis
                     // Otherwise, we're not finalized, or the document has changed.  We'll create an in-progress state
                     // to represent the new state of the project, with all the necessary translation steps to
                     // incorporate the new document.
-                    GetPartialCompilationState(
-                        compilationState,
-                        docState.Id,
-                        out var inProgressProject,
-                        out var compilationPair,
-                        out var generatorInfo,
-                        cancellationToken);
 
                     var pendingActions = ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty;
 
@@ -290,7 +290,6 @@ namespace Microsoft.CodeAnalysis
             /// returned will have a compilation that is retained so that it cannot disappear.
             /// </summary>
             private void GetPartialCompilationState(
-                SolutionCompilationState compilationState,
                 DocumentId id,
                 out ProjectState inProgressProject,
                 out CompilationPair compilations,
@@ -347,57 +346,6 @@ namespace Microsoft.CodeAnalysis
                 compilations = new CompilationPair(
                     compilationWithoutGeneratedDocuments,
                     compilationWithoutGeneratedDocuments.AddSyntaxTrees(generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
-
-                // Now add in back a consistent set of project references.  For project references try to get either a
-                // CompilationReference or a SkeletonReference. This ensures that the in-progress project only reports a
-                // reference to another project if it could actually get a reference to that project's metadata.
-                var metadataReferences = new List<MetadataReference>();
-                var newProjectReferences = new List<ProjectReference>();
-                metadataReferences.AddRange(this.ProjectState.MetadataReferences);
-
-                foreach (var projectReference in this.ProjectState.ProjectReferences)
-                {
-                    var referencedProject = compilationState.SolutionState.GetProjectState(projectReference.ProjectId);
-                    if (referencedProject != null)
-                    {
-                        if (referencedProject.IsSubmission)
-                        {
-                            var previousScriptCompilation = compilationState.GetCompilationAsync(
-                                projectReference.ProjectId, cancellationToken).WaitAndGetResult(cancellationToken);
-
-                            // previous submission project must support compilation:
-                            RoslynDebug.Assert(previousScriptCompilation != null);
-
-                            compilations = compilations.WithPreviousScriptCompilation(previousScriptCompilation);
-                        }
-                        else
-                        {
-                            // get the latest metadata for the partial compilation of the referenced project.
-                            var metadata = compilationState.GetPartialMetadataReference(projectReference, this.ProjectState);
-
-                            if (metadata == null)
-                            {
-                                // if we failed to get the metadata, check to see if we previously had existing metadata and reuse it instead.
-                                var inProgressCompilationNotRef = compilations.CompilationWithGeneratedDocuments;
-                                metadata = inProgressCompilationNotRef.ExternalReferences.FirstOrDefault(
-                                    r => SolutionCompilationState.GetProjectId(inProgressCompilationNotRef.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol) == projectReference.ProjectId);
-                            }
-
-                            if (metadata != null)
-                            {
-                                newProjectReferences.Add(projectReference);
-                                metadataReferences.Add(metadata);
-                            }
-                        }
-                    }
-                }
-
-                inProgressProject = inProgressProject.WithProjectReferences(newProjectReferences);
-
-                if (!Enumerable.SequenceEqual(compilations.CompilationWithoutGeneratedDocuments.ExternalReferences, metadataReferences))
-                {
-                    compilations = compilations.WithReferences(metadataReferences);
-                }
             }
 
             private static bool IsTouchDocumentActionForDocument(CompilationAndGeneratorDriverTranslationAction action, DocumentId id)
@@ -691,18 +639,28 @@ namespace Microsoft.CodeAnalysis
                                 }
                                 else
                                 {
-                                    var metadataReference = await compilationState.GetMetadataReferenceAsync(
-                                        projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
+                                    var metadataReference = isFrozen
+                                        ? compilationState.GetPartialMetadataReference(projectReference, this.ProjectState)
+                                        : await compilationState.GetMetadataReferenceAsync(projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
+
+                                    if (metadataReference is null && isFrozen)
+                                    {
+                                        // if we failed to get the metadata and we were frozen, check to see if we
+                                        // previously had existing metadata and reuse it instead.
+                                        var inProgressCompilationNotRef = staleCompilationWithGeneratedDocuments ?? compilationWithoutGeneratedDocuments;
+                                        metadataReference = inProgressCompilationNotRef.ExternalReferences.FirstOrDefault(
+                                            r => GetProjectId(inProgressCompilationNotRef.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol) == projectReference.ProjectId);
+                                    }
 
                                     // A reference can fail to be created if a skeleton assembly could not be constructed.
-                                    if (metadataReference != null)
+                                    if (metadataReference == null)
                                     {
-                                        newReferences.Add(metadataReference);
-                                        metadataReferenceToProjectId.Add(metadataReference, projectReference.ProjectId);
+                                        hasSuccessfullyLoaded = false;
                                     }
                                     else
                                     {
-                                        hasSuccessfullyLoaded = false;
+                                        newReferences.Add(metadataReference);
+                                        metadataReferenceToProjectId.Add(metadataReference, projectReference.ProjectId);
                                     }
                                 }
                             }
@@ -735,7 +693,7 @@ namespace Microsoft.CodeAnalysis
                             isFrozen,
                             compilationWithGeneratedDocuments,
                             compilationWithoutGeneratedDocuments,
-                            hasSuccessfullyLoaded,
+                            hasSuccessfullyLoaded && !isFrozen,
                             nextGeneratorInfo,
                             this.ProjectState.Id,
                             metadataReferenceToProjectId);
