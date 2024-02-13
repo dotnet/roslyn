@@ -476,24 +476,15 @@ internal static class ConvertToRecordEngine
         var symbolReferences = await SymbolFinder
             .FindReferencesAsync(type, solutionEditor.OriginalSolution, cancellationToken).ConfigureAwait(false);
         var referenceLocations = symbolReferences.SelectMany(reference => reference.Locations);
-        var documentLookup = referenceLocations.ToLookup(refLoc => refLoc.Document.Id);
-        foreach (var (documentID, documentLocations) in documentLookup)
+        var documentLookup = referenceLocations.ToLookup(refLoc => refLoc.Document);
+        foreach (var (document, documentLocations) in documentLookup)
         {
             // We don't want to process source-generated documents.  Make sure we can get back to a real document here.
-            var document = solutionEditor.OriginalSolution.GetDocument(documentID);
-            if (document is null)
-            {
-#if CODE_STYLE
-                document = await solutionEditor.OriginalSolution.GetSourceGeneratedDocumentAsync(documentID, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfNull(document);
-#else
-                Contract.ThrowIfFalse(documentID.IsSourceGenerated);
-#endif
+            if (document is SourceGeneratedDocument)
                 continue;
-            }
 
             var documentEditor = await solutionEditor
-                .GetDocumentEditorAsync(documentID, cancellationToken).ConfigureAwait(false);
+                .GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
             if (documentEditor.OriginalDocument.Project.Language != LanguageNames.CSharp)
             {
                 // since this is a CSharp-dependent file, we need to have specific VB support.
