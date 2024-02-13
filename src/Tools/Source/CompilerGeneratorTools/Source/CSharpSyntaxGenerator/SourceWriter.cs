@@ -173,11 +173,7 @@ namespace CSharpSyntaxGenerator
                 WriteLine(", DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)");
                 WriteLine("  : base(kind, diagnostics, annotations)");
                 OpenBlock();
-                if (node.Name == "AttributeSyntax")
-                {
-                    WriteLine("this.Flags |= NodeFlags.ContainsAttributes;");
-                }
-                WriteCtorBody(valueFields, nodeFields);
+                WriteCtorBody(nd, valueFields, nodeFields);
                 CloseBlock();
 
                 // write constructor with async
@@ -189,12 +185,8 @@ namespace CSharpSyntaxGenerator
                 WriteLine(", SyntaxFactoryContext context)");
                 WriteLine("  : base(kind)");
                 OpenBlock();
-                if (node.Name == "AttributeSyntax")
-                {
-                    WriteLine("this.Flags |= NodeFlags.ContainsAttributes;");
-                }
                 WriteLine("this.SetFactoryContext(context);");
-                WriteCtorBody(valueFields, nodeFields);
+                WriteCtorBody(nd, valueFields, nodeFields);
                 CloseBlock();
 
                 // write constructor without diagnostics and annotations
@@ -206,11 +198,7 @@ namespace CSharpSyntaxGenerator
                 WriteLine(")");
                 WriteLine("  : base(kind)");
                 OpenBlock();
-                if (node.Name == "AttributeSyntax")
-                {
-                    WriteLine("this.Flags |= NodeFlags.ContainsAttributes;");
-                }
-                WriteCtorBody(valueFields, nodeFields);
+                WriteCtorBody(nd, valueFields, nodeFields);
                 CloseBlock();
                 WriteLine();
 
@@ -301,8 +289,13 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private void WriteCtorBody(List<Field> valueFields, List<Field> nodeFields)
+        private void WriteCtorBody(Node node, List<Field> valueFields, List<Field> nodeFields)
         {
+            if (node.Name == "AttributeSyntax")
+            {
+                WriteLine("this.flags |= NodeFlags.ContainsAttributes;");
+            }
+
             // constructor body
             WriteLine($"this.SlotCount = {nodeFields.Count};");
 
