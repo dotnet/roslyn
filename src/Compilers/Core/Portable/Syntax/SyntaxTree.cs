@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis
                 if (syntaxHelper.ContainsGlobalAliases(root))
                     result |= SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliases;
 
-                if (root.Green.Flags.HasFlag(GreenNode.NodeFlags.ContainsAttributes))
+                if (root.ContainsAttributes)
                     result |= SourceGeneratorSyntaxTreeInfo.ContainsAttributeList;
 
                 _sourceGeneratorInfo = result;
