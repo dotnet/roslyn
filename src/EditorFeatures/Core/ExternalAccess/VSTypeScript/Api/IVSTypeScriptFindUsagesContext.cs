@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             bool displayIfNoReferences = true)
         {
             return new(DefinitionItem.Create(
-                tags, displayParts, sourceSpans.SelectAsArray(span => span.ToDocumentSpan()), sourceSpans.SelectAsArray(_ => (ClassifiedSpansAndHighlightSpan?)null),
-                metadataLocations: ImmutableArray<AssemblyLocation>.Empty, nameDisplayParts, properties: null, displayableProperties: ImmutableDictionary<string, string>.Empty, displayIfNoReferences: displayIfNoReferences));
+                tags, displayParts, sourceSpans.SelectAsArray(static span => span.ToDocumentSpan()), classifiedSpans: [],
+                metadataLocations: [], nameDisplayParts, properties: null, displayableProperties: ImmutableDictionary<string, string>.Empty, displayIfNoReferences: displayIfNoReferences));
         }
 
         public static VSTypeScriptDefinitionItem CreateExternal(

@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // definition as what to show.  That way we show enough information for things
                     // methods.  i.e. we'll show "void TypeName.MethodName(args...)" allowing
                     // the user to see the type the method was created in.
-                    var entry = await TryCreateEntryAsync(definitionBucket, definition, cancellationToken).ConfigureAwait(false);
+                    var entry = await TryCreateDefinitionEntryAsync(definitionBucket, definition, cancellationToken).ConfigureAwait(false);
                     entries.AddIfNotNull(entry);
                 }
                 else
@@ -92,21 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // DocumentSpanEntry for each.  That way we can easily see the source
                     // code where each location is to help the user decide which they want
                     // to navigate to.
-                    for (int i = 0, n = definition.SourceSpans.Length; i < n; i++)
-                    {
-                        var sourceSpan = definition.SourceSpans[i];
-                        var classifiedSpans = definition.ClassifiedSpans[i];
-
-                        var entry = await TryCreateDocumentSpanEntryAsync(
-                            definitionBucket,
-                            sourceSpan,
-                            classifiedSpans,
-                            HighlightSpanKind.Definition,
-                            symbolUsageInfo: SymbolUsageInfo.None,
-                            additionalProperties: definition.DisplayableProperties,
-                            cancellationToken).ConfigureAwait(false);
-                        entries.AddIfNotNull(entry);
-                    }
+                    await AddDocumentSpanEntriesAsync(entries, definitionBucket, definition, cancellationToken).ConfigureAwait(false);
 
                     foreach (var metadataLocation in definition.MetadataLocations)
                     {
@@ -125,33 +111,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                     NotifyChange();
                 }
-            }
-
-            private async Task<Entry?> TryCreateEntryAsync(
-                RoslynDefinitionBucket definitionBucket, DefinitionItem definition, CancellationToken cancellationToken)
-            {
-                var documentSpan = definition.SourceSpans[0];
-                var sourceText = await documentSpan.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                var lineText = AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start);
-
-                var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
-                if (mappedDocumentSpan == null)
-                {
-                    // this will be removed from the result
-                    return null;
-                }
-
-                var (guid, projectName, _) = GetGuidAndProjectInfo(documentSpan.Document);
-
-                return new DefinitionItemEntry(
-                    this,
-                    definitionBucket,
-                    projectName,
-                    guid,
-                    lineText,
-                    mappedDocumentSpan.Value,
-                    documentSpan,
-                    ThreadingContext);
             }
         }
     }

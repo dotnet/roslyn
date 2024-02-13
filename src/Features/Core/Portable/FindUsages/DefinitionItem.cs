@@ -116,28 +116,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         internal abstract bool IsExternal { get; }
 
-        // F# uses this
-        protected DefinitionItem(
-            ImmutableArray<string> tags,
-            ImmutableArray<TaggedText> displayParts,
-            ImmutableArray<TaggedText> nameDisplayParts,
-            ImmutableArray<DocumentSpan> sourceSpans,
-            ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
-            ImmutableDictionary<string, string>? properties,
-            bool displayIfNoReferences)
-            : this(
-                tags,
-                displayParts,
-                nameDisplayParts,
-                sourceSpans,
-                classifiedSpans,
-                ImmutableArray<AssemblyLocation>.Empty,
-                properties,
-                ImmutableDictionary<string, string>.Empty,
-                displayIfNoReferences)
-        {
-        }
-
         protected DefinitionItem(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
@@ -159,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             DisplayableProperties = displayableProperties ?? ImmutableDictionary<string, string>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;
 
-            Contract.ThrowIfTrue(sourceSpans.Length != classifiedSpans.Length);
+            Contract.ThrowIfFalse(classifiedSpans.IsEmpty || sourceSpans.Length == classifiedSpans.Length);
 
             if (Properties.ContainsKey(MetadataSymbolKey))
             {

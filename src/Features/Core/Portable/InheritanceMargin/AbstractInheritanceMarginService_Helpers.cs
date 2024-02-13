@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                             tags: [],
                             displayParts: [],
                             sourceSpans: [new DocumentSpan(destinationDocument, import.DeclaringSyntaxReference!.Span)],
-                            classifiedSpans: [null],
+                            classifiedSpans: [],
                             metadataLocations: [],
                             nameDisplayParts: default,
                             displayIfNoReferences: true);
@@ -737,7 +737,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                         tags: [],
                         displayParts: [],
                         sourceSpans: [new DocumentSpan(document, location.SourceSpan)],
-                        classifiedSpans: [null],
+                        classifiedSpans: [],
                         metadataLocations: []);
                 }
             }

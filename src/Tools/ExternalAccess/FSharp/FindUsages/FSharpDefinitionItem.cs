@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages
                     tags,
                     displayParts,
                     sourceSpans: [sourceSpan.ToRoslynDocumentSpan()],
-                    classifiedSpans: [null],
+                    classifiedSpans: [],
                     metadataLocations: [],
                     nameDisplayParts: default,
                     displayIfNoReferences: true));
