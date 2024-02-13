@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             SetCurrentSolutionEx(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
 
             _workspaceKind = workspaceKind ?? WorkspaceKind.Host;
-            this.Projects = new List<TProject>();
-            this.Documents = new List<TDocument>();
-            this.AdditionalDocuments = new List<TDocument>();
-            this.AnalyzerConfigDocuments = new List<TDocument>();
-            this.ProjectionDocuments = new List<TDocument>();
+            this.Projects = [];
+            this.Documents = [];
+            this.AdditionalDocuments = [];
+            this.AnalyzerConfigDocuments = [];
+            this.ProjectionDocuments = [];
 
             this.CanApplyChangeDocument = true;
             this.IgnoreUnchangeableDocumentsWhenApplyingChanges = ignoreUnchangeableDocumentsWhenApplyingChanges;

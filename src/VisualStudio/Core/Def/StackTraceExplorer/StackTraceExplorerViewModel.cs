@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
     {
         private readonly IThreadingContext _threadingContext;
         private readonly Workspace _workspace;
-        public ObservableCollection<FrameViewModel> Frames { get; } = new();
+        public ObservableCollection<FrameViewModel> Frames { get; } = [];
 
         private bool _isLoading;
         private readonly ClassificationTypeMap _classificationTypeMap;

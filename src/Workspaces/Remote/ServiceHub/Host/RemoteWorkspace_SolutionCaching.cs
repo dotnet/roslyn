@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// checksum can share the computation of that particular solution and avoid duplicated concurrent work.  Only
         /// read/write while holding <see cref="_gate"/>.
         /// </summary>
-        private readonly Dictionary<Checksum, InFlightSolution> _solutionChecksumToSolution = new();
+        private readonly Dictionary<Checksum, InFlightSolution> _solutionChecksumToSolution = [];
 
         /// <summary>
         /// Deliberately not cancellable.  This code must always run fully to completion.

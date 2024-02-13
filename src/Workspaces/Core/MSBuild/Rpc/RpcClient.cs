@@ -29,7 +29,7 @@ internal sealed class RpcClient
     private readonly SemaphoreSlim _sendingStreamSemaphore = new SemaphoreSlim(initialCount: 1);
     private readonly TextReader _receivingStream;
 
-    private readonly ConcurrentDictionary<int, (TaskCompletionSource<object?>, System.Type? expectedReturnType)> _outstandingRequests = new();
+    private readonly ConcurrentDictionary<int, (TaskCompletionSource<object?>, System.Type? expectedReturnType)> _outstandingRequests = [];
     private volatile int _nextRequestId = 0;
 
     private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();

@@ -67,8 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private readonly bool _replacementTextValid;
             private readonly ISimplificationService _simplificationService;
             private readonly ISemanticFactsService _semanticFactsService;
-            private readonly HashSet<SyntaxToken> _annotatedIdentifierTokens = new();
-            private readonly HashSet<InvocationExpressionSyntax> _invocationExpressionsNeedingConflictChecks = new();
+            private readonly HashSet<SyntaxToken> _annotatedIdentifierTokens = [];
+            private readonly HashSet<InvocationExpressionSyntax> _invocationExpressionsNeedingConflictChecks = [];
 
             private readonly AnnotationTable<RenameAnnotation> _renameAnnotations;
 
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private SyntaxNode Complexify(SyntaxNode originalNode, SyntaxNode newNode)
             {
                 _isProcessingComplexifiedSpans = true;
-                _modifiedSubSpans = new List<(TextSpan oldSpan, TextSpan newSpan)>();
+                _modifiedSubSpans = [];
 
                 var annotation = new SyntaxAnnotation();
                 newNode = newNode.WithAdditionalAnnotations(annotation);

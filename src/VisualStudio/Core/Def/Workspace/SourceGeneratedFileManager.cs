@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <summary>
         /// Map of currently open generated files; the key is the generated full file path.
         /// </summary>
-        private readonly Dictionary<string, OpenSourceGeneratedFile> _openFiles = new();
+        private readonly Dictionary<string, OpenSourceGeneratedFile> _openFiles = [];
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// monikers that don't run into MAX_PATH issues then we absolutely would want to get rid of this.
         /// </summary>
         /// <remarks>All accesses should be on the UI thread.</remarks>
-        private readonly Dictionary<Guid, SourceGeneratedDocumentIdentity> _directoryInfoOnDiskByContainingDirectoryId = new();
+        private readonly Dictionary<Guid, SourceGeneratedDocumentIdentity> _directoryInfoOnDiskByContainingDirectoryId = [];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

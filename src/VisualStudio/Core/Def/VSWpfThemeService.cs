@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export(typeof(IWpfThemeService)), Shared]
     internal class VSWpfThemeService : IWpfThemeService
     {
-        private readonly ResourceDictionary _themeDictionary = new();
+        private readonly ResourceDictionary _themeDictionary = [];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

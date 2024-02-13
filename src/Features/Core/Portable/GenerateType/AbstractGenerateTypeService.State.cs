@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             public GenerateTypeServiceStateOptions()
             {
                 IsMembersWithModule = false;
-                PropertiesToGenerate = new List<TSimpleNameSyntax>();
+                PropertiesToGenerate = [];
                 IsTypeGeneratedIntoNamespaceFromMemberAccess = false;
                 IsInterfaceOrEnumNotAllowedInTypeContext = false;
                 IsDelegateAllowed = true;

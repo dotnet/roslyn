@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// requires using the UI thread), but then cached for all subsequent notifications about
         /// that project.
         /// </summary>
-        private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?> _cpsProjects = new();
+        private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?> _cpsProjects = [];
 
         /// <summary>
         /// Cached designer service for notifying legacy projects about designer attributes.
