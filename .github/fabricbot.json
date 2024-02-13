@@ -243,6 +243,261 @@
       }
     },
     {
+      "taskType": "scheduled",
+      "capabilityId": "ScheduledSearch",
+      "subCapability": "ScheduledSearch",
+      "version": "1.1",
+      "config": {
+        "frequency": [
+          {
+            "weekDay": 0,
+            "hours": [
+              7,
+              19
+            ],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 1,
+            "hours": [
+              7,
+              19
+            ],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 2,
+            "hours": [
+              7,
+              19
+            ],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 3,
+            "hours": [
+              7,
+              19
+            ],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 4,
+            "hours": [
+              7,
+              19
+            ],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 5,
+            "hours": [
+              7,
+              19
+            ],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 6,
+            "hours": [
+              7,
+              19
+            ],
+            "timezoneOffset": -8
+          }
+        ],
+        "searchTerms": [
+          {
+            "name": "isDraftPr",
+            "parameters": {
+              "value": "false"
+            }
+          },
+          {
+            "name": "isOpen",
+            "parameters": {}
+          },
+          {
+            "name": "noActivitySince",
+            "parameters": {
+              "days": 7
+            }
+          },
+          {
+            "name": "noLabel",
+            "parameters": {
+              "label": "pending-ci-rerun"
+            }
+          }
+        ],
+        "actions": [
+          {
+            "name": "addReply",
+            "parameters": {
+              "comment": "Looks like this PR hasn't been active for some time and the codebase could have been changed in the meantime.\nTo make sure no breaking changes are introduced, please leave a comment with `/azp run` or prefererably specific legs like `/azp run roslyn-CI` to rerun the CI pipeline legs and confirm success before merging the change."
+            }
+          },
+          {
+            "name": "addLabel",
+            "parameters": {
+              "label": "pending-ci-rerun"
+            }
+          }
+        ],
+        "taskName": "Request CI rerun for stale PRs"
+      }
+    },
+    {
+      "taskType": "scheduled",
+      "capabilityId": "ScheduledSearch",
+      "subCapability": "ScheduledSearch",
+      "version": "1.1",
+      "config": {
+        "frequency": [
+          {
+            "weekDay": 0,
+            "hours": [
+              7,
+              19
+            ],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 1,
+            "hours": [
+              7,
+              19
+            ],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 2,
+            "hours": [
+              7,
+              19
+            ],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 3,
+            "hours": [
+              7,
+              19
+            ],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 4,
+            "hours": [
+              7,
+              19
+            ],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 5,
+            "hours": [
+              7,
+              19
+            ],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 6,
+            "hours": [
+              7,
+              19
+            ],
+            "timezoneOffset": -8
+          }
+        ],
+        "searchTerms": [
+          {
+            "name": "isDraftPr",
+            "parameters": {
+              "value": "false"
+            }
+          },
+          {
+            "name": "isOpen",
+            "parameters": {}
+          },
+          {
+            "name": "noActivitySince",
+            "parameters": {
+              "days": 14
+            }
+          },
+          {
+            "name": "noLabel",
+            "parameters": {
+              "label": "pending-ci-rerun"
+            }
+          }
+        ],
+        "actions": [
+          {
+            "name": "addReply",
+            "parameters": {
+              "comment": "Looks like this PR hasn't been active for 14 days and the codebase could have been changed in the meantime.\nTo make reviewing PRs more manageable, this PR will be marked as a draft."
+            }
+          },
+          {
+            "name": "isDraftPr",
+            "parameters": {
+              "value": "true"
+            }
+          }
+        ],
+        "taskName": "Mark stale PRs as draft PRs"
+      }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "PullRequestCommentResponder",
+      "version": "1.0",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "activitySenderHasPermissions",
+              "parameters": {
+                "permissions": "write"
+              }
+            },
+            {
+              "name": "commentContains",
+              "parameters": {
+                "isRegex": true,
+                "commentPattern": "^(\\/azp run)$"
+              }
+            },
+            {
+              "name": "hasLabel",
+              "parameters": {
+                "label": "pending-ci-rerun"
+              }
+            }
+          ]
+        },
+        "eventType": "pull_request",
+        "eventNames": [
+          "issue_comment"
+        ],
+        "taskName": "Remove pending-ci-rerun label when CI rerun requested",
+        "actions": [
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "pending-ci-rerun"
+            }
+          }
+        ]
+      }
+    },
+    {
       "taskType": "trigger",
       "capabilityId": "IssueResponder",
       "subCapability": "IssuesOnlyResponder",
