@@ -8004,7 +8004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(node, includeExplicitConversions: true);
             SnapshotWalkerThroughConversionGroup(node, operand);
-            if (targetType.NullableUnderlyingTypeOrSelf.SpecialType == SpecialType.System_Boolean &&
+            if (targetType.SpecialType == SpecialType.System_Boolean &&
                 (operand.Type?.SpecialType == SpecialType.System_Boolean || operand.Type?.IsErrorType() == true))
             {
                 Visit(operand);
