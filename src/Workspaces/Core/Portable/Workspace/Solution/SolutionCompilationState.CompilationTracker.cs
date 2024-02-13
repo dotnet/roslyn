@@ -259,11 +259,11 @@ namespace Microsoft.CodeAnalysis
                                 // Scenario 3. The old doc came from some other document with a different ID then we started
                                 // with -- if the document ID still existed we would have been in the Scenario 1 case
                                 // instead. We'll find the old document ID, remove that state, and then add ours.
+                                var inProgressWithDocumentRemoved = inProgressProject.RemoveDocuments([oldState.Id]);
                                 pendingActions = [
                                     (inProgressProject, new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction([oldState])),
-                                    (inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
-                                inProgressProject = inProgressProject
-                                    .RemoveDocuments([oldState.Id])
+                                    (inProgressWithDocumentRemoved, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
+                                inProgressProject = inProgressWithDocumentRemoved
                                     .AddDocuments([docState]);
                             }
                         }
