@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
                     out var generatorInfo,
                     cancellationToken);
 
-                var builder = ImmutableList.CreateBuilder<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>();
+                var pendingActions = ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty;
 
                 if (!inProgressProject.DocumentStates.TryGetState(docState.Id, out var oldState) || oldState != docState)
                 {
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis
                         // our current state. Note if no compilation existed GetPartialCompilationState would have
                         // produced an empty one, and removed any documents, so inProgressProject.DocumentStates would
                         // have been empty originally.
-                        builder.Add((inProgressProject, new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldState, docState)));
+                        pendingActions = [(inProgressProject, new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldState, docState))];
                         inProgressProject = inProgressProject.UpdateDocument(docState, contentChanged: true);
                     }
                     else
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis
                         if (oldState is null)
                         {
                             // Scenario 2.
-                            builder.Add((inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState])));
+                            pendingActions = [(inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
                             inProgressProject = inProgressProject.AddDocuments([docState]);
                         }
                         else
@@ -245,8 +245,9 @@ namespace Microsoft.CodeAnalysis
                             // Scenario 3. The old doc came from some other document with a different ID then we started
                             // with -- if the document ID still existed we would have been in the Scenario 1 case
                             // instead. We'll find the old document ID, remove that state, and then add ours.
-                            builder.Add((inProgressProject, new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction([oldState])));
-                            builder.Add((inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState])));
+                            pendingActions = [
+                                (inProgressProject, new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction([oldState])),
+                                (inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
                             inProgressProject = inProgressProject
                                 .RemoveDocuments([oldState.Id])
                                 .AddDocuments([docState]);
@@ -254,12 +255,14 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
+                // Transition us to a frozen in progress state.  With the best compilations up to this point, and the
+                // pending actions we'll need to perform on it to get to the final state.
                 var inProgressState = InProgressState.Create(
                     isFrozen: true,
                     compilationPair.CompilationWithoutGeneratedDocuments,
                     generatorInfo,
                     compilationPair.CompilationWithGeneratedDocuments,
-                    builder.ToImmutable());
+                    pendingActions);
 
                 return new CompilationTracker(inProgressProject, inProgressState, this.SkeletonReferenceCache.Clone());
             }
