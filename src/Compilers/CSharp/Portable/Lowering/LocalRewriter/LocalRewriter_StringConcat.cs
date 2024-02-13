@@ -439,6 +439,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     preparedArgs.Add(receiver);
                     continue;
                 }
+                else if (arg.ConstantValueOpt is { IsString: true, StringValue: [char c] })
+                {
+                    needsSpanRefParamConstructor = true;
+                    charType = _factory.SpecialType(SpecialType.System_Char);
+                    preparedArgs.Add(new BoundLiteral(arg.Syntax, constantValueOpt: ConstantValue.Create(c), charType));
+                    continue;
+                }
 
                 preparedArgs.Add(arg);
                 needsImplicitConversionFromStringToSpan = true;
