@@ -25,6 +25,10 @@ namespace Microsoft.CodeAnalysis
 
         internal const int ListKind = 1;
 
+        // Pack the kind, node-flags, slot-count, and full-width into 64bits. Note: if we need more bits in the future
+        // (say for additional node-flags), we can always directly use a packed int64 here, and manage where all these
+        // bits go manually.
+
         private readonly ushort _kind;
         private NodeFlagsAndSlotCount _nodeFlagsAndSlotCount;
         private int _fullWidth;
