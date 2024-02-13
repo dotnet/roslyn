@@ -67,8 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public object? ToolTipContent => null;
         public string ToolTipText => _name;
 
-        private static readonly HashSet<Type> s_supportedPatterns = new HashSet<Type>()
-        {
+        private static readonly HashSet<Type> s_supportedPatterns =
+        [
             typeof(ISupportExpansionEvents),
             typeof(IRenamePattern),
             typeof(IInvocationPattern),
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             typeof(IBrowsablePattern),
             typeof(ITreeDisplayItem),
             typeof(ISupportDisposalNotification)
-        };
+        ];
 
         public TPattern? GetPattern<TPattern>() where TPattern : class
         {

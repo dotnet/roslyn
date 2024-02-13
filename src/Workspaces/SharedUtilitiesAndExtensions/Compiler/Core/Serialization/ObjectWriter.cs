@@ -3,25 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using EncodingExtensions = Microsoft.CodeAnalysis.EncodingExtensions;
 
 namespace Roslyn.Utilities
 {
-    using System.Collections.Immutable;
-    using System.Threading.Tasks;
-#if COMPILERCORE
-    using Resources = CodeAnalysisResources;
-#elif CODE_STYLE
+#if CODE_STYLE
     using Resources = CodeStyleResources;
 #else
     using Resources = WorkspacesResources;
@@ -32,6 +26,32 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed partial class ObjectWriter : IDisposable
     {
+        private static class BufferPool<T>
+        {
+            // Large arrays that will not go into the LOH (even with System.Char).
+            public static ObjectPool<T[]> Shared = new(() => new T[32768], 512);
+        }
+
+        /// <summary>
+        /// byte marker mask for encoding compressed uint
+        /// </summary>
+        public const byte ByteMarkerMask = 3 << 6;
+
+        /// <summary>
+        /// byte marker bits for uint encoded in 1 byte.
+        /// </summary>
+        public const byte Byte1Marker = 0;
+
+        /// <summary>
+        /// byte marker bits for uint encoded in 2 bytes.
+        /// </summary>
+        public const byte Byte2Marker = 1 << 6;
+
+        /// <summary>
+        /// byte marker bits for uint encoded in 4 bytes.
+        /// </summary>
+        public const byte Byte4Marker = 2 << 6;
+
         private readonly BinaryWriter _writer;
         private readonly CancellationToken _cancellationToken;
 
@@ -265,14 +285,13 @@ namespace Roslyn.Utilities
             _writer.Write(span);
 #else
             // BinaryWriter in .NET Framework does not support ReadOnlySpan<byte>, so we use a temporary buffer to write
-            // arrays of data. The buffer is chosen to be no larger than 8K, which avoids allocations in the large
-            // object heap.
-            WriteSpanPieces(span, 8192, static (writer, buffer, length) => writer.Write(buffer, 0, length));
+            // arrays of data.
+            WriteSpanPieces(span, static (writer, buffer, length) => writer.Write(buffer, 0, length));
 #endif
         }
 
         /// <summary>
-        /// Write an array of bytes. The array data is provided as a <see
+        /// Write an array of chars. The array data is provided as a <see
         /// cref="ReadOnlySpan{T}">ReadOnlySpan</see>&lt;<see cref="char"/>&gt;, and deserialized to a char array.
         /// </summary>
         /// <param name="span">The array data.</param>
@@ -284,9 +303,8 @@ namespace Roslyn.Utilities
             _writer.Write(span);
 #else
             // BinaryWriter in .NET Framework does not support ReadOnlySpan<char>, so we use a temporary buffer to write
-            // arrays of data. The buffer is chosen to be no larger than 4K chars, which avoids allocations in the large
-            // object heap.
-            WriteSpanPieces(span, 4096, static (writer, buffer, length) => writer.Write(buffer, 0, length));
+            // arrays of data.
+            WriteSpanPieces(span, static (writer, buffer, length) => writer.Write(buffer, 0, length));
 #endif
         }
 
@@ -315,23 +333,17 @@ namespace Roslyn.Utilities
 
         private void WriteSpanPieces<T>(
             ReadOnlySpan<T> span,
-            int rentLength,
             Action<BinaryWriter, T[], int> write)
         {
             var spanLength = span.Length;
-            var buffer = System.Buffers.ArrayPool<T>.Shared.Rent(Math.Min(spanLength, rentLength));
-            try
+            using var pooledObj = BufferPool<T>.Shared.GetPooledObject();
+            var buffer = pooledObj.Object;
+
+            for (var offset = 0; offset < spanLength; offset += buffer.Length)
             {
-                for (var offset = 0; offset < spanLength; offset += buffer.Length)
-                {
-                    var segmentLength = Math.Min(buffer.Length, spanLength - offset);
-                    span.Slice(offset, segmentLength).CopyTo(buffer.AsSpan());
-                    write(_writer, buffer, segmentLength);
-                }
-            }
-            finally
-            {
-                System.Buffers.ArrayPool<T>.Shared.Return(buffer);
+                var segmentLength = Math.Min(buffer.Length, spanLength - offset);
+                span.Slice(offset, segmentLength).CopyTo(buffer.AsSpan());
+                write(_writer, buffer, segmentLength);
             }
         }
 
@@ -492,329 +504,14 @@ namespace Roslyn.Utilities
                 WriteByte((byte)TypeCode.EncodingName);
                 WriteString(encoding.WebName);
             }
-        }
 
-        /// <summary>
-        /// byte marker mask for encoding compressed uint
-        /// </summary>
-        internal const byte ByteMarkerMask = 3 << 6;
+            return;
 
-        /// <summary>
-        /// byte marker bits for uint encoded in 1 byte.
-        /// </summary>
-        internal const byte Byte1Marker = 0;
-
-        /// <summary>
-        /// byte marker bits for uint encoded in 2 bytes.
-        /// </summary>
-        internal const byte Byte2Marker = 1 << 6;
-
-        /// <summary>
-        /// byte marker bits for uint encoded in 4 bytes.
-        /// </summary>
-        internal const byte Byte4Marker = 2 << 6;
-
-        internal enum TypeCode : byte
-        {
-            /// <summary>
-            /// The null value
-            /// </summary>
-            Null,
-
-            /// <summary>
-            /// A string encoded as UTF-8 (using BinaryWriter.Write(string))
-            /// </summary>
-            StringUtf8,
-
-            /// <summary>
-            /// A string encoded as UTF16 (as array of UInt16 values)
-            /// </summary>
-            StringUtf16,
-
-            /// <summary>
-            /// A reference to a string with the id encoded as 1 byte.
-            /// </summary>
-            StringRef_1Byte,
-
-            /// <summary>
-            /// A reference to a string with the id encoded as 2 bytes.
-            /// </summary>
-            StringRef_2Bytes,
-
-            /// <summary>
-            /// A reference to a string with the id encoded as 4 bytes.
-            /// </summary>
-            StringRef_4Bytes,
-
-            /// <summary>
-            /// The boolean value true.
-            /// </summary>
-            Boolean_True,
-
-            /// <summary>
-            /// The boolean value char.
-            /// </summary>
-            Boolean_False,
-
-            /// <summary>
-            /// A character value encoded as 2 bytes.
-            /// </summary>
-            Char,
-
-            /// <summary>
-            /// An Int8 value encoded as 1 byte.
-            /// </summary>
-            Int8,
-
-            /// <summary>
-            /// An Int16 value encoded as 2 bytes.
-            /// </summary>
-            Int16,
-
-            /// <summary>
-            /// An Int32 value encoded as 4 bytes.
-            /// </summary>
-            Int32,
-
-            /// <summary>
-            /// An Int32 value encoded as 1 byte.
-            /// </summary>
-            Int32_1Byte,
-
-            /// <summary>
-            /// An Int32 value encoded as 2 bytes.
-            /// </summary>
-            Int32_2Bytes,
-
-            /// <summary>
-            /// The Int32 value 0
-            /// </summary>
-            Int32_0,
-
-            /// <summary>
-            /// The Int32 value 1
-            /// </summary>
-            Int32_1,
-
-            /// <summary>
-            /// The Int32 value 2
-            /// </summary>
-            Int32_2,
-
-            /// <summary>
-            /// The Int32 value 3
-            /// </summary>
-            Int32_3,
-
-            /// <summary>
-            /// The Int32 value 4
-            /// </summary>
-            Int32_4,
-
-            /// <summary>
-            /// The Int32 value 5
-            /// </summary>
-            Int32_5,
-
-            /// <summary>
-            /// The Int32 value 6
-            /// </summary>
-            Int32_6,
-
-            /// <summary>
-            /// The Int32 value 7
-            /// </summary>
-            Int32_7,
-
-            /// <summary>
-            /// The Int32 value 8
-            /// </summary>
-            Int32_8,
-
-            /// <summary>
-            /// The Int32 value 9
-            /// </summary>
-            Int32_9,
-
-            /// <summary>
-            /// The Int32 value 10
-            /// </summary>
-            Int32_10,
-
-            /// <summary>
-            /// An Int64 value encoded as 8 bytes
-            /// </summary>
-            Int64,
-
-            /// <summary>
-            /// A UInt8 value encoded as 1 byte.
-            /// </summary>
-            UInt8,
-
-            /// <summary>
-            /// A UIn16 value encoded as 2 bytes.
-            /// </summary>
-            UInt16,
-
-            /// <summary>
-            /// A UInt32 value encoded as 4 bytes.
-            /// </summary>
-            UInt32,
-
-            /// <summary>
-            /// A UInt32 value encoded as 1 byte.
-            /// </summary>
-            UInt32_1Byte,
-
-            /// <summary>
-            /// A UInt32 value encoded as 2 bytes.
-            /// </summary>
-            UInt32_2Bytes,
-
-            /// <summary>
-            /// The UInt32 value 0
-            /// </summary>
-            UInt32_0,
-
-            /// <summary>
-            /// The UInt32 value 1
-            /// </summary>
-            UInt32_1,
-
-            /// <summary>
-            /// The UInt32 value 2
-            /// </summary>
-            UInt32_2,
-
-            /// <summary>
-            /// The UInt32 value 3
-            /// </summary>
-            UInt32_3,
-
-            /// <summary>
-            /// The UInt32 value 4
-            /// </summary>
-            UInt32_4,
-
-            /// <summary>
-            /// The UInt32 value 5
-            /// </summary>
-            UInt32_5,
-
-            /// <summary>
-            /// The UInt32 value 6
-            /// </summary>
-            UInt32_6,
-
-            /// <summary>
-            /// The UInt32 value 7
-            /// </summary>
-            UInt32_7,
-
-            /// <summary>
-            /// The UInt32 value 8
-            /// </summary>
-            UInt32_8,
-
-            /// <summary>
-            /// The UInt32 value 9
-            /// </summary>
-            UInt32_9,
-
-            /// <summary>
-            /// The UInt32 value 10
-            /// </summary>
-            UInt32_10,
-
-            /// <summary>
-            /// A UInt64 value encoded as 8 bytes.
-            /// </summary>
-            UInt64,
-
-            /// <summary>
-            /// A float value encoded as 4 bytes.
-            /// </summary>
-            Float4,
-
-            /// <summary>
-            /// A double value encoded as 8 bytes.
-            /// </summary>
-            Float8,
-
-            /// <summary>
-            /// A decimal value encoded as 12 bytes.
-            /// </summary>
-            Decimal,
-
-            /// <summary>
-            /// A DateTime value
-            /// </summary>
-            DateTime,
-
-            /// <summary>
-            /// An array with length encoded as compressed uint
-            /// </summary>
-            Array,
-
-            /// <summary>
-            /// An array with zero elements
-            /// </summary>
-            Array_0,
-
-            /// <summary>
-            /// An array with one element
-            /// </summary>
-            Array_1,
-
-            /// <summary>
-            /// An array with 2 elements
-            /// </summary>
-            Array_2,
-
-            /// <summary>
-            /// An array with 3 elements
-            /// </summary>
-            Array_3,
-
-            /// <summary>
-            /// The boolean type
-            /// </summary>
-            BooleanType,
-
-            /// <summary>
-            /// The string type
-            /// </summary>
-            StringType,
-
-            /// <summary>
-            /// Encoding serialized as <see cref="Encoding.WebName"/>.
-            /// </summary>
-            EncodingName,
-
-            /// <summary>
-            /// Encoding serialized as <see cref="TextEncodingKind"/>.
-            /// </summary>
-            FirstWellKnownTextEncoding,
-            LastWellKnownTextEncoding = FirstWellKnownTextEncoding + EncodingExtensions.LastTextEncodingKind - EncodingExtensions.FirstTextEncodingKind,
-
-            /// <summary>
-            /// Encoding serialized as <see cref="Encoding.CodePage"/>.
-            /// </summary>
-            EncodingCodePage,
-
-            Last,
-        }
-
-        internal static TypeCode ToTypeCode(TextEncodingKind kind)
-        {
-            Debug.Assert(kind is >= EncodingExtensions.FirstTextEncodingKind and <= EncodingExtensions.LastTextEncodingKind);
-            return TypeCode.FirstWellKnownTextEncoding + (byte)(kind - EncodingExtensions.FirstTextEncodingKind);
-        }
-
-        internal static TextEncodingKind ToEncodingKind(TypeCode code)
-        {
-            Debug.Assert(code is >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding);
-            return EncodingExtensions.FirstTextEncodingKind + (byte)(code - TypeCode.FirstWellKnownTextEncoding);
+            static TypeCode ToTypeCode(TextEncodingKind kind)
+            {
+                Debug.Assert(kind is >= EncodingExtensions.FirstTextEncodingKind and <= EncodingExtensions.LastTextEncodingKind);
+                return TypeCode.FirstWellKnownTextEncoding + (byte)(kind - EncodingExtensions.FirstTextEncodingKind);
+            }
         }
     }
 }

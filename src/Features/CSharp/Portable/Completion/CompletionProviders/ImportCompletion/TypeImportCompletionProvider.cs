@@ -5,12 +5,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -67,10 +65,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             return false;
         }
-
-        protected override ImmutableArray<UsingDirectiveSyntax> GetAliasDeclarationNodes(SyntaxNode node)
-            => node.GetEnclosingUsingDirectives()
-                .Where(n => n.Alias != null)
-                .ToImmutableArray();
     }
 }

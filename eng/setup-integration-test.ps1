@@ -63,7 +63,7 @@ function Deploy-VsixViaTool() {
     $vsixFile = Join-Path $VSSetupDir $vsixFileName
     $fullArg = "$baseArgs $vsixFile"
     Write-Host "`tInstalling $vsixFileName"
-    Exec-Console $vsixExe $fullArg
+    Exec-Command $vsixExe $fullArg
   }
 
   # Set up registry

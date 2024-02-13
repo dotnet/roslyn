@@ -2,116 +2,47 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddImport
-Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualStudio.Editor
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
+Imports Microsoft.VisualStudio.LanguageServices.Snippets
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Editor.Commanding
+Imports Microsoft.VisualStudio.TextManager.Interop
 Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
-    Friend NotInheritable Class SnippetExpansionClient
-        Inherits AbstractSnippetExpansionClient
+    <ExportLanguageService(GetType(ISnippetExpansionLanguageHelper), LanguageNames.VisualBasic)>
+    <[Shared]>
+    Friend NotInheritable Class VisualBasicSnippetExpansionLanguageHelper
+        Inherits AbstractSnippetExpansionLanguageHelper
 
-        Public Sub New(
-                threadingContext As IThreadingContext,
-                languageServiceId As Guid,
-                textView As ITextView,
-                subjectBuffer As ITextBuffer,
-                signatureHelpControllerProvider As SignatureHelpControllerProvider,
-                editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
-                editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
-                argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-                editorOptionsService As EditorOptionsService)
-            MyBase.New(threadingContext,
-                       languageServiceId,
-                       textView,
-                       subjectBuffer,
-                       signatureHelpControllerProvider,
-                       editorCommandHandlerServiceFactory,
-                       editorAdaptersFactoryService,
-                       argumentProviders,
-                       editorOptionsService)
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
         End Sub
 
-        Public Shared Function GetSnippetExpansionClient(
-                threadingContext As IThreadingContext,
-                textView As ITextView,
-                subjectBuffer As ITextBuffer,
-                signatureHelpControllerProvider As SignatureHelpControllerProvider,
-                editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
-                editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
-                argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-                editorOptionsService As EditorOptionsService) As AbstractSnippetExpansionClient
+        Public Overrides ReadOnly Property LanguageServiceGuid As Guid
+            Get
+                Return Guids.VisualBasicDebuggerLanguageId
+            End Get
+        End Property
 
-            Dim expansionClient As AbstractSnippetExpansionClient = Nothing
+        Public Overrides ReadOnly Property FallbackDefaultLiteral As String
+            Get
+                Return "Nothing"
+            End Get
+        End Property
 
-            If Not textView.Properties.TryGetProperty(GetType(AbstractSnippetExpansionClient), expansionClient) Then
-                expansionClient = New SnippetExpansionClient(
-                    threadingContext,
-                    Guids.VisualBasicDebuggerLanguageId,
-                    textView,
-                    subjectBuffer,
-                    signatureHelpControllerProvider,
-                    editorCommandHandlerServiceFactory,
-                    editorAdaptersFactoryService,
-                    argumentProviders,
-                    editorOptionsService)
-                textView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), expansionClient)
-            End If
-
-            Return expansionClient
-        End Function
-
-        Protected Overrides Function InsertEmptyCommentAndGetEndPositionTrackingSpan() As ITrackingSpan
-            Dim endSpanInSurfaceBuffer(1) As VsTextSpan
-            If ExpansionSession.GetEndSpan(endSpanInSurfaceBuffer) <> VSConstants.S_OK Then
-                Return Nothing
-            End If
-
-            Dim endSpan As SnapshotSpan = Nothing
-            If Not TryGetSubjectBufferSpan(endSpanInSurfaceBuffer(0), endSpan) Then
-                Return Nothing
-            End If
-
-            Dim endPositionLine = SubjectBuffer.CurrentSnapshot.GetLineFromPosition(endSpan.Start.Position)
-            Dim endLineText = endPositionLine.GetText()
-
-            If endLineText.Trim() = String.Empty Then
-                Dim commentString = "'"
-                SubjectBuffer.Insert(endSpan.Start.Position, commentString)
-
-                Dim commentSpan = New Span(endSpan.Start.Position, commentString.Length)
-                Return SubjectBuffer.CurrentSnapshot.CreateTrackingSpan(commentSpan, SpanTrackingMode.EdgeExclusive)
-            End If
-
-            Return Nothing
-        End Function
-
-        Protected Overrides ReadOnly Property FallbackDefaultLiteral As String = "Nothing"
-
-        Friend Overrides Function AddImports(
-                document As Document,
-                addImportOptions As AddImportPlacementOptions,
-                formattingOptions As SyntaxFormattingOptions,
-                position As Integer,
-                snippetNode As XElement,
-                cancellationToken As CancellationToken) As Document
+        Public Overrides Function AddImports(document As Document, addImportOptions As AddImportPlacementOptions, formattingOptions As SyntaxFormattingOptions, position As Integer, snippetNode As XElement, cancellationToken As CancellationToken) As Document
             Dim importsNode = snippetNode.Element(XName.Get("Imports", snippetNode.Name.NamespaceName))
             If importsNode Is Nothing OrElse
                Not importsNode.HasElements() Then
@@ -140,6 +71,31 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             document.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken)
 
             Return formattedDocument
+        End Function
+
+        Public Overrides Function InsertEmptyCommentAndGetEndPositionTrackingSpan(expansionSession As IVsExpansionSession, textView As ITextView, subjectBuffer As ITextBuffer) As ITrackingSpan
+            Dim endSpanInSurfaceBuffer(1) As VsTextSpan
+            If expansionSession.GetEndSpan(endSpanInSurfaceBuffer) <> VSConstants.S_OK Then
+                Return Nothing
+            End If
+
+            Dim endSpan As SnapshotSpan = Nothing
+            If Not TryGetSubjectBufferSpan(textView, subjectBuffer, endSpanInSurfaceBuffer(0), endSpan) Then
+                Return Nothing
+            End If
+
+            Dim endPositionLine = subjectBuffer.CurrentSnapshot.GetLineFromPosition(endSpan.Start.Position)
+            Dim endLineText = endPositionLine.GetText()
+
+            If endLineText.Trim() = String.Empty Then
+                Dim commentString = "'"
+                subjectBuffer.Insert(endSpan.Start.Position, commentString)
+
+                Dim commentSpan = New Span(endSpan.Start.Position, commentString.Length)
+                Return subjectBuffer.CurrentSnapshot.CreateTrackingSpan(commentSpan, SpanTrackingMode.EdgeExclusive)
+            End If
+
+            Return Nothing
         End Function
 
         Private Shared Function GetImportsStatementsToAdd(document As Document, snippetNode As XElement, importsNode As XElement, cancellationToken As CancellationToken) As IList(Of ImportsStatementSyntax)
@@ -246,4 +202,3 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         End Function
     End Class
 End Namespace
-

@@ -41,18 +41,18 @@ namespace Microsoft.CodeAnalysis.Formatting
         // anchor token to anchor data map.
         // unlike anchorTree that would return anchor data for given span in the tree, it will return
         // anchorData based on key which is anchor token.
-        private readonly SegmentedDictionary<SyntaxToken, AnchorData> _anchorBaseTokenMap = new();
+        private readonly SegmentedDictionary<SyntaxToken, AnchorData> _anchorBaseTokenMap = [];
 
         // hashset to prevent duplicate entries in the trees.
-        private readonly HashSet<TextSpan> _indentationMap = new();
-        private readonly HashSet<TextSpan> _suppressWrappingMap = new();
-        private readonly HashSet<TextSpan> _suppressSpacingMap = new();
-        private readonly HashSet<TextSpan> _suppressFormattingMap = new();
-        private readonly HashSet<TextSpan> _anchorMap = new();
+        private readonly HashSet<TextSpan> _indentationMap = [];
+        private readonly HashSet<TextSpan> _suppressWrappingMap = [];
+        private readonly HashSet<TextSpan> _suppressSpacingMap = [];
+        private readonly HashSet<TextSpan> _suppressFormattingMap = [];
+        private readonly HashSet<TextSpan> _anchorMap = [];
 
         // used for selection based formatting case. it contains operations that will define
         // what indentation to use as a starting indentation. (we always use 0 for formatting whole tree case)
-        private List<IndentBlockOperation> _initialIndentBlockOperations = new();
+        private List<IndentBlockOperation> _initialIndentBlockOperations = [];
 
         public FormattingContext(AbstractFormatEngine engine, TokenStream tokenStream)
         {
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public void AddIndentBlockOperations(
-            List<IndentBlockOperation> operations,
+            SegmentedList<IndentBlockOperation> operations,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(operations);
@@ -272,39 +272,21 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public void AddSuppressOperations(
-            List<SuppressOperation> operations,
+            SegmentedList<SuppressOperation> operations,
             CancellationToken cancellationToken)
         {
-            var valuePairs = new SegmentedArray<(SuppressOperation operation, bool shouldSuppress, bool onSameLine)>(operations.Count);
-
             // TODO: think about a way to figure out whether it is already suppressed and skip the expensive check below.
-            for (var i = 0; i < operations.Count; i++)
+            foreach (var operation in operations)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
-                var operation = operations[i];
 
                 // if an operation contains elastic trivia itself and the operation is not marked to ignore the elastic trivia 
                 // ignore the operation 
                 if (operation.ContainsElasticTrivia(_tokenStream) && !operation.Option.IsOn(SuppressOption.IgnoreElasticWrapping))
-                {
-                    // don't bother to calculate line alignment between tokens 
-                    valuePairs[i] = (operation, shouldSuppress: false, onSameLine: false);
                     continue;
-                }
 
                 var onSameLine = _tokenStream.TwoTokensOriginallyOnSameLine(operation.StartToken, operation.EndToken);
-                valuePairs[i] = (operation, shouldSuppress: true, onSameLine);
-            }
-
-            foreach (var (operation, shouldSuppress, onSameLine) in valuePairs)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (shouldSuppress)
-                {
-                    AddSuppressOperation(operation, onSameLine);
-                }
+                AddSuppressOperation(operation, onSameLine);
             }
         }
 

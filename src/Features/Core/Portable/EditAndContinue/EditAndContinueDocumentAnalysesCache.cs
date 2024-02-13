@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveStatementsMap> baseActiveStatements, AsyncLazy<EditAndContinueCapabilities> capabilities)
     {
         private readonly object _guard = new();
-        private readonly Dictionary<DocumentId, (AsyncLazy<DocumentAnalysisResults> results, Project baseProject, Document document, ImmutableArray<LinePositionSpan> activeStatementSpans)> _analyses = new();
+        private readonly Dictionary<DocumentId, (AsyncLazy<DocumentAnalysisResults> results, Project baseProject, Document document, ImmutableArray<LinePositionSpan> activeStatementSpans)> _analyses = [];
         private readonly AsyncLazy<ActiveStatementsMap> _baseActiveStatements = baseActiveStatements;
         private readonly AsyncLazy<EditAndContinueCapabilities> _capabilities = capabilities;
 

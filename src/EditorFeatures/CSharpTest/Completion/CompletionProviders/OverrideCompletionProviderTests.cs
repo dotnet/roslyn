@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -2477,8 +2476,8 @@ End Class
 
             if (service.GetProvider(completionItem, document.Project) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
-                var textView = testWorkspace.GetTestDocument(documentId)!.GetTextView();
-                customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
+                var textView = testDocument.GetTextView();
+                customCommitCompletionProvider.Commit(completionItem, document, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                 var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                 var caretPosition = textView.Caret.Position.BufferPosition.Position;
                 MarkupTestFile.GetPosition(csharpFileAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
@@ -2730,8 +2729,8 @@ int bar;
 
             if (service.GetProvider(completionItem, document.Project) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
-                var textView = testWorkspace.GetTestDocument(documentId)!.GetTextView();
-                customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
+                var textView = testDocument.GetTextView();
+                customCommitCompletionProvider.Commit(completionItem, document, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                 var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                 var caretPosition = textView.Caret.Position.BufferPosition.Position;
                 MarkupTestFile.GetPosition(csharpFileAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
@@ -2785,8 +2784,8 @@ int bar;
 
             if (service.GetProvider(completionItem, document.Project) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
-                var textView = testWorkspace.GetTestDocument(documentId)!.GetTextView();
-                customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
+                var textView = testDocument.GetTextView();
+                customCommitCompletionProvider.Commit(completionItem, document, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                 var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                 var caretPosition = textView.Caret.Position.BufferPosition.Position;
                 MarkupTestFile.GetPosition(csharpFileAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);

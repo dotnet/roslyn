@@ -6,12 +6,10 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
@@ -27,11 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
         }
 
-        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var syntaxContext = (CSharpSyntaxContext)document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-
+            var syntaxContext = context.SyntaxContext;
             var token = syntaxContext.TargetToken;
 
             // We have to consider all ancestor if statements of the last token until we find a match for this 'else':
@@ -56,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                 }
             }
 
-            return isAfterIfStatement && await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
+            return isAfterIfStatement && base.IsValidSnippetLocation(in context, cancellationToken);
         }
 
         protected override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
