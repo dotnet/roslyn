@@ -43,11 +43,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _workspace = workspace;
         }
 
-        protected override IAttachedCollectionSource? CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
+        protected override IAttachedCollectionSource? CreateCollectionSource(IVsHierarchyItem? item, string relationshipName)
         {
-            if (item != null &&
-                item.HierarchyIdentity != null &&
-                item.HierarchyIdentity.NestedHierarchy != null &&
+            if (item?.HierarchyIdentity?.NestedHierarchy != null &&
+                !item.IsDisposed &&
                 relationshipName == KnownRelationships.Contains)
             {
                 if (NestedHierarchyHasProjectTreeCapability(item, "AnalyzerDependency"))

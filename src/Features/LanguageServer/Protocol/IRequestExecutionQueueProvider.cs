@@ -8,5 +8,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal interface IRequestExecutionQueueProvider<RequestContext> : ILspService
 {
-    IRequestExecutionQueue<RequestContext> CreateRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider);
+    IRequestExecutionQueue<RequestContext> CreateRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider);
 }

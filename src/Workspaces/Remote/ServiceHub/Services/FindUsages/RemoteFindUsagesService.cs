@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             private readonly RemoteCallback<IRemoteFindUsagesService.ICallback> _callback;
             private readonly RemoteServiceCallbackId _callbackId;
-            private readonly Dictionary<DefinitionItem, int> _definitionItemToId = new();
+            private readonly Dictionary<DefinitionItem, int> _definitionItemToId = [];
 
             public RemoteFindUsageContext(RemoteCallback<IRemoteFindUsagesService.ICallback> callback, RemoteServiceCallbackId callbackId)
             {

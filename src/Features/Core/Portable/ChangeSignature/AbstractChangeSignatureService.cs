@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                         if (!nodesToUpdate.ContainsKey(documentId))
                         {
-                            nodesToUpdate.Add(documentId, new List<SyntaxNode>());
+                            nodesToUpdate.Add(documentId, []);
                         }
 
                         telemetryNumberOfDeclarationsToUpdate++;
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                     if (!nodesToUpdate.ContainsKey(documentId2))
                     {
-                        nodesToUpdate.Add(documentId2, new List<SyntaxNode>());
+                        nodesToUpdate.Add(documentId2, []);
                     }
 
                     telemetryNumberOfReferencesToUpdate++;

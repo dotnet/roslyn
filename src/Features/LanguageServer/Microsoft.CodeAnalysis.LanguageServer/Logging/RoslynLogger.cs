@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
     internal class RoslynLogger : ILogger
     {
         private static RoslynLogger? _instance;
-        private static readonly ConcurrentDictionary<FunctionId, string> s_eventMap = new();
-        private static readonly ConcurrentDictionary<(FunctionId id, string name), string> s_propertyMap = new();
+        private static readonly ConcurrentDictionary<FunctionId, string> s_eventMap = [];
+        private static readonly ConcurrentDictionary<(FunctionId id, string name), string> s_propertyMap = [];
 
         private readonly ConcurrentDictionary<int, object> _pendingScopes = new(concurrencyLevel: 2, capacity: 10);
         private static ITelemetryReporter? _telemetryReporter;

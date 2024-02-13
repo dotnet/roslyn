@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
@@ -225,7 +226,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.SolutionExplorer.AddMetadataReferenceAsync(assembly, project, HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.SelectItemAsync(ProjectName, HangMitigatingCancellationToken);
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.ProjectandSolutionContextMenus.Project.ResetCSharpInteractiveFromProject, HangMitigatingCancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync<ResetInteractiveWindowFromProjectCommand>(HangMitigatingCancellationToken);
 
             // Waiting for a long operation: build + reset from project
             await TestServices.InteractiveWindow.WaitForReplOutputAsync("using TestProj;", HangMitigatingCancellationToken);

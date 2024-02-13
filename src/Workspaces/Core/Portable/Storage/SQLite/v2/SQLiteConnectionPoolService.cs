@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// <remarks>
         /// Access to this field is synchronized through <see cref="_gate"/>.
         /// </remarks>
-        private readonly Dictionary<string, ReferenceCountedDisposable<SQLiteConnectionPool>> _connectionPools = new();
+        private readonly Dictionary<string, ReferenceCountedDisposable<SQLiteConnectionPool>> _connectionPools = [];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

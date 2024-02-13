@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
             private readonly IFindUsagesContext _underlyingContext = underlyingContext;
             private readonly object _gate = new();
-            private readonly List<DefinitionItem> _definitions = new();
+            private readonly List<DefinitionItem> _definitions = [];
 
             public IStreamingProgressTracker ProgressTracker
                 => _underlyingContext.ProgressTracker;

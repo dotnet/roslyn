@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private readonly Workspace _workspace;
         private readonly IGlobalOptionService _globalOptions;
 
-        private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts = new();
+        private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts = [];
         private readonly ImmutableArray<ITableColumnDefinition> _customColumns;
 
         /// <summary>

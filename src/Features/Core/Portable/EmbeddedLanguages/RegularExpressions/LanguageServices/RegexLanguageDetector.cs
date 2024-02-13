@@ -53,7 +53,7 @@ internal sealed class RegexLanguageDetector(
     private static HashSet<string> GetMethodNamesOfInterest(INamedTypeSymbol? regexType, ISyntaxFacts syntaxFacts)
     {
         var result = syntaxFacts.IsCaseSensitive
-            ? new HashSet<string>()
+            ? []
             : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         if (regexType != null)

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private string _replacementText;
         private SymbolRenameOptions _options;
         private bool _previewChanges;
-        private readonly Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = new Dictionary<ITextBuffer, OpenTextBufferManager>();
+        private readonly Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = [];
 
         /// <summary>
         /// The original <see cref="SnapshotSpan"/> for the identifier that rename was triggered on

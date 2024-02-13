@@ -17,11 +17,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractImportCompletionCacheServiceFactory<TProjectCacheEntry, TMetadataCacheEntry> : IWorkspaceServiceFactory
     {
-        private readonly ConcurrentDictionary<string, TMetadataCacheEntry> _peItemsCache
-            = new();
+        private readonly ConcurrentDictionary<string, TMetadataCacheEntry> _peItemsCache = [];
 
-        private readonly ConcurrentDictionary<ProjectId, TProjectCacheEntry> _projectItemsCache
-            = new();
+        private readonly ConcurrentDictionary<ProjectId, TProjectCacheEntry> _projectItemsCache = [];
 
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly Func<ImmutableSegmentedList<Project>, CancellationToken, ValueTask> _processBatchAsync;
