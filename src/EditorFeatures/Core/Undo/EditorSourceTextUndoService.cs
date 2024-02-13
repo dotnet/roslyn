@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class EditorSourceTextUndoService(ITextUndoHistoryRegistry undoHistoryRegistry) : ISourceTextUndoService
     {
-        private readonly Dictionary<SourceText, SourceTextUndoTransaction> _transactions = new();
+        private readonly Dictionary<SourceText, SourceTextUndoTransaction> _transactions = [];
 
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
 

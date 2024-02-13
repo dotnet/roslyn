@@ -48,11 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         protected static SymbolDisplayPart NewLine()
             => new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
 
-        private static readonly IList<SymbolDisplayPart> _separatorParts = new List<SymbolDisplayPart>
-            {
+        private static readonly IList<SymbolDisplayPart> _separatorParts =
+            [
                 Punctuation(SyntaxKind.CommaToken),
                 Space()
-            };
+            ];
 
         protected static IList<SymbolDisplayPart> GetSeparatorParts() => _separatorParts;
 

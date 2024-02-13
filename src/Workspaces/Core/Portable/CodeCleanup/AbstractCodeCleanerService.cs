@@ -295,8 +295,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 nextToken = (nextToken.RawKind == 0) ? root.GetLastToken(includeZeroWidth: true) : nextToken;
 
                 // Build token to marker map
-                tokenAnnotationMap.GetOrAdd(previousToken, _ => new List<SyntaxAnnotation>()).Add(startMarker.Annotation);
-                tokenAnnotationMap.GetOrAdd(nextToken, _ => new List<SyntaxAnnotation>()).Add(endMarker.Annotation);
+                tokenAnnotationMap.GetOrAdd(previousToken, _ => []).Add(startMarker.Annotation);
+                tokenAnnotationMap.GetOrAdd(nextToken, _ => []).Add(endMarker.Annotation);
 
                 // Remember markers
                 annotations.Add((startMarker.Annotation, endMarker.Annotation));

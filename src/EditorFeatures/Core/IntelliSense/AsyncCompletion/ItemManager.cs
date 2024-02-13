@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 {
     internal sealed partial class ItemManager : IAsyncCompletionItemManager2
     {
-        private static readonly ObjectPool<List<VSCompletionItem>> s_sortListPool = new(factory: () => new List<CompletionItem>(), size: 5);
+        private static readonly ObjectPool<List<VSCompletionItem>> s_sortListPool = new(factory: () => [], size: 5);
 
         /// <summary>
         /// The threshold for us to consider exclude (potentially large amount of) expanded items from completion list.

@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         public IClassificationFormatMap ClassificationFormatMap { get; }
         public ClassificationTypeMap ClassificationTypeMap { get; }
         public IEditorFormatMapService FormatMapService { get; }
-        public ObservableCollection<TreeItemViewModel> Roots { get; } = new();
+        public ObservableCollection<TreeItemViewModel> Roots { get; } = [];
         public string AutomationName => ServicesVSResources.Value_Tracking;
 
         private TreeViewItemBase? _selectedItem;

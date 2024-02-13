@@ -102,8 +102,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var sortedNodes = SortNodes(unsortedNodes);
 
             return new SymbolTreeInfo(checksum, sortedNodes,
-                new OrderPreservingMultiDictionary<string, string>(),
-                new MultiDictionary<string, ExtensionMethodInfo>());
+                [],
+                []);
         }
 
         public SymbolTreeInfo WithChecksum(Checksum checksum)

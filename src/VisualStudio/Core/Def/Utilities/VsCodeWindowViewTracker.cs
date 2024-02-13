@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
         /// <summary>
         /// The map from <see cref="IVsTextView"/> and corresponding <see cref="ITextView"/> for views that we are currently watching for caret movements.
         /// </summary>
-        private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
+        private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = [];
 
         public VsCodeWindowViewTracker(IVsCodeWindow codeWindow, IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
             : base(threadingContext, assertIsForeground: true)

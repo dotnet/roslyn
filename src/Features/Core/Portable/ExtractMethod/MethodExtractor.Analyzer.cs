@@ -461,8 +461,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Contract.ThrowIfNull(model);
                 Contract.ThrowIfNull(dataFlowAnalysisData);
 
-                variableInfoMap = new Dictionary<ISymbol, VariableInfo>();
-                failedVariables = new List<ISymbol>();
+                variableInfoMap = [];
+                failedVariables = [];
 
                 // create map of each data
                 var capturedMap = new HashSet<ISymbol>(dataFlowAnalysisData.Captured);

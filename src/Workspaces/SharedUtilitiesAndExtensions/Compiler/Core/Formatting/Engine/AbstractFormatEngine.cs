@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         // Intentionally do not trim the capacities of these collections down.  We will repeatedly try to format large
         // files as we edit them and this will produce a lot of garbage as we free the internal array backing the list
         // over and over again.
-        private static readonly ObjectPool<SegmentedList<TokenPairWithOperations>> s_tokenPairListPool = new(() => new(), trimOnFree: false);
+        private static readonly ObjectPool<SegmentedList<TokenPairWithOperations>> s_tokenPairListPool = new(() => [], trimOnFree: false);
 
         private readonly ChainedFormattingRules _formattingRules;
 

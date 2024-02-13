@@ -962,7 +962,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // make sure checksum is calculated
             await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
 
-            map ??= new Dictionary<Checksum, object>();
+            map ??= [];
             await solution.AppendAssetMapAsync(map, CancellationToken.None);
 
             var sessionId = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
