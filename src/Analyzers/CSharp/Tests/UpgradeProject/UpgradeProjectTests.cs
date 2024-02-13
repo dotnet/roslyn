@@ -147,11 +147,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpgradeProject
         public async Task UpgradeProjectFromCSharp7ToLatest()
         {
             await TestLanguageVersionUpgradedAsync(
-$@"
-class Program
-{{
-#error version:[|{LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().ToDisplayString()}|]
-}}",
+                $$"""
+                class Program
+                {
+                #error version:[|{{LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().ToDisplayString()}}|]
+                }
+                """,
                 LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(),
                 new CSharpParseOptions(LanguageVersion.CSharp7));
         }
@@ -194,11 +195,12 @@ class Program
         public async Task UpgradeProjectFromCSharp7_1ToLatest()
         {
             await TestLanguageVersionUpgradedAsync(
-$@"
-class Program
-{{
-#error version:[|{LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().ToDisplayString()}|]
-}}",
+                $$"""
+                class Program
+                {
+                #error version:[|{{LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().ToDisplayString()}}|]
+                }
+                """,
                 LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(),
                 new CSharpParseOptions(LanguageVersion.CSharp7_1));
         }
@@ -258,11 +260,12 @@ class Program
         public async Task UpgradeProjectFromCSharp7_2ToLatest()
         {
             await TestLanguageVersionUpgradedAsync(
-$@"
-class Program
-{{
-#error version:[|{LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().ToDisplayString()}|]
-}}",
+                $$"""
+                class Program
+                {
+                #error version:[|{{LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().ToDisplayString()}}|]
+                }
+                """,
                 LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(),
                 new CSharpParseOptions(LanguageVersion.CSharp7_2));
         }
@@ -328,11 +331,12 @@ class Program
         public async Task UpgradeProjectFromCSharp7_3ToLatest()
         {
             await TestLanguageVersionUpgradedAsync(
-$@"
-class Program
-{{
-#error version:[|{LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().ToDisplayString()}|]
-}}",
+                $$"""
+                class Program
+                {
+                #error version:[|{{LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().ToDisplayString()}}|]
+                }
+                """,
                 LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(),
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
@@ -341,11 +345,12 @@ class Program
         public async Task UpgradeProjectFromCSharp7_3To8_0()
         {
             await TestLanguageVersionUpgradedAsync(
-$@"
-class Program
-{{
-#error version:[|{LanguageVersion.CSharp8.ToDisplayString()}|]
-}}",
+                $$"""
+                class Program
+                {
+                #error version:[|{{LanguageVersion.CSharp8.ToDisplayString()}}|]
+                }
+                """,
                 LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(),
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
@@ -605,27 +610,29 @@ class Program
             var defaultVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion().ToDisplayString();
             await TestExactActionSetOfferedAsync(
 
-$@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"">
-        <Document>
-class C
-{{
-    void A()
-    {{
-#error version:[|{defaultVersion}|]
-    }}
-}}
-        </Document>
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""Default"">
-    </Project>
-    <Project Language=""Visual Basic"">
-    </Project>
-</Workspace>",
+                $$"""
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="6">
+                        <Document>
+                class C
+                {
+                    void A()
+                    {
+                #error version:[|{{defaultVersion}}|]
+                    }
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" LanguageVersion="Default">
+                    </Project>
+                    <Project Language="Visual Basic">
+                    </Project>
+                </Workspace>
+                """,
                 [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, defaultVersion),
                     string.Format(CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0, defaultVersion)
-                    ]);
+                ]);
         }
 
         [Fact]
@@ -656,28 +663,29 @@ class C
         {
             var defaultEffectiveVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion().ToDisplayString();
             await TestExactActionSetOfferedAsync(
-
-$@"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""6"">
-        <Document>
-class C
-{{
-    void A()
-    {{
-#error version:[|{defaultEffectiveVersion}|]
-    }}
-}}
-        </Document>
-    </Project>
-    <Project Language=""C#"" LanguageVersion=""Default"">
-    </Project>
-    <Project Language=""Visual Basic"">
-    </Project>
-</Workspace>",
+                $$"""
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="6">
+                        <Document>
+                class C
+                {
+                    void A()
+                    {
+                #error version:[|{{defaultEffectiveVersion}}|]
+                    }
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" LanguageVersion="Default">
+                    </Project>
+                    <Project Language="Visual Basic">
+                    </Project>
+                </Workspace>
+                """,
                 [
                     string.Format(CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0, defaultEffectiveVersion),
                     string.Format(CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0, defaultEffectiveVersion)
-                    ]);
+                ]);
         }
 
         [Fact]
@@ -1087,8 +1095,9 @@ class C
         public async Task UpgradeProjectForPrimaryConstructors_Class()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Program[|()|];",
+                """
+                class Program[|()|];
+                """,
                 LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
@@ -1097,8 +1106,9 @@ class Program[|()|];",
         public async Task UpgradeProjectForPrimaryConstructors_Struct()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-struct Program[|()|];",
+                """
+                struct Program[|()|];
+                """,
                 LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
@@ -1107,8 +1117,9 @@ struct Program[|()|];",
         public async Task UpgradeProjectForSemicolonBody_Class()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-class Program[|;|]",
+                """
+                class Program[|;|]
+                """,
                 LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
@@ -1117,8 +1128,9 @@ class Program[|;|]",
         public async Task UpgradeProjectForSemicolonBody_Struct()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-struct Program[|;|]",
+                """
+                struct Program[|;|]
+                """,
                 LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
@@ -1127,8 +1139,9 @@ struct Program[|;|]",
         public async Task UpgradeProjectForSemicolonBody_Interface()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-interface Program[|;|]",
+                """
+                interface Program[|;|]
+                """,
                 LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }
@@ -1137,8 +1150,9 @@ interface Program[|;|]",
         public async Task UpgradeProjectForSemicolonBody_Enum()
         {
             await TestLanguageVersionUpgradedAsync(
-@"
-enum Program[|;|]",
+                """
+                enum Program[|;|]
+                """,
                 LanguageVersion.CSharp12,
                 new CSharpParseOptions(LanguageVersion.CSharp11));
         }

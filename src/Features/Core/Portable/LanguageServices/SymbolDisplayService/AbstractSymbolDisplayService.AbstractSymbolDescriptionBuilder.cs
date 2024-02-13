@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
             private readonly SemanticModel _semanticModel;
             private readonly int _position;
-            private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap = new();
-            private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> _documentationMap = new();
+            private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap = [];
+            private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> _documentationMap = [];
             private readonly Func<ISymbol, string?> _getNavigationHint;
 
             protected readonly LanguageServices LanguageServices;
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 {
                     if (!_groupMap.TryGetValue(group, out var existingParts))
                     {
-                        existingParts = new List<SymbolDisplayPart>();
+                        existingParts = [];
                         _groupMap.Add(group, existingParts);
                     }
 

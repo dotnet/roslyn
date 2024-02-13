@@ -618,9 +618,9 @@ internal static partial class SyntaxNodeExtensions
                 // add whatever group we've built up to now. And reset the 
                 // next group to empty.
                 result.Add(currentGroup);
-                currentGroup = new List<TSyntaxNode>();
+                currentGroup = [];
 
-                result.Add(new List<TSyntaxNode> { node });
+                result.Add([node]);
             }
             else if (hasLeadingDirective)
             {
@@ -635,9 +635,7 @@ internal static partial class SyntaxNodeExtensions
                 // add whatever group we've built up to now. And reset the 
                 // next group to empty.
                 result.Add(currentGroup);
-                currentGroup = new List<TSyntaxNode>();
-
-                currentGroup.Add(node);
+                currentGroup = [node];
             }
             else
             {

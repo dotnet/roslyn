@@ -56,12 +56,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (globalAliasInfoCount > 0)
             {
-                globalAliasInfo = new HashSet<(string alias, string name, int arity)>();
+                globalAliasInfo = [];
 
                 for (var i = 0; i < globalAliasInfoCount; i++)
                 {
-                    var alias = reader.ReadString();
-                    var name = reader.ReadString();
+                    var alias = reader.ReadRequiredString();
+                    var name = reader.ReadRequiredString();
                     var arity = reader.ReadInt32();
                     globalAliasInfo.Add((alias, name, arity));
                 }

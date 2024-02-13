@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// 
         /// Accessed on UI thread.
         /// </summary>
-        private readonly HashSet<string> _currentlyShowingMessages = new();
+        private readonly HashSet<string> _currentlyShowingMessages = [];
 
         public VisualStudioInfoBar(
             IThreadingContext threadingContext,

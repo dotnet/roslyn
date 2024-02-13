@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     _metadataReferences = metadataReferences.ToImmutableArray();
                     _pathToIndicesMap = CreatePathToIndexMap(_metadataReferences);
-                    _indicesToRemove = new HashSet<int>();
+                    _indicesToRemove = [];
                     _projectReferences = ImmutableHashSet.CreateBuilder<ProjectReference>();
                 }
 

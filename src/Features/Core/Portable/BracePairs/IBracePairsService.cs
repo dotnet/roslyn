@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.BracePairs
 
     internal abstract class AbstractBracePairsService : IBracePairsService
     {
-        private readonly Dictionary<int, int> _bracePairKinds = new();
+        private readonly Dictionary<int, int> _bracePairKinds = [];
 
         protected AbstractBracePairsService(
             ISyntaxKinds syntaxKinds)

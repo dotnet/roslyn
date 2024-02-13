@@ -46,6 +46,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static Document GetRequiredDocument(this Solution solution, DocumentId documentId)
         {
+            if (documentId is null)
+                throw new ArgumentNullException(nameof(documentId));
+
 #if !CODE_STYLE
             // If we get a source-generated DocumentId, we can give a different exception to make it clear the type of failure this is; otherwise a failure of
             // this in the wild is hard to guess whether this is because of a logic bug in the feature (where it tried to use a DocumentId for a document that disappeared)

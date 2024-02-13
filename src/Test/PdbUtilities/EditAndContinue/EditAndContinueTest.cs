@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         where TSelf : EditAndContinueTest<TSelf>
     {
         private readonly Verification _verification = verification ?? Verification.Passes;
-        private readonly List<IDisposable> _disposables = new();
-        private readonly List<GenerationInfo> _generations = new();
-        private readonly List<SourceWithMarkedNodes> _sources = new();
+        private readonly List<IDisposable> _disposables = [];
+        private readonly List<GenerationInfo> _generations = [];
+        private readonly List<SourceWithMarkedNodes> _sources = [];
 
         private bool _hasVerified;
 

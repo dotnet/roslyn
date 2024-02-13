@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             lock (_gate)
             {
-                _lowPriorityAnalyzers ??= new();
+                _lowPriorityAnalyzers ??= [];
                 _lowPriorityAnalyzers.Add(analyzer);
             }
         }

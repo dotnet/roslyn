@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 #endif
     public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor : AbstractUserDiagnosticTest_NoEditor
     {
-        private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap = new();
+        private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap = [];
 
         protected AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor(ITestOutputHelper logger)
            : base(logger)

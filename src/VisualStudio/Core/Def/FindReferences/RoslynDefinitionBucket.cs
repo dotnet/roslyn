@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// the same file/span.  So we represent this as one entry with several project flavors.  If
             /// we get more than one flavor, we'll show that the user in the UI.
             /// </summary>
-            private readonly Dictionary<(string? filePath, TextSpan span), DocumentSpanEntry> _locationToEntry = new();
+            private readonly Dictionary<(string? filePath, TextSpan span), DocumentSpanEntry> _locationToEntry = [];
 
             public RoslynDefinitionBucket(
                 string name,

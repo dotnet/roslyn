@@ -268,7 +268,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\PublicOptionFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Progress\NullProgress.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\ObjectReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\ObjectReader.ReaderReferenceMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\ObjectWriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\ObjectWriter.TypeCode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\ObjectWriter.WriterReferenceMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\TextEncodingKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\AbstractBlockFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\IBlockFacts.cs" />
