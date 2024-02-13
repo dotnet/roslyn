@@ -341,11 +341,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // As a general rule, the state should only be conditional for expressions of type bool,
             // although there are a few exceptions.
-            Debug.Assert(visitResult.RValueType.Type?.IsErrorType() == true
-                || visitResult.RValueType.Type?.IsDynamic() == true
-                || expression is BoundTypeExpression
+            Debug.Assert(TypeAllowsConditionalState(visitResult.RValueType.Type)
                 || !IsConditionalState
-                || visitResult.RValueType.Type?.SpecialType == SpecialType.System_Boolean);
+                || expression is BoundTypeExpression);
 
             _visitResult = visitResult;
             if (updateAnalyzedNullability)
@@ -3555,6 +3553,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Visit(node, expressionIsRead: false);
         }
 
+        private bool TypeAllowsConditionalState(TypeSymbol? type)
+        {
+            return type is not null
+                && (type.SpecialType == SpecialType.System_Boolean || type.IsDynamic() || type.IsErrorType());
+        }
+
+        private void UnsplitIfNeeded(TypeSymbol? type)
+        {
+            if (!TypeAllowsConditionalState(type))
+            {
+                Unsplit();
+            }
+        }
+
         private BoundNode Visit(BoundNode? node, bool expressionIsRead)
         {
 #if DEBUG
@@ -5834,10 +5846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             resultType ??= node.Type?.SetUnknownNullabilityForReferenceTypes();
 
-            if (resultType?.SpecialType != SpecialType.System_Boolean)
-            {
-                Unsplit();
-            }
+            UnsplitIfNeeded(resultType);
 
             TypeWithAnnotations resultTypeWithAnnotations;
 
