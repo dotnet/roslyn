@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? staleCompilationWithGeneratedDocuments,
-                    ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
+                    ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
                     : base(isFrozen,
                            compilationWithoutGeneratedDocuments,
                            generatorInfo)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? staleCompilationWithGeneratedDocuments,
-                    ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
+                    ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
                 {
                     Contract.ThrowIfTrue(pendingTranslationSteps is null);
 

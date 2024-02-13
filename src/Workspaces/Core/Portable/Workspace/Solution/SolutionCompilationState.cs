@@ -1068,7 +1068,7 @@ internal sealed partial class SolutionCompilationState
             try
             {
                 var allDocumentIds = @this.SolutionState.GetRelatedDocumentIds(documentId);
-                using var _ = ArrayBuilder<(DocumentState, SyntaxTree)>.GetInstance(allDocumentIds.Length, out var statesAndTrees);
+                using var _ = ArrayBuilder<DocumentState>.GetInstance(allDocumentIds.Length, out var documentStates);
 
                 // We grab all the contents of linked files as well to ensure that our snapshot is correct wrt to the
                 // set of linked document ids our state says are in it.  Note: all of these trees should share the same
@@ -1077,14 +1077,14 @@ internal sealed partial class SolutionCompilationState
                 foreach (var currentDocumentId in allDocumentIds)
                 {
                     var documentState = @this.SolutionState.GetRequiredDocumentState(currentDocumentId);
-                    statesAndTrees.Add((documentState, documentState.GetSyntaxTree(cancellationToken)));
+                    documentStates.Add(documentState);
                 }
 
                 using (@this.StateLock.DisposableWait(cancellationToken))
                 {
                     if (!@this._cachedFrozenDocumentState.TryGetValue(documentId, out var compilationState))
                     {
-                        compilationState = ComputeFrozenPartialState(@this, statesAndTrees, cancellationToken);
+                        compilationState = ComputeFrozenPartialState(@this, documentStates, cancellationToken);
                         @this._cachedFrozenDocumentState.Add(documentId, compilationState);
                     }
 
@@ -1099,17 +1099,17 @@ internal sealed partial class SolutionCompilationState
 
         static SolutionCompilationState ComputeFrozenPartialState(
             SolutionCompilationState @this,
-            ArrayBuilder<(DocumentState, SyntaxTree)> statesAndTrees,
+            ArrayBuilder<DocumentState> documentStates,
             CancellationToken cancellationToken)
         {
             var newIdToProjectStateMap = @this.SolutionState.ProjectStates;
             var newIdToTrackerMap = @this._projectIdToTrackerMap;
 
-            foreach (var (docState, tree) in statesAndTrees)
+            foreach (var docState in documentStates)
             {
                 // if we don't have one or it is stale, create a new partial solution
                 var tracker = @this.GetCompilationTracker(docState.Id.ProjectId);
-                var newTracker = tracker.FreezePartialStateWithTree(@this, docState, tree, cancellationToken);
+                var newTracker = tracker.FreezePartialStateWithDocument(@this, docState, cancellationToken);
 
                 Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(docState.Id.ProjectId));
                 newIdToProjectStateMap = newIdToProjectStateMap.SetItem(docState.Id.ProjectId, newTracker.ProjectState);

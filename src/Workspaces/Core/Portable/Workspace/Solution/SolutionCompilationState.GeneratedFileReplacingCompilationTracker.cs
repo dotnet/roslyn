@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
                 throw new NotImplementedException();
             }
 
-            public ICompilationTracker FreezePartialStateWithTree(SolutionCompilationState compilationState, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
+            public ICompilationTracker FreezePartialStateWithDocument(SolutionCompilationState compilationState, DocumentState docState, CancellationToken cancellationToken)
             {
                 // Because we override SourceGeneratedDocument.WithFrozenPartialSemantics directly, we shouldn't be able to get here.
                 throw ExceptionUtilities.Unreachable();

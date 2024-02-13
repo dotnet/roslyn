@@ -187,95 +187,86 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public ICompilationTracker FreezePartialStateWithTree(
+            public ICompilationTracker FreezePartialStateWithDocument(
                 SolutionCompilationState compilationState,
                 DocumentState docState,
-                SyntaxTree tree,
                 CancellationToken cancellationToken)
             {
                 GetPartialCompilationState(
-                    compilationState, docState.Id,
+                    compilationState,
+                    docState.Id,
                     out var inProgressProject,
                     out var compilationPair,
                     out var generatorInfo,
-                    out var metadataReferenceToProjectId,
                     cancellationToken);
 
-                // Ensure we actually have the tree we need in there; note that if the tree is present, then we know the document must also be
-                // present in inProgressProject, since those are both updated in parallel.
-                //
-                // the tree that we have been given was directly returned from the document state that we're also being passed --
-                // the only reason we're requesting it earlier is this code is running under a lock in
-                // SolutionState.WithFrozenPartialCompilationIncludingSpecificDocument.
-                if (!compilationPair.CompilationWithoutGeneratedDocuments.ContainsSyntaxTree(tree))
+                var builder = ImmutableList.CreateBuilder<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>();
+
+                if (inProgressProject.DocumentStates.TryGetState(docState.Id, out var oldState) && oldState == docState)
                 {
-                    // We do not have the exact tree. It either means this document was recently added, or the tree was recently changed.
-                    // We now need to update both the inProgressState and the compilation. There are several possibilities we want to consider:
+                    // Existing state matches the state we're trying to move to.  No work to do.  Just freeze us at our
+                    // current position.
+                }
+                else
+                {
+                    // We do not have the exact document. It either means this document was recently added, or the
+                    // document was recently changed. We now need to update both the inProgressState and the
+                    // compilation. There are several possibilities we want to consider:
                     //
                     // 1. An earlier version of the document is present in the compilation, and we just need to update it to the current version
-                    // 2. The tree wasn't present in the original snapshot at all, and we just need to add the tree.
-                    // 3. The tree wasn't present in the original snapshot, but an older file had been removed that had the same file path.
-                    //    As a heuristic, we remove the old one so we don't end up with duplicate trees.
+                    // 2. The document wasn't present in the original snapshot at all, and we just need to add the
+                    //    document.
+                    // 3. The document wasn't present in the original snapshot, but an older file had been removed that
+                    //    had the same file path. As a heuristic, we remove the old one so we don't end up with
+                    //    duplicate documents.
                     //
-                    // Note it's possible that we simply had never tried to produce a compilation yet for this project at all, in that case
-                    // GetPartialCompilationState would have produced an empty compilation, and it would have updated inProgressProject to
-                    // remove all the documents. Thus, that is no different than the "add" case above.
-                    if (inProgressProject.DocumentStates.TryGetState(docState.Id, out var oldState))
+                    // Note it's possible that we simply had never tried to produce a compilation yet for this project
+                    // at all, in that case GetPartialCompilationState would have produced an empty compilation, and it
+                    // would have updated inProgressProject to remove all the documents. Thus, that is no different than
+                    // the "add" case above.
+                    if (oldState != null)
                     {
-                        // Scenario 1. The document had been previously parsed and it's there, so we can update it with our current state
-                        // This call should be instant, since the compilation already must exist that contains this tree. Note if no compilation existed
-                        // GetPartialCompilationState would have produced an empty one, and removed any documents, so inProgressProject.DocumentStates would
+                        // Scenario 1. The document had been previously parsed and it's there, so we can update it with
+                        // our current state. Note if no compilation existed GetPartialCompilationState would have
+                        // produced an empty one, and removed any documents, so inProgressProject.DocumentStates would
                         // have been empty originally.
-                        var oldTree = oldState.GetSyntaxTree(cancellationToken);
-
-                        compilationPair = compilationPair.ReplaceSyntaxTree(oldTree, tree);
+                        builder.Add((inProgressProject, new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldState, docState)));
                         inProgressProject = inProgressProject.UpdateDocument(docState, contentChanged: true);
                     }
                     else
                     {
-                        // We're in either scenario 2 or 3. Do we have an existing tree to try replacing? Note: the file path here corresponds to Document.FilePath.
-                        // If a document's file path is null, we then substitute Document.Name, so we usually expect there to be a unique string regardless.
-                        var oldTree = compilationPair.CompilationWithoutGeneratedDocuments.SyntaxTrees.FirstOrDefault(t => t.FilePath == tree.FilePath);
-                        if (oldTree == null)
+                        // We're in either scenario 2 or 3. Do we have an existing document to try replacing? Note: the
+                        // file path here corresponds to Document.FilePath. If a document's file path is null, we then
+                        // substitute Document.Name, so we usually expect there to be a unique string regardless.
+                        oldState = inProgressProject.DocumentStates.States.FirstOrDefault(kvp => kvp.Value.FilePath == docState.FilePath).Value;
+                        if (oldState is null)
                         {
                             // Scenario 2.
-                            compilationPair = compilationPair.AddSyntaxTree(tree);
+                            builder.Add((inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState])));
                             inProgressProject = inProgressProject.AddDocuments([docState]);
                         }
                         else
                         {
-                            // Scenario 3.
-                            compilationPair = compilationPair.ReplaceSyntaxTree(oldTree, tree);
-
-                            // The old tree came from some other document with a different ID then we started with -- if the document ID still existed we would have
-                            // been in the Scenario 1 case instead. We'll find the old document ID, remove that state, and then add ours.
-                            var oldDocumentId = DocumentState.GetDocumentIdForTree(oldTree);
-                            Contract.ThrowIfNull(oldDocumentId, $"{nameof(oldTree)} came from the compilation produced by the workspace, so the document ID should have existed.");
+                            // Scenario 3. The old doc came from some other document with a different ID then we started
+                            // with -- if the document ID still existed we would have been in the Scenario 1 case
+                            // instead. We'll find the old document ID, remove that state, and then add ours.
+                            builder.Add((inProgressProject, new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction([oldState])));
+                            builder.Add((inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState])));
                             inProgressProject = inProgressProject
-                                .RemoveDocuments([oldDocumentId])
+                                .RemoveDocuments([oldState.Id])
                                 .AddDocuments([docState]);
                         }
                     }
                 }
 
-                // At this point, we now absolutely should have our tree in the compilation
-                Contract.ThrowIfFalse(compilationPair.CompilationWithoutGeneratedDocuments.ContainsSyntaxTree(tree));
-
-                // Mark our FinalState as frozen. We'll want to keep whatever we have here through whatever future
-                // transformations occur.
-
-                var finalState = FinalCompilationTrackerState.Create(
+                var inProgressState = InProgressState.Create(
                     isFrozen: true,
-                    finalCompilationWithGeneratedDocuments: compilationPair.CompilationWithGeneratedDocuments,
-                    compilationWithoutGeneratedDocuments: compilationPair.CompilationWithoutGeneratedDocuments,
-                    // As a policy, all partial-state projects are said to have incomplete references, since the state
-                    // has no guarantees.
-                    hasSuccessfullyLoaded: false,
+                    compilationPair.CompilationWithoutGeneratedDocuments,
                     generatorInfo,
-                    this.ProjectState.Id,
-                    metadataReferenceToProjectId);
+                    compilationPair.CompilationWithGeneratedDocuments,
+                    builder.ToImmutable());
 
-                return new CompilationTracker(inProgressProject, finalState, this.SkeletonReferenceCache.Clone());
+                return new CompilationTracker(inProgressProject, inProgressState, this.SkeletonReferenceCache.Clone());
             }
 
             /// <summary>
@@ -291,7 +282,6 @@ namespace Microsoft.CodeAnalysis
                 out ProjectState inProgressProject,
                 out CompilationPair compilations,
                 out CompilationTrackerGeneratorInfo generatorInfo,
-                out Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId,
                 CancellationToken cancellationToken)
             {
                 var state = ReadState();
@@ -319,9 +309,6 @@ namespace Microsoft.CodeAnalysis
                         compilationWithoutGeneratedDocuments,
                         compilationWithoutGeneratedDocuments.AddSyntaxTrees(generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
 
-                    // This is likely a bug.  It seems possible to pass out a partial compilation state that we don't
-                    // properly record assembly symbols for.
-                    metadataReferenceToProjectId = null;
                     return;
                 }
 
@@ -332,12 +319,6 @@ namespace Microsoft.CodeAnalysis
                     Contract.ThrowIfNull(finalCompilation, "We have a FinalState, so we must have a non-null final compilation");
 
                     compilations = new CompilationPair(compilationWithoutGeneratedDocuments, finalCompilation);
-
-                    // This should hopefully be safe to return as null.  Because we already reached the 'FinalState'
-                    // before, we should have already recorded the assembly symbols for it.  So not recording them
-                    // again is likely ok (as long as compilations continue to return the same IAssemblySymbols for
-                    // the same references across source edits).
-                    metadataReferenceToProjectId = null;
                     return;
                 }
 
@@ -354,15 +335,12 @@ namespace Microsoft.CodeAnalysis
                     compilationWithoutGeneratedDocuments,
                     compilationWithoutGeneratedDocuments.AddSyntaxTrees(generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
 
-                // Now add in back a consistent set of project references.  For project references
-                // try to get either a CompilationReference or a SkeletonReference. This ensures
-                // that the in-progress project only reports a reference to another project if it
-                // could actually get a reference to that project's metadata.
+                // Now add in back a consistent set of project references.  For project references try to get either a
+                // CompilationReference or a SkeletonReference. This ensures that the in-progress project only reports a
+                // reference to another project if it could actually get a reference to that project's metadata.
                 var metadataReferences = new List<MetadataReference>();
                 var newProjectReferences = new List<ProjectReference>();
                 metadataReferences.AddRange(this.ProjectState.MetadataReferences);
-
-                metadataReferenceToProjectId = [];
 
                 foreach (var projectReference in this.ProjectState.ProjectReferences)
                 {
@@ -396,7 +374,6 @@ namespace Microsoft.CodeAnalysis
                             {
                                 newProjectReferences.Add(projectReference);
                                 metadataReferences.Add(metadata);
-                                metadataReferenceToProjectId.Add(metadata, projectReference.ProjectId);
                             }
                         }
                     }
