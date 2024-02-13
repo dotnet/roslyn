@@ -50,10 +50,9 @@ internal sealed class StructureTag(AbstractStructureTaggerProvider tagProvider, 
     {
         if (hintSpan.Start < textSpan.Start)
         {
-            // The HeaderSpan is what is used for drawing the guidelines and also what is shown if
-            // you mouse over a guideline. We will use the text from the hint start to the collapsing
-            // start; in the case this spans mutiple lines the editor will clip it for us and suffix an
-            // ellipsis at the end.
+            // The HeaderSpan is what is used for drawing the guidelines and also what is shown if you mouse over a
+            // guideline. We will use the text from the hint start to the collapsing start; in the case this spans
+            // multiple lines the editor will clip it for us and suffix an ellipsis at the end.
             return Span.FromBounds(hintSpan.Start, textSpan.Start);
         }
         else
