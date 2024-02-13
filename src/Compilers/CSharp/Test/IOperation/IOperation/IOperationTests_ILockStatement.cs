@@ -18,18 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope()
-                    {
-                        Console.Write("E");
-                        return new Scope();
-                    }
+                    public Scope EnterLockScope() => new Scope();
 
                     public ref struct Scope
                     {
-                        public void Dispose()
-                        {
-                            Console.Write("D");
-                        }
+                        public void Dispose() { }
                     }
                 }
             }

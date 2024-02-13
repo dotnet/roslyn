@@ -4204,7 +4204,7 @@ oneMoreTime:
             StartVisitingStatement(operation);
 
             // `lock (l) { }` on value of type `System.Threading.Lock` is lowered to `using (l.EnterLockScope()) { }`.
-            if (operation.LockedValue.Type?.IsLockType() == true)
+            if (operation.LockedValue.Type?.IsWellKnownTypeLock() == true)
             {
                 if (operation.LockedValue.Type.TryFindLockTypeInfo() is { } lockTypeInfo)
                 {

@@ -120,10 +120,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         // Keep consistent with TypeSymbolExtensions.IsWellKnownTypeLock.
-        internal static bool IsLockType(this ITypeSymbol type)
-            => type is INamedTypeSymbol
+        internal static bool IsWellKnownTypeLock(this ITypeSymbol type)
+        {
+            return type is INamedTypeSymbol
             {
-                Name: "Lock",
+                Name: WellKnownMemberNames.LockTypeName,
                 Arity: 0,
                 ContainingType: null,
                 ContainingNamespace:
@@ -136,21 +137,19 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             };
+        }
 
         // Keep consistent with LockBinder.TryFindLockTypeInfo.
         internal static LockTypeInfo? TryFindLockTypeInfo(this ITypeSymbol lockType)
         {
-            const string EnterLockScopeMethodName = "EnterLockScope";
-            const string LockScopeTypeName = "Scope";
-
-            IMethodSymbol? enterLockScopeMethod = TryFindPublicVoidParameterlessMethod(lockType, EnterLockScopeMethodName);
+            IMethodSymbol? enterLockScopeMethod = TryFindPublicVoidParameterlessMethod(lockType, WellKnownMemberNames.EnterLockScopeMethodName);
             if (enterLockScopeMethod is not { ReturnsVoid: false, RefKind: RefKind.None })
             {
                 return null;
             }
 
             ITypeSymbol? scopeType = enterLockScopeMethod.ReturnType;
-            if (!(scopeType is INamedTypeSymbol { Name: LockScopeTypeName, Arity: 0, IsValueType: true, IsRefLikeType: true, DeclaredAccessibility: Accessibility.Public } &&
+            if (!(scopeType is INamedTypeSymbol { Name: WellKnownMemberNames.LockScopeTypeName, Arity: 0, IsValueType: true, IsRefLikeType: true, DeclaredAccessibility: Accessibility.Public } &&
                 lockType.Equals(scopeType.ContainingType, SymbolEqualityComparer.ConsiderEverything)))
             {
                 return null;
