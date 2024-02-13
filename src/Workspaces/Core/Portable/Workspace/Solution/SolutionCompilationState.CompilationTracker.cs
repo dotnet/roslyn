@@ -202,12 +202,7 @@ namespace Microsoft.CodeAnalysis
 
                 var builder = ImmutableList.CreateBuilder<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>();
 
-                if (inProgressProject.DocumentStates.TryGetState(docState.Id, out var oldState) && oldState == docState)
-                {
-                    // Existing state matches the state we're trying to move to.  No work to do.  Just freeze us at our
-                    // current position.
-                }
-                else
+                if (!inProgressProject.DocumentStates.TryGetState(docState.Id, out var oldState) || oldState != docState)
                 {
                     // We do not have the exact document. It either means this document was recently added, or the
                     // document was recently changed. We now need to update both the inProgressState and the
