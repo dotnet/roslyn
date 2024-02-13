@@ -421,7 +421,7 @@ Friend Class GreenNodeWriter
         End If
 
         If StructureTypeName(nodeStructure) = "AttributeSyntax" Then
-            _writer.WriteLine("Me.Flags = Me.Flags Or NodeFlags.ContainsAttributes")
+            _writer.WriteLine("            SetFlags(NodeFlags.ContainsAttributes)")
         End If
 
         ' Generate End Sub
