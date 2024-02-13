@@ -648,7 +648,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // PROTOTYPE(ParamsCollections): This code path is affected by https://github.com/dotnet/roslyn/issues/71399
                     result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, diagnostics, queryClause);
                 }
             }
@@ -979,7 +978,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resultWithSingleCandidate = OverloadResolutionResult<MethodSymbol>.GetInstance();
             resultWithSingleCandidate.ResultsBuilder.Add(methodResolutionResult);
 
-            // PROTOTYPE(ParamsCollections): This code path is affected by https://github.com/dotnet/roslyn/issues/71399
             BoundExpression result = BindInvocationExpressionContinued(
                 node: syntax,
                 expression: expression,

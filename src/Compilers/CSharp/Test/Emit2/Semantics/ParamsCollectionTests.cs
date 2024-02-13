@@ -1013,6 +1013,131 @@ class Program
         }
 
         [Fact]
+        public void CreateMethod_10_NoElementType_GetEnumeratorWithParams()
+        {
+            var src = """
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection
+{
+    public IEnumerator<long> GetEnumerator(params MyCollection x) => throw null;
+}
+class MyCollectionBuilder
+{
+    public static MyCollection Create(ReadOnlySpan<long> items) => null;
+    public static MyCollection Create(ReadOnlySpan<int> items) => null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+    static void Test(params MyCollection a)
+    {
+        foreach (var x in a)
+        {
+            long y = x;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (8,44): error CS0225: The params parameter must have a valid collection type
+                //     public IEnumerator<long> GetEnumerator(params MyCollection x) => throw null;
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(8, 44),
+                // (20,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Program.Test(params MyCollection)'
+                //         Test();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("a", "Program.Test(params MyCollection)").WithLocation(20, 9),
+                // (21,14): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection'
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params MyCollection").WithLocation(21, 14),
+                // (22,9): error CS1501: No overload for method 'Test' takes 2 arguments
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(22, 9),
+                // (24,22): error CS0225: The params parameter must have a valid collection type
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(24, 22),
+                // (26,27): error CS1579: foreach statement cannot operate on variables of type 'MyCollection' because 'MyCollection' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach (var x in a)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "a").WithArguments("MyCollection", "GetEnumerator").WithLocation(26, 27)
+                );
+        }
+
+        [Fact]
+        public void CreateMethod_11_NoElementType_MoveNextWithParams()
+        {
+            var src = """
+using System;
+using System.Runtime.CompilerServices;
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection
+{
+    public Enumerator GetEnumerator() => throw null;
+
+    public class Enumerator
+    {
+        public bool MoveNext(params MyCollection x) => false;
+        public long Current => 0;
+    }
+}
+class MyCollectionBuilder
+{
+    public static MyCollection Create(ReadOnlySpan<long> items) => null;
+    public static MyCollection Create(ReadOnlySpan<int> items) => null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+    static void Test(params MyCollection a)
+    {
+        foreach (var x in a)
+        {
+            long y = x;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (11,30): error CS0225: The params parameter must have a valid collection type
+                //         public bool MoveNext(params MyCollection x) => false;
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(11, 30),
+                // (25,9): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Program.Test(params MyCollection)'
+                //         Test();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("a", "Program.Test(params MyCollection)").WithLocation(25, 9),
+                // (26,14): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection'
+                //         Test(1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params MyCollection").WithLocation(26, 14),
+                // (27,9): error CS1501: No overload for method 'Test' takes 2 arguments
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(27, 9),
+                // (29,22): error CS0225: The params parameter must have a valid collection type
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(29, 22),
+                // (31,27): error CS0202: foreach requires that the return type 'MyCollection.Enumerator' of 'MyCollection.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+                //         foreach (var x in a)
+                Diagnostic(ErrorCode.ERR_BadGetEnumerator, "a").WithArguments("MyCollection.Enumerator", "MyCollection.GetEnumerator()").WithLocation(31, 27)
+                );
+        }
+
+        [Fact]
         public void ImplementsIEnumerableT_01()
         {
             var src = """
@@ -4153,7 +4278,7 @@ class C1 : IEnumerable<char>
         [InlineData("System.ReadOnlySpan<int>", "System.ReadOnlySpan<string>", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.ReadOnlySpan<T>", "System.Span<T>", "System.ReadOnlySpan<System.Int32>")]
 
-        // PROTOTYPE(ParamsCollections): Inline collection expression picks "System.ReadOnlySpan<System.Int32>", but that params candidate is worse because it is generic
+        // Inline collection expression picks "System.ReadOnlySpan<System.Int32>", but that params candidate is worse because it is generic
         [InlineData("System.ReadOnlySpan<T>", "System.Span<int>", "System.Span<System.Int32>")]
 
         [InlineData("System.ReadOnlySpan<T>", "System.Span<object>", "System.ReadOnlySpan<System.Int32>")]
@@ -4193,7 +4318,7 @@ class C1 : IEnumerable<char>
         [InlineData("System.Collections.Generic.ICollection<T>", "System.Collections.Generic.IReadOnlyCollection<T>", null)]
         [InlineData("MyCollectionA<T>", "MyCollectionB<T>", "MyCollectionB<System.Int32>", new[] { CollectionExpressionTests.example_GenericClassesWithConversion })]
 
-        // PROTOTYPE(ParamsCollections): Inline collection expression picks "MyCollectionB<System.Int32>", but that params candidate is worse because it is generic
+        // Inline collection expression picks "MyCollectionB<System.Int32>", but that params candidate is worse because it is generic
         [InlineData("MyCollectionA<int>", "MyCollectionB<T>", "MyCollectionA<System.Int32>", new[] { CollectionExpressionTests.example_GenericClassesWithConversion })]
 
         // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'long' in params case
@@ -4618,21 +4743,21 @@ class C1 : IEnumerable<char>
             CreateCompilation(
                 new[] { source, CollectionExpressionTests.s_collectionExtensionsWithSpan },
                 targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // PROTOTYPE(ParamsCollections): Inline collection expression works in this case.
-                //                               For 'params' case it fails because:
-                //                                  - For the first argument, 'int[]' and 'Span<object>' -> neither is better
-                //                                  - For the second argument, 'int' and 'int' -> neither is better vs. 'int[]' and 'ReadOnlySpan<int>' -> ReadOnlySpan<int> for a collection expression 
-                //                               Parameters type sequences are different, tie-breaking rules do not apply.   
+                // Inline collection expression works in this case.
+                // For 'params' case it fails because:
+                //    - For the first argument, 'int[]' and 'Span<object>' -> neither is better
+                //    - For the second argument, 'int' and 'int' -> neither is better vs. 'int[]' and 'ReadOnlySpan<int>' -> ReadOnlySpan<int> for a collection expression 
+                // Parameters type sequences are different, tie-breaking rules do not apply.   
 
                 // 0.cs(10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(int[], params int[])' and 'Program.F1(Span<object>, params ReadOnlySpan<int>)'
                 //         F1([1], 2);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("Program.F1(int[], params int[])", "Program.F1(System.Span<object>, params System.ReadOnlySpan<int>)").WithLocation(10, 9),
 
-                // PROTOTYPE(ParamsCollections): Inline collection expression works in this case.
-                //                               For 'params' case it fails because:
-                //                                  - For the first argument, 'object' and 'string' -> string
-                //                                  - For the second argument, 'string' and 'object' -> string (different direction) vs. 'string[]' and 'Span<object>' -> neither is better for a collection expression 
-                //                               Parameters type sequences are different, tie-breaking rules do not apply.   
+                // Inline collection expression works in this case.
+                // For 'params' case it fails because:
+                //    - For the first argument, 'object' and 'string' -> string
+                //    - For the second argument, 'string' and 'object' -> string (different direction) vs. 'string[]' and 'Span<object>' -> neither is better for a collection expression 
+                // Parameters type sequences are different, tie-breaking rules do not apply.   
 
                 // 0.cs(11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(object, params string[])' and 'Program.F2(string, params Span<object>)'
                 //         F2("3", "4");
@@ -10959,7 +11084,7 @@ class Program
             }
         }
 
-        [Fact(Skip = "Get rid of LocalRewriter.MakeCallWithNoExplicitArgument, it cannot handle params collections")] // PROTOTYPE(ParamsCollections): enable and test runtime behavior
+        [Fact]
         public void UsingPatternWithParamsTest()
         {
             var source = @"
@@ -10967,7 +11092,10 @@ using System.Collections.Generic;
 
 ref struct S1
 {
-    public void Dispose(params IEnumerable<int> args){ }
+    public void Dispose(params IEnumerable<int> args)
+    {
+        System.Console.Write(""Disposed"");
+    }
 }
 
 class C2
@@ -10981,10 +11109,10 @@ class C2
         using (c1b) { }
     }
 }";
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "DisposedDisposed").VerifyDiagnostics();
         }
 
-        [Fact(Skip = "Get rid of LocalRewriter.MakeCallWithNoExplicitArgument, it cannot handle params collections")] // PROTOTYPE(ParamsCollections): enable and test runtime behavior
+        [Fact]
         public void UsingPatternWithParamsTest_Foreach()
         {
             var source = @"
@@ -10992,7 +11120,11 @@ using System.Collections.Generic;
 
 ref struct S1
 {
-    public void Dispose(params IEnumerable<int> args){ }
+    public void Dispose(params IEnumerable<int> args)
+    {
+        System.Console.Write(""Disposed"");
+    }
+
     public int Current => 0;
     public bool MoveNext() => false;
 }
@@ -11008,7 +11140,12 @@ class C2
         }
     }
 }";
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CompileAndVerify(
+                source, options: TestOptions.DebugExe, expectedOutput: "Disposed",
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                            Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" }
+                            : Verification.Passes
+                ).VerifyDiagnostics();
         }
 
         [Fact]
@@ -12944,6 +13081,214 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ParamsOverriding_01()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+abstract class C1
+{
+    public abstract void Test(params IEnumerable<long> a);
+}
+
+class C2 : C1
+{
+    public override void Test(IEnumerable<long> a)
+    {}
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+
+            VerifyParams(comp.GetMember<MethodSymbol>("C1.Test").Parameters.Single(), isParamCollection: true);
+            VerifyParams(comp.GetMember<MethodSymbol>("C2.Test").Parameters.Single(), isParamCollection: true);
+        }
+
+        [Fact]
+        public void ParamsOverriding_02()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+abstract class C1
+{
+    public abstract void Test(IEnumerable<long> a);
+}
+
+class C2 : C1
+{
+    public override void Test(params IEnumerable<long> a)
+    {}
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+
+            VerifyParams(comp.GetMember<MethodSymbol>("C1.Test").Parameters.Single());
+            VerifyParams(comp.GetMember<MethodSymbol>("C2.Test").Parameters.Single());
+        }
+
+        [Fact]
+        public void GetAsyncEnumerator_WithParams()
+        {
+            string source = @"
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class MyCollection : IEnumerable<long>
+{
+    public MyCollection()
+    {
+        System.Console.Write(""MyCollection "");
+    }
+
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(long l) => throw null;
+}
+
+class C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+    }
+    public Enumerator GetAsyncEnumerator(params MyCollection x)
+    {
+        System.Console.Write(""GetAsyncEnumerator"");
+        return new Enumerator();
+    }
+    public sealed class Enumerator
+    {
+        public async Task<bool> MoveNextAsync()
+        {
+            await Task.Yield();
+            return false;
+        }
+        public int Current
+        {
+            get => throw null;
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "MyCollection GetAsyncEnumerator").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestMoveNextAsync_WithParamsParameter()
+        {
+            string source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class MyCollection : IEnumerable<long>
+{
+    public MyCollection()
+    {
+        System.Console.Write(""MyCollection "");
+    }
+
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(long l) => throw null;
+}
+
+public class C
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+    }
+    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default)
+    {
+        return new Enumerator();
+    }
+    public sealed class Enumerator
+    {
+        public async System.Threading.Tasks.Task<bool> MoveNextAsync(params MyCollection ok)
+        {
+            System.Console.Write($""MoveNextAsync"");
+            await System.Threading.Tasks.Task.Yield();
+            return false;
+        }
+        public int Current
+        {
+            get => throw null;
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "MyCollection MoveNextAsync");
+        }
+
+        [Fact]
+        public void PatternBasedDisposal_WithParams()
+        {
+            string source = @"
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public class MyCollection : IEnumerable<long>
+{
+    public MyCollection()
+    {
+        System.Console.Write(""MyCollection "");
+    }
+
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(long l) => throw null;
+}
+
+class C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+        System.Console.Write(""Done"");
+    }
+    public Enumerator GetAsyncEnumerator()
+    {
+        return new Enumerator();
+    }
+    public sealed class Enumerator
+    {
+        public async Task<bool> MoveNextAsync()
+        {
+            System.Console.Write(""MoveNextAsync "");
+            await Task.Yield();
+            return false;
+        }
+        public int Current
+        {
+            get => throw null;
+        }
+        public async Task DisposeAsync(params MyCollection s)
+        {
+            System.Console.Write(""DisposeAsync "");
+            await Task.Yield();
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "MoveNextAsync MyCollection DisposeAsync Done");
         }
     }
 }
