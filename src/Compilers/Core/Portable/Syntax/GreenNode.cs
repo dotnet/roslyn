@@ -15,7 +15,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal abstract partial class GreenNode
     {
