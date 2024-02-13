@@ -324,6 +324,81 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
 
+        [WpfFact]
+        public async Task InsertConstructorSnippetAfterAccessibilityModifierBeforeOtherMemberTest()
+        {
+            var markupBeforeCommit = """
+                class C
+                {
+                    private $$
+                    readonly int Value = 3;
+                }
+                """;
+
+            var expectedCodeAfterCommit = """
+                class C
+                {
+                    private C()
+                    {
+                        $$
+                    }
+                    readonly int Value = 3;
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task InsertConstructorSnippetBetweenAccessibilityModifiersBeforeOtherMemberTest()
+        {
+            var markupBeforeCommit = """
+                class C
+                {
+                    protected $$
+                    internal int Value = 3;
+                }
+                """;
+
+            var expectedCodeAfterCommit = """
+                class C
+                {
+                    protected C()
+                    {
+                        $$
+                    }
+                    internal int Value = 3;
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task InsertConstructorSnippetAfterAccessibilityModifierBeforeOtherStaticMemberTest()
+        {
+            var markupBeforeCommit = """
+                class C
+                {
+                    internal $$
+                    static int Value = 3;
+                }
+                """;
+
+            var expectedCodeAfterCommit = """
+                class C
+                {
+                    internal C()
+                    {
+                        $$
+                    }
+                    static int Value = 3;
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
         [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/68176")]
         public async Task InsertCorrectConstructorSnippetInNestedTypeTest_CtorBeforeNestedType()
         {
