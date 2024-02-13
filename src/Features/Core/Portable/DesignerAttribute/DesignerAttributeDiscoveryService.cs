@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 .GetRequiredDocument(priorityDocumentId)
                 .WithFrozenPartialSemantics(cancellationToken);
 
-                var frozenProject = frozenDocument.Project;
+            var frozenProject = frozenDocument.Project;
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
