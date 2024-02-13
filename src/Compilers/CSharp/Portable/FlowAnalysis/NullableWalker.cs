@@ -343,6 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // although there are a few exceptions.
             Debug.Assert(visitResult.RValueType.Type?.IsErrorType() == true
                 || visitResult.RValueType.Type?.IsDynamic() == true
+                || expression is BoundTypeExpression
                 || !IsConditionalState
                 || visitResult.RValueType.Type?.SpecialType == SpecialType.System_Boolean);
 
@@ -11261,10 +11262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LearnFromNullTest(operand, ref StateWhenFalse);
             }
 
-            var savedState = PossiblyConditionalState.Create(this);
-            Unsplit();
             VisitTypeExpression(typeExpr);
-            SetPossiblyConditionalState(savedState);
             SetNotNullResult(node);
             return null;
         }
