@@ -341,6 +341,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public bool ContainsAttributes
+        {
+            get
+            {
+                return (this.flags & NodeFlags.ContainsAttributes) != 0;
+            }
+        }
+
         public bool ContainsDiagnostics
         {
             get

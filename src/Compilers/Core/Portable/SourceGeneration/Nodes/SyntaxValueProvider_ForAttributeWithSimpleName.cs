@@ -235,7 +235,7 @@ public partial struct SyntaxValueProvider
             cancellationToken.ThrowIfCancellationRequested();
 
             // Don't bother descending into nodes that don't contain attributes.
-            if (!member.Green.Flags.HasFlag(GreenNode.NodeFlags.ContainsAttributes))
+            if (!member.ContainsAttributes)
                 return;
 
             // nodes can be arbitrarily deep.  Use an explicit stack over recursion to prevent a stack-overflow.
@@ -249,7 +249,7 @@ public partial struct SyntaxValueProvider
                     var node = nodeStack.Pop();
 
                     // Don't bother descending into nodes that don't contain attributes.
-                    if (!node.Green.Flags.HasFlag(GreenNode.NodeFlags.ContainsAttributes))
+                    if (!node.ContainsAttributes)
                         continue;
 
                     if (syntaxHelper.IsAttributeList(node))
