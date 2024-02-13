@@ -339,6 +339,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void SetResult(BoundExpression? expression, VisitResult visitResult, bool updateAnalyzedNullability, bool? isLvalue)
         {
+            // As a general rule, the state should only be conditional for expressions of type bool,
+            // although there are a few exceptions.
+            Debug.Assert(visitResult.RValueType.Type?.IsErrorType() == true
+                || visitResult.RValueType.Type?.IsDynamic() == true
+                || !IsConditionalState
+                || visitResult.RValueType.Type?.SpecialType == SpecialType.System_Boolean);
+
             _visitResult = visitResult;
             if (updateAnalyzedNullability)
             {
@@ -4499,6 +4506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var expression = GetConversionIfApplicable(expressions[i], expressionNoConversion);
                         expressionTypes[i] = VisitConversion(expression, expressionNoConversion, conversions[i], inferredType, expressionTypes[i], checkConversion: true,
                             fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
+                        Unsplit();
                     }
 
                     // Set top-level nullability on inferred element type
@@ -5825,6 +5833,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             resultType ??= node.Type?.SetUnknownNullabilityForReferenceTypes();
 
+            if (resultType?.SpecialType != SpecialType.System_Boolean)
+            {
+                Unsplit();
+            }
+
             TypeWithAnnotations resultTypeWithAnnotations;
 
             if (resultType is null)
@@ -6435,7 +6448,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Annotations are ignored when binding an attribute to avoid cycles. (Members used
             // in attributes are error scenarios, so missing warnings should not be important.)
-            return IsAnalyzingAttribute ? FlowAnalysisAnnotations.None : parameter.FlowAnalysisAnnotations;
+            if (IsAnalyzingAttribute)
+                return FlowAnalysisAnnotations.None;
+
+            // Conditional annotations are ignored on parameters of non-boolean members.
+            if (parameter.ContainingSymbol.GetTypeOrReturnType().Type.SpecialType != SpecialType.System_Boolean)
+            {
+                var annotations = parameter.FlowAnalysisAnnotations;
+
+                // NotNull = NotNullWhenTrue + NotNullWhenFalse
+                bool hasNotNullWhenTrue = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNullWhenTrue;
+                bool hasNotNullWhenFalse = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNullWhenFalse;
+                if (hasNotNullWhenTrue ^ hasNotNullWhenFalse)
+                {
+                    annotations &= ~FlowAnalysisAnnotations.NotNull;
+                }
+
+                // MaybeNull = MaybeNullWhenTrue + MaybeNullWhenFalse
+                bool hasMaybeNullWhenTrue = (annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNullWhenTrue;
+                bool hasMaybeNullWhenFalse = (annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNullWhenFalse;
+                if (hasMaybeNullWhenTrue ^ hasMaybeNullWhenFalse)
+                {
+                    annotations &= ~FlowAnalysisAnnotations.MaybeNull;
+                }
+
+                return annotations;
+            }
+
+            return parameter.FlowAnalysisAnnotations;
         }
 
         /// <summary>
@@ -11221,7 +11261,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LearnFromNullTest(operand, ref StateWhenFalse);
             }
 
+            var savedState = PossiblyConditionalState.Create(this);
+            Unsplit();
             VisitTypeExpression(typeExpr);
+            SetPossiblyConditionalState(savedState);
             SetNotNullResult(node);
             return null;
         }
