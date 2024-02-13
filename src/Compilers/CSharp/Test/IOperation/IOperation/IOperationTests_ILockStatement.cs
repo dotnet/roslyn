@@ -1275,6 +1275,103 @@ Block[B6] - Exit
         }
 
         [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        public void LockFlow_LockObject_NonEmptyBody()
+        {
+            var source = """
+                using System;
+                using System.Threading;
+
+                class C
+                {
+                    void M()
+                    /*<bind>*/{
+                        Lock l = new Lock();
+                        lock (l)
+                        {
+                            Console.Write("Body");
+                        }
+                    }/*</bind>*/
+                }
+                """;
+
+            var expectedFlowGraph = """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Entering: {R1}
+                .locals {R1}
+                {
+                    Locals: [System.Threading.Lock l]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (1)
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l = new Lock()')
+                              Left:
+                                ILocalReferenceOperation: l (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l = new Lock()')
+                              Right:
+                                IObjectCreationOperation (Constructor: System.Threading.Lock..ctor()) (OperationKind.ObjectCreation, Type: System.Threading.Lock) (Syntax: 'new Lock()')
+                                  Arguments(0)
+                                  Initializer:
+                                    null
+                        Next (Regular) Block[B2]
+                            Entering: {R2}
+                    .locals {R2}
+                    {
+                        CaptureIds: [0]
+                        Block[B2] - Block
+                            Predecessors: [B1]
+                            Statements (1)
+                                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l')
+                                  Value:
+                                    IInvocationOperation ( System.Threading.Lock.Scope System.Threading.Lock.EnterLockScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l')
+                                      Instance Receiver:
+                                        ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock) (Syntax: 'l')
+                                      Arguments(0)
+                            Next (Regular) Block[B3]
+                                Entering: {R3} {R4}
+                        .try {R3, R4}
+                        {
+                            Block[B3] - Block
+                                Predecessors: [B2]
+                                Statements (1)
+                                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write("Body");')
+                                      Expression:
+                                        IInvocationOperation (void System.Console.Write(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write("Body")')
+                                          Instance Receiver:
+                                            null
+                                          Arguments(1):
+                                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Body"')
+                                                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Body") (Syntax: '"Body"')
+                                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                Next (Regular) Block[B5]
+                                    Finalizing: {R5}
+                                    Leaving: {R4} {R3} {R2} {R1}
+                        }
+                        .finally {R5}
+                        {
+                            Block[B4] - Block
+                                Predecessors (0)
+                                Statements (1)
+                                    IInvocationOperation ( void System.Threading.Lock.Scope.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'l')
+                                      Instance Receiver:
+                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l')
+                                      Arguments(0)
+                                Next (StructuredExceptionHandling) Block[null]
+                        }
+                    }
+                }
+                Block[B5] - Exit
+                    Predecessors: [B3]
+                    Statements (0)
+                """;
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>([source, LockTypeDefinition], expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         public void LockFlow_LockObject_Conditional()
         {
             var source = """
@@ -1652,6 +1749,83 @@ Block[B6] - Exit
                                 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
                                   Children(1):
                                       ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
+                        Next (Regular) Block[B2]
+                            Leaving: {R1}
+                }
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,15): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+                //         lock (l)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(9, 15)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        public void LockFlow_LockObject_MissingEnterLockScope_NonEmptyBody()
+        {
+            var source = """
+                using System;
+                using System.Threading;
+
+                class C
+                {
+                    void M()
+                    /*<bind>*/{
+                        Lock l = new Lock();
+                        lock (l)
+                        {
+                            Console.Write("Body");
+                        }
+                    }/*</bind>*/
+                }
+
+                namespace System.Threading
+                {
+                    public class Lock { }
+                }
+                """;
+
+            var expectedFlowGraph = """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Entering: {R1}
+                .locals {R1}
+                {
+                    Locals: [System.Threading.Lock l]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (3)
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l = new Lock()')
+                              Left:
+                                ILocalReferenceOperation: l (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l = new Lock()')
+                              Right:
+                                IObjectCreationOperation (Constructor: System.Threading.Lock..ctor()) (OperationKind.ObjectCreation, Type: System.Threading.Lock) (Syntax: 'new Lock()')
+                                  Arguments(0)
+                                  Initializer:
+                                    null
+                            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'lock (l) ... }')
+                              Expression:
+                                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'l')
+                                  Children(1):
+                                      ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock, IsInvalid) (Syntax: 'l')
+                            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write("Body");')
+                              Expression:
+                                IInvocationOperation (void System.Console.Write(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write("Body")')
+                                  Instance Receiver:
+                                    null
+                                  Arguments(1):
+                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Body"')
+                                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Body") (Syntax: '"Body"')
+                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Next (Regular) Block[B2]
                             Leaving: {R1}
                 }
