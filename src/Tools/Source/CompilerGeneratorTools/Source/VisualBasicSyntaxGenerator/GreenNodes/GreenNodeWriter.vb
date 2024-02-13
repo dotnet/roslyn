@@ -109,9 +109,9 @@ Friend Class GreenNodeWriter
         GenerateNodeStructureMembers(nodeStructure)
 
         ' Create the constructor.
-        GenerateNodeStructureConstructor(nodeStructure, False, noExtra:=True)
-        GenerateNodeStructureConstructor(nodeStructure, False, noExtra:=True, contextual:=True)
-        GenerateNodeStructureConstructor(nodeStructure, False)
+        GenerateNodeStructureConstructor(nodeStructure, noExtra:=True)
+        GenerateNodeStructureConstructor(nodeStructure, noExtra:=True, contextual:=True)
+        GenerateNodeStructureConstructor(nodeStructure)
 
         GenerateCreateRed(nodeStructure)
 
@@ -293,7 +293,6 @@ Friend Class GreenNodeWriter
 
     ' Generate constructor for a node structure
     Private Sub GenerateNodeStructureConstructor(nodeStructure As ParseNodeStructure,
-                                                 isRaw As Boolean,
                                                  Optional noExtra As Boolean = False,
                                                  Optional contextual As Boolean = False)
 

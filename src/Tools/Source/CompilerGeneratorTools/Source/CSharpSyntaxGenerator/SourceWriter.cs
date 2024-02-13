@@ -586,6 +586,7 @@ namespace CSharpSyntaxGenerator
             if (nd.Name != "SkippedTokensTriviaSyntax" &&
                 nd.Name != "DocumentationCommentTriviaSyntax" &&
                 nd.Name != "IncompleteMemberSyntax" &&
+                nd.Name != "AttributeSyntax" &&
                 valueFields.Count + nodeFields.Count <= 3)
             {
                 //int hash;
