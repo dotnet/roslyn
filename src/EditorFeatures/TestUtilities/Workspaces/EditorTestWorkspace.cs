@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities;
 
 public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>
 {
-    private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = new();
+    private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = [];
 
     internal EditorTestWorkspace(
         TestComposition? composition = null,

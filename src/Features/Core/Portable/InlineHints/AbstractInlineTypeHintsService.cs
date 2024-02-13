@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             int position,
             HashSet<INamedTypeSymbol>? seenSymbols = null)
         {
-            seenSymbols ??= new();
+            seenSymbols ??= [];
 
             foreach (var part in parts)
             {

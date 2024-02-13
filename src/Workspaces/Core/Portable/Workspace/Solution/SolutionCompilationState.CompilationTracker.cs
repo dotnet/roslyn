@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Access via the <see cref="ReadState"/> and <see cref="WriteState"/> methods.
             /// </summary>
-            private CompilationTrackerState _stateDoNotAccessDirectly;
+            private CompilationTrackerState? _stateDoNotAccessDirectly;
 
             // guarantees only one thread is building at a time
             private readonly SemaphoreSlim _buildLock = new(initialCount: 1);
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
 
             private CompilationTracker(
                 ProjectState project,
-                CompilationTrackerState state,
+                CompilationTrackerState? state,
                 SkeletonReferenceCache cachedSkeletonReferences)
             {
                 Contract.ThrowIfNull(project);
@@ -71,11 +71,11 @@ namespace Microsoft.CodeAnalysis
             /// and will have no extra information beyond the project itself.
             /// </summary>
             public CompilationTracker(ProjectState project)
-                : this(project, CompilationTrackerState.Empty, cachedSkeletonReferences: new())
+                : this(project, state: null, cachedSkeletonReferences: new())
             {
             }
 
-            private CompilationTrackerState ReadState()
+            private CompilationTrackerState? ReadState()
                 => Volatile.Read(ref _stateDoNotAccessDirectly);
 
             private void WriteState(CompilationTrackerState state)
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
                 get
                 {
                     var state = this.ReadState();
-                    return state.GeneratorInfo.Driver;
+                    return state?.GeneratorInfo.Driver;
                 }
             }
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis
                              SymbolKind.DynamicType);
                 var state = this.ReadState();
 
-                var unrootedSymbolSet = (state as FinalState)?.UnrootedSymbolSet;
+                var unrootedSymbolSet = (state as FinalCompilationTrackerState)?.UnrootedSymbolSet;
                 if (unrootedSymbolSet == null)
                 {
                     // this was not a tracker that has handed out a compilation (all compilations handed out must be
@@ -119,78 +119,71 @@ namespace Microsoft.CodeAnalysis
                 ProjectState newProjectState,
                 CompilationAndGeneratorDriverTranslationAction? translate)
             {
+                var oldProjectState = this.ProjectState;
+                var forkedTrackerState = ForkTrackerState();
+
+                // We should never fork into a FinalCompilationTrackerState.  We must always be at some state prior to
+                // it since some change has happened, and we may now need to run generators.
+                Contract.ThrowIfTrue(forkedTrackerState is FinalCompilationTrackerState);
+                Contract.ThrowIfFalse(forkedTrackerState is null or InProgressState);
                 return new CompilationTracker(
                     newProjectState,
-                    ForkState(oldProjectState: this.ProjectState, ReadState(), translate),
+                    forkedTrackerState,
                     this.SkeletonReferenceCache.Clone());
 
-                static CompilationTrackerState ForkState(
-                    ProjectState oldProjectState,
-                    CompilationTrackerState state,
-                    CompilationAndGeneratorDriverTranslationAction? translate)
+                CompilationTrackerState? ForkTrackerState()
                 {
-                    if (state is WithCompilationTrackerState withCompilationState)
-                    {
-                        var intermediateProjects = state is InProgressState inProgressState
-                            ? inProgressState.IntermediateProjects
-                            : [];
-                        var finalCompilationWithGeneratedDocuments = state is FinalState finalState
-                            ? finalState.FinalCompilationWithGeneratedDocuments
-                            : null;
+                    var state = this.ReadState();
+                    if (state is null)
+                        return null;
 
-                        if (translate is not null)
+                    var (compilationWithoutGeneratedDocuments, staleCompilationWithGeneratedDocuments) = state switch
+                    {
+                        InProgressState inProgressState => (inProgressState.CompilationWithoutGeneratedDocuments, inProgressState.StaleCompilationWithGeneratedDocuments),
+                        FinalCompilationTrackerState finalState => (finalState.CompilationWithoutGeneratedDocuments, finalState.FinalCompilationWithGeneratedDocuments),
+                        _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
+                    };
+
+                    var finalSteps = UpdatePendingTranslationSteps(
+                        state switch
                         {
-                            // We have a translation action; are we able to merge it with the prior one?
-                            var merged = false;
-                            if (!intermediateProjects.IsEmpty)
-                            {
-                                var (priorState, priorAction) = intermediateProjects.Last();
-                                var mergedTranslation = translate.TryMergeWithPrior(priorAction);
-                                if (mergedTranslation != null)
-                                {
-                                    // We can replace the prior action with this new one
-                                    intermediateProjects = intermediateProjects.SetItem(
-                                        intermediateProjects.Count - 1,
-                                        (oldState: priorState, mergedTranslation));
-                                    merged = true;
-                                }
-                            }
+                            InProgressState { PendingTranslationSteps: var pendingTranslationSteps } => pendingTranslationSteps,
+                            FinalCompilationTrackerState => [],
+                            _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
+                        });
 
-                            if (!merged)
-                            {
-                                // Just add it to the end
-                                intermediateProjects = intermediateProjects.Add((oldProjectState, translate));
-                            }
+                    var newState = InProgressState.Create(
+                        state.IsFrozen,
+                        compilationWithoutGeneratedDocuments,
+                        state.GeneratorInfo,
+                        staleCompilationWithGeneratedDocuments,
+                        finalSteps);
+
+                    return newState;
+                }
+
+                ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> UpdatePendingTranslationSteps(
+                    ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
+                {
+                    if (translate is null)
+                        return pendingTranslationSteps;
+
+                    // We have a translation action; are we able to merge it with the prior one?
+                    if (!pendingTranslationSteps.IsEmpty)
+                    {
+                        var (priorState, priorAction) = pendingTranslationSteps.Last();
+                        var mergedTranslation = translate.TryMergeWithPrior(priorAction);
+                        if (mergedTranslation != null)
+                        {
+                            // We can replace the prior action with this new one
+                            return pendingTranslationSteps.SetItem(
+                                pendingTranslationSteps.Count - 1,
+                                (oldState: priorState, mergedTranslation));
                         }
-
-                        var newState = CompilationTrackerState.Create(
-                            withCompilationState.CompilationWithoutGeneratedDocuments,
-                            state.GeneratorInfo,
-                            finalCompilationWithGeneratedDocuments,
-                            intermediateProjects);
-                        return newState;
                     }
-                    else if (state is NoCompilationState)
-                    {
-                        // We may still have a cached generator; we'll have to remember to run generators again since we are making some
-                        // change here. We'll also need to update the other state of the driver if appropriate.
 
-                        // The no compilation state can never be in the 'DocumentsAreFinal' state.  The only place where
-                        // we start with the NoCompilationState is the 'Empty' instance (where DocumentsAreFinal=false).
-                        // And then this is the only place where we get a NoCompilationState and create a new instance.
-                        // So there is no way to ever transition this to the DocumentsAreFinal=true state.
-                        Contract.ThrowIfTrue(state.GeneratorInfo.DocumentsAreFinal);
-                        Contract.ThrowIfTrue(state.GeneratorInfo.Driver != null);
-                        var generatorInfo = state.GeneratorInfo;
-                        if (generatorInfo.Driver != null && translate != null)
-                            generatorInfo = generatorInfo.WithDriver(translate.TransformGeneratorDriver(generatorInfo.Driver));
-
-                        return new NoCompilationState(generatorInfo);
-                    }
-                    else
-                    {
-                        throw ExceptionUtilities.UnexpectedValue(state.GetType());
-                    }
+                    // Just add it to the end
+                    return pendingTranslationSteps.Add((oldProjectState, translate));
                 }
             }
 
@@ -268,19 +261,18 @@ namespace Microsoft.CodeAnalysis
                 // At this point, we now absolutely should have our tree in the compilation
                 Contract.ThrowIfFalse(compilationPair.CompilationWithoutGeneratedDocuments.ContainsSyntaxTree(tree));
 
-                // Mark whatever generator state we have as not only final, but frozen as well.  We'll want to keep
-                // whatever we have here through whatever future transformations occur.
-                generatorInfo = generatorInfo.WithDocumentsAreFinalAndFrozen();
+                // Mark whatever generator state we have as not only final, and mark our FinalState as frozen as well.
+                // We'll want to keep whatever we have here through whatever future transformations occur.
+                generatorInfo = generatorInfo with { DocumentsAreFinal = true };
 
-                // The user is asking for an in progress snap.  We don't want to create it and then
-                // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
-                // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
-                var finalState = FinalState.Create(
+                var finalState = FinalCompilationTrackerState.Create(
+                    isFrozen: true,
                     finalCompilationWithGeneratedDocuments: compilationPair.CompilationWithGeneratedDocuments,
                     compilationWithoutGeneratedDocuments: compilationPair.CompilationWithoutGeneratedDocuments,
+                    // As a policy, all partial-state projects are said to have incomplete references, since the state
+                    // has no guarantees.
                     hasSuccessfullyLoaded: false,
                     generatorInfo,
-                    finalCompilation: compilationPair.CompilationWithGeneratedDocuments,
                     this.ProjectState.Id,
                     metadataReferenceToProjectId);
 
@@ -304,21 +296,23 @@ namespace Microsoft.CodeAnalysis
                 CancellationToken cancellationToken)
             {
                 var state = ReadState();
-                var compilationWithoutGeneratedDocuments = state is WithCompilationTrackerState withCompilationState
-                    ? withCompilationState.CompilationWithoutGeneratedDocuments
-                    : null;
+                var compilationWithoutGeneratedDocuments = state?.CompilationWithoutGeneratedDocuments;
+
+                generatorInfo = state?.GeneratorInfo ?? CompilationTrackerGeneratorInfo.Empty;
 
                 // check whether we can bail out quickly for typing case
                 var inProgressState = state as InProgressState;
 
-                generatorInfo = state.GeneratorInfo;
-                inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().oldState : this.ProjectState;
+                inProgressProject = inProgressState is { PendingTranslationSteps: [(var oldState, _), ..] }
+                    ? oldState
+                    : this.ProjectState;
 
                 // all changes left for this document is modifying the given document; since the compilation is already fully up to date
                 // we don't need to do any further checking of it's references
                 if (inProgressState != null &&
                     compilationWithoutGeneratedDocuments != null &&
-                    inProgressState.IntermediateProjects.All(t => IsTouchDocumentActionForDocument(t.action, id)))
+                    inProgressState.PendingTranslationSteps.Count > 0 &&
+                    inProgressState.PendingTranslationSteps.All(t => IsTouchDocumentActionForDocument(t.action, id)))
                 {
                     // We'll add in whatever generated documents we do have; these may be from a prior run prior to some changes
                     // being made to the project, but it's the best we have so we'll use it.
@@ -333,7 +327,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // if we already have a final compilation we are done.
-                if (compilationWithoutGeneratedDocuments != null && state is FinalState finalState)
+                if (compilationWithoutGeneratedDocuments != null && state is FinalCompilationTrackerState finalState)
                 {
                     var finalCompilation = finalState.FinalCompilationWithGeneratedDocuments;
                     Contract.ThrowIfNull(finalCompilation, "We have a FinalState, so we must have a non-null final compilation");
@@ -369,7 +363,7 @@ namespace Microsoft.CodeAnalysis
                 var newProjectReferences = new List<ProjectReference>();
                 metadataReferences.AddRange(this.ProjectState.MetadataReferences);
 
-                metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
+                metadataReferenceToProjectId = [];
 
                 foreach (var projectReference in this.ProjectState.ProjectReferences)
                 {
@@ -427,7 +421,7 @@ namespace Microsoft.CodeAnalysis
             public bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation)
             {
                 var state = ReadState();
-                if (state is FinalState finalState)
+                if (state is FinalCompilationTrackerState finalState)
                 {
                     compilation = finalState.FinalCompilationWithGeneratedDocuments;
                     Contract.ThrowIfNull(compilation);
@@ -466,7 +460,7 @@ namespace Microsoft.CodeAnalysis
                 return finalState.FinalCompilationWithGeneratedDocuments;
             }
 
-            private async Task<FinalState> GetOrBuildFinalStateAsync(
+            private async Task<FinalCompilationTrackerState> GetOrBuildFinalStateAsync(
                 SolutionCompilationState compilationState,
                 CancellationToken cancellationToken)
             {
@@ -480,14 +474,14 @@ namespace Microsoft.CodeAnalysis
                         var state = ReadState();
 
                         // Try to get the built compilation.  If it exists, then we can just return that.
-                        if (state is FinalState finalState)
+                        if (state is FinalCompilationTrackerState finalState)
                             return finalState;
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
                         // build this compilation at a time.
                         using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                         {
-                            return await BuildFinalStateAsync(compilationState, cancellationToken).ConfigureAwait(false);
+                            return await BuildFinalStateAsync().ConfigureAwait(false);
                         }
                     }
                 }
@@ -500,118 +494,281 @@ namespace Microsoft.CodeAnalysis
                 // Builds the compilation matching the project state. In the process of building, also
                 // produce in progress snapshots that can be accessed from other threads.
                 // </summary>
-                async Task<FinalState> BuildFinalStateAsync(
-                    SolutionCompilationState compilationState,
-                    CancellationToken cancellationToken)
+                async Task<FinalCompilationTrackerState> BuildFinalStateAsync()
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var state = ReadState();
 
-                    return state switch
+                    // if we already have a compilation, we must be already done!  This can happen if two
+                    // threads were waiting to build, and we came in after the other succeeded.
+                    if (state is FinalCompilationTrackerState finalState)
+                        return finalState;
+
+                    // Transition from wherever we're currently at to the 'all trees parsed' state.
+                    var expandedInProgressState = state switch
                     {
-                        // if we already have a compilation, we must be already done!  This can happen if two
-                        // threads were waiting to build, and we came in after the other succeeded.
-                        FinalState finalState
-                            => finalState,
+                        InProgressState inProgressState => inProgressState,
 
                         // We've got nothing.  Build it from scratch :(
-                        NoCompilationState noCompilationState
-                            => await BuildFinalStateFromScratchAsync(
-                                compilationState,
-                                noCompilationState,
-                                cancellationToken).ConfigureAwait(false),
+                        null => await BuildInProgressStateFromNoCompilationStateAsync().ConfigureAwait(false),
 
-                        // We have a declaration compilation, use it to reconstruct the final compilation
-                        AllSyntaxTreesParsedState allSyntaxTreesParsedState
-                            => await FinalizeCompilationAsync(
-                                compilationState,
-                                allSyntaxTreesParsedState,
-                                compilationWithStaleGeneratedTrees: null,
-                                cancellationToken).ConfigureAwait(false),
-
-                        // We must have an in progress compilation. Build off of that.
-                        InProgressState inProgressState
-                            => await BuildFinalStateFromInProgressStateAsync(
-                                compilationState,
-                                inProgressState,
-                                cancellationToken).ConfigureAwait(false),
-
-                        _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
+                        _ => throw ExceptionUtilities.UnexpectedValue(state.GetType())
                     };
 
-                    async Task<FinalState> BuildFinalStateFromScratchAsync(
-                        SolutionCompilationState compilationState,
-                        NoCompilationState noCompilationState,
-                        CancellationToken cancellationToken)
+                    // Now do the final step of transitioning from the 'all trees parsed' state to the final state.
+                    var collapsedInProgressState = await CollapseInProgressStateAsync(expandedInProgressState).ConfigureAwait(false);
+                    return await FinalizeCompilationAsync(collapsedInProgressState).ConfigureAwait(false);
+                }
+
+                [PerformanceSensitive(
+                    "https://github.com/dotnet/roslyn/issues/23582",
+                    Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
+
+                async Task<InProgressState> BuildInProgressStateFromNoCompilationStateAsync()
+                {
+                    try
                     {
-                        Contract.ThrowIfTrue(noCompilationState.GeneratorInfo.DocumentsAreFinal);
+                        var compilation = CreateEmptyCompilation();
 
-                        try
+                        using var _ = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentStates.Count, out var trees);
+                        foreach (var documentState in ProjectState.DocumentStates.GetStatesInCompilationOrder())
                         {
-                            var allSyntaxTreesParsedState = await BuildAllSyntaxTreesParsedStateFromScratchAsync(
-                                noCompilationState, cancellationToken).ConfigureAwait(false);
+                            cancellationToken.ThrowIfCancellationRequested();
+                            // Include the tree even if the content of the document failed to load.
+                            trees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                        }
 
-                            return await FinalizeCompilationAsync(
-                                compilationState,
-                                allSyntaxTreesParsedState,
-                                compilationWithStaleGeneratedTrees: null,
-                                cancellationToken).ConfigureAwait(false);
-                        }
-                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+                        compilation = compilation.AddSyntaxTrees(trees);
+
+                        // We only got here when we had no compilation state at all.  So we couldn't have gotten
+                        // here from a frozen state (as a frozen state always ensures we have a
+                        // WithCompilationTrackerState).  As such, we can safely still preserve that we're not
+                        // frozen here.
+                        var allSyntaxTreesParsedState = InProgressState.Create(
+                            isFrozen: false, compilation, CompilationTrackerGeneratorInfo.Empty, staleCompilationWithGeneratedDocuments: null,
+                            pendingTranslationSteps: []);
+
+                        WriteState(allSyntaxTreesParsedState);
+                        return allSyntaxTreesParsedState;
+                    }
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+                }
+
+                async Task<InProgressState> CollapseInProgressStateAsync(InProgressState initialState)
+                {
+                    try
+                    {
+                        var currentState = initialState;
+                        while (currentState.PendingTranslationSteps.Count > 0)
                         {
-                            throw ExceptionUtilities.Unreachable();
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            // We have a list of transformations to get to our final compilation; take the first transformation and apply it.
+                            var (compilationWithoutGeneratedDocuments, staleCompilationWithGeneratedDocuments, generatorInfo) =
+                                await ApplyFirstTransformationAsync(currentState).ConfigureAwait(false);
+
+                            // We have updated state, so store this new result; this allows us to drop the intermediate state we already processed
+                            // even if we were to get cancelled at a later point.
+                            //
+                            // As long as we have intermediate projects, we'll still keep creating InProgressStates.  But
+                            // once it becomes empty we'll produce an AllSyntaxTreesParsedState and we'll break the loop.
+                            //
+                            // Preserve the current frozen bit.  Specifically, once states become frozen, we continually make
+                            // all states forked from those states frozen as well.  This ensures we don't attempt to move
+                            // generator docs back to the uncomputed state from that point onwards.  We'll just keep
+                            // whateverZ generated docs we have.
+                            currentState = InProgressState.Create(
+                                currentState.IsFrozen,
+                                compilationWithoutGeneratedDocuments,
+                                generatorInfo,
+                                staleCompilationWithGeneratedDocuments,
+                                currentState.PendingTranslationSteps.RemoveAt(0));
+                            this.WriteState(currentState);
                         }
+
+                        return currentState;
+                    }
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+                    {
+                        throw ExceptionUtilities.Unreachable();
                     }
 
-                    [PerformanceSensitive(
-                        "https://github.com/dotnet/roslyn/issues/23582",
-                        Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
-                    async Task<AllSyntaxTreesParsedState> BuildAllSyntaxTreesParsedStateFromScratchAsync(
-                        NoCompilationState noCompilationState,
-                        CancellationToken cancellationToken)
+                    async Task<(Compilation compilationWithoutGeneratedDocuments, Compilation? staleCompilationWithGeneratedDocuments, CompilationTrackerGeneratorInfo generatorInfo)>
+                        ApplyFirstTransformationAsync(InProgressState inProgressState)
                     {
-                        try
-                        {
-                            var compilation = CreateEmptyCompilation();
+                        Contract.ThrowIfTrue(inProgressState.PendingTranslationSteps.IsEmpty);
+                        var (oldState, action) = inProgressState.PendingTranslationSteps[0];
 
-                            using var _ = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentStates.Count, out var trees);
-                            foreach (var documentState in ProjectState.DocumentStates.GetStatesInCompilationOrder())
+                        var compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
+                        var staleCompilationWithGeneratedDocuments = inProgressState.StaleCompilationWithGeneratedDocuments;
+
+                        // If staleCompilationWithGeneratedDocuments is the same as compilationWithoutGeneratedDocuments,
+                        // then it means a prior run of generators didn't produce any files. In that case, we'll just make
+                        // staleCompilationWithGeneratedDocuments null so we avoid doing any transformations of it multiple
+                        // times. Otherwise the transformations below and in FinalizeCompilationAsync will try to update
+                        // both at once, which is functionally fine but just unnecessary work. This function is always
+                        // allowed to return null for AllSyntaxTreesParsedState.StaleCompilationWithGeneratedDocuments in
+                        // the end, so there's no harm there.
+                        if (staleCompilationWithGeneratedDocuments == compilationWithoutGeneratedDocuments)
+                            staleCompilationWithGeneratedDocuments = null;
+
+                        compilationWithoutGeneratedDocuments = await action.TransformCompilationAsync(compilationWithoutGeneratedDocuments, cancellationToken).ConfigureAwait(false);
+
+                        if (staleCompilationWithGeneratedDocuments != null)
+                        {
+                            // Also transform the compilation that has generated files; we won't do that though if the transformation either would cause problems with
+                            // the generated documents, or if don't have any source generators in the first place.
+                            if (action.CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput &&
+                                oldState.SourceGenerators.Any())
                             {
-                                cancellationToken.ThrowIfCancellationRequested();
-                                // Include the tree even if the content of the document failed to load.
-                                trees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                                staleCompilationWithGeneratedDocuments = await action.TransformCompilationAsync(staleCompilationWithGeneratedDocuments, cancellationToken).ConfigureAwait(false);
                             }
+                            else
+                            {
+                                staleCompilationWithGeneratedDocuments = null;
+                            }
+                        }
 
-                            compilation = compilation.AddSyntaxTrees(trees);
-                            var allSyntaxTreesParsedState = new AllSyntaxTreesParsedState(compilation, noCompilationState.GeneratorInfo, compilationWithGeneratedDocuments: null);
-                            WriteState(allSyntaxTreesParsedState);
-                            return allSyntaxTreesParsedState;
-                        }
-                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-                        {
-                            throw ExceptionUtilities.Unreachable();
-                        }
+                        var generatorInfo = inProgressState.GeneratorInfo;
+                        if (generatorInfo.Driver != null)
+                            generatorInfo = generatorInfo with { Driver = action.TransformGeneratorDriver(generatorInfo.Driver) };
+
+                        return (compilationWithoutGeneratedDocuments, staleCompilationWithGeneratedDocuments, generatorInfo);
                     }
+                }
 
-                    async Task<FinalState> BuildFinalStateFromInProgressStateAsync(
-                        SolutionCompilationState compilationState, InProgressState inProgressState, CancellationToken cancellationToken)
+                // <summary>
+                // Add all appropriate references to the compilation and set it as our final compilation state.
+                // </summary>
+                async Task<FinalCompilationTrackerState> FinalizeCompilationAsync(
+                    InProgressState inProgressState)
+                {
+                    try
                     {
-                        try
-                        {
-                            var allSyntaxTreesParsedState = await BuildAllSyntaxTreesParsedStateFromInProgressStateAsync(
-                                inProgressState, cancellationToken).ConfigureAwait(false);
+                        // Caller should collapse the in progress state first.
+                        Contract.ThrowIfTrue(inProgressState.PendingTranslationSteps.Count > 0);
 
-                            return await FinalizeCompilationAsync(
-                                compilationState,
-                                allSyntaxTreesParsedState,
-                                allSyntaxTreesParsedState.CompilationWithGeneratedDocuments,
-                                cancellationToken).ConfigureAwait(false);
-                        }
-                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                        // The final state we produce will be frozen or not depending on if a frozen state was passed into it.
+                        var isFrozen = inProgressState.IsFrozen;
+                        var generatorInfo = inProgressState.GeneratorInfo;
+                        var compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
+                        var staleCompilationWithGeneratedDocuments = inProgressState.StaleCompilationWithGeneratedDocuments;
+
+                        // Project is complete only if the following are all true:
+                        //  1. HasAllInformation flag is set for the project
+                        //  2. Either the project has non-zero metadata references OR this is the corlib project.
+                        //     For the latter, we use a heuristic if the underlying compilation defines "System.Object" type.
+                        var hasSuccessfullyLoaded = this.ProjectState.HasAllInformation &&
+                            (this.ProjectState.MetadataReferences.Count > 0 ||
+                             compilationWithoutGeneratedDocuments.GetTypeByMetadataName("System.Object") != null);
+
+                        var newReferences = new List<MetadataReference>();
+                        var metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
+                        newReferences.AddRange(this.ProjectState.MetadataReferences);
+
+                        foreach (var projectReference in this.ProjectState.ProjectReferences)
                         {
-                            throw ExceptionUtilities.Unreachable();
+                            var referencedProject = compilationState.SolutionState.GetProjectState(projectReference.ProjectId);
+
+                            // Even though we're creating a final compilation (vs. an in progress compilation),
+                            // it's possible that the target project has been removed.
+                            if (referencedProject != null)
+                            {
+                                // If both projects are submissions, we'll count this as a previous submission link
+                                // instead of a regular metadata reference
+                                if (referencedProject.IsSubmission)
+                                {
+                                    // if the referenced project is a submission project must be a submission as well:
+                                    Debug.Assert(this.ProjectState.IsSubmission);
+
+                                    // We now need to (potentially) update the prior submission compilation. That Compilation is held in the
+                                    // ScriptCompilationInfo that we need to replace as a unit.
+                                    var previousSubmissionCompilation =
+                                        await compilationState.GetCompilationAsync(
+                                            projectReference.ProjectId, cancellationToken).ConfigureAwait(false);
+
+                                    if (compilationWithoutGeneratedDocuments.ScriptCompilationInfo!.PreviousScriptCompilation != previousSubmissionCompilation)
+                                    {
+                                        compilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments.WithScriptCompilationInfo(
+                                            compilationWithoutGeneratedDocuments.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
+
+                                        staleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments?.WithScriptCompilationInfo(
+                                            staleCompilationWithGeneratedDocuments.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
+                                    }
+                                }
+                                else
+                                {
+                                    var metadataReference = await compilationState.GetMetadataReferenceAsync(
+                                        projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
+
+                                    // A reference can fail to be created if a skeleton assembly could not be constructed.
+                                    if (metadataReference != null)
+                                    {
+                                        newReferences.Add(metadataReference);
+                                        metadataReferenceToProjectId.Add(metadataReference, projectReference.ProjectId);
+                                    }
+                                    else
+                                    {
+                                        hasSuccessfullyLoaded = false;
+                                    }
+                                }
+                            }
                         }
+
+                        // Now that we know the set of references this compilation should have, update them if they're not already.
+                        // Generators cannot add references, so we can use the same set of references both for the compilation
+                        // that doesn't have generated files, and the one we're trying to reuse that has generated files.
+                        // Since we updated both of these compilations together in response to edits, we only have to check one
+                        // for a potential mismatch.
+                        if (!Enumerable.SequenceEqual(compilationWithoutGeneratedDocuments.ExternalReferences, newReferences))
+                        {
+                            compilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments.WithReferences(newReferences);
+                            staleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments?.WithReferences(newReferences);
+                        }
+
+                        // We will finalize the compilation by adding full contents here.
+                        var (compilationWithGeneratedDocuments, generatedDocuments, generatorDriver) = await AddExistingOrComputeNewGeneratorInfoAsync(
+                            compilationState,
+                            compilationWithoutGeneratedDocuments,
+                            generatorInfo,
+                            staleCompilationWithGeneratedDocuments,
+                            cancellationToken).ConfigureAwait(false);
+
+                        // After producing the sg documents, we must always be in the final state for the generator data.
+                        var nextGeneratorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorDriver, DocumentsAreFinal: true);
+
+                        var finalState = FinalCompilationTrackerState.Create(
+                            isFrozen,
+                            compilationWithGeneratedDocuments,
+                            compilationWithoutGeneratedDocuments,
+                            hasSuccessfullyLoaded,
+                            nextGeneratorInfo,
+                            this.ProjectState.Id,
+                            metadataReferenceToProjectId);
+
+                        this.WriteState(finalState);
+
+                        return finalState;
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        // Explicitly force a yield point here.  This addresses a problem on .net framework where it's
+                        // possible that cancelling this task chain ends up stack overflowing as the TPL attempts to
+                        // synchronously recurse through the tasks to execute antecedent work.  This will force continuations
+                        // here to run asynchronously preventing the stack overflow.
+                        // See https://github.com/dotnet/roslyn/issues/56356 for more details.
+                        // note: this can be removed if this code only needs to run on .net core (as the stack overflow issue
+                        // does not exist there).
+                        await Task.Yield().ConfigureAwait(false);
+                        throw;
+                    }
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+                    {
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }
             }
@@ -635,220 +792,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private async Task<AllSyntaxTreesParsedState> BuildAllSyntaxTreesParsedStateFromInProgressStateAsync(
-                InProgressState state, CancellationToken cancellationToken)
-            {
-                try
-                {
-                    var compilationWithoutGeneratedDocuments = state.CompilationWithoutGeneratedDocuments;
-                    var compilationWithGeneratedDocuments = state.CompilationWithGeneratedDocuments;
-                    var generatorDriver = state.GeneratorInfo.Driver;
-
-                    // If compilationWithGenerators is the same as compilationWithoutGenerators, then it means a prior run of generators
-                    // didn't produce any files. In that case, we'll just make compilationWithGenerators null so we avoid doing any
-                    // transformations of it multiple times. Otherwise the transformations below and in FinalizeCompilationAsync will try
-                    // to update both at once, which is functionally fine but just unnecessary work. This function is always allowed to return
-                    // null for compilationWithGenerators in the end, so there's no harm there.
-                    if (compilationWithGeneratedDocuments == compilationWithoutGeneratedDocuments)
-                    {
-                        compilationWithGeneratedDocuments = null;
-                    }
-
-                    var intermediateProjects = state.IntermediateProjects;
-
-                    // This is guaranteed by an in progress state.  Which means we know we'll get into the while loop below.
-                    Contract.ThrowIfTrue(intermediateProjects.Count == 0);
-                    AllSyntaxTreesParsedState? resultState = null;
-
-                    while (!intermediateProjects.IsEmpty)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        // We have a list of transformations to get to our final compilation; take the first transformation and apply it.
-                        var (oldState, action) = intermediateProjects[0];
-
-                        compilationWithoutGeneratedDocuments = await action.TransformCompilationAsync(compilationWithoutGeneratedDocuments, cancellationToken).ConfigureAwait(false);
-
-                        if (compilationWithGeneratedDocuments != null)
-                        {
-                            // Also transform the compilation that has generated files; we won't do that though if the transformation either would cause problems with
-                            // the generated documents, or if don't have any source generators in the first place.
-                            if (action.CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput &&
-                                oldState.SourceGenerators.Any())
-                            {
-                                compilationWithGeneratedDocuments = await action.TransformCompilationAsync(compilationWithGeneratedDocuments, cancellationToken).ConfigureAwait(false);
-                            }
-                            else
-                            {
-                                compilationWithGeneratedDocuments = null;
-                            }
-                        }
-
-                        if (generatorDriver != null)
-                        {
-                            generatorDriver = action.TransformGeneratorDriver(generatorDriver);
-                        }
-
-                        // We have updated state, so store this new result; this allows us to drop the intermediate state we already processed
-                        // even if we were to get cancelled at a later point.
-                        intermediateProjects = intermediateProjects.RemoveAt(0);
-
-                        // As long as we have intermediate projects, we'll still keep creating InProgressStates.  But
-                        // once it becomes empty we'll produce an AllSyntaxTreesParsedState and we'll break the loop.
-                        var currentState = CompilationTrackerState.Create(
-                            compilationWithoutGeneratedDocuments, state.GeneratorInfo.WithDriver(generatorDriver), compilationWithGeneratedDocuments, intermediateProjects);
-                        this.WriteState(currentState);
-
-                        Contract.ThrowIfTrue(intermediateProjects.Count > 0 && currentState is not InProgressState);
-                        Contract.ThrowIfTrue(intermediateProjects.Count == 0 && currentState is not AllSyntaxTreesParsedState);
-
-                        resultState = currentState as AllSyntaxTreesParsedState;
-                    }
-
-                    Contract.ThrowIfNull(resultState);
-                    return resultState;
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-            }
-
-            /// <summary>
-            /// Add all appropriate references to the compilation and set it as our final compilation
-            /// state.
-            /// </summary>
-            /// <param name="compilationWithStaleGeneratedTrees">The compilation from a prior run that contains
-            /// generated trees, which match the states included in <paramref name="allSyntaxTreesParsedState"/>'s
-            /// generator info. If a generator run here produces the same set of generated documents as are in <paramref
-            /// name="allSyntaxTreesParsedState"/>'s generator info, and we don't need to make any other changes to
-            /// references, we can then use this compilation instead of re-adding source generated files again to the
-            /// compilation that <paramref name="allSyntaxTreesParsedState"/> points to.</param>
-            private async Task<FinalState> FinalizeCompilationAsync(
-                SolutionCompilationState compilationState,
-                AllSyntaxTreesParsedState allSyntaxTreesParsedState,
-                Compilation? compilationWithStaleGeneratedTrees,
-                CancellationToken cancellationToken)
-            {
-                try
-                {
-                    var generatorInfo = allSyntaxTreesParsedState.GeneratorInfo;
-                    var compilationWithoutGeneratedDocuments = allSyntaxTreesParsedState.CompilationWithoutGeneratedDocuments;
-
-                    // Project is complete only if the following are all true:
-                    //  1. HasAllInformation flag is set for the project
-                    //  2. Either the project has non-zero metadata references OR this is the corlib project.
-                    //     For the latter, we use a heuristic if the underlying compilation defines "System.Object" type.
-                    var hasSuccessfullyLoaded = this.ProjectState.HasAllInformation &&
-                        (this.ProjectState.MetadataReferences.Count > 0 ||
-                         compilationWithoutGeneratedDocuments.GetTypeByMetadataName("System.Object") != null);
-
-                    var newReferences = new List<MetadataReference>();
-                    var metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
-                    newReferences.AddRange(this.ProjectState.MetadataReferences);
-
-                    foreach (var projectReference in this.ProjectState.ProjectReferences)
-                    {
-                        var referencedProject = compilationState.SolutionState.GetProjectState(projectReference.ProjectId);
-
-                        // Even though we're creating a final compilation (vs. an in progress compilation),
-                        // it's possible that the target project has been removed.
-                        if (referencedProject != null)
-                        {
-                            // If both projects are submissions, we'll count this as a previous submission link
-                            // instead of a regular metadata reference
-                            if (referencedProject.IsSubmission)
-                            {
-                                // if the referenced project is a submission project must be a submission as well:
-                                Debug.Assert(this.ProjectState.IsSubmission);
-
-                                // We now need to (potentially) update the prior submission compilation. That Compilation is held in the
-                                // ScriptCompilationInfo that we need to replace as a unit.
-                                var previousSubmissionCompilation =
-                                    await compilationState.GetCompilationAsync(
-                                        projectReference.ProjectId, cancellationToken).ConfigureAwait(false);
-
-                                if (compilationWithoutGeneratedDocuments.ScriptCompilationInfo!.PreviousScriptCompilation != previousSubmissionCompilation)
-                                {
-                                    compilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments.WithScriptCompilationInfo(
-                                        compilationWithoutGeneratedDocuments.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
-
-                                    compilationWithStaleGeneratedTrees = compilationWithStaleGeneratedTrees?.WithScriptCompilationInfo(
-                                        compilationWithStaleGeneratedTrees.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
-                                }
-                            }
-                            else
-                            {
-                                var metadataReference = await compilationState.GetMetadataReferenceAsync(
-                                    projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
-
-                                // A reference can fail to be created if a skeleton assembly could not be constructed.
-                                if (metadataReference != null)
-                                {
-                                    newReferences.Add(metadataReference);
-                                    metadataReferenceToProjectId.Add(metadataReference, projectReference.ProjectId);
-                                }
-                                else
-                                {
-                                    hasSuccessfullyLoaded = false;
-                                }
-                            }
-                        }
-                    }
-
-                    // Now that we know the set of references this compilation should have, update them if they're not already.
-                    // Generators cannot add references, so we can use the same set of references both for the compilation
-                    // that doesn't have generated files, and the one we're trying to reuse that has generated files.
-                    // Since we updated both of these compilations together in response to edits, we only have to check one
-                    // for a potential mismatch.
-                    if (!Enumerable.SequenceEqual(compilationWithoutGeneratedDocuments.ExternalReferences, newReferences))
-                    {
-                        compilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments.WithReferences(newReferences);
-                        compilationWithStaleGeneratedTrees = compilationWithStaleGeneratedTrees?.WithReferences(newReferences);
-                    }
-
-                    // We will finalize the compilation by adding full contents here.
-                    var (compilationWithGeneratedDocuments, nextGeneratorInfo) = await AddExistingOrComputeNewGeneratorInfoAsync(
-                        compilationState,
-                        compilationWithoutGeneratedDocuments,
-                        generatorInfo,
-                        compilationWithStaleGeneratedTrees,
-                        cancellationToken).ConfigureAwait(false);
-
-                    // After producing the sg documents, we must always be in the final state for the generator data.
-                    Contract.ThrowIfFalse(nextGeneratorInfo.DocumentsAreFinal);
-
-                    var finalState = FinalState.Create(
-                        compilationWithGeneratedDocuments,
-                        compilationWithoutGeneratedDocuments,
-                        hasSuccessfullyLoaded,
-                        nextGeneratorInfo,
-                        compilationWithGeneratedDocuments,
-                        this.ProjectState.Id,
-                        metadataReferenceToProjectId);
-
-                    this.WriteState(finalState);
-
-                    return finalState;
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    // Explicitly force a yield point here.  This addresses a problem on .net framework where it's
-                    // possible that cancelling this task chain ends up stack overflowing as the TPL attempts to
-                    // synchronously recurse through the tasks to execute antecedent work.  This will force continuations
-                    // here to run asynchronously preventing the stack overflow.
-                    // See https://github.com/dotnet/roslyn/issues/56356 for more details.
-                    // note: this can be removed if this code only needs to run on .net core (as the stack overflow issue
-                    // does not exist there).
-                    await Task.Yield().ConfigureAwait(false);
-                    throw;
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-            }
-
             /// <summary>
             /// Attempts to get (without waiting) a metadata reference to a possibly in progress
             /// compilation. Only actual compilation references are returned. Could potentially 
@@ -856,14 +799,12 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
             {
-                var state = ReadState();
-
                 if (ProjectState.LanguageServices == fromProject.LanguageServices)
                 {
                     // if we have a compilation and its the correct language, use a simple compilation reference in any
                     // state it happens to be in right now
-                    if (state is WithCompilationTrackerState withCompilationState)
-                        return withCompilationState.CompilationWithoutGeneratedDocuments.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
+                    if (ReadState() is CompilationTrackerState compilationState)
+                        return compilationState.CompilationWithoutGeneratedDocuments.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
                 }
                 else
                 {
@@ -880,7 +821,7 @@ namespace Microsoft.CodeAnalysis
             public Task<bool> HasSuccessfullyLoadedAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                return this.ReadState() is FinalState finalState
+                return this.ReadState() is FinalCompilationTrackerState finalState
                     ? finalState.HasSuccessfullyLoaded ? SpecializedTasks.True : SpecializedTasks.False
                     : HasSuccessfullyLoadedSlowAsync(compilationState, cancellationToken);
             }
@@ -944,7 +885,7 @@ namespace Microsoft.CodeAnalysis
                 // If we are in FinalState, then we have correctly ran generators and then know the final contents of the
                 // Compilation. The GeneratedDocuments can be filled for intermediate states, but those aren't guaranteed to be
                 // correct and can be re-ran later.
-                return state is FinalState finalState ? finalState.GeneratorInfo.Documents.GetState(documentId) : null;
+                return state is FinalCompilationTrackerState finalState ? finalState.GeneratorInfo.Documents.GetState(documentId) : null;
             }
 
             // HACK HACK HACK HACK around a problem introduced by https://github.com/dotnet/sdk/pull/24928. The Razor generator is
@@ -980,23 +921,34 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Validates the compilation is consistent and we didn't have a bug in producing it. This only runs under a feature flag.
             /// </summary>
-            private void ValidateState(CompilationTrackerState state)
+            private void ValidateState(CompilationTrackerState? state)
             {
+                if (state is null)
+                    return;
+
                 if (!_validateStates)
                     return;
 
-                if (state is FinalState finalState)
+                if (state is FinalCompilationTrackerState finalState)
                 {
-                    ValidateCompilationTreesMatchesProjectState(finalState.FinalCompilationWithGeneratedDocuments, ProjectState, state.GeneratorInfo);
+                    ValidateCompilationTreesMatchesProjectState(finalState.FinalCompilationWithGeneratedDocuments, ProjectState, finalState.GeneratorInfo);
                 }
                 else if (state is InProgressState inProgressState)
                 {
-                    ValidateCompilationTreesMatchesProjectState(inProgressState.CompilationWithoutGeneratedDocuments, inProgressState.IntermediateProjects[0].oldState, generatorInfo: null);
+                    var projectState = inProgressState.PendingTranslationSteps is [(var oldState, _), ..]
+                        ? oldState
+                        : this.ProjectState;
 
-                    if (inProgressState.CompilationWithGeneratedDocuments != null)
+                    ValidateCompilationTreesMatchesProjectState(inProgressState.CompilationWithoutGeneratedDocuments, projectState, generatorInfo: null);
+
+                    if (inProgressState.StaleCompilationWithGeneratedDocuments != null)
                     {
-                        ValidateCompilationTreesMatchesProjectState(inProgressState.CompilationWithGeneratedDocuments, inProgressState.IntermediateProjects[0].oldState, inProgressState.GeneratorInfo);
+                        ValidateCompilationTreesMatchesProjectState(inProgressState.StaleCompilationWithGeneratedDocuments, projectState, inProgressState.GeneratorInfo);
                     }
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(state.GetType());
                 }
             }
 

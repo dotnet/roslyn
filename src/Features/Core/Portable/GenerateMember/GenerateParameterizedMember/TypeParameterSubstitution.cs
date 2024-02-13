@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         private sealed class DetermineSubstitutionsVisitor(
             Compilation compilation, ISet<string> availableTypeParameterNames, Project project, CancellationToken cancellationToken) : AsyncSymbolVisitor
         {
-            public readonly Dictionary<ITypeSymbol, ITypeSymbol> Substitutions =
-                new();
+            public readonly Dictionary<ITypeSymbol, ITypeSymbol> Substitutions = [];
             private readonly CancellationToken _cancellationToken = cancellationToken;
             private readonly Compilation _compilation = compilation;
             private readonly ISet<string> _availableTypeParameterNames = availableTypeParameterNames;

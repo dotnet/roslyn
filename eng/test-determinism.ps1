@@ -2,6 +2,8 @@
 param([string]$configuration = "Debug",
       [string]$msbuildEngine = "vs",
       [string]$altRootDrive = "q:",
+      [string]$bootstrapDir = "",
+      [switch]$ci = $false,
       [switch]$help)
 
 Set-StrictMode -version 2.0
@@ -281,8 +283,11 @@ try {
   $nodeReuse = $false
   $properties = @()
 
-  $script:bootstrapConfiguration = "Release"
-  $bootstrapDir = Make-BootstrapBuild
+  if ($bootstrapDir -eq "") {
+    Write-Host "Building bootstrap compiler"
+    Exec-Script (Join-Path $PSScriptRoot "make-bootstrap.ps1") "-name determinism -ci:$ci"
+    $bootstrapDir = Join-Path $ArtifactsDir "bootstrap" "determinism"
+  }
 
   Run-Test
   exit 0

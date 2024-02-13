@@ -26,7 +26,7 @@ internal sealed class FindReferenceCache
 
     private readonly SemanticModel _semanticModel;
 
-    private readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> _symbolInfoCache = new();
+    private readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> _symbolInfoCache = [];
     private readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> _identifierCache;
 
     private ImmutableHashSet<string>? _aliasNameSet;

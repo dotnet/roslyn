@@ -23,23 +23,23 @@ namespace Microsoft.CodeAnalysis
     public abstract partial class Workspace
     {
         // open documents
-        private readonly Dictionary<ProjectId, HashSet<DocumentId>> _projectToOpenDocumentsMap = new();
+        private readonly Dictionary<ProjectId, HashSet<DocumentId>> _projectToOpenDocumentsMap = [];
 
         // text buffer maps
         /// <summary>
         /// Tracks the document ID in the current context for a source text container for an opened text buffer.
         /// </summary>
         /// <remarks>For each entry in this map, there must be a corresponding entry in <see cref="_bufferToAssociatedDocumentsMap"/> where the document ID in current context is one of associated document IDs.</remarks>
-        private readonly Dictionary<SourceTextContainer, DocumentId> _bufferToDocumentInCurrentContextMap = new();
+        private readonly Dictionary<SourceTextContainer, DocumentId> _bufferToDocumentInCurrentContextMap = [];
 
         /// <summary>
         /// Tracks all the associated document IDs for a source text container for an opened text buffer.
         /// </summary>
-        private readonly Dictionary<SourceTextContainer, OneOrMany<DocumentId>> _bufferToAssociatedDocumentsMap = new();
+        private readonly Dictionary<SourceTextContainer, OneOrMany<DocumentId>> _bufferToAssociatedDocumentsMap = [];
 
-        private readonly Dictionary<DocumentId, TextTracker> _textTrackers = new();
-        private readonly Dictionary<DocumentId, SourceTextContainer> _documentToAssociatedBufferMap = new();
-        private readonly Dictionary<DocumentId, SourceGeneratedDocumentIdentity> _openSourceGeneratedDocumentIdentities = new();
+        private readonly Dictionary<DocumentId, TextTracker> _textTrackers = [];
+        private readonly Dictionary<DocumentId, SourceTextContainer> _documentToAssociatedBufferMap = [];
+        private readonly Dictionary<DocumentId, SourceGeneratedDocumentIdentity> _openSourceGeneratedDocumentIdentities = [];
 
         /// <summary>
         /// True if this workspace supports manually opening and closing documents.
@@ -516,11 +516,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected internal void OnAdditionalDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
+            => OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: true);
+
+        private protected void OnAdditionalDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, bool requireDocumentPresentAndClosed)
         {
             OnAdditionalOrAnalyzerConfigDocumentOpened(
                 documentId,
                 textContainer,
                 isCurrentContext,
+                requireDocumentPresentAndClosed,
                 WorkspaceChangeKind.AdditionalDocumentChanged,
                 CheckAdditionalDocumentIsInSolution,
                 withDocumentText: (oldSolution, documentId, newText, mode) => oldSolution.WithAdditionalDocumentText(documentId, newText, mode),
@@ -529,11 +533,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected internal void OnAnalyzerConfigDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
+            => OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: true);
+
+        private protected void OnAnalyzerConfigDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, bool requireDocumentPresentAndClosed)
         {
             OnAdditionalOrAnalyzerConfigDocumentOpened(
                 documentId,
                 textContainer,
                 isCurrentContext,
+                requireDocumentPresentAndClosed,
                 WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
                 CheckAnalyzerConfigDocumentIsInSolution,
                 withDocumentText: (oldSolution, documentId, newText, mode) => oldSolution.WithAnalyzerConfigDocumentText(documentId, newText, mode),
@@ -548,6 +556,7 @@ namespace Microsoft.CodeAnalysis
             DocumentId documentId,
             SourceTextContainer textContainer,
             bool isCurrentContext,
+            bool requireDocumentPresentAndClosed,
             WorkspaceChangeKind workspaceChangeKind,
             Action<Solution, DocumentId> checkTextDocumentIsInSolution,
             Func<Solution, DocumentId, SourceText, PreservationMode, Solution> withDocumentText,
@@ -555,16 +564,32 @@ namespace Microsoft.CodeAnalysis
             Action<Workspace, DocumentId, SourceText, PreservationMode> onDocumentTextChanged)
         {
             SetCurrentSolution(
-                data: (@this: this, documentId, textContainer, isCurrentContext, workspaceChangeKind, checkTextDocumentIsInSolution, withDocumentText, withDocumentTextAndVersion, onDocumentTextChanged),
+                data: (@this: this, documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed, workspaceChangeKind, checkTextDocumentIsInSolution, withDocumentText, withDocumentTextAndVersion, onDocumentTextChanged),
                 static (oldSolution, data) =>
                 {
                     var documentId = data.documentId;
+                    if (data.requireDocumentPresentAndClosed)
+                    {
+                        data.checkTextDocumentIsInSolution(oldSolution, documentId);
+                    }
 
-                    data.checkTextDocumentIsInSolution(oldSolution, documentId);
-                    data.@this.CheckDocumentIsClosed(documentId);
+                    var oldDocument = oldSolution.GetTextDocument(documentId);
+                    if (oldDocument is null)
+                    {
+                        // Didn't have a text document.  Bail out gracefully.
+                        return oldSolution;
+                    }
 
-                    var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
                     Debug.Assert(oldDocument.Kind is TextDocumentKind.AdditionalDocument or TextDocumentKind.AnalyzerConfigDocument);
+
+                    if (data.@this.IsDocumentOpen(documentId))
+                    {
+                        // Document was already open.  Throw if required.  Bail out gracefully if not.
+                        if (data.requireDocumentPresentAndClosed)
+                            data.@this.CheckDocumentIsClosed(documentId);
+                        else
+                            return oldSolution;
+                    }
 
                     var oldText = oldDocument.GetTextSynchronously(CancellationToken.None);
 
@@ -653,7 +678,7 @@ namespace Microsoft.CodeAnalysis
 
                         if (!@this.IsDocumentOpen(documentId))
                         {
-                            // Document wasn't open.  Throw if required.  Bail out gracefull if not.
+                            // Document wasn't open.  Throw if required.  Bail out gracefully if not.
                             if (requireDocumentPresentAndOpen)
                                 @this.CheckDocumentIsOpen(documentId);
                             else
@@ -692,20 +717,28 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected internal void OnAdditionalDocumentClosed(DocumentId documentId, TextLoader reloader)
+            => OnAdditionalDocumentClosed(documentId, reloader, requireDocumentPresentAndOpen: true);
+
+        private protected void OnAdditionalDocumentClosed(DocumentId documentId, TextLoader reloader, bool requireDocumentPresentAndOpen)
         {
             OnAdditionalOrAnalyzerConfigDocumentClosed(
                 documentId,
                 reloader,
+                requireDocumentPresentAndOpen,
                 WorkspaceChangeKind.AdditionalDocumentChanged,
                 CheckAdditionalDocumentIsInSolution,
                 withTextDocumentTextLoader: (oldSolution, documentId, textLoader, mode) => oldSolution.WithAdditionalDocumentTextLoader(documentId, textLoader, mode));
         }
 
         protected internal void OnAnalyzerConfigDocumentClosed(DocumentId documentId, TextLoader reloader)
+            => OnAnalyzerConfigDocumentClosed(documentId, reloader, requireDocumentPresentAndOpen: true);
+
+        private protected void OnAnalyzerConfigDocumentClosed(DocumentId documentId, TextLoader reloader, bool requireDocumentPresentAndOpen)
         {
             OnAdditionalOrAnalyzerConfigDocumentClosed(
                 documentId,
                 reloader,
+                requireDocumentPresentAndOpen,
                 WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
                 CheckAnalyzerConfigDocumentIsInSolution,
                 withTextDocumentTextLoader: (oldSolution, documentId, textLoader, mode) => oldSolution.WithAnalyzerConfigDocumentTextLoader(documentId, textLoader, mode));
@@ -717,19 +750,38 @@ namespace Microsoft.CodeAnalysis
         private void OnAdditionalOrAnalyzerConfigDocumentClosed(
             DocumentId documentId,
             TextLoader reloader,
+            bool requireDocumentPresentAndOpen,
             WorkspaceChangeKind workspaceChangeKind,
             Action<Solution, DocumentId> checkTextDocumentIsInSolution,
             Func<Solution, DocumentId, TextLoader, PreservationMode, Solution> withTextDocumentTextLoader)
         {
             this.SetCurrentSolution(
-                data: (@this: this, documentId, reloader, workspaceChangeKind, checkTextDocumentIsInSolution, withTextDocumentTextLoader),
+                data: (@this: this, documentId, reloader, requireDocumentPresentAndOpen, workspaceChangeKind, checkTextDocumentIsInSolution, withTextDocumentTextLoader),
                 static (oldSolution, data) =>
                 {
                     var documentId = data.documentId;
-                    data.checkTextDocumentIsInSolution(oldSolution, documentId);
-                    data.@this.CheckDocumentIsOpen(documentId);
+                    if (data.requireDocumentPresentAndOpen)
+                    {
+                        data.checkTextDocumentIsInSolution(oldSolution, documentId);
+                    }
 
-                    Debug.Assert(oldSolution.GetRequiredTextDocument(documentId).Kind is TextDocumentKind.AdditionalDocument or TextDocumentKind.AnalyzerConfigDocument);
+                    var oldDocument = oldSolution.GetTextDocument(documentId);
+                    if (oldDocument is null)
+                    {
+                        // Didn't have a text document.  Bail out gracefully.
+                        return oldSolution;
+                    }
+
+                    if (!data.@this.IsDocumentOpen(documentId))
+                    {
+                        // Document wasn't open.  Throw if required.  Bail out gracefully if not.
+                        if (data.requireDocumentPresentAndOpen)
+                            data.@this.CheckDocumentIsOpen(documentId);
+                        else
+                            return oldSolution;
+                    }
+
+                    Debug.Assert(oldDocument.Kind is TextDocumentKind.AdditionalDocument or TextDocumentKind.AnalyzerConfigDocument);
 
                     return data.withTextDocumentTextLoader(oldSolution, documentId, data.reloader, PreservationMode.PreserveValue);
                 },

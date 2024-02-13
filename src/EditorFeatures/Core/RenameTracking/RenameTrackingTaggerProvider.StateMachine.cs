@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             // Store committed sessions so they can be restored on undo/redo. The undo transactions
             // may live beyond the lifetime of the buffer tracked by this StateMachine, so storing
             // them here allows them to be correctly cleaned up when the buffer goes away.
-            private readonly IList<TrackingSession> _committedSessions = new List<TrackingSession>();
+            private readonly IList<TrackingSession> _committedSessions = [];
 
             private int _refCount;
 

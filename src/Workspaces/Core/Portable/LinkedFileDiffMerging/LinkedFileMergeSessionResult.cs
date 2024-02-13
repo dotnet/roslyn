@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     {
         public Solution MergedSolution { get; }
 
-        private readonly Dictionary<DocumentId, IEnumerable<TextSpan>> _mergeConflictCommentSpans = new();
+        private readonly Dictionary<DocumentId, IEnumerable<TextSpan>> _mergeConflictCommentSpans = [];
         public Dictionary<DocumentId, IEnumerable<TextSpan>> MergeConflictCommentSpans => _mergeConflictCommentSpans;
 
         public LinkedFileMergeSessionResult(Solution mergedSolution, IEnumerable<LinkedFileMergeResult> fileMergeResults)

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private readonly object _gate = new();
-        private readonly Dictionary<(CultureInfo, bool includeMatchedSpans), PatternMatcher> _patternMatcherMap = new();
+        private readonly Dictionary<(CultureInfo, bool includeMatchedSpans), PatternMatcher> _patternMatcherMap = [];
 
         public string Pattern { get; } = pattern;
 

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public SourceHashAlgorithm ChecksumAlgorithm { get; } = SourceHashAlgorithms.Default;
 
         public int? CursorPosition { get; }
-        public IList<TextSpan> SelectedSpans { get; } = new List<TextSpan>();
+        public IList<TextSpan> SelectedSpans { get; } = [];
         public IDictionary<string, ImmutableArray<TextSpan>> AnnotatedSpans { get; } = new Dictionary<string, ImmutableArray<TextSpan>>();
 
         /// <summary>
