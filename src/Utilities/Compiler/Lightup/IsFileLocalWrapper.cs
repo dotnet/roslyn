@@ -6,15 +6,12 @@ namespace Analyzer.Utilities.Lightup
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
-    using System.Reflection;
     using Microsoft.CodeAnalysis;
 
     [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Not a comparable instance.")]
     internal readonly struct IsFileLocalWrapper
     {
-        private static readonly PropertyInfo? PropertyAccessor = typeof(INamedTypeSymbol).GetProperty("IsFileLocal", BindingFlags.Public | BindingFlags.Instance);
-
-        private static readonly Func<INamedTypeSymbol, bool> MemberAccessor = PropertyAccessor is null ? _ => false : symbol => (bool)PropertyAccessor.GetValue(symbol)!;
+        private static readonly Func<INamedTypeSymbol, bool> PropertyAccessor = LightupHelpers.CreateSymbolPropertyAccessor<INamedTypeSymbol, bool>(typeof(INamedTypeSymbol), nameof(IsFileLocal), fallbackResult: false);
 
         public INamedTypeSymbol WrappedSymbol { get; }
 
@@ -28,7 +25,7 @@ namespace Analyzer.Utilities.Lightup
             return new IsFileLocalWrapper(symbol);
         }
 
-        public bool IsFileLocal => MemberAccessor(WrappedSymbol);
+        public bool IsFileLocal => PropertyAccessor(WrappedSymbol);
     }
 }
 
