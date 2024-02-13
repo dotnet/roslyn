@@ -27,7 +27,7 @@
     <SystemReflectionMetadataVersion>8.0.0</SystemReflectionMetadataVersion>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
     <SystemTextJsonVersion>8.0.0</SystemTextJsonVersion>
-    <MicrosoftBclAsyncInterfacesVersion>7.0.0</MicrosoftBclAsyncInterfacesVersion>
+    <MicrosoftBclAsyncInterfacesVersion>8.0.0</MicrosoftBclAsyncInterfacesVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.3.4</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>3.3.0</MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>8.0.0-preview.23468.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
