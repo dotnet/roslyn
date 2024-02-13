@@ -7650,5 +7650,79 @@ public struct Vec4
                 //     public static implicit operator ref S(in int x) => throw null;
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(13, 37));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefReturn_IL()
+        {
+            // public struct S
+            // {
+            //     public static implicit operator ref readonly S(in int x) => throw null;
+            // }
+            var ilSource = """
+                .class public sequential ansi sealed beforefieldinit S extends System.ValueType
+                {
+                    .pack 0
+                    .size 1
+
+                    .method public hidebysig specialname static valuetype S& modreq(System.Runtime.InteropServices.InAttribute) op_Implicit (
+                            [in] int32& x
+                        ) cil managed 
+                    {
+                        .param [1]
+                            .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+                                01 00 00 00
+                            )
+
+                        .maxstack 1
+                        .locals init (
+                            [0] valuetype S
+                        )
+
+                        ldnull
+                        throw
+                    }
+                }
+
+                .class public auto ansi sealed beforefieldinit System.Runtime.InteropServices.InAttribute extends System.Object
+                {
+                    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+                    {
+                        .maxstack 8
+                        ret
+                    }
+                }
+
+                .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsReadOnlyAttribute extends System.Object
+                {
+                    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+                    {
+                        .maxstack 8
+                        ret
+                    }
+                }
+                """;
+
+            var source = """
+                class C
+                {
+                    static ref readonly int M1(int x)
+                    {
+                        return ref M2(x);
+                    }
+
+                    static ref readonly int M2(in S s) => throw null;
+                }
+                """;
+            CreateCompilationWithIL(source, ilSource).VerifyDiagnostics(
+                // (5,20): error CS8347: Cannot use a result of 'C.M2(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         return ref M2(x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M2(x)").WithArguments("C.M2(in S)", "s").WithLocation(5, 20),
+                // (5,23): error CS0570: 'S.implicit operator S(in int)' is not supported by the language
+                //         return ref M2(x);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "x").WithArguments("S.implicit operator S(in int)").WithLocation(5, 23),
+                // (5,23): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref M2(x);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(5, 23));
+        }
     }
 }

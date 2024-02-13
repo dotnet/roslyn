@@ -3253,6 +3253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Conversion:
                     Debug.Assert(expr is BoundConversion conversion &&
                         (!conversion.Conversion.IsUserDefined ||
+                        conversion.Conversion.Method.HasUseSiteError ||
                         conversion.Conversion.Method.RefKind == RefKind.None));
                     break;
             }
@@ -3595,6 +3596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     Debug.Assert(!conversion.Conversion.IsUserDefined ||
+                        conversion.Conversion.Method.HasUseSiteError ||
                         conversion.Conversion.Method.RefKind == RefKind.None);
                     break;
 
