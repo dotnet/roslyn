@@ -206,7 +206,8 @@ namespace Microsoft.CodeAnalysis
                     this.ProjectState.DocumentStates.TryGetState(docState.Id, out var oldState) &&
                     oldState == docState)
                 {
-                    return new CompilationTracker(this.ProjectState, finalState.WithIsFrozen(), this.SkeletonReferenceCache.Clone());
+                    var frozenFinalState = finalState.WithIsFrozen();
+                    return new CompilationTracker(this.ProjectState, frozenFinalState, this.SkeletonReferenceCache.Clone());
                 }
                 else
                 {
