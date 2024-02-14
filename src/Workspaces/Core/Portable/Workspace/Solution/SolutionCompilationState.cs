@@ -1046,7 +1046,7 @@ internal sealed partial class SolutionCompilationState
 
             Contract.ThrowIfFalse(newIdToProjectStateMapBuilder.ContainsKey(projectId));
 
-            var oldProjectState = this.SolutionState.GetRequiredProjectState(projectId); oldTracker.ProjectState;
+            var oldProjectState = this.SolutionState.GetRequiredProjectState(projectId);
             var newProjectState = newTracker.ProjectState;
 
             newIdToProjectStateMapBuilder[projectId] = newProjectState;
@@ -1056,11 +1056,16 @@ internal sealed partial class SolutionCompilationState
             // all). If that happens, we need to remove those documents as well from teh final filepath-to-documentid
             // map.
 
-            // Fast check that we do in debug/release
-            if (!newProjectState.DocumentStates.States.Keys.SetEquals(oldProjectState.DocumentStates.States.Keys))
+            foreach (var (documentId, oldDocumentState) in oldProjectState.DocumentStates.States)
             {
-                documentsToRemove.AddRange(oldProjectState.DocumentStates.States.Values);
-                documentsToAdd.AddRange(newProjectState.DocumentStates.States.Values);
+                if (!newProjectState.DocumentStates.States.ContainsKey(documentId))
+                    documentsToRemove.Add(oldDocumentState);
+            }
+
+            foreach (var (documentId, newDocumentState) in newProjectState.DocumentStates.States)
+            {
+                if (!oldProjectState.DocumentStates.States.ContainsKey(documentId))
+                    documentsToAdd.Add(newDocumentState);
             }
         }
 
