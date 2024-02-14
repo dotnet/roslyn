@@ -264,7 +264,6 @@ Friend Class GreenNodeFactoryWriter
             nodeStructure.Name = "SkippedTokensTriviaSyntax" OrElse
             nodeStructure.Name = "DocumentationCommentTriviaSyntax" OrElse
             nodeStructure.Name.EndsWith("DirectiveTriviaSyntax", StringComparison.Ordinal) OrElse
-            nodeStructure.Name = "AttributeSyntax" OrElse
             allFields.Count + allChildren.Count > 3) Then
 
             _writer.Write("            Return New {0}(", StructureTypeName(nodeStructure))

@@ -927,8 +927,36 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return ((this.flags & NodeFlags.InheritMask) == NodeFlags.IsNotMissing) &&
-                    this.SlotCount <= GreenNode.MaxCachedChildNum;
+                // Can only cache if it's one of our smaller nodes.  Generally speaking, once we get to larger nodes,
+                // there's no chance of having them be exactly the same, so we can avoid costly lookups by limiting to
+                // small nodes.  Small nodes (like `()`) have a much higher chance of showing up in multiple places.
+                if (this.SlotCount > GreenNode.MaxCachedChildNum)
+                    return false;
+
+                // Generally speaking, we do not want to cache nodes that indicate they are inheriting some data from
+                // their children.  This is because this often indicates some error condition (like diagnostics, or
+                // skipped trivia) or it indicates information that is node specific in some context (like annotations).
+                // Returning these same nodes out, just because their children are the same may lead to incorrect
+                // information from one tree bleeding into another.
+                var inheritedFlags = this.flags & NodeFlags.InheritMask;
+
+                // For a similar reason, we do not store missing nodes in the cache.
+                if ((inheritedFlags & NodeFlags.IsNotMissing) != NodeFlags.IsNotMissing)
+                    return false;
+
+                // Ok.  We have a non-missing node.  The only inherited flag we allow is whether or not the node has
+                // attributes under it or not.  This is not an error condition, and it is fine to continue reusing in
+                // that case.
+                //
+                // First, remove the IsNotMissing flag as we just checked it above.
+                inheritedFlags &= ~NodeFlags.IsNotMissing;
+
+                if (inheritedFlags != 0 && inheritedFlags != NodeFlags.ContainsAttributes)
+                    return false;
+
+                // This node looks cacheable.  It's small, non-missing, and contains no inherited flags (other than
+                // potentially containing attributes) that would block it.
+                return true;
             }
         }
 

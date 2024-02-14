@@ -134,7 +134,8 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             {
                 GreenStats.ItemAdded();
 
-                Debug.Assert(node.GetCacheHash() == hash);
+                var equal = node.GetCacheHash() == hash;
+                Debug.Assert(equal);
 
                 var idx = hash & CacheMask;
                 s_cache[idx] = new Entry(hash, node);

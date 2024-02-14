@@ -30783,7 +30783,17 @@ internal partial class ContextAwareSyntax
         if (name == null) throw new ArgumentNullException(nameof(name));
 #endif
 
-        return new AttributeSyntax(SyntaxKind.Attribute, name, argumentList, this.context);
+        int hash;
+        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.Attribute, name, argumentList, this.context, out hash);
+        if (cached != null) return (AttributeSyntax)cached;
+
+        var result = new AttributeSyntax(SyntaxKind.Attribute, name, argumentList, this.context);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
     }
 
     public AttributeArgumentListSyntax AttributeArgumentList(SyntaxToken openParenToken, CoreSyntax.SeparatedSyntaxList<AttributeArgumentSyntax> arguments, SyntaxToken closeParenToken)
@@ -35989,7 +35999,17 @@ internal static partial class SyntaxFactory
         if (name == null) throw new ArgumentNullException(nameof(name));
 #endif
 
-        return new AttributeSyntax(SyntaxKind.Attribute, name, argumentList);
+        int hash;
+        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Attribute, name, argumentList, out hash);
+        if (cached != null) return (AttributeSyntax)cached;
+
+        var result = new AttributeSyntax(SyntaxKind.Attribute, name, argumentList);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
     }
 
     public static AttributeArgumentListSyntax AttributeArgumentList(SyntaxToken openParenToken, CoreSyntax.SeparatedSyntaxList<AttributeArgumentSyntax> arguments, SyntaxToken closeParenToken)

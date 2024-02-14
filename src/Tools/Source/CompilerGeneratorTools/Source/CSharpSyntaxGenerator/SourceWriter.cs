@@ -586,7 +586,6 @@ namespace CSharpSyntaxGenerator
             if (nd.Name != "SkippedTokensTriviaSyntax" &&
                 nd.Name != "DocumentationCommentTriviaSyntax" &&
                 nd.Name != "IncompleteMemberSyntax" &&
-                nd.Name != "AttributeSyntax" &&
                 valueFields.Count + nodeFields.Count <= 3)
             {
                 //int hash;
@@ -615,6 +614,12 @@ namespace CSharpSyntaxGenerator
                 }
 
                 WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
+
+                if (nd.Name == "AttributeSyntax")
+                {
+                    Write(", CSharpSyntaxNodeCache.GetNodeFlags(this.context) | NodeFlags.ContainsAttribute");
+                }
+
                 WriteLine(", out hash);");
                 //    if (cached != null) return (IdentifierNameSyntax)cached;
                 WriteLine($"if (cached != null) return ({nd.Name})cached;");

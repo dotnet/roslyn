@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxNodeCache.TryGetNode(kind, child1, child2, child3, GetNodeFlags(context), out hash);
         }
 
-        private static GreenNode.NodeFlags GetNodeFlags(SyntaxFactoryContext context)
+        internal static GreenNode.NodeFlags GetNodeFlags(SyntaxFactoryContext context)
         {
             var flags = SyntaxNodeCache.GetDefaultNodeFlags();
 

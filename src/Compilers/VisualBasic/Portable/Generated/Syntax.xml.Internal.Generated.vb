@@ -37514,7 +37514,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </param>
         Friend Shared Function Attribute(target As AttributeTargetSyntax, name As TypeSyntax, argumentList As ArgumentListSyntax) As AttributeSyntax
             Debug.Assert(name IsNot Nothing)
-            Return New AttributeSyntax(SyntaxKind.Attribute, target, name, argumentList)
+
+            Dim hash As Integer
+            Dim cached = SyntaxNodeCache.TryGetNode(SyntaxKind.Attribute, target, name, argumentList, hash)
+            If cached IsNot Nothing Then
+                Return DirectCast(cached, AttributeSyntax)
+            End If
+
+            Dim result = New AttributeSyntax(SyntaxKind.Attribute, target, name, argumentList)
+            If hash >= 0 Then
+                SyntaxNodeCache.AddNode(result, hash)
+            End If
+
+            Return result
         End Function
 
 
@@ -49580,7 +49592,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </param>
         Friend Function Attribute(target As AttributeTargetSyntax, name As TypeSyntax, argumentList As ArgumentListSyntax) As AttributeSyntax
             Debug.Assert(name IsNot Nothing)
-            Return New AttributeSyntax(SyntaxKind.Attribute, target, name, argumentList, _factoryContext)
+
+            Dim hash As Integer
+            Dim cached = VisualBasicSyntaxNodeCache.TryGetNode(SyntaxKind.Attribute, target, name, argumentList, _factoryContext, hash)
+            If cached IsNot Nothing Then
+                Return DirectCast(cached, AttributeSyntax)
+            End If
+
+            Dim result = New AttributeSyntax(SyntaxKind.Attribute, target, name, argumentList, _factoryContext)
+            If hash >= 0 Then
+                SyntaxNodeCache.AddNode(result, hash)
+            End If
+
+            Return result
         End Function
 
 
