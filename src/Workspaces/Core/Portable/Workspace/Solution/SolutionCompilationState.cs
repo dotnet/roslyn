@@ -1238,11 +1238,10 @@ internal sealed partial class SolutionCompilationState
         if (documentInfos.IsEmpty)
             return this;
 
-        // The documents might be contributing to multiple different projects; split them by project and then we'll process
-        // project-at-a-time.
-        var documentInfosByProjectId = documentInfos.GroupBy(d => d.Id.ProjectId);
+        // The documents might be contributing to multiple different projects; split them by project and then we'll
+        // process one project at a time.
         return AddDocumentsToMultipleProjects(
-            documentInfosByProjectId.Select(g =>
+            documentInfos.GroupBy(d => d.Id.ProjectId).Select(g =>
             {
                 var projectId = g.Key;
                 var projectState = this.SolutionState.GetRequiredProjectState(projectId);
