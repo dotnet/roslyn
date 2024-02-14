@@ -4460,7 +4460,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (!IsAmbiguousDynamicParamsArgument(analyzedArguments.Arguments, finalApplicableCandidates[0], out SyntaxNode argumentSyntax))
                             {
-                                // PROTOTYPE(ParamsCollections): This code path is affected by https://github.com/dotnet/roslyn/issues/71399
                                 result = BindConstructorInitializerCoreContinued(found: true, initializerArgumentListOpt, constructor, analyzedArguments, constructorReturnType,
                                             initializerType, isBaseConstructorInitializer, nonNullSyntax, errorLocation, enableCallerInfo,
                                             finalApplicableCandidates[0], accessibleConstructors, in useSiteInfo, diagnostics);
@@ -6202,7 +6201,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (!type.IsAbstract)
                             {
-                                // PROTOTYPE(ParamsCollections): This code path is affected by https://github.com/dotnet/roslyn/issues/71399
                                 result = BindClassCreationExpressionContinued(node, typeNode, type, analyzedArguments, initializerSyntaxOpt,
                                     initializerTypeOpt, wasTargetTyped, finalApplicableCandidates[0], accessibleConstructors, in useSiteInfo, diagnostics);
                             }
@@ -9338,7 +9336,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         resultWithSingleCandidate.ResultsBuilder.Add(finalApplicableCandidates[0]);
                         overloadResolutionResult.Free();
 
-                        // PROTOTYPE(ParamsCollections): This code path is affected by https://github.com/dotnet/roslyn/issues/71399
                         return BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, propertyGroup, analyzedArguments, resultWithSingleCandidate, diagnostics);
                     }
                 }

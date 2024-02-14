@@ -415,31 +415,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression MakeArgumentsAndCall(
-            SyntaxNode syntax,
-            BoundExpression? rewrittenReceiver,
-            MethodSymbol method,
-            ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<RefKind> argumentRefKindsOpt,
-            bool expanded,
-            bool invokedAsExtensionMethod,
-            LookupResultKind resultKind,
-            TypeSymbol type,
-            ArrayBuilder<LocalSymbol>? temps,
-            BoundCall? nodeOpt = null)
-        {
-            arguments = MakeArguments(
-                arguments,
-                method,
-                expanded,
-                argsToParamsOpt: default,
-                ref argumentRefKindsOpt,
-                ref temps,
-                invokedAsExtensionMethod);
-
-            return MakeCall(nodeOpt, syntax, rewrittenReceiver, method, arguments, argumentRefKindsOpt, resultKind, type, temps.ToImmutableAndFree());
-        }
-
         private BoundExpression MakeCall(
             BoundCall? node,
             SyntaxNode syntax,

@@ -1170,7 +1170,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resultWithSingleCandidate = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 resultWithSingleCandidate.ResultsBuilder.Add(methodResolutionResult);
 
-                // PROTOTYPE(ParamsCollections): This code path is affected by https://github.com/dotnet/roslyn/issues/71399
                 bool result = bindInvocationExpressionContinued(
                     addMethodBinder,
                     node: syntax,
