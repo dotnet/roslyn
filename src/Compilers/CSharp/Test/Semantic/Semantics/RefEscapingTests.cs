@@ -7249,6 +7249,13 @@ public struct Vec4
                         S s = (S)300;
                         return s; // 6
                     }
+
+                    void M7(in int x)
+                    {
+                        scoped S s;
+                        s = (S)x;
+                        s = (S)100;
+                    }
                 }
 
                 ref struct S
@@ -7341,6 +7348,13 @@ public struct Vec4
                         S s = 300;
                         return s; // 6
                     }
+                
+                    void M7(in int x)
+                    {
+                        scoped S s;
+                        s = x;
+                        s = 100;
+                    }
                 }
 
                 ref struct S
@@ -7412,6 +7426,33 @@ public struct Vec4
                 // (7,20): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return (S2)s1; // 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(7, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefStructArgument_ScopedIn()
+        {
+            var source = """
+                class C
+                {
+                    S2 M1()
+                    {
+                        int x = 1;
+                        S1 s1 = (S1)x;
+                        return (S2)s1;
+                    }
+                }
+
+                ref struct S1
+                {
+                    public static implicit operator S1(scoped in int x) => throw null;
+                }
+
+                ref struct S2
+                {
+                    public static implicit operator S2(S1 s1) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
