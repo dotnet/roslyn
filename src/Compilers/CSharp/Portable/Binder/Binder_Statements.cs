@@ -892,9 +892,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression value = BindValue(initializer, diagnostics, valueKind);
-            BoundExpression expression = value.Kind is BoundKind.UnboundLambda or BoundKind.MethodGroup ?
-                BindToInferredDelegateType(value, diagnostics) :
-                BindToNaturalType(value, diagnostics);
+            BoundExpression expression = value.Kind switch
+            {
+                BoundKind.UnboundLambda => BindToInferredDelegateType(value, diagnostics),
+                BoundKind.MethodGroup => BindToExtensionMemberOrInferredDelegateType((BoundMethodGroup)value, diagnostics),
+                _ => BindToNaturalType(value, diagnostics)
+            };
 
             // Certain expressions (null literals, method groups and anonymous functions) have no type of
             // their own and therefore cannot be the initializer of an implicitly typed local.

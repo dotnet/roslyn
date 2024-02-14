@@ -90,6 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        /// <summary>
+        /// Indicates that we have a viable result that is a non-method extension member.
+        /// PROTOTYPE consider renaming the method to IsNonMethodExtensionMember
+        /// </summary>
         public bool IsExtensionMember([NotNullWhen(true)] out Symbol? extensionMember)
         {
             bool isExtensionMember = ResultKind == LookupResultKind.Viable && MethodGroup is null;

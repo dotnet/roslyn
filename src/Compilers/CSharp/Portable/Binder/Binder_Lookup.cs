@@ -186,6 +186,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!type.IsTypeParameter());
 
             var compatibleExtensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+
+            if (type.ExtendedTypeNoUseSiteDiagnostics is { } extendedType)
+            {
+                type = extendedType;
+            }
+
             getCompatibleExtensions(this, type, compatibleExtensions, originalBinder, basesBeingResolved);
             // PROTOTYPE test use-site diagnostics
             var tempResult = LookupResult.GetInstance();

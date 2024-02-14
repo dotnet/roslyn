@@ -408,6 +408,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result?.WithWasConverted();
         }
 
+#nullable enable
+        private BoundExpression BindToExtensionMemberOrInferredDelegateType(BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics)
+        {
+            // PROTOTYPE test use-site diagnostics
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            MethodGroupResolution resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, ref useSiteInfo);
+            diagnostics.Add(methodGroup.Syntax, useSiteInfo);
+            if (resolution.IsExtensionMember(out Symbol? extensionMember))
+            {
+                return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember, diagnostics);
+            }
+
+            // We have a method group so bind to an inferred delegate type
+            return BindToInferredDelegateType(methodGroup, diagnostics);
+        }
+#nullable disable
+
         private BoundExpression BindToInferredDelegateType(BoundExpression expr, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(expr.Kind is BoundKind.UnboundLambda or BoundKind.MethodGroup);
@@ -4740,6 +4757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         goto case TypeKind.Class;
 
                     default:
+                        // PROTOTYPE block or handle object creation with extension type
                         throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
                 }
             }
@@ -7766,11 +7784,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(left.Type is not null);
 
             var firstResult = new MethodGroupResolution();
-            if (left.Type.IsExtension)
-            {
-                // Extension types cannot be extended with extensions or extension methods
-                return firstResult;
-            }
 
             AnalyzedArguments? actualArguments = null;
 
@@ -7787,6 +7800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return extensionResult;
                     }
 
+                    // PROTOTYPE we'll want to revisit to merge extension methods and methods from extension types within the same scope
                     // If the search in the current scope resulted in any applicable method from an extension type
                     // (regardless of whether a best applicable method could be determined) then our search is complete.
                     // Otherwise, store aside the first non-applicable result and continue searching for an applicable result.
@@ -7806,6 +7820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                // PROTOTYPE handle extension methods on the underlying type of an extension type
                 if (tryResolveExtensionMethod(this, expression, memberName, analyzedArguments, left, typeArgumentsWithAnnotations,
                     isMethodGroupConversion, returnRefKind, returnType, withDependencies, scope,
                     ref actualArguments, out MethodGroupResolution extensionMethodResult))
@@ -7834,7 +7849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             actualArguments?.Free();
             return firstResult;
 
-            static bool tryResolveExtensionTypeMember(Binder binder, SyntaxNode expression, string methodName, AnalyzedArguments? analyzedArguments, BoundExpression left,
+            static bool tryResolveExtensionTypeMember(Binder binder, SyntaxNode expression, string memberName, AnalyzedArguments? analyzedArguments, BoundExpression left,
                 ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, bool isMethodGroupConversion, RefKind returnRefKind,
                 TypeSymbol returnType, bool withDependencies, ExtensionScope scope, out MethodGroupResolution extensionResult)
             {
@@ -7851,7 +7866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 
                 scope.Binder.LookupImplicitExtensionMembersInSingleBinder(
-                    lookupResult, left.Type!, methodName, arity,
+                    lookupResult, left.Type!, memberName, arity,
                     basesBeingResolved: null, options, originalBinder: binder, ref useSiteInfo);
 
                 // PROTOTYPE test use-site diagnostics
@@ -7866,8 +7881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var members = ArrayBuilder<Symbol>.GetInstance();
-
-                Symbol symbol = binder.GetSymbolOrMethodOrPropertyGroup(lookupResult, expression, methodName, arity, members, diagnostics, wasError: out _, qualifierOpt: null);
+                Symbol symbol = binder.GetSymbolOrMethodOrPropertyGroup(lookupResult, expression, memberName, arity, members, diagnostics, wasError: out _, qualifierOpt: null);
                 if (symbol is not null)
                 {
                     lookupResult.Free();
@@ -10140,7 +10154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// For C# 13 onwards, returns one of the methods from the method group if all instance methods, or extension methods
+        /// For C# 13 onwards, returns one of the methods from the method group if all member methods, or extension methods
         /// in the nearest scope, have the same signature ignoring parameter names and custom modifiers.
         /// The particular method returned is not important since the caller is interested in the signature only.
         /// </summary>
@@ -10150,12 +10164,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return GetUniqueSignatureFromMethodGroup_CSharp10(node);
             }
-
-            // PROTOTYPE How should extension types affect the natural type of method groups?
-            //           Spec says "A method group has a natural type if all candidate methods
-            //           in the method group have a common signature.
-            //           (If the method group may include extension methods, the candidates
-            //           include the containing type and all extension method scopes.)
 
             MethodSymbol? foundMethod = null;
             var typeArguments = node.TypeArgumentsOpt;
@@ -10204,17 +10212,51 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.SearchExtensionMethods)
             {
-                var receiver = node.ReceiverOpt!;
+                var receiver = node.ReceiverOpt;
+                Debug.Assert(receiver is not null);
+
                 var methodGroup = MethodGroup.GetInstance();
                 foreach (var scope in new ExtensionScopes(this))
                 {
+                    methodGroup.Clear();
+                    populateExtensionTypeMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, typeArguments);
+                    foreach (MethodSymbol method in methodGroup.Methods)
+                    {
+                        var substituted = typeArguments.IsDefaultOrEmpty ? method : method.Construct(typeArguments);
+                        if (!satisfiesConstraintChecks(substituted))
+                        {
+                            continue;
+                        }
+
+                        var wasUnique = isCandidateUnique(ref foundMethod, substituted);
+                        if (!wasUnique)
+                        {
+                            methodGroup.Free();
+                            return null;
+                        }
+                    }
+
+                    // PROTOTYPE we'll want to revisit to merge extension methods and methods from extension types within the same scope
+                    if (foundMethod is not null)
+                    {
+                        methodGroup.Free();
+                        return foundMethod;
+                    }
+
                     methodGroup.Clear();
                     PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, typeArguments, BindingDiagnosticBag.Discarded);
                     foreach (var extensionMethod in methodGroup.Methods)
                     {
                         var substituted = typeArguments.IsDefaultOrEmpty ? extensionMethod : extensionMethod.Construct(typeArguments);
 
-                        var reduced = substituted.ReduceExtensionMethod(receiver.Type, Compilation, out bool wasFullyInferred);
+                        var type = receiver.Type;
+                        Debug.Assert(type is not null);
+                        if (type.ExtendedTypeNoUseSiteDiagnostics is { } extendedType)
+                        {
+                            type = extendedType;
+                        }
+
+                        var reduced = substituted.ReduceExtensionMethod(type, Compilation, out bool wasFullyInferred);
                         if (reduced is null)
                         {
                             // Extension method was not applicable
@@ -10247,9 +10289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 methodGroup.Free();
             }
-            // PROTOTYPE: We'll likely want to collect all methods from compatible extension types
-            //            (for member access only, not for simple name, like we do for extension methods).
-            //            Need to spec.
+
             return null;
 
             static bool isCandidateUnique(ref MethodSymbol? foundMethod, MethodSymbol candidate)
@@ -10288,6 +10328,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useSiteDiagnosticsBuilder?.Free();
 
                 return constraintsSatisfied;
+            }
+
+            void populateExtensionTypeMethodsFromSingleBinder(
+                ExtensionScope scope,
+                MethodGroup methodGroup,
+                SyntaxNode node,
+                BoundExpression left,
+                string rightName,
+                ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations)
+            {
+                Debug.Assert(left.Type is not null);
+
+                // PROTOTYPE need to confirm what we want for extension members on type parameters or values of type parameters
+                if (left.Type.IsTypeParameter())
+                    return;
+
+                int arity = typeArgumentsWithAnnotations.IsDefault ? 0 : typeArgumentsWithAnnotations.Length;
+
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(BindingDiagnosticBag.Discarded);
+                var lookupResult = LookupResult.GetInstance();
+
+                // Note: we only want members with matching arity
+                scope.Binder.LookupImplicitExtensionMembersInSingleBinder(
+                    lookupResult, left.Type, rightName, arity,
+                    basesBeingResolved: null, LookupOptions.Default, originalBinder: this, ref useSiteInfo);
+
+                if (lookupResult.IsMultiViable)
+                {
+                    var members = ArrayBuilder<Symbol>.GetInstance();
+
+                    Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, rightName, arity, members,
+                        BindingDiagnosticBag.Discarded, wasError: out _, qualifierOpt: null);
+
+                    // Ignore non-method symbols
+                    if (symbol is null)
+                    {
+                        Debug.Assert(members.Count > 0);
+                        Debug.Assert(members[0].Kind is SymbolKind.Method);
+                        methodGroup.PopulateWithMethods(left, members, typeArgumentsWithAnnotations, isExtensionMethodGroup: false, resultKind: lookupResult.Kind);
+                    }
+
+                    members.Free();
+                }
+
+                lookupResult.Free();
             }
         }
 
