@@ -30784,7 +30784,7 @@ internal partial class ContextAwareSyntax
 #endif
 
         int hash;
-        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Attribute, name, argumentList, CSharpSyntaxNodeCache.GetNodeFlags(this.context) | GreenNode.NodeFlags.ContainsAttribute, out hash);
+        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Attribute, name, argumentList, CSharpSyntaxNodeCache.GetNodeFlags(this.context) | GreenNode.NodeFlags.ContainsAttributes, out hash);
         if (cached != null) return (AttributeSyntax)cached;
 
         var result = new AttributeSyntax(SyntaxKind.Attribute, name, argumentList, this.context);
@@ -36000,7 +36000,7 @@ internal static partial class SyntaxFactory
 #endif
 
         int hash;
-        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Attribute, name, argumentList, SyntaxNodeCache.GetDefaultNodeFlags() | GreenNode.NodeFlags.ContainsAttribute, out hash);
+        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Attribute, name, argumentList, SyntaxNodeCache.GetDefaultNodeFlags() | GreenNode.NodeFlags.ContainsAttributes, out hash);
         if (cached != null) return (AttributeSyntax)cached;
 
         var result = new AttributeSyntax(SyntaxKind.Attribute, name, argumentList);
