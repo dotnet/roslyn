@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // the documents has no edits and no diagnostics.
             if (semanticEdits is null && diagnostics is null)
             {
-                SemanticEdits = ImmutableArray<SemanticEditDescription>.Empty;
-                Diagnostics = ImmutableArray<RudeEditDiagnosticDescription>.Empty;
+                SemanticEdits = [];
+                Diagnostics = [];
             }
             else
             {

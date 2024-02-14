@@ -2436,7 +2436,9 @@ Class C
 End Class")
         End Function
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545688")>
+        ' TODO: Enable test on .NET Core
+        ' https://github.com/dotnet/roslyn/issues/71625
+        <ConditionalFact(GetType(DesktopOnly)), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545688")>
         Public Async Function TestHighPrecisionDouble() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System

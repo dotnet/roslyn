@@ -37,22 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
         private const string CS0123 = nameof(CS0123); // error CS0123: No overload for 'OnChanged' matches delegate 'NotifyCollectionChangedEventHandler'
 
         public static readonly ImmutableArray<string> FixableDiagnosticIds =
-            ImmutableArray.Create(
-                CS0103,
-                CS0117,
-                CS0118,
-                CS0122,
-                CS0305,
-                CS0308,
-                CS0539,
-                CS1061,
-                CS1501,
-                CS1503,
-                CS1660,
-                CS1739,
-                CS7036,
-                CS1955,
-                CS0123);
+            [CS0103, CS0117, CS0118, CS0122, CS0305, CS0308, CS0539, CS1061, CS1501, CS1503, CS1660, CS1739, CS7036, CS1955, CS0123];
     }
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateMethod), Shared]

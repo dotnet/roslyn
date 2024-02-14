@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly struct ProjectAnalyzerStateSets
             {
                 public static readonly ProjectAnalyzerStateSets Default = new(
-                    ImmutableArray<AnalyzerReference>.Empty,
+                    [],
                     ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>.Empty,
                     ImmutableDictionary<DiagnosticAnalyzer, StateSet>.Empty,
                     SkippedHostAnalyzersInfo.Empty);
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // new reference added
                     RaiseProjectAnalyzerReferenceChanged(
-                        new ProjectAnalyzerReferenceChangedEventArgs(project, newMap.Values.ToImmutableArrayOrEmpty(), ImmutableArray<StateSet>.Empty));
+                        new ProjectAnalyzerReferenceChangedEventArgs(project, newMap.Values.ToImmutableArrayOrEmpty(), []));
                     return;
                 }
 
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (mapPerReference.Count == 0 || map.Count == 0)
                 {
                     // nothing to diff
-                    return ImmutableArray<StateSet>.Empty;
+                    return [];
                 }
 
                 var builder = ImmutableArray.CreateBuilder<StateSet>();

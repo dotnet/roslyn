@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly SolutionCrawlerProgressReporter _progressReporter = progressReporter;
 
                 // map containing cancellation source for the item given out.
-                private readonly Dictionary<object, CancellationTokenSource> _cancellationMap = new();
+                private readonly Dictionary<object, CancellationTokenSource> _cancellationMap = [];
 
                 protected abstract int WorkItemCount_NoLock { get; }
 

@@ -43,10 +43,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function ShouldProvideParenthesisCompletionAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of Boolean)
             Return Task.FromResult(False)
         End Function
-
-        Protected Overrides Function GetAliasDeclarationNodes(node As SyntaxNode) As ImmutableArray(Of SimpleImportsClauseSyntax)
-            ' VB imports can only be placed before any declarations
-            Return node.GetAncestorOrThis(Of CompilationUnitSyntax).Imports.SelectMany(Function(import) import.ImportsClauses).OfType(Of SimpleImportsClauseSyntax).ToImmutableArray()
-        End Function
     End Class
 End Namespace

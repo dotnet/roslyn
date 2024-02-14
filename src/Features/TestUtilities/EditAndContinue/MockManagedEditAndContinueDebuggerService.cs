@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public Func<ImmutableArray<string>>? GetCapabilitiesImpl;
 
         public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(GetActiveStatementsImpl?.Invoke() ?? ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
+            => ValueTaskFactory.FromResult(GetActiveStatementsImpl?.Invoke() ?? []);
 
         public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
         {

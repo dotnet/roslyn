@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -35,13 +36,14 @@ internal sealed partial class AssetProvider
                 // this will make 4 round trip to data source (VS) to get all assets that belong to the given solution checksum
 
                 // first, get solution checksum object for the given solution checksum
-                solutionChecksumObject = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
+                var solutionCompilationChecksumObject = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
                     assetHint: AssetHint.None, solutionChecksum, cancellationToken).ConfigureAwait(false);
+                solutionChecksumObject = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
+                    assetHint: AssetHint.None, solutionCompilationChecksumObject.SolutionState, cancellationToken).ConfigureAwait(false);
 
                 // second, get direct children of the solution
                 {
-                    using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
-                    var checksums = pooledObject.Object;
+                    using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
 
                     solutionChecksumObject.AddAllTo(checksums);
                     checksums.Remove(solutionChecksumObject.Checksum);
@@ -68,8 +70,7 @@ internal sealed partial class AssetProvider
         private async ValueTask SynchronizeProjectAssets_NoLockAsync(ProjectStateChecksums projectChecksum, CancellationToken cancellationToken)
         {
             // get children of project checksum objects at once
-            using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
-            var checksums = pooledObject.Object;
+            using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
 
             checksums.Add(projectChecksum.Info);
             checksums.Add(projectChecksum.CompilationOptions);

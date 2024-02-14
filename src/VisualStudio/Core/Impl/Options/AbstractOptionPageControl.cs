@@ -21,8 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     public abstract class AbstractOptionPageControl : UserControl
     {
         internal readonly OptionStore OptionStore;
-        private readonly List<BindingExpressionBase> _bindingExpressions = new List<BindingExpressionBase>();
-        private readonly List<OptionPageSearchHandler> _searchHandlers = new();
+        private readonly List<BindingExpressionBase> _bindingExpressions = [];
+        private readonly List<OptionPageSearchHandler> _searchHandlers = [];
 
         private protected AbstractOptionPageControl(OptionStore optionStore)
         {

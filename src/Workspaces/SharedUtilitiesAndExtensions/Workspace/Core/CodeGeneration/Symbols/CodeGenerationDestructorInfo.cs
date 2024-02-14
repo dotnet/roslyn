@@ -11,8 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationDestructorInfo
     {
-        private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationDestructorInfo> s_destructorToInfoMap =
-            new();
+        private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationDestructorInfo> s_destructorToInfoMap = new();
 
         private readonly string _typeName;
         private readonly ImmutableArray<SyntaxNode> _statements;

@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                 var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
                 if (state == null)
                 {
-                    return ImmutableArray<CodeAction>.Empty;
+                    return [];
                 }
 
-                return ImmutableArray.Create<CodeAction>(new GenerateEnumMemberCodeAction(document, state, fallbackOptions));
+                return [new GenerateEnumMemberCodeAction(document, state, fallbackOptions)];
             }
         }
     }

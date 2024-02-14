@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // style events go with properties.  If there 
             var members = Insert(destination.Members, declaration, info, availableIndices,
                 after: list => AfterMember(list, declaration), before: list => BeforeMember(list, declaration));
-            return destination.WithMembers(members.ToSyntaxList());
+            return destination.WithMembers([.. members]);
         }
 
         internal static TypeDeclarationSyntax AddEventTo(
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         GenerateModifiers(@event, destination, info),
                         SyntaxFactory.VariableDeclaration(
                             @event.Type.GenerateTypeSyntax(),
-                            SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(@event.Name.ToIdentifierToken()))))));
+                            [SyntaxFactory.VariableDeclarator(@event.Name.ToIdentifierToken())]))));
         }
 
         private static MemberDeclarationSyntax GenerateEventDeclarationWorker(
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 GenerateAccessorDeclaration(@event, @event.RemoveMethod, SyntaxKind.RemoveAccessorDeclaration, destination, info),
             };
 
-            return SyntaxFactory.AccessorList(accessors.WhereNotNull().ToSyntaxList());
+            return SyntaxFactory.AccessorList([.. accessors.WhereNotNull()]);
         }
 
         private static AccessorDeclarationSyntax? GenerateAccessorDeclaration(

@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         <InlineData("{|fullRange:struct [|S|] { }|}", CType(LSP.SymbolKind.Struct, Integer), "S")>
         <InlineData("class C { {|fullRange:void [|M|]() { }|} }", CType(LSP.SymbolKind.Method, Integer), "M")>
         <InlineData("class C { int {|fullRange:[|field|]|}; }", CType(LSP.SymbolKind.Field, Integer), "field")>
+        <InlineData("{|fullRange:partial class [|C|] { int a; }|} partial class C { int b; }", CType(LSP.SymbolKind.Class, Integer), "C")>
         Public Async Function TestDefinition(code As String, expectedSymbolKindInt As Integer, expectedText As String) As Task
             Dim expectedSymbolKind = CType(expectedSymbolKindInt, LSP.SymbolKind)
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(

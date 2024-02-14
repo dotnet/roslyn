@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             hasAnyCodeStyleOption: false, isUnnecessary: true);
 
         protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_removeUnusedMembersRule, s_removeUnreadMembersRule),
+            : base([s_removeUnusedMembersRule, s_removeUnreadMembersRule],
                    GeneratedCodeAnalysisFlags.Analyze) // We want to analyze references in generated code, but not report unused members in generated code.
         {
         }
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             /// <summary>
             /// State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
             /// </summary>
-            private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap = new();
+            private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap = [];
             /// <summary>
             /// List of properties that have a 'get' accessor usage, while the value itself is not used, e.g.:
             /// <code>
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             /// </code>
             /// Here, 'get' accessor is used in an increment operation, but the result of the increment operation isn't used and 'P' itself is not used anywhere else, so it can be safely removed
             /// </summary>
-            private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = new();
+            private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = [];
             private readonly INamedTypeSymbol? _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
             private readonly INamedTypeSymbol? _eventArgsType;
             private readonly INamedTypeSymbol? _iNotifyCompletionType;
@@ -718,6 +718,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                     // This is commonly used for static holder types
                                     // that want to block instantiation of the type.
                                     if (methodSymbol.Parameters.Length == 0)
+                                    {
+                                        return false;
+                                    }
+
+                                    // Having a private copy constructor in a record means it's implicitly used by
+                                    // the record's clone method
+                                    if (methodSymbol.ContainingType.IsRecord &&
+                                        methodSymbol.Parameters.Length == 1 &&
+                                        methodSymbol.Parameters[0].RefKind == RefKind.None &&
+                                        methodSymbol.Parameters[0].Type.Equals(memberSymbol.ContainingType))
                                     {
                                         return false;
                                     }

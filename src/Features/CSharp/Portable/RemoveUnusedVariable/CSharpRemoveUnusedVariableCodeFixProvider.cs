@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
         }
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(CS0168, CS0219);
+            => [CS0168, CS0219];
 
         protected override bool IsCatchDeclarationIdentifier(SyntaxToken token)
             => token.Parent is CatchDeclarationSyntax catchDeclaration && catchDeclaration.Identifier == token;

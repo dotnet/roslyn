@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         private List<DiagnosticData>? _lazyOthers = null;
 
-        public readonly ImmutableHashSet<DocumentId> DocumentIds => _lazyDocumentsWithDiagnostics == null ? ImmutableHashSet<DocumentId>.Empty : _lazyDocumentsWithDiagnostics.ToImmutableHashSet();
+        public readonly ImmutableHashSet<DocumentId> DocumentIds => _lazyDocumentsWithDiagnostics == null ? [] : _lazyDocumentsWithDiagnostics.ToImmutableHashSet();
         public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SyntaxLocals => Convert(_lazySyntaxLocals);
         public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SemanticLocals => Convert(_lazySemanticLocals);
         public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> NonLocals => Convert(_lazyNonLocals);
-        public readonly ImmutableArray<DiagnosticData> Others => _lazyOthers == null ? ImmutableArray<DiagnosticData>.Empty : _lazyOthers.ToImmutableArray();
+        public readonly ImmutableArray<DiagnosticData> Others => _lazyOthers == null ? [] : _lazyOthers.ToImmutableArray();
 
         public void AddExternalSyntaxDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
         {
@@ -102,16 +102,16 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 return;
             }
 
-            map ??= new Dictionary<DocumentId, List<DiagnosticData>>();
-            map.GetOrAdd(document.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(diagnostic, document));
+            map ??= [];
+            map.GetOrAdd(document.Id, _ => []).Add(DiagnosticData.Create(diagnostic, document));
 
-            _lazyDocumentsWithDiagnostics ??= new HashSet<DocumentId>();
+            _lazyDocumentsWithDiagnostics ??= [];
             _lazyDocumentsWithDiagnostics.Add(document.Id);
         }
 
         private void AddOtherDiagnostic(DiagnosticData data)
         {
-            _lazyOthers ??= new List<DiagnosticData>();
+            _lazyOthers ??= [];
             _lazyOthers.Add(data);
         }
 

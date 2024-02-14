@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly TaskQueue _eventQueue;
 
         private readonly object _gate = new();
-        private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map = new();
+        private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map = [];
 
         private readonly EventListenerTracker<IDiagnosticService> _eventListenerTracker;
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // we use registry service rather than doing MEF import since MEF import method can have race issue where
             // update source gets created before aggregator - diagnostic service - is created and we will lose events fired before
             // the aggregator is created.
-            _updateSources = ImmutableHashSet<IDiagnosticUpdateSource>.Empty;
+            _updateSources = [];
 
             // queue to serialize events.
             _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), TaskScheduler.Default);
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     // 2 different workspaces (ex, PreviewWorkspaces) can return same Args.Id, we need to
                     // distinguish them. so we separate diagnostics per workspace map.
-                    var workspaceMap = _map.GetOrAdd(source, _ => new Dictionary<Workspace, Dictionary<object, Data>>());
+                    var workspaceMap = _map.GetOrAdd(source, _ => []);
 
                     if (diagnostics.Length == 0 && !workspaceMap.ContainsKey(args.Workspace))
                     {
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return false;
                     }
 
-                    var diagnosticDataMap = workspaceMap.GetOrAdd(args.Workspace, _ => new Dictionary<object, Data>());
+                    var diagnosticDataMap = workspaceMap.GetOrAdd(args.Workspace, _ => []);
 
                     diagnosticDataMap.Remove(args.Id);
                     if (diagnosticDataMap.Count == 0 && diagnostics.Length == 0)
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return ImmutableArray<DiagnosticData>.Empty;
+            return [];
         }
 
         private async ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public readonly ImmutableArray<DiagnosticData> Diagnostics;
 
             public Data(UpdatedEventArgs args)
-                : this(args, ImmutableArray<DiagnosticData>.Empty)
+                : this(args, [])
             {
             }
 

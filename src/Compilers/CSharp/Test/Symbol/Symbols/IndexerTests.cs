@@ -2163,7 +2163,7 @@ class B
             var compilation = CreateCompilation(source);
 
             var loopResult = Parallel.ForEach(compilation.GlobalNamespace.GetTypeMembers(), type =>
-                type.ForceComplete(null, default(CancellationToken)));
+                type.ForceComplete(null, filter: null, default(CancellationToken)));
 
             Assert.True(loopResult.IsCompleted);
 
@@ -2194,7 +2194,7 @@ class B
             var compilation = CreateCompilation(source);
 
             var loopResult = Parallel.ForEach(compilation.GlobalNamespace.GetTypeMembers(), type =>
-                type.ForceComplete(null, default(CancellationToken)));
+                type.ForceComplete(null, filter: null, default(CancellationToken)));
 
             Assert.True(loopResult.IsCompleted);
 

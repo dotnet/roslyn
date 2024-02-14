@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.SimplifyPropertyPatternDiagnosticId);
+            [IDEDiagnosticIds.SimplifyPropertyPatternDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

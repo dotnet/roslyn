@@ -168,11 +168,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             IdeCodeStyleOptions.CommonDefaults.PreferSimplifiedInterpolation);
 
         private static readonly BidirectionalMap<string, UnusedParametersPreference> s_unusedParametersPreferenceMap =
-            new(new[]
-            {
+            new(
+            [
                 KeyValuePairUtil.Create("non_public", UnusedParametersPreference.NonPublicMethods),
                 KeyValuePairUtil.Create("all", UnusedParametersPreference.AllMethods),
-            });
+            ]);
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<UnusedParametersPreference>> UnusedParameters = CreatePerLanguageOption(
             CodeStyleOptionGroups.Parameter,
@@ -196,13 +196,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 }));
 
         private static readonly BidirectionalMap<string, AccessibilityModifiersRequired> s_accessibilityModifiersRequiredMap =
-            new(new[]
-            {
+            new(
+            [
                 KeyValuePairUtil.Create("never", CodeStyle.AccessibilityModifiersRequired.Never),
                 KeyValuePairUtil.Create("always", CodeStyle.AccessibilityModifiersRequired.Always),
                 KeyValuePairUtil.Create("for_non_interface_members", CodeStyle.AccessibilityModifiersRequired.ForNonInterfaceMembers),
                 KeyValuePairUtil.Create("omit_if_default", CodeStyle.AccessibilityModifiersRequired.OmitIfDefault),
-            });
+            ]);
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<AccessibilityModifiersRequired>> AccessibilityModifiersRequired = CreatePerLanguageOption(
             CodeStyleOptionGroups.Modifier, "dotnet_style_require_accessibility_modifiers",
@@ -242,11 +242,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             EditorConfigValueSerializer.String(emptyStringRepresentation: "none"));
 
         private static readonly BidirectionalMap<string, ParenthesesPreference> s_parenthesesPreferenceMap =
-            new(new[]
-            {
+            new(
+            [
                 KeyValuePairUtil.Create("always_for_clarity", ParenthesesPreference.AlwaysForClarity),
                 KeyValuePairUtil.Create("never_if_unnecessary", ParenthesesPreference.NeverIfUnnecessary),
-            });
+            ]);
 
         private static PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> CreateParenthesesOption(CodeStyleOption2<ParenthesesPreference> defaultValue, string name)
             => CreatePerLanguageOption(
@@ -292,11 +292,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 "dotnet_style_parentheses_in_other_operators");
 
         private static readonly BidirectionalMap<string, ForEachExplicitCastInSourcePreference> s_forEachExplicitCastInSourcePreferencePreferenceMap =
-            new(new[]
-            {
+            new(
+            [
                 KeyValuePairUtil.Create("always", ForEachExplicitCastInSourcePreference.Always),
                 KeyValuePairUtil.Create("when_strongly_typed", ForEachExplicitCastInSourcePreference.WhenStronglyTyped),
-            });
+            ]);
 
         internal static readonly Option2<CodeStyleOption2<ForEachExplicitCastInSourcePreference>> ForEachExplicitCastInSource = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences,

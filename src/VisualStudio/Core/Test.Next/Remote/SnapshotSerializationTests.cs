@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         private static async Task<SolutionAsset> GetRequiredAssetAsync(SolutionAssetStorage.Scope scope, Checksum checksum)
         {
-            var data = await scope.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var data = await scope.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None);
             Contract.ThrowIfNull(data);
             return new(checksum, data);
         }
@@ -88,14 +88,15 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var validator = new SerializationValidator(workspace.Services);
 
-            using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false);
+            using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None);
             var checksum = scope.SolutionChecksum;
-            var solutionSyncObject = await GetRequiredAssetAsync(scope, checksum).ConfigureAwait(false);
+            var solutionSyncObject = await GetRequiredAssetAsync(scope, checksum);
 
-            await validator.VerifySynchronizationObjectInServiceAsync(solutionSyncObject).ConfigureAwait(false);
+            await validator.VerifySynchronizationObjectInServiceAsync(solutionSyncObject);
 
-            var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
+            var solutionCompilationObject = await validator.GetValueAsync<SolutionCompilationStateChecksums>(checksum);
+            var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(solutionCompilationObject.SolutionState);
+            await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
 
             Assert.Equal(0, solutionObject.Projects.Length);
         }
@@ -107,8 +108,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var solution = workspace.CurrentSolution;
 
             var validator = new SerializationValidator(workspace.Services);
-            using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false);
-            await validator.VerifySolutionStateSerializationAsync(solution, scope.SolutionChecksum).ConfigureAwait(false);
+            using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None);
+            await validator.VerifySolutionStateSerializationAsync(solution, scope.SolutionChecksum);
         }
 
         [Fact]
@@ -120,13 +121,14 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var validator = new SerializationValidator(workspace.Services);
 
-            using var scope = await validator.AssetStorage.StoreAssetsAsync(project.Solution, CancellationToken.None).ConfigureAwait(false);
+            using var scope = await validator.AssetStorage.StoreAssetsAsync(project.Solution, CancellationToken.None);
             var checksum = scope.SolutionChecksum;
-            var solutionSyncObject = await GetRequiredAssetAsync(scope, checksum).ConfigureAwait(false);
+            var solutionSyncObject = await GetRequiredAssetAsync(scope, checksum);
 
-            await validator.VerifySynchronizationObjectInServiceAsync(solutionSyncObject).ConfigureAwait(false);
+            await validator.VerifySynchronizationObjectInServiceAsync(solutionSyncObject);
 
-            var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
+            var solutionCompilationObject = await validator.GetValueAsync<SolutionCompilationStateChecksums>(checksum);
+            var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(solutionCompilationObject.SolutionState);
 
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
 
@@ -141,8 +143,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var validator = new SerializationValidator(workspace.Services);
 
-            using var snapshot = await validator.AssetStorage.StoreAssetsAsync(project.Solution, CancellationToken.None).ConfigureAwait(false);
-            await validator.VerifySolutionStateSerializationAsync(project.Solution, snapshot.SolutionChecksum).ConfigureAwait(false);
+            using var snapshot = await validator.AssetStorage.StoreAssetsAsync(project.Solution, CancellationToken.None);
+            await validator.VerifySolutionStateSerializationAsync(project.Solution, snapshot.SolutionChecksum);
         }
 
         [Fact]
@@ -155,12 +157,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var validator = new SerializationValidator(workspace.Services);
 
-            using var scope = await validator.AssetStorage.StoreAssetsAsync(document.Project.Solution, CancellationToken.None).ConfigureAwait(false);
-            var syncObject = await GetRequiredAssetAsync(scope, scope.SolutionChecksum).ConfigureAwait(false);
-            var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
+            using var scope = await validator.AssetStorage.StoreAssetsAsync(document.Project.Solution, CancellationToken.None);
+            var syncObject = await GetRequiredAssetAsync(scope, scope.SolutionChecksum);
+            var solutionCompilationObject = await validator.GetValueAsync<SolutionCompilationStateChecksums>(syncObject.Checksum);
+            var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(solutionCompilationObject.SolutionState);
 
-            await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
+            await validator.VerifySynchronizationObjectInServiceAsync(syncObject);
+            await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
         }
 
         [Fact]
@@ -174,8 +177,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var validator = new SerializationValidator(workspace.Services);
 
-            using var scope = await validator.AssetStorage.StoreAssetsAsync(document.Project.Solution, CancellationToken.None).ConfigureAwait(false);
-            await validator.VerifySolutionStateSerializationAsync(document.Project.Solution, scope.SolutionChecksum).ConfigureAwait(false);
+            using var scope = await validator.AssetStorage.StoreAssetsAsync(document.Project.Solution, CancellationToken.None);
+            await validator.VerifySolutionStateSerializationAsync(document.Project.Solution, scope.SolutionChecksum);
         }
 
         [Fact]
@@ -189,12 +192,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var validator = new SerializationValidator(workspace.Services);
 
-            using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false);
-            var syncObject = await GetRequiredAssetAsync(scope, scope.SolutionChecksum).ConfigureAwait(false);
-            var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
+            using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None);
+            var syncObject = await GetRequiredAssetAsync(scope, scope.SolutionChecksum);
+            var solutionCompilationObject = await validator.GetValueAsync<SolutionCompilationStateChecksums>(syncObject.Checksum);
+            var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(solutionCompilationObject.SolutionState);
 
-            await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
+            await validator.VerifySynchronizationObjectInServiceAsync(syncObject);
+            await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
 
             Assert.Equal(2, solutionObject.Projects.Length);
         }
@@ -207,8 +211,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var validator = new SerializationValidator(workspace.Services);
 
-            using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false);
-            await validator.VerifySolutionStateSerializationAsync(solution, scope.SolutionChecksum).ConfigureAwait(false);
+            using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None);
+            await validator.VerifySolutionStateSerializationAsync(solution, scope.SolutionChecksum);
         }
 
         [Fact]
@@ -219,9 +223,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var validator = new SerializationValidator(workspace.Services);
 
-            using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false);
-            var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(scope.SolutionChecksum);
-            await validator.VerifyAssetAsync(solutionObject).ConfigureAwait(false);
+            using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None);
+            var solutionCompilationObject = await validator.GetValueAsync<SolutionCompilationStateChecksums>(scope.SolutionChecksum);
+            var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(solutionCompilationObject.SolutionState);
+            await validator.VerifyAssetAsync(solutionObject);
         }
 
         [Fact]
@@ -232,9 +237,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var validator = new SerializationValidator(workspace.Services);
 
-            using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false);
-            var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(scope.SolutionChecksum);
-            await validator.VerifyAssetAsync(solutionObject).ConfigureAwait(false);
+            using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None);
+            var solutionCompilationObject = await validator.GetValueAsync<SolutionCompilationStateChecksums>(scope.SolutionChecksum);
+            var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(solutionCompilationObject.SolutionState);
+            await validator.VerifyAssetAsync(solutionObject);
         }
 
         [Fact]
@@ -245,6 +251,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             // this is just data, one can hold the id outside of using statement. but
             // one can't get asset using checksum from the id.
+            SolutionCompilationStateChecksums solutionCompilationId1;
+            SolutionCompilationStateChecksums solutionCompilationId2;
             SolutionStateChecksums solutionId1;
             SolutionStateChecksums solutionId2;
 
@@ -252,13 +260,17 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             using (var scope1 = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
-                solutionId1 = await validator.GetValueAsync<SolutionStateChecksums>(scope1.SolutionChecksum).ConfigureAwait(false);
+                solutionCompilationId1 = await validator.GetValueAsync<SolutionCompilationStateChecksums>(scope1.SolutionChecksum);
+                solutionId1 = await validator.GetValueAsync<SolutionStateChecksums>(solutionCompilationId1.SolutionState);
             }
 
             using (var scope2 = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
-                solutionId2 = await validator.GetValueAsync<SolutionStateChecksums>(scope2.SolutionChecksum).ConfigureAwait(false);
+                solutionCompilationId2 = await validator.GetValueAsync<SolutionCompilationStateChecksums>(scope2.SolutionChecksum);
+                solutionId2 = await validator.GetValueAsync<SolutionStateChecksums>(solutionCompilationId2.SolutionState);
             }
+
+            validator.SolutionCompilationStateEqual(solutionCompilationId1, solutionCompilationId2);
 
             // once pinned snapshot scope is released, there is no way to get back to asset.
             // catch Exception because it will throw 2 different exception based on release or debug (ExceptionUtilities.UnexpectedValue)
@@ -287,30 +299,33 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var validator = new SerializationValidator(workspace.Services);
 
-            var scope1 = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false);
+            var scope1 = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None);
 
             // recover solution from given snapshot
-            var recovered = await validator.GetSolutionAsync(scope1).ConfigureAwait(false);
-            var solutionObject1 = await validator.GetValueAsync<SolutionStateChecksums>(scope1.SolutionChecksum).ConfigureAwait(false);
+            var recovered = await validator.GetSolutionAsync(scope1);
+            var solutionCompilationObject1 = await validator.GetValueAsync<SolutionCompilationStateChecksums>(scope1.SolutionChecksum);
+            var solutionObject1 = await validator.GetValueAsync<SolutionStateChecksums>(solutionCompilationObject1.SolutionState);
 
             // create new snapshot from recovered solution
-            using var scope2 = await validator.AssetStorage.StoreAssetsAsync(recovered, CancellationToken.None).ConfigureAwait(false);
+            using var scope2 = await validator.AssetStorage.StoreAssetsAsync(recovered, CancellationToken.None);
 
             // verify asset created by recovered solution is good
-            var solutionObject2 = await validator.GetValueAsync<SolutionStateChecksums>(scope2.SolutionChecksum).ConfigureAwait(false);
-            await validator.VerifyAssetAsync(solutionObject2).ConfigureAwait(false);
+            var solutionCompilationObject2 = await validator.GetValueAsync<SolutionCompilationStateChecksums>(scope2.SolutionChecksum);
+            var solutionObject2 = await validator.GetValueAsync<SolutionStateChecksums>(solutionCompilationObject2.SolutionState);
+            await validator.VerifyAssetAsync(solutionObject2);
 
             // verify snapshots created from original solution and recovered solution are same
             validator.SolutionStateEqual(solutionObject1, solutionObject2);
 
             // recover new solution from recovered solution
-            var roundtrip = await validator.GetSolutionAsync(scope2).ConfigureAwait(false);
+            var roundtrip = await validator.GetSolutionAsync(scope2);
 
             // create new snapshot from round tripped solution
-            using var scope3 = await validator.AssetStorage.StoreAssetsAsync(roundtrip, CancellationToken.None).ConfigureAwait(false);
+            using var scope3 = await validator.AssetStorage.StoreAssetsAsync(roundtrip, CancellationToken.None);
             // verify asset created by round trip solution is good
-            var solutionObject3 = await validator.GetValueAsync<SolutionStateChecksums>(scope3.SolutionChecksum).ConfigureAwait(false);
-            await validator.VerifyAssetAsync(solutionObject3).ConfigureAwait(false);
+            var solutionCompilationObject3 = await validator.GetValueAsync<SolutionCompilationStateChecksums>(scope3.SolutionChecksum);
+            var solutionObject3 = await validator.GetValueAsync<SolutionStateChecksums>(solutionCompilationObject3.SolutionState);
+            await validator.VerifyAssetAsync(solutionObject3);
 
             // verify snapshots created from original solution and round trip solution are same.
             validator.SolutionStateEqual(solutionObject2, solutionObject3);
@@ -324,31 +339,34 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var validator = new SerializationValidator(workspace.Services);
 
-            var scope1 = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false);
+            var scope1 = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None);
 
             // recover solution from given snapshot
-            var recovered = await validator.GetSolutionAsync(scope1).ConfigureAwait(false);
-            var solutionObject1 = await validator.GetValueAsync<SolutionStateChecksums>(scope1.SolutionChecksum).ConfigureAwait(false);
+            var recovered = await validator.GetSolutionAsync(scope1);
+            var solutionCompilationObject1 = await validator.GetValueAsync<SolutionCompilationStateChecksums>(scope1.SolutionChecksum);
+            var solutionObject1 = await validator.GetValueAsync<SolutionStateChecksums>(solutionCompilationObject1.SolutionState);
 
             // create new snapshot from recovered solution
-            using var scope2 = await validator.AssetStorage.StoreAssetsAsync(recovered, CancellationToken.None).ConfigureAwait(false);
+            using var scope2 = await validator.AssetStorage.StoreAssetsAsync(recovered, CancellationToken.None);
 
             // verify asset created by recovered solution is good
-            var solutionObject2 = await validator.GetValueAsync<SolutionStateChecksums>(scope2.SolutionChecksum).ConfigureAwait(false);
-            await validator.VerifyAssetAsync(solutionObject2).ConfigureAwait(false);
+            var solutionCompilationObject2 = await validator.GetValueAsync<SolutionCompilationStateChecksums>(scope2.SolutionChecksum);
+            var solutionObject2 = await validator.GetValueAsync<SolutionStateChecksums>(solutionCompilationObject2.SolutionState);
+            await validator.VerifyAssetAsync(solutionObject2);
 
             // verify snapshots created from original solution and recovered solution are same
             validator.SolutionStateEqual(solutionObject1, solutionObject2);
             scope1.Dispose();
 
             // recover new solution from recovered solution
-            var roundtrip = await validator.GetSolutionAsync(scope2).ConfigureAwait(false);
+            var roundtrip = await validator.GetSolutionAsync(scope2);
 
             // create new snapshot from round tripped solution
-            using var scope3 = await validator.AssetStorage.StoreAssetsAsync(roundtrip, CancellationToken.None).ConfigureAwait(false);
+            using var scope3 = await validator.AssetStorage.StoreAssetsAsync(roundtrip, CancellationToken.None);
             // verify asset created by round trip solution is good
-            var solutionObject3 = await validator.GetValueAsync<SolutionStateChecksums>(scope3.SolutionChecksum).ConfigureAwait(false);
-            await validator.VerifyAssetAsync(solutionObject3).ConfigureAwait(false);
+            var solutionCompilationObject3 = await validator.GetValueAsync<SolutionCompilationStateChecksums>(scope3.SolutionChecksum);
+            var solutionObject3 = await validator.GetValueAsync<SolutionStateChecksums>(solutionCompilationObject3.SolutionState);
+            await validator.VerifyAssetAsync(solutionObject3);
 
             // verify snapshots created from original solution and round trip solution are same.
             validator.SolutionStateEqual(solutionObject2, solutionObject3);
@@ -473,9 +491,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             project = project.AddAnalyzerReferences(new[] { analyzer1, analyzer2 });
 
             var validator = new SerializationValidator(workspace.Services);
-            using var snapshot = await validator.AssetStorage.StoreAssetsAsync(project.Solution, CancellationToken.None).ConfigureAwait(false);
+            using var snapshot = await validator.AssetStorage.StoreAssetsAsync(project.Solution, CancellationToken.None);
 
-            var recovered = await validator.GetSolutionAsync(snapshot).ConfigureAwait(false);
+            var recovered = await validator.GetSolutionAsync(snapshot);
             AssertEx.Equal(new[] { file1.Path, file2.Path }, recovered.GetProject(project.Id).AnalyzerReferences.Select(r => r.FullPath));
         }
 
@@ -493,9 +511,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var validator = new SerializationValidator(workspace.Services);
 
-            using var snapshot = await validator.AssetStorage.StoreAssetsAsync(project.Solution, CancellationToken.None).ConfigureAwait(false);
+            using var snapshot = await validator.AssetStorage.StoreAssetsAsync(project.Solution, CancellationToken.None);
             // this shouldn't throw
-            var recovered = await validator.GetSolutionAsync(snapshot).ConfigureAwait(false);
+            var recovered = await validator.GetSolutionAsync(snapshot);
         }
 
         [Fact]
@@ -506,9 +524,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var validator = new SerializationValidator(workspace.Services);
 
-            using var snapshot = await validator.AssetStorage.StoreAssetsAsync(project.Solution, CancellationToken.None).ConfigureAwait(false);
+            using var snapshot = await validator.AssetStorage.StoreAssetsAsync(project.Solution, CancellationToken.None);
             // this shouldn't throw
-            var recovered = await validator.GetSolutionAsync(snapshot).ConfigureAwait(false);
+            var recovered = await validator.GetSolutionAsync(snapshot);
         }
 
         [Fact]
@@ -533,7 +551,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             project = project.WithCompilationOptions(
                 ((VisualBasic.VisualBasicCompilationOptions)project.CompilationOptions).WithParseOptions((VisualBasic.VisualBasicParseOptions)project.ParseOptions));
 
-            var checksum = await project.State.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false);
+            var checksum = await project.State.GetChecksumAsync(CancellationToken.None);
 
             Assert.True(checksum != Checksum.Null);
         }
@@ -602,7 +620,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                 using var objectReader = ObjectReader.TryGetReader(stream);
 
-                var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                var newText = (SourceText)serializer.Deserialize(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
                 Assert.Equal(sourceText.ToString(), newText.ToString());
             }
 
@@ -621,7 +639,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                 using var objectReader = ObjectReader.TryGetReader(stream);
 
-                var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                var newText = (SourceText)serializer.Deserialize(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
                 Assert.Equal(sourceText.ToString(), newText.ToString());
             }
         }
@@ -650,7 +668,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                 stream.Position = 0;
                 using var objectReader = ObjectReader.TryGetReader(stream);
-                var recoveredOptions = serializer.Deserialize<CompilationOptions>(originalOptions.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                var recoveredOptions = (CompilationOptions)serializer.Deserialize(originalOptions.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
 
                 var original = serializer.CreateChecksum(originalOptions, CancellationToken.None);
                 var recovered = serializer.CreateChecksum(recoveredOptions, CancellationToken.None);
@@ -671,7 +689,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);
-            var recovered = serializer.Deserialize<object>(asset.Kind, reader, CancellationToken.None);
+            var recovered = serializer.Deserialize(asset.Kind, reader, CancellationToken.None);
             var assetFromStorage = new SolutionAsset(serializer.CreateChecksum(recovered, CancellationToken.None), recovered);
 
             Assert.Equal(asset.Checksum, assetFromStorage.Checksum);

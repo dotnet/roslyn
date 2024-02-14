@@ -42,7 +42,7 @@ internal abstract class ResolveCache<TCacheEntry> : ILspService where TCacheEntr
     /// <summary>
     /// Keeps track of the resultIds in the cache and their associated cache entry.
     /// </summary>
-    private readonly List<(long ResultId, TCacheEntry CacheEntry)> _resultIdToCachedItem = new();
+    private readonly List<(long ResultId, TCacheEntry CacheEntry)> _resultIdToCachedItem = [];
 
     #endregion
 

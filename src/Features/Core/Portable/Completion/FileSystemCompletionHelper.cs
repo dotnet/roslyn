@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         // virtual for testing
         protected virtual string[] GetLogicalDrives()
-            => IOUtilities.PerformIO(Directory.GetLogicalDrives, Array.Empty<string>());
+            => IOUtilities.PerformIO(Directory.GetLogicalDrives, []);
 
         // virtual for testing
         protected virtual bool DirectoryExists(string fullPath)
@@ -66,14 +66,14 @@ namespace Microsoft.CodeAnalysis.Completion
         protected virtual IEnumerable<string> EnumerateDirectories(string fullDirectoryPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullDirectoryPath));
-            return IOUtilities.PerformIO(() => Directory.EnumerateDirectories(fullDirectoryPath), Array.Empty<string>());
+            return IOUtilities.PerformIO(() => Directory.EnumerateDirectories(fullDirectoryPath), []);
         }
 
         // virtual for testing
         protected virtual IEnumerable<string> EnumerateFiles(string fullDirectoryPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullDirectoryPath));
-            return IOUtilities.PerformIO(() => Directory.EnumerateFiles(fullDirectoryPath), Array.Empty<string>());
+            return IOUtilities.PerformIO(() => Directory.EnumerateFiles(fullDirectoryPath), []);
         }
 
         // virtual for testing
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Completion
             if (!PathUtilities.IsUnixLikePlatform && directoryPath == "\\")
             {
                 // The user has typed only "\".  In this case, we want to add "\\" to the list.  
-                return ImmutableArray.Create(CreateNetworkRoot());
+                return [CreateNetworkRoot()];
             }
 
             var result = ArrayBuilder<CompletionItem>.GetInstance();

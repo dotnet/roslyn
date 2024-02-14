@@ -54,13 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             var projectDirectoryName = Path.GetDirectoryName(document.Project.FilePath);
             Contract.ThrowIfNull(projectDirectoryName);
-
-            using var _ = ArrayBuilder<string>.GetInstance(capacity: 2 + document.Folders.Count, out var pathBuilder);
-            pathBuilder.Add(projectDirectoryName);
-            pathBuilder.AddRange(document.Folders);
-            pathBuilder.Add(document.Name);
-
-            var path = Path.Combine(pathBuilder.ToArray());
+            var path = Path.Combine([projectDirectoryName, .. document.Folders, document.Name]);
             return ProtocolConversions.CreateAbsoluteUri(path);
         }
 

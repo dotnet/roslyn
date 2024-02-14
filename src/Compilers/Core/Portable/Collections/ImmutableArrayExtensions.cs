@@ -282,23 +282,63 @@ namespace Microsoft.CodeAnalysis
         /// <typeparam name="TItem">Type of the source array items</typeparam>
         /// <typeparam name="TResult">Type of the transformed array items</typeparam>
         /// <param name="array">The array to transform</param>
+        /// <param name="selector">A transform function to apply to each element.</param>
+        /// <returns>If the array's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, ImmutableArray<TResult>> selector)
+        {
+            if (array.Length == 0)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in array)
+                builder.AddRange(selector(item));
+
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Maps and flattens a subset of immutable array to another immutable array.
+        /// </summary>
+        /// <typeparam name="TItem">Type of the source array items</typeparam>
+        /// <typeparam name="TResult">Type of the transformed array items</typeparam>
+        /// <param name="array">The array to transform</param>
         /// <param name="predicate">The condition to use for filtering the array content.</param>
         /// <param name="selector">A transform function to apply to each element that is not filtered out by <paramref name="predicate"/>.</param>
         /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, bool> predicate, Func<TItem, IEnumerable<TResult>> selector)
         {
             if (array.Length == 0)
-            {
                 return ImmutableArray<TResult>.Empty;
-            }
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
             {
                 if (predicate(item))
-                {
                     builder.AddRange(selector(item));
-                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Maps and flattens a subset of immutable array to another immutable array.
+        /// </summary>
+        /// <typeparam name="TItem">Type of the source array items</typeparam>
+        /// <typeparam name="TResult">Type of the transformed array items</typeparam>
+        /// <param name="array">The array to transform</param>
+        /// <param name="predicate">The condition to use for filtering the array content.</param>
+        /// <param name="selector">A transform function to apply to each element that is not filtered out by <paramref name="predicate"/>.</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, bool> predicate, Func<TItem, ImmutableArray<TResult>> selector)
+        {
+            if (array.Length == 0)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in array)
+            {
+                if (predicate(item))
+                    builder.AddRange(selector(item));
             }
 
             return builder.ToImmutableAndFree();
@@ -878,6 +918,15 @@ namespace Microsoft.CodeAnalysis
             return sum;
         }
 
+        public static int Sum<T>(this ImmutableArray<T> items, Func<T, int, int> selector)
+        {
+            var sum = 0;
+            for (var i = 0; i < items.Length; i++)
+                sum += selector(items[i], i);
+
+            return sum;
+        }
+
         internal static void AddToMultiValueDictionaryBuilder<K, T>(Dictionary<K, object> accumulator, K key, T item)
             where K : notnull
             where T : notnull
@@ -946,7 +995,13 @@ namespace Microsoft.CodeAnalysis
             where TNamespaceOrTypeSymbol : class
             where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
         {
-            var dictionary = new Dictionary<TKey, ImmutableArray<TNamedTypeSymbol>>(comparer);
+            // Initialize dictionary capacity to avoid resize allocations during Add calls.
+            // Most iterations through the loop add an entry. If map is smaller than the
+            // smallest capacity dictionary will use, we'll let it grow organically as
+            // it's possible we might not add anything to the dictionary.
+            var capacity = map.Count > 3 ? map.Count : 0;
+
+            var dictionary = new Dictionary<TKey, ImmutableArray<TNamedTypeSymbol>>(capacity, comparer);
 
             foreach (var (name, members) in map)
             {

@@ -14,8 +14,7 @@ namespace Roslyn.Utilities
     {
         private readonly NonReentrantLock _guard = new();
 
-        private readonly Dictionary<string, object> _eventNameToRegistries =
-            new();
+        private readonly Dictionary<string, object> _eventNameToRegistries = [];
 
         public EventMap()
         {
@@ -83,7 +82,7 @@ namespace Roslyn.Utilities
                 return (ImmutableArray<Registry<TEventHandler>>)registries;
             }
 
-            return ImmutableArray.Create<Registry<TEventHandler>>();
+            return [];
         }
 
         private void SetRegistries_NoLock<TEventHandler>(string eventName, ImmutableArray<Registry<TEventHandler>> registries)

@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 #else
 
                     var references = await SymbolFinder.FindRenamableReferencesAsync(
-                        ImmutableArray.Create<ISymbol>(methodSymbol), document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                        [methodSymbol], document.Project.Solution, cancellationToken).ConfigureAwait(false);
 
 #endif
 

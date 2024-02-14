@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.UseIndexOperatorDiagnosticId);
+            [IDEDiagnosticIds.UseIndexOperatorDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

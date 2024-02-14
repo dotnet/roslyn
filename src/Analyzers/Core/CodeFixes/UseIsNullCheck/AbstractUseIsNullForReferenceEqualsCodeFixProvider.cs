@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         where TExpressionSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
+            => [IDEDiagnosticIds.UseIsNullCheckDiagnosticId];
 
         protected abstract string GetTitle(bool negated, ParseOptions options);
 

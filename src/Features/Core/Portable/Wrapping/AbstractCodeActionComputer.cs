@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             /// The contents of the documents we've created code-actions for.  This is used so that
             /// we can prevent creating multiple code actions that produce the same results.
             /// </summary>
-            private readonly List<SyntaxNode> _seenDocumentRoots = new();
+            private readonly List<SyntaxNode> _seenDocumentRoots = [];
 
             public AbstractCodeActionComputer(
                 TWrapper service,
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 //     trivia accordingly.
 
                 var rewrittenRoot = root.ReplaceSyntax(
-                    nodes: new[] { nodeToFormat },
+                    nodes: [nodeToFormat],
                     computeReplacementNode: (oldNode, newNode) => newNode.WithAdditionalAnnotations(s_toFormatAnnotation),
 
                     tokens: leftTokenToTrailingTrivia.Keys.Concat(rightTokenToLeadingTrivia.Keys).Distinct(),

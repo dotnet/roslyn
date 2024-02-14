@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             // DocumentIds will track all of the documents where annotations were added since 
             // it's not guaranteed that all of the symbols are in the same document
-            documentIdToSymbolsMap.Add(solution.GetRequiredDocument(typeNode.SyntaxTree).Id, new List<ISymbol>());
+            documentIdToSymbolsMap.Add(solution.GetRequiredDocument(typeNode.SyntaxTree).Id, []);
 
             foreach (var symbol in symbols)
             {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 if (!currentRoots.TryGetValue(tree, out var root))
                 {
                     root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                    documentIdToSymbolsMap.Add(id, new List<ISymbol>());
+                    documentIdToSymbolsMap.Add(id, []);
                 }
 
                 var token = root.FindToken(location.SourceSpan.Start);

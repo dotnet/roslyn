@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IList<ITypeParameterSymbol> GetReferencedMethodTypeParameters(
             this ITypeSymbol? type, IList<ITypeParameterSymbol>? result = null)
         {
-            result ??= new List<ITypeParameterSymbol>();
+            result ??= [];
             type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: true));
             return result;
         }
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IList<ITypeParameterSymbol> GetReferencedTypeParameters(
             this ITypeSymbol? type, IList<ITypeParameterSymbol>? result = null)
         {
-            result ??= new List<ITypeParameterSymbol>();
+            result ??= [];
             type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: false));
             return result;
         }

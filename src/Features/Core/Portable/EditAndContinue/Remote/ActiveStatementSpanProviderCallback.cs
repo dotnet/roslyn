@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                return ImmutableArray<ActiveStatementSpan>.Empty;
+                return [];
             }
         }
     }

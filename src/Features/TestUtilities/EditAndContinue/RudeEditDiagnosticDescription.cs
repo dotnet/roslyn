@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             _rudeEditKind = rudeEditKind;
             _squiggle = squiggle;
             _firstLine = firstLine;
-            _arguments = arguments ?? Array.Empty<string>();
+            _arguments = arguments ?? [];
         }
 
         public string? FirstLine => _firstLine;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 && _arguments.SequenceEqual(other._arguments, object.Equals);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is RudeEditDiagnosticDescription && Equals((RudeEditDiagnosticDescription)obj);
 
         public override int GetHashCode()

@@ -252,7 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     {
                         if (projectNameToProjectMap == null)
                         {
-                            projectNameToProjectMap = new Dictionary<string, Project>();
+                            projectNameToProjectMap = [];
                             foreach (var p in _workspace.CurrentSolution.Projects)
                             {
                                 projectNameToProjectMap[p.Name] = p;
@@ -279,7 +279,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             continue;
                         }
 
-                        filePathToDocumentMap ??= new Dictionary<Project, ImmutableDictionary<string, Document>>();
+                        filePathToDocumentMap ??= [];
                         if (!filePathToDocumentMap.TryGetValue(project, out var filePathMap))
                         {
                             filePathMap = await GetFilePathToDocumentMapAsync(project, cancellationToken).ConfigureAwait(false);

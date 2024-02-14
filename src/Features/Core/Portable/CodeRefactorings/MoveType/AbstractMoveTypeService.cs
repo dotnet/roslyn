@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             if (state == null)
             {
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
             }
 
             var actions = CreateActions(state, cancellationToken);
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             if (typeMatchesDocumentName)
             {
                 // if type name matches document name, per style conventions, we have nothing to do.
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
             }
 
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
@@ -247,11 +247,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var typeNameParts = GetTypeNamePartsForNestedTypeNode(typeNode, semanticModel, cancellationToken);
                 var dottedName = typeNameParts.Join(".") + fileExtension;
 
-                return ImmutableArray.Create(standaloneName, dottedName);
+                return [standaloneName, dottedName];
             }
             else
             {
-                return ImmutableArray.Create(standaloneName);
+                return [standaloneName];
             }
         }
 

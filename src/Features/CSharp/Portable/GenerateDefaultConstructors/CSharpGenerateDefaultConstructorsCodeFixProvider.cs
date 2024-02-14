@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CS1729, CS7036, CS8983);
+            [CS1729, CS7036, CS8983];
 
         protected override SyntaxToken? TryGetTypeName(SyntaxNode typeDeclaration)
             => (typeDeclaration as BaseTypeDeclarationSyntax)?.Identifier;

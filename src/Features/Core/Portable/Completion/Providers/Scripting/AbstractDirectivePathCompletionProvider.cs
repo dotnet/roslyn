@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
             else
             {
-                referenceSearchPaths = ImmutableArray<string>.Empty;
+                referenceSearchPaths = [];
                 baseDirectory = null;
             }
 

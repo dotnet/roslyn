@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 explicitInterfaceImplementations: default,
                 name: EqualsName,
                 typeParameters: default,
-                parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object).WithNullableAnnotation(NullableAnnotation.Annotated), ObjName)),
+                parameters: [CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object).WithNullableAnnotation(NullableAnnotation.Annotated), ObjName)],
                 statements: statements);
         }
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     methodSymbol,
                     modifiers: new DeclarationModifiers(),
-                    explicitInterfaceImplementations: ImmutableArray.Create(methodSymbol),
+                    explicitInterfaceImplementations: [methodSymbol],
                     parameters: parameters,
                     statements: statements);
             }
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         factory.IsTypeExpression(
                             objNameExpression,
                             containingType)),
-                    new[] { factory.ReturnStatement(factory.FalseLiteralExpression()) });
+                    [factory.ReturnStatement(factory.FalseLiteralExpression())]);
 
                 // Next, we cast the argument to our type:
                 //

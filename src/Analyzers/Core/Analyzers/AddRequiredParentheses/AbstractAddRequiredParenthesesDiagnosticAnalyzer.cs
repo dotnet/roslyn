@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         where TBinaryLikeExpressionSyntax : TExpressionSyntax
         where TLanguageKindEnum : struct
     {
-        private static readonly Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string?>> s_cachedProperties =
-            new();
+        private static readonly Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string?>> s_cachedProperties = [];
 
         private readonly IPrecedenceService _precedenceService;
 
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             };
 
         protected static ImmutableArray<string> GetAllEquivalenceKeys()
-            => ImmutableArray.Create("ArithmeticBinary", "RelationalBinary", "OtherBinary", "Other");
+            => ["ArithmeticBinary", "RelationalBinary", "OtherBinary", "Other"];
 
         private static ImmutableDictionary<string, string?> GetProperties(bool includeInFixAll, string equivalenceKey)
             => s_cachedProperties[(includeInFixAll, equivalenceKey)];

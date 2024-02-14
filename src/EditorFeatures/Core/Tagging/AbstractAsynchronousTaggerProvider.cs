@@ -70,13 +70,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// An empty enumerable can be returned to indicate that this tagger should run unconditionally.</para>
         /// </summary>
         /// <remarks>All values must either be an <see cref="Option2{T}"/> or a <see cref="PerLanguageOption2{T}"/>.</remarks>
-        protected virtual ImmutableArray<IOption2> Options => ImmutableArray<IOption2>.Empty;
+        protected virtual ImmutableArray<IOption2> Options => [];
 
         /// <summary>
         /// Options controlling the feature that should be used to determine if the feature should recompute tags.
         /// These generally correspond to user facing options to change how a feature behaves if it is running.
         /// </summary>
-        protected virtual ImmutableArray<IOption2> FeatureOptions => ImmutableArray<IOption2>.Empty;
+        protected virtual ImmutableArray<IOption2> FeatureOptions => [];
 
         protected virtual bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer) => false;
 
