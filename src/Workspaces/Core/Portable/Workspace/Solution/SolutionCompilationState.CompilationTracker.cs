@@ -201,8 +201,10 @@ namespace Microsoft.CodeAnalysis
                 // any future forks keep things frozen.
                 if (state is FinalCompilationTrackerState finalState)
                 {
-                    var frozenFinalState = finalState.WithIsFrozen();
-                    return new CompilationTracker(this.ProjectState, frozenFinalState, this.SkeletonReferenceCache.Clone());
+                    // If we're finalized and already frozen, we can just use ourselves.
+                    return finalState.IsFrozen
+                        ? this
+                        : new CompilationTracker(this.ProjectState, finalState.WithIsFrozen(), this.SkeletonReferenceCache.Clone());
                 }
                 else
                 {
@@ -238,8 +240,10 @@ namespace Microsoft.CodeAnalysis
                     this.ProjectState.DocumentStates.TryGetState(docState.Id, out var oldState) &&
                     oldState == docState)
                 {
-                    var frozenFinalState = finalState.WithIsFrozen();
-                    return new CompilationTracker(this.ProjectState, frozenFinalState, this.SkeletonReferenceCache.Clone());
+                    // If we're finalized, already frozen and have the document being asked for, we can just use ourselves.
+                    return finalState.IsFrozen
+                        ? this
+                        : new CompilationTracker(this.ProjectState, finalState.WithIsFrozen(), this.SkeletonReferenceCache.Clone());
                 }
                 else
                 {
