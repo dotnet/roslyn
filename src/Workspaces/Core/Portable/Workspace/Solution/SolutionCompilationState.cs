@@ -1226,11 +1226,11 @@ internal sealed partial class SolutionCompilationState
     /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added,
     /// and the <see cref="SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction"/> needed as
     /// well.</param>
-    private SolutionCompilationState AddDocumentsToMultipleProjects<T>(
+    private SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
         ImmutableArray<DocumentInfo> documentInfos,
-        Func<DocumentInfo, ProjectState, T> createDocumentState,
-        Func<ProjectState, ImmutableArray<T>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
-        where T : TextDocumentState
+        Func<DocumentInfo, ProjectState, TDocumentState> createDocumentState,
+        Func<ProjectState, ImmutableArray<TDocumentState>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
+        where TDocumentState : TextDocumentState
     {
         if (documentInfos.IsDefault)
             throw new ArgumentNullException(nameof(documentInfos));
@@ -1240,31 +1240,36 @@ internal sealed partial class SolutionCompilationState
 
         // The documents might be contributing to multiple different projects; split them by project and then we'll process
         // project-at-a-time.
-        var documentInfosByProjectId = documentInfos.ToLookup(d => d.Id.ProjectId);
+        var documentInfosByProjectId = documentInfos.GroupBy(d => d.Id.ProjectId);
+        return AddDocumentsToMultipleProjects(
+            documentInfosByProjectId.Select(g =>
+            {
+                var projectId = g.Key;
+                var projectState = this.SolutionState.GetRequiredProjectState(projectId);
+                return (projectId, newDocumentStates: g.SelectAsArray(di => createDocumentState(di, projectState)));
+            }),
+            addDocumentsToProjectState);
+    }
 
+    private SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
+        IEnumerable<(ProjectId projectId, ImmutableArray<TDocumentState> newDocumentStates)> projectIdAndNewDocuments,
+        Func<ProjectState, ImmutableArray<TDocumentState>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
+        where TDocumentState : TextDocumentState
+    {
         var newCompilationState = this;
 
-        foreach (var documentInfosInProject in documentInfosByProjectId)
+        foreach (var (projectId, newDocumentStates) in projectIdAndNewDocuments)
         {
-            this.SolutionState.CheckContainsProject(documentInfosInProject.Key);
-            var oldProjectState = this.SolutionState.GetProjectState(documentInfosInProject.Key)!;
+            this.SolutionState.CheckContainsProject(projectId);
+            var oldProjectState = this.SolutionState.GetRequiredProjectState(projectId);
 
-            var newDocumentStatesForProjectBuilder = ArrayBuilder<T>.GetInstance();
-
-            foreach (var documentInfo in documentInfosInProject)
-            {
-                newDocumentStatesForProjectBuilder.Add(createDocumentState(documentInfo, oldProjectState));
-            }
-
-            var newDocumentStatesForProject = newDocumentStatesForProjectBuilder.ToImmutableAndFree();
-
-            var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProjectState, newDocumentStatesForProject);
+            var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProjectState, newDocumentStates);
 
             var stateChange = newCompilationState.SolutionState.ForkProject(
                 oldProjectState,
                 newProjectState,
                 // intentionally accessing this.Solution here not newSolutionState
-                newFilePathToDocumentIdsMap: this.SolutionState.CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStatesForProject));
+                newFilePathToDocumentIdsMap: this.SolutionState.CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStates));
 
             newCompilationState = newCompilationState.ForkProject(
                 stateChange,
