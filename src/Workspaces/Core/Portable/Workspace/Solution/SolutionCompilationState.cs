@@ -1262,24 +1262,22 @@ internal sealed partial class SolutionCompilationState
             documentInfos.GroupBy(d => d.Id.ProjectId).Select(g =>
             {
                 var projectId = g.Key;
+                this.SolutionState.CheckContainsProject(projectId);
                 var projectState = this.SolutionState.GetRequiredProjectState(projectId);
-                return (projectId, newDocumentStates: g.SelectAsArray(di => createDocumentState(di, projectState)));
+                return (projectState, newDocumentStates: g.SelectAsArray(di => createDocumentState(di, projectState)));
             }),
             addDocumentsToProjectState);
     }
 
     private SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
-        IEnumerable<(ProjectId projectId, ImmutableArray<TDocumentState> newDocumentStates)> projectIdAndNewDocuments,
+        IEnumerable<(ProjectState oldProjectState, ImmutableArray<TDocumentState> newDocumentStates)> projectIdAndNewDocuments,
         Func<ProjectState, ImmutableArray<TDocumentState>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
         where TDocumentState : TextDocumentState
     {
         var newCompilationState = this;
 
-        foreach (var (projectId, newDocumentStates) in projectIdAndNewDocuments)
+        foreach (var (oldProjectState, newDocumentStates) in projectIdAndNewDocuments)
         {
-            this.SolutionState.CheckContainsProject(projectId);
-            var oldProjectState = this.SolutionState.GetRequiredProjectState(projectId);
-
             var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProjectState, newDocumentStates);
 
             var stateChange = newCompilationState.SolutionState.ForkProject(
