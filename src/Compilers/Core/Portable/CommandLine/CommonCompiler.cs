@@ -751,6 +751,23 @@ namespace Microsoft.CodeAnalysis
             return logger;
         }
 
+        private static void PrintLoadedAssemblies(string heading)
+        {
+            var logDir = Environment.GetEnvironmentVariable("XUNIT_LOGS");
+            var logFile = Path.Combine(logDir!, "compilerLog.txt");
+            var lines = new StringBuilder();
+            lines.AppendLine($"{heading} - LOADED ASSEMBLIES:");
+            foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
+            {
+#pragma warning disable SYSLIB0012 // Type or member is obsolete
+                lines.AppendLine($"{a.FullName}:{a.CodeBase}");
+#pragma warning restore SYSLIB0012 // Type or member is obsolete
+            }
+
+            lines.AppendLine();
+            File.AppendAllText(logFile, lines.ToString());
+        }
+
         /// <summary>
         /// csc.exe and vbc.exe entry point.
         /// </summary>
@@ -758,6 +775,8 @@ namespace Microsoft.CodeAnalysis
         {
             var saveUICulture = CultureInfo.CurrentUICulture;
             SarifErrorLogger? errorLogger = null;
+
+            PrintLoadedAssemblies("Initial");
 
             try
             {
@@ -997,6 +1016,8 @@ namespace Microsoft.CodeAnalysis
             {
                 ReportIVTInfos(consoleOutput, errorLogger, compilation, diagnostics.ToReadOnly());
             }
+
+            PrintLoadedAssemblies("End");
 
             diagnostics.Free();
 
