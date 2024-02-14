@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var context = await GetChangeSignatureContextAsync(document, span.Start, restrictToDeclarations: true, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             return context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext
-                ? ImmutableArray.Create(new ChangeSignatureCodeAction(this, changeSignatureAnalyzedSucceedContext))
+                ? [new ChangeSignatureCodeAction(this, changeSignatureAnalyzedSucceedContext)]
                 : ImmutableArray<ChangeSignatureCodeAction>.Empty;
         }
 
@@ -244,8 +244,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
         }
 
-#nullable enable
-
         private async Task<(Solution updatedSolution, string? confirmationMessage)> CreateUpdatedSolutionAsync(
             ChangeSignatureAnalysisSucceededContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {
@@ -271,8 +269,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 var methodSymbol = symbol.Definition as IMethodSymbol;
 
-                if (methodSymbol != null &&
-                    (methodSymbol.MethodKind == MethodKind.PropertyGet || methodSymbol.MethodKind == MethodKind.PropertySet))
+                if (methodSymbol is { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet })
                 {
                     continue;
                 }
@@ -344,7 +341,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                         if (!nodesToUpdate.ContainsKey(documentId))
                         {
-                            nodesToUpdate.Add(documentId, new List<SyntaxNode>());
+                            nodesToUpdate.Add(documentId, []);
                         }
 
                         telemetryNumberOfDeclarationsToUpdate++;
@@ -368,7 +365,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                     if (!nodesToUpdate.ContainsKey(documentId2))
                     {
-                        nodesToUpdate.Add(documentId2, new List<SyntaxNode>());
+                        nodesToUpdate.Add(documentId2, []);
                     }
 
                     telemetryNumberOfReferencesToUpdate++;

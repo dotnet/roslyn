@@ -183,13 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 return;
             }
 
-            ImmutableArray<string> folders = default;
-
-            var itemid = Hierarchy.TryGetItemId(filename);
-            if (itemid != VSConstants.VSITEMID_NIL)
-            {
-                folders = GetFolderNamesForDocument(itemid);
-            }
+            var folders = GetFolderNamesForDocument(filename);
 
             ProjectSystemProject.AddSourceFile(filename, sourceCodeKind, folders);
         }
@@ -307,7 +301,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         /// </summary>
         /// <remarks>Using item IDs as a key like this in a long-lived way is considered unsupported by CPS and other
         /// IVsHierarchy providers, but this code (which is fairly old) still makes the assumptions anyways.</remarks>
-        private readonly Dictionary<uint, ImmutableArray<string>> _folderNameMap = new();
+        private readonly Dictionary<uint, ImmutableArray<string>> _folderNameMap = [];
+
+        private ImmutableArray<string> GetFolderNamesForDocument(string filename)
+        {
+            var itemid = Hierarchy.TryGetItemId(filename);
+            if (itemid != VSConstants.VSITEMID_NIL)
+            {
+                return GetFolderNamesForDocument(itemid);
+            }
+
+            return default;
+        }
 
         private ImmutableArray<string> GetFolderNamesForDocument(uint documentItemID)
         {

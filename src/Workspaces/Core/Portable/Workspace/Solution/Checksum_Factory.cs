@@ -16,14 +16,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     // various factory methods. all these are just helper methods
-    internal partial record class Checksum
+    internal readonly partial record struct Checksum
     {
         private const int XXHash128SizeBytes = 128 / 8;
 
         private static readonly ObjectPool<XxHash128> s_incrementalHashPool =
             new(() => new(), size: 20);
 
-        public static Checksum Create(IEnumerable<string> values)
+        public static Checksum Create(IEnumerable<string?> values)
         {
             using var pooledHash = s_incrementalHashPool.GetPooledObject();
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
             return From(hash);
         }
 
-        public static Checksum Create(string value)
+        public static Checksum Create(string? value)
         {
             Span<byte> destination = stackalloc byte[XXHash128SizeBytes];
             XxHash128.Hash(MemoryMarshal.AsBytes(value.AsSpan()), destination);
@@ -69,12 +69,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static Checksum Create(Checksum checksum1, Checksum checksum2)
-            => Create(stackalloc[] { checksum1.Hash, checksum2.Hash });
+            => Create(stackalloc[] { checksum1, checksum2 });
 
         public static Checksum Create(Checksum checksum1, Checksum checksum2, Checksum checksum3)
-            => Create(stackalloc[] { checksum1.Hash, checksum2.Hash, checksum3.Hash });
+            => Create(stackalloc[] { checksum1, checksum2, checksum3 });
 
-        public static Checksum Create(ReadOnlySpan<Checksum.HashData> hashes)
+        public static Checksum Create(ReadOnlySpan<Checksum> hashes)
         {
             Span<byte> destination = stackalloc byte[XXHash128SizeBytes];
             XxHash128.Hash(MemoryMarshal.AsBytes(hashes), destination);

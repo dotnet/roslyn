@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 {
@@ -50,12 +49,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var lspSnippet = await RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(allChangesDocument, snippet.CursorPosition, snippet.Placeholders, change, item.Span.Start, cancellationToken).ConfigureAwait(false);
 
             // If the TextChanges retrieved starts after the trigger point of the CompletionItem,
-            // then we need to move the bounds backwards and encapsulate the trigger point.
+            // then we need to move the bounds backwards and encapsulate the trigger point and adjust the changed text.
             if (change.Span.Start > item.Span.Start)
             {
                 var textSpan = TextSpan.FromBounds(item.Span.Start, change.Span.End);
-                var snippetText = change.NewText;
-                Contract.ThrowIfNull(snippetText);
+                var snippetText = allChangesText.GetSubText(textSpan).ToString();
                 change = new TextChange(textSpan, snippetText);
             }
 
@@ -82,9 +80,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 return;
             }
 
-            var (strippedDocument, newPosition) = await GetDocumentWithoutInvokingTextAsync(document, position, cancellationToken).ConfigureAwait(false);
-
-            var snippets = await service.GetSnippetsAsync(strippedDocument, newPosition, cancellationToken).ConfigureAwait(false);
+            var syntaxContext = await context.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
+            var snippetContext = new SnippetContext(syntaxContext);
+            var snippets = await service.GetSnippetsAsync(snippetContext, cancellationToken).ConfigureAwait(false);
 
             foreach (var snippetData in snippets)
             {
@@ -129,7 +127,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
             var textChange = new TextChange(span, string.Empty);
             originalText = originalText.WithChanges(textChange);
-            var newDocument = document.WithText(originalText);
+
+            // The document might not be frozen, so make sure we freeze it here to avoid triggering source generator
+            // which is not needed for snippet completion and will cause perf issue.
+            var newDocument = document.WithText(originalText).WithFrozenPartialSemantics(cancellationToken);
             return (newDocument, span.Start);
         }
     }

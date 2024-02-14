@@ -35,6 +35,22 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 .Where(i => i.ReferenceOutputAssemblyIsTrue())
                 .Select(CreateProjectFileReference);
 
+        public static ImmutableArray<PackageReference> GetPackageReferences(this MSB.Execution.ProjectInstance executedProject)
+        {
+            var packageReferenceItems = executedProject.GetItems(ItemNames.PackageReference);
+            using var _ = PooledHashSet<PackageReference>.GetInstance(out var references);
+
+            foreach (var item in packageReferenceItems)
+            {
+                var name = item.EvaluatedInclude;
+                var versionRangeValue = item.GetMetadataValue(MetadataNames.Version);
+                var packageReference = new PackageReference(name, versionRangeValue);
+                references.Add(packageReference);
+            }
+
+            return references.ToImmutableArray();
+        }
+
         /// <summary>
         /// Create a <see cref="ProjectFileReference"/> from a ProjectReference node in the MSBuild file.
         /// </summary>
@@ -47,7 +63,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             return !RoslynString.IsNullOrWhiteSpace(aliasesText)
                 ? ImmutableArray.CreateRange(aliasesText.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(a => a.Trim()))
-                : ImmutableArray<string>.Empty;
+                : [];
         }
 
         public static bool ReferenceOutputAssemblyIsTrue(this MSB.Framework.ITaskItem item)

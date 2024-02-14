@@ -15,8 +15,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
@@ -54,13 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             var projectDirectoryName = Path.GetDirectoryName(document.Project.FilePath);
             Contract.ThrowIfNull(projectDirectoryName);
-
-            using var _ = ArrayBuilder<string>.GetInstance(capacity: 2 + document.Folders.Count, out var pathBuilder);
-            pathBuilder.Add(projectDirectoryName);
-            pathBuilder.AddRange(document.Folders);
-            pathBuilder.Add(document.Name);
-
-            var path = Path.Combine(pathBuilder.ToArray());
+            var path = Path.Combine([projectDirectoryName, .. document.Folders, document.Name]);
             return ProtocolConversions.CreateAbsoluteUri(path);
         }
 
@@ -73,6 +67,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             // We don't call GetRequiredDocument here as the id could be referring to an additional document.
             var documents = documentIds.Select(solution.GetDocument).WhereNotNull().ToImmutableArray();
+            return documents;
+        }
+
+        /// <summary>
+        /// Get all regular and additional <see cref="TextDocument"/>s for the given <paramref name="documentUri"/>.
+        /// </summary>
+        public static ImmutableArray<TextDocument> GetTextDocuments(this Solution solution, Uri documentUri)
+        {
+            var documentIds = GetDocumentIds(solution, documentUri);
+
+            var documents = documentIds
+                .Select(solution.GetDocument)
+                .Concat(documentIds.Select(solution.GetAdditionalDocument))
+                .WhereNotNull()
+                .ToImmutableArray();
             return documents;
         }
 

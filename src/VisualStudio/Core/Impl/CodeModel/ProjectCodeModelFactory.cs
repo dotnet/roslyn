@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     [Export(typeof(ProjectCodeModelFactory))]
     internal sealed class ProjectCodeModelFactory : ForegroundThreadAffinitizedObject, IProjectCodeModelFactory
     {
-        private readonly ConcurrentDictionary<ProjectId, ProjectCodeModel> _projectCodeModels = new ConcurrentDictionary<ProjectId, ProjectCodeModel>();
+        private readonly ConcurrentDictionary<ProjectId, ProjectCodeModel> _projectCodeModels = [];
 
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
         private readonly IServiceProvider _serviceProvider;
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // This code avoids allocations where possible.
             // https://github.com/dotnet/roslyn/issues/54159
             string? previousLanguage = null;
-            foreach (var (_, projectState) in _visualStudioWorkspace.CurrentSolution.State.ProjectStates)
+            foreach (var (_, projectState) in _visualStudioWorkspace.CurrentSolution.SolutionState.ProjectStates)
             {
                 if (projectState.Language == previousLanguage)
                 {

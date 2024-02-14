@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 // mutating state
                 private SnapshotSpan _span;
-                private readonly SegmentedList<ClassifiedSpan> _classifications = new();
+                private readonly SegmentedList<ClassifiedSpan> _classifications = [];
                 private readonly IThreadingContext _threadingContext = threadingContext;
 
                 private void Clear()

@@ -159,9 +159,11 @@ namespace Microsoft.Cci
 
         public ImmutableArray<ITypeReference> StateMachineAwaiterSlots => ImmutableArray<ITypeReference>.Empty;
 
-        public ImmutableArray<ClosureDebugInfo> ClosureDebugInfo => ImmutableArray<ClosureDebugInfo>.Empty;
+        public ImmutableArray<EncClosureInfo> ClosureDebugInfo => ImmutableArray<EncClosureInfo>.Empty;
 
-        public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo => ImmutableArray<LambdaDebugInfo>.Empty;
+        public ImmutableArray<EncLambdaInfo> LambdaDebugInfo => ImmutableArray<EncLambdaInfo>.Empty;
+
+        public ImmutableArray<LambdaRuntimeRudeEditInfo> OrderedLambdaRuntimeRudeEdits => ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty;
 
         public StateMachineStatesDebugInfo StateMachineStatesDebugInfo => default;
 

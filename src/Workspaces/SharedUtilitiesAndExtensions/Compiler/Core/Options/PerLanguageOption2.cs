@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Options
         object? IOption.DefaultValue => Definition.DefaultValue;
         bool IOption.IsPerLanguage => true;
         Type IOption.Type => Definition.Type;
-        ImmutableArray<OptionStorageLocation> IOption.StorageLocations => ImmutableArray<OptionStorageLocation>.Empty;
+        ImmutableArray<OptionStorageLocation> IOption.StorageLocations => [];
 #endif
         public override string ToString() => Definition.ToString();
 

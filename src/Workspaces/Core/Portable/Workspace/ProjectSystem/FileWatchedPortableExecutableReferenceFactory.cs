@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,14 +32,22 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
         /// File watching tokens from <see cref="_fileReferenceChangeContext"/> that are watching metadata references. These are only created once we are actually applying a batch because
         /// we don't determine until the batch is applied if the file reference will actually be a file reference or it'll be a converted project reference.
         /// </summary>
-        private readonly Dictionary<PortableExecutableReference, IWatchedFile> _metadataReferenceFileWatchingTokens = new();
+        private readonly Dictionary<PortableExecutableReference, IWatchedFile> _metadataReferenceFileWatchingTokens = [];
+
+        /// <summary>
+        /// Stores the caller for a previous disposal of a reference produced by this class, to track down a double-dispose issue.
+        /// </summary>
+        /// <remarks>
+        /// This can be removed once https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1843611 is fixed.
+        /// </remarks>
+        private readonly ConditionalWeakTable<PortableExecutableReference, string> _previousDisposalLocations = new();
 
         /// <summary>
         /// <see cref="CancellationTokenSource"/>s for in-flight refreshing of metadata references. When we see a file change, we wait a bit before trying to actually
         /// update the workspace. We need cancellation tokens for those so we can cancel them either when a flurry of events come in (so we only do the delay after the last
         /// modification), or when we know the project is going away entirely.
         /// </summary>
-        private readonly Dictionary<string, CancellationTokenSource> _metadataReferenceRefreshCancellationTokenSources = new();
+        private readonly Dictionary<string, CancellationTokenSource> _metadataReferenceRefreshCancellationTokenSources = [];
 
         public FileWatchedPortableExecutableReferenceFactory(
             SolutionServices solutionServices,
@@ -105,17 +115,21 @@ namespace Microsoft.CodeAnalysis.ProjectSystem
             }
         }
 
-        public void StopWatchingReference(PortableExecutableReference reference)
+        public void StopWatchingReference(PortableExecutableReference reference, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = 0)
         {
             lock (_gate)
             {
+                var disposalLocation = callerFilePath + ", line " + callerLineNumber;
+
                 if (!_metadataReferenceFileWatchingTokens.TryGetValue(reference, out var watchedFile))
                 {
-                    throw new ArgumentException("The reference was already not being watched.");
+                    var existingDisposalStackTrace = _previousDisposalLocations.TryGetValue(reference, out var previousDisposalLocation);
+                    throw new ArgumentException("The reference was already disposed at " + previousDisposalLocation);
                 }
 
                 watchedFile.Dispose();
                 _metadataReferenceFileWatchingTokens.Remove(reference);
+                _previousDisposalLocations.Add(reference, disposalLocation);
 
                 // Note we still potentially have an outstanding change that we haven't raised a notification
                 // for due to the delay we use. We could cancel the notification for that file path,

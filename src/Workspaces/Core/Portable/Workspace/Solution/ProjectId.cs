@@ -25,11 +25,21 @@ namespace Microsoft.CodeAnalysis
     public sealed class ProjectId : IEquatable<ProjectId>
     {
         /// <summary>
+        /// Checksum of this ProjectId, built only from <see cref="Id"/>.
+        /// </summary>
+        private SingleInitNullable<Checksum> _lazyChecksum;
+
+        /// <summary>
         /// The system generated unique id.
         /// </summary>
         [DataMember(Order = 0)]
         public Guid Id { get; }
 
+        /// <summary>
+        /// An optional name to show <em>only</em> for debugger-display purposes.  This must not be used for any other
+        /// purpose.  Importantly, it must not be part of the equality/hashing contract of this type (including <see
+        /// cref="_lazyChecksum"/>).
+        /// </summary>
         [DataMember(Order = 1)]
         private readonly string? _debugName;
 
@@ -68,11 +78,8 @@ namespace Microsoft.CodeAnalysis
             => this.Equals(obj as ProjectId);
 
         public bool Equals(ProjectId? other)
-        {
-            return
-                other is object &&
+            => other is not null &&
                 this.Id == other.Id;
-        }
 
         public static bool operator ==(ProjectId? left, ProjectId? right)
             => EqualityComparer<ProjectId?>.Default.Equals(left, right);
@@ -96,5 +103,16 @@ namespace Microsoft.CodeAnalysis
 
             return CreateFromSerialized(guid, debugName);
         }
+
+        internal Checksum Checksum
+            => _lazyChecksum.Initialize(static @this => Checksum.Create(@this,
+                static (@this, writer) =>
+                {
+                    // Combine "ProjectId" string and guid.  That way in the off chance that something in the stack uses
+                    // the same Guid for something like a Solution or Document, that we'll still consider the checksums
+                    // different.
+                    writer.WriteString(nameof(ProjectId));
+                    writer.WriteGuid(@this.Id);
+                }), this);
     }
 }

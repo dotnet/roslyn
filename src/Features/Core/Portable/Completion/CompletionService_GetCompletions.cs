@@ -41,8 +41,9 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet? options = null,
             CancellationToken cancellationToken = default)
         {
-            // Publicly available options do not affect this API.
-            var completionOptions = CompletionOptions.Default;
+            // Publicly available options do not affect this API. Force complete results from this public API since
+            // external consumers do not have access to Roslyn's waiters.
+            var completionOptions = CompletionOptions.Default with { ForceExpandedCompletionIndexCreation = true };
             var passThroughOptions = options ?? document.Project.Solution.Options;
 
             return GetCompletionsAsync(document, caretPosition, completionOptions, passThroughOptions, trigger, roles, cancellationToken);
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Completion
                             return triggeredProviders.IsEmpty ? providers.ToImmutableArray() : triggeredProviders;
                         }
 
-                        return ImmutableArray<CompletionProvider>.Empty;
+                        return [];
 
                     default:
                         return providers.ToImmutableArray();
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
             }
 
-            return await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return await document.GetFullOrPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,
@@ -340,8 +341,8 @@ namespace Microsoft.CodeAnalysis.Completion
             // We might need to handle large amount of items with import completion enabled,
             // so use a dedicated pool to minimize array allocations. Set the size of pool to a small
             // number 5 because we don't expect more than a couple of callers at the same time.
-            private static readonly ObjectPool<Dictionary<string, object>> s_uniqueSourcesPool = new(factory: () => new Dictionary<string, object>(), size: 5);
-            private static readonly ObjectPool<List<CompletionItem>> s_sortListPool = new(factory: () => new List<CompletionItem>(), size: 5);
+            private static readonly ObjectPool<Dictionary<string, object>> s_uniqueSourcesPool = new(factory: () => [], size: 5);
+            private static readonly ObjectPool<List<CompletionItem>> s_sortListPool = new(factory: () => [], size: 5);
 
             private readonly Dictionary<string, object> _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
             private readonly CompletionService _service = service;

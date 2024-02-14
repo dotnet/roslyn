@@ -1005,6 +1005,13 @@ namespace Microsoft.CodeAnalysis.Emit
             return privateImpl.CreateArrayCachingField(data, arrayType, emitContext);
         }
 
+        public Cci.IFieldReference GetArrayCachingFieldForConstants(ImmutableArray<ConstantValue> constants, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
+            var emitContext = new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true);
+            return privateImpl.CreateArrayCachingField(constants, arrayType, emitContext);
+        }
+
         public abstract Cci.IMethodReference GetInitArrayHelper();
 
         public ArrayMethods ArrayMethods

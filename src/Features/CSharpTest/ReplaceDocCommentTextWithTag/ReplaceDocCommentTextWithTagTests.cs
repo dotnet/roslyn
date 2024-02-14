@@ -13,9 +13,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDocCommentTextWithTag
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
-    public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest
+    public class ReplaceDocCommentTextWithTagTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpReplaceDocCommentTextWithTagCodeRefactoringProvider();
 
         [Fact]
@@ -456,8 +456,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDocCommentTextWi
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/22278")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22278")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/31208")]
         public async Task TestApplicableKeyword()
         {

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeQuality;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             EnforceOnBuildValues.RemoveUnusedMembers,
             new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_is_unused), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-            isUnnecessary: true);
+            hasAnyCodeStyleOption: false, isUnnecessary: true);
 
         // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
         // Internal for testing
@@ -53,10 +54,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             EnforceOnBuildValues.RemoveUnreadMembers,
             new LocalizableResourceString(nameof(AnalyzersResources.Remove_unread_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-            isUnnecessary: true);
+            hasAnyCodeStyleOption: false, isUnnecessary: true);
 
         protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_removeUnusedMembersRule, s_removeUnreadMembersRule),
+            : base([s_removeUnusedMembersRule, s_removeUnreadMembersRule],
                    GeneratedCodeAnalysisFlags.Analyze) // We want to analyze references in generated code, but not report unused members in generated code.
         {
         }
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             /// <summary>
             /// State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
             /// </summary>
-            private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap = new();
+            private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap = [];
             /// <summary>
             /// List of properties that have a 'get' accessor usage, while the value itself is not used, e.g.:
             /// <code>
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             /// </code>
             /// Here, 'get' accessor is used in an increment operation, but the result of the increment operation isn't used and 'P' itself is not used anywhere else, so it can be safely removed
             /// </summary>
-            private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = new();
+            private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = [];
             private readonly INamedTypeSymbol? _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
             private readonly INamedTypeSymbol? _eventArgsType;
             private readonly INamedTypeSymbol? _iNotifyCompletionType;
@@ -513,7 +514,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         var diagnostic = DiagnosticHelper.CreateWithMessage(
                             rule,
                             GetDiagnosticLocation(member),
-                            rule.GetEffectiveSeverity(symbolEndContext.Compilation.Options),
+                            NotificationOption2.ForSeverity(rule.DefaultSeverity),
                             additionalLocations: null,
                             properties: null,
                             GetMessage(rule, member));
@@ -717,6 +718,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                     // This is commonly used for static holder types
                                     // that want to block instantiation of the type.
                                     if (methodSymbol.Parameters.Length == 0)
+                                    {
+                                        return false;
+                                    }
+
+                                    // Having a private copy constructor in a record means it's implicitly used by
+                                    // the record's clone method
+                                    if (methodSymbol.ContainingType.IsRecord &&
+                                        methodSymbol.Parameters.Length == 1 &&
+                                        methodSymbol.Parameters[0].RefKind == RefKind.None &&
+                                        methodSymbol.Parameters[0].Type.Equals(memberSymbol.ContainingType))
                                     {
                                         return false;
                                     }

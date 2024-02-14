@@ -15527,12 +15527,9 @@ class AAttribute : Attribute { }
                 // (4,33): error CS1002: ; expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "[").WithLocation(4, 33),
-                // (4,34): error CS1001: Identifier expected
+                // (4,33): error CS1031: Type expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "2").WithLocation(4, 34),
-                // (4,34): error CS1003: Syntax error, ',' expected
-                //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
-                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",").WithLocation(4, 34),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(4, 33),
                 // (4,36): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 36),
@@ -20783,10 +20780,23 @@ namespace C
 }";
             var referenceD = CreateCompilation(codeD, assemblyName: "D").EmitToImageReference();
 
-            CompileAndVerify(
+            // ECMA-335 "II.22.14 ExportedType : 0x27" rule 14: "Ignoring nested Types, there shall be no duplicate rows, based upon FullName [ERROR]".
+            var verifier = CompileAndVerify(
                 source: codeA,
                 references: new MetadataReference[] { referenceB, referenceC2, referenceD },
-                expectedOutput: "obj is null");
+                expectedOutput: "obj is null",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = "[Main]: Unable to resolve token. { Offset = 0x1, Token = 167772167 }" });
+
+            verifier.VerifyIL("A.ClassA.Main", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  call       "string B.ClassB.MethodB(C.ClassC)"
+  IL_0006:  call       "void System.Console.WriteLine(string)"
+  IL_000b:  ret
+}
+""");
         }
 
         [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]

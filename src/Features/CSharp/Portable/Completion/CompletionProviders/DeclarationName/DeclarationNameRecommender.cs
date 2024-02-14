@@ -46,17 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
 
             // Suggest names from existing overloads.
             if (nameInfo.PossibleSymbolKinds.Any(static k => k.SymbolKind == SymbolKind.Parameter))
-            {
-                var (_, partialSemanticModel) = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                if (partialSemanticModel is not null)
-                    AddNamesFromExistingOverloads(context, partialSemanticModel, nameInfo, result, cancellationToken);
-            }
+                AddNamesFromExistingOverloads(context, nameInfo, result, cancellationToken);
 
             var names = GetBaseNames(context.SemanticModel, nameInfo).NullToEmpty();
 
             // If we have a direct symbol this binds to, offer its name as a potential name here.
             if (nameInfo.Symbol != null)
-                names = names.Insert(0, ImmutableArray.Create(nameInfo.Symbol.Name));
+                names = names.Insert(0, [nameInfo.Symbol.Name]);
 
             if (!names.IsDefaultOrEmpty)
             {
@@ -75,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
             if (!IsValidType(nameInfo.Type))
                 return default;
 
-            var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false, seenTypes: new HashSet<ITypeSymbol>());
+            var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false, seenTypes: []);
 
             var baseNames = NameGenerator.GetBaseNames(type, plural);
             return baseNames;
@@ -104,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
         private (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural, HashSet<ITypeSymbol> seenTypes)
         {
             // Consider C : Task<C>
-            // Visiting the C in Task<C> will stackoverflow
+            // Visiting the C in Task<C> will stack overflow
             if (seenTypes.Contains(type))
             {
                 return (type, wasPlural);
@@ -259,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                                     container: null,
                                     baseName: name,
                                     filter: s => IsRelevantSymbolKind(s),
-                                    usedNames: Enumerable.Empty<string>(),
+                                    usedNames: [],
                                     cancellationToken: cancellationToken);
 
                                 if (seenUniqueNames.Add(uniqueName.Text))
@@ -281,9 +277,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
             }
         }
 
-        private static void AddNamesFromExistingOverloads(CSharpSyntaxContext context, SemanticModel semanticModel,
-            NameDeclarationInfo declarationInfo, ArrayBuilder<(string, Glyph)> result, CancellationToken cancellationToken)
+        private static void AddNamesFromExistingOverloads(
+            CSharpSyntaxContext context, NameDeclarationInfo declarationInfo, ArrayBuilder<(string, Glyph)> result, CancellationToken cancellationToken)
         {
+            var semanticModel = context.SemanticModel;
             var namedType = semanticModel.GetEnclosingNamedType(context.Position, cancellationToken);
             if (namedType is null)
                 return;
@@ -323,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                 {
                     MethodDeclarationSyntax method => namedType.GetMembers(method.Identifier.ValueText).OfType<IMethodSymbol>().ToImmutableArray(),
                     ConstructorDeclarationSyntax constructor => namedType.GetMembers(WellKnownMemberNames.InstanceConstructorName).OfType<IMethodSymbol>().ToImmutableArray(),
-                    _ => ImmutableArray<IMethodSymbol>.Empty
+                    _ => []
                 };
             }
         }

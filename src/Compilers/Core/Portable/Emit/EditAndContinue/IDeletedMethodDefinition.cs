@@ -6,7 +6,7 @@ using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue;
 
-internal interface IDeletedMethodDefinition
+internal interface IDeletedMethodDefinition : Cci.IMethodDefinition
 {
     public MethodDefinitionHandle MetadataHandle { get; }
 }

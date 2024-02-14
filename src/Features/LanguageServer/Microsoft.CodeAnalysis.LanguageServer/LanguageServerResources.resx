@@ -240,4 +240,7 @@
   <data name="Using_runsettings_file_at_0" xml:space="preserve">
     <value>Using .runsettings file at {0}</value>
   </data>
+  <data name="Project_0_has_unresolved_dependencies" xml:space="preserve">
+    <value>Project {0} has unresolved dependencies</value>
+  </data>
 </root>

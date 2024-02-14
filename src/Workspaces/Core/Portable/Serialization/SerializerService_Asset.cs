@@ -45,7 +45,7 @@ internal partial class SerializerService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var language = reader.ReadString();
+        var language = reader.ReadRequiredString();
 
         var service = GetOptionsSerializationService(language);
         return service.ReadCompilationOptionsFrom(reader, cancellationToken);
@@ -66,7 +66,7 @@ internal partial class SerializerService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var language = reader.ReadString();
+        var language = reader.ReadRequiredString();
 
         var service = GetOptionsSerializationService(language);
         return service.ReadParseOptionsFrom(reader, cancellationToken);
@@ -77,7 +77,7 @@ internal partial class SerializerService
         cancellationToken.ThrowIfCancellationRequested();
 
         reference.ProjectId.WriteTo(writer);
-        writer.WriteValue(reference.Aliases.ToArray());
+        writer.WriteArray(reference.Aliases, static (w, a) => w.WriteString(a));
         writer.WriteBoolean(reference.EmbedInteropTypes);
     }
 
@@ -86,7 +86,7 @@ internal partial class SerializerService
         cancellationToken.ThrowIfCancellationRequested();
 
         var projectId = ProjectId.ReadFrom(reader);
-        var aliases = reader.ReadArray<string>();
+        var aliases = reader.ReadArray(static r => r.ReadString());
         var embedInteropTypes = reader.ReadBoolean();
 
         return new ProjectReference(projectId, aliases.ToImmutableArrayOrEmpty(), embedInteropTypes);

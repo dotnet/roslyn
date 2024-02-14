@@ -102,8 +102,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundArrayInitializationOperation((BoundArrayInitialization)boundNode);
                 case BoundKind.CollectionExpression:
                     return CreateBoundCollectionExpression((BoundCollectionExpression)boundNode);
-                case BoundKind.CollectionExpressionSpreadElement:
-                    return CreateBoundCollectionExpressionSpreadElement((BoundCollectionExpressionSpreadElement)boundNode);
                 case BoundKind.DefaultLiteral:
                     return CreateBoundDefaultLiteralOperation((BoundDefaultLiteral)boundNode);
                 case BoundKind.DefaultExpression:
@@ -1222,45 +1220,64 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ArrayInitializerOperation(elementValues, _semanticModel, syntax, isImplicit);
         }
 
-        private IOperation CreateBoundCollectionExpression(BoundCollectionExpression boundCollectionExpression)
+        private ICollectionExpressionOperation CreateBoundCollectionExpression(BoundCollectionExpression expr)
         {
-            ImmutableArray<IOperation> elements = createChildren(boundCollectionExpression.Elements);
-            SyntaxNode syntax = boundCollectionExpression.Syntax;
-            ITypeSymbol? type = boundCollectionExpression.GetPublicTypeSymbol();
-            bool isImplicit = boundCollectionExpression.WasCompilerGenerated;
-            return new NoneOperation(elements, _semanticModel, syntax, type: type, constantValue: null, isImplicit);
+            SyntaxNode syntax = expr.Syntax;
+            ITypeSymbol? collectionType = expr.GetPublicTypeSymbol();
+            bool isImplicit = expr.WasCompilerGenerated;
+            IMethodSymbol? constructMethod = getConstructMethod((CSharpCompilation)_semanticModel.Compilation, expr).GetPublicSymbol();
+            ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray((element, expr) => CreateBoundCollectionExpressionElement(expr, element), expr);
+            return new CollectionExpressionOperation(
+                constructMethod,
+                elements,
+                _semanticModel,
+                syntax,
+                collectionType,
+                isImplicit);
 
-            ImmutableArray<IOperation> createChildren(ImmutableArray<BoundNode> elements)
+            static MethodSymbol? getConstructMethod(CSharpCompilation compilation, BoundCollectionExpression expr)
             {
-                var builder = ArrayBuilder<IOperation>.GetInstance(elements.Length);
-                foreach (var element in elements)
+                switch (expr.CollectionTypeKind)
                 {
-                    var child = createChild(element);
-                    if (child is { })
-                    {
-                        builder.Add(child);
-                    }
+                    case CollectionExpressionTypeKind.None:
+                    case CollectionExpressionTypeKind.Array:
+                    case CollectionExpressionTypeKind.ArrayInterface:
+                    case CollectionExpressionTypeKind.ReadOnlySpan:
+                    case CollectionExpressionTypeKind.Span:
+                        return null;
+                    case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                        return (expr.CollectionCreation as BoundObjectCreationExpression)?.Constructor;
+                    case CollectionExpressionTypeKind.CollectionBuilder:
+                        return expr.CollectionBuilderMethod;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(expr.CollectionTypeKind);
                 }
-                return builder.ToImmutableAndFree();
-            }
-
-            IOperation? createChild(BoundNode element)
-            {
-                var result = element switch
-                {
-                    BoundCollectionElementInitializer initializer => initializer.Arguments.First(),
-                    _ => element,
-                };
-                return Create(result);
             }
         }
 
-        private IOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement boundSpreadExpression)
+        private IOperation CreateBoundCollectionExpressionElement(BoundCollectionExpression expr, BoundNode element)
         {
-            SyntaxNode syntax = boundSpreadExpression.Syntax;
-            bool isImplicit = boundSpreadExpression.WasCompilerGenerated;
-            var children = ImmutableArray.Create<IOperation>(Create(boundSpreadExpression.Expression));
-            return new NoneOperation(children, _semanticModel, syntax, type: null, constantValue: null, isImplicit);
+            return element is BoundCollectionExpressionSpreadElement spreadElement ?
+                CreateBoundCollectionExpressionSpreadElement(expr, spreadElement) :
+                Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element) ?? element);
+        }
+
+        private ISpreadOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpression expr, BoundCollectionExpressionSpreadElement element)
+        {
+            var iteratorBody = ((BoundExpressionStatement?)element.IteratorBody)?.Expression;
+            var iteratorItem = Binder.GetUnderlyingCollectionExpressionElement(expr, iteratorBody);
+            var collection = Create(element.Expression);
+            SyntaxNode syntax = element.Syntax;
+            bool isImplicit = element.WasCompilerGenerated;
+            var elementType = element.EnumeratorInfoOpt?.ElementType.GetPublicSymbol();
+            var elementConversion = BoundNode.GetConversion(iteratorItem, element.ElementPlaceholder);
+            return new SpreadOperation(
+                collection,
+                elementType: elementType,
+                elementConversion,
+                _semanticModel,
+                syntax,
+                isImplicit);
         }
 
         private IDefaultValueOperation CreateBoundDefaultLiteralOperation(BoundDefaultLiteral boundDefaultLiteral)

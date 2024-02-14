@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We currently pack everything into a 32 bit int with the following layout:
             //
-            // |              |a|b|e|n|vvv|yy|s|r|q|z|kkk|wwwww|
+            // |            |t|a|b|e|n|vvv|yy|s|r|q|z|kkk|wwwww|
             // 
             // w = method kind.  5 bits.
             // k = ref kind.  3 bits.
@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // n = IsNullableAnalysisEnabled. 1 bit.
             // e = IsExpressionBody. 1 bit.
             // b = HasAnyBody. 1 bit.
-            // a = IsVararg. 1 bit
+            // a = IsVararg. 1 bit.
+            // t = HasThisInitializer. 1 bit.
             private int _flags;
 
             private const int MethodKindOffset = 0;
@@ -77,8 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int HasAnyBodySize = 1;
 
             private const int IsVarargOffset = HasAnyBodyOffset + HasAnyBodySize;
-#pragma warning disable IDE0051 // Remove unused private members
             private const int IsVarargSize = 1;
+
+            private const int HasThisInitializerOffset = IsVarargOffset + IsVarargSize;
+#pragma warning disable IDE0051 // Remove unused private members
+            private const int HasThisInitializerSize = 1;
 #pragma warning restore IDE0051 // Remove unused private members
 
             private const int HasAnyBodyBit = 1 << HasAnyBodyOffset;
@@ -88,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int IsMetadataVirtualBit = 1 << IsMetadataVirtualIgnoringInterfaceChangesOffset;
             private const int IsMetadataVirtualLockedBit = 1 << IsMetadataVirtualLockedOffset;
             private const int IsVarargBit = 1 << IsVarargOffset;
+            private const int HasThisInitializerBit = 1 << HasThisInitializerOffset;
 
             private const int ReturnsVoidBit = 1 << ReturnsVoidOffset;
             private const int ReturnsVoidIsSetBit = 1 << ReturnsVoidOffset + 1;
@@ -153,6 +158,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return (_flags & IsVarargBit) != 0; }
             }
 
+            public readonly bool HasThisInitializer
+                => (_flags & HasThisInitializerBit) != 0;
+
 #if DEBUG
             static Flags()
             {
@@ -179,7 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool isExtensionMethod,
                 bool isNullableAnalysisEnabled,
                 bool isVararg,
-                bool isExplicitInterfaceImplementation)
+                bool isExplicitInterfaceImplementation,
+                bool hasThisInitializer)
             {
                 Debug.Assert(!returnsVoid || returnsVoidIsSet);
 
@@ -194,6 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int isVarargInt = isVararg ? IsVarargBit : 0;
                 int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
                 int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
+                int hasThisInitializerInt = hasThisInitializer ? HasThisInitializerBit : 0;
 
                 _flags = methodKindInt
                     | refKindInt
@@ -204,6 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     | isVarargInt
                     | isMetadataVirtualIgnoringInterfaceImplementationChangesInt
                     | isMetadataVirtualInt
+                    | hasThisInitializerInt
                     | (returnsVoid ? ReturnsVoidBit : 0)
                     | (returnsVoidIsSet ? ReturnsVoidIsSetBit : 0);
             }
@@ -218,7 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool isExtensionMethod,
                 bool isNullableAnalysisEnabled,
                 bool isVararg,
-                bool isExplicitInterfaceImplementation)
+                bool isExplicitInterfaceImplementation,
+                bool hasThisInitializer)
                 : this(methodKind,
                        refKind,
                        declarationModifiers,
@@ -229,7 +241,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        isExtensionMethod: isExtensionMethod,
                        isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                        isVararg: isVararg,
-                       isExplicitInterfaceImplementation: isExplicitInterfaceImplementation)
+                       isExplicitInterfaceImplementation: isExplicitInterfaceImplementation,
+                       hasThisInitializer: hasThisInitializer)
             {
             }
 
@@ -387,9 +400,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExtensionMethod,
             bool isNullableAnalysisEnabled,
             bool isVarArg,
-            bool isExplicitInterfaceImplementation)
+            bool isExplicitInterfaceImplementation,
+            bool hasThisInitializer)
         {
-            return new Flags(methodKind, refKind, declarationModifiers, returnsVoid, returnsVoidIsSet, isExpressionBodied, isExtensionMethod, isNullableAnalysisEnabled, isVarArg, isExplicitInterfaceImplementation);
+            return new Flags(methodKind, refKind, declarationModifiers, returnsVoid, returnsVoidIsSet, isExpressionBodied, isExtensionMethod, isNullableAnalysisEnabled, isVarArg, isExplicitInterfaceImplementation, hasThisInitializer);
         }
 
         protected void SetReturnsVoid(bool returnsVoid)
@@ -836,8 +850,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+#nullable enable
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
+            if (filter?.Invoke(this) == false)
+            {
+                return;
+            }
+
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -869,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.Parameters:
                         foreach (var parameter in this.Parameters)
                         {
-                            parameter.ForceComplete(locationOpt, cancellationToken);
+                            parameter.ForceComplete(locationOpt, filter: null, cancellationToken);
                         }
 
                         state.NotePartComplete(CompletionPart.Parameters);
@@ -878,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.TypeParameters:
                         foreach (var typeParameter in this.TypeParameters)
                         {
-                            typeParameter.ForceComplete(locationOpt, cancellationToken);
+                            typeParameter.ForceComplete(locationOpt, filter: null, cancellationToken);
                         }
 
                         state.NotePartComplete(CompletionPart.TypeParameters);
@@ -912,6 +932,7 @@ done:
             CompletionPart allParts = CompletionPart.MethodSymbolAll;
             state.SpinWaitComplete(allParts, cancellationToken);
         }
+#nullable disable
 
         protected sealed override void NoteAttributesComplete(bool forReturnType)
         {

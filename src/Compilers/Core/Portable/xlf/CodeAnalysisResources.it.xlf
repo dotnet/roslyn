@@ -57,6 +57,26 @@
         <target state="translated">Modifica e Continua non sono in grado di riprendere l'enumeratore sospeso perché l'istruzione yield return corrispondente è stata eliminata</target>
         <note />
       </trans-unit>
+      <trans-unit id="EncDeletedLambdaInvoked">
+        <source>Attempted to invoke a deleted lambda or local function implementation. This can happen when lambda or local function is deleted while the application is running.</source>
+        <target state="translated">Tentativo di richiamare un'implementazione di funzione lambda o locale eliminata. Questo problema può verificarsi quando una funzione lambda o locale viene eliminata mentre l'applicazione è in esecuzione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncDeletedMethodInvoked">
+        <source>Attempted to invoke a deleted method implementation. This can happen when a method is deleted or its name or signature is changed while the application is running.</source>
+        <target state="translated">Tentativo di richiamare un'implementazione di metodo eliminata. Questo problema può verificarsi quando un metodo viene eliminato o il nome o la firma vengono modificati durante l'esecuzione dell'applicazione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncLambdaRudeEdit">
+        <source>Attempted to invoke lambda or local function with an unsupported change made while the application is running: {0}</source>
+        <target state="translated">Tentativo di richiamare una funzione lambda o locale con una modifica non supportata effettuata durante l'esecuzione dell'applicazione: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncLambdaRudeEdit_CapturedVariables">
+        <source>Attempted to invoke lambda or local function that has an unsupported change to captured variables made while the application is running</source>
+        <target state="translated">Tentativo di richiamare una funzione lambda o locale con una modifica non supportata alle variabili acquisite effettuata durante l'esecuzione dell'applicazione</target>
+        <note />
+      </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
         <target state="translated">il valore di 'end' non deve essere minore di quello di 'start'. start='{0}' end='{1}'.</target>

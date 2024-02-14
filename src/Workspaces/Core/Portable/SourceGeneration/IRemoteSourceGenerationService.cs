@@ -36,14 +36,14 @@ internal interface IRemoteSourceGenerationService
 /// Information that uniquely identifies the content of a source-generated document and ensures the remote and local
 /// hosts are in agreement on them.
 /// </summary>
-/// <param name="OriginalSourceTextChecksum">Checksum originally produced from <see cref="SourceText.GetChecksum"/> on
+/// <param name="OriginalSourceTextContentHash">Checksum originally produced from <see cref="SourceText.GetChecksum"/> on
 /// the server side.  This may technically not be the same checksum that is produced on the client side once the
 /// SourceText is hydrated there.  See comments on <see
-/// cref="SourceGeneratedDocumentState.GetOriginalSourceTextChecksum"/> for more details on when this happens.</param>
+/// cref="SourceGeneratedDocumentState.GetOriginalSourceTextContentHash"/> for more details on when this happens.</param>
 /// <param name="EncodingName">Result of <see cref="SourceText.Encoding"/>'s <see cref="Encoding.WebName"/>.</param>
 /// <param name="ChecksumAlgorithm">Result of <see cref="SourceText.ChecksumAlgorithm"/>.</param>
 [DataContract]
 internal readonly record struct SourceGeneratedDocumentContentIdentity(
-    [property: DataMember(Order = 0)] Checksum OriginalSourceTextChecksum,
+    [property: DataMember(Order = 0)] Checksum OriginalSourceTextContentHash,
     [property: DataMember(Order = 1)] string? EncodingName,
     [property: DataMember(Order = 2)] SourceHashAlgorithm ChecksumAlgorithm);

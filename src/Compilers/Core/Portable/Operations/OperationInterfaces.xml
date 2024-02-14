@@ -3387,4 +3387,70 @@
       </Comments>
     </Property>
   </Node>
+  <Node Name="ICollectionExpressionOperation" Base="IOperation"  HasType="true">
+    <Comments>
+      <summary>
+        Represents a collection expression.
+        <para>
+          Current usage:
+          (1) C# collection expression.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="ConstructMethod" Type="IMethodSymbol?">
+      <Comments>
+        <summary>
+          Method used to construct the collection.
+          <para>
+            If the collection type is an array, span, array interface, or type parameter, the method is null;
+            if the collection type has a [CollectionBuilder] attribute, the method is the builder method;
+            otherwise, the method is the collection type constructor.
+          </para>
+        </summary>
+      </Comments>
+    </Property>
+    <Property Name="Elements" Type="ImmutableArray&lt;IOperation&gt;">
+      <Comments>
+        <summary>
+          Collection expression elements.
+          <para>
+            If the element is an expression, the entry is the expression, with a conversion to
+            the target element type if necessary;
+            otherwise, the entry is an ISpreadOperation.
+          </para>
+        </summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="ISpreadOperation" Base="IOperation" HasType="false">
+      <Comments>
+      <summary>
+        Represents a collection expression spread element.
+        <para>
+          Current usage:
+          (1) C# spread element.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="Operand" Type="IOperation">
+      <Comments>
+        <summary>Collection being spread.</summary>
+      </Comments>
+    </Property>
+    <Property Name="ElementType" Type="ITypeSymbol?">
+      <Comments>
+        <summary>
+          Type of the elements in the collection.
+        </summary>
+      </Comments>
+    </Property>
+    <Property Name="ElementConversion" Type="CommonConversion">
+      <Comments>
+        <summary>
+          Conversion from the type of the collection element to the target element type
+          of the containing collection expression.
+        </summary>
+      </Comments>
+    </Property>
+  </Node>
 </Tree>

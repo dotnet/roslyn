@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
         private NamingStyleSetting()
         {
-            _allStyles = Array.Empty<NamingStyle>();
+            _allStyles = [];
         }
 
         public event EventHandler<EventArgs>? SettingChanged;

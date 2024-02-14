@@ -14,9 +14,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMethodWithProperty
 {
-    public class ReplaceMethodWithPropertyTests : AbstractCSharpCodeActionTest
+    [Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+    public class ReplaceMethodWithPropertyTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new ReplaceMethodWithPropertyCodeRefactoringProvider();
 
         private async Task TestWithAllCodeStyleOff(
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
             };
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestMethodWithGetName()
         {
             await TestWithAllCodeStyleOff(
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestMethodWithoutGetName()
         {
             await TestWithAllCodeStyleOff(
@@ -107,8 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/6034")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6034")]
         public async Task TestMethodWithArrowBody()
         {
             await TestWithAllCodeStyleOff(
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestMethodWithoutBody()
         {
             await TestWithAllCodeStyleOff(
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestMethodWithModifiers()
         {
             await TestWithAllCodeStyleOff(
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestMethodWithAttributes()
         {
             await TestWithAllCodeStyleOff(
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestMethodWithTrivia_1()
         {
             await TestWithAllCodeStyleOff(
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestMethodWithTrailingTrivia()
         {
             await TestWithAllCodeStyleOff(
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestDelegateWithTrailingTrivia()
         {
             await TestWithAllCodeStyleOff(
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestIndentation()
         {
             await TestWithAllCodeStyleOff(
@@ -329,8 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
         public async Task TestIfDefMethod1()
         {
             await TestWithAllCodeStyleOff(
@@ -359,8 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
         public async Task TestIfDefMethod2()
         {
             await TestWithAllCodeStyleOff(
@@ -397,8 +395,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
         public async Task TestIfDefMethod3()
         {
             await TestWithAllCodeStyleOff(
@@ -435,8 +432,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
         public async Task TestIfDefMethod4()
         {
             await TestWithAllCodeStyleOff(
@@ -473,8 +469,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21460")]
         public async Task TestIfDefMethod5()
         {
             await TestWithAllCodeStyleOff(
@@ -513,7 +508,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
                 """, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestMethodWithTrivia_2()
         {
             await TestWithAllCodeStyleOff(
@@ -550,7 +545,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestExplicitInterfaceMethod_1()
         {
             await TestWithAllCodeStyleOff(
@@ -575,7 +570,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestExplicitInterfaceMethod_2()
         {
             await TestWithAllCodeStyleOff(
@@ -610,7 +605,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestExplicitInterfaceMethod_3()
         {
             await TestWithAllCodeStyleOff(
@@ -645,7 +640,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestInAttribute()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -660,7 +655,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestInMethod()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -675,7 +670,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestVoidMethod()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -689,7 +684,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestAsyncMethod()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -703,7 +698,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestGenericMethod()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -717,7 +712,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestExtensionMethod()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -731,7 +726,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestMethodWithParameters_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -745,7 +740,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestMethodWithParameters_2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -759,7 +754,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestNotInSignature_1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -774,7 +769,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestNotInSignature_2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -789,7 +784,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUpdateGetReferenceNotInMethod()
         {
             await TestWithAllCodeStyleOff(
@@ -824,7 +819,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUpdateGetReferenceSimpleInvocation()
         {
             await TestWithAllCodeStyleOff(
@@ -859,7 +854,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUpdateGetReferenceMemberAccessInvocation()
         {
             await TestWithAllCodeStyleOff(
@@ -894,7 +889,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUpdateGetReferenceBindingMemberInvocation()
         {
             await TestWithAllCodeStyleOff(
@@ -931,7 +926,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUpdateGetReferenceInMethod()
         {
             await TestWithAllCodeStyleOff(
@@ -958,7 +953,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestOverride()
         {
             await TestWithAllCodeStyleOff(
@@ -1000,7 +995,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUpdateGetReference_NonInvoked()
         {
             await TestWithAllCodeStyleOff(
@@ -1039,7 +1034,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUpdateGetReference_ImplicitReference()
         {
             await TestWithAllCodeStyleOff(
@@ -1082,7 +1077,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUpdateGetSet()
         {
             await TestWithAllCodeStyleOff(
@@ -1120,7 +1115,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUpdateGetSetReference_NonInvoked()
         {
             await TestWithAllCodeStyleOff(
@@ -1168,7 +1163,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUpdateGetSet_SetterAccessibility()
         {
             await TestWithAllCodeStyleOff(
@@ -1206,7 +1201,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUpdateGetSet_ExpressionBodies()
         {
             await TestWithAllCodeStyleOff(
@@ -1241,7 +1236,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUpdateGetSet_GetInSetReference()
         {
             await TestWithAllCodeStyleOff(
@@ -1289,7 +1284,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUpdateGetSet_UpdateSetParameterName_1()
         {
             await TestWithAllCodeStyleOff(
@@ -1329,7 +1324,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUpdateGetSet_UpdateSetParameterName_2()
         {
             await TestWithAllCodeStyleOff(
@@ -1369,7 +1364,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUpdateGetSet_SetReferenceInSetter()
         {
             await TestWithAllCodeStyleOff(
@@ -1409,7 +1404,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestVirtualGetWithOverride_1()
         {
             await TestWithAllCodeStyleOff(
@@ -1452,7 +1447,7 @@ index: 1);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestVirtualGetWithOverride_2()
         {
             await TestWithAllCodeStyleOff(
@@ -1497,7 +1492,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestGetWithInterface()
         {
             await TestWithAllCodeStyleOff(
@@ -1533,7 +1528,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestWithPartialClasses()
         {
             await TestWithAllCodeStyleOff(
@@ -1574,7 +1569,7 @@ index: 0);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUpdateGetSetCaseInsensitive()
         {
             await TestWithAllCodeStyleOff(
@@ -1612,7 +1607,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task Tuple()
         {
             await TestWithAllCodeStyleOff(
@@ -1637,7 +1632,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task Tuple_GetAndSet()
         {
             await TestWithAllCodeStyleOff(
@@ -1675,7 +1670,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TupleWithNames_GetAndSet()
         {
             await TestWithAllCodeStyleOff(
@@ -1713,7 +1708,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TupleWithDifferentNames_GetAndSet()
         {
             // Cannot refactor tuples with different names together
@@ -1735,7 +1730,7 @@ index: 1);
 count: 1, new TestParameters(options: AllCodeStyleOff));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestOutVarDeclaration_1()
         {
             await TestWithAllCodeStyleOff(
@@ -1782,7 +1777,7 @@ count: 1, new TestParameters(options: AllCodeStyleOff));
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestOutVarDeclaration_2()
         {
             await TestWithAllCodeStyleOff(
@@ -1829,7 +1824,7 @@ index: 0);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestOutVarDeclaration_3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1854,7 +1849,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestOutVarDeclaration_4()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1879,8 +1874,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/14327")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14327")]
         public async Task TestUpdateChainedGet1()
         {
             await TestWithAllCodeStyleOff(
@@ -1917,8 +1911,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle1()
         {
             await TestInRegularAndScriptAsync(
@@ -1939,8 +1932,7 @@ index: 1);
                 """, options: PreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle2()
         {
             await TestInRegularAndScriptAsync(
@@ -1961,8 +1953,7 @@ index: 1);
                 """, options: PreferExpressionBodiedProperties);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle3()
         {
             await TestInRegularAndScriptAsync(
@@ -1983,8 +1974,7 @@ index: 1);
                 """, options: PreferExpressionBodiedAccessorsAndProperties);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle4()
         {
             await TestInRegularAndScriptAsync(
@@ -2012,8 +2002,7 @@ index: 1,
 options: PreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle5()
         {
             await TestInRegularAndScriptAsync(
@@ -2052,8 +2041,7 @@ index: 1,
 options: PreferExpressionBodiedProperties);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle6()
         {
             await TestInRegularAndScriptAsync(
@@ -2081,8 +2069,7 @@ index: 1,
 options: PreferExpressionBodiedAccessorsAndProperties);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle7()
         {
             await TestInRegularAndScriptAsync(
@@ -2100,8 +2087,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """, options: PreferExpressionBodiedProperties);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle8()
         {
             await TestInRegularAndScriptAsync(
@@ -2119,8 +2105,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """, options: PreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle9()
         {
             await TestInRegularAndScriptAsync(
@@ -2138,8 +2123,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """, options: PreferExpressionBodiedAccessors);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16980")]
         public async Task TestCodeStyle10()
         {
             await TestInRegularAndScriptAsync(
@@ -2157,7 +2141,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """, options: PreferExpressionBodiedProperties);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUseExpressionBodyWhenOnSingleLine_AndIsSingleLine()
         {
             await TestInRegularAndScriptAsync(
@@ -2175,7 +2159,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """, options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestUseExpressionBodyWhenOnSingleLine_AndIsNotSingleLine()
         {
             await TestInRegularAndScriptAsync(
@@ -2205,7 +2189,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
     });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestExplicitInterfaceImplementation()
         {
             await TestWithAllCodeStyleOff(
@@ -2242,8 +2226,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
         public async Task TestSystemObjectMetadataOverride()
         {
             await TestMissingAsync(
@@ -2257,8 +2240,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=443523")]
         public async Task TestMetadataOverride()
         {
             await TestWithAllCodeStyleOff(
@@ -2283,7 +2265,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task IgnoreIfTopLevelNullableIsDifferent_GetterNullable()
         {
             await TestInRegularAndScriptAsync(
@@ -2322,7 +2304,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task IgnoreIfTopLevelNullableIsDifferent_SetterNullable()
         {
             await TestInRegularAndScriptAsync(
@@ -2361,7 +2343,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task IgnoreIfNestedNullableIsDifferent_GetterNullable()
         {
             await TestInRegularAndScriptAsync(
@@ -2400,7 +2382,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task IgnoreIfNestedNullableIsDifferent_SetterNullable()
         {
             await TestInRegularAndScriptAsync(
@@ -2443,7 +2425,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task NullabilityOfFieldDifferentThanProperty()
         {
             await TestInRegularAndScriptAsync(
@@ -2472,8 +2454,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
         public async Task TestUnsafeGetter()
         {
             await TestInRegularAndScriptAsync(
@@ -2502,8 +2483,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38379")]
         public async Task TestUnsafeSetter()
         {
             await TestInRegularAndScriptAsync(
@@ -2532,7 +2512,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestAtStartOfMethod()
         {
             await TestWithAllCodeStyleOff(
@@ -2557,7 +2537,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestBeforeStartOfMethod_OnSameLine()
         {
             await TestWithAllCodeStyleOff(
@@ -2582,7 +2562,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestBeforeStartOfMethod_OnPreviousLine()
         {
             await TestWithAllCodeStyleOff(
@@ -2609,7 +2589,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestBeforeStartOfMethod_NotMultipleLinesPrior()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2625,7 +2605,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestBeforeStartOfMethod_NotBeforeAttributes()
         {
             await TestInRegularAndScript1Async(
@@ -2652,7 +2632,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestBeforeStartOfMethod_NotBeforeComments()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2667,7 +2647,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [Fact]
         public async Task TestBeforeStartOfMethod_NotInComment()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2682,8 +2662,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42699")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42699")]
         public async Task TestSameNameMemberAsProperty()
         {
             await TestInRegularAndScript1Async(
@@ -2710,8 +2689,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42698")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42698")]
         public async Task TestMethodWithTrivia_3()
         {
             await TestInRegularAndScript1Async(
@@ -2733,8 +2711,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42698")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42698")]
         public async Task TestMethodWithTrivia_4()
         {
             await TestWithAllCodeStyleOff(
@@ -2815,8 +2792,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37991")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37991")]
         public async Task AllowIfNestedNullableIsSame()
         {
             await TestInRegularAndScriptAsync(
@@ -2854,8 +2830,7 @@ index: 1);
                 """, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/37991")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37991")]
         public async Task TestGetSetWithGeneric()
         {
             await TestInRegularAndScriptAsync(
@@ -2889,8 +2864,7 @@ index: 1);
                 """, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
         public async Task TestReferenceTrivia1()
         {
             await TestInRegularAndScriptAsync(
@@ -2922,8 +2896,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
         public async Task TestReferenceTrivia2()
         {
             await TestInRegularAndScriptAsync(
@@ -2955,8 +2928,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
         public async Task TestReferenceTrivia3()
         {
             await TestInRegularAndScriptAsync(
@@ -2984,8 +2956,7 @@ index: 1);
                 """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40758")]
         public async Task TestReferenceTrivia4()
         {
             await TestInRegularAndScriptAsync(
@@ -3008,6 +2979,44 @@ index: 1);
                     static void Main()
                     {
                         var valueAsDelegate = {|Conflict:Value|}/*test*/;
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72035")]
+        public async Task TestUpdateGetReferenceGeneratedPart()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>partial class C
+                {
+                    int [||]GetGoo()
+                    {
+                    }
+                }</Document>
+                        <DocumentFromSourceGenerator>
+                partial class C
+                {
+                    void Bar()
+                    {
+                        var x = GetGoo();
+                    }
+                }
+                        </DocumentFromSourceGenerator>
+                    </Project>
+                </Workspace>
+                """,
+                """
+                partial class C
+                {
+                    int Goo
+                    {
+                        get
+                        {
+                        }
                     }
                 }
                 """);

@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
             private readonly SemanticModel _semanticModel;
             private readonly int _position;
-            private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap = new();
-            private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> _documentationMap = new();
+            private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap = [];
+            private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> _documentationMap = [];
             private readonly Func<ISymbol, string?> _getNavigationHint;
 
             protected readonly LanguageServices LanguageServices;
@@ -191,15 +191,14 @@ namespace Microsoft.CodeAnalysis.LanguageService
                     var parts = formatter.Format(rawXmlText, symbol, _semanticModel, _position, format, CancellationToken);
                     if (!parts.IsDefaultOrEmpty)
                     {
-                        using var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
-
-                        builder.Add(new TaggedText(TextTags.Text, prefix));
-                        builder.AddRange(LineBreak().ToTaggedText());
-                        builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
-                        builder.AddRange(parts);
-                        builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
-
-                        _documentationMap.Add(group, builder.ToImmutable());
+                        _documentationMap.Add(group,
+                        [
+                            new TaggedText(TextTags.Text, prefix),
+                            .. LineBreak().ToTaggedText(),
+                            new TaggedText(TextTags.ContainerStart, "  "),
+                            .. parts,
+                            new TaggedText(TextTags.ContainerEnd, string.Empty),
+                        ]);
                     }
                 }
             }
@@ -562,14 +561,14 @@ namespace Microsoft.CodeAnalysis.LanguageService
                     var initializerParts = await GetInitializerSourcePartsAsync(symbol).ConfigureAwait(false);
                     if (!initializerParts.IsDefaultOrEmpty)
                     {
-                        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
-                        parts.AddRange(ToMinimalDisplayParts(symbol, MinimallyQualifiedFormat));
-                        parts.AddRange(Space());
-                        parts.AddRange(Punctuation("="));
-                        parts.AddRange(Space());
-                        parts.AddRange(initializerParts);
-
-                        return parts.ToImmutable();
+                        return
+                        [
+                            .. ToMinimalDisplayParts(symbol, MinimallyQualifiedFormat),
+                            .. Space(),
+                            .. Punctuation("="),
+                            .. Space(),
+                            .. initializerParts,
+                        ];
                     }
                 }
 
@@ -594,14 +593,14 @@ namespace Microsoft.CodeAnalysis.LanguageService
                     var initializerParts = await GetInitializerSourcePartsAsync(symbol).ConfigureAwait(false);
                     if (initializerParts != null)
                     {
-                        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
-                        parts.AddRange(ToMinimalDisplayParts(symbol, MinimallyQualifiedFormat));
-                        parts.AddRange(Space());
-                        parts.AddRange(Punctuation("="));
-                        parts.AddRange(Space());
-                        parts.AddRange(initializerParts);
-
-                        return parts.ToImmutable();
+                        return
+                        [
+                            .. ToMinimalDisplayParts(symbol, MinimallyQualifiedFormat),
+                            .. Space(),
+                            .. Punctuation("="),
+                            .. Space(),
+                            .. initializerParts,
+                        ];
                     }
                 }
 
@@ -761,7 +760,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 {
                     if (!_groupMap.TryGetValue(group, out var existingParts))
                     {
-                        existingParts = new List<SymbolDisplayPart>();
+                        existingParts = [];
                         _groupMap.Add(group, existingParts);
                     }
 

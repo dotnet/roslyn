@@ -50,12 +50,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             public Session(
                 SymbolicRenameLocations renameLocationSet,
+                CodeCleanupOptionsProvider fallbackOptions,
                 Location renameSymbolDeclarationLocation,
                 string replacementText,
                 ImmutableArray<SymbolKey> nonConflictSymbolKeys,
                 CancellationToken cancellationToken)
             {
                 _renameLocationSet = renameLocationSet;
+                this.FallbackOptions = fallbackOptions;
                 _renameSymbolDeclarationLocation = renameSymbolDeclarationLocation;
                 _originalText = renameLocationSet.Symbol.Name;
                 _replacementText = replacementText;
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             private SymbolRenameOptions RenameOptions => _renameLocationSet.Options;
-            private CodeCleanupOptionsProvider FallbackOptions => _renameLocationSet.FallbackOptions;
+            private CodeCleanupOptionsProvider FallbackOptions { get; }
 
             private readonly struct ConflictLocationInfo
             {
@@ -274,9 +276,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
 
                 // We want to ignore few error message introduced by rename because the user is wantedly doing it.
-                var ignoreErrorCodes = new List<string>();
-                ignoreErrorCodes.Add("BC30420"); // BC30420 - Sub Main missing in VB Project
-                ignoreErrorCodes.Add("CS5001"); // CS5001 - Missing Main in C# Project
+                var ignoreErrorCodes = new List<string>
+                {
+                    "BC30420", // BC30420 - Sub Main missing in VB Project
+                    "CS5001" // CS5001 - Missing Main in C# Project
+                };
 
                 // only check if rename thinks it was successful
                 if (conflictResolution.ReplacementTextValid && conflictResolution.RelatedLocations.All(loc => (loc.Type & RelatedLocationType.UnresolvableConflict) == 0))

@@ -26,8 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public class SyntacticTaggerTests
     {
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
         public async Task TestTagsChangedForPortionThatChanged()
         {
             var code =
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 /// </summary>";
                 }
                 """;
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code);
             var document = workspace.Documents.First();
             var subjectBuffer = document.GetTextBuffer();
 
@@ -88,13 +87,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             Assert.Equal(2, callstacks.Count);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
         public async Task TestTagsChangedAfterDelete()
         {
             var code =
 @"class Goo";
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code);
             var document = workspace.Documents.First();
             var subjectBuffer = document.GetTextBuffer();
 

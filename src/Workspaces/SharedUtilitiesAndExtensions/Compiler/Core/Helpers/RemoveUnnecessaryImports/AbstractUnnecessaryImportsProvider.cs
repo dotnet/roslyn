@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 // Bail out if there are no usings/imports in the filter span.
                 var node = model.SyntaxTree.FindNode(span, findInTrivia: false, getInnermostNodeForTie: false, cancellationToken);
                 if (node.FirstAncestorOrSelf<TSyntaxNode>() is null)
-                    return ImmutableArray<TSyntaxNode>.Empty;
+                    return [];
             }
 
             return GetUnnecessaryImports(model, predicate, cancellationToken);

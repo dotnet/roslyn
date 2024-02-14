@@ -169,9 +169,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 //    and "GenericArguments" contains its type parameters' node information. 
                 //    and "ParentType" contains its containing type's node information.
 
-                var partials = new List<GraphNodeId>();
-
-                partials.Add(GraphNodeId.GetPartial(CodeQualifiedName.Name, namedType.Name));
+                var partials = new List<GraphNodeId>
+                {
+                    GraphNodeId.GetPartial(CodeQualifiedName.Name, namedType.Name)
+                };
 
                 if (namedType.Arity > 0)
                 {
@@ -219,10 +220,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 pointerType = (IPointerTypeSymbol)pointerType.PointedAtType;
             }
 
-            var partials = new List<GraphNodeId>();
-
-            partials.Add(GraphNodeId.GetPartial(CodeQualifiedName.Name, pointerType.PointedAtType.Name));
-            partials.Add(GraphNodeId.GetPartial(CodeQualifiedName.Indirection, indirection.ToString()));
+            var partials = new List<GraphNodeId>
+            {
+                GraphNodeId.GetPartial(CodeQualifiedName.Name, pointerType.PointedAtType.Name),
+                GraphNodeId.GetPartial(CodeQualifiedName.Indirection, indirection.ToString())
+            };
 
             if (pointerType.PointedAtType.ContainingType != null)
             {
@@ -293,9 +295,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             var parameters = member.GetParameters();
             if (parameters.Any() || member.GetArity() > 0)
             {
-                var memberPartials = new List<GraphNodeId>();
-
-                memberPartials.Add(GraphNodeId.GetPartial(CodeQualifiedName.Name, member.MetadataName));
+                var memberPartials = new List<GraphNodeId>
+                {
+                    GraphNodeId.GetPartial(CodeQualifiedName.Name, member.MetadataName)
+                };
 
                 if (member.GetArity() > 0)
                 {
@@ -539,7 +542,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     foreach (var node in currentNode.DescendantNodes())
                     {
                         var current = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-                        if (current != null && current.Name == symbol.Name && (current.Kind == SymbolKind.Local || current.Kind == SymbolKind.RangeVariable))
+                        if (current is { Kind: SymbolKind.Local or SymbolKind.RangeVariable } && current.Name == symbol.Name)
                         {
                             if (!current.Equals(symbol))
                             {

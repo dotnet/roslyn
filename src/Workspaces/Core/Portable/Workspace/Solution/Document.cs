@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var syntaxTree = await this.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var compilation = (await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+                var compilation = await this.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 var result = compilation.GetSemanticModel(syntaxTree);
                 Contract.ThrowIfNull(result);
@@ -433,8 +433,11 @@ namespace Microsoft.CodeAnalysis
         /// Creates a branched version of this document that has its semantic model frozen in whatever state it is available at the time,
         /// assuming a background process is constructing the semantics asynchronously. Repeated calls to this method may return
         /// documents with increasingly more complete semantics.
-        ///
+        /// <para/>
         /// Use this method to gain access to potentially incomplete semantics quickly.
+        /// <para/> Note: this will give back a solution where this <see cref="Document"/>'s project will not run
+        /// generators when getting its compilation.  However, all other projects will still run generators when their
+        /// compilations are requested.
         /// </summary>
         internal virtual Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
         {
@@ -448,7 +451,7 @@ namespace Microsoft.CodeAnalysis
                 this.Project.SupportsCompilation)
             {
                 var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
-                return newSolution.GetDocument(this.Id)!;
+                return newSolution.GetRequiredDocument(this.Id);
             }
             else
             {

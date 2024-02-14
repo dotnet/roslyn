@@ -2262,21 +2262,243 @@ class D
             ? CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc })
             : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
-        if (inSource)
+        comp.VerifyDiagnostics(
+            // (3,12): error CS0619: 'C' is obsolete: 'error'
+            //     void M(C c)
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "error").WithLocation(3, 12)
+            );
+    }
+
+    [Theory, CombinatorialData]
+    public void WithObsolete_ReverseOrder(bool inSource)
+    {
+        var libSrc = """
+[System.Diagnostics.CodeAnalysis.Experimental("DiagID1")]
+[System.Obsolete("error", true)]
+public class C
+{
+}
+""";
+
+        var src = """
+class D
+{
+    void M(C c)
+    {
+    }
+}
+""";
+
+        var comp = inSource
+            ? CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc })
+            : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
+
+        comp.VerifyDiagnostics(
+            // (3,12): error CS0619: 'C' is obsolete: 'error'
+            //     void M(C c)
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "error").WithLocation(3, 12)
+            );
+    }
+
+    public enum ObsoleteKind
+    {
+        Deprecated,
+        Obsolete,
+        WindowsExperimental,
+        Experimental
+    }
+
+    [Theory, CombinatorialData]
+    public void PriorityOrder(ObsoleteKind one, ObsoleteKind other, bool inSource)
+    {
+        if (one == other) return;
+
+        var oneAttr = getAttribute(one);
+        var otherAttr = getAttribute(other);
+
+        var libSrc = $$"""
+{{oneAttr}}
+{{otherAttr}}
+public class C { }
+""";
+
+        var src = """
+class D
+{
+    void M(C c) { }
+}
+""";
+        var libsSrc = new CSharpTestSource[] { libSrc, experimentalAttributeSrc,
+            AttributeTests_WindowsExperimental.DeprecatedAttributeSource,
+            AttributeTests_WindowsExperimental.ExperimentalAttributeSource };
+
+        var comp = inSource
+            ? CreateCompilation(libsSrc.Append(src).ToArray())
+            : CreateCompilation(src, references: new[] { CreateCompilation(libsSrc).EmitToImageReference() });
+
+        comp.VerifyDiagnostics(getExpectedDiagnostic(getImportantObsoleteKind(one, other)));
+        return;
+
+        static ObsoleteKind getImportantObsoleteKind(ObsoleteKind one, ObsoleteKind other)
         {
-            comp.VerifyDiagnostics(
-                // 0.cs(3,12): error DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
-                //     void M(C c)
-                Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(3, 12).WithWarningAsError(true)
-                );
+            return one < other ? one : other;
         }
-        else
+
+        static DiagnosticDescription getExpectedDiagnostic(ObsoleteKind kind)
         {
-            comp.VerifyDiagnostics(
-                // (3,12): error CS0619: 'C' is obsolete: 'error'
-                //     void M(C c)
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "error").WithLocation(3, 12)
-                );
+            return kind switch
+            {
+                ObsoleteKind.Deprecated =>
+                    // (3,12): warning CS0618: 'C' is obsolete: 'DEPRECATED'
+                    //     void M(C c) { }
+                    Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C").WithArguments("C", "DEPRECATED").WithLocation(3, 12),
+
+                ObsoleteKind.Obsolete =>
+                    // (3,12): error CS0619: 'C' is obsolete: 'OBSOLETE'
+                    //     void M(C c) { }
+                    Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "OBSOLETE").WithLocation(3, 12),
+
+                ObsoleteKind.WindowsExperimental =>
+                    // (3,12): warning CS8305: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+                    //     void M(C c) { }
+                    Diagnostic(ErrorCode.WRN_WindowsExperimental, "C").WithArguments("C").WithLocation(3, 12),
+
+                // ObsoleteKind.Experimental comes last and always loses
+                _ => throw new NotSupportedException()
+            };
         }
+
+        static string getAttribute(ObsoleteKind kind) => kind switch
+        {
+            ObsoleteKind.Deprecated => """[Windows.Foundation.Metadata.Deprecated("DEPRECATED", Windows.Foundation.Metadata.DeprecationType.Deprecate, 0)]""",
+            ObsoleteKind.Obsolete => """[System.Obsolete("OBSOLETE", true)]""",
+            ObsoleteKind.WindowsExperimental => "[Windows.Foundation.Metadata.Experimental]",
+            ObsoleteKind.Experimental => """[System.Diagnostics.CodeAnalysis.Experimental("DiagID1")]""",
+            _ => throw new NotSupportedException()
+        };
+    }
+
+    [Theory, CombinatorialData]
+    public void PriorityOrder_OnEvent(bool inSource, bool reversed)
+    {
+        var oneAttr = """[System.Obsolete("OBSOLETE", true)]""";
+        var otherAttr = """[System.Diagnostics.CodeAnalysis.Experimental("DiagID1")]""";
+
+        var libSrc = $$"""
+public class C
+{
+    {{(reversed ? otherAttr : oneAttr)}}
+    {{(reversed ? oneAttr : otherAttr)}}
+    public static event System.Action Event;
+
+    static void M()
+    {
+        Event();
+    }
+}
+""";
+
+        var src = """
+C.Event += () => { };
+""";
+
+        var comp = inSource
+            ? CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc })
+            : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
+
+        comp.VerifyDiagnostics(
+            // (1,1): error CS0619: 'C.Event' is obsolete: 'OBSOLETE'
+            // C.Event += () => { };
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C.Event").WithArguments("C.Event", "OBSOLETE").WithLocation(1, 1)
+            );
+    }
+
+    [Theory, CombinatorialData]
+    public void PriorityOrder_OnField(bool inSource, bool reversed)
+    {
+        var oneAttr = """[System.Obsolete("OBSOLETE", true)]""";
+        var otherAttr = """[System.Diagnostics.CodeAnalysis.Experimental("DiagID1")]""";
+
+        var libSrc = $$"""
+public class C
+{
+    {{(reversed ? otherAttr : oneAttr)}}
+    {{(reversed ? oneAttr : otherAttr)}}
+    public static int field = 0;
+}
+""";
+
+        var src = """
+_ = C.field;
+""";
+        var comp = inSource
+            ? CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc })
+            : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
+
+        comp.VerifyDiagnostics(
+            // (1,5): error CS0619: 'C.field' is obsolete: 'OBSOLETE'
+            // _ = C.field;
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C.field").WithArguments("C.field", "OBSOLETE").WithLocation(1, 5)
+            );
+    }
+
+    [Theory, CombinatorialData]
+    public void PriorityOrder_OnMethod(bool inSource, bool reversed)
+    {
+        var oneAttr = """[System.Obsolete("OBSOLETE", true)]""";
+        var otherAttr = """[System.Diagnostics.CodeAnalysis.Experimental("DiagID1")]""";
+
+        var libSrc = $$"""
+public class C
+{
+    {{(reversed ? otherAttr : oneAttr)}}
+    {{(reversed ? oneAttr : otherAttr)}}
+    public static void M() { }
+}
+""";
+
+        var src = """
+C.M();
+""";
+
+        var comp = inSource
+            ? CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc })
+            : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
+
+        comp.VerifyDiagnostics(
+            // (1,1): error CS0619: 'C.M()' is obsolete: 'OBSOLETE'
+            // C.M();
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C.M()").WithArguments("C.M()", "OBSOLETE").WithLocation(1, 1)
+            );
+    }
+
+    [Theory, CombinatorialData]
+    public void PriorityOrder_OnProperty(bool inSource, bool reversed)
+    {
+        var oneAttr = """[System.Obsolete("OBSOLETE", true)]""";
+        var otherAttr = """[System.Diagnostics.CodeAnalysis.Experimental("DiagID1")]""";
+
+        var libSrc = $$"""
+public class C
+{
+    {{(reversed ? otherAttr : oneAttr)}}
+    {{(reversed ? oneAttr : otherAttr)}}
+    public static int P => 0;
+}
+""";
+
+        var src = """
+_ = C.P;
+""";
+
+        var comp = inSource
+            ? CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc })
+            : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
+
+        comp.VerifyDiagnostics(
+            // (1,5): error CS0619: 'C.P' is obsolete: 'OBSOLETE'
+            // _ = C.P;
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C.P").WithArguments("C.P", "OBSOLETE").WithLocation(1, 5)
+            );
     }
 }

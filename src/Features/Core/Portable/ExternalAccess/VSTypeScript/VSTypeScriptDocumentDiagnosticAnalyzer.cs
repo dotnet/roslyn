@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
     [DiagnosticAnalyzer(InternalLanguageNames.TypeScript)]
     internal sealed class VSTypeScriptDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [];
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {

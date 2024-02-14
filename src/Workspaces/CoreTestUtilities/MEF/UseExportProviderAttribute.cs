@@ -134,7 +134,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         // This attribute cleans up the in-process and out-of-process export providers separately, so we
                         // don't need to provide a workspace when waiting for operations to complete.
                         var waiter = ((AsynchronousOperationListenerProvider)listenerProvider).WaitAllDispatcherOperationAndTasksAsync(workspace: null);
-                        waiter.JoinUsingDispatcher(timeoutTokenSource.Token);
+
+                        if (testExportJoinableTaskContext?.DispatcherTaskJoiner is { } taskJoiner)
+                        {
+                            taskJoiner.JoinUsingDispatcher(waiter, timeoutTokenSource.Token);
+                        }
+                        else
+                        {
+                            waiter.GetAwaiter().GetResult();
+                        }
                     }
                     catch (OperationCanceledException ex) when (timeoutTokenSource.IsCancellationRequested)
                     {

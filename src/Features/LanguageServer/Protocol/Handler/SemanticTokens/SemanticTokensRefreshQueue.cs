@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
@@ -35,13 +35,13 @@ internal class SemanticTokensRefreshQueue :
     /// <summary>
     /// Mapping from project id to the workqueue for producing the corresponding compilation for it on the OOP server.
     /// </summary>
-    private readonly Dictionary<ProjectId, CompilationAvailableEventSource> _projectIdToEventSource = new();
+    private readonly Dictionary<ProjectId, CompilationAvailableEventSource> _projectIdToEventSource = [];
 
     /// <summary>
     /// Mapping from project id to the project-cone-checksum for it we were at when the project for it had its
     /// compilation produced on the oop server.
     /// </summary>
-    private readonly Dictionary<ProjectId, Checksum> _projectIdToLastComputedChecksum = new();
+    private readonly Dictionary<ProjectId, Checksum> _projectIdToLastComputedChecksum = [];
 
     private readonly LspWorkspaceManager _lspWorkspaceManager;
     private readonly IClientLanguageServerManager _notificationManager;
@@ -106,7 +106,7 @@ internal class SemanticTokensRefreshQueue :
         {
             // Determine the checksum for this project cone.  Note: this should be fast in practice because this is
             // the same project-cone-checksum we used to even call into OOP above when we computed semantic tokens.
-            var projectChecksum = await project.Solution.State.GetChecksumAsync(project.Id, cancellationToken).ConfigureAwait(false);
+            var projectChecksum = await project.Solution.CompilationState.GetChecksumAsync(project.Id, cancellationToken).ConfigureAwait(false);
 
             lock (_gate)
             {

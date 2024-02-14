@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CancellationToken cancellationToken)
         {
             if (!info.Context.GenerateMembers)
-                members = ImmutableArray<ISymbol>.Empty;
+                members = [];
 
             // For a record, add record parameters if we have a primary constructor.
             var primaryConstructor = members.OfType<IMethodSymbol>().FirstOrDefault(m => CodeGenerationConstructorInfo.GetIsPrimaryConstructor(m));
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CSharpCodeGenerationContextInfo info)
         {
             var baseList = namedType.EnumUnderlyingType != null && namedType.EnumUnderlyingType.SpecialType != SpecialType.System_Int32
-                ? SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(SyntaxFactory.SimpleBaseType(namedType.EnumUnderlyingType.GenerateTypeSyntax())))
+                ? SyntaxFactory.BaseList([SyntaxFactory.SimpleBaseType(namedType.EnumUnderlyingType.GenerateTypeSyntax())])
                 : null;
 
             return SyntaxFactory.EnumDeclaration(
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (types.Count == 0)
                 return null;
 
-            return SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(types));
+            return SyntaxFactory.BaseList([.. types]);
         }
 
         private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(INamedTypeSymbol namedType)

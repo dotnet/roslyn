@@ -22,10 +22,8 @@ namespace Microsoft.CodeAnalysis.Rename
 {
     internal interface IRemoteRenamerService
     {
-        // TODO https://github.com/microsoft/vs-streamjsonrpc/issues/789 
-        internal interface ICallback // : IRemoteOptionsCallback<CodeCleanupOptions>
+        internal interface ICallback : IRemoteOptionsCallback<CodeCleanupOptions>
         {
-            ValueTask<CodeCleanupOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
         }
 
         /// <summary>
@@ -44,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Rename
 
         ValueTask<SerializableRenameLocations?> FindRenameLocationsAsync(
             Checksum solutionChecksum,
-            RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             SymbolRenameOptions options,
             CancellationToken cancellationToken);
@@ -141,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Rename
     internal partial class SymbolicRenameLocations
     {
         internal static async Task<SymbolicRenameLocations?> TryRehydrateAsync(
-            ISymbol symbol, Solution solution, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations serializableLocations, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, SerializableRenameLocations serializableLocations, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(serializableLocations);
 
@@ -160,7 +157,6 @@ namespace Microsoft.CodeAnalysis.Rename
                 symbol,
                 solution,
                 serializableLocations.Options,
-                fallbackOptions,
                 locations,
                 implicitLocations,
                 referencedSymbols);

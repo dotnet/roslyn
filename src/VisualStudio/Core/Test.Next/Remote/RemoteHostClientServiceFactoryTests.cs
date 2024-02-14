@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             await listener.ExpeditedWaitAsync();
 
             // checksum should already exist
-            Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out _));
+            Assert.True(workspace.CurrentSolution.CompilationState.TryGetStateChecksums(out _));
 
             checksumUpdater.Shutdown();
         }

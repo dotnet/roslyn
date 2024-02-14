@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -25,40 +23,30 @@ internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, I
 
     public Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var logger = context.GetRequiredLspService<ILspServiceLogger>();
-        try
+        var clientCapabilitiesManager = context.GetRequiredLspService<IInitializeManager>();
+        var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
+        if (clientCapabilities != null)
         {
-            logger.LogStartContext("Initialize");
-
-            var clientCapabilitiesManager = context.GetRequiredLspService<IInitializeManager>();
-            var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
-            if (clientCapabilities != null)
-            {
-                throw new InvalidOperationException($"{nameof(Methods.InitializeName)} called multiple times");
-            }
-
-            clientCapabilities = request.Capabilities;
-            clientCapabilitiesManager.SetInitializeParams(request);
-
-            var capabilitiesProvider = context.GetRequiredLspService<ICapabilitiesProvider>();
-            var serverCapabilities = capabilitiesProvider.GetCapabilities(clientCapabilities);
-
-            // Record a telemetry event indicating what capabilities are being provided by the server.
-            // Useful for figuring out if a particular session is opted into an LSP feature.
-            Logger.Log(FunctionId.LSP_Initialize, KeyValueLogMessage.Create(m =>
-            {
-                m["serverKind"] = context.ServerKind.ToTelemetryString();
-                m["capabilities"] = JsonConvert.SerializeObject(serverCapabilities);
-            }));
-
-            return Task.FromResult(new InitializeResult
-            {
-                Capabilities = serverCapabilities,
-            });
+            throw new InvalidOperationException($"{nameof(Methods.InitializeName)} called multiple times");
         }
-        finally
+
+        clientCapabilities = request.Capabilities;
+        clientCapabilitiesManager.SetInitializeParams(request);
+
+        var capabilitiesProvider = context.GetRequiredLspService<ICapabilitiesProvider>();
+        var serverCapabilities = capabilitiesProvider.GetCapabilities(clientCapabilities);
+
+        // Record a telemetry event indicating what capabilities are being provided by the server.
+        // Useful for figuring out if a particular session is opted into an LSP feature.
+        Logger.Log(FunctionId.LSP_Initialize, KeyValueLogMessage.Create(m =>
         {
-            logger.LogEndContext("Initialize");
-        }
+            m["serverKind"] = context.ServerKind.ToTelemetryString();
+            m["capabilities"] = JsonConvert.SerializeObject(serverCapabilities);
+        }));
+
+        return Task.FromResult(new InitializeResult
+        {
+            Capabilities = serverCapabilities,
+        });
     }
 }

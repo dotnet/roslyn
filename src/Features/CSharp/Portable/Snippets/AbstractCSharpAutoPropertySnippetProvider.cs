@@ -30,11 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         protected virtual AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
             => (AccessorDeclarationSyntax)generator.SetAccessorDeclaration();
 
-        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-            return syntaxTree.IsMemberDeclarationContext(position, context: null,
+            return context.SyntaxContext.SyntaxTree.IsMemberDeclarationContext(context.Position, (CSharpSyntaxContext)context.SyntaxContext,
                 SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken);
         }
 
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                 type: compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(allowVar: false),
                 explicitInterfaceSpecifier: null,
                 identifier: identifierName.ToIdentifierToken(),
-                accessorList: SyntaxFactory.AccessorList(new SyntaxList<AccessorDeclarationSyntax>(accessors.Where(a => a is not null)!)));
+                accessorList: SyntaxFactory.AccessorList([.. accessors.Where(a => a is not null)!]));
         }
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)

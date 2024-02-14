@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis
                     .WithAssemblyIdentityComparer(assemblyIdentityComparer)
                     .WithStrongNameProvider(strongNameProvider)
                     // TODO (https://github.com/dotnet/roslyn/issues/4967): 
-                    .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, projectDirectory))),
+                    .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver([], projectDirectory))),
                 parseOptions: commandLineArguments.ParseOptions,
                 documents: CreateDocuments(commandLineArguments.SourceFiles),
                 projectReferences: null,

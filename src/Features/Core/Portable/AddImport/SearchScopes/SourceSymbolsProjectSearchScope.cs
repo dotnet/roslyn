@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 if (info == null)
                 {
                     // Looks like there was nothing in the cache.  Return no results for now.
-                    return ImmutableArray<ISymbol>.Empty;
+                    return [];
                 }
 
                 // Don't create the assembly until it is actually needed by the SymbolTreeInfo.FindAsync

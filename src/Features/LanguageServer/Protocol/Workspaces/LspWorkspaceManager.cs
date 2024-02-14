@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -52,7 +52,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// workspace).
     /// <para/> Access to this is guaranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    private readonly Dictionary<Workspace, (int? forkedFromVersion, Solution solution)> _cachedLspSolutions = new();
+    private readonly Dictionary<Workspace, (int? forkedFromVersion, Solution solution)> _cachedLspSolutions = [];
 
     /// <summary>
     /// Stores the current source text for each URI that is being tracked by LSP. Each time an LSP text sync
@@ -67,12 +67,14 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     private readonly ILspLogger _logger;
     private readonly LspMiscellaneousFilesWorkspace? _lspMiscellaneousFilesWorkspace;
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
+    private readonly ILanguageInfoProvider _languageInfoProvider;
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
 
     public LspWorkspaceManager(
         ILspLogger logger,
         LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+        ILanguageInfoProvider languageInfoProvider,
         RequestTelemetryLogger requestTelemetryLogger)
     {
         _lspMiscellaneousFilesWorkspace = lspMiscellaneousFilesWorkspace;
@@ -80,6 +82,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _requestTelemetryLogger = requestTelemetryLogger;
 
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
+        _languageInfoProvider = languageInfoProvider;
     }
 
     public EventHandler<EventArgs>? LspTextChanged;
@@ -213,7 +216,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// This is always called serially in the <see cref="RequestExecutionQueue{RequestContextType}"/> when creating the <see cref="RequestContext"/>.
     /// </summary>
-    public async Task<(Workspace?, Solution?, Document?)> GetLspDocumentInfoAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
+    public async Task<(Workspace?, Solution?, TextDocument?)> GetLspDocumentInfoAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
     {
         // Get the LSP view of all the workspace solutions.
         var uri = textDocumentIdentifier.Uri;
@@ -222,10 +225,10 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Find the matching document from the LSP solutions.
         foreach (var (workspace, lspSolution, isForked) in lspSolutions)
         {
-            var documents = lspSolution.GetDocuments(textDocumentIdentifier.Uri);
+            var documents = lspSolution.GetTextDocuments(textDocumentIdentifier.Uri);
             if (documents.Any())
             {
-                var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredDocument(id));
+                var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
 
                 // Record metadata on how we got this document.
                 var workspaceKind = document.Project.Solution.WorkspaceKind;
@@ -378,7 +381,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// <summary>
     /// Given a set of documents from the workspace current solution, verify that the LSP text is the same as the document contents.
     /// </summary>
-    private async Task<bool> DoesAllTextMatchWorkspaceSolutionAsync(ImmutableDictionary<Uri, ImmutableArray<Document>> documentsInWorkspace, CancellationToken cancellationToken)
+    private async Task<bool> DoesAllTextMatchWorkspaceSolutionAsync(ImmutableDictionary<Uri, ImmutableArray<TextDocument>> documentsInWorkspace, CancellationToken cancellationToken)
     {
         foreach (var (uriInWorkspace, documentsForUri) in documentsInWorkspace)
         {
@@ -396,26 +399,41 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         return true;
     }
 
-    private static async ValueTask<bool> AreChecksumsEqualAsync(Document document, SourceText lspText, CancellationToken cancellationToken)
+    private static async ValueTask<bool> AreChecksumsEqualAsync(TextDocument document, SourceText lspText, CancellationToken cancellationToken)
     {
         var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         if (documentText == lspText)
             return true;
 
-        return lspText.GetChecksum().AsSpan().SequenceEqual(documentText.GetChecksum().AsSpan());
+        return lspText.GetContentHash().AsSpan().SequenceEqual(documentText.GetContentHash().AsSpan());
     }
 
     #endregion
 
     /// <summary>
+    /// Returns a Roslyn language name for the given URI.
+    /// </summary>
+    internal string GetLanguageForUri(Uri uri)
+    {
+        string? languageId = null;
+        if (_trackedDocuments.TryGetValue(uri, out var trackedDocument))
+        {
+            languageId = trackedDocument.LanguageId;
+        }
+
+        var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
+        return _languageInfoProvider.GetLanguageInformation(documentFilePath, languageId).LanguageName;
+    }
+
+    /// <summary>
     /// Using the workspace's current solutions, find the matching documents in for each URI.
     /// </summary>
-    private static ImmutableDictionary<Uri, ImmutableArray<Document>> GetDocumentsForUris(ImmutableArray<Uri> trackedDocuments, Solution workspaceCurrentSolution)
+    private static ImmutableDictionary<Uri, ImmutableArray<TextDocument>> GetDocumentsForUris(ImmutableArray<Uri> trackedDocuments, Solution workspaceCurrentSolution)
     {
-        using var _ = PooledDictionary<Uri, ImmutableArray<Document>>.GetInstance(out var documentsInSolution);
+        using var _ = PooledDictionary<Uri, ImmutableArray<TextDocument>>.GetInstance(out var documentsInSolution);
         foreach (var trackedDoc in trackedDocuments)
         {
-            var documents = workspaceCurrentSolution.GetDocuments(trackedDoc);
+            var documents = workspaceCurrentSolution.GetTextDocuments(trackedDoc);
             if (documents.Any())
             {
                 documentsInSolution[trackedDoc] = documents;

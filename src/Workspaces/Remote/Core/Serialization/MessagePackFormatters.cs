@@ -24,18 +24,17 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class MessagePackFormatters
     {
-        internal static readonly ImmutableArray<IMessagePackFormatter> Formatters = ImmutableArray.Create<IMessagePackFormatter>(
+        internal static readonly ImmutableArray<IMessagePackFormatter> Formatters =
+        [
             ProjectIdFormatter.Instance,
             EncodingFormatter.Instance,
-            // ForceTypelessFormatter<T> needs to be listed here for each Roslyn abstract type T that is being serialized OOP.
-            // TODO: add a resolver that provides these https://github.com/dotnet/roslyn/issues/60724
             new ForceTypelessFormatter<SimplifierOptions>(),
             new ForceTypelessFormatter<SyntaxFormattingOptions>(),
             new ForceTypelessFormatter<CodeGenerationOptions>(),
-            new ForceTypelessFormatter<IdeCodeStyleOptions>());
+            new ForceTypelessFormatter<IdeCodeStyleOptions>(),
+        ];
 
-        private static readonly ImmutableArray<IFormatterResolver> s_resolvers = ImmutableArray.Create<IFormatterResolver>(
-            StandardResolverAllowPrivate.Instance);
+        private static readonly ImmutableArray<IFormatterResolver> s_resolvers = [StandardResolverAllowPrivate.Instance];
 
         internal static readonly IFormatterResolver DefaultResolver = CompositeResolver.Create(Formatters, s_resolvers);
 

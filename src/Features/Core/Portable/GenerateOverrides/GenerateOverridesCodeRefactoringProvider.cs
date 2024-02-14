@@ -51,9 +51,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 
             var overridableMembers = containingType.GetOverridableMembers(cancellationToken);
             if (overridableMembers.Length == 0)
-            {
                 return;
-            }
 
             context.RegisterRefactoring(
                 new GenerateOverridesWithDialogCodeAction(

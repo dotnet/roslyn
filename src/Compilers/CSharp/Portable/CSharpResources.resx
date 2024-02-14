@@ -5941,6 +5941,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ICompoundAssignmentOperationIsNotCSharpCompoundAssignment" xml:space="preserve">
     <value>{0} is not a valid C# compound assignment operation</value>
   </data>
+  <data name="ISpreadOperationIsNotCSharpSpread" xml:space="preserve">
+    <value>{0} is not a valid C# spread operation</value>
+  </data>
   <data name="WRN_FilterIsConstantFalse" xml:space="preserve">
     <value>Filter expression is a constant 'false', consider removing the catch clause</value>
   </data>
@@ -6852,6 +6855,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_CollectionBuilderNoElementType" xml:space="preserve">
     <value>'{0}' has a CollectionBuilderAttribute but no element type.</value>
+  </data>
+  <data name="ERR_CollectionExpressionTargetNoElementType" xml:space="preserve">
+    <value>Collection expression target '{0}' has no element type.</value>
+  </data>
+  <data name="ERR_CollectionExpressionMissingConstructor" xml:space="preserve">
+    <value>Collection expression type must have an applicable constructor that can be called with no arguments.</value>
+  </data>
+  <data name="ERR_CollectionExpressionMissingAdd" xml:space="preserve">
+    <value>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</value>
   </data>
   <data name="ERR_CollectionBuilderAttributeInvalidType" xml:space="preserve">
     <value>The CollectionBuilderAttribute builder type must be a non-generic class or struct.</value>
@@ -7771,10 +7783,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Inline array conversion operator will not be used for conversion from expression of the declaring type.</value>
   </data>
   <data name="WRN_InlineArrayNotSupportedByLanguage" xml:space="preserve">
-    <value>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</value>
+    <value>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</value>
   </data>
   <data name="WRN_InlineArrayNotSupportedByLanguage_Title" xml:space="preserve">
-    <value>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</value>
+    <value>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</value>
   </data>
   <data name="ERR_InlineArrayForEachNotSupported" xml:space="preserve">
     <value>foreach statement on an inline array of type '{0}' is not supported</value>
@@ -7829,5 +7841,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InvalidExperimentalDiagID" xml:space="preserve">
     <value>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</value>
+  </data>
+  <data name="IDS_ImplicitIndexerInitializer" xml:space="preserve">
+    <value>implicit indexer initializer</value>
   </data>
 </root>

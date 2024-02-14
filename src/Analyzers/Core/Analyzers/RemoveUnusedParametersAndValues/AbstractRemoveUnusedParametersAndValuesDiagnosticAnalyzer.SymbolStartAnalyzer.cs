@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             private readonly INamedTypeSymbol _eventArgsTypeOpt = eventArgsTypeOpt;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore = attributeSetForMethodsToIgnore;
             private readonly DeserializationConstructorCheck _deserializationConstructorCheck = deserializationConstructorCheck;
-            private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates = new ConcurrentDictionary<IMethodSymbol, bool>();
+            private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates = [];
             private readonly INamedTypeSymbol _iCustomMarshaler = iCustomMarshaler;
             private readonly SymbolStartAnalysisContext _symbolStartAnalysisContext = symbolStartAnalysisContext;
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             /// For example, a parameter whose initial value is overwritten before any reads
             /// is an unused parameter with read reference(s).
             /// </summary>
-            private readonly ConcurrentDictionary<IParameterSymbol, bool> _unusedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
+            private readonly ConcurrentDictionary<IParameterSymbol, bool> _unusedParameters = [];
 
             public static void CreateAndRegisterActions(
                 CompilationStartAnalysisContext context,
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     isLocalFunctionParameter: parameter.ContainingSymbol.IsLocalFunction());
 
                 var diagnostic = DiagnosticHelper.CreateWithMessage(s_unusedParameterRule, location,
-                    option.Notification.Severity, additionalLocations: null, properties: null, message);
+                    option.Notification, additionalLocations: null, properties: null, message);
                 reportDiagnostic(diagnostic);
             }
 

@@ -198,7 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 if (!hierarchyToItemIDsMap.TryGetValue(hierarchy, out var itemIDsForCurrentHierarchy))
                 {
-                    itemIDsForCurrentHierarchy = new List<uint>();
+                    itemIDsForCurrentHierarchy = [];
                     hierarchyToItemIDsMap.Add(hierarchy, itemIDsForCurrentHierarchy);
                 }
 

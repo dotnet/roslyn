@@ -440,6 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #region IParameterSymbolInternal
 
         ITypeSymbolInternal IParameterSymbolInternal.Type => Type;
+        RefKind IParameterSymbolInternal.RefKind => RefKind;
 
         #endregion
     }

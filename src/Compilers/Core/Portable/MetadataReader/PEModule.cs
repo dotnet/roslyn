@@ -1192,6 +1192,7 @@ namespace Microsoft.CodeAnalysis
         internal const string ByRefLikeMarker = "Types with embedded references are not supported in this version of your compiler.";
         internal const string RequiredMembersMarker = "Constructors of types with required members are not supported in this version of your compiler.";
 
+        /// <remarks>Should be kept in sync with <see cref="IsMoreImportantObsoleteKind(ObsoleteAttributeKind, ObsoleteAttributeKind)"/></remarks>
         internal ObsoleteAttributeData TryGetDeprecatedOrExperimentalOrObsoleteAttribute(
             EntityHandle token,
             IAttributeNamedArgumentDecoder decoder,
@@ -1238,6 +1239,26 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
+        /// <summary>
+        /// Indicates whether the first attribute should be prioritized over the second one.
+        /// Same order of priority as
+        ///   <see cref="TryGetDeprecatedOrExperimentalOrObsoleteAttribute(EntityHandle, IAttributeNamedArgumentDecoder, bool, bool)"/>
+        /// </summary>
+        internal static bool IsMoreImportantObsoleteKind(ObsoleteAttributeKind firstKind, ObsoleteAttributeKind secondKind)
+        {
+            return getPriority(firstKind) <= getPriority(secondKind);
+
+            static int getPriority(ObsoleteAttributeKind kind) => kind switch
+            {
+                ObsoleteAttributeKind.Deprecated => 0,
+                ObsoleteAttributeKind.Obsolete => 1,
+                ObsoleteAttributeKind.WindowsExperimental => 2,
+                ObsoleteAttributeKind.Experimental => 3,
+                ObsoleteAttributeKind.Uninitialized => 4,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind)
+            };
+        }
+
         internal ObsoleteAttributeData? TryDecodeExperimentalAttributeData(EntityHandle handle, IAttributeNamedArgumentDecoder decoder)
         {
             var info = FindTargetAttribute(handle, AttributeDescription.ExperimentalAttribute);

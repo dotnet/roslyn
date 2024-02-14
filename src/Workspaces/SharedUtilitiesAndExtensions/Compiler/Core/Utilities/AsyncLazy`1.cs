@@ -289,13 +289,18 @@ namespace Roslyn.Utilities
                 // processing a value somebody never wanted
                 cancellationToken.ThrowIfCancellationRequested();
 
-                return result;
+                // Because we called CompleteWithTask with an actual result, _cachedResult must be set. However, it's possible that result is a different result than
+                // what is in our local variable here; it's possible that an asynchronous computation was running and cancelled, but eventually completed (ignoring cancellation)
+                // and then set the cached value. Because that could be a different instance than what we have locally, we can't use the local result if the other value
+                // got cached first. Always returning the cached value ensures we always return a single value from AsyncLazy once we got one.
+                Contract.ThrowIfNull(_cachedResult, $"We called {nameof(CompleteWithTask)} with a result, there should be a cached result.");
+                return _cachedResult.Result;
             }
         }
 
         private Request CreateNewRequest_NoLock()
         {
-            _requests ??= new HashSet<Request>();
+            _requests ??= [];
 
             var request = new Request();
             _requests.Add(request);
@@ -441,7 +446,7 @@ namespace Roslyn.Utilities
 
                 // The computation is complete, so get all requests to complete and null out the list. We'll create another one
                 // later if it's needed
-                requestsToComplete = _requests ?? (IEnumerable<Request>)Array.Empty<Request>();
+                requestsToComplete = _requests ?? (IEnumerable<Request>)[];
                 _requests = null;
 
                 // The computations are done

@@ -85,16 +85,16 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServ
 
     private static ImmutableArray<string> GetRestorePaths(RestoreParams request, Solution solution, RequestContext context)
     {
-        if (request.ProjectFilePath != null)
+        if (request.ProjectFilePaths.Any())
         {
-            return ImmutableArray.Create(request.ProjectFilePath);
+            return request.ProjectFilePaths.ToImmutableArray();
         }
 
         // No file paths were specified - this means we should restore all projects in the solution.
         // If there is a valid solution path, use that as the restore path.
         if (solution.FilePath != null)
         {
-            return ImmutableArray.Create(solution.FilePath);
+            return [solution.FilePath];
         }
 
         // We don't have an addressable solution, so lets find all addressable projects.

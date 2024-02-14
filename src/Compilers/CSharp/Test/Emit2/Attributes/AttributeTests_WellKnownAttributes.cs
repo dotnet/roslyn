@@ -9871,36 +9871,46 @@ class Class6
         }
 
         /// <summary>
-        /// Report warning or error based on last attribute.
+        /// Report warning or error based on first attribute.
         /// </summary>
         [WorkItem(18755, "https://github.com/dotnet/roslyn/issues/18755")]
-        [Fact]
-        public void TestMultipleDeprecatedAttributes()
+        [Theory, CombinatorialData]
+        public void TestMultipleDeprecatedAttributes(bool inSource)
         {
-            var source =
+            var libSrc =
 @"using Windows.Foundation.Metadata;
-class C
+public class C
 {
     [Deprecated(""Removed"", DeprecationType.Remove, 0)]
     [Deprecated(""Deprecated"", DeprecationType.Deprecate, 0)]
-    static void F() { }
+    public static void F() { }
     [Deprecated(""Deprecated"", DeprecationType.Deprecate, 0)]
     [Deprecated(""Removed"", DeprecationType.Remove, 0)]
-    static void G() { }
+    public static void G() { }
+}";
+
+            var src = @"
+class D
+{
     static void Main()
     {
-        F();
-        G();
+        C.F();
+        C.G();
     }
 }";
-            var compilation = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseDll);
+            var compilation = inSource
+               ? CreateEmptyCompilation(new[] { (libSrc, "libSrc"), (src, "src") }, WinRtRefs, TestOptions.ReleaseDll)
+               : CreateEmptyCompilation((src, "src"),
+                    references: WinRtRefs.Append(CreateEmptyCompilation(new[] { libSrc }, WinRtRefs, TestOptions.ReleaseDll).EmitToImageReference()).ToArray(),
+                    TestOptions.ReleaseDll);
+
             compilation.VerifyDiagnostics(
-                // (12,9): warning CS0618: 'C.F()' is obsolete: 'Deprecated'
-                //         F();
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "F()").WithArguments("C.F()", "Deprecated").WithLocation(12, 9),
-                // (13,9): error CS0619: 'C.G()' is obsolete: 'Removed'
-                //         G();
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "G()").WithArguments("C.G()", "Removed").WithLocation(13, 9));
+                // (6,9): error CS0619: 'C.F()' is obsolete: 'Removed'
+                //         C.F();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C.F()").WithArguments("C.F()", "Removed").WithLocation(6, 9),
+                // (7,9): warning CS0618: 'C.G()' is obsolete: 'Deprecated'
+                //         C.G();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C.G()").WithArguments("C.G()", "Deprecated").WithLocation(7, 9));
         }
 
         private const string DeprecatedAttributeSourceTH1 =

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (_loadedProject is null)
             {
-                return ImmutableArray.Create(ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath));
+                return [ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath)];
             }
 
             var targetFrameworkValue = _loadedProject.GetPropertyValue(PropertyNames.TargetFramework);
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 var projectFileInfo = await BuildProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
                 projectFileInfo ??= ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath);
-                return ImmutableArray.Create(projectFileInfo);
+                return [projectFileInfo];
             }
         }
 
@@ -170,6 +170,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 .Select(MakeNonSourceFileDocumentFileInfo)
                 .ToImmutableArray();
 
+            var packageReferences = project.GetPackageReferences();
+
             var projectCapabilities = project.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
             var contentFileInfo = GetContentFiles(project);
             var isSdkStyle = IsSdkStyleProject(loadedProject);
@@ -189,6 +191,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 additionalDocs,
                 analyzerConfigDocs,
                 project.GetProjectReferences().ToImmutableArray(),
+                packageReferences,
                 projectCapabilities,
                 contentFileInfo,
                 isSdkStyle);
@@ -269,7 +272,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 var filePath = documentItem.ItemSpec;
                 var relativePath = PathUtilities.GetDirectoryName(PathUtilities.GetRelativePath(_projectDirectory, filePath));
-                var folders = relativePath == null ? ImmutableArray<string>.Empty : relativePath.Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
+                var folders = relativePath == null ? [] : relativePath.Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
                 return folders;
             }
         }

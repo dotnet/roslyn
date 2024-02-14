@@ -9,11 +9,11 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
 public class TestRequestContext
 {
-    public class Factory : IRequestContextFactory<TestRequestContext>
+    public class Factory : AbstractRequestContextFactory<TestRequestContext>
     {
         public static readonly Factory Instance = new();
 
-        public Task<TestRequestContext> CreateRequestContextAsync<TRequestParam>(IQueueItem<TestRequestContext> queueItem, TRequestParam requestParam, CancellationToken cancellationToken)
+        public override Task<TestRequestContext> CreateRequestContextAsync<TRequestParam>(IQueueItem<TestRequestContext> queueItem, IMethodHandler methodHandler, TRequestParam requestParam, CancellationToken cancellationToken)
             => Task.FromResult(new TestRequestContext());
     }
 }

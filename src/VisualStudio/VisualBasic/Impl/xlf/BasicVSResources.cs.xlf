@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_imports">
         <source>Remove unnecessary imports</source>
-        <target state="new">Remove unnecessary imports</target>
+        <target state="translated">Odebrat nepotřebné importy</target>
         <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">

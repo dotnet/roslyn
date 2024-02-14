@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                            .WhereNotNull()
                                            .ToList();
 
-            return usingDirectives.ToSyntaxList();
+            return [.. usingDirectives];
         }
 
         private static UsingDirectiveSyntax? GenerateUsingDirective(ISymbol symbol)

@@ -364,6 +364,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             builderArgument = null;
             return false;
         }
-#nullable disable
     }
 }

@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                TypeParameter("var"),
+                Keyword("var"),
                 Local("x"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
@@ -1147,7 +1147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("unmanaged"),
+                Keyword("unmanaged"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
@@ -1241,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("unmanaged"),
+                Keyword("unmanaged"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
@@ -1332,7 +1332,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("unmanaged"),
+                Keyword("unmanaged"),
                 Punctuation.Semicolon);
         }
 
@@ -1444,7 +1444,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("unmanaged"),
+                Keyword("unmanaged"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
@@ -1636,7 +1636,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("notnull"),
+                Keyword("notnull"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
@@ -1730,7 +1730,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("notnull"),
+                Keyword("notnull"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
@@ -1821,7 +1821,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("notnull"),
+                Keyword("notnull"),
                 Punctuation.Semicolon);
         }
 
@@ -1933,7 +1933,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("notnull"),
+                Keyword("notnull"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
@@ -3032,7 +3032,7 @@ Keyword("async"));
         [WpfFact]
         public async Task TestTotalClassifier()
         {
-            using var workspace = TestWorkspace.CreateCSharp(""""
+            using var workspace = EditorTestWorkspace.CreateCSharp(""""
                 using System.Text.RegularExpressions;
 
                 class C

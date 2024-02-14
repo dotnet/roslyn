@@ -24,7 +24,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
         private readonly Grid _mainGrid;
 
         private readonly DispatcherTimer _timer;
-        private readonly List<StatusIndicator> _indicators = new();
+        private readonly List<StatusIndicator> _indicators = [];
 
         private ListView _detailsListView;
         private bool _stopTimer;

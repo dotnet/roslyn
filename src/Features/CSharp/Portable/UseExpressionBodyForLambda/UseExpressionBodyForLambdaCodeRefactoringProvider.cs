@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.UseExpressionBodyForLambda;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var lambdaNode = await document.TryGetRelevantNodeAsync<LambdaExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
             if (lambdaNode == null)
             {
-                return ImmutableArray<CodeAction>.Empty;
+                return [];
             }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

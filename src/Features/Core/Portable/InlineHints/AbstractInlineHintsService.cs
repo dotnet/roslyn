@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.InlineHints
             var inlineTypeService = document.GetLanguageService<IInlineTypeHintsService>();
 
             var parameters = inlineParameterService == null
-                ? ImmutableArray<InlineHint>.Empty
+                ? []
                 : await inlineParameterService.GetInlineHintsAsync(document, textSpan, options.ParameterOptions, options.DisplayOptions, displayAllOverride, cancellationToken).ConfigureAwait(false);
 
             var types = inlineTypeService == null
-                ? ImmutableArray<InlineHint>.Empty
+                ? []
                 : await inlineTypeService.GetInlineHintsAsync(document, textSpan, options.TypeOptions, options.DisplayOptions, displayAllOverride, cancellationToken).ConfigureAwait(false);
 
             return parameters.Concat(types);

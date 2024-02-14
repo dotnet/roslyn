@@ -45,6 +45,6 @@ namespace Microsoft.CodeAnalysis.GoToImplementation
 
         protected override Task FindActionAsync(IFindUsagesContext context, Document document, int caretPosition, CancellationToken cancellationToken)
             => document.GetRequiredLanguageService<IFindUsagesService>()
-                       .FindImplementationsAsync(context, document, caretPosition, cancellationToken);
+                       .FindImplementationsAsync(context, document, caretPosition, ClassificationOptionsProvider, cancellationToken);
     }
 }

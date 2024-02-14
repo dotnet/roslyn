@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         private static readonly LocalizableString s_localizableTitleSimplifyNames = new LocalizableResourceString(nameof(AnalyzersResources.Simplify_Names), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly DiagnosticDescriptor s_descriptorSimplifyNames = CreateDescriptorWithId(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                                                                     EnforceOnBuildValues.SimplifyNames,
+                                                                    hasAnyCodeStyleOption: false,
                                                                     s_localizableTitleSimplifyNames,
                                                                     s_localizableMessage,
                                                                     isUnnecessary: true);
@@ -50,21 +51,27 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         private static readonly LocalizableString s_localizableTitleSimplifyMemberAccess = new LocalizableResourceString(nameof(AnalyzersResources.Simplify_Member_Access), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly DiagnosticDescriptor s_descriptorSimplifyMemberAccess = CreateDescriptorWithId(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
                                                                     EnforceOnBuildValues.SimplifyMemberAccess,
+                                                                    hasAnyCodeStyleOption: false,
                                                                     s_localizableTitleSimplifyMemberAccess,
                                                                     s_localizableMessage,
                                                                     isUnnecessary: true);
 
         private static readonly DiagnosticDescriptor s_descriptorPreferBuiltinOrFrameworkType = CreateDescriptorWithId(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
             EnforceOnBuildValues.PreferBuiltInOrFrameworkType,
+            hasAnyCodeStyleOption: true,
             s_localizableTitleSimplifyNames,
             s_localizableMessage,
             isUnnecessary: true);
 
         protected SimplifyTypeNamesDiagnosticAnalyzerBase()
             : base(ImmutableDictionary<DiagnosticDescriptor, ImmutableHashSet<IOption2>>.Empty
-                  .Add(s_descriptorSimplifyNames, ImmutableHashSet<IOption2>.Empty)
-                  .Add(s_descriptorSimplifyMemberAccess, ImmutableHashSet<IOption2>.Empty)
-                  .Add(s_descriptorPreferBuiltinOrFrameworkType, ImmutableHashSet.Create<IOption2>(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)),
+                  .Add(s_descriptorSimplifyNames, [])
+                  .Add(s_descriptorSimplifyMemberAccess, [])
+                  .Add(s_descriptorPreferBuiltinOrFrameworkType,
+                  [
+                      CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
+                      CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
+                  ]),
                   fadingOption: null)
         {
         }
@@ -84,6 +91,12 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                 !(options.PreferPredefinedTypeKeywordInDeclaration.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
                   options.PreferPredefinedTypeKeywordInMemberAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
         }
+
+        protected static ImmutableArray<NotificationOption2> GetAllNotifications(SimplifierOptions options)
+            => [
+                options.PreferPredefinedTypeKeywordInDeclaration.Notification,
+                options.PreferPredefinedTypeKeywordInMemberAccess.Notification,
+            ];
 
         protected sealed override void InitializeWorker(AnalysisContext context)
         {
@@ -133,17 +146,17 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         internal static Diagnostic CreateDiagnostic(SemanticModel model, TSimplifierOptions options, TextSpan issueSpan, string diagnosticId, bool inDeclaration)
         {
             DiagnosticDescriptor descriptor;
-            ReportDiagnostic severity;
+            NotificationOption2 notificationOption;
             switch (diagnosticId)
             {
                 case IDEDiagnosticIds.SimplifyNamesDiagnosticId:
                     descriptor = s_descriptorSimplifyNames;
-                    severity = descriptor.DefaultSeverity.ToReportDiagnostic();
+                    notificationOption = descriptor.DefaultSeverity.ToNotificationOption(isOverridenSeverity: false);
                     break;
 
                 case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId:
                     descriptor = s_descriptorSimplifyMemberAccess;
-                    severity = descriptor.DefaultSeverity.ToReportDiagnostic();
+                    notificationOption = descriptor.DefaultSeverity.ToNotificationOption(isOverridenSeverity: false);
                     break;
 
                 case IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId:
@@ -152,7 +165,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                         : options.PreferPredefinedTypeKeywordInMemberAccess;
 
                     descriptor = s_descriptorPreferBuiltinOrFrameworkType;
-                    severity = optionValue.Notification.Severity;
+                    notificationOption = optionValue.Notification;
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(diagnosticId);
@@ -162,7 +175,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             var builder = ImmutableDictionary.CreateBuilder<string, string?>();
             builder["OptionName"] = nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
             builder["OptionLanguage"] = model.Language;
-            var diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());
+            var diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), notificationOption, additionalLocations: null, builder.ToImmutable());
 
 #if LOG
             var sourceText = tree.GetText();
@@ -217,8 +230,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             /// </description></item>
             /// </list>
             /// </summary>
-            private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, TextSpanIntervalTree? intervalTree)> _codeBlockIntervals
-                = new();
+            private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, TextSpanIntervalTree? intervalTree)> _codeBlockIntervals = [];
 
             public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
             {

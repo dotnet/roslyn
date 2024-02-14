@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public static async ValueTask<DefinitionItem> ToClassifiedDefinitionItemAsync(
             this ISymbol definition,
-            IFindUsagesContext context,
+            OptionsProvider<ClassificationOptions> classificationOptions,
             Solution solution,
             FindReferencesSearchOptions options,
             bool isPrimary,
@@ -87,27 +87,44 @@ namespace Microsoft.CodeAnalysis.FindUsages
             CancellationToken cancellationToken)
         {
             var unclassifiedSpans = TryGetSourceLocations(definition, solution, definition.Locations, includeHiddenLocations);
-            var classifiedSpans = unclassifiedSpans.IsDefault ? default : await ClassifyDocumentSpansAsync(context, unclassifiedSpans, cancellationToken).ConfigureAwait(false);
+            var classifiedSpans = unclassifiedSpans.IsDefault ? default : await ClassifyDocumentSpansAsync(classificationOptions, unclassifiedSpans, cancellationToken).ConfigureAwait(false);
 
-            return ToDefinitionItem(definition, classifiedSpans, solution, options, isPrimary);
+            return ToDefinitionItem(definition, unclassifiedSpans, classifiedSpans, solution, options, isPrimary);
         }
 
         public static async ValueTask<DefinitionItem> ToClassifiedDefinitionItemAsync(
-            this SymbolGroup group, IFindUsagesContext context, Solution solution, FindReferencesSearchOptions options, bool isPrimary, bool includeHiddenLocations, CancellationToken cancellationToken)
+            this SymbolGroup group, OptionsProvider<ClassificationOptions> classificationOptions, Solution solution, FindReferencesSearchOptions options, bool isPrimary, bool includeHiddenLocations, CancellationToken cancellationToken)
         {
             // Make a single definition item that knows about all the locations of all the symbols in the group.
             var definition = group.Symbols.First();
 
             var allLocations = group.Symbols.SelectManyAsArray(s => s.Locations);
             var unclassifiedSpans = TryGetSourceLocations(definition, solution, allLocations, includeHiddenLocations);
-            var classifiedSpans = unclassifiedSpans.IsDefault ? default : await ClassifyDocumentSpansAsync(context, unclassifiedSpans, cancellationToken).ConfigureAwait(false);
+            var classifiedSpans = unclassifiedSpans.IsDefault ? default : await ClassifyDocumentSpansAsync(classificationOptions, unclassifiedSpans, cancellationToken).ConfigureAwait(false);
 
-            return ToDefinitionItem(definition, classifiedSpans, solution, options, isPrimary);
+            return ToDefinitionItem(definition, unclassifiedSpans, classifiedSpans, solution, options, isPrimary);
         }
 
         private static DefinitionItem ToDefinitionItem(
             ISymbol definition,
             ImmutableArray<DocumentSpan> sourceLocations,
+            Solution solution,
+            FindReferencesSearchOptions options,
+            bool isPrimary)
+        {
+            return ToDefinitionItem(
+                definition,
+                sourceLocations,
+                sourceLocations.IsDefault ? default : sourceLocations.SelectAsArray(d => (ClassifiedSpansAndHighlightSpan?)null),
+                solution,
+                options,
+                isPrimary);
+        }
+
+        private static DefinitionItem ToDefinitionItem(
+            ISymbol definition,
+            ImmutableArray<DocumentSpan> sourceLocations,
+            ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
             Solution solution,
             FindReferencesSearchOptions options,
             bool isPrimary)
@@ -134,8 +151,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             var properties = GetProperties(definition, isPrimary);
 
-            if (sourceLocations.IsDefault)
+            if (sourceLocations.IsDefault || definition.IsTupleType())
             {
+                // If the location is in metadata, then create a metadata definition.
+                // A special case is the tuple type, where its locations are preserved in the original definition.
                 return DefinitionItem.CreateMetadataDefinition(
                     tags, displayParts, nameDisplayParts, solution,
                     definition, properties, displayIfNoReferences);
@@ -154,7 +173,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             var displayableProperties = AbstractReferenceFinder.GetAdditionalFindUsagesProperties(definition);
 
             return DefinitionItem.Create(
-                tags, displayParts, sourceLocations,
+                tags, displayParts, sourceLocations, classifiedSpans,
                 nameDisplayParts, properties, displayableProperties, displayIfNoReferences);
         }
 
@@ -165,7 +184,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             // root definition node for it.  That node won't be navigable.
             if (definition.Kind == SymbolKind.Namespace)
             {
-                return ImmutableArray<DocumentSpan>.Empty;
+                return [];
             }
 
             // If it's a namespace, don't create any normal location.  Namespaces
@@ -199,12 +218,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
             return sourceLocations.ToImmutableAndClear();
         }
 
-        private static ValueTask<ImmutableArray<DocumentSpan>> ClassifyDocumentSpansAsync(IFindUsagesContext context, ImmutableArray<DocumentSpan> unclassifiedSpans, CancellationToken cancellationToken)
-            => unclassifiedSpans.SelectAsArrayAsync(async (documentSpan, context, cancellationToken) =>
+        private static ValueTask<ImmutableArray<ClassifiedSpansAndHighlightSpan?>> ClassifyDocumentSpansAsync(OptionsProvider<ClassificationOptions> optionsProvider, ImmutableArray<DocumentSpan> unclassifiedSpans, CancellationToken cancellationToken)
+            => unclassifiedSpans.SelectAsArrayAsync(async (documentSpan, optionsProvider, cancellationToken) =>
             {
-                var options = await context.GetOptionsAsync(documentSpan.Document.Project.Language, cancellationToken).ConfigureAwait(false);
-                return await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(documentSpan.Document, documentSpan.SourceSpan, options.ClassificationOptions, cancellationToken).ConfigureAwait(false);
-            }, context, cancellationToken);
+                var options = await optionsProvider.GetOptionsAsync(documentSpan.Document.Project.Services, cancellationToken).ConfigureAwait(false);
+                return (ClassifiedSpansAndHighlightSpan?)await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, classifiedSpans: null, options, cancellationToken).ConfigureAwait(false);
+            }, optionsProvider, cancellationToken);
 
         private static ImmutableDictionary<string, string> GetProperties(ISymbol definition, bool isPrimary)
         {
@@ -237,7 +256,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public static async Task<SourceReferenceItem?> TryCreateSourceReferenceItemAsync(
             this ReferenceLocation referenceLocation,
-            IFindUsagesContext context,
+            OptionsProvider<ClassificationOptions> optionsProvider,
             DefinitionItem definitionItem,
             bool includeHiddenLocations,
             CancellationToken cancellationToken)
@@ -254,12 +273,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
             var document = referenceLocation.Document;
             var sourceSpan = location.SourceSpan;
 
-            var options = await context.GetOptionsAsync(document.Project.Language, cancellationToken).ConfigureAwait(false);
+            var options = await optionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false);
 
-            var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
-                document, sourceSpan, options.ClassificationOptions, cancellationToken).ConfigureAwait(false);
+            var documentSpan = new DocumentSpan(document, sourceSpan);
+            var classifiedSpans = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
+                documentSpan, classifiedSpans: null, options, cancellationToken).ConfigureAwait(false);
 
-            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo, referenceLocation.AdditionalProperties);
+            return new SourceReferenceItem(
+                definitionItem, documentSpan, classifiedSpans, referenceLocation.SymbolUsageInfo, referenceLocation.AdditionalProperties);
         }
     }
 }

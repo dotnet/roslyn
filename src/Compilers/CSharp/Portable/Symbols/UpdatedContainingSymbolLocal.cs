@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ScopedKind Scope => _underlyingLocal.Scope;
         internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag? diagnostics = null) =>
             _underlyingLocal.GetConstantValue(node, inProgress, diagnostics);
-        internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue) =>
+        internal override ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue) =>
             _underlyingLocal.GetConstantValueDiagnostics(boundInitValue);
         internal override SyntaxNode GetDeclaratorSyntax() =>
             _underlyingLocal.GetDeclaratorSyntax();

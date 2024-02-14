@@ -5,13 +5,14 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal class TestTraceListener : TraceListener
     {
-        private ImmutableList<Exception> _failures = ImmutableList<Exception>.Empty;
+        private ImmutableList<Exception> _failures = [];
 
         public static TestTraceListener Instance { get; } = new();
 
@@ -98,6 +99,16 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         private static void Exit(string? message)
         {
             var reportedException = new Exception(message);
+            try
+            {
+                // Set stack trace on the exception for logging
+                ExceptionDispatchInfo.Capture(reportedException).Throw();
+            }
+            catch (Exception ex)
+            {
+                reportedException = ex;
+            }
+
             if (message?.Contains("Pretty-listing introduced errors in error-free code") ?? false)
             {
                 // Ignore this known assertion failure
@@ -116,7 +127,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         public void VerifyNoErrorsAndReset()
         {
-            var failures = Interlocked.Exchange(ref _failures, ImmutableList<Exception>.Empty);
+            var failures = Interlocked.Exchange(ref _failures, []);
             if (!failures.IsEmpty)
             {
                 throw new AggregateException(failures);

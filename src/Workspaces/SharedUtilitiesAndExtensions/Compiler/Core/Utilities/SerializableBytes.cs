@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (this.Length == 0)
                 {
-                    return Array.Empty<byte>();
+                    return [];
                 }
 
                 var array = new byte[this.Length];

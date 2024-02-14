@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             string diagnosticId, EnforceOnBuild enforceOnBuild, LocalizableString title, LocalizableString message)
             : base(diagnosticId,
                    enforceOnBuild,
-                   ImmutableHashSet.Create<IOption2>(CSharpCodeStyleOptions.VarForBuiltInTypes, CSharpCodeStyleOptions.VarWhenTypeIsApparent, CSharpCodeStyleOptions.VarElsewhere),
+                   [CSharpCodeStyleOptions.VarForBuiltInTypes, CSharpCodeStyleOptions.VarWhenTypeIsApparent, CSharpCodeStyleOptions.VarElsewhere],
                    title, message)
         {
         }
@@ -63,17 +63,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             var typeStyle = Helper.AnalyzeTypeName(
                 declaredType, semanticModel, simplifierOptions, cancellationToken);
-            if (!typeStyle.IsStylePreferred || !typeStyle.CanConvert())
+            if (!typeStyle.IsStylePreferred
+                || ShouldSkipAnalysis(context, typeStyle.Notification)
+                || !typeStyle.CanConvert())
             {
                 return;
             }
 
             // The severity preference is not Hidden, as indicated by IsStylePreferred.
             var descriptor = Descriptor;
-            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Severity));
+            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Notification));
         }
 
-        private static Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, ReportDiagnostic severity)
-            => DiagnosticHelper.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan), severity, additionalLocations: null, properties: null);
+        private static Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, NotificationOption2 notificationOption)
+            => DiagnosticHelper.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan), notificationOption, additionalLocations: null, properties: null);
     }
 }

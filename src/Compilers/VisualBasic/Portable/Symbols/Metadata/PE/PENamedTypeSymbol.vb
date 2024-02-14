@@ -2,25 +2,17 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Globalization
-Imports System.Reflection
 Imports System.Reflection.Metadata
-Imports System.Linq
+Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
-Imports TypeAttributes = System.Reflection.TypeAttributes
-Imports FieldAttributes = System.Reflection.FieldAttributes
-Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports FieldAttributes = System.Reflection.FieldAttributes
+Imports TypeAttributes = System.Reflection.TypeAttributes
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -30,6 +22,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
     ''' <remarks></remarks>
     Friend Class PENamedTypeSymbol
         Inherits InstanceTypeSymbol
+
+        Private Shared ReadOnly s_emptyNestedTypes As Dictionary(Of String, ImmutableArray(Of PENamedTypeSymbol)) =
+            New Dictionary(Of String, ImmutableArray(Of PENamedTypeSymbol))(IdentifierComparison.Comparer)
 
         Private ReadOnly _container As NamespaceOrTypeSymbol
 
@@ -787,14 +782,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             If _lazyNestedTypes Is Nothing Then
 
-                Dim typesDict = CreateNestedTypes()
+                Dim types = ArrayBuilder(Of PENamedTypeSymbol).GetInstance()
+                CreateNestedTypes(types)
+                Dim typesDict = GroupByName(types)
+
                 Interlocked.CompareExchange(_lazyNestedTypes, typesDict, Nothing)
 
-                ' Build cache of TypeDef Tokens
-                ' Potentially this can be done in the background.
                 If _lazyNestedTypes Is typesDict Then
+                    ' Build cache of TypeDef Tokens
+                    ' Potentially this can be done in the background.
                     ContainingPEModule.OnNewTypeDeclarationsLoaded(typesDict)
                 End If
+
+                types.Free()
             End If
 
         End Sub
@@ -1109,8 +1109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return Nothing
         End Function
 
-        Private Function CreateNestedTypes() As Dictionary(Of String, ImmutableArray(Of PENamedTypeSymbol))
-            Dim members = ArrayBuilder(Of PENamedTypeSymbol).GetInstance()
+        Private Sub CreateNestedTypes(members As ArrayBuilder(Of PENamedTypeSymbol))
             Dim moduleSymbol = Me.ContainingPEModule
             Dim [module] = moduleSymbol.Module
 
@@ -1120,17 +1119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Next
             Catch mrEx As BadImageFormatException
             End Try
-
-            Dim children = members.GroupBy(Function(t) t.Name, IdentifierComparison.Comparer)
-            Dim types = New Dictionary(Of String, ImmutableArray(Of PENamedTypeSymbol))(IdentifierComparison.Comparer)
-
-            For Each c In children
-                types.Add(c.Key, c.ToArray().AsImmutableOrNull())
-            Next
-
-            members.Free()
-            Return types
-        End Function
+        End Sub
 
         Private Sub CreateFields(members As ArrayBuilder(Of Symbol),
                                  <Out()> ByRef witheventPropertyNames As HashSet(Of String))
@@ -1260,6 +1249,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim found As Boolean = methodHandleToSymbol.TryGetValue(methodDef, method)
             Debug.Assert(found OrElse Not moduleSymbol.Module.ShouldImportMethod(typeDef, methodDef, moduleSymbol.ImportOptions))
             Return method
+        End Function
+
+        Private Shared Function GroupByName(symbols As ArrayBuilder(Of PENamedTypeSymbol)) As Dictionary(Of String, ImmutableArray(Of PENamedTypeSymbol))
+            If symbols.Count = 0 Then
+                Return s_emptyNestedTypes
+            End If
+
+            Return symbols.ToDictionary(Function(s) s.Name, IdentifierComparison.Comparer)
         End Function
 
         Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)

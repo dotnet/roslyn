@@ -45,12 +45,14 @@
       "Microsoft.CodeAnalysis.EditorFeatures.Wpf": "vssdk",
       "Microsoft.CodeAnalysis.EditorFeatures.Cocoa": "vssdk",
       "Microsoft.VisualStudio.IntegrationTest.Utilities": "vs-impl",
-      "Microsoft.VisualStudio.LanguageServices.DevKit": "npm",
+      "Microsoft.VisualStudio.LanguageServices.DevKit": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.alpine-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.alpine-x64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.linux-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.linux-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.linux-musl-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.linux-musl-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.neutral": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.osx-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.osx-x64": "vs-impl",
@@ -78,6 +80,7 @@
       "Microsoft.CodeAnalysis.ExternalAccess.TypeScript": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Xaml":  "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.ServiceHub": "vs-impl",
@@ -190,8 +193,16 @@
       ],
       "vsBranch": "rel/d17.9",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
       "insertionTitlePrefix": "[d17.9]"
+    },
+    "release/dev17.10": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.10",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.10]"
     },
     "main": {
       "nugetKind": [
@@ -200,10 +211,10 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[main]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.10 P2]"
     },
-    "dev/jorobich/fix-pr-val": {
+    "features/vscode_net8": {
       "nugetKind": [
         "Shipping",
         "NonShipping"

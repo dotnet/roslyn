@@ -44,7 +44,7 @@ class Program
 ", HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
-            await TestServices.Debugger.SetBreakpointAsync("Program.cs", "}", HangMitigatingCancellationToken);
+            await TestServices.Debugger.SetBreakpointAsync(ProjectName, "Program.cs", "}", HangMitigatingCancellationToken);
             await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
             await TestServices.ImmediateWindow.ShowAsync(HangMitigatingCancellationToken);
             await TestServices.ImmediateWindow.ClearAllAsync(HangMitigatingCancellationToken);

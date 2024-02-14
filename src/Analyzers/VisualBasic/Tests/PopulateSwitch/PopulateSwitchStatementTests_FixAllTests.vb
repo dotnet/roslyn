@@ -4,7 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.PopulateSwitch
     Partial Public Class PopulateSwitchStatementTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>

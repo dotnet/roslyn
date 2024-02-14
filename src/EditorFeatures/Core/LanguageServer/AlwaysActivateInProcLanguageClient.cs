@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -15,11 +14,10 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
@@ -73,30 +71,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             if (isPullDiagnostics)
             {
                 serverCapabilities.SupportsDiagnosticRequests = true;
-                serverCapabilities.MultipleContextSupportProvider = new VSInternalMultipleContextFeatures { SupportsMultipleContextsDiagnostics = true };
                 serverCapabilities.DiagnosticProvider ??= new();
-                serverCapabilities.DiagnosticProvider.DiagnosticKinds =
-                [
-                    // Support a specialized requests dedicated to task-list items.  This way the client can ask just
-                    // for these, independently of other diagnostics.  They can also throttle themselves to not ask if
-                    // the task list would not be visible.
-                    new(PullDiagnosticCategories.Task),
-                    // Dedicated request for workspace-diagnostics only.  We will only respond to these if FSA is on.
-                    new(PullDiagnosticCategories.WorkspaceDocumentsAndProject),
-                    // Fine-grained diagnostics requests.  Importantly, this separates out syntactic vs semantic
-                    // requests, allowing the former to quickly reach the user without blocking on the latter.  In a
-                    // similar vein, compiler diagnostics are explicitly distinct from analyzer-diagnostics, allowing
-                    // the former to appear as soon as possible as they are much more critical for the user and should
-                    // not be delayed by a slow analyzer.
-                    new(PullDiagnosticCategories.DocumentCompilerSyntax),
-                    new(PullDiagnosticCategories.DocumentCompilerSemantic),
-                    new(PullDiagnosticCategories.DocumentAnalyzerSyntax),
-                    new(PullDiagnosticCategories.DocumentAnalyzerSemantic),
-                ];
-                serverCapabilities.DiagnosticProvider.BuildOnlyDiagnosticIds = _buildOnlyDiagnostics
-                    .SelectMany(lazy => lazy.Metadata.BuildOnlyDiagnostics)
-                    .Distinct()
-                    .ToArray();
+                serverCapabilities.DiagnosticProvider = serverCapabilities.DiagnosticProvider with
+                {
+                    SupportsMultipleContextsDiagnostics = true,
+                    DiagnosticKinds =
+                    [
+                        // Support a specialized requests dedicated to task-list items.  This way the client can ask just
+                        // for these, independently of other diagnostics.  They can also throttle themselves to not ask if
+                        // the task list would not be visible.
+                        new(PullDiagnosticCategories.Task),
+                        // Dedicated request for workspace-diagnostics only.  We will only respond to these if FSA is on.
+                        new(PullDiagnosticCategories.WorkspaceDocumentsAndProject),
+                        // Fine-grained diagnostics requests.  Importantly, this separates out syntactic vs semantic
+                        // requests, allowing the former to quickly reach the user without blocking on the latter.  In a
+                        // similar vein, compiler diagnostics are explicitly distinct from analyzer-diagnostics, allowing
+                        // the former to appear as soon as possible as they are much more critical for the user and should
+                        // not be delayed by a slow analyzer.
+                        new(PullDiagnosticCategories.DocumentCompilerSyntax),
+                        new(PullDiagnosticCategories.DocumentCompilerSemantic),
+                        new(PullDiagnosticCategories.DocumentAnalyzerSyntax),
+                        new(PullDiagnosticCategories.DocumentAnalyzerSemantic),
+                    ],
+                    BuildOnlyDiagnosticIds = _buildOnlyDiagnostics
+                        .SelectMany(lazy => lazy.Metadata.BuildOnlyDiagnostics)
+                        .Distinct()
+                        .ToArray(),
+                };
             }
 
             // This capability is always enabled as we provide cntrl+Q VS search only via LSP in ever scenario.

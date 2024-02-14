@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// Kept locally so we don't have to hit the DB for the common case of trying to determine the 
         /// DB id for a document.
         /// </summary>
-        private readonly ConcurrentDictionary<DocumentId, DocumentPrimaryKey> _documentIdToPrimaryKeyMap = new();
+        private readonly ConcurrentDictionary<DocumentId, DocumentPrimaryKey> _documentIdToPrimaryKeyMap = [];
 
         /// <summary>
         /// Given a document, and the name of a stream to read/write, gets the integral DB ID to 

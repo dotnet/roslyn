@@ -6,12 +6,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirective;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -266,13 +264,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
             /// <summary>
             /// Tracks the analysis state of syntax trees in a compilation.
             /// </summary>
-            private readonly ConcurrentDictionary<SyntaxTree, SyntaxTreeState> _codeBlockIntervals
-                = new();
+            private readonly ConcurrentDictionary<SyntaxTree, SyntaxTreeState> _codeBlockIntervals = [];
 
             public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
             {
-                if (IsIgnoredCodeBlock(context.CodeBlock))
+                if (_analyzer.ShouldSkipAnalysis(context, notification: null)
+                    || IsIgnoredCodeBlock(context.CodeBlock))
+                {
                     return;
+                }
 
                 var root = context.GetAnalysisRoot(findInTrivia: true);
 
@@ -292,6 +292,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
 
             public void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
             {
+                if (_analyzer.ShouldSkipAnalysis(context, notification: null))
+                    return;
+
                 var root = context.GetAnalysisRoot(findInTrivia: true);
 
                 // Bail out if the root contains no nullable directives.

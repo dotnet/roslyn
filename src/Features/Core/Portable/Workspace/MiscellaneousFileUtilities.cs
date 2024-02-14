@@ -91,13 +91,13 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces
             // - Add default script globals available in 'csi goo.csx' environment: CommandLineScriptGlobals
 
             var referenceResolver = RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
-                searchPaths: ImmutableArray.Create(RuntimeEnvironment.GetRuntimeDirectory()),
+                searchPaths: [RuntimeEnvironment.GetRuntimeDirectory()],
                 baseDirectory: baseDirectory,
                 fileReferenceProvider: metadataService.GetReference);
 
             return compilationOptions
                 .WithMetadataReferenceResolver(referenceResolver)
-                .WithSourceReferenceResolver(new SourceFileResolver(searchPaths: ImmutableArray<string>.Empty, baseDirectory));
+                .WithSourceReferenceResolver(new SourceFileResolver(searchPaths: [], baseDirectory));
         }
     }
 

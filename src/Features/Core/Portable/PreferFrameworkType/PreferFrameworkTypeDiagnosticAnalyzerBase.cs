@@ -27,7 +27,11 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         protected PreferFrameworkTypeDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
                    EnforceOnBuildValues.PreferBuiltInOrFrameworkType,
-                   options: ImmutableHashSet.Create<IOption2>(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess),
+                   options:
+                   [
+                       CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
+                       CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
+                   ],
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -62,8 +66,14 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
 
             // if the user never prefers this style, do not analyze at all.
             // we don't know the context of the node yet, so check all predefined type option preferences and bail early.
-            if (!IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInDeclaration) &&
-                !IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInMemberAccess))
+            if (!IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInDeclaration)
+                && !IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInMemberAccess)
+                && ShouldSkipAnalysis(context.FilterTree, context.Options, context.Compilation.Options,
+                    [
+                        options.PreferPredefinedTypeKeywordInDeclaration.Notification,
+                        options.PreferPredefinedTypeKeywordInMemberAccess.Notification,
+                    ],
+                    context.CancellationToken))
             {
                 return;
             }
@@ -102,7 +112,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor, typeNode.GetLocation(),
-                    optionValue.Notification.Severity, additionalLocations: null,
+                    optionValue.Notification, additionalLocations: null,
                     PreferFrameworkTypeConstants.Properties));
             }
 
