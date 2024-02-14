@@ -149,8 +149,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             ITypeSymbol? scopeType = enterLockScopeMethod.ReturnType;
-            if (!(scopeType is INamedTypeSymbol { Name: WellKnownMemberNames.LockScopeTypeName, Arity: 0, IsValueType: true, IsRefLikeType: true, DeclaredAccessibility: Accessibility.Public } &&
-                lockType.Equals(scopeType.ContainingType, SymbolEqualityComparer.ConsiderEverything)))
+            if (scopeType is not INamedTypeSymbol { Name: WellKnownMemberNames.LockScopeTypeName, Arity: 0, IsValueType: true, IsRefLikeType: true, DeclaredAccessibility: Accessibility.Public } ||
+                !lockType.Equals(scopeType.ContainingType, SymbolEqualityComparer.ConsiderEverything))
             {
                 return null;
             }
