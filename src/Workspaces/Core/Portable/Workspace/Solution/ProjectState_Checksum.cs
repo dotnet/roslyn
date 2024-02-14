@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis
             {
                 using (Logger.LogBlock(FunctionId.ProjectState_ComputeChecksumsAsync, FilePath, cancellationToken))
                 {
-                    var documentChecksumsTasks = DocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
-                    var additionalDocumentChecksumTasks = AdditionalDocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
-                    var analyzerConfigDocumentChecksumTasks = AnalyzerConfigDocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
+                    var documentChecksumsTask = DocumentStates.GetChecksumsAndIdsAsync(cancellationToken);
+                    var additionalDocumentChecksumsTask = AdditionalDocumentStates.GetChecksumsAndIdsAsync(cancellationToken);
+                    var analyzerConfigDocumentChecksumsTask = AnalyzerConfigDocumentStates.GetChecksumsAndIdsAsync(cancellationToken);
 
                     var serializer = LanguageServices.SolutionServices.GetService<ISerializerService>();
 
@@ -64,10 +64,6 @@ namespace Microsoft.CodeAnalysis
                     var metadataReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(MetadataReferences, serializer, cancellationToken);
                     var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(AnalyzerReferences, serializer, cancellationToken);
 
-                    var documentChecksums = new ChecksumCollection(await documentChecksumsTasks.WhenAll().ConfigureAwait(false));
-                    var additionalDocumentChecksums = new ChecksumCollection(await additionalDocumentChecksumTasks.WhenAll().ConfigureAwait(false));
-                    var analyzerConfigDocumentChecksums = new ChecksumCollection(await analyzerConfigDocumentChecksumTasks.WhenAll().ConfigureAwait(false));
-
                     return new ProjectStateChecksums(
                         this.Id,
                         infoChecksum,
@@ -76,9 +72,9 @@ namespace Microsoft.CodeAnalysis
                         projectReferenceChecksums,
                         metadataReferenceChecksums,
                         analyzerReferenceChecksums,
-                        new(documentChecksums, DocumentStates.SelectAsArray(static s => s.Id)),
-                        new(additionalDocumentChecksums, AdditionalDocumentStates.SelectAsArray(static s => s.Id)),
-                        new(analyzerConfigDocumentChecksums, AnalyzerConfigDocumentStates.SelectAsArray(static s => s.Id)));
+                        documentChecksums: await documentChecksumsTask.ConfigureAwait(false),
+                        await additionalDocumentChecksumsTask.ConfigureAwait(false),
+                        await analyzerConfigDocumentChecksumsTask.ConfigureAwait(false));
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
