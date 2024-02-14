@@ -844,6 +844,7 @@ outerDefault:
             bool checkOverriddenOrHidden = true)
             where TMember : Symbol
         {
+            // PROTOTYPE update overload resolution so that extension members can hide members of the underlying type
             Debug.Assert(checkOverriddenOrHidden || containingTypeMapOpt is null);
 
             // SPEC VIOLATION:

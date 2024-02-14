@@ -261,6 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 enclosingBinder.LookupInstanceMember(lookupResult, type, leftIsBaseReference: false, memberName, targetMemberArity, invoked, ref useSiteInfo);
+                // PROTOTYPE test lookup to underlying type
 
                 bool treatAsInstanceMemberAccess;
                 if (lookupResult.IsMultiViable)

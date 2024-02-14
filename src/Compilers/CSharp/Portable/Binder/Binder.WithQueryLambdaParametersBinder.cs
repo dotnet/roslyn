@@ -95,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 LookupMembersWithFallback(lookupResult, receiver.Type, name, 0, ref useSiteInfo, basesBeingResolved: null, options: options);
                 diagnostics.Add(node, useSiteInfo);
+                // PROTOTYPE test lookup to underlying type
 
                 var result = BindMemberOfType(node, node, name, 0, indexed: false, receiver, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeWithAnnotations>), lookupResult, BoundMethodGroupFlags.None, diagnostics);
                 lookupResult.Free();

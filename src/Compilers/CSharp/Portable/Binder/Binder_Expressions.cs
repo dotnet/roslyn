@@ -7783,10 +7783,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(left.Type is not null);
 
             var firstResult = new MethodGroupResolution();
+            if (left.Type.IsExtension)
+            {
+                // Extension types cannot be extended with extensions or extension methods
+                return firstResult;
+            }
+
             AnalyzedArguments? actualArguments = null;
 
             foreach (var scope in new ExtensionScopes(this))
             {
+                // PROTOTYPE confirm that we want to exclude type parameters from extension member resolution or leave a comment
                 if (!left.Type.IsTypeParameter()
                     && tryResolveExtensionTypeMember(this, expression, memberName, analyzedArguments, left, typeArgumentsWithAnnotations,
                         isMethodGroupConversion, returnRefKind, returnType, withDependencies, scope,
@@ -8841,6 +8848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.TypeParameter:
                     return BindIndexerAccess(node, expr, arguments, diagnostics);
 
+                // PROTOTYPE implement indexer access on receiver of extension type
                 case TypeKind.Submission: // script class is synthesized and should not be used as a type of an indexer expression:
                 default:
                     return BadIndexerExpression(node, expr, arguments, null, diagnostics);
