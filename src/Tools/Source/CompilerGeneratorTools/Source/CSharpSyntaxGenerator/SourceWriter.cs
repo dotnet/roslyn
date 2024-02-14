@@ -604,7 +604,9 @@ namespace CSharpSyntaxGenerator
                 //int hash;
                 WriteLine("int hash;");
                 //SyntaxNode cached = SyntaxNodeCache.TryGetNode(SyntaxKind.IdentifierName, identifier, this.context, out hash);
-                if (withSyntaxFactoryContext)
+
+                var isAttribute = nd.Name == "AttributeSyntax";
+                if (withSyntaxFactoryContext && !isAttribute)
                 {
                     Write("var cached = CSharpSyntaxNodeCache.TryGetNode((int)");
                 }
@@ -613,11 +615,18 @@ namespace CSharpSyntaxGenerator
                     Write("var cached = SyntaxNodeCache.TryGetNode((int)");
                 }
 
-                WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
+                WriteCtorArgList(nd, withSyntaxFactoryContext && !isAttribute, valueFields, nodeFields);
 
-                if (nd.Name == "AttributeSyntax")
+                if (isAttribute)
                 {
-                    Write(", CSharpSyntaxNodeCache.GetNodeFlags(this.context) | NodeFlags.ContainsAttribute");
+                    if (withSyntaxFactoryContext)
+                    {
+                        Write(", CSharpSyntaxNodeCache.GetNodeFlags(this.context) | GreenNode.NodeFlags.ContainsAttribute");
+                    }
+                    else
+                    {
+                        Write(", SyntaxNodeCache.GetDefaultNodeFlags() | GreenNode.NodeFlags.ContainsAttribute");
+                    }
                 }
 
                 WriteLine(", out hash);");

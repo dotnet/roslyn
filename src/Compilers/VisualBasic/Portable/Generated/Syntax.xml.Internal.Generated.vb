@@ -37567,7 +37567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="attributeLists">
         ''' The list of attribute lists.
         ''' </param>
-        Friend Shared Function AttributesStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As AttributesStatementSyntax
+        Friend Shared Function AttributesStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)) As AttributesStatementSyntax
 
             Dim hash As Integer
             Dim cached = SyntaxNodeCache.TryGetNode(SyntaxKind.AttributesStatement, attributeLists.Node, hash)
@@ -37651,7 +37651,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endWhileStatement">
         ''' The End While statement that ends the block.
         ''' </param>
-        Friend Shared Function WhileBlock(whileStatement As WhileStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endWhileStatement As EndBlockStatementSyntax) As WhileBlockSyntax
+        Friend Shared Function WhileBlock(whileStatement As WhileStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endWhileStatement As EndBlockStatementSyntax) As WhileBlockSyntax
             Debug.Assert(whileStatement IsNot Nothing)
             Debug.Assert(endWhileStatement IsNot Nothing)
 
@@ -37684,7 +37684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endUsingStatement">
         ''' The End Using statement that ends the block.
         ''' </param>
-        Friend Shared Function UsingBlock(usingStatement As UsingStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endUsingStatement As EndBlockStatementSyntax) As UsingBlockSyntax
+        Friend Shared Function UsingBlock(usingStatement As UsingStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endUsingStatement As EndBlockStatementSyntax) As UsingBlockSyntax
             Debug.Assert(usingStatement IsNot Nothing)
             Debug.Assert(endUsingStatement IsNot Nothing)
 
@@ -37717,7 +37717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endSyncLockStatement">
         ''' The End SyncLock statement that ends the block.
         ''' </param>
-        Friend Shared Function SyncLockBlock(syncLockStatement As SyncLockStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endSyncLockStatement As EndBlockStatementSyntax) As SyncLockBlockSyntax
+        Friend Shared Function SyncLockBlock(syncLockStatement As SyncLockStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endSyncLockStatement As EndBlockStatementSyntax) As SyncLockBlockSyntax
             Debug.Assert(syncLockStatement IsNot Nothing)
             Debug.Assert(endSyncLockStatement IsNot Nothing)
 
@@ -37750,7 +37750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endWithStatement">
         ''' The End With statement that ends the block.
         ''' </param>
-        Friend Shared Function WithBlock(withStatement As WithStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endWithStatement As EndBlockStatementSyntax) As WithBlockSyntax
+        Friend Shared Function WithBlock(withStatement As WithStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endWithStatement As EndBlockStatementSyntax) As WithBlockSyntax
             Debug.Assert(withStatement IsNot Nothing)
             Debug.Assert(endWithStatement IsNot Nothing)
 
@@ -37780,7 +37780,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The list of variable declarator. Each declarator specifies one or more variable
         ''' names along with a type and/or initializer.
         ''' </param>
-        Friend Shared Function LocalDeclarationStatement(modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), declarators As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As LocalDeclarationStatementSyntax
+        Friend Shared Function LocalDeclarationStatement(modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), declarators As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As LocalDeclarationStatementSyntax
 
             Dim hash As Integer
             Dim cached = SyntaxNodeCache.TryGetNode(SyntaxKind.LocalDeclarationStatement, modifiers.Node, declarators.Node, hash)
@@ -38514,7 +38514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="elseClause">
         ''' An "Else" clause to be executed if the condition expression evaluates as false.
         ''' </param>
-        Friend Shared Function SingleLineIfStatement(ifKeyword As KeywordSyntax, condition As ExpressionSyntax, thenKeyword As KeywordSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), elseClause As SingleLineElseClauseSyntax) As SingleLineIfStatementSyntax
+        Friend Shared Function SingleLineIfStatement(ifKeyword As KeywordSyntax, condition As ExpressionSyntax, thenKeyword As KeywordSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), elseClause As SingleLineElseClauseSyntax) As SingleLineIfStatementSyntax
             Debug.Assert(ifKeyword IsNot Nothing AndAlso ifKeyword.Kind = SyntaxKind.IfKeyword)
             Debug.Assert(condition IsNot Nothing)
             Debug.Assert(thenKeyword IsNot Nothing AndAlso thenKeyword.Kind = SyntaxKind.ThenKeyword)
@@ -38532,7 +38532,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A list of statements to be executed. Multiple statements must be separated by
         ''' colons.
         ''' </param>
-        Friend Shared Function SingleLineElseClause(elseKeyword As KeywordSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As SingleLineElseClauseSyntax
+        Friend Shared Function SingleLineElseClause(elseKeyword As KeywordSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)) As SingleLineElseClauseSyntax
             Debug.Assert(elseKeyword IsNot Nothing AndAlso elseKeyword.Kind = SyntaxKind.ElseKeyword)
 
             Dim hash As Integer
@@ -38572,7 +38572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endIfStatement">
         ''' Then "End If" statement.
         ''' </param>
-        Friend Shared Function MultiLineIfBlock(ifStatement As IfStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), elseIfBlocks As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), elseBlock As ElseBlockSyntax, endIfStatement As EndBlockStatementSyntax) As MultiLineIfBlockSyntax
+        Friend Shared Function MultiLineIfBlock(ifStatement As IfStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), elseIfBlocks As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), elseBlock As ElseBlockSyntax, endIfStatement As EndBlockStatementSyntax) As MultiLineIfBlockSyntax
             Debug.Assert(ifStatement IsNot Nothing)
             Debug.Assert(endIfStatement IsNot Nothing)
             Return New MultiLineIfBlockSyntax(SyntaxKind.MultiLineIfBlock, ifStatement, statements.Node, elseIfBlocks.Node, elseBlock, endIfStatement)
@@ -38620,7 +38620,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A list of statements to be executed if the condition expression of the "ElseIf"
         ''' statement evaluates as true.
         ''' </param>
-        Friend Shared Function ElseIfBlock(elseIfStatement As ElseIfStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As ElseIfBlockSyntax
+        Friend Shared Function ElseIfBlock(elseIfStatement As ElseIfStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)) As ElseIfBlockSyntax
             Debug.Assert(elseIfStatement IsNot Nothing)
 
             Dim hash As Integer
@@ -38678,7 +38678,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="statements">
         ''' A list of statements to be executed.
         ''' </param>
-        Friend Shared Function ElseBlock(elseStatement As ElseStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As ElseBlockSyntax
+        Friend Shared Function ElseBlock(elseStatement As ElseStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)) As ElseBlockSyntax
             Debug.Assert(elseStatement IsNot Nothing)
 
             Dim hash As Integer
@@ -38739,7 +38739,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endTryStatement">
         ''' The "End Try" statement.
         ''' </param>
-        Friend Shared Function TryBlock(tryStatement As TryStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), catchBlocks As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), finallyBlock As FinallyBlockSyntax, endTryStatement As EndBlockStatementSyntax) As TryBlockSyntax
+        Friend Shared Function TryBlock(tryStatement As TryStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), catchBlocks As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), finallyBlock As FinallyBlockSyntax, endTryStatement As EndBlockStatementSyntax) As TryBlockSyntax
             Debug.Assert(tryStatement IsNot Nothing)
             Debug.Assert(endTryStatement IsNot Nothing)
             Return New TryBlockSyntax(SyntaxKind.TryBlock, tryStatement, statements.Node, catchBlocks.Node, finallyBlock, endTryStatement)
@@ -38780,7 +38780,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A list of statements to be executed if an exception is caught by the "Catch"
         ''' block.
         ''' </param>
-        Friend Shared Function CatchBlock(catchStatement As CatchStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As CatchBlockSyntax
+        Friend Shared Function CatchBlock(catchStatement As CatchStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)) As CatchBlockSyntax
             Debug.Assert(catchStatement IsNot Nothing)
 
             Dim hash As Integer
@@ -38857,7 +38857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="statements">
         ''' A list of statements to be executed.
         ''' </param>
-        Friend Shared Function FinallyBlock(finallyStatement As FinallyStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As FinallyBlockSyntax
+        Friend Shared Function FinallyBlock(finallyStatement As FinallyStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)) As FinallyBlockSyntax
             Debug.Assert(finallyStatement IsNot Nothing)
 
             Dim hash As Integer
@@ -39172,7 +39172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endSelectStatement">
         ''' The End Select statement that ends the block.
         ''' </param>
-        Friend Shared Function SelectBlock(selectStatement As SelectStatementSyntax, caseBlocks As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endSelectStatement As EndBlockStatementSyntax) As SelectBlockSyntax
+        Friend Shared Function SelectBlock(selectStatement As SelectStatementSyntax, caseBlocks As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endSelectStatement As EndBlockStatementSyntax) As SelectBlockSyntax
             Debug.Assert(selectStatement IsNot Nothing)
             Debug.Assert(endSelectStatement IsNot Nothing)
 
@@ -39232,7 +39232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="statements">
         ''' The statements contained in the case block. This might be an empty list.
         ''' </param>
-        Friend Shared Function CaseBlock(caseStatement As CaseStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As CaseBlockSyntax
+        Friend Shared Function CaseBlock(caseStatement As CaseStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)) As CaseBlockSyntax
             Debug.Assert(caseStatement IsNot Nothing)
 
             Dim hash As Integer
@@ -39259,7 +39259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="statements">
         ''' The statements contained in the case block. This might be an empty list.
         ''' </param>
-        Friend Shared Function CaseElseBlock(caseStatement As CaseStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As CaseBlockSyntax
+        Friend Shared Function CaseElseBlock(caseStatement As CaseStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)) As CaseBlockSyntax
             Debug.Assert(caseStatement IsNot Nothing)
 
             Dim hash As Integer
@@ -39289,7 +39289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A list of clauses associated with this Case. If Kind=CaseElse, then this list
         ''' has exactly one child, which is a ElseCaseClause.
         ''' </param>
-        Friend Shared Function CaseStatement(caseKeyword As KeywordSyntax, cases As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As CaseStatementSyntax
+        Friend Shared Function CaseStatement(caseKeyword As KeywordSyntax, cases As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As CaseStatementSyntax
             Debug.Assert(caseKeyword IsNot Nothing AndAlso caseKeyword.Kind = SyntaxKind.CaseKeyword)
 
             Dim hash As Integer
@@ -39319,7 +39319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A list of clauses associated with this Case. If Kind=CaseElse, then this list
         ''' has exactly one child, which is a ElseCaseClause.
         ''' </param>
-        Friend Shared Function CaseElseStatement(caseKeyword As KeywordSyntax, cases As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As CaseStatementSyntax
+        Friend Shared Function CaseElseStatement(caseKeyword As KeywordSyntax, cases As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As CaseStatementSyntax
             Debug.Assert(caseKeyword IsNot Nothing AndAlso caseKeyword.Kind = SyntaxKind.CaseKeyword)
 
             Dim hash As Integer
@@ -39690,7 +39690,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="loopStatement">
         ''' The Loop statement that ends the block.
         ''' </param>
-        Friend Shared Function SimpleDoLoopBlock(doStatement As DoStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), loopStatement As LoopStatementSyntax) As DoLoopBlockSyntax
+        Friend Shared Function SimpleDoLoopBlock(doStatement As DoStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), loopStatement As LoopStatementSyntax) As DoLoopBlockSyntax
             Debug.Assert(doStatement IsNot Nothing)
             Debug.Assert(loopStatement IsNot Nothing)
 
@@ -39722,7 +39722,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="loopStatement">
         ''' The Loop statement that ends the block.
         ''' </param>
-        Friend Shared Function DoWhileLoopBlock(doStatement As DoStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), loopStatement As LoopStatementSyntax) As DoLoopBlockSyntax
+        Friend Shared Function DoWhileLoopBlock(doStatement As DoStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), loopStatement As LoopStatementSyntax) As DoLoopBlockSyntax
             Debug.Assert(doStatement IsNot Nothing)
             Debug.Assert(loopStatement IsNot Nothing)
 
@@ -39754,7 +39754,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="loopStatement">
         ''' The Loop statement that ends the block.
         ''' </param>
-        Friend Shared Function DoUntilLoopBlock(doStatement As DoStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), loopStatement As LoopStatementSyntax) As DoLoopBlockSyntax
+        Friend Shared Function DoUntilLoopBlock(doStatement As DoStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), loopStatement As LoopStatementSyntax) As DoLoopBlockSyntax
             Debug.Assert(doStatement IsNot Nothing)
             Debug.Assert(loopStatement IsNot Nothing)
 
@@ -39786,7 +39786,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="loopStatement">
         ''' The Loop statement that ends the block.
         ''' </param>
-        Friend Shared Function DoLoopWhileBlock(doStatement As DoStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), loopStatement As LoopStatementSyntax) As DoLoopBlockSyntax
+        Friend Shared Function DoLoopWhileBlock(doStatement As DoStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), loopStatement As LoopStatementSyntax) As DoLoopBlockSyntax
             Debug.Assert(doStatement IsNot Nothing)
             Debug.Assert(loopStatement IsNot Nothing)
 
@@ -39818,7 +39818,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="loopStatement">
         ''' The Loop statement that ends the block.
         ''' </param>
-        Friend Shared Function DoLoopUntilBlock(doStatement As DoStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), loopStatement As LoopStatementSyntax) As DoLoopBlockSyntax
+        Friend Shared Function DoLoopUntilBlock(doStatement As DoStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), loopStatement As LoopStatementSyntax) As DoLoopBlockSyntax
             Debug.Assert(doStatement IsNot Nothing)
             Debug.Assert(loopStatement IsNot Nothing)
 
@@ -39855,7 +39855,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="loopStatement">
         ''' The Loop statement that ends the block.
         ''' </param>
-        Friend Shared Function DoLoopBlock(kind As SyntaxKind, doStatement As DoStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), loopStatement As LoopStatementSyntax) As DoLoopBlockSyntax
+        Friend Shared Function DoLoopBlock(kind As SyntaxKind, doStatement As DoStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), loopStatement As LoopStatementSyntax) As DoLoopBlockSyntax
             Debug.Assert(SyntaxFacts.IsDoLoopBlock(kind))
             Debug.Assert(doStatement IsNot Nothing)
             Debug.Assert(loopStatement IsNot Nothing)
@@ -40250,7 +40250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The Next statement that ends the block. If two For or For Each statements are
         ''' ended by a single Next statement, the inner For will not have a Next statement.
         ''' </param>
-        Friend Shared Function ForBlock(forStatement As ForStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), nextStatement As NextStatementSyntax) As ForBlockSyntax
+        Friend Shared Function ForBlock(forStatement As ForStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), nextStatement As NextStatementSyntax) As ForBlockSyntax
             Debug.Assert(forStatement IsNot Nothing)
 
             Dim hash As Integer
@@ -40284,7 +40284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The Next statement that ends the block. If two For or For Each statements are
         ''' ended by a single Next statement, the inner For will not have a Next statement.
         ''' </param>
-        Friend Shared Function ForEachBlock(forEachStatement As ForEachStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), nextStatement As NextStatementSyntax) As ForEachBlockSyntax
+        Friend Shared Function ForEachBlock(forEachStatement As ForEachStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), nextStatement As NextStatementSyntax) As ForEachBlockSyntax
             Debug.Assert(forEachStatement IsNot Nothing)
 
             Dim hash As Integer
@@ -40422,7 +40422,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="controlVariables">
         ''' The variables in the Next statement, if present
         ''' </param>
-        Friend Shared Function NextStatement(nextKeyword As KeywordSyntax, controlVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As NextStatementSyntax
+        Friend Shared Function NextStatement(nextKeyword As KeywordSyntax, controlVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As NextStatementSyntax
             Debug.Assert(nextKeyword IsNot Nothing AndAlso nextKeyword.Kind = SyntaxKind.NextKeyword)
 
             Dim hash As Integer
@@ -40456,7 +40456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' If the Using statement is of a form that declares one or more new variables,
         ''' this is the list of variable declarations. Otherwise, Nothing is returned.
         ''' </param>
-        Friend Shared Function UsingStatement(usingKeyword As KeywordSyntax, expression As ExpressionSyntax, variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As UsingStatementSyntax
+        Friend Shared Function UsingStatement(usingKeyword As KeywordSyntax, expression As ExpressionSyntax, variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As UsingStatementSyntax
             Debug.Assert(usingKeyword IsNot Nothing AndAlso usingKeyword.Kind = SyntaxKind.UsingKeyword)
 
             Dim hash As Integer
@@ -41131,7 +41131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="clauses">
         ''' The list of ReDim clauses.
         ''' </param>
-        Friend Shared Function ReDimStatement(reDimKeyword As KeywordSyntax, preserveKeyword As KeywordSyntax, clauses As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As ReDimStatementSyntax
+        Friend Shared Function ReDimStatement(reDimKeyword As KeywordSyntax, preserveKeyword As KeywordSyntax, clauses As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As ReDimStatementSyntax
             Debug.Assert(reDimKeyword IsNot Nothing AndAlso reDimKeyword.Kind = SyntaxKind.ReDimKeyword)
 
             Dim hash As Integer
@@ -41162,7 +41162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="clauses">
         ''' The list of ReDim clauses.
         ''' </param>
-        Friend Shared Function ReDimPreserveStatement(reDimKeyword As KeywordSyntax, preserveKeyword As KeywordSyntax, clauses As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As ReDimStatementSyntax
+        Friend Shared Function ReDimPreserveStatement(reDimKeyword As KeywordSyntax, preserveKeyword As KeywordSyntax, clauses As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As ReDimStatementSyntax
             Debug.Assert(reDimKeyword IsNot Nothing AndAlso reDimKeyword.Kind = SyntaxKind.ReDimKeyword)
 
             Dim hash As Integer
@@ -41217,7 +41217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="expressions">
         ''' A list of expressions denoting the arrays to erase.
         ''' </param>
-        Friend Shared Function EraseStatement(eraseKeyword As KeywordSyntax, expressions As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As EraseStatementSyntax
+        Friend Shared Function EraseStatement(eraseKeyword As KeywordSyntax, expressions As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As EraseStatementSyntax
             Debug.Assert(eraseKeyword IsNot Nothing AndAlso eraseKeyword.Kind = SyntaxKind.EraseKeyword)
 
             Dim hash As Integer
@@ -41574,7 +41574,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="closeParenToken">
         ''' The ")" token
         ''' </param>
-        Friend Shared Function TupleExpression(openParenToken As PunctuationSyntax, arguments As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), closeParenToken As PunctuationSyntax) As TupleExpressionSyntax
+        Friend Shared Function TupleExpression(openParenToken As PunctuationSyntax, arguments As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), closeParenToken As PunctuationSyntax) As TupleExpressionSyntax
             Debug.Assert(openParenToken IsNot Nothing AndAlso openParenToken.Kind = SyntaxKind.OpenParenToken)
             Debug.Assert(closeParenToken IsNot Nothing AndAlso closeParenToken.Kind = SyntaxKind.CloseParenToken)
 
@@ -41605,7 +41605,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="closeParenToken">
         ''' The ")" token
         ''' </param>
-        Friend Shared Function TupleType(openParenToken As PunctuationSyntax, elements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), closeParenToken As PunctuationSyntax) As TupleTypeSyntax
+        Friend Shared Function TupleType(openParenToken As PunctuationSyntax, elements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), closeParenToken As PunctuationSyntax) As TupleTypeSyntax
             Debug.Assert(openParenToken IsNot Nothing AndAlso openParenToken.Kind = SyntaxKind.OpenParenToken)
             Debug.Assert(closeParenToken IsNot Nothing AndAlso closeParenToken.Kind = SyntaxKind.CloseParenToken)
 
@@ -42137,7 +42137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="initializer">
         ''' An optional From or With clause to initialize the new object.
         ''' </param>
-        Friend Shared Function ObjectCreationExpression(newKeyword As KeywordSyntax, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), type As TypeSyntax, argumentList As ArgumentListSyntax, initializer As ObjectCreationInitializerSyntax) As ObjectCreationExpressionSyntax
+        Friend Shared Function ObjectCreationExpression(newKeyword As KeywordSyntax, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), type As TypeSyntax, argumentList As ArgumentListSyntax, initializer As ObjectCreationInitializerSyntax) As ObjectCreationExpressionSyntax
             Debug.Assert(newKeyword IsNot Nothing AndAlso newKeyword.Kind = SyntaxKind.NewKeyword)
             Debug.Assert(type IsNot Nothing)
             Return New ObjectCreationExpressionSyntax(SyntaxKind.ObjectCreationExpression, newKeyword, attributeLists.Node, type, argumentList, initializer)
@@ -42157,7 +42157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="initializer">
         ''' The With clause to initialize the new object.
         ''' </param>
-        Friend Shared Function AnonymousObjectCreationExpression(newKeyword As KeywordSyntax, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), initializer As ObjectMemberInitializerSyntax) As AnonymousObjectCreationExpressionSyntax
+        Friend Shared Function AnonymousObjectCreationExpression(newKeyword As KeywordSyntax, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), initializer As ObjectMemberInitializerSyntax) As AnonymousObjectCreationExpressionSyntax
             Debug.Assert(newKeyword IsNot Nothing AndAlso newKeyword.Kind = SyntaxKind.NewKeyword)
             Debug.Assert(initializer IsNot Nothing)
 
@@ -42199,7 +42199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="initializer">
         ''' The initializer including the braces.
         ''' </param>
-        Friend Shared Function ArrayCreationExpression(newKeyword As KeywordSyntax, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), type As TypeSyntax, arrayBounds As ArgumentListSyntax, rankSpecifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), initializer As CollectionInitializerSyntax) As ArrayCreationExpressionSyntax
+        Friend Shared Function ArrayCreationExpression(newKeyword As KeywordSyntax, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), type As TypeSyntax, arrayBounds As ArgumentListSyntax, rankSpecifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), initializer As CollectionInitializerSyntax) As ArrayCreationExpressionSyntax
             Debug.Assert(newKeyword IsNot Nothing AndAlso newKeyword.Kind = SyntaxKind.NewKeyword)
             Debug.Assert(type IsNot Nothing)
             Debug.Assert(initializer IsNot Nothing)
@@ -42220,7 +42220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="closeBraceToken">
         ''' The "}" token.
         ''' </param>
-        Friend Shared Function CollectionInitializer(openBraceToken As PunctuationSyntax, initializers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), closeBraceToken As PunctuationSyntax) As CollectionInitializerSyntax
+        Friend Shared Function CollectionInitializer(openBraceToken As PunctuationSyntax, initializers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), closeBraceToken As PunctuationSyntax) As CollectionInitializerSyntax
             Debug.Assert(openBraceToken IsNot Nothing AndAlso openBraceToken.Kind = SyntaxKind.OpenBraceToken)
             Debug.Assert(closeBraceToken IsNot Nothing AndAlso closeBraceToken.Kind = SyntaxKind.CloseBraceToken)
 
@@ -43470,7 +43470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Returns the "End Sub" or "End Function" statement if this is a multi-line
         ''' lambda.
         ''' </param>
-        Friend Shared Function MultiLineFunctionLambdaExpression(subOrFunctionHeader As LambdaHeaderSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endSubOrFunctionStatement As EndBlockStatementSyntax) As MultiLineLambdaExpressionSyntax
+        Friend Shared Function MultiLineFunctionLambdaExpression(subOrFunctionHeader As LambdaHeaderSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endSubOrFunctionStatement As EndBlockStatementSyntax) As MultiLineLambdaExpressionSyntax
             Debug.Assert(subOrFunctionHeader IsNot Nothing)
             Debug.Assert(endSubOrFunctionStatement IsNot Nothing)
 
@@ -43505,7 +43505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Returns the "End Sub" or "End Function" statement if this is a multi-line
         ''' lambda.
         ''' </param>
-        Friend Shared Function MultiLineSubLambdaExpression(subOrFunctionHeader As LambdaHeaderSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endSubOrFunctionStatement As EndBlockStatementSyntax) As MultiLineLambdaExpressionSyntax
+        Friend Shared Function MultiLineSubLambdaExpression(subOrFunctionHeader As LambdaHeaderSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endSubOrFunctionStatement As EndBlockStatementSyntax) As MultiLineLambdaExpressionSyntax
             Debug.Assert(subOrFunctionHeader IsNot Nothing)
             Debug.Assert(endSubOrFunctionStatement IsNot Nothing)
 
@@ -43545,7 +43545,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Returns the "End Sub" or "End Function" statement if this is a multi-line
         ''' lambda.
         ''' </param>
-        Friend Shared Function MultiLineLambdaExpression(kind As SyntaxKind, subOrFunctionHeader As LambdaHeaderSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endSubOrFunctionStatement As EndBlockStatementSyntax) As MultiLineLambdaExpressionSyntax
+        Friend Shared Function MultiLineLambdaExpression(kind As SyntaxKind, subOrFunctionHeader As LambdaHeaderSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endSubOrFunctionStatement As EndBlockStatementSyntax) As MultiLineLambdaExpressionSyntax
             Debug.Assert(SyntaxFacts.IsMultiLineLambdaExpression(kind))
             Debug.Assert(subOrFunctionHeader IsNot Nothing)
             Debug.Assert(endSubOrFunctionStatement IsNot Nothing)
@@ -43589,7 +43589,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "As" clause that describes the return type. If no As clause was present,
         ''' Nothing is returned.
         ''' </param>
-        Friend Shared Function SubLambdaHeader(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), subOrFunctionKeyword As KeywordSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As LambdaHeaderSyntax
+        Friend Shared Function SubLambdaHeader(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), subOrFunctionKeyword As KeywordSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As LambdaHeaderSyntax
             Debug.Assert(subOrFunctionKeyword IsNot Nothing AndAlso subOrFunctionKeyword.Kind = SyntaxKind.SubKeyword)
             Return New LambdaHeaderSyntax(SyntaxKind.SubLambdaHeader, attributeLists.Node, modifiers.Node, subOrFunctionKeyword, parameterList, asClause)
         End Function
@@ -43619,7 +43619,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "As" clause that describes the return type. If no As clause was present,
         ''' Nothing is returned.
         ''' </param>
-        Friend Shared Function FunctionLambdaHeader(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), subOrFunctionKeyword As KeywordSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As LambdaHeaderSyntax
+        Friend Shared Function FunctionLambdaHeader(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), subOrFunctionKeyword As KeywordSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As LambdaHeaderSyntax
             Debug.Assert(subOrFunctionKeyword IsNot Nothing AndAlso subOrFunctionKeyword.Kind = SyntaxKind.FunctionKeyword)
             Return New LambdaHeaderSyntax(SyntaxKind.FunctionLambdaHeader, attributeLists.Node, modifiers.Node, subOrFunctionKeyword, parameterList, asClause)
         End Function
@@ -43653,7 +43653,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "As" clause that describes the return type. If no As clause was present,
         ''' Nothing is returned.
         ''' </param>
-        Friend Shared Function LambdaHeader(kind As SyntaxKind, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), subOrFunctionKeyword As KeywordSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As LambdaHeaderSyntax
+        Friend Shared Function LambdaHeader(kind As SyntaxKind, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), subOrFunctionKeyword As KeywordSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As LambdaHeaderSyntax
             Debug.Assert(SyntaxFacts.IsLambdaHeader(kind))
             Debug.Assert(subOrFunctionKeyword IsNot Nothing AndAlso SyntaxFacts.IsLambdaHeaderSubOrFunctionKeyword(subOrFunctionKeyword.Kind))
             Return New LambdaHeaderSyntax(kind, attributeLists.Node, modifiers.Node, subOrFunctionKeyword, parameterList, asClause)
@@ -43673,7 +43673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="closeParenToken">
         ''' The ")" token.
         ''' </param>
-        Friend Shared Function ArgumentList(openParenToken As PunctuationSyntax, arguments As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), closeParenToken As PunctuationSyntax) As ArgumentListSyntax
+        Friend Shared Function ArgumentList(openParenToken As PunctuationSyntax, arguments As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), closeParenToken As PunctuationSyntax) As ArgumentListSyntax
             Debug.Assert(openParenToken IsNot Nothing AndAlso openParenToken.Kind = SyntaxKind.OpenParenToken)
             Debug.Assert(closeParenToken IsNot Nothing AndAlso closeParenToken.Kind = SyntaxKind.CloseParenToken)
 
@@ -43815,7 +43815,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A list of all the query operators in this query expression. This list always
         ''' contains at least one operator.
         ''' </param>
-        Friend Shared Function QueryExpression(clauses As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As QueryExpressionSyntax
+        Friend Shared Function QueryExpression(clauses As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)) As QueryExpressionSyntax
 
             Dim hash As Integer
             Dim cached = SyntaxNodeCache.TryGetNode(SyntaxKind.QueryExpression, clauses.Node, hash)
@@ -44007,7 +44007,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="variables">
         ''' The list of collection variables declared by this From operator.
         ''' </param>
-        Friend Shared Function FromClause(fromKeyword As KeywordSyntax, variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As FromClauseSyntax
+        Friend Shared Function FromClause(fromKeyword As KeywordSyntax, variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As FromClauseSyntax
             Debug.Assert(fromKeyword IsNot Nothing AndAlso fromKeyword.Kind = SyntaxKind.FromKeyword)
 
             Dim hash As Integer
@@ -44034,7 +44034,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="variables">
         ''' The list of expression range variable being defined by the Let operator.
         ''' </param>
-        Friend Shared Function LetClause(letKeyword As KeywordSyntax, variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As LetClauseSyntax
+        Friend Shared Function LetClause(letKeyword As KeywordSyntax, variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As LetClauseSyntax
             Debug.Assert(letKeyword IsNot Nothing AndAlso letKeyword.Kind = SyntaxKind.LetKeyword)
 
             Dim hash As Integer
@@ -44070,7 +44070,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="aggregationVariables">
         ''' The list of new variables being defined by the aggregation.
         ''' </param>
-        Friend Shared Function AggregateClause(aggregateKeyword As KeywordSyntax, variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), additionalQueryOperators As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), intoKeyword As KeywordSyntax, aggregationVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As AggregateClauseSyntax
+        Friend Shared Function AggregateClause(aggregateKeyword As KeywordSyntax, variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), additionalQueryOperators As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), intoKeyword As KeywordSyntax, aggregationVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As AggregateClauseSyntax
             Debug.Assert(aggregateKeyword IsNot Nothing AndAlso aggregateKeyword.Kind = SyntaxKind.AggregateKeyword)
             Debug.Assert(intoKeyword IsNot Nothing AndAlso intoKeyword.Kind = SyntaxKind.IntoKeyword)
             Return New AggregateClauseSyntax(SyntaxKind.AggregateClause, aggregateKeyword, variables.Node, additionalQueryOperators.Node, intoKeyword, aggregationVariables.Node)
@@ -44341,7 +44341,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="aggregationVariables">
         ''' The list of new variables that calculate aggregations.
         ''' </param>
-        Friend Shared Function GroupByClause(groupKeyword As KeywordSyntax, items As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), byKeyword As KeywordSyntax, keys As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), intoKeyword As KeywordSyntax, aggregationVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As GroupByClauseSyntax
+        Friend Shared Function GroupByClause(groupKeyword As KeywordSyntax, items As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), byKeyword As KeywordSyntax, keys As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), intoKeyword As KeywordSyntax, aggregationVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As GroupByClauseSyntax
             Debug.Assert(groupKeyword IsNot Nothing AndAlso groupKeyword.Kind = SyntaxKind.GroupKeyword)
             Debug.Assert(byKeyword IsNot Nothing AndAlso byKeyword.Kind = SyntaxKind.ByKeyword)
             Debug.Assert(intoKeyword IsNot Nothing AndAlso intoKeyword.Kind = SyntaxKind.IntoKeyword)
@@ -44400,7 +44400,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The conditions indicating what expressions to compare during the join. Each
         ''' condition is a JoinCondition, and the separators are "And" keywords.
         ''' </param>
-        Friend Shared Function SimpleJoinClause(joinKeyword As KeywordSyntax, joinedVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), additionalJoins As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), onKeyword As KeywordSyntax, joinConditions As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As SimpleJoinClauseSyntax
+        Friend Shared Function SimpleJoinClause(joinKeyword As KeywordSyntax, joinedVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), additionalJoins As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), onKeyword As KeywordSyntax, joinConditions As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As SimpleJoinClauseSyntax
             Debug.Assert(joinKeyword IsNot Nothing AndAlso joinKeyword.Kind = SyntaxKind.JoinKeyword)
             Debug.Assert(onKeyword IsNot Nothing AndAlso onKeyword.Kind = SyntaxKind.OnKeyword)
             Return New SimpleJoinClauseSyntax(SyntaxKind.SimpleJoinClause, joinKeyword, joinedVariables.Node, additionalJoins.Node, onKeyword, joinConditions.Node)
@@ -44435,7 +44435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="aggregationVariables">
         ''' The list of new variables that calculate aggregations.
         ''' </param>
-        Friend Shared Function GroupJoinClause(groupKeyword As KeywordSyntax, joinKeyword As KeywordSyntax, joinedVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), additionalJoins As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), onKeyword As KeywordSyntax, joinConditions As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), intoKeyword As KeywordSyntax, aggregationVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As GroupJoinClauseSyntax
+        Friend Shared Function GroupJoinClause(groupKeyword As KeywordSyntax, joinKeyword As KeywordSyntax, joinedVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), additionalJoins As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), onKeyword As KeywordSyntax, joinConditions As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), intoKeyword As KeywordSyntax, aggregationVariables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As GroupJoinClauseSyntax
             Debug.Assert(groupKeyword IsNot Nothing AndAlso groupKeyword.Kind = SyntaxKind.GroupKeyword)
             Debug.Assert(joinKeyword IsNot Nothing AndAlso joinKeyword.Kind = SyntaxKind.JoinKeyword)
             Debug.Assert(onKeyword IsNot Nothing AndAlso onKeyword.Kind = SyntaxKind.OnKeyword)
@@ -44456,7 +44456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="orderings">
         ''' The list of OrderExpression's to sort by.
         ''' </param>
-        Friend Shared Function OrderByClause(orderKeyword As KeywordSyntax, byKeyword As KeywordSyntax, orderings As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As OrderByClauseSyntax
+        Friend Shared Function OrderByClause(orderKeyword As KeywordSyntax, byKeyword As KeywordSyntax, orderings As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As OrderByClauseSyntax
             Debug.Assert(orderKeyword IsNot Nothing AndAlso orderKeyword.Kind = SyntaxKind.OrderKeyword)
             Debug.Assert(byKeyword IsNot Nothing AndAlso byKeyword.Kind = SyntaxKind.ByKeyword)
 
@@ -44577,7 +44577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The list of expression range variables being defined by the Select query
         ''' operator.
         ''' </param>
-        Friend Shared Function SelectClause(selectKeyword As KeywordSyntax, variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As SelectClauseSyntax
+        Friend Shared Function SelectClause(selectKeyword As KeywordSyntax, variables As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As SelectClauseSyntax
             Debug.Assert(selectKeyword IsNot Nothing AndAlso selectKeyword.Kind = SyntaxKind.SelectKeyword)
 
             Dim hash As Integer
@@ -44598,7 +44598,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Represents an XML Document literal expression.
         ''' </summary>
-        Friend Shared Function XmlDocument(declaration As XmlDeclarationSyntax, precedingMisc As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), root As XmlNodeSyntax, followingMisc As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As XmlDocumentSyntax
+        Friend Shared Function XmlDocument(declaration As XmlDeclarationSyntax, precedingMisc As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), root As XmlNodeSyntax, followingMisc As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)) As XmlDocumentSyntax
             Debug.Assert(declaration IsNot Nothing)
             Debug.Assert(root IsNot Nothing)
             Return New XmlDocumentSyntax(SyntaxKind.XmlDocument, declaration, precedingMisc.Node, root, followingMisc.Node)
@@ -44644,7 +44644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Represents an XML element with content in an XML literal expression.
         ''' </summary>
-        Friend Shared Function XmlElement(startTag As XmlElementStartTagSyntax, content As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endTag As XmlElementEndTagSyntax) As XmlElementSyntax
+        Friend Shared Function XmlElement(startTag As XmlElementStartTagSyntax, content As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endTag As XmlElementEndTagSyntax) As XmlElementSyntax
             Debug.Assert(startTag IsNot Nothing)
             Debug.Assert(endTag IsNot Nothing)
 
@@ -44670,7 +44670,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A list of all the text tokens in the Xml text. This list always contains at
         ''' least one token.
         ''' </param>
-        Friend Shared Function XmlText(textTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As XmlTextSyntax
+        Friend Shared Function XmlText(textTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)) As XmlTextSyntax
 
             Dim hash As Integer
             Dim cached = SyntaxNodeCache.TryGetNode(SyntaxKind.XmlText, textTokens.Node, hash)
@@ -44690,7 +44690,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Represents the start tag of an XML element of the form &lt;element&gt;.
         ''' </summary>
-        Friend Shared Function XmlElementStartTag(lessThanToken As PunctuationSyntax, name As XmlNodeSyntax, attributes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), greaterThanToken As PunctuationSyntax) As XmlElementStartTagSyntax
+        Friend Shared Function XmlElementStartTag(lessThanToken As PunctuationSyntax, name As XmlNodeSyntax, attributes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), greaterThanToken As PunctuationSyntax) As XmlElementStartTagSyntax
             Debug.Assert(lessThanToken IsNot Nothing AndAlso lessThanToken.Kind = SyntaxKind.LessThanToken)
             Debug.Assert(name IsNot Nothing)
             Debug.Assert(greaterThanToken IsNot Nothing AndAlso greaterThanToken.Kind = SyntaxKind.GreaterThanToken)
@@ -44723,7 +44723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Represents an empty XML element of the form &lt;element /&gt;
         ''' </summary>
-        Friend Shared Function XmlEmptyElement(lessThanToken As PunctuationSyntax, name As XmlNodeSyntax, attributes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), slashGreaterThanToken As PunctuationSyntax) As XmlEmptyElementSyntax
+        Friend Shared Function XmlEmptyElement(lessThanToken As PunctuationSyntax, name As XmlNodeSyntax, attributes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), slashGreaterThanToken As PunctuationSyntax) As XmlEmptyElementSyntax
             Debug.Assert(lessThanToken IsNot Nothing AndAlso lessThanToken.Kind = SyntaxKind.LessThanToken)
             Debug.Assert(name IsNot Nothing)
             Debug.Assert(slashGreaterThanToken IsNot Nothing AndAlso slashGreaterThanToken.Kind = SyntaxKind.SlashGreaterThanToken)
@@ -44758,7 +44758,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a string of XML characters embedded as the content of an XML
         ''' element.
         ''' </summary>
-        Friend Shared Function XmlString(startQuoteToken As PunctuationSyntax, textTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endQuoteToken As PunctuationSyntax) As XmlStringSyntax
+        Friend Shared Function XmlString(startQuoteToken As PunctuationSyntax, textTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endQuoteToken As PunctuationSyntax) As XmlStringSyntax
             Debug.Assert(startQuoteToken IsNot Nothing AndAlso SyntaxFacts.IsXmlStringStartQuoteToken(startQuoteToken.Kind))
             Debug.Assert(endQuoteToken IsNot Nothing AndAlso SyntaxFacts.IsXmlStringEndQuoteToken(endQuoteToken.Kind))
 
@@ -44872,7 +44872,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents an XML comment of the form &lt;!-- Comment --&gt; appearing in an
         ''' XML literal expression.
         ''' </summary>
-        Friend Shared Function XmlComment(lessThanExclamationMinusMinusToken As PunctuationSyntax, textTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), minusMinusGreaterThanToken As PunctuationSyntax) As XmlCommentSyntax
+        Friend Shared Function XmlComment(lessThanExclamationMinusMinusToken As PunctuationSyntax, textTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), minusMinusGreaterThanToken As PunctuationSyntax) As XmlCommentSyntax
             Debug.Assert(lessThanExclamationMinusMinusToken IsNot Nothing AndAlso lessThanExclamationMinusMinusToken.Kind = SyntaxKind.LessThanExclamationMinusMinusToken)
             Debug.Assert(minusMinusGreaterThanToken IsNot Nothing AndAlso minusMinusGreaterThanToken.Kind = SyntaxKind.MinusMinusGreaterThanToken)
 
@@ -44895,7 +44895,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents an XML processing instruction of the form '&lt;? XMLProcessingTarget
         ''' XMLProcessingValue ?&gt;'.
         ''' </summary>
-        Friend Shared Function XmlProcessingInstruction(lessThanQuestionToken As PunctuationSyntax, name As XmlNameTokenSyntax, textTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), questionGreaterThanToken As PunctuationSyntax) As XmlProcessingInstructionSyntax
+        Friend Shared Function XmlProcessingInstruction(lessThanQuestionToken As PunctuationSyntax, name As XmlNameTokenSyntax, textTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), questionGreaterThanToken As PunctuationSyntax) As XmlProcessingInstructionSyntax
             Debug.Assert(lessThanQuestionToken IsNot Nothing AndAlso lessThanQuestionToken.Kind = SyntaxKind.LessThanQuestionToken)
             Debug.Assert(name IsNot Nothing AndAlso name.Kind = SyntaxKind.XmlNameToken)
             Debug.Assert(questionGreaterThanToken IsNot Nothing AndAlso questionGreaterThanToken.Kind = SyntaxKind.QuestionGreaterThanToken)
@@ -44906,7 +44906,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Represents an XML CDATA section in an XML literal expression.
         ''' </summary>
-        Friend Shared Function XmlCDataSection(beginCDataToken As PunctuationSyntax, textTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endCDataToken As PunctuationSyntax) As XmlCDataSectionSyntax
+        Friend Shared Function XmlCDataSection(beginCDataToken As PunctuationSyntax, textTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endCDataToken As PunctuationSyntax) As XmlCDataSectionSyntax
             Debug.Assert(beginCDataToken IsNot Nothing AndAlso beginCDataToken.Kind = SyntaxKind.BeginCDataToken)
             Debug.Assert(endCDataToken IsNot Nothing AndAlso endCDataToken.Kind = SyntaxKind.EndCDataToken)
 
@@ -44959,7 +44959,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="rankSpecifiers">
         ''' Represents the list of "()" or "(,,)" modifiers on the array type.
         ''' </param>
-        Friend Shared Function ArrayType(elementType As TypeSyntax, rankSpecifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As ArrayTypeSyntax
+        Friend Shared Function ArrayType(elementType As TypeSyntax, rankSpecifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)) As ArrayTypeSyntax
             Debug.Assert(elementType IsNot Nothing)
 
             Dim hash As Integer
@@ -45158,7 +45158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="closeParenToken">
         ''' The ")" token.
         ''' </param>
-        Friend Shared Function TypeArgumentList(openParenToken As PunctuationSyntax, ofKeyword As KeywordSyntax, arguments As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), closeParenToken As PunctuationSyntax) As TypeArgumentListSyntax
+        Friend Shared Function TypeArgumentList(openParenToken As PunctuationSyntax, ofKeyword As KeywordSyntax, arguments As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), closeParenToken As PunctuationSyntax) As TypeArgumentListSyntax
             Debug.Assert(openParenToken IsNot Nothing AndAlso openParenToken.Kind = SyntaxKind.OpenParenToken)
             Debug.Assert(ofKeyword IsNot Nothing AndAlso ofKeyword.Kind = SyntaxKind.OfKeyword)
             Debug.Assert(closeParenToken IsNot Nothing AndAlso closeParenToken.Kind = SyntaxKind.CloseParenToken)
@@ -45192,7 +45192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a parenthesized list of argument types for a signature inside
         ''' CrefReferenceSyntax syntax.
         ''' </summary>
-        Friend Shared Function CrefSignature(openParenToken As PunctuationSyntax, argumentTypes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), closeParenToken As PunctuationSyntax) As CrefSignatureSyntax
+        Friend Shared Function CrefSignature(openParenToken As PunctuationSyntax, argumentTypes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), closeParenToken As PunctuationSyntax) As CrefSignatureSyntax
             Debug.Assert(openParenToken IsNot Nothing AndAlso openParenToken.Kind = SyntaxKind.OpenParenToken)
             Debug.Assert(closeParenToken IsNot Nothing AndAlso closeParenToken.Kind = SyntaxKind.CloseParenToken)
 
@@ -45329,7 +45329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function XmlNameToken(text As String, possibleKeywordKind As SyntaxKind, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As XmlNameTokenSyntax
+        Friend Shared Function XmlNameToken(text as String, possibleKeywordKind As SyntaxKind, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As XmlNameTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Return New XmlNameTokenSyntax(SyntaxKind.XmlNameToken, text, leadingTrivia, trailingTrivia, possibleKeywordKind)
         End Function
@@ -45343,7 +45343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function XmlTextLiteralToken(text As String, value As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As XmlTextTokenSyntax
+        Friend Shared Function XmlTextLiteralToken(text as String, value As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As XmlTextTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Return New XmlTextTokenSyntax(SyntaxKind.XmlTextLiteralToken, text, leadingTrivia, trailingTrivia, value)
         End Function
@@ -45357,7 +45357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function XmlEntityLiteralToken(text As String, value As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As XmlTextTokenSyntax
+        Friend Shared Function XmlEntityLiteralToken(text as String, value As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As XmlTextTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Return New XmlTextTokenSyntax(SyntaxKind.XmlEntityLiteralToken, text, leadingTrivia, trailingTrivia, value)
         End Function
@@ -45371,7 +45371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function DocumentationCommentLineBreakToken(text As String, value As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As XmlTextTokenSyntax
+        Friend Shared Function DocumentationCommentLineBreakToken(text as String, value As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As XmlTextTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Return New XmlTextTokenSyntax(SyntaxKind.DocumentationCommentLineBreakToken, text, leadingTrivia, trailingTrivia, value)
         End Function
@@ -45390,7 +45390,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function XmlTextToken(kind As SyntaxKind, text As String, value As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As XmlTextTokenSyntax
+        Friend Shared Function XmlTextToken(kind As SyntaxKind, text as String, value As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As XmlTextTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Debug.Assert(SyntaxFacts.IsXmlTextToken(kind))
             Return New XmlTextTokenSyntax(kind, text, leadingTrivia, trailingTrivia, value)
@@ -45403,7 +45403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function InterpolatedStringTextToken(text As String, value As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As InterpolatedStringTextTokenSyntax
+        Friend Shared Function InterpolatedStringTextToken(text as String, value As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As InterpolatedStringTextTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Return New InterpolatedStringTextTokenSyntax(SyntaxKind.InterpolatedStringTextToken, text, leadingTrivia, trailingTrivia, value)
         End Function
@@ -45415,7 +45415,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function DecimalLiteralToken(text As String, typeSuffix As TypeCharacter, value As System.Decimal, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As DecimalLiteralTokenSyntax
+        Friend Shared Function DecimalLiteralToken(text as String, typeSuffix As TypeCharacter, value As System.Decimal, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As DecimalLiteralTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Return New DecimalLiteralTokenSyntax(SyntaxKind.DecimalLiteralToken, text, leadingTrivia, trailingTrivia, typeSuffix, value)
         End Function
@@ -45427,7 +45427,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function DateLiteralToken(text As String, value As DateTime, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As DateLiteralTokenSyntax
+        Friend Shared Function DateLiteralToken(text as String, value As DateTime, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As DateLiteralTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Return New DateLiteralTokenSyntax(SyntaxKind.DateLiteralToken, text, leadingTrivia, trailingTrivia, value)
         End Function
@@ -45439,7 +45439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function StringLiteralToken(text As String, value As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As StringLiteralTokenSyntax
+        Friend Shared Function StringLiteralToken(text as String, value As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As StringLiteralTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Return New StringLiteralTokenSyntax(SyntaxKind.StringLiteralToken, text, leadingTrivia, trailingTrivia, value)
         End Function
@@ -45451,7 +45451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function CharacterLiteralToken(text As String, value As Char, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As CharacterLiteralTokenSyntax
+        Friend Shared Function CharacterLiteralToken(text as String, value As Char, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As CharacterLiteralTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Return New CharacterLiteralTokenSyntax(SyntaxKind.CharacterLiteralToken, text, leadingTrivia, trailingTrivia, value)
         End Function
@@ -45464,7 +45464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="tokens">
         ''' The list of tokens that were skipped by the parser.
         ''' </param>
-        Friend Shared Function SkippedTokensTrivia(tokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As SkippedTokensTriviaSyntax
+        Friend Shared Function SkippedTokensTrivia(tokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)) As SkippedTokensTriviaSyntax
             Return New SkippedTokensTriviaSyntax(SyntaxKind.SkippedTokensTrivia, tokens.Node)
         End Function
 
@@ -45473,7 +45473,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents a documentation comment e.g. ''' &lt;Summary&gt; appearing in
         ''' source.
         ''' </summary>
-        Friend Shared Function DocumentationCommentTrivia(content As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As DocumentationCommentTriviaSyntax
+        Friend Shared Function DocumentationCommentTrivia(content As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)) As DocumentationCommentTriviaSyntax
             Return New DocumentationCommentTriviaSyntax(SyntaxKind.DocumentationCommentTrivia, content.Node)
         End Function
 
@@ -45576,7 +45576,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="doubleQuoteToken">
         ''' The closing '"', '”', or '“' token.
         ''' </param>
-        Friend Shared Function InterpolatedStringExpression(dollarSignDoubleQuoteToken As PunctuationSyntax, contents As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), doubleQuoteToken As PunctuationSyntax) As InterpolatedStringExpressionSyntax
+        Friend Shared Function InterpolatedStringExpression(dollarSignDoubleQuoteToken As PunctuationSyntax, contents As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), doubleQuoteToken As PunctuationSyntax) As InterpolatedStringExpressionSyntax
             Debug.Assert(dollarSignDoubleQuoteToken IsNot Nothing AndAlso dollarSignDoubleQuoteToken.Kind = SyntaxKind.DollarSignDoubleQuoteToken)
             Debug.Assert(doubleQuoteToken IsNot Nothing AndAlso doubleQuoteToken.Kind = SyntaxKind.DoubleQuoteToken)
 
@@ -45713,7 +45713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function WhitespaceTrivia(text As String) As SyntaxTrivia
+        Friend Shared Function WhitespaceTrivia(text as String) As SyntaxTrivia
             Debug.Assert(text IsNot Nothing)
             Return New SyntaxTrivia(SyntaxKind.WhitespaceTrivia, text)
         End Function
@@ -45727,7 +45727,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function EndOfLineTrivia(text As String) As SyntaxTrivia
+        Friend Shared Function EndOfLineTrivia(text as String) As SyntaxTrivia
             Debug.Assert(text IsNot Nothing)
             Return New SyntaxTrivia(SyntaxKind.EndOfLineTrivia, text)
         End Function
@@ -45741,7 +45741,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function ColonTrivia(text As String) As SyntaxTrivia
+        Friend Shared Function ColonTrivia(text as String) As SyntaxTrivia
             Debug.Assert(text IsNot Nothing)
             Return New SyntaxTrivia(SyntaxKind.ColonTrivia, text)
         End Function
@@ -45755,7 +45755,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function CommentTrivia(text As String) As SyntaxTrivia
+        Friend Shared Function CommentTrivia(text as String) As SyntaxTrivia
             Debug.Assert(text IsNot Nothing)
             Return New SyntaxTrivia(SyntaxKind.CommentTrivia, text)
         End Function
@@ -45769,7 +45769,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function ConflictMarkerTrivia(text As String) As SyntaxTrivia
+        Friend Shared Function ConflictMarkerTrivia(text as String) As SyntaxTrivia
             Debug.Assert(text IsNot Nothing)
             Return New SyntaxTrivia(SyntaxKind.ConflictMarkerTrivia, text)
         End Function
@@ -45783,7 +45783,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function LineContinuationTrivia(text As String) As SyntaxTrivia
+        Friend Shared Function LineContinuationTrivia(text as String) As SyntaxTrivia
             Debug.Assert(text IsNot Nothing)
             Return New SyntaxTrivia(SyntaxKind.LineContinuationTrivia, text)
         End Function
@@ -45797,7 +45797,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function DocumentationCommentExteriorTrivia(text As String) As SyntaxTrivia
+        Friend Shared Function DocumentationCommentExteriorTrivia(text as String) As SyntaxTrivia
             Debug.Assert(text IsNot Nothing)
             Return New SyntaxTrivia(SyntaxKind.DocumentationCommentExteriorTrivia, text)
         End Function
@@ -45811,7 +45811,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function DisabledTextTrivia(text As String) As SyntaxTrivia
+        Friend Shared Function DisabledTextTrivia(text as String) As SyntaxTrivia
             Debug.Assert(text IsNot Nothing)
             Return New SyntaxTrivia(SyntaxKind.DisabledTextTrivia, text)
         End Function
@@ -45831,7 +45831,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="text">
         ''' The actual text of this token.
         ''' </param>
-        Friend Shared Function SyntaxTrivia(kind As SyntaxKind, text As String) As SyntaxTrivia
+        Friend Shared Function SyntaxTrivia(kind As SyntaxKind, text as String) As SyntaxTrivia
             Debug.Assert(text IsNot Nothing)
             Debug.Assert(SyntaxFacts.IsSyntaxTrivia(kind))
             Return New SyntaxTrivia(kind, text)
@@ -46023,7 +46023,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="hashToken">
         ''' The "#" token in a preprocessor directive.
         ''' </param>
-        Friend Shared Function EnableWarningDirectiveTrivia(hashToken As PunctuationSyntax, enableKeyword As KeywordSyntax, warningKeyword As KeywordSyntax, errorCodes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As EnableWarningDirectiveTriviaSyntax
+        Friend Shared Function EnableWarningDirectiveTrivia(hashToken As PunctuationSyntax, enableKeyword As KeywordSyntax, warningKeyword As KeywordSyntax, errorCodes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As EnableWarningDirectiveTriviaSyntax
             Debug.Assert(hashToken IsNot Nothing AndAlso hashToken.Kind = SyntaxKind.HashToken)
             Debug.Assert(enableKeyword IsNot Nothing AndAlso enableKeyword.Kind = SyntaxKind.EnableKeyword)
             Debug.Assert(warningKeyword IsNot Nothing AndAlso warningKeyword.Kind = SyntaxKind.WarningKeyword)
@@ -46037,7 +46037,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="hashToken">
         ''' The "#" token in a preprocessor directive.
         ''' </param>
-        Friend Shared Function DisableWarningDirectiveTrivia(hashToken As PunctuationSyntax, disableKeyword As KeywordSyntax, warningKeyword As KeywordSyntax, errorCodes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As DisableWarningDirectiveTriviaSyntax
+        Friend Shared Function DisableWarningDirectiveTrivia(hashToken As PunctuationSyntax, disableKeyword As KeywordSyntax, warningKeyword As KeywordSyntax, errorCodes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As DisableWarningDirectiveTriviaSyntax
             Debug.Assert(hashToken IsNot Nothing AndAlso hashToken.Kind = SyntaxKind.HashToken)
             Debug.Assert(disableKeyword IsNot Nothing AndAlso disableKeyword.Kind = SyntaxKind.DisableKeyword)
             Debug.Assert(warningKeyword IsNot Nothing AndAlso warningKeyword.Kind = SyntaxKind.WarningKeyword)
@@ -46889,7 +46889,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Represents the end of the source file. This token may have trivia (whitespace,
         ''' comments, ...) attached to it.
         ''' </param>
-        Friend Function CompilationUnit(options As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), [imports] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), attributes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endOfFileToken As PunctuationSyntax) As CompilationUnitSyntax
+        Friend Function CompilationUnit(options As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), [imports] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), attributes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endOfFileToken As PunctuationSyntax) As CompilationUnitSyntax
             Debug.Assert(endOfFileToken IsNot Nothing AndAlso endOfFileToken.Kind = SyntaxKind.EndOfFileToken)
             Return New CompilationUnitSyntax(SyntaxKind.CompilationUnit, options.Node, [imports].Node, attributes.Node, members.Node, endOfFileToken, _factoryContext)
         End Function
@@ -46938,7 +46938,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A list of one or more import clauses. Each clause is either an alias, namespace
         ''' or XML namespace import.
         ''' </param>
-        Friend Function ImportsStatement(importsKeyword As KeywordSyntax, importsClauses As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As ImportsStatementSyntax
+        Friend Function ImportsStatement(importsKeyword As KeywordSyntax, importsClauses As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As ImportsStatementSyntax
             Debug.Assert(importsKeyword IsNot Nothing AndAlso importsKeyword.Kind = SyntaxKind.ImportsKeyword)
 
             Dim hash As Integer
@@ -47050,7 +47050,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endNamespaceStatement">
         ''' The End Namespace statement that ends the block.
         ''' </param>
-        Friend Function NamespaceBlock(namespaceStatement As NamespaceStatementSyntax, members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endNamespaceStatement As EndBlockStatementSyntax) As NamespaceBlockSyntax
+        Friend Function NamespaceBlock(namespaceStatement As NamespaceStatementSyntax, members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endNamespaceStatement As EndBlockStatementSyntax) As NamespaceBlockSyntax
             Debug.Assert(namespaceStatement IsNot Nothing)
             Debug.Assert(endNamespaceStatement IsNot Nothing)
 
@@ -47117,7 +47117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endModuleStatement">
         ''' The "End Module" statement that ends the block.
         ''' </param>
-        Friend Function ModuleBlock(moduleStatement As ModuleStatementSyntax, [inherits] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), [implements] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endModuleStatement As EndBlockStatementSyntax) As ModuleBlockSyntax
+        Friend Function ModuleBlock(moduleStatement As ModuleStatementSyntax, [inherits] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), [implements] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endModuleStatement As EndBlockStatementSyntax) As ModuleBlockSyntax
             Debug.Assert(moduleStatement IsNot Nothing)
             Debug.Assert(endModuleStatement IsNot Nothing)
             Return New ModuleBlockSyntax(SyntaxKind.ModuleBlock, moduleStatement, [inherits].Node, [implements].Node, members.Node, endModuleStatement, _factoryContext)
@@ -47143,7 +47143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endStructureStatement">
         ''' The "End Structure" statement that ends the block.
         ''' </param>
-        Friend Function StructureBlock(structureStatement As StructureStatementSyntax, [inherits] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), [implements] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endStructureStatement As EndBlockStatementSyntax) As StructureBlockSyntax
+        Friend Function StructureBlock(structureStatement As StructureStatementSyntax, [inherits] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), [implements] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endStructureStatement As EndBlockStatementSyntax) As StructureBlockSyntax
             Debug.Assert(structureStatement IsNot Nothing)
             Debug.Assert(endStructureStatement IsNot Nothing)
             Return New StructureBlockSyntax(SyntaxKind.StructureBlock, structureStatement, [inherits].Node, [implements].Node, members.Node, endStructureStatement, _factoryContext)
@@ -47169,7 +47169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endInterfaceStatement">
         ''' The "End Interface" statement that ends the block.
         ''' </param>
-        Friend Function InterfaceBlock(interfaceStatement As InterfaceStatementSyntax, [inherits] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), [implements] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endInterfaceStatement As EndBlockStatementSyntax) As InterfaceBlockSyntax
+        Friend Function InterfaceBlock(interfaceStatement As InterfaceStatementSyntax, [inherits] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), [implements] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endInterfaceStatement As EndBlockStatementSyntax) As InterfaceBlockSyntax
             Debug.Assert(interfaceStatement IsNot Nothing)
             Debug.Assert(endInterfaceStatement IsNot Nothing)
             Return New InterfaceBlockSyntax(SyntaxKind.InterfaceBlock, interfaceStatement, [inherits].Node, [implements].Node, members.Node, endInterfaceStatement, _factoryContext)
@@ -47195,7 +47195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endClassStatement">
         ''' The "End Class" statement that ends the block.
         ''' </param>
-        Friend Function ClassBlock(classStatement As ClassStatementSyntax, [inherits] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), [implements] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endClassStatement As EndBlockStatementSyntax) As ClassBlockSyntax
+        Friend Function ClassBlock(classStatement As ClassStatementSyntax, [inherits] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), [implements] As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endClassStatement As EndBlockStatementSyntax) As ClassBlockSyntax
             Debug.Assert(classStatement IsNot Nothing)
             Debug.Assert(endClassStatement IsNot Nothing)
             Return New ClassBlockSyntax(SyntaxKind.ClassBlock, classStatement, [inherits].Node, [implements].Node, members.Node, endClassStatement, _factoryContext)
@@ -47215,7 +47215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endEnumStatement">
         ''' The End XXX statement that ends the block.
         ''' </param>
-        Friend Function EnumBlock(enumStatement As EnumStatementSyntax, members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endEnumStatement As EndBlockStatementSyntax) As EnumBlockSyntax
+        Friend Function EnumBlock(enumStatement As EnumStatementSyntax, members As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endEnumStatement As EndBlockStatementSyntax) As EnumBlockSyntax
             Debug.Assert(enumStatement IsNot Nothing)
             Debug.Assert(endEnumStatement IsNot Nothing)
 
@@ -47243,7 +47243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="types">
         ''' A list of the types being inherited.
         ''' </param>
-        Friend Function InheritsStatement(inheritsKeyword As KeywordSyntax, types As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As InheritsStatementSyntax
+        Friend Function InheritsStatement(inheritsKeyword As KeywordSyntax, types As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As InheritsStatementSyntax
             Debug.Assert(inheritsKeyword IsNot Nothing AndAlso inheritsKeyword.Kind = SyntaxKind.InheritsKeyword)
 
             Dim hash As Integer
@@ -47270,7 +47270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="types">
         ''' A list of the types being implemented.
         ''' </param>
-        Friend Function ImplementsStatement(implementsKeyword As KeywordSyntax, types As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As ImplementsStatementSyntax
+        Friend Function ImplementsStatement(implementsKeyword As KeywordSyntax, types As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As ImplementsStatementSyntax
             Debug.Assert(implementsKeyword IsNot Nothing AndAlso implementsKeyword.Kind = SyntaxKind.ImplementsKeyword)
 
             Dim hash As Integer
@@ -47310,7 +47310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' If present, a type parameter list with generic parameters for this type. If no
         ''' generic parameters were present, Nothing is returned.
         ''' </param>
-        Friend Function ModuleStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), moduleKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax) As ModuleStatementSyntax
+        Friend Function ModuleStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), moduleKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax) As ModuleStatementSyntax
             Debug.Assert(moduleKeyword IsNot Nothing AndAlso moduleKeyword.Kind = SyntaxKind.ModuleKeyword)
             Debug.Assert(identifier IsNot Nothing AndAlso identifier.Kind = SyntaxKind.IdentifierToken)
             Return New ModuleStatementSyntax(SyntaxKind.ModuleStatement, attributeLists.Node, modifiers.Node, moduleKeyword, identifier, typeParameterList, _factoryContext)
@@ -47339,7 +47339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' If present, a type parameter list with generic parameters for this type. If no
         ''' generic parameters were present, Nothing is returned.
         ''' </param>
-        Friend Function StructureStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), structureKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax) As StructureStatementSyntax
+        Friend Function StructureStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), structureKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax) As StructureStatementSyntax
             Debug.Assert(structureKeyword IsNot Nothing AndAlso structureKeyword.Kind = SyntaxKind.StructureKeyword)
             Debug.Assert(identifier IsNot Nothing AndAlso identifier.Kind = SyntaxKind.IdentifierToken)
             Return New StructureStatementSyntax(SyntaxKind.StructureStatement, attributeLists.Node, modifiers.Node, structureKeyword, identifier, typeParameterList, _factoryContext)
@@ -47368,7 +47368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' If present, a type parameter list with generic parameters for this type. If no
         ''' generic parameters were present, Nothing is returned.
         ''' </param>
-        Friend Function InterfaceStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), interfaceKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax) As InterfaceStatementSyntax
+        Friend Function InterfaceStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), interfaceKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax) As InterfaceStatementSyntax
             Debug.Assert(interfaceKeyword IsNot Nothing AndAlso interfaceKeyword.Kind = SyntaxKind.InterfaceKeyword)
             Debug.Assert(identifier IsNot Nothing AndAlso identifier.Kind = SyntaxKind.IdentifierToken)
             Return New InterfaceStatementSyntax(SyntaxKind.InterfaceStatement, attributeLists.Node, modifiers.Node, interfaceKeyword, identifier, typeParameterList, _factoryContext)
@@ -47397,7 +47397,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' If present, a type parameter list with generic parameters for this type. If no
         ''' generic parameters were present, Nothing is returned.
         ''' </param>
-        Friend Function ClassStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), classKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax) As ClassStatementSyntax
+        Friend Function ClassStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), classKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax) As ClassStatementSyntax
             Debug.Assert(classKeyword IsNot Nothing AndAlso classKeyword.Kind = SyntaxKind.ClassKeyword)
             Debug.Assert(identifier IsNot Nothing AndAlso identifier.Kind = SyntaxKind.IdentifierToken)
             Return New ClassStatementSyntax(SyntaxKind.ClassStatement, attributeLists.Node, modifiers.Node, classKeyword, identifier, typeParameterList, _factoryContext)
@@ -47426,7 +47426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Optional "As XXX" clause describing the underlying type of the enumeration. If
         ''' no As clause was specified, Nothing is returned.
         ''' </param>
-        Friend Function EnumStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), enumKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, underlyingType As AsClauseSyntax) As EnumStatementSyntax
+        Friend Function EnumStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), enumKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, underlyingType As AsClauseSyntax) As EnumStatementSyntax
             Debug.Assert(enumKeyword IsNot Nothing AndAlso enumKeyword.Kind = SyntaxKind.EnumKeyword)
             Debug.Assert(identifier IsNot Nothing AndAlso identifier.Kind = SyntaxKind.IdentifierToken)
             Return New EnumStatementSyntax(SyntaxKind.EnumStatement, attributeLists.Node, modifiers.Node, enumKeyword, identifier, underlyingType, _factoryContext)
@@ -47449,7 +47449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="closeParenToken">
         ''' The ")" token.
         ''' </param>
-        Friend Function TypeParameterList(openParenToken As PunctuationSyntax, ofKeyword As KeywordSyntax, parameters As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), closeParenToken As PunctuationSyntax) As TypeParameterListSyntax
+        Friend Function TypeParameterList(openParenToken As PunctuationSyntax, ofKeyword As KeywordSyntax, parameters As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), closeParenToken As PunctuationSyntax) As TypeParameterListSyntax
             Debug.Assert(openParenToken IsNot Nothing AndAlso openParenToken.Kind = SyntaxKind.OpenParenToken)
             Debug.Assert(ofKeyword IsNot Nothing AndAlso ofKeyword.Kind = SyntaxKind.OfKeyword)
             Debug.Assert(closeParenToken IsNot Nothing AndAlso closeParenToken.Kind = SyntaxKind.CloseParenToken)
@@ -47537,7 +47537,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="closeBraceToken">
         ''' The "}" token.
         ''' </param>
-        Friend Function TypeParameterMultipleConstraintClause(asKeyword As KeywordSyntax, openBraceToken As PunctuationSyntax, constraints As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), closeBraceToken As PunctuationSyntax) As TypeParameterMultipleConstraintClauseSyntax
+        Friend Function TypeParameterMultipleConstraintClause(asKeyword As KeywordSyntax, openBraceToken As PunctuationSyntax, constraints As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), closeBraceToken As PunctuationSyntax) As TypeParameterMultipleConstraintClauseSyntax
             Debug.Assert(asKeyword IsNot Nothing AndAlso asKeyword.Kind = SyntaxKind.AsKeyword)
             Debug.Assert(openBraceToken IsNot Nothing AndAlso openBraceToken.Kind = SyntaxKind.OpenBraceToken)
             Debug.Assert(closeBraceToken IsNot Nothing AndAlso closeBraceToken.Kind = SyntaxKind.CloseBraceToken)
@@ -47689,7 +47689,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="initializer">
         ''' An optional value for the enum member.
         ''' </param>
-        Friend Function EnumMemberDeclaration(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), identifier As IdentifierTokenSyntax, initializer As EqualsValueSyntax) As EnumMemberDeclarationSyntax
+        Friend Function EnumMemberDeclaration(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), identifier As IdentifierTokenSyntax, initializer As EqualsValueSyntax) As EnumMemberDeclarationSyntax
             Debug.Assert(identifier IsNot Nothing AndAlso identifier.Kind = SyntaxKind.IdentifierToken)
 
             Dim hash As Integer
@@ -47720,7 +47720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endSubOrFunctionStatement">
         ''' The "End Sub" or "End Function" statement that ends the block.
         ''' </param>
-        Friend Function SubBlock(subOrFunctionStatement As MethodStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endSubOrFunctionStatement As EndBlockStatementSyntax) As MethodBlockSyntax
+        Friend Function SubBlock(subOrFunctionStatement As MethodStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endSubOrFunctionStatement As EndBlockStatementSyntax) As MethodBlockSyntax
             Debug.Assert(subOrFunctionStatement IsNot Nothing)
             Debug.Assert(endSubOrFunctionStatement IsNot Nothing)
 
@@ -47752,7 +47752,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endSubOrFunctionStatement">
         ''' The "End Sub" or "End Function" statement that ends the block.
         ''' </param>
-        Friend Function FunctionBlock(subOrFunctionStatement As MethodStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endSubOrFunctionStatement As EndBlockStatementSyntax) As MethodBlockSyntax
+        Friend Function FunctionBlock(subOrFunctionStatement As MethodStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endSubOrFunctionStatement As EndBlockStatementSyntax) As MethodBlockSyntax
             Debug.Assert(subOrFunctionStatement IsNot Nothing)
             Debug.Assert(endSubOrFunctionStatement IsNot Nothing)
 
@@ -47788,7 +47788,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endSubOrFunctionStatement">
         ''' The "End Sub" or "End Function" statement that ends the block.
         ''' </param>
-        Friend Function MethodBlock(kind As SyntaxKind, subOrFunctionStatement As MethodStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endSubOrFunctionStatement As EndBlockStatementSyntax) As MethodBlockSyntax
+        Friend Function MethodBlock(kind As SyntaxKind, subOrFunctionStatement As MethodStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endSubOrFunctionStatement As EndBlockStatementSyntax) As MethodBlockSyntax
             Debug.Assert(SyntaxFacts.IsMethodBlock(kind))
             Debug.Assert(subOrFunctionStatement IsNot Nothing)
             Debug.Assert(endSubOrFunctionStatement IsNot Nothing)
@@ -47821,7 +47821,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endSubStatement">
         ''' The "End Sub" statement that ends the block declaration.
         ''' </param>
-        Friend Function ConstructorBlock(subNewStatement As SubNewStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endSubStatement As EndBlockStatementSyntax) As ConstructorBlockSyntax
+        Friend Function ConstructorBlock(subNewStatement As SubNewStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endSubStatement As EndBlockStatementSyntax) As ConstructorBlockSyntax
             Debug.Assert(subNewStatement IsNot Nothing)
             Debug.Assert(endSubStatement IsNot Nothing)
 
@@ -47853,7 +47853,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endOperatorStatement">
         ''' The "End Operator" statement that ends the block declaration.
         ''' </param>
-        Friend Function OperatorBlock(operatorStatement As OperatorStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endOperatorStatement As EndBlockStatementSyntax) As OperatorBlockSyntax
+        Friend Function OperatorBlock(operatorStatement As OperatorStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endOperatorStatement As EndBlockStatementSyntax) As OperatorBlockSyntax
             Debug.Assert(operatorStatement IsNot Nothing)
             Debug.Assert(endOperatorStatement IsNot Nothing)
 
@@ -47888,7 +47888,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "End Get", "End Set", "End AddHandler", "End RemoveHandler", or "End
         ''' RaiseEvent" statement that ends the accessor block.
         ''' </param>
-        Friend Function GetAccessorBlock(accessorStatement As AccessorStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endAccessorStatement As EndBlockStatementSyntax) As AccessorBlockSyntax
+        Friend Function GetAccessorBlock(accessorStatement As AccessorStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endAccessorStatement As EndBlockStatementSyntax) As AccessorBlockSyntax
             Debug.Assert(accessorStatement IsNot Nothing)
             Debug.Assert(endAccessorStatement IsNot Nothing)
 
@@ -47923,7 +47923,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "End Get", "End Set", "End AddHandler", "End RemoveHandler", or "End
         ''' RaiseEvent" statement that ends the accessor block.
         ''' </param>
-        Friend Function SetAccessorBlock(accessorStatement As AccessorStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endAccessorStatement As EndBlockStatementSyntax) As AccessorBlockSyntax
+        Friend Function SetAccessorBlock(accessorStatement As AccessorStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endAccessorStatement As EndBlockStatementSyntax) As AccessorBlockSyntax
             Debug.Assert(accessorStatement IsNot Nothing)
             Debug.Assert(endAccessorStatement IsNot Nothing)
 
@@ -47958,7 +47958,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "End Get", "End Set", "End AddHandler", "End RemoveHandler", or "End
         ''' RaiseEvent" statement that ends the accessor block.
         ''' </param>
-        Friend Function AddHandlerAccessorBlock(accessorStatement As AccessorStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endAccessorStatement As EndBlockStatementSyntax) As AccessorBlockSyntax
+        Friend Function AddHandlerAccessorBlock(accessorStatement As AccessorStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endAccessorStatement As EndBlockStatementSyntax) As AccessorBlockSyntax
             Debug.Assert(accessorStatement IsNot Nothing)
             Debug.Assert(endAccessorStatement IsNot Nothing)
 
@@ -47993,7 +47993,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "End Get", "End Set", "End AddHandler", "End RemoveHandler", or "End
         ''' RaiseEvent" statement that ends the accessor block.
         ''' </param>
-        Friend Function RemoveHandlerAccessorBlock(accessorStatement As AccessorStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endAccessorStatement As EndBlockStatementSyntax) As AccessorBlockSyntax
+        Friend Function RemoveHandlerAccessorBlock(accessorStatement As AccessorStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endAccessorStatement As EndBlockStatementSyntax) As AccessorBlockSyntax
             Debug.Assert(accessorStatement IsNot Nothing)
             Debug.Assert(endAccessorStatement IsNot Nothing)
 
@@ -48028,7 +48028,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "End Get", "End Set", "End AddHandler", "End RemoveHandler", or "End
         ''' RaiseEvent" statement that ends the accessor block.
         ''' </param>
-        Friend Function RaiseEventAccessorBlock(accessorStatement As AccessorStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endAccessorStatement As EndBlockStatementSyntax) As AccessorBlockSyntax
+        Friend Function RaiseEventAccessorBlock(accessorStatement As AccessorStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endAccessorStatement As EndBlockStatementSyntax) As AccessorBlockSyntax
             Debug.Assert(accessorStatement IsNot Nothing)
             Debug.Assert(endAccessorStatement IsNot Nothing)
 
@@ -48068,7 +48068,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "End Get", "End Set", "End AddHandler", "End RemoveHandler", or "End
         ''' RaiseEvent" statement that ends the accessor block.
         ''' </param>
-        Friend Function AccessorBlock(kind As SyntaxKind, accessorStatement As AccessorStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endAccessorStatement As EndBlockStatementSyntax) As AccessorBlockSyntax
+        Friend Function AccessorBlock(kind As SyntaxKind, accessorStatement As AccessorStatementSyntax, statements As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endAccessorStatement As EndBlockStatementSyntax) As AccessorBlockSyntax
             Debug.Assert(SyntaxFacts.IsAccessorBlock(kind))
             Debug.Assert(accessorStatement IsNot Nothing)
             Debug.Assert(endAccessorStatement IsNot Nothing)
@@ -48102,7 +48102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endPropertyStatement">
         ''' The End Property statement that ends the block.
         ''' </param>
-        Friend Function PropertyBlock(propertyStatement As PropertyStatementSyntax, accessors As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endPropertyStatement As EndBlockStatementSyntax) As PropertyBlockSyntax
+        Friend Function PropertyBlock(propertyStatement As PropertyStatementSyntax, accessors As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endPropertyStatement As EndBlockStatementSyntax) As PropertyBlockSyntax
             Debug.Assert(propertyStatement IsNot Nothing)
             Debug.Assert(endPropertyStatement IsNot Nothing)
 
@@ -48135,7 +48135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="endEventStatement">
         ''' The End Event statement that ends the block.
         ''' </param>
-        Friend Function EventBlock(eventStatement As EventStatementSyntax, accessors As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), endEventStatement As EndBlockStatementSyntax) As EventBlockSyntax
+        Friend Function EventBlock(eventStatement As EventStatementSyntax, accessors As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), endEventStatement As EndBlockStatementSyntax) As EventBlockSyntax
             Debug.Assert(eventStatement IsNot Nothing)
             Debug.Assert(endEventStatement IsNot Nothing)
 
@@ -48168,7 +48168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The ")" token that concludes the parameter list. If no parameter list was
         ''' present, Nothing is returned.
         ''' </param>
-        Friend Function ParameterList(openParenToken As PunctuationSyntax, parameters As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), closeParenToken As PunctuationSyntax) As ParameterListSyntax
+        Friend Function ParameterList(openParenToken As PunctuationSyntax, parameters As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), closeParenToken As PunctuationSyntax) As ParameterListSyntax
             Debug.Assert(openParenToken IsNot Nothing AndAlso openParenToken.Kind = SyntaxKind.OpenParenToken)
             Debug.Assert(closeParenToken IsNot Nothing AndAlso closeParenToken.Kind = SyntaxKind.CloseParenToken)
 
@@ -48228,7 +48228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' If present, an Implements clause indicated the interface methods that this
         ''' method implements.
         ''' </param>
-        Friend Function SubStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, handlesClause As HandlesClauseSyntax, implementsClause As ImplementsClauseSyntax) As MethodStatementSyntax
+        Friend Function SubStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, handlesClause As HandlesClauseSyntax, implementsClause As ImplementsClauseSyntax) As MethodStatementSyntax
             Debug.Assert(subOrFunctionKeyword IsNot Nothing AndAlso subOrFunctionKeyword.Kind = SyntaxKind.SubKeyword)
             Debug.Assert(identifier IsNot Nothing AndAlso identifier.Kind = SyntaxKind.IdentifierToken)
             Return New MethodStatementSyntax(SyntaxKind.SubStatement, attributeLists.Node, modifiers.Node, subOrFunctionKeyword, identifier, typeParameterList, parameterList, asClause, handlesClause, implementsClause, _factoryContext)
@@ -48276,7 +48276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' If present, an Implements clause indicated the interface methods that this
         ''' method implements.
         ''' </param>
-        Friend Function FunctionStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, handlesClause As HandlesClauseSyntax, implementsClause As ImplementsClauseSyntax) As MethodStatementSyntax
+        Friend Function FunctionStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, handlesClause As HandlesClauseSyntax, implementsClause As ImplementsClauseSyntax) As MethodStatementSyntax
             Debug.Assert(subOrFunctionKeyword IsNot Nothing AndAlso subOrFunctionKeyword.Kind = SyntaxKind.FunctionKeyword)
             Debug.Assert(identifier IsNot Nothing AndAlso identifier.Kind = SyntaxKind.IdentifierToken)
             Return New MethodStatementSyntax(SyntaxKind.FunctionStatement, attributeLists.Node, modifiers.Node, subOrFunctionKeyword, identifier, typeParameterList, parameterList, asClause, handlesClause, implementsClause, _factoryContext)
@@ -48328,7 +48328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' If present, an Implements clause indicated the interface methods that this
         ''' method implements.
         ''' </param>
-        Friend Function MethodStatement(kind As SyntaxKind, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, handlesClause As HandlesClauseSyntax, implementsClause As ImplementsClauseSyntax) As MethodStatementSyntax
+        Friend Function MethodStatement(kind As SyntaxKind, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, handlesClause As HandlesClauseSyntax, implementsClause As ImplementsClauseSyntax) As MethodStatementSyntax
             Debug.Assert(SyntaxFacts.IsMethodStatement(kind))
             Debug.Assert(subOrFunctionKeyword IsNot Nothing AndAlso SyntaxFacts.IsMethodStatementSubOrFunctionKeyword(subOrFunctionKeyword.Kind))
             Debug.Assert(identifier IsNot Nothing AndAlso identifier.Kind = SyntaxKind.IdentifierToken)
@@ -48361,7 +48361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The method's parameter list including the parentheses. If no parameter list was
         ''' present, Nothing is returned.
         ''' </param>
-        Friend Function SubNewStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), subKeyword As KeywordSyntax, newKeyword As KeywordSyntax, parameterList As ParameterListSyntax) As SubNewStatementSyntax
+        Friend Function SubNewStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), subKeyword As KeywordSyntax, newKeyword As KeywordSyntax, parameterList As ParameterListSyntax) As SubNewStatementSyntax
             Debug.Assert(subKeyword IsNot Nothing AndAlso subKeyword.Kind = SyntaxKind.SubKeyword)
             Debug.Assert(newKeyword IsNot Nothing AndAlso newKeyword.Kind = SyntaxKind.NewKeyword)
             Return New SubNewStatementSyntax(SyntaxKind.SubNewStatement, attributeLists.Node, modifiers.Node, subKeyword, newKeyword, parameterList, _factoryContext)
@@ -48414,7 +48414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "As" clause that describes the return type. If no As clause was present,
         ''' Nothing is returned.
         ''' </param>
-        Friend Function DeclareSubStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), declareKeyword As KeywordSyntax, charsetKeyword As KeywordSyntax, subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, libKeyword As KeywordSyntax, libraryName As LiteralExpressionSyntax, aliasKeyword As KeywordSyntax, aliasName As LiteralExpressionSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As DeclareStatementSyntax
+        Friend Function DeclareSubStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), declareKeyword As KeywordSyntax, charsetKeyword As KeywordSyntax, subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, libKeyword As KeywordSyntax, libraryName As LiteralExpressionSyntax, aliasKeyword As KeywordSyntax, aliasName As LiteralExpressionSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As DeclareStatementSyntax
             Debug.Assert(declareKeyword IsNot Nothing AndAlso declareKeyword.Kind = SyntaxKind.DeclareKeyword)
             Debug.Assert(subOrFunctionKeyword IsNot Nothing AndAlso subOrFunctionKeyword.Kind = SyntaxKind.SubKeyword)
             Debug.Assert(identifier IsNot Nothing AndAlso identifier.Kind = SyntaxKind.IdentifierToken)
@@ -48470,7 +48470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "As" clause that describes the return type. If no As clause was present,
         ''' Nothing is returned.
         ''' </param>
-        Friend Function DeclareFunctionStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), declareKeyword As KeywordSyntax, charsetKeyword As KeywordSyntax, subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, libKeyword As KeywordSyntax, libraryName As LiteralExpressionSyntax, aliasKeyword As KeywordSyntax, aliasName As LiteralExpressionSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As DeclareStatementSyntax
+        Friend Function DeclareFunctionStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), declareKeyword As KeywordSyntax, charsetKeyword As KeywordSyntax, subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, libKeyword As KeywordSyntax, libraryName As LiteralExpressionSyntax, aliasKeyword As KeywordSyntax, aliasName As LiteralExpressionSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As DeclareStatementSyntax
             Debug.Assert(declareKeyword IsNot Nothing AndAlso declareKeyword.Kind = SyntaxKind.DeclareKeyword)
             Debug.Assert(subOrFunctionKeyword IsNot Nothing AndAlso subOrFunctionKeyword.Kind = SyntaxKind.FunctionKeyword)
             Debug.Assert(identifier IsNot Nothing AndAlso identifier.Kind = SyntaxKind.IdentifierToken)
@@ -48530,7 +48530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "As" clause that describes the return type. If no As clause was present,
         ''' Nothing is returned.
         ''' </param>
-        Friend Function DeclareStatement(kind As SyntaxKind, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), declareKeyword As KeywordSyntax, charsetKeyword As KeywordSyntax, subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, libKeyword As KeywordSyntax, libraryName As LiteralExpressionSyntax, aliasKeyword As KeywordSyntax, aliasName As LiteralExpressionSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As DeclareStatementSyntax
+        Friend Function DeclareStatement(kind As SyntaxKind, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), declareKeyword As KeywordSyntax, charsetKeyword As KeywordSyntax, subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, libKeyword As KeywordSyntax, libraryName As LiteralExpressionSyntax, aliasKeyword As KeywordSyntax, aliasName As LiteralExpressionSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As DeclareStatementSyntax
             Debug.Assert(SyntaxFacts.IsDeclareStatement(kind))
             Debug.Assert(declareKeyword IsNot Nothing AndAlso declareKeyword.Kind = SyntaxKind.DeclareKeyword)
             Debug.Assert(subOrFunctionKeyword IsNot Nothing AndAlso SyntaxFacts.IsDeclareStatementSubOrFunctionKeyword(subOrFunctionKeyword.Kind))
@@ -48575,7 +48575,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "As" clause that describes the return type. If no As clause was present,
         ''' Nothing is returned.
         ''' </param>
-        Friend Function DelegateSubStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), delegateKeyword As KeywordSyntax, subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As DelegateStatementSyntax
+        Friend Function DelegateSubStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), delegateKeyword As KeywordSyntax, subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As DelegateStatementSyntax
             Debug.Assert(delegateKeyword IsNot Nothing AndAlso delegateKeyword.Kind = SyntaxKind.DelegateKeyword)
             Debug.Assert(subOrFunctionKeyword IsNot Nothing AndAlso subOrFunctionKeyword.Kind = SyntaxKind.SubKeyword)
             Debug.Assert(identifier IsNot Nothing AndAlso identifier.Kind = SyntaxKind.IdentifierToken)
@@ -48617,7 +48617,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "As" clause that describes the return type. If no As clause was present,
         ''' Nothing is returned.
         ''' </param>
-        Friend Function DelegateFunctionStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), delegateKeyword As KeywordSyntax, subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As DelegateStatementSyntax
+        Friend Function DelegateFunctionStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), delegateKeyword As KeywordSyntax, subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As DelegateStatementSyntax
             Debug.Assert(delegateKeyword IsNot Nothing AndAlso delegateKeyword.Kind = SyntaxKind.DelegateKeyword)
             Debug.Assert(subOrFunctionKeyword IsNot Nothing AndAlso subOrFunctionKeyword.Kind = SyntaxKind.FunctionKeyword)
             Debug.Assert(identifier IsNot Nothing AndAlso identifier.Kind = SyntaxKind.IdentifierToken)
@@ -48664,7 +48664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "As" clause that describes the return type. If no As clause was present,
         ''' Nothing is returned.
         ''' </param>
-        Friend Function DelegateStatement(kind As SyntaxKind, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), delegateKeyword As KeywordSyntax, subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As DelegateStatementSyntax
+        Friend Function DelegateStatement(kind As SyntaxKind, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), delegateKeyword As KeywordSyntax, subOrFunctionKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As DelegateStatementSyntax
             Debug.Assert(SyntaxFacts.IsDelegateStatement(kind))
             Debug.Assert(delegateKeyword IsNot Nothing AndAlso delegateKeyword.Kind = SyntaxKind.DelegateKeyword)
             Debug.Assert(subOrFunctionKeyword IsNot Nothing AndAlso SyntaxFacts.IsDelegateStatementSubOrFunctionKeyword(subOrFunctionKeyword.Kind))
@@ -48709,7 +48709,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' If present, an Implements clause indicates the interface methods that this
         ''' method implements.
         ''' </param>
-        Friend Function EventStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), customKeyword As KeywordSyntax, eventKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, implementsClause As ImplementsClauseSyntax) As EventStatementSyntax
+        Friend Function EventStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), customKeyword As KeywordSyntax, eventKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, implementsClause As ImplementsClauseSyntax) As EventStatementSyntax
             Debug.Assert(eventKeyword IsNot Nothing AndAlso eventKeyword.Kind = SyntaxKind.EventKeyword)
             Debug.Assert(identifier IsNot Nothing AndAlso identifier.Kind = SyntaxKind.IdentifierToken)
             Return New EventStatementSyntax(SyntaxKind.EventStatement, attributeLists.Node, modifiers.Node, customKeyword, eventKeyword, identifier, parameterList, asClause, implementsClause, _factoryContext)
@@ -48746,7 +48746,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The "As" clause that describes the return type. If no As clause was present,
         ''' Nothing is returned.
         ''' </param>
-        Friend Function OperatorStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), operatorKeyword As KeywordSyntax, operatorToken As SyntaxToken, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As OperatorStatementSyntax
+        Friend Function OperatorStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), operatorKeyword As KeywordSyntax, operatorToken As SyntaxToken, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As OperatorStatementSyntax
             Debug.Assert(operatorKeyword IsNot Nothing AndAlso operatorKeyword.Kind = SyntaxKind.OperatorKeyword)
             Debug.Assert(operatorToken IsNot Nothing AndAlso SyntaxFacts.IsOperatorStatementOperatorToken(operatorToken.Kind))
             Return New OperatorStatementSyntax(SyntaxKind.OperatorStatement, attributeLists.Node, modifiers.Node, operatorKeyword, operatorToken, parameterList, asClause, _factoryContext)
@@ -48791,7 +48791,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' If present, an Implements clause indicated the interface methods that this
         ''' method implements.
         ''' </param>
-        Friend Function PropertyStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), propertyKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, parameterList As ParameterListSyntax, asClause As AsClauseSyntax, initializer As EqualsValueSyntax, implementsClause As ImplementsClauseSyntax) As PropertyStatementSyntax
+        Friend Function PropertyStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), propertyKeyword As KeywordSyntax, identifier As IdentifierTokenSyntax, parameterList As ParameterListSyntax, asClause As AsClauseSyntax, initializer As EqualsValueSyntax, implementsClause As ImplementsClauseSyntax) As PropertyStatementSyntax
             Debug.Assert(propertyKeyword IsNot Nothing AndAlso propertyKeyword.Kind = SyntaxKind.PropertyKeyword)
             Debug.Assert(identifier IsNot Nothing AndAlso identifier.Kind = SyntaxKind.IdentifierToken)
             Return New PropertyStatementSyntax(SyntaxKind.PropertyStatement, attributeLists.Node, modifiers.Node, propertyKeyword, identifier, parameterList, asClause, initializer, implementsClause, _factoryContext)
@@ -48822,7 +48822,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The method's parameter list including the parentheses. If no parameter list was
         ''' present, Nothing is returned.
         ''' </param>
-        Friend Function GetAccessorStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), accessorKeyword As KeywordSyntax, parameterList As ParameterListSyntax) As AccessorStatementSyntax
+        Friend Function GetAccessorStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), accessorKeyword As KeywordSyntax, parameterList As ParameterListSyntax) As AccessorStatementSyntax
             Debug.Assert(accessorKeyword IsNot Nothing AndAlso accessorKeyword.Kind = SyntaxKind.GetKeyword)
             Return New AccessorStatementSyntax(SyntaxKind.GetAccessorStatement, attributeLists.Node, modifiers.Node, accessorKeyword, parameterList, _factoryContext)
         End Function
@@ -48852,7 +48852,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The method's parameter list including the parentheses. If no parameter list was
         ''' present, Nothing is returned.
         ''' </param>
-        Friend Function SetAccessorStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), accessorKeyword As KeywordSyntax, parameterList As ParameterListSyntax) As AccessorStatementSyntax
+        Friend Function SetAccessorStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), accessorKeyword As KeywordSyntax, parameterList As ParameterListSyntax) As AccessorStatementSyntax
             Debug.Assert(accessorKeyword IsNot Nothing AndAlso accessorKeyword.Kind = SyntaxKind.SetKeyword)
             Return New AccessorStatementSyntax(SyntaxKind.SetAccessorStatement, attributeLists.Node, modifiers.Node, accessorKeyword, parameterList, _factoryContext)
         End Function
@@ -48882,7 +48882,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The method's parameter list including the parentheses. If no parameter list was
         ''' present, Nothing is returned.
         ''' </param>
-        Friend Function AddHandlerAccessorStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), accessorKeyword As KeywordSyntax, parameterList As ParameterListSyntax) As AccessorStatementSyntax
+        Friend Function AddHandlerAccessorStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), accessorKeyword As KeywordSyntax, parameterList As ParameterListSyntax) As AccessorStatementSyntax
             Debug.Assert(accessorKeyword IsNot Nothing AndAlso accessorKeyword.Kind = SyntaxKind.AddHandlerKeyword)
             Return New AccessorStatementSyntax(SyntaxKind.AddHandlerAccessorStatement, attributeLists.Node, modifiers.Node, accessorKeyword, parameterList, _factoryContext)
         End Function
@@ -48912,7 +48912,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The method's parameter list including the parentheses. If no parameter list was
         ''' present, Nothing is returned.
         ''' </param>
-        Friend Function RemoveHandlerAccessorStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), accessorKeyword As KeywordSyntax, parameterList As ParameterListSyntax) As AccessorStatementSyntax
+        Friend Function RemoveHandlerAccessorStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), accessorKeyword As KeywordSyntax, parameterList As ParameterListSyntax) As AccessorStatementSyntax
             Debug.Assert(accessorKeyword IsNot Nothing AndAlso accessorKeyword.Kind = SyntaxKind.RemoveHandlerKeyword)
             Return New AccessorStatementSyntax(SyntaxKind.RemoveHandlerAccessorStatement, attributeLists.Node, modifiers.Node, accessorKeyword, parameterList, _factoryContext)
         End Function
@@ -48942,7 +48942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The method's parameter list including the parentheses. If no parameter list was
         ''' present, Nothing is returned.
         ''' </param>
-        Friend Function RaiseEventAccessorStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), accessorKeyword As KeywordSyntax, parameterList As ParameterListSyntax) As AccessorStatementSyntax
+        Friend Function RaiseEventAccessorStatement(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), accessorKeyword As KeywordSyntax, parameterList As ParameterListSyntax) As AccessorStatementSyntax
             Debug.Assert(accessorKeyword IsNot Nothing AndAlso accessorKeyword.Kind = SyntaxKind.RaiseEventKeyword)
             Return New AccessorStatementSyntax(SyntaxKind.RaiseEventAccessorStatement, attributeLists.Node, modifiers.Node, accessorKeyword, parameterList, _factoryContext)
         End Function
@@ -48978,7 +48978,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The method's parameter list including the parentheses. If no parameter list was
         ''' present, Nothing is returned.
         ''' </param>
-        Friend Function AccessorStatement(kind As SyntaxKind, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), accessorKeyword As KeywordSyntax, parameterList As ParameterListSyntax) As AccessorStatementSyntax
+        Friend Function AccessorStatement(kind As SyntaxKind, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), accessorKeyword As KeywordSyntax, parameterList As ParameterListSyntax) As AccessorStatementSyntax
             Debug.Assert(SyntaxFacts.IsAccessorStatement(kind))
             Debug.Assert(accessorKeyword IsNot Nothing AndAlso SyntaxFacts.IsAccessorStatementAccessorKeyword(accessorKeyword.Kind))
             Return New AccessorStatementSyntax(kind, attributeLists.Node, modifiers.Node, accessorKeyword, parameterList, _factoryContext)
@@ -48995,7 +48995,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="interfaceMembers">
         ''' The list of interface members being implemented.
         ''' </param>
-        Friend Function ImplementsClause(implementsKeyword As KeywordSyntax, interfaceMembers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As ImplementsClauseSyntax
+        Friend Function ImplementsClause(implementsKeyword As KeywordSyntax, interfaceMembers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As ImplementsClauseSyntax
             Debug.Assert(implementsKeyword IsNot Nothing AndAlso implementsKeyword.Kind = SyntaxKind.ImplementsKeyword)
 
             Dim hash As Integer
@@ -49023,7 +49023,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="events">
         ''' The list of event members being handled.
         ''' </param>
-        Friend Function HandlesClause(handlesKeyword As KeywordSyntax, events As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As HandlesClauseSyntax
+        Friend Function HandlesClause(handlesKeyword As KeywordSyntax, events As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As HandlesClauseSyntax
             Debug.Assert(handlesKeyword IsNot Nothing AndAlso handlesKeyword.Kind = SyntaxKind.HandlesKeyword)
 
             Dim hash As Integer
@@ -49176,7 +49176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The missing identifier token for this incomplete member. Should only be used to
         ''' have a location for error reporting.
         ''' </param>
-        Friend Function IncompleteMember(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), missingIdentifier As IdentifierTokenSyntax) As IncompleteMemberSyntax
+        Friend Function IncompleteMember(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), missingIdentifier As IdentifierTokenSyntax) As IncompleteMemberSyntax
 
             Dim hash As Integer
             Dim cached = VisualBasicSyntaxNodeCache.TryGetNode(SyntaxKind.IncompleteMember, attributeLists.Node, modifiers.Node, missingIdentifier, _factoryContext, hash)
@@ -49211,7 +49211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The list of variable declarator. Each declarator specifies one or more variable
         ''' names along with a type and/or initializer.
         ''' </param>
-        Friend Function FieldDeclaration(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), declarators As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode)) As FieldDeclarationSyntax
+        Friend Function FieldDeclaration(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), declarators As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode)) As FieldDeclarationSyntax
 
             Dim hash As Integer
             Dim cached = VisualBasicSyntaxNodeCache.TryGetNode(SyntaxKind.FieldDeclaration, attributeLists.Node, modifiers.Node, declarators.Node, _factoryContext, hash)
@@ -49244,7 +49244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' If present, an "= initial-value" clause describing the initial value of the
         ''' variable or the value of the constant.
         ''' </param>
-        Friend Function VariableDeclarator(names As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), asClause As AsClauseSyntax, initializer As EqualsValueSyntax) As VariableDeclaratorSyntax
+        Friend Function VariableDeclarator(names As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), asClause As AsClauseSyntax, initializer As EqualsValueSyntax) As VariableDeclaratorSyntax
 
             Dim hash As Integer
             Dim cached = VisualBasicSyntaxNodeCache.TryGetNode(SyntaxKind.VariableDeclarator, names.Node, asClause, initializer, _factoryContext, hash)
@@ -49276,7 +49276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="type">
         ''' The type-name part of the As clause.
         ''' </param>
-        Friend Function SimpleAsClause(asKeyword As KeywordSyntax, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), type As TypeSyntax) As SimpleAsClauseSyntax
+        Friend Function SimpleAsClause(asKeyword As KeywordSyntax, attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), type As TypeSyntax) As SimpleAsClauseSyntax
             Debug.Assert(asKeyword IsNot Nothing AndAlso asKeyword.Kind = SyntaxKind.AsKeyword)
             Debug.Assert(type IsNot Nothing)
 
@@ -49341,7 +49341,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="closeBraceToken">
         ''' The "}" token.
         ''' </param>
-        Friend Function ObjectMemberInitializer(withKeyword As KeywordSyntax, openBraceToken As PunctuationSyntax, initializers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), closeBraceToken As PunctuationSyntax) As ObjectMemberInitializerSyntax
+        Friend Function ObjectMemberInitializer(withKeyword As KeywordSyntax, openBraceToken As PunctuationSyntax, initializers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), closeBraceToken As PunctuationSyntax) As ObjectMemberInitializerSyntax
             Debug.Assert(withKeyword IsNot Nothing AndAlso withKeyword.Kind = SyntaxKind.WithKeyword)
             Debug.Assert(openBraceToken IsNot Nothing AndAlso openBraceToken.Kind = SyntaxKind.OpenBraceToken)
             Debug.Assert(closeBraceToken IsNot Nothing AndAlso closeBraceToken.Kind = SyntaxKind.CloseBraceToken)
@@ -49485,7 +49485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' If present, an initializer with the default value of the parameter. If no
         ''' default value is present, Nothing is returned.
         ''' </param>
-        Friend Function Parameter(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), identifier As ModifiedIdentifierSyntax, asClause As SimpleAsClauseSyntax, [default] As EqualsValueSyntax) As ParameterSyntax
+        Friend Function Parameter(attributeLists As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), modifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), identifier As ModifiedIdentifierSyntax, asClause As SimpleAsClauseSyntax, [default] As EqualsValueSyntax) As ParameterSyntax
             Debug.Assert(identifier IsNot Nothing)
             Return New ParameterSyntax(SyntaxKind.Parameter, attributeLists.Node, modifiers.Node, identifier, asClause, [default], _factoryContext)
         End Function
@@ -49508,7 +49508,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' A list of array modifiers for the type. If no array modifiers were present, an
         ''' empty list is returned.
         ''' </param>
-        Friend Function ModifiedIdentifier(identifier As IdentifierTokenSyntax, nullable As PunctuationSyntax, arrayBounds As ArgumentListSyntax, arrayRankSpecifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As ModifiedIdentifierSyntax
+        Friend Function ModifiedIdentifier(identifier As IdentifierTokenSyntax, nullable As PunctuationSyntax, arrayBounds As ArgumentListSyntax, arrayRankSpecifiers As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode)) As ModifiedIdentifierSyntax
             Debug.Assert(identifier IsNot Nothing AndAlso identifier.Kind = SyntaxKind.IdentifierToken)
             Return New ModifiedIdentifierSyntax(SyntaxKind.ModifiedIdentifier, identifier, nullable, arrayBounds, arrayRankSpecifiers.Node, _factoryContext)
         End Function
@@ -49527,7 +49527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="closeParenToken">
         ''' The ")" token.
         ''' </param>
-        Friend Function ArrayRankSpecifier(openParenToken As PunctuationSyntax, commaTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode), closeParenToken As PunctuationSyntax) As ArrayRankSpecifierSyntax
+        Friend Function ArrayRankSpecifier(openParenToken As PunctuationSyntax, commaTokens As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList(of GreenNode), closeParenToken As PunctuationSyntax) As ArrayRankSpecifierSyntax
             Debug.Assert(openParenToken IsNot Nothing AndAlso openParenToken.Kind = SyntaxKind.OpenParenToken)
             Debug.Assert(closeParenToken IsNot Nothing AndAlso closeParenToken.Kind = SyntaxKind.CloseParenToken)
 
@@ -49558,7 +49558,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="greaterThanToken">
         ''' The "&gt;" token.
         ''' </param>
-        Friend Function AttributeList(lessThanToken As PunctuationSyntax, attributes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of GreenNode), greaterThanToken As PunctuationSyntax) As AttributeListSyntax
+        Friend Function AttributeList(lessThanToken As PunctuationSyntax, attributes As Global.Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(of GreenNode), greaterThanToken As PunctuationSyntax) As AttributeListSyntax
             Debug.Assert(lessThanToken IsNot Nothing AndAlso lessThanToken.Kind = SyntaxKind.LessThanToken)
             Debug.Assert(greaterThanToken IsNot Nothing AndAlso greaterThanToken.Kind = SyntaxKind.GreaterThanToken)
 
