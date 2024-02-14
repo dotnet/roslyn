@@ -751,6 +751,29 @@ namespace Microsoft.CodeAnalysis
             return logger;
         }
 
+        private static void PrintLoadedAssemblies(string heading, TextWriter consoleOutput)
+        {
+            var entryAssembly = Assembly.GetEntryAssembly();
+            var logDir = Environment.GetEnvironmentVariable("XUNIT_LOGS");
+            if (string.IsNullOrEmpty(logDir))
+            {
+                logDir = "D:\\a\\_work\\1\\s\\artifacts\\TestResults\\Debug";
+            }
+            var logFile = Path.Combine(logDir!, $"{entryAssembly}-compilerLog-{Guid.NewGuid()}.txt");
+            var lines = new StringBuilder();
+            lines.AppendLine($"{heading} - LOADED ASSEMBLIES:");
+            foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
+            {
+#pragma warning disable SYSLIB0012 // Type or member is obsolete
+                lines.AppendLine($"{a.FullName}:{a.CodeBase}");
+#pragma warning restore SYSLIB0012 // Type or member is obsolete
+            }
+
+            lines.AppendLine();
+            File.AppendAllText(logFile, lines.ToString());
+            consoleOutput.Write(lines.ToString());
+        }
+
         /// <summary>
         /// csc.exe and vbc.exe entry point.
         /// </summary>
@@ -758,6 +781,8 @@ namespace Microsoft.CodeAnalysis
         {
             var saveUICulture = CultureInfo.CurrentUICulture;
             SarifErrorLogger? errorLogger = null;
+
+            PrintLoadedAssemblies("Initial", consoleOutput);
 
             try
             {
@@ -778,7 +803,8 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                return RunCore(consoleOutput, errorLogger, cancellationToken);
+                var result = RunCore(consoleOutput, errorLogger, cancellationToken);
+                return Failed;
             }
             catch (OperationCanceledException)
             {
@@ -795,6 +821,7 @@ namespace Microsoft.CodeAnalysis
             {
                 CultureInfo.CurrentUICulture = saveUICulture;
                 errorLogger?.Dispose();
+                PrintLoadedAssemblies("Finally", consoleOutput);
             }
         }
 
@@ -997,6 +1024,8 @@ namespace Microsoft.CodeAnalysis
             {
                 ReportIVTInfos(consoleOutput, errorLogger, compilation, diagnostics.ToReadOnly());
             }
+
+            PrintLoadedAssemblies("End", consoleOutput);
 
             diagnostics.Free();
 

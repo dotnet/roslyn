@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -12,6 +13,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Harness;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -48,6 +50,18 @@ End Module";
 
             var errors = await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken);
             AssertEx.EqualOrDiff(string.Empty, string.Join(Environment.NewLine, errors));
+
+            DataCollectionService.RegisterCustomLogger(
+                static fileName =>
+                {
+                    var content = string.Join(Environment.NewLine, Directory.EnumerateFiles("D:\\a\\_work\\1\\s\\artifacts\\TestResults\\Debug"));
+                    File.WriteAllText(fileName, content);
+
+                },
+                logId: "customLogging",
+                extension: "log");
+
+            Assert.True(false);
         }
     }
 }
