@@ -1035,7 +1035,8 @@ internal sealed partial class SolutionCompilationState
         var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
 
-        using var _ = ArrayBuilder<DocumentState>.GetInstance(out var documentsToRemove);
+        using var _1 = ArrayBuilder<DocumentState>.GetInstance(out var documentsToRemove);
+        using var _2 = ArrayBuilder<DocumentState>.GetInstance(out var documentsToAdd);
 
         foreach (var projectId in this.SolutionState.ProjectIds)
         {
@@ -1045,7 +1046,7 @@ internal sealed partial class SolutionCompilationState
 
             Contract.ThrowIfFalse(newIdToProjectStateMapBuilder.ContainsKey(projectId));
 
-            var oldProjectState = oldTracker.ProjectState;
+            var oldProjectState = this.SolutionState.GetRequiredProjectState(projectId); oldTracker.ProjectState;
             var newProjectState = newTracker.ProjectState;
 
             newIdToProjectStateMapBuilder[projectId] = newProjectState;
@@ -1056,19 +1057,19 @@ internal sealed partial class SolutionCompilationState
             // map.
 
             // Fast check that we do in debug/release
-            Contract.ThrowIfFalse(newProjectState.DocumentStates.Count == 0 || newProjectState.DocumentStates.Count == oldProjectState.DocumentStates.Count);
-
-            // Slower check only in release.
-            Debug.Assert(newProjectState.DocumentStates.Count == 0 || newProjectState.DocumentStates.States.Keys.SetEquals(oldProjectState.DocumentStates.States.Keys));
-
-            if (newProjectState.DocumentStates.Count == 0)
+            if (!newProjectState.DocumentStates.States.Keys.SetEquals(oldProjectState.DocumentStates.States.Keys))
+            {
                 documentsToRemove.AddRange(oldProjectState.DocumentStates.States.Values);
+                documentsToAdd.AddRange(newProjectState.DocumentStates.States.Values);
+            }
         }
 
         var newIdToProjectStateMap = newIdToProjectStateMapBuilder.ToImmutable();
         var newIdToTrackerMap = newIdToTrackerMapBuilder.ToImmutable();
 
-        var filePathToDocumentIdsMap = this.SolutionState.CreateFilePathToDocumentIdsMapWithRemovedDocuments(documentsToRemove);
+        var filePathToDocumentIdsMap = this.SolutionState.CreateFilePathToDocumentIdsMapWithRemovedAndAddedDocuments(
+            documentsToRemove: documentsToRemove,
+            documentsToAdd: documentsToAdd);
         var dependencyGraph = SolutionState.CreateDependencyGraph(this.SolutionState.ProjectIds, newIdToProjectStateMap);
 
         var newState = this.SolutionState.Branch(

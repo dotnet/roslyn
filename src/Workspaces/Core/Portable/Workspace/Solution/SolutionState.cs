@@ -371,25 +371,6 @@ namespace Microsoft.CodeAnalysis
             return this.AddProject(newProject);
         }
 
-        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
-        {
-            var builder = _filePathToDocumentIdsMap.ToBuilder();
-
-            foreach (var documentState in documentStates)
-            {
-                var filePath = documentState.FilePath;
-
-                if (RoslynString.IsNullOrEmpty(filePath))
-                {
-                    continue;
-                }
-
-                builder.MultiAdd(filePath, documentState.Id);
-            }
-
-            return builder.ToImmutable();
-        }
-
         private static IEnumerable<TextDocumentState> GetDocumentStates(ProjectState projectState)
             => projectState.DocumentStates.States.Values
                    .Concat<TextDocumentState>(projectState.AdditionalDocumentStates.States.Values)
@@ -423,15 +404,52 @@ namespace Microsoft.CodeAnalysis
                 dependencyGraph: newDependencyGraph);
         }
 
-        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments<T>(ArrayBuilder<T> documentStates) where T : TextDocumentState
-            => documentStates.Count == 0
-                ? _filePathToDocumentIdsMap
-                : CreateFilePathToDocumentIdsMapWithRemovedDocuments((IEnumerable<TextDocumentState>)documentStates);
+        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedAndAddedDocuments(
+            ArrayBuilder<DocumentState> documentsToRemove,
+            ArrayBuilder<DocumentState> documentsToAdd)
+        {
+            if (documentsToRemove.Count == 0 && documentsToAdd.Count == 0)
+                return _filePathToDocumentIdsMap;
+
+            var builder = _filePathToDocumentIdsMap.ToBuilder();
+
+            RemoveDocumentFilePaths(documentsToRemove, builder);
+            AddDocumentFilePaths(documentsToAdd, builder);
+
+            return builder.ToImmutable();
+        }
+
+        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
+        {
+            var builder = _filePathToDocumentIdsMap.ToBuilder();
+            AddDocumentFilePaths(documentStates, builder);
+            return builder.ToImmutable();
+        }
+
+        private static void AddDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        {
+            foreach (var documentState in documentStates)
+            {
+                var filePath = documentState.FilePath;
+
+                if (RoslynString.IsNullOrEmpty(filePath))
+                {
+                    continue;
+                }
+
+                builder.MultiAdd(filePath, documentState.Id);
+            }
+        }
 
         public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
+            RemoveDocumentFilePaths(documentStates, builder);
+            return builder.ToImmutable();
+        }
 
+        private static void RemoveDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        {
             foreach (var documentState in documentStates)
             {
                 var filePath = documentState.FilePath;
@@ -448,8 +466,6 @@ namespace Microsoft.CodeAnalysis
 
                 builder.MultiRemove(filePath, documentState.Id);
             }
-
-            return builder.ToImmutable();
         }
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithFilePath(DocumentId documentId, string? oldFilePath, string? newFilePath)
