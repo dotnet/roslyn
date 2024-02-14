@@ -1,3 +1,17 @@
+parameters:
+- name: EnableLocalization
+  type: boolean
+  default: false
+- name: EnableOptProf
+  type: boolean
+  default: false
+- name: IsOptProf
+  type: boolean
+  default: false
+- name: ShouldSkipOptimize
+  type: boolean
+  default: false
+
 steps:
 - task: notice@0
   displayName: 🛠️ Generate NOTICE file
@@ -6,3 +20,26 @@ steps:
     outputformat: text
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   retryCountOnTaskFailure: 3 # fails when the cloud service is overloaded
+
+- ${{ if parameters.IsOptProf }}:
+  # We have to install these plugins ourselves for Optprof runs because those pipelines haven't migrated to 1ES PT yet.
+  - task: MicroBuildOptProfPlugin@6
+    inputs:
+      ProfilingInputsDropName: $(ProfilingInputsDropName)
+      OptimizationInputsLookupMethod: DropPrefix
+      DropNamePrefix: OptimizationInputs/$(System.TeamProject)/$(Build.Repository.Name)
+      ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
+      AccessToken: $(System.AccessToken)
+    displayName: 🔧 Install OptProf Plugin
+
+  - task: MicroBuildSigningPlugin@4
+    inputs:
+      signType: Real
+      zipSources: false
+    displayName: 🔧 Install MicroBuild Signing Plugin
+
+  - ${{ if parameters.EnableLocalization }}:
+    - task: MicroBuildLocalizationPlugin@4
+      inputs:
+        languages: $(LocLanguages)
+      displayName: 🔧 Install MicroBuild Localization Plugin

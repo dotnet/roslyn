@@ -168,6 +168,19 @@ try {
         'LibraryName' = $LibraryName;
     }
 
+    Replace-Placeholders -Path "azure-pipelines/InsertionMetadataPackage.nuspec" -Replacements @{
+        'LibraryName' = $LibraryName;
+    }
+    Replace-Placeholders -Path "azure-pipelines/artifacts/VSInsertion.ps1" -Replacements @{
+        'LibraryName' = $LibraryName;
+    }
+    Replace-Placeholders -Path "azure-pipelines/OptProf.yml" -Replacements @{
+        'LibraryName' = $LibraryName;
+    }
+    Replace-Placeholders -Path "azure-pipelines/OptProf_part2.yml" -Replacements @{
+        'LibraryName' = $LibraryName;
+    }
+
     # Self destruct
     git rm Expand-Template.* Apply-Template.ps1
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

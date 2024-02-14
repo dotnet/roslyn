@@ -1,6 +1,16 @@
 parameters:
-  EnableCompliance:
-  EnableAPIScan:
+- name: EnableCompliance
+  type: boolean
+  default: false
+- name: EnableAPIScan
+  type: boolean
+  default: false
+- name: EnableOptProf
+  type: boolean
+  default: false
+- name: IsOptProf
+  type: boolean
+  default: false
 
 steps:
 - task: MicroBuildCodesignVerify@3
@@ -10,7 +20,27 @@ steps:
       $(Build.SourcesDirectory)/bin/Packages/$(BuildConfiguration)/NuGet
   condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
-- ${{ if eq(parameters.EnableCompliance, 'true') }}:
+- ${{ if parameters.EnableOptProf }}:
+  - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
+    inputs:
+      dropServiceURI: https://devdiv.artifacts.visualstudio.com
+      buildNumber: $(ProfilingInputsDropName)
+      sourcePath: $(Build.ArtifactStagingDirectory)\OptProf\ProfilingInputs
+      toLowerCase: false
+      usePat: true
+    displayName: 📢 Publish to Artifact Services - ProfilingInputs
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    continueOnError: true
+
+  - ${{ if parameters.IsOptProf }}:
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: $(Build.ArtifactStagingDirectory)/InsertionOutputs
+        ArtifactName: InsertionOutputs
+        ArtifactType: Container
+      displayName: 📢 Publish InsertionOutputs as Azure DevOps artifacts
+
+- ${{ if parameters.EnableCompliance }}:
   - template: secure-development-tools.yml
     parameters:
       EnableAPIScan: ${{ parameters.EnableAPIScan }}
