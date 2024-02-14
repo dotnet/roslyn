@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
@@ -1058,7 +1059,7 @@ internal sealed partial class SolutionCompilationState
             Contract.ThrowIfFalse(newProjectState.DocumentStates.Count == 0 || newProjectState.DocumentStates.Count == oldProjectState.DocumentStates.Count);
 
             // Slower check only in release.
-            Debug.Assert(newProjectState.DocumentStates.Count == 0 || newProjectState.DocumentStates.States.SetEquals(oldProjectState.DocumentStates.States));
+            Debug.Assert(newProjectState.DocumentStates.Count == 0 || newProjectState.DocumentStates.States.Keys.SetEquals(oldProjectState.DocumentStates.States.Keys));
 
             if (newProjectState.DocumentStates.Count == 0)
                 documentsToRemove.AddRange(oldProjectState.DocumentStates.States.Values);
