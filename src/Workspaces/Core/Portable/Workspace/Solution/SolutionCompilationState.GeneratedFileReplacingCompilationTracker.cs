@@ -63,12 +63,6 @@ namespace Microsoft.CodeAnalysis
                 return new GeneratedFileReplacingCompilationTracker(UnderlyingTracker.FreezePartialState(cancellationToken), replacementDocumentState);
             }
 
-            public ICompilationTracker FreezePartialStateWithDocument(DocumentState docState, CancellationToken cancellationToken)
-            {
-                // Because we override SourceGeneratedDocument.WithFrozenPartialSemantics directly, we shouldn't be able to get here.
-                throw ExceptionUtilities.Unreachable();
-            }
-
             public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 // Fast path if we've definitely already done this before
