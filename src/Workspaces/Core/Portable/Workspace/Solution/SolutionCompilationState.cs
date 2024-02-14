@@ -1171,21 +1171,10 @@ internal sealed partial class SolutionCompilationState
                 if (oldDocumentState is null)
                 {
                     // Project doesn't have this document, attempt to fork it with the document added.
-                    var newProjectState = oldProjectState.AddDocuments([newDocumentState]);
-                    Contract.ThrowIfTrue(oldProjectState == newProjectState);
-
-                    var stateChange = currentState.SolutionState.ForkProject(
-                        oldProjectState,
-                        newProjectState,
-                        // intentionally accessing this.Solution here not newSolutionState
-                        newFilePathToDocumentIdsMap: this.SolutionState.CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStatesForProject));
-
-
-                    currentState = currentState.ForkProject(
-                        new(),
-                        _ => new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([newDocumentState]),
-                        forkTracker: true);
-                    currentState = currentState.AddDocuments([newDocumentState]);
+                    currentState = currentState.AddDocumentsToMultipleProjects(
+                        [(documentId.ProjectId, [newDocumentState])],
+                        static (oldProjectState, newDocumentStates)
+                        => (oldProjectState.AddDocuments(newDocumentStates), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(newDocumentStates)));
                 }
                 else
                 {
@@ -1196,28 +1185,11 @@ internal sealed partial class SolutionCompilationState
 
             return currentState;
         }
-
-#if false
-
-
-
-    public SolutionCompilationState AddDocumentState(DocumentState documentState)
-    {
-
-        newCompilationState = newCompilationState.ForkProject(
-            stateChange,
-            static (_, compilationTranslationAction) => compilationTranslationAction,
-            forkTracker: true,
-            arg: compilationTranslationAction);
-        return UpdateDocumentState(
-            this.SolutionState.WithDocumentState(documentState), documentState.Id);
-    }
-#endif
     }
 
     public SolutionCompilationState AddDocument(ImmutableArray<DocumentInfo> documentInfos)
     {
-        return AddDocumentsToMultipleProjects(
+        return AddDocumentsToMultipleProjects(documentInfos,
             static (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
             static (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
     }
@@ -1226,7 +1198,7 @@ internal sealed partial class SolutionCompilationState
     {
         return AddDocumentsToMultipleProjects(documentInfos,
             static (documentInfo, project) => new AdditionalDocumentState(project.LanguageServices.SolutionServices, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-            static (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
+            static (oldProject, documents) => (oldProject.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
     }
 
     public SolutionCompilationState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
@@ -1268,42 +1240,53 @@ internal sealed partial class SolutionCompilationState
     /// <summary>
     /// Core helper that takes a set of <see cref="DocumentInfo" />s and does the application of the appropriate documents to each project.
     /// </summary>
-    /// <param name="allNewDocumentStates">The set of documents to add.</param>
+    /// <param name="documentInfos">The set of documents to add.</param>
     /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added,
     /// and the <see cref="SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction"/> needed as
     /// well.</param>
     private SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
-        ImmutableArray<TDocumentState> allNewDocumentStates,
+        ImmutableArray<DocumentInfo> documentInfos,
+        Func<DocumentInfo, ProjectState, TDocumentState> createDocumentState,
         Func<ProjectState, ImmutableArray<TDocumentState>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
         where TDocumentState : TextDocumentState
     {
-        if (allNewDocumentStates.IsDefault)
-            throw new ArgumentNullException(nameof(allNewDocumentStates));
+        if (documentInfos.IsDefault)
+            throw new ArgumentNullException(nameof(documentInfos));
 
-        if (allNewDocumentStates.IsEmpty)
+        if (documentInfos.IsEmpty)
             return this;
 
-        // The documents might be contributing to multiple different projects; split them by project and then we'll process
-        // project-at-a-time.
-        var documentInfosByProjectId = allNewDocumentStates.GroupBy(d => d.Id.ProjectId);
+        // The documents might be contributing to multiple different projects; split them by project and then we'll
+        // process one project at a time.
+        return AddDocumentsToMultipleProjects(
+            documentInfos.GroupBy(d => d.Id.ProjectId).Select(g =>
+            {
+                var projectId = g.Key;
+                var projectState = this.SolutionState.GetRequiredProjectState(projectId);
+                return (projectId, newDocumentStates: g.SelectAsArray(di => createDocumentState(di, projectState)));
+            }),
+            addDocumentsToProjectState);
+    }
 
+    private SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
+        IEnumerable<(ProjectId projectId, ImmutableArray<TDocumentState> newDocumentStates)> projectIdAndNewDocuments,
+        Func<ProjectState, ImmutableArray<TDocumentState>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
+        where TDocumentState : TextDocumentState
+    {
         var newCompilationState = this;
 
-        foreach (var grouping in documentInfosByProjectId)
+        foreach (var (projectId, newDocumentStates) in projectIdAndNewDocuments)
         {
-            var projectId = grouping.Key;
             this.SolutionState.CheckContainsProject(projectId);
-            var oldProjectState = this.SolutionState.GetProjectState(projectId)!;
+            var oldProjectState = this.SolutionState.GetRequiredProjectState(projectId);
 
-            var newDocumentStatesForProject = grouping.ToImmutableArray();
-
-            var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProjectState, newDocumentStatesForProject);
+            var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProjectState, newDocumentStates);
 
             var stateChange = newCompilationState.SolutionState.ForkProject(
                 oldProjectState,
                 newProjectState,
                 // intentionally accessing this.Solution here not newSolutionState
-                newFilePathToDocumentIdsMap: this.SolutionState.CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStatesForProject));
+                newFilePathToDocumentIdsMap: this.SolutionState.CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStates));
 
             newCompilationState = newCompilationState.ForkProject(
                 stateChange,
