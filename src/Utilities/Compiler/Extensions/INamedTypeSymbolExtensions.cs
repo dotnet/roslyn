@@ -14,6 +14,11 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class INamedTypeSymbolExtensions
     {
+
+        private static readonly Func<INamedTypeSymbol, bool> s_isFileLocal = LightupHelpers.CreateSymbolPropertyAccessor<INamedTypeSymbol, bool>(typeof(INamedTypeSymbol), nameof(IsFileLocal), fallbackResult: false);
+
+        public static bool IsFileLocal(this INamedTypeSymbol symbol) => s_isFileLocal(symbol);
+
         public static IEnumerable<INamedTypeSymbol> GetBaseTypesAndThis(this INamedTypeSymbol type)
         {
             INamedTypeSymbol current = type;
@@ -283,9 +288,5 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsTopLevelStatementsEntryPointType([NotNullWhen(true)] this INamedTypeSymbol? typeSymbol)
             => typeSymbol is not null &&
                typeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.IsTopLevelStatementsEntryPointMethod());
-
-        private static readonly Func<INamedTypeSymbol, bool> s_isFileLocal = LightupHelpers.CreateSymbolPropertyAccessor<INamedTypeSymbol, bool>(typeof(INamedTypeSymbol), nameof(IsFileLocal), fallbackResult: false);
-
-        public static bool IsFileLocal(this INamedTypeSymbol symbol) => s_isFileLocal(symbol);
     }
 }
