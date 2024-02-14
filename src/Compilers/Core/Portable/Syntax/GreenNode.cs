@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (this.flags & NodeFlags.HasAnnotations) != 0;
+                return (this.flags & NodeFlags.HasAnnotations) == NodeFlags.HasAnnotations;
             }
         }
         #endregion
