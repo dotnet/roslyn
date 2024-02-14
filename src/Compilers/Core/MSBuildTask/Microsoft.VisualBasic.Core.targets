@@ -20,7 +20,8 @@
                   @(AdditionalFiles);
                   @(EmbeddedFiles);
                   @(Analyzer);
-                  @(EditorConfigFiles)"
+                  @(EditorConfigFiles);
+                  $(SourceLink)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
                    @(IntermediateRefAssembly);
