@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis
                     if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
                 }
 
-                this.flags |= NodeFlags.HasAnnotations;
+                this.flags |= (NodeFlags.HasAnnotations | NodeFlags.ContainsAnnotations);
                 s_annotationsTable.Add(this, annotations);
             }
         }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis
                     if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
                 }
 
-                this.flags |= NodeFlags.HasAnnotations;
+                this.flags |= (NodeFlags.HasAnnotations | NodeFlags.ContainsAnnotations);
                 s_annotationsTable.Add(this, annotations);
             }
         }
@@ -267,9 +267,9 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             ContainsAnnotations = 1 << 4,
             /// <summary>
-            /// If this node itself has annotations (not just its descendants).
+            /// If this node directly has annotations (not its descendants).
             /// </summary>
-            HasAnnotations = (1 << 5) | ContainsAnnotations,
+            HasAnnotations = 1 << 5,
             IsNotMissing = 1 << 6,
             /// <summary>
             /// If this node, or any of its descendants has attributes attached to it.
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (this.flags & NodeFlags.HasAnnotations) == NodeFlags.HasAnnotations;
+                return (this.flags & NodeFlags.HasAnnotations) != 0;
             }
         }
         #endregion
