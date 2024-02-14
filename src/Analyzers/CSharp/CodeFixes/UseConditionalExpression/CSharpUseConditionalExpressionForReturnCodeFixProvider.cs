@@ -45,6 +45,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
             return statement;
         }
 
+        protected override SyntaxNode WrapIfStatementIfNecessary(IConditionalOperation operation)
+        {
+            if (operation.Syntax is IfStatementSyntax { Condition: CheckedExpressionSyntax exp })
+                return exp;
+
+            return base.WrapIfStatementIfNecessary(operation);
+        }
+
+        protected override ExpressionSyntax WrapReturnExpressionIfNecessary(ExpressionSyntax returnExpression, IOperation returnOperation)
+        {
+            if (returnOperation.Syntax is ReturnStatementSyntax { Expression: CheckedExpressionSyntax exp })
+                return exp;
+
+            return base.WrapReturnExpressionIfNecessary(returnExpression, returnOperation);
+        }
+
         protected override ExpressionSyntax ConvertToExpression(IThrowOperation throwOperation)
             => CSharpUseConditionalExpressionHelpers.ConvertToExpression(throwOperation);
 

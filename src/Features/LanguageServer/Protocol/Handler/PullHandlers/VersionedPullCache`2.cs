@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </list>
         /// This is used to determine if we need to re-calculate results.
         /// </summary>
-        private readonly Dictionary<(Workspace workspace, ProjectOrDocumentId id), (string resultId, TCheapVersion cheapVersion, TExpensiveVersion expensiveVersion)> _idToLastReportedResult = new();
+        private readonly Dictionary<(Workspace workspace, ProjectOrDocumentId id), (string resultId, TCheapVersion cheapVersion, TExpensiveVersion expensiveVersion)> _idToLastReportedResult = [];
 
         /// <summary>
         /// The next available id to label results with.  Note that results are tagged on a per-document bases.  That

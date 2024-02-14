@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private readonly UnitTestingProjectProcessor _processor;
 
                 private readonly NonReentrantLock _workGate = new();
-                private readonly Dictionary<DocumentId, UnitTestingData> _pendingWork = new();
+                private readonly Dictionary<DocumentId, UnitTestingData> _pendingWork = [];
 
                 public UnitTestingSemanticChangeProcessor(
                     IAsynchronousOperationListener listener,
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     private readonly UnitTestingIncrementalAnalyzerProcessor _processor;
 
                     private readonly NonReentrantLock _workGate = new();
-                    private readonly Dictionary<ProjectId, UnitTestingData> _pendingWork = new();
+                    private readonly Dictionary<ProjectId, UnitTestingData> _pendingWork = [];
 
                     public UnitTestingProjectProcessor(
                         IAsynchronousOperationListener listener,

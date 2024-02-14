@@ -8054,21 +8054,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(node, includeExplicitConversions: true);
             SnapshotWalkerThroughConversionGroup(node, operand);
-            TypeWithState operandType = VisitRvalueWithState(operand);
+            if (targetType.SpecialType == SpecialType.System_Boolean &&
+                (operand.Type?.SpecialType == SpecialType.System_Boolean || operand.Type?.IsErrorType() == true))
+            {
+                Visit(operand);
+            }
+            else
+            {
+                VisitRvalue(operand);
+            }
+
             SetResultType(node,
                 VisitConversion(
                     node,
                     operand,
                     conversion,
                     targetType,
-                    operandType,
+                    ResultType,
                     checkConversion: true,
                     fromExplicitCast: fromExplicitCast,
                     useLegacyWarnings: fromExplicitCast,
                     AssignmentKind.Assignment,
                     reportTopLevelWarnings: fromExplicitCast,
                     reportRemainingWarnings: true,
-                    trackMembers: true));
+                    trackMembers: !IsConditionalState));
 
             return null;
         }

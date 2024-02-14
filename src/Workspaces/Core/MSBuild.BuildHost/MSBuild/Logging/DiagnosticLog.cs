@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Logging
             => _items.Any(i => i.Kind == WorkspaceDiagnosticKind.Failure);
 
         public DiagnosticLog()
-            => _items = new List<DiagnosticLogItem>();
+            => _items = [];
 
         public IEnumerator<DiagnosticLogItem> GetEnumerator()
             => _items.GetEnumerator();

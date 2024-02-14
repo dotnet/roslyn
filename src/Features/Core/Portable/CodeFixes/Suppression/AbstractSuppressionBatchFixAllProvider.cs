@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         private static readonly Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue =
-            _ => new ConcurrentBag<(CodeAction, Document)>();
+            _ => [];
 
         private static async Task GetChangedDocumentsAsync(
             Solution oldSolution,

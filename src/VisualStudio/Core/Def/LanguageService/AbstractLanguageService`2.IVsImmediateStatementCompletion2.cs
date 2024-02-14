@@ -19,8 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService> : IVsImmediateStatementCompletion2
     {
-        protected Dictionary<IVsTextView, DebuggerIntelliSenseFilter> filters =
-            new();
+        protected Dictionary<IVsTextView, DebuggerIntelliSenseFilter> filters = [];
 
         int IVsImmediateStatementCompletion2.EnableStatementCompletion(int enable, int startIndex, int endIndex, IVsTextView textView)
         {

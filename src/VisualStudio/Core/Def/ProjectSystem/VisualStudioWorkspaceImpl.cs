@@ -93,12 +93,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <remarks>Should be updated with <see cref="ImmutableInterlocked"/>.</remarks>
         private ImmutableDictionary<ProjectId, Func<string?>> _projectToRuleSetFilePath = ImmutableDictionary<ProjectId, Func<string?>>.Empty;
 
-        private readonly Dictionary<string, List<ProjectSystemProject>> _projectSystemNameToProjectsMap = new();
+        private readonly Dictionary<string, List<ProjectSystemProject>> _projectSystemNameToProjectsMap = [];
 
         /// <summary>
         /// Only safe to use on the UI thread.
         /// </summary>
-        private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = new();
+        private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = [];
 
         private VirtualMemoryNotificationListener? _memoryListener;
 

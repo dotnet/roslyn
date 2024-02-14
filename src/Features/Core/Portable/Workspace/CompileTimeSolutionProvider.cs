@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// Cached compile-time solution corresponding to an existing design-time solution.
         /// </summary>
 #if NETCOREAPP
-        private readonly ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSolution = new();
+        private readonly ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSolution = [];
 #else
         private ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSolution = new();
 #endif

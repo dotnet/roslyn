@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var referencesByTargetProject = new Dictionary<string, List<ProjectReference>>();
             foreach (var targetProject in projectReferences)
             {
-                var references = referencesByTargetProject.GetOrAdd(targetProject, _ => new List<ProjectReference>());
+                var references = referencesByTargetProject.GetOrAdd(targetProject, _ => []);
                 if (references.Count == 0)
                 {
                     references.Add(new ProjectReference(solution.GetProjectsByName(targetProject).Single().Id));

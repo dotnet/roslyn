@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         /// </remarks>
         private readonly AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId? changedProject)> _workQueue;
 
-        private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion = new();
+        private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion = [];
 
         /// <summary>
         /// Lock used to protect reads and writes of <see cref="_packageSourcesTask"/>.

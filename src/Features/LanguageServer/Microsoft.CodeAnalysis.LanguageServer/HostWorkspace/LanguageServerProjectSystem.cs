@@ -59,7 +59,7 @@ internal sealed class LanguageServerProjectSystem
     /// in <see cref="LoadOrReloadProjectsAsync" /> and downstream calls; any other updating of this (like unloading projects) should be achieved by adding
     /// things to the <see cref="_projectsToLoadAndReload" />.
     /// </summary>
-    private readonly ConcurrentDictionary<string, List<LoadedProject>> _loadedProjects = new();
+    private readonly ConcurrentDictionary<string, List<LoadedProject>> _loadedProjects = [];
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -244,7 +244,7 @@ internal sealed class LanguageServerProjectSystem
 
                 var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => new List<LoadedProject>());
 
-                Dictionary<ProjectFileInfo, (ImmutableArray<CommandLineReference> MetadataReferences, OutputKind OutputKind, bool NeedsRestore)> projectFileInfos = new();
+                Dictionary<ProjectFileInfo, (ImmutableArray<CommandLineReference> MetadataReferences, OutputKind OutputKind, bool NeedsRestore)> projectFileInfos = [];
                 foreach (var loadedProjectInfo in loadedProjectInfos)
                 {
                     // If we already have the project, just update it

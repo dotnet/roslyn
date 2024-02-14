@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// examining all of them to go in both up and down directions in every project we process.  Any time we
             /// add a new symbol to it we'll continue to cascade in both directions looking for more.
             /// </summary>
-            private readonly MetadataUnifyingSymbolHashSet _allSymbols = new();
+            private readonly MetadataUnifyingSymbolHashSet _allSymbols = [];
             private readonly bool _includeImplementationsThroughDerivedTypes;
 
             public BidirectionalSymbolSet(

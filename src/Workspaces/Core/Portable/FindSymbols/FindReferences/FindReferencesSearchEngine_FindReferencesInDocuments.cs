@@ -25,8 +25,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // the starting symbol.
             Debug.Assert(_options.UnidirectionalHierarchyCascade);
 
-            var unifiedSymbols = new MetadataUnifyingSymbolHashSet();
-            unifiedSymbols.Add(originalSymbol);
+            var unifiedSymbols = new MetadataUnifyingSymbolHashSet
+            {
+                originalSymbol
+            };
 
             // As we hit symbols, we may have to compute if they have an inheritance relationship to the symbols we're
             // searching for.  Cache those results so we don't have to continually perform them.
@@ -181,7 +183,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // walk up the original symbol's inheritance hierarchy to see if we hit the candidate. Don't walk down
                 // derived types here.  The point of this algorithm is to only walk upwards looking for matches.
                 var searchSymbolUpSet = await SymbolSet.CreateAsync(
-                    this, new() { searchSymbol }, includeImplementationsThroughDerivedTypes: false, cancellationToken).ConfigureAwait(false);
+                    this, [searchSymbol], includeImplementationsThroughDerivedTypes: false, cancellationToken).ConfigureAwait(false);
                 foreach (var symbolUp in searchSymbolUpSet.GetAllSymbols())
                 {
                     if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, symbolUp, candidate, cancellationToken).ConfigureAwait(false))
@@ -191,7 +193,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // walk up the candidate's inheritance hierarchy to see if we hit the original symbol. Don't walk down
                 // derived types here.  The point of this algorithm is to only walk upwards looking for matches.
                 var candidateSymbolUpSet = await SymbolSet.CreateAsync(
-                    this, new() { candidate }, includeImplementationsThroughDerivedTypes: false, cancellationToken).ConfigureAwait(false);
+                    this, [candidate], includeImplementationsThroughDerivedTypes: false, cancellationToken).ConfigureAwait(false);
                 foreach (var candidateUp in candidateSymbolUpSet.GetAllSymbols())
                 {
                     if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, searchSymbol, candidateUp, cancellationToken).ConfigureAwait(false))

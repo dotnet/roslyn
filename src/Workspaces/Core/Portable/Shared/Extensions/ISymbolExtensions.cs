@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            visitedSymbols ??= new HashSet<ISymbol>();
+            visitedSymbols ??= [];
             if (!visitedSymbols.Add(symbol))
             {
                 // Prevent recursion

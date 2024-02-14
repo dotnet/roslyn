@@ -181,8 +181,8 @@ public class A { }";
         private class ClientCallbackTarget
         {
             public bool WorkspaceDidChangeConfigurationRegistered { get; private set; } = false;
-            public List<ConfigurationItem> ReceivedConfigurationItems { get; } = new();
-            public List<string> MockClientSideValues { get; } = new();
+            public List<ConfigurationItem> ReceivedConfigurationItems { get; } = [];
+            public List<string> MockClientSideValues { get; } = [];
             public bool ReceivedWorkspaceConfigurationRequest { get; private set; } = false;
 
             [JsonRpcMethod(Methods.ClientRegisterCapabilityName, UseSingleObjectParameterDeserialization = true)]

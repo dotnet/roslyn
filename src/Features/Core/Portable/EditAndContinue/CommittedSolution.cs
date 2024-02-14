@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Once a document state is <see cref="DocumentState.MatchesBuildOutput"/> or <see cref="DocumentState.DesignTimeOnly"/>
         /// it will never change.
         /// </summary>
-        private readonly Dictionary<DocumentId, DocumentState> _documentState = new();
+        private readonly Dictionary<DocumentId, DocumentState> _documentState = [];
 
         private readonly object _guard = new();
 

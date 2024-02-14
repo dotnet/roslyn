@@ -230,8 +230,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             /// </description></item>
             /// </list>
             /// </summary>
-            private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, TextSpanIntervalTree? intervalTree)> _codeBlockIntervals
-                = new();
+            private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, TextSpanIntervalTree? intervalTree)> _codeBlockIntervals = [];
 
             public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
             {
