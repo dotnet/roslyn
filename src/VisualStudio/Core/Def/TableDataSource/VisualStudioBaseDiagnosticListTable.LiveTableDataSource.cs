@@ -266,6 +266,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return false;
                 }
 
+                // We do not report Copilot suggestions in error list
+                if (diagnostic.CustomTags.Contains(WellKnownDiagnosticCustomTags.CopilotSuggestion))
+                    return false;
+
                 switch (diagnostic.Severity)
                 {
                     case DiagnosticSeverity.Info:

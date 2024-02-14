@@ -700,6 +700,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => node.ConvertToSingleLine(useElasticTrivia);
 
         public SyntaxNode? GetContainingMemberDeclaration(SyntaxNode root, int position, bool useFullSpan = true)
+            => GetContainingMemberDeclaration<MemberDeclarationSyntax>(root, position, useFullSpan);
+
+        public SyntaxNode? GetContainingMethodDeclaration(SyntaxNode root, int position, bool useFullSpan = true)
+            => GetContainingMemberDeclaration<BaseMethodDeclarationSyntax>(root, position, useFullSpan);
+
+        private static SyntaxNode? GetContainingMemberDeclaration<TMemberDeclarationSyntax>(SyntaxNode root, int position, bool useFullSpan = true)
+            where TMemberDeclarationSyntax : MemberDeclarationSyntax
         {
             var end = root.FullSpan.End;
             if (end == 0)
@@ -717,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                 if (useFullSpan || node.Span.Contains(position))
                 {
                     var kind = node.Kind();
-                    if ((kind != SyntaxKind.GlobalStatement) && (kind != SyntaxKind.IncompleteMember) && (node is MemberDeclarationSyntax))
+                    if ((kind != SyntaxKind.GlobalStatement) && (kind != SyntaxKind.IncompleteMember) && (node is TMemberDeclarationSyntax))
                     {
                         return node;
                     }

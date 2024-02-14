@@ -9,13 +9,12 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Copilot;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Naming;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
@@ -146,6 +145,30 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             throw ExceptionUtilities.Unreachable();
+        }
+
+        public static async Task<ImmutableArray<DiagnosticData>> GetCachedCopilotDiagnosticsAsync(this TextDocument document, TextSpan span, CancellationToken cancellationToken)
+        {
+            var diagnostics = await document.GetCachedCopilotDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+            if (diagnostics.IsEmpty)
+                return [];
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            return diagnostics.WhereAsArray(diagnostic => span.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
+        }
+
+        public static async Task<ImmutableArray<DiagnosticData>> GetCachedCopilotDiagnosticsAsync(this TextDocument document, CancellationToken cancellationToken)
+        {
+            if (document is not Document sourceDocument)
+                return ImmutableArray<DiagnosticData>.Empty;
+
+            var copilotCodeAnalysisService = sourceDocument.Project.Solution.Services.GetService<ICopilotCodeAnalysisService>();
+            if (copilotCodeAnalysisService is null)
+                return ImmutableArray<DiagnosticData>.Empty;
+
+            var promptTitles = await copilotCodeAnalysisService.GetAvailablePromptTitlesAsync(sourceDocument, cancellationToken).ConfigureAwait(false);
+            var copilotDiagnostics = await copilotCodeAnalysisService.GetCachedDocumentDiagnosticsAsync(sourceDocument, promptTitles, cancellationToken).ConfigureAwait(false);
+            return copilotDiagnostics.SelectAsArray(d => DiagnosticData.Create(d, sourceDocument));
         }
     }
 }

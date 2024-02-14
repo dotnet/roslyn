@@ -132,6 +132,13 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
                     includeSuppressedDiagnostics: true,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
+                // Include Copilot diagnostics when computing analyzer semantic diagnostics.
+                if (_diagnosticKind == DiagnosticKind.AnalyzerSemantic)
+                {
+                    var copilotDiagnostics = await document.GetCachedCopilotDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+                    diagnostics = diagnostics.AddRange(copilotDiagnostics);
+                }
+
                 foreach (var diagnosticData in diagnostics)
                 {
                     if (_callback.IncludeDiagnostic(diagnosticData) && !diagnosticData.IsSuppressed)

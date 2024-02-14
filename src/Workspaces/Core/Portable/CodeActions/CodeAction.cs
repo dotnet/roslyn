@@ -158,6 +158,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
             => [];
 
         /// <summary>
+        /// Code actions that should be presented as hyperlinks in the code action preview pane,
+        /// similar to FixAll scopes and Preview Changes.
+        /// </summary>
+        internal virtual ImmutableArray<CodeAction> AdditionalPreviewFlavors => [];
+
+        /// <summary>
         /// Bridge method for sdk. https://github.com/dotnet/roslyn-sdk/issues/1136 tracks removing this.
         /// </summary>
         internal ImmutableArray<CodeAction> NestedCodeActions

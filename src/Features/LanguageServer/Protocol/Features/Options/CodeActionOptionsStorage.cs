@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 HideAdvancedMembers = globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),
                 WrappingColumn = globalOptions.GetOption(WrappingColumn, languageServices.Language),
                 ConditionalExpressionWrappingLength = globalOptions.GetOption(ConditionalExpressionWrappingLength, languageServices.Language),
-                CollectionExpressionWrappingLength = globalOptions.GetOption(CollectionExpressionWrappingLength, languageServices.Language),
+                CollectionExpressionWrappingLength = globalOptions.GetOption(CollectionExpressionWrappingLength, languageServices.Language)
             };
 
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)

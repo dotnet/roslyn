@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -22,6 +23,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -46,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         // Shared by project fixers and workspace fixers.
         private readonly ImmutableDictionary<LanguageKind, Lazy<ImmutableArray<IConfigurationFixProvider>>> _configurationProvidersMap;
+        private readonly ImmutableDictionary<LanguageKind, Lazy<ImmutableArray<CopilotCodeFixProvider>>> _copilotCodeFixProvidersMap;
         private readonly ImmutableArray<Lazy<IErrorLoggerService>> _errorLoggers;
 
         private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>>? _lazyWorkspaceFixersMap;
@@ -70,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _fixersPerLanguageMap = _fixers.ToPerLanguageMapWithMultipleLanguages();
 
             _configurationProvidersMap = GetConfigurationProvidersPerLanguageMap(configurationProviders);
+            _copilotCodeFixProvidersMap = GetCopilotCodeFixProvidersPerLanguageMap(_fixersPerLanguageMap);
         }
 
         private Func<string, bool>? GetShouldIncludeDiagnosticPredicate(
@@ -136,13 +140,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
             }
 
+            var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
+            var convertedCopilotDiagnostics = ConvertToMap(text, copilotDiagnostics);
+            var spanToCopilotDiagnostics = new SortedDictionary<TextSpan, ImmutableArray<DiagnosticData>>();
+
+            foreach (var (span, diagnostics) in convertedCopilotDiagnostics)
+            {
+                foreach (var diagnostic in diagnostics)
+                {
+                    spanToCopilotDiagnostics.MultiAdd(span, diagnostic);
+                }
+            }
+
             var errorFixTask = Task.Run(() => GetFirstFixAsync(spanToErrorDiagnostics, cancellationToken), cancellationToken);
             var otherFixTask = Task.Run(() => GetFirstFixAsync(spanToOtherDiagnostics, linkedToken), linkedToken);
+            var copilotFixTask = Task.Run(() => GetFirstCopilotFixAsync(spanToCopilotDiagnostics, linkedToken), linkedToken);
 
             // If the error diagnostics task happens to complete with a non-null result before
             // the other diagnostics task, we can cancel the other task.
             var collection = await errorFixTask.ConfigureAwait(false) ??
-                             await otherFixTask.ConfigureAwait(false);
+                             await otherFixTask.ConfigureAwait(false) ??
+                             await copilotFixTask.ConfigureAwait(false);
             linkedTokenSource.Cancel();
 
             return new FirstFixResult(upToDate, collection);
@@ -157,6 +175,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     // Stop at the result error we see.
                     return collection;
+                }
+
+                return null;
+            }
+
+            async Task<CodeFixCollection?> GetFirstCopilotFixAsync(
+                SortedDictionary<TextSpan, ImmutableArray<DiagnosticData>> spanToDiagnostics,
+                CancellationToken cancellationToken)
+            {
+                foreach (var (span, diagnostics) in spanToDiagnostics)
+                {
+                    await foreach (var collection in StreamCopilotFixesAsync(
+                        document, span, diagnostics, fallbackOptions, cancellationToken).ConfigureAwait(false))
+                    {
+                        return collection;
+                    }
                 }
 
                 return null;
@@ -200,7 +234,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
             var buildOnlyDiagnostics = buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id);
 
-            if (diagnostics.IsEmpty && buildOnlyDiagnostics.IsEmpty)
+            var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
+
+            if (diagnostics.IsEmpty && buildOnlyDiagnostics.IsEmpty && copilotDiagnostics.IsEmpty)
                 yield break;
 
             if (!diagnostics.IsEmpty)
@@ -214,6 +250,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     await foreach (var collection in StreamFixesAsync(
                         document, spanToDiagnostics, fixAllForInSpan: false,
                         priorityProvider, fallbackOptions, addOperationScope, cancellationToken).ConfigureAwait(false))
+                    {
+                        yield return collection;
+                    }
+                }
+            }
+
+            if (!copilotDiagnostics.IsEmpty)
+            {
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var spanToDiagnostics = ConvertToMap(text, copilotDiagnostics);
+
+                foreach (var (span, diagnosticList) in spanToDiagnostics)
+                {
+                    await foreach (var collection in StreamCopilotFixesAsync(
+                        document, span, [.. diagnosticList], fallbackOptions, cancellationToken).ConfigureAwait(false))
                     {
                         yield return collection;
                     }
@@ -239,6 +290,28 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     }
                 }
             }
+        }
+
+        private static async Task<ImmutableArray<DiagnosticData>> GetCopilotDiagnosticsAsync(
+            TextDocument document,
+            TextSpan range,
+            CodeActionRequestPriority? priority,
+            CancellationToken cancellationToken)
+        {
+            if (!(priority is null or CodeActionRequestPriority.Low)
+                || document is not Document sourceDocument)
+            {
+                return [];
+            }
+
+            // Expand the fixable range for Copilot diagnostics to containing method.
+            // TODO: Share the below code with other places we compute containing method for Copilot analysis.
+            var root = await sourceDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = sourceDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+            var containingMethod = syntaxFacts.GetContainingMethodDeclaration(root, range.Start, useFullSpan: false);
+            range = containingMethod?.Span ?? range;
+
+            return await document.GetCachedCopilotDiagnosticsAsync(range, cancellationToken).ConfigureAwait(false);
         }
 
         private static SortedDictionary<TextSpan, List<DiagnosticData>> ConvertToMap(
@@ -720,6 +793,45 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
+        private async IAsyncEnumerable<CodeFixCollection> StreamCopilotFixesAsync(
+            TextDocument document,
+            TextSpan diagnosticsSpan,
+            ImmutableArray<DiagnosticData> diagnostics,
+            CodeActionOptionsProvider fallbackOptions,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (!_copilotCodeFixProvidersMap.TryGetValue(document.Project.Language, out var lazyCopilotFixProviders) ||
+                lazyCopilotFixProviders.Value == null)
+            {
+                yield break;
+            }
+
+            var uniqueDiagnosticToEquivalenceKeysMap = new Dictionary<Diagnostic, PooledHashSet<string?>>();
+            var diagnosticAndEquivalenceKeyToFixersMap = new Dictionary<(Diagnostic diagnostic, string? equivalenceKey), CodeFixProvider>();
+            foreach (var fixProvider in lazyCopilotFixProviders.Value)
+            {
+                using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixProvider, cancellationToken))
+                {
+                    var codeFixCollection = await TryGetFixesOrConfigurationsAsync(
+                        document, diagnosticsSpan, diagnostics, fixAllForInSpan: false, fixProvider,
+                        hasFix: static d => true,
+                        getFixes: async dxs =>
+                        {
+                            var fixerMetadata = TryGetMetadata(fixProvider);
+                            return await GetCodeFixesAsync(document, diagnosticsSpan, fixProvider,
+                                fixerMetadata, fallbackOptions, dxs, uniqueDiagnosticToEquivalenceKeysMap,
+                                diagnosticAndEquivalenceKeyToFixersMap, cancellationToken).ConfigureAwait(false);
+                        },
+                        fallbackOptions,
+                        cancellationToken).ConfigureAwait(false);
+                    if (codeFixCollection != null)
+                        yield return codeFixCollection;
+                }
+            }
+        }
+
         private async Task<CodeFixCollection?> TryGetFixesOrConfigurationsAsync<TCodeFixProvider>(
             TextDocument textDocument,
             TextSpan fixesSpan,
@@ -916,6 +1028,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 foreach (var languageKindAndFixersValue in orderedLanguageKindAndFixers)
                 {
                     builder.Add(languageKindAndFixersValue.Value);
+                }
+
+                return builder.ToImmutable();
+            }
+        }
+
+        private static ImmutableDictionary<LanguageKind, Lazy<ImmutableArray<CopilotCodeFixProvider>>> GetCopilotCodeFixProvidersPerLanguageMap(
+            ImmutableDictionary<string, ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> fixersPerLanguageMap)
+        {
+            var fixerMap = ImmutableDictionary.CreateBuilder<LanguageKind, Lazy<ImmutableArray<CopilotCodeFixProvider>>>();
+            foreach (var (language, lazyFixers) in fixersPerLanguageMap)
+            {
+                var lazyFixProviders = new Lazy<ImmutableArray<CopilotCodeFixProvider>>(() => GetFixProviders(lazyFixers));
+                fixerMap.Add(language, lazyFixProviders);
+            }
+
+            return fixerMap.ToImmutable();
+
+            static ImmutableArray<CopilotCodeFixProvider> GetFixProviders(ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> languageKindAndFixers)
+            {
+                using var builderDisposer = ArrayBuilder<CopilotCodeFixProvider>.GetInstance(out var builder);
+                var orderedLanguageKindAndFixers = ExtensionOrderer.Order(languageKindAndFixers);
+                foreach (var languageKindAndFixersValue in orderedLanguageKindAndFixers)
+                {
+                    if (languageKindAndFixersValue.Value is CopilotCodeFixProvider copilotFixer)
+                        builder.Add(copilotFixer);
                 }
 
                 return builder.ToImmutable();

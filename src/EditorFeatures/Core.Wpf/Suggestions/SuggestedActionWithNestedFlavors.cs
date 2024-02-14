@@ -31,27 +31,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// </summary>
     internal abstract partial class SuggestedActionWithNestedFlavors : SuggestedAction, ISuggestedActionWithFlavors
     {
-        private readonly SuggestedActionSet _additionalFlavors;
+        private readonly SuggestedActionSet _fixAllFlavors;
         private ImmutableArray<SuggestedActionSet> _nestedFlavors;
+
+        public TextDocument OriginalDocument { get; }
 
         public SuggestedActionWithNestedFlavors(
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
-            Solution originalSolution,
+            TextDocument originalDocument,
             ITextBuffer subjectBuffer,
             object provider,
             CodeAction codeAction,
-            SuggestedActionSet additionalFlavors)
+            SuggestedActionSet fixAllFlavors)
             : base(threadingContext,
                    sourceProvider,
                    workspace,
-                   originalSolution,
+                   originalDocument.Project.Solution,
                    subjectBuffer,
                    provider,
                    codeAction)
         {
-            _additionalFlavors = additionalFlavors;
+            _fixAllFlavors = fixAllFlavors;
+            OriginalDocument = originalDocument;
         }
 
         /// <summary>
@@ -59,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         /// </summary>
         public sealed override bool HasActionSets => true;
 
-        public sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -70,34 +73,46 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
 
-                _nestedFlavors = extensionManager.PerformFunction(
-                    Provider, CreateAllFlavors,
-                    defaultValue: ImmutableArray<SuggestedActionSet>.Empty);
+                _nestedFlavors = await extensionManager.PerformFunctionAsync(
+                    Provider, () => CreateAllFlavorsAsync(cancellationToken),
+                    defaultValue: ImmutableArray<SuggestedActionSet>.Empty).ConfigureAwait(false);
             }
 
             Contract.ThrowIfTrue(_nestedFlavors.IsDefault);
-            return Task.FromResult<IEnumerable<SuggestedActionSet>>(_nestedFlavors);
+            return _nestedFlavors;
         }
 
-        private ImmutableArray<SuggestedActionSet> CreateAllFlavors()
+        private async Task<ImmutableArray<SuggestedActionSet>> CreateAllFlavorsAsync(CancellationToken cancellationToken)
         {
             var builder = ArrayBuilder<SuggestedActionSet>.GetInstance();
 
-            var previewChangesSuggestedActionSet = GetPreviewChangesFlavor();
-            builder.Add(previewChangesSuggestedActionSet);
+            var primarySuggestedActionSet = await GetPrimarySuggestedActionSetAsync(cancellationToken).ConfigureAwait(false);
+            builder.Add(primarySuggestedActionSet);
 
-            if (_additionalFlavors != null)
+            if (_fixAllFlavors != null)
             {
-                builder.Add(_additionalFlavors);
+                builder.Add(_fixAllFlavors);
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        private SuggestedActionSet GetPreviewChangesFlavor()
+        private async Task<SuggestedActionSet> GetPrimarySuggestedActionSetAsync(CancellationToken cancellationToken)
         {
+            using var _ = ArrayBuilder<SuggestedAction>.GetInstance(out var suggestedActions);
             var previewChangesAction = PreviewChangesSuggestedAction.Create(this);
-            return new SuggestedActionSet(categoryName: null, actions: ImmutableArray.Create(previewChangesAction));
+            suggestedActions.Add(previewChangesAction);
+
+            var refineUsingCopilotAction = await RefineUsingCopilotSuggestedAction.TryCreateAsync(this, cancellationToken).ConfigureAwait(false);
+            if (refineUsingCopilotAction != null)
+                suggestedActions.Add(refineUsingCopilotAction);
+
+            foreach (var action in this.CodeAction.AdditionalPreviewFlavors)
+            {
+                suggestedActions.Add(FlavoredSuggestedAction.Create(this, action));
+            }
+
+            return new SuggestedActionSet(categoryName: null, actions: suggestedActions.ToImmutable());
         }
 
         // HasPreview is called synchronously on the UI thread. In order to avoid blocking the UI thread,

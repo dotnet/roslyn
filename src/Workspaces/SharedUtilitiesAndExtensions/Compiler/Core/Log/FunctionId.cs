@@ -619,5 +619,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SuggestedAction_Preview_Summary = 745,
 
         LSP_DocumentIdCacheMiss = 746,
+
+        // 800-850 for Copilot performance logging.
+        Copilot_Suggestion_Dismissed = 800,
     }
 }

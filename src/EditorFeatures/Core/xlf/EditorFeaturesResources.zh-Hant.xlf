@@ -292,6 +292,11 @@
         <target state="translated">重新指派的變數</target>
         <note />
       </trans-unit>
+      <trans-unit id="Refine_using_Copilot">
+        <source>Refine using Copilot</source>
+        <target state="new">Refine using Copilot</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">重新命名檔案 (類型不符合檔案名稱)(_F)</target>
