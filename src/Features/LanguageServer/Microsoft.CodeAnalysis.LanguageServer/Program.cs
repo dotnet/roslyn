@@ -7,16 +7,19 @@ using System.CommandLine;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
+using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
+using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Newtonsoft.Json;
+using Roslyn.Utilities;
 
 // Setting the title can fail if the process is run without a window, such
 // as when launched detached from nodejs
@@ -75,8 +78,9 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     }
 
     logger.LogTrace($".NET Runtime Version: {RuntimeInformation.FrameworkDescription}");
+    var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(serverConfiguration.ExtensionAssemblyPaths, serverConfiguration.DevKitDependencyPath, loggerFactory);
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, serverConfiguration.DevKitDependencyPath, loggerFactory);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
     Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
@@ -96,10 +100,13 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         .Select(f => f.FullName)
         .ToImmutableArray();
 
-    await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths);
+    // Include analyzers from extension assemblies.
+    analyzerPaths = analyzerPaths.AddRange(extensionManager.ExtensionAssemblyPaths);
+
+    await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths, extensionManager);
 
     var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
-    StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, loggerFactory, serviceBrokerFactory);
+    StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, extensionManager, loggerFactory, serviceBrokerFactory);
     // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
     Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames = Path.DirectorySeparatorChar == '\\';
 

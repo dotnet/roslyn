@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // Limit the number of reported items to limit the size of the telemetry event (max total size is 64K).
         private const int MaxReportedProjectIds = 20;
 
-        private readonly HashSet<(ushort, ushort, Guid)> _rudeEdits = new();
-        private readonly HashSet<string> _emitErrorIds = new();
-        private readonly HashSet<Guid> _projectsWithValidDelta = new();
+        private readonly HashSet<(ushort, ushort, Guid)> _rudeEdits = [];
+        private readonly HashSet<string> _emitErrorIds = [];
+        private readonly HashSet<Guid> _projectsWithValidDelta = [];
 
         private bool _hadCompilationErrors;
         private bool _hadRudeEdits;

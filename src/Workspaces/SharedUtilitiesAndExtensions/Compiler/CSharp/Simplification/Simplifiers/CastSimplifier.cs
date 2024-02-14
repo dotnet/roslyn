@@ -263,7 +263,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             // having to be converting to the same delegate type.
-            return Equals(originalDelegateCreationOperation.Type, rewrittenDelegateCreationOperation.Type);
+            if (!Equals(originalDelegateCreationOperation.Type, rewrittenDelegateCreationOperation.Type))
+                return false;
+
+            // If there are two conversions applied on the same node, ensure both are legal.
+            if (originalDelegateCreationOperation.Parent is IConversionOperation conversionOperation &&
+                conversionOperation.Syntax == castNode &&
+                !IsConversionCastSafeToRemove(castNode, castedExpressionNode, originalSemanticModel, conversionOperation, cancellationToken))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static bool IsConversionCastSafeToRemove(

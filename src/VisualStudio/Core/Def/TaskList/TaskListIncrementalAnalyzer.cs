@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
         /// notifying the host about documents with empty-todo lists (the common case). Note: no locking is needed for
         /// this set as the incremental analyzer is guaranteed to make all calls sequentially to us.
         /// </summary>
-        private readonly HashSet<DocumentId> _documentsWithTaskListItems = new();
+        private readonly HashSet<DocumentId> _documentsWithTaskListItems = [];
         private readonly IGlobalOptionService _globalOptions;
         private readonly VisualStudioTaskListService _listener;
 

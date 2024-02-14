@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -28,7 +29,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     private readonly string? _binaryLogPath;
 
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
-    private readonly Dictionary<BuildHostProcessKind, BuildHostProcess> _processes = new();
+    private readonly Dictionary<BuildHostProcessKind, BuildHostProcess> _processes = [];
 
     public BuildHostProcessManager(ImmutableDictionary<string, string>? globalMSBuildProperties = null, string? binaryLogPath = null, ILoggerFactory? loggerFactory = null)
     {
@@ -96,8 +97,10 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
                 // We've subscribed to Disconnected, but if the process crashed before that point we might have not seen it
                 if (process.HasExited)
                 {
+                    buildHostProcess.LogProcessFailure();
                     throw new Exception($"BuildHost process exited immediately with {process.ExitCode}");
                 }
+
                 _processes.Add(buildHostKind, buildHostProcess);
             }
 
@@ -127,7 +130,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             // Dispose outside of the lock (even though we don't expect much to happen at this point)
             if (processToDispose != null)
             {
-                processToDispose.LoggerForProcessMessages?.LogTrace("Process exited.");
+                processToDispose.LogProcessFailure();
                 await processToDispose.DisposeAsync().ConfigureAwait(false);
             }
         });
@@ -174,12 +177,14 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     internal static string GetNetCoreBuildHostPath()
     {
         // The .NET Core build host is deployed as a content folder next to the application into the BuildHost-netcore path
-        return Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-netcore", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll");
+        var buildHostPath = Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-netcore", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll");
+        AssertBuildHostExists(buildHostPath);
+        return buildHostPath;
     }
 
     private ProcessStartInfo CreateDotNetFrameworkBuildHostStartInfo()
     {
-        var netFrameworkBuildHost = GetPathToDotNetFrameworkBuildHost();
+        var netFrameworkBuildHost = GetDotNetFrameworkBuildHostPath();
         var processStartInfo = new ProcessStartInfo()
         {
             FileName = netFrameworkBuildHost,
@@ -197,19 +202,25 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             FileName = "mono"
         };
 
-        AddArgument(processStartInfo, GetPathToDotNetFrameworkBuildHost());
+        AddArgument(processStartInfo, GetDotNetFrameworkBuildHostPath());
 
         AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo);
 
         return processStartInfo;
     }
 
-    private static string GetPathToDotNetFrameworkBuildHost()
+    private static string GetDotNetFrameworkBuildHostPath()
     {
         // The .NET Framework build host is deployed as a content folder next to the application into the BuildHost-net472 path
         var netFrameworkBuildHost = Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-net472", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe");
-        Contract.ThrowIfFalse(File.Exists(netFrameworkBuildHost), $"Unable to locate the .NET Framework build host at {netFrameworkBuildHost}");
+        AssertBuildHostExists(netFrameworkBuildHost);
         return netFrameworkBuildHost;
+    }
+
+    private static void AssertBuildHostExists(string buildHostPath)
+    {
+        if (!File.Exists(buildHostPath))
+            throw new Exception(string.Format(WorkspaceMSBuildResources.The_build_host_could_not_be_found_at_0, buildHostPath));
     }
 
     private void AppendBuildHostCommandLineArgumentsConfigureProcess(ProcessStartInfo processStartInfo)
@@ -328,15 +339,21 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     private sealed class BuildHostProcess : IAsyncDisposable
     {
+        private readonly ILogger? _logger;
         private readonly Process _process;
         private readonly RpcClient _rpcClient;
+
+        /// <summary>
+        /// A string builder where we collect the process log messages, in case we do want to know them if the process crashes.
+        /// Reads/writes should be synchronized by locking this object.
+        /// </summary>
+        private readonly StringBuilder _processLogMessages = new();
 
         private int _disposed = 0;
 
         public BuildHostProcess(Process process, ILoggerFactory? loggerFactory)
         {
-            LoggerForProcessMessages = loggerFactory?.CreateLogger($"BuildHost PID {process.Id}");
-
+            _logger = loggerFactory?.CreateLogger($"BuildHost PID {process.Id}");
             _process = process;
 
             _process.EnableRaisingEvents = true;
@@ -361,11 +378,15 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
             if (e.Data is not null)
-                LoggerForProcessMessages?.LogTrace($"Message from Process: {e.Data}");
+            {
+                lock (_processLogMessages)
+                    _processLogMessages.AppendLine(e.Data);
+
+                _logger?.LogTrace($"Message from Process: {e.Data}");
+            }
         }
 
         public RemoteBuildHost BuildHost { get; }
-        public ILogger? LoggerForProcessMessages { get; }
 
         public event EventHandler? Disconnected;
 
@@ -380,22 +401,38 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             {
                 if (!_process.HasExited)
                 {
-                    LoggerForProcessMessages?.LogTrace("Sending a Shutdown request to the BuildHost.");
+                    _logger?.LogTrace("Sending a Shutdown request to the BuildHost.");
 
                     await BuildHost.ShutdownAsync(CancellationToken.None).ConfigureAwait(false);
                 }
 
                 _rpcClient.Shutdown();
 
-                LoggerForProcessMessages?.LogTrace("Process shut down.");
+                _logger?.LogTrace("Process shut down.");
             }
             catch (Exception e)
             {
-                LoggerForProcessMessages?.LogError(e, "Exception while shutting down the BuildHost process.");
+                _logger?.LogError(e, "Exception while shutting down the BuildHost process.");
 
-                // OK, process may have gone bad.
+                // Process may have gone bad, so not much else we can do.
+                LogProcessFailure();
                 _process.Kill();
             }
+        }
+
+        public void LogProcessFailure()
+        {
+            if (_logger == null)
+                return;
+
+            string processLog;
+            lock (_processLogMessages)
+                processLog = _processLogMessages.ToString();
+
+            if (!_process.HasExited)
+                _logger.LogError("The BuildHost process is not responding. Process output:{newLine}{processLog}", Environment.NewLine, processLog);
+            else if (_process.ExitCode != 0)
+                _logger.LogError("The BuildHost process exited with {errorCode}. Process output:{newLine}{processLog}", _process.ExitCode, Environment.NewLine, processLog);
         }
     }
 }

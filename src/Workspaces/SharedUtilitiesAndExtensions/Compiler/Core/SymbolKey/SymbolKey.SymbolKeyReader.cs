@@ -321,14 +321,14 @@ namespace Microsoft.CodeAnalysis
         {
             private static readonly ObjectPool<SymbolKeyReader> s_readerPool = SharedPools.Default<SymbolKeyReader>();
 
-            private readonly Dictionary<int, SymbolKeyResolution> _idToResult = new();
+            private readonly Dictionary<int, SymbolKeyResolution> _idToResult = [];
             private readonly ReadFunction<Location?> _readLocation;
 
             public Compilation Compilation { get; private set; }
             public bool IgnoreAssemblyKey { get; private set; }
             public SymbolEquivalenceComparer Comparer { get; private set; }
 
-            private readonly List<IMethodSymbol?> _methodSymbolStack = new();
+            private readonly List<IMethodSymbol?> _methodSymbolStack = [];
             private readonly Stack<ISymbol?> _contextualSymbolStack = new();
 
             public SymbolKeyReader()

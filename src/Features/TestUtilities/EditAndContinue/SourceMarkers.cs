@@ -123,7 +123,7 @@ internal static class SourceMarkers
             foreach (var (activeStatementId, exceptionRegionId) in ParseIds(matches[i]))
             {
                 EnsureSlot(result, activeStatementId);
-                result[activeStatementId] ??= new List<TextSpan>();
+                result[activeStatementId] ??= [];
                 EnsureSlot(result[activeStatementId], exceptionRegionId);
 
                 var regionText = plainSource.AsSpan().Slice(exceptionRegion.Index, exceptionRegion.Length);

@@ -301,7 +301,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         /// </summary>
         /// <remarks>Using item IDs as a key like this in a long-lived way is considered unsupported by CPS and other
         /// IVsHierarchy providers, but this code (which is fairly old) still makes the assumptions anyways.</remarks>
-        private readonly Dictionary<uint, ImmutableArray<string>> _folderNameMap = new();
+        private readonly Dictionary<uint, ImmutableArray<string>> _folderNameMap = [];
 
         private ImmutableArray<string> GetFolderNamesForDocument(string filename)
         {

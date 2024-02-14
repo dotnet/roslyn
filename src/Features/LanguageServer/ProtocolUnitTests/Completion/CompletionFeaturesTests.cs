@@ -341,7 +341,7 @@ public class A
         }
         else
         {
-            Assert.True(results.ItemDefaults.CommitCharacters.Length == 0);
+            Assert.Empty(results.ItemDefaults.CommitCharacters);
             Assert.True(!someTextItem.Preselect && someTextItem.CommitCharacters == null);
         }
 

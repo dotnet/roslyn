@@ -63,21 +63,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         private async Task TestStatement(string input, string output, LanguageVersion version = LanguageVersion.CSharp8)
         {
             await TestInRegularAndScript1Async(
-$@"class C
-{{
-    void M(object o)
-    {{
-        [|var|] x = o as string;
-        {input}
-    }}
-}}",
-$@"class C
-{{
-    void M(object o)
-    {{
-        {output}
-    }}
-}}", new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(version)));
+                $$"""
+                class C
+                {
+                    void M(object o)
+                    {
+                        [|var|] x = o as string;
+                        {{input}}
+                    }
+                }
+                """,
+                $$"""
+                class C
+                {
+                    void M(object o)
+                    {
+                        {{output}}
+                    }
+                }
+                """, new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(version)));
         }
 
         [Fact]

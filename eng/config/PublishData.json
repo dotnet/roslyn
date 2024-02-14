@@ -51,6 +51,8 @@
       "Microsoft.CodeAnalysis.LanguageServer.alpine-x64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.linux-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.linux-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.linux-musl-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.linux-musl-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.neutral": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.osx-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.osx-x64": "vs-impl",
@@ -193,6 +195,15 @@
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.9]"
     },
+    "release/dev17.10": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.10",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.10]"
+    },
     "main": {
       "nugetKind": [
         "Shipping",
@@ -201,9 +212,9 @@
       "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.10]"
+      "insertionTitlePrefix": "[d17.10 P2]"
     },
-    "dev/jorobich/fix-pr-val": {
+    "features/vscode_net8": {
       "nugetKind": [
         "Shipping",
         "NonShipping"

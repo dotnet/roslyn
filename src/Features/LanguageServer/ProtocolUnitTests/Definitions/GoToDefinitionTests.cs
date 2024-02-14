@@ -181,6 +181,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
         }
 
+        [Theory]
+        [InlineData("ValueTuple<int> valueTuple1;")]
+        [InlineData("ValueTuple<int, int> valueTuple2;")]
+        [InlineData("ValueTuple<int, int, int> valueTuple3;")]
+        [InlineData("ValueTuple<int, int, int, int> valueTuple4;")]
+        [InlineData("ValueTuple<int, int, int, int, int> valueTuple5;")]
+        [InlineData("ValueTuple<int, int, int, int, int, int> valueTuple6;")]
+        [InlineData("ValueTuple<int, int, int, int, int, int, int> valueTuple7;")]
+        [InlineData("ValueTuple<int, int, int, int, int, int, int, int> valueTuple8;")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71680")]
+        public async Task TestGotoDefinitionWithValueTuple(string statement)
+        {
+            var markup = $"using System; {{|caret:|}}{statement}";
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, false);
+
+            var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            Assert.Single(results);
+        }
+
         private static async Task<LSP.Location[]> RunGotoDefinitionAsync(TestLspServer testLspServer, LSP.Location caret)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName,

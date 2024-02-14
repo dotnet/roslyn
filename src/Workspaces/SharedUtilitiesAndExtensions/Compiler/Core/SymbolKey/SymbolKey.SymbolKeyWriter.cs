@@ -61,12 +61,12 @@ namespace Microsoft.CodeAnalysis
             private readonly Action<IParameterSymbol> _writeParameterType;
             private readonly Action<IParameterSymbol> _writeRefKind;
 
-            private readonly Dictionary<ISymbol, int> _symbolToId = new();
+            private readonly Dictionary<ISymbol, int> _symbolToId = [];
             private readonly StringBuilder _stringBuilder = new();
 
             public CancellationToken CancellationToken { get; private set; }
 
-            private readonly List<IMethodSymbol> _methodSymbolStack = new();
+            private readonly List<IMethodSymbol> _methodSymbolStack = [];
 
             internal int _nestingCount;
             private int _nextId;
