@@ -37516,7 +37516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(name IsNot Nothing)
 
             Dim hash As Integer
-            Dim cached = SyntaxNodeCache.TryGetNode(SyntaxKind.Attribute, target, name, argumentList, hash)
+            Dim cached = SyntaxNodeCache.TryGetNode(SyntaxKind.Attribute, target, name, argumentList, SyntaxNodeCache.GetDefaultNodeFlags() Or GreenNode.NodeFlags.ContainsAttributes, hash)
             If cached IsNot Nothing Then
                 Return DirectCast(cached, AttributeSyntax)
             End If
@@ -49594,7 +49594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(name IsNot Nothing)
 
             Dim hash As Integer
-            Dim cached = VisualBasicSyntaxNodeCache.TryGetNode(SyntaxKind.Attribute, target, name, argumentList, _factoryContext, hash)
+            Dim cached = VisualBasicSyntaxNodeCache.TryGetNode(SyntaxKind.Attribute, target, name, argumentList, _factoryContext, VisualBasicSyntaxNodeCache.GetNodeFlags(me.context) Or GreenNode.NodeFlags.ContainsAttributes, hash)
             If cached IsNot Nothing Then
                 Return DirectCast(cached, AttributeSyntax)
             End If

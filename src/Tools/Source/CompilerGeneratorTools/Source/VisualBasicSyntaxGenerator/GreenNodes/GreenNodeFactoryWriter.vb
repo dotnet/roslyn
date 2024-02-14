@@ -284,6 +284,15 @@ Friend Class GreenNodeFactoryWriter
             End If
 
             GenerateCtorArgs(nodeStructure, nodeKind, contextual, factoryFunctionName)
+
+            If nodeStructure.Name = "AttributeSyntax" Then
+                If contextual Then
+                    _writer.Write(", VisualBasicSyntaxNodeCache.GetNodeFlags(me.context) Or GreenNode.NodeFlags.ContainsAttributes")
+                Else
+                    _writer.Write(", SyntaxNodeCache.GetDefaultNodeFlags() Or GreenNode.NodeFlags.ContainsAttributes")
+                End If
+            End If
+
             _writer.WriteLine(", hash)")
 
             'If cached IsNot Nothing Then

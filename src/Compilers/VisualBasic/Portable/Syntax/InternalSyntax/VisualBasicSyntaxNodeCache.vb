@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxNodeCache.TryGetNode(kind, child1, child2, child3, GetNodeFlags(context), hash)
         End Function
 
-        Private Function GetNodeFlags(context As ISyntaxFactoryContext) As GreenNode.NodeFlags
+        Public Function GetNodeFlags(context As ISyntaxFactoryContext) As GreenNode.NodeFlags
             Dim flags = SyntaxNodeCache.GetDefaultNodeFlags()
             If context.IsWithinAsyncMethodOrLambda Then
                 flags = flags Or GreenNode.NodeFlags.FactoryContextIsInAsync
