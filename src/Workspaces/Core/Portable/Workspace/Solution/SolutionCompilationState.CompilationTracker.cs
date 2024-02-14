@@ -190,7 +190,6 @@ namespace Microsoft.CodeAnalysis
             public ICompilationTracker FreezePartialState(CancellationToken cancellationToken)
             {
                 GetPartialCompilationState(
-                    documentId: null,
                     out var state,
                     out var inProgressProject,
                     out var compilationPair,
@@ -220,99 +219,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public ICompilationTracker FreezePartialStateWithDocument(
-                DocumentState docState,
-                CancellationToken cancellationToken)
-            {
-                GetPartialCompilationState(
-                    docState.Id,
-                    out var state,
-                    out var inProgressProject,
-                    out var compilationPair,
-                    out var generatorInfo,
-                    cancellationToken);
-
-                // If we're already finalized, and no change has been made to this document.  Then just return what we
-                // have (just with the frozen bit flipped so that any future forks keep things frozen).
-                if (state is FinalCompilationTrackerState finalState &&
-                    this.ProjectState.DocumentStates.TryGetState(docState.Id, out var oldState) &&
-                    oldState == docState)
-                {
-                    var frozenFinalState = finalState.WithIsFrozen();
-                    return new CompilationTracker(this.ProjectState, frozenFinalState, this.SkeletonReferenceCache.Clone());
-                }
-                else
-                {
-                    // Otherwise, we're not finalized, or the document has changed.  We'll create an in-progress state
-                    // to represent the new state of the project, with all the necessary translation steps to
-                    // incorporate the new document.
-                    var pendingActions = ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty;
-                    if (!inProgressProject.DocumentStates.TryGetState(docState.Id, out oldState) || oldState != docState)
-                    {
-                        // We do not have the exact document. It either means this document was recently added, or the
-                        // document was recently changed. We now need to update both the inProgressState and the
-                        // compilation. There are several possibilities we want to consider:
-                        //
-                        // 1. An earlier version of the document is present in the compilation, and we just need to update it to the current version
-                        // 2. The document wasn't present in the original snapshot at all, and we just need to add the
-                        //    document.
-                        // 3. The document wasn't present in the original snapshot, but an older file had been removed that
-                        //    had the same file path. As a heuristic, we remove the old one so we don't end up with
-                        //    duplicate documents.
-                        //
-                        // Note it's possible that we simply had never tried to produce a compilation yet for this project
-                        // at all, in that case GetPartialCompilationState would have produced an empty compilation, and it
-                        // would have updated inProgressProject to remove all the documents. Thus, that is no different than
-                        // the "add" case above.
-                        if (oldState != null)
-                        {
-                            // Scenario 1. The document had been previously parsed and it's there, so we can update it with
-                            // our current state. Note if no compilation existed GetPartialCompilationState would have
-                            // produced an empty one, and removed any documents, so inProgressProject.DocumentStates would
-                            // have been empty originally.
-                            pendingActions = [(inProgressProject, new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldState, docState))];
-                            inProgressProject = inProgressProject.UpdateDocument(docState, contentChanged: true);
-                        }
-                        else
-                        {
-                            // We're in either scenario 2 or 3. Do we have an existing document to try replacing? Note: the
-                            // file path here corresponds to Document.FilePath. If a document's file path is null, we then
-                            // substitute Document.Name, so we usually expect there to be a unique string regardless.
-                            oldState = inProgressProject.DocumentStates.States.FirstOrDefault(kvp => kvp.Value.FilePath == docState.FilePath).Value;
-                            if (oldState is null)
-                            {
-                                // Scenario 2.
-                                pendingActions = [(inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
-                                inProgressProject = inProgressProject.AddDocuments([docState]);
-                            }
-                            else
-                            {
-                                // Scenario 3. The old doc came from some other document with a different ID then we started
-                                // with -- if the document ID still existed we would have been in the Scenario 1 case
-                                // instead. We'll find the old document ID, remove that state, and then add ours.
-                                var inProgressWithDocumentRemoved = inProgressProject.RemoveDocuments([oldState.Id]);
-                                pendingActions = [
-                                    (inProgressProject, new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction([oldState])),
-                                    (inProgressWithDocumentRemoved, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
-                                inProgressProject = inProgressWithDocumentRemoved
-                                    .AddDocuments([docState]);
-                            }
-                        }
-                    }
-
-                    // Transition us to a frozen in progress state.  With the best compilations up to this point, and the
-                    // pending actions we'll need to perform on it to get to the final state.
-                    var inProgressState = InProgressState.Create(
-                        isFrozen: true,
-                        compilationPair.CompilationWithoutGeneratedDocuments,
-                        generatorInfo,
-                        compilationPair.CompilationWithGeneratedDocuments,
-                        pendingActions);
-
-                    return new CompilationTracker(inProgressProject, inProgressState, this.SkeletonReferenceCache.Clone());
-                }
-            }
-
             /// <summary>
             /// Tries to get the latest snapshot of the compilation without waiting for it to be fully built. This
             /// method takes advantage of the progress side-effect produced during <see
@@ -321,7 +227,6 @@ namespace Microsoft.CodeAnalysis
             /// returned will have a compilation that is retained so that it cannot disappear.
             /// </summary>
             private void GetPartialCompilationState(
-                DocumentId? documentId,
                 out CompilationTrackerState? state,
                 out ProjectState inProgressProject,
                 out CompilationPair compilations,
@@ -339,23 +244,6 @@ namespace Microsoft.CodeAnalysis
                 inProgressProject = inProgressState is { PendingTranslationSteps: [(var oldState, _), ..] }
                     ? oldState
                     : this.ProjectState;
-
-                // all changes left for this document is modifying the given document; since the compilation is already fully up to date
-                // we don't need to do any further checking of it's references
-                if (documentId != null &&
-                    inProgressState != null &&
-                    compilationWithoutGeneratedDocuments != null &&
-                    inProgressState.PendingTranslationSteps.Count > 0 &&
-                    inProgressState.PendingTranslationSteps.All(t => IsTouchDocumentActionForDocument(t.action, documentId)))
-                {
-                    // We'll add in whatever generated documents we do have; these may be from a prior run prior to some changes
-                    // being made to the project, but it's the best we have so we'll use it.
-                    compilations = new CompilationPair(
-                        compilationWithoutGeneratedDocuments,
-                        compilationWithoutGeneratedDocuments.AddSyntaxTrees(generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
-
-                    return;
-                }
 
                 // if we already have a final compilation we are done.
                 if (compilationWithoutGeneratedDocuments != null && state is FinalCompilationTrackerState finalState)
@@ -380,10 +268,6 @@ namespace Microsoft.CodeAnalysis
                     compilationWithoutGeneratedDocuments,
                     compilationWithoutGeneratedDocuments.AddSyntaxTrees(generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
             }
-
-            private static bool IsTouchDocumentActionForDocument(CompilationAndGeneratorDriverTranslationAction action, DocumentId id)
-                => action is CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction touchDocumentAction &&
-                   touchDocumentAction.DocumentId == id;
 
             /// <summary>
             /// Gets the final compilation if it is available.

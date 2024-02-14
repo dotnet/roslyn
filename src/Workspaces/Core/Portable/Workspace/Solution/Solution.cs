@@ -30,17 +30,17 @@ namespace Microsoft.CodeAnalysis
         // Values for all these are created on demand.
         private ImmutableHashMap<ProjectId, Project> _projectIdToProjectMap;
 
+        private readonly SemaphoreSlim _gate = new(initialCount: 1);
+
         /// <summary>
-        /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.
+        /// Result of calling <see cref="WithFrozenPartialCompilations"/>.
         /// </summary>
-        private AsyncLazy<Solution> CachedFrozenSolution { get; init; }
+        private Solution? _cachedFrozenSolution;
 
         private Solution(SolutionCompilationState compilationState)
         {
             _projectIdToProjectMap = [];
             _compilationState = compilationState;
-
-            this.CachedFrozenSolution = AsyncLazy.Create(c => ComputeFrozenSolutionAsync(c));
         }
 
         internal Solution(
@@ -1452,20 +1452,26 @@ namespace Microsoft.CodeAnalysis
         /// Returns a solution instance where every project is frozen at whatever current state it is in
         /// </summary>
         /// <param name="cancellationToken"></param>
-        internal Task<Solution> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
-            => this.CachedFrozenSolution.GetValueAsync(cancellationToken);
+        internal Solution WithFrozenPartialCompilations(CancellationToken cancellationToken)
+        {
+            using (_gate.DisposableWait(cancellationToken))
+            {
+                _cachedFrozenSolution ??= ComputeFrozenSolution(cancellationToken);
+                return _cachedFrozenSolution;
+            }
+        }
 
-        private async Task<Solution> ComputeFrozenSolutionAsync(CancellationToken cancellationToken)
+        private Solution ComputeFrozenSolution(CancellationToken cancellationToken)
         {
             // in progress solutions are disabled for some testing
             if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
                 return this;
 
-            var newCompilationState = await this.CompilationState.WithFrozenPartialCompilationsAsync(cancellationToken).ConfigureAwait(false);
+            var newCompilationState = this.CompilationState.WithFrozenPartialCompilations(cancellationToken);
             var frozenSolution = new Solution(newCompilationState)
             {
                 // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.
-                CachedFrozenSolution = this.CachedFrozenSolution,
+                _cachedFrozenSolution = this._cachedFrozenSolution,
             };
 
             return frozenSolution;

@@ -940,6 +940,18 @@ namespace Microsoft.CodeAnalysis
             return UpdateDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
         }
 
+        public StateChange WithDocumentState(DocumentState newDocument)
+        {
+            var oldDocument = GetRequiredDocumentState(newDocument.Id);
+            if (oldDocument == newDocument)
+            {
+                var oldProject = GetRequiredProjectState(newDocument.Id.ProjectId);
+                return new(this, oldProject, oldProject);
+            }
+
+            return UpdateDocumentState(newDocument, contentChanged: true);
+        }
+
         /// <summary>
         /// Creates a new solution instance with the additional document specified updated to have the text
         /// specified.
