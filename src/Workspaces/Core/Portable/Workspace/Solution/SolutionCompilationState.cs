@@ -1172,7 +1172,7 @@ internal sealed partial class SolutionCompilationState
                 {
                     // Project doesn't have this document, attempt to fork it with the document added.
                     currentState = currentState.AddDocumentsToMultipleProjects(
-                        [(documentId.ProjectId, [newDocumentState])],
+                        [(oldProjectState, [newDocumentState])],
                         static (oldProjectState, newDocumentStates)
                         => (oldProjectState.AddDocuments(newDocumentStates), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(newDocumentStates)));
                 }
