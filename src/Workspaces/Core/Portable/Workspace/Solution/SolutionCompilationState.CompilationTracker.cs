@@ -189,96 +189,112 @@ namespace Microsoft.CodeAnalysis
 
             public ICompilationTracker FreezePartialState(CancellationToken cancellationToken)
             {
-                return FreezePartialStateWorker(docState: null, cancellationToken);
+                GetPartialCompilationState(
+                    documentId: null,
+                    out var state,
+                    out var inProgressProject,
+                    out var compilationPair,
+                    out var generatorInfo,
+                    cancellationToken);
+
+                // If we're already finalized then just return what we have, and with the frozen bit flipped so that
+                // any future forks keep things frozen.
+                if (state is FinalCompilationTrackerState finalState)
+                {
+                    var frozenFinalState = finalState.WithIsFrozen();
+                    return new CompilationTracker(this.ProjectState, frozenFinalState, this.SkeletonReferenceCache.Clone());
+                }
+                else
+                {
+                    // Transition us to a frozen in progress state.  With the best compilations up to this point, but no
+                    // more pending actions, and with the frozen bit flipped so that any future forks keep things
+                    // frozen.
+                    var inProgressState = InProgressState.Create(
+                        isFrozen: true,
+                        compilationPair.CompilationWithoutGeneratedDocuments,
+                        generatorInfo,
+                        compilationPair.CompilationWithGeneratedDocuments,
+                        ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty);
+
+                    return new CompilationTracker(inProgressProject, inProgressState, this.SkeletonReferenceCache.Clone());
+                }
             }
 
             public ICompilationTracker FreezePartialStateWithDocument(
                 DocumentState docState,
                 CancellationToken cancellationToken)
             {
-                return FreezePartialStateWorker(docState, cancellationToken);
-            }
-
-            private ICompilationTracker FreezePartialStateWorker(
-                DocumentState? docState,
-                CancellationToken cancellationToken)
-            {
                 GetPartialCompilationState(
-                    docState?.Id,
+                    docState.Id,
+                    out var state,
                     out var inProgressProject,
                     out var compilationPair,
                     out var generatorInfo,
                     cancellationToken);
 
-                var pendingActions = ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty;
-                if (docState != null)
+                // If we're already finalized, and no change has been made to this document.  Then just return what we
+                // have (just with the frozen bit flipped so that any future forks keep things frozen).
+                if (state is FinalCompilationTrackerState finalState &&
+                    this.ProjectState.DocumentStates.TryGetState(docState.Id, out var oldState) &&
+                    oldState == docState)
                 {
-                    // If we're already finalized, and no change has been made to this document.  Then just return what we
-                    // have (just with the frozen bit flipped so that any future forks keep things frozen).
-                    var state = this.ReadState();
-                    if (state is FinalCompilationTrackerState finalState &&
-                        this.ProjectState.DocumentStates.TryGetState(docState.Id, out var oldState) &&
-                        oldState == docState)
+                    var frozenFinalState = finalState.WithIsFrozen();
+                    return new CompilationTracker(this.ProjectState, frozenFinalState, this.SkeletonReferenceCache.Clone());
+                }
+
+                // Otherwise, we're not finalized, or the document has changed.  We'll create an in-progress state
+                // to represent the new state of the project, with all the necessary translation steps to
+                // incorporate the new document.
+                var pendingActions = ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty;
+                if (!inProgressProject.DocumentStates.TryGetState(docState.Id, out oldState) || oldState != docState)
+                {
+                    // We do not have the exact document. It either means this document was recently added, or the
+                    // document was recently changed. We now need to update both the inProgressState and the
+                    // compilation. There are several possibilities we want to consider:
+                    //
+                    // 1. An earlier version of the document is present in the compilation, and we just need to update it to the current version
+                    // 2. The document wasn't present in the original snapshot at all, and we just need to add the
+                    //    document.
+                    // 3. The document wasn't present in the original snapshot, but an older file had been removed that
+                    //    had the same file path. As a heuristic, we remove the old one so we don't end up with
+                    //    duplicate documents.
+                    //
+                    // Note it's possible that we simply had never tried to produce a compilation yet for this project
+                    // at all, in that case GetPartialCompilationState would have produced an empty compilation, and it
+                    // would have updated inProgressProject to remove all the documents. Thus, that is no different than
+                    // the "add" case above.
+                    if (oldState != null)
                     {
-                        var frozenFinalState = finalState.WithIsFrozen();
-                        return new CompilationTracker(this.ProjectState, frozenFinalState, this.SkeletonReferenceCache.Clone());
+                        // Scenario 1. The document had been previously parsed and it's there, so we can update it with
+                        // our current state. Note if no compilation existed GetPartialCompilationState would have
+                        // produced an empty one, and removed any documents, so inProgressProject.DocumentStates would
+                        // have been empty originally.
+                        pendingActions = [(inProgressProject, new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldState, docState))];
+                        inProgressProject = inProgressProject.UpdateDocument(docState, contentChanged: true);
                     }
                     else
                     {
-                        // Otherwise, we're not finalized, or the document has changed.  We'll create an in-progress state
-                        // to represent the new state of the project, with all the necessary translation steps to
-                        // incorporate the new document.
-                        if (!inProgressProject.DocumentStates.TryGetState(docState.Id, out oldState) || oldState != docState)
+                        // We're in either scenario 2 or 3. Do we have an existing document to try replacing? Note: the
+                        // file path here corresponds to Document.FilePath. If a document's file path is null, we then
+                        // substitute Document.Name, so we usually expect there to be a unique string regardless.
+                        oldState = inProgressProject.DocumentStates.States.FirstOrDefault(kvp => kvp.Value.FilePath == docState.FilePath).Value;
+                        if (oldState is null)
                         {
-                            // We do not have the exact document. It either means this document was recently added, or the
-                            // document was recently changed. We now need to update both the inProgressState and the
-                            // compilation. There are several possibilities we want to consider:
-                            //
-                            // 1. An earlier version of the document is present in the compilation, and we just need to update it to the current version
-                            // 2. The document wasn't present in the original snapshot at all, and we just need to add the
-                            //    document.
-                            // 3. The document wasn't present in the original snapshot, but an older file had been removed that
-                            //    had the same file path. As a heuristic, we remove the old one so we don't end up with
-                            //    duplicate documents.
-                            //
-                            // Note it's possible that we simply had never tried to produce a compilation yet for this project
-                            // at all, in that case GetPartialCompilationState would have produced an empty compilation, and it
-                            // would have updated inProgressProject to remove all the documents. Thus, that is no different than
-                            // the "add" case above.
-                            if (oldState != null)
-                            {
-                                // Scenario 1. The document had been previously parsed and it's there, so we can update it with
-                                // our current state. Note if no compilation existed GetPartialCompilationState would have
-                                // produced an empty one, and removed any documents, so inProgressProject.DocumentStates would
-                                // have been empty originally.
-                                pendingActions = [(inProgressProject, new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldState, docState))];
-                                inProgressProject = inProgressProject.UpdateDocument(docState, contentChanged: true);
-                            }
-                            else
-                            {
-                                // We're in either scenario 2 or 3. Do we have an existing document to try replacing? Note: the
-                                // file path here corresponds to Document.FilePath. If a document's file path is null, we then
-                                // substitute Document.Name, so we usually expect there to be a unique string regardless.
-                                oldState = inProgressProject.DocumentStates.States.FirstOrDefault(kvp => kvp.Value.FilePath == docState.FilePath).Value;
-                                if (oldState is null)
-                                {
-                                    // Scenario 2.
-                                    pendingActions = [(inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
-                                    inProgressProject = inProgressProject.AddDocuments([docState]);
-                                }
-                                else
-                                {
-                                    // Scenario 3. The old doc came from some other document with a different ID then we started
-                                    // with -- if the document ID still existed we would have been in the Scenario 1 case
-                                    // instead. We'll find the old document ID, remove that state, and then add ours.
-                                    var inProgressWithDocumentRemoved = inProgressProject.RemoveDocuments([oldState.Id]);
-                                    pendingActions = [
-                                        (inProgressProject, new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction([oldState])),
-                                        (inProgressWithDocumentRemoved, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
-                                    inProgressProject = inProgressWithDocumentRemoved
-                                        .AddDocuments([docState]);
-                                }
-                            }
+                            // Scenario 2.
+                            pendingActions = [(inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
+                            inProgressProject = inProgressProject.AddDocuments([docState]);
+                        }
+                        else
+                        {
+                            // Scenario 3. The old doc came from some other document with a different ID then we started
+                            // with -- if the document ID still existed we would have been in the Scenario 1 case
+                            // instead. We'll find the old document ID, remove that state, and then add ours.
+                            var inProgressWithDocumentRemoved = inProgressProject.RemoveDocuments([oldState.Id]);
+                            pendingActions = [
+                                (inProgressProject, new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction([oldState])),
+                                (inProgressWithDocumentRemoved, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
+                            inProgressProject = inProgressWithDocumentRemoved
+                                .AddDocuments([docState]);
                         }
                     }
                 }
@@ -304,12 +320,13 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private void GetPartialCompilationState(
                 DocumentId? documentId,
+                out CompilationTrackerState? state,
                 out ProjectState inProgressProject,
                 out CompilationPair compilations,
                 out CompilationTrackerGeneratorInfo generatorInfo,
                 CancellationToken cancellationToken)
             {
-                var state = ReadState();
+                state = ReadState();
                 var compilationWithoutGeneratedDocuments = state?.CompilationWithoutGeneratedDocuments;
 
                 generatorInfo = state?.GeneratorInfo ?? CompilationTrackerGeneratorInfo.Empty;
