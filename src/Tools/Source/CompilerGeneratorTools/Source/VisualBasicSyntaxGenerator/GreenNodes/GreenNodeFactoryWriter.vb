@@ -277,17 +277,18 @@ Friend Class GreenNodeFactoryWriter
 
             'Dim cached = SyntaxNodeCache.TryGetNode(SyntaxKind.ReturnStatement, returnKeyword, expression, hash)
 
-            If contextual Then
+            Dim isAttribute = nodeStructure.Name = "AttributeSyntax"
+            If contextual AndAlso Not isAttribute Then
                 _writer.Write("            Dim cached = VisualBasicSyntaxNodeCache.TryGetNode(")
             Else
                 _writer.Write("            Dim cached = SyntaxNodeCache.TryGetNode(")
             End If
 
-            GenerateCtorArgs(nodeStructure, nodeKind, contextual, factoryFunctionName)
+            GenerateCtorArgs(nodeStructure, nodeKind, contextual AndAlso Not isAttribute, factoryFunctionName)
 
             If nodeStructure.Name = "AttributeSyntax" Then
                 If contextual Then
-                    _writer.Write(", VisualBasicSyntaxNodeCache.GetNodeFlags(me.context) Or GreenNode.NodeFlags.ContainsAttributes")
+                    _writer.Write(", VisualBasicSyntaxNodeCache.GetNodeFlags(_factoryContext) Or GreenNode.NodeFlags.ContainsAttributes")
                 Else
                     _writer.Write(", SyntaxNodeCache.GetDefaultNodeFlags() Or GreenNode.NodeFlags.ContainsAttributes")
                 End If
