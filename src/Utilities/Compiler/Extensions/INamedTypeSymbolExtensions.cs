@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Analyzer.Utilities.Lightup;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.Extensions
@@ -282,5 +283,9 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsTopLevelStatementsEntryPointType([NotNullWhen(true)] this INamedTypeSymbol? typeSymbol)
             => typeSymbol is not null &&
                typeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.IsTopLevelStatementsEntryPointMethod());
+
+        private static readonly Func<INamedTypeSymbol, bool> s_isFileLocal = LightupHelpers.CreateSymbolPropertyAccessor<INamedTypeSymbol, bool>(typeof(INamedTypeSymbol), nameof(IsFileLocal), fallbackResult: false);
+
+        public static bool IsFileLocal(this INamedTypeSymbol symbol) => s_isFileLocal(symbol);
     }
 }
