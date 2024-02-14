@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis
                     if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
                 }
 
-                this.flags |= NodeFlags.ContainsAnnotations;
+                this.flags |= NodeFlags.HasAnnotations;
                 s_annotationsTable.Add(this, annotations);
             }
         }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis
                     if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
                 }
 
-                this.flags |= NodeFlags.ContainsAnnotations;
+                this.flags |= NodeFlags.HasAnnotations;
                 s_annotationsTable.Add(this, annotations);
             }
         }
@@ -262,12 +262,22 @@ namespace Microsoft.CodeAnalysis
             ContainsStructuredTrivia = 1 << 1,
             ContainsDirectives = 1 << 2,
             ContainsSkippedText = 1 << 3,
+            /// <summary>
+            /// If this node, or any of its descendants has annotations attached to them.
+            /// </summary>
             ContainsAnnotations = 1 << 4,
-            IsNotMissing = 1 << 5,
-            ContainsAttributes = 1 << 6,
+            /// <summary>
+            /// If this node itself has annotations (not just its descendants).
+            /// </summary>
+            HasAnnotations = (1 << 5) | ContainsAnnotations,
+            IsNotMissing = 1 << 6,
+            /// <summary>
+            /// If this node, or any of its descendants has attributes attached to it.
+            /// </summary>
+            ContainsAttributes = 1 << 7,
 
-            FactoryContextIsInAsync = 1 << 7,
-            FactoryContextIsInQuery = 1 << 8,
+            FactoryContextIsInAsync = 1 << 8,
+            FactoryContextIsInQuery = 1 << 9,
             FactoryContextIsInIterator = FactoryContextIsInQuery,  // VB does not use "InQuery", but uses "InIterator" instead
 
             InheritMask = ContainsDiagnostics | ContainsStructuredTrivia | ContainsDirectives | ContainsSkippedText | ContainsAnnotations | ContainsAttributes | IsNotMissing,
@@ -366,6 +376,14 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 return (this.flags & NodeFlags.ContainsAnnotations) != 0;
+            }
+        }
+
+        public bool HasAnnotationsDirectly
+        {
+            get
+            {
+                return (this.flags & NodeFlags.HasAnnotations) != 0;
             }
         }
         #endregion
@@ -539,17 +557,13 @@ namespace Microsoft.CodeAnalysis
 
         public SyntaxAnnotation[] GetAnnotations()
         {
-            if (this.ContainsAnnotations)
-            {
-                SyntaxAnnotation[]? annotations;
-                if (s_annotationsTable.TryGetValue(this, out annotations))
-                {
-                    System.Diagnostics.Debug.Assert(annotations.Length != 0, "we should return nonempty annotations or NoAnnotations");
-                    return annotations;
-                }
-            }
+            if (!this.HasAnnotationsDirectly)
+                return s_noAnnotations;
 
-            return s_noAnnotations;
+            var found = s_annotationsTable.TryGetValue(this, out var annotations);
+            Debug.Assert(found, "We must be able to find annotations since we had the bit set on ourselves");
+            Debug.Assert(annotations.Length != 0, "we should return nonempty annotations or NoAnnotations");
+            return annotations;
         }
 
         internal abstract GreenNode SetAnnotations(SyntaxAnnotation[]? annotations);
