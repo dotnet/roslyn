@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis
                                 var inProgressWithDocumentRemoved = inProgressProject.RemoveDocuments([oldState.Id]);
                                 pendingActions = [
                                     (inProgressProject, new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction([oldState])),
-                                (inProgressWithDocumentRemoved, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
+                                    (inProgressWithDocumentRemoved, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
                                 inProgressProject = inProgressWithDocumentRemoved
                                     .AddDocuments([docState]);
                             }
