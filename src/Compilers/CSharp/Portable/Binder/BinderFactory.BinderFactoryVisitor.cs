@@ -1393,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             StructuredTriviaSyntax structuredTrivia = GetEnclosingDocumentationComment(xmlSyntax);
             SyntaxTrivia containingTrivia = structuredTrivia.ParentTrivia;
-            SyntaxToken associatedToken = (SyntaxToken)containingTrivia.Token;
+            SyntaxToken associatedToken = containingTrivia.Token;
 
             CSharpSyntaxNode curr = (CSharpSyntaxNode)associatedToken.Parent;
             while (curr != null)
@@ -1401,8 +1401,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MemberDeclarationSyntax memberSyntax = curr as MemberDeclarationSyntax;
                 if (memberSyntax != null)
                 {
-                    // Require that the xml syntax precedes the start of the member span.
-                    if (memberSyntax.SpanStart < xmlSyntax.SpanStart)
+                    // The doc comment must be in the leading trivia of its associated member.
+                    if (!memberSyntax.GetLeadingTrivia().Contains(containingTrivia))
                     {
                         return null;
                     }
