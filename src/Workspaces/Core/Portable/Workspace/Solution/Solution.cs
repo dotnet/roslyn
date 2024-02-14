@@ -30,10 +30,17 @@ namespace Microsoft.CodeAnalysis
         // Values for all these are created on demand.
         private ImmutableHashMap<ProjectId, Project> _projectIdToProjectMap;
 
+        /// <summary>
+        /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.
+        /// </summary>
+        private AsyncLazy<Solution> CachedFrozenSolution { get; init; }
+
         private Solution(SolutionCompilationState compilationState)
         {
             _projectIdToProjectMap = [];
             _compilationState = compilationState;
+
+            this.CachedFrozenSolution = AsyncLazy.Create(c => ComputeFrozenSolutionAsync(c));
         }
 
         internal Solution(
@@ -1439,6 +1446,29 @@ namespace Microsoft.CodeAnalysis
 
             var newCompilationState = _compilationState.UpdateAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
+        }
+
+        /// <summary>
+        /// Returns a solution instance where every project is frozen at whatever current state it is in
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        internal Task<Solution> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
+            => this.CachedFrozenSolution.GetValueAsync(cancellationToken);
+
+        private async Task<Solution> ComputeFrozenSolutionAsync(CancellationToken cancellationToken)
+        {
+            // in progress solutions are disabled for some testing
+            if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
+                return this;
+
+            var newCompilationState = await this.CompilationState.WithFrozenPartialCompilationsAsync(cancellationToken).ConfigureAwait(false);
+            var frozenSolution = new Solution(newCompilationState)
+            {
+                // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.
+                CachedFrozenSolution = this.CachedFrozenSolution,
+            };
+
+            return frozenSolution;
         }
 
         /// <summary>

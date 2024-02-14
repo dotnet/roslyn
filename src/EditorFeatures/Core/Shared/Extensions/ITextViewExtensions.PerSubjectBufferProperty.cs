@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         private class PerSubjectBufferProperty<TProperty, TTextView> where TTextView : ITextView
         {
             private readonly TTextView _textView;
-            private readonly Dictionary<ITextBuffer, Dictionary<object, TProperty>> _subjectBufferMap = new();
+            private readonly Dictionary<ITextBuffer, Dictionary<object, TProperty>> _subjectBufferMap = [];
 
             // Some other VS components (e.g. Razor) will temporarily disconnect out ITextBuffer from the ITextView.  When listening to 
             // BufferGraph.GraphBuffersChanged, we should allow buffers we previously knew about to be re-attached.
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             public void Add(ITextBuffer subjectBuffer, object key, TProperty value)
             {
-                var bufferMap = _subjectBufferMap.GetOrAdd(subjectBuffer, _ => new Dictionary<object, TProperty>());
+                var bufferMap = _subjectBufferMap.GetOrAdd(subjectBuffer, _ => []);
                 bufferMap[key] = value;
             }
 

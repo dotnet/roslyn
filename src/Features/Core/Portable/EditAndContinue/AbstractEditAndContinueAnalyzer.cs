@@ -1017,11 +1017,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var oldEnclosingLambdaBody = FindEnclosingLambdaBody(oldMemberBody.EncompassingAncestor, oldStatementSyntax);
                         if (oldEnclosingLambdaBody != null)
                         {
-                            lazyActiveOrMatchedLambdas ??= new Dictionary<LambdaBody, LambdaInfo>();
+                            lazyActiveOrMatchedLambdas ??= [];
 
                             if (!lazyActiveOrMatchedLambdas.TryGetValue(oldEnclosingLambdaBody, out var lambda))
                             {
-                                lambda = new LambdaInfo(new List<int>());
+                                lambda = new LambdaInfo([]);
                                 lazyActiveOrMatchedLambdas.Add(oldEnclosingLambdaBody, lambda);
                             }
 
@@ -1399,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (TryGetLambdaBodies(oldNode, out var oldLambdaBody1, out var oldLambdaBody2))
                     {
                         lambdaBodyMaps ??= ArrayBuilder<(DeclarationBodyMap, SyntaxNode?)>.GetInstance();
-                        lazyActiveOrMatchedLambdas ??= new();
+                        lazyActiveOrMatchedLambdas ??= [];
 
                         var newLambdaBody1 = oldLambdaBody1.TryGetPartnerLambdaBody(newNode);
                         if (newLambdaBody1 != null)
@@ -1547,7 +1547,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (activeNode.NewTrackedNode != null)
                 {
-                    lazyKnownMatches ??= new List<KeyValuePair<SyntaxNode, SyntaxNode>>();
+                    lazyKnownMatches ??= [];
                     lazyKnownMatches.Add(KeyValuePairUtil.Create(activeNode.OldNode, activeNode.NewTrackedNode));
                 }
             }
@@ -1947,7 +1947,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (nodeSelector(current))
                 {
-                    list ??= new List<SyntaxNode?>();
+                    list ??= [];
                     list.Add(current);
                 }
 
@@ -2412,7 +2412,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             /// Contains syntax maps for all changed data member initializers or constructor declarations (of constructors emitting initializers)
             /// in the currently analyzed document. The key is the new declaration of the member.
             /// </summary>
-            public readonly Dictionary<SyntaxNode, SyntaxMaps> ChangedDeclarations = new();
+            public readonly Dictionary<SyntaxNode, SyntaxMaps> ChangedDeclarations = [];
 
             /// <summary>
             /// True if a member initializer has been deleted

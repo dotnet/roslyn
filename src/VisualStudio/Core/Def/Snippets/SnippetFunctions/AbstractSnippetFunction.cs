@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
@@ -20,9 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         private readonly ITextBuffer _subjectBuffer;
         private readonly IThreadingContext _threadingContext;
 
-        protected AbstractSnippetExpansionClient snippetExpansionClient;
+        protected readonly SnippetExpansionClient snippetExpansionClient;
 
-        public AbstractSnippetFunction(AbstractSnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, IThreadingContext threadingContext)
+        public AbstractSnippetFunction(SnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, IThreadingContext threadingContext)
         {
             this.snippetExpansionClient = snippetExpansionClient;
             _subjectBuffer = subjectBuffer;

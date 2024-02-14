@@ -35,8 +35,10 @@ namespace Microsoft.CodeAnalysis
             /// </remarks>
             bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary);
             ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate);
-            ICompilationTracker FreezePartialStateWithTree(SolutionCompilationState compilationState, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken);
             Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
+
+            ICompilationTracker FreezePartialState(SolutionCompilationState compilationState, CancellationToken cancellationToken);
+            ICompilationTracker FreezePartialStateWithTree(SolutionCompilationState compilationState, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken);
 
             Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
             Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);

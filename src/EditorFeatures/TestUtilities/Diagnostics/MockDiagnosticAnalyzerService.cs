@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     internal class MockDiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
         private readonly ArrayBuilder<(DiagnosticData Diagnostic, DiagnosticKind KindFilter)> _diagnosticsWithKindFilter;
-        public readonly List<DocumentId> DocumentsToReanalyze = new();
+        public readonly List<DocumentId> DocumentsToReanalyze = [];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             /// For each document the array contains spans for all active statements present in the file
             /// (even if they have been deleted, in which case the spans are empty).
             /// </summary>
-            private readonly Dictionary<string, ImmutableArray<ActiveStatementTrackingSpan>> _trackingSpans = new();
+            private readonly Dictionary<string, ImmutableArray<ActiveStatementTrackingSpan>> _trackingSpans = [];
 
             #endregion
 

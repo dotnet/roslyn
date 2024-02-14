@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             lock (s_moduleDiagnosticDescriptorsGuard)
             {
-                s_lazyModuleDiagnosticDescriptors ??= new Dictionary<ManagedHotReloadAvailabilityStatus, DiagnosticDescriptor>();
+                s_lazyModuleDiagnosticDescriptors ??= [];
 
                 if (!s_lazyModuleDiagnosticDescriptors.TryGetValue(status, out var descriptor))
                 {
