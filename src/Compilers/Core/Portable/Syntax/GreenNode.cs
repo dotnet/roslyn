@@ -562,7 +562,9 @@ namespace Microsoft.CodeAnalysis
 
             var found = s_annotationsTable.TryGetValue(this, out var annotations);
             Debug.Assert(found, "We must be able to find annotations since we had the bit set on ourselves");
-            Debug.Assert(annotations.Length != 0, "we should return nonempty annotations or NoAnnotations");
+            Debug.Assert(annotations != null, "annotations should not be null");
+            Debug.Assert(annotations != s_noAnnotations, "annotations should not be s_noAnnotations");
+            Debug.Assert(annotations.Length != 0, "annotations should be non-empty");
             return annotations;
         }
 
