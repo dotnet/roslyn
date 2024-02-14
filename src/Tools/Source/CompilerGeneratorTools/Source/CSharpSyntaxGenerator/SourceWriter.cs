@@ -621,11 +621,11 @@ namespace CSharpSyntaxGenerator
                 {
                     if (withSyntaxFactoryContext)
                     {
-                        Write(", CSharpSyntaxNodeCache.GetNodeFlags(this.context) | GreenNode.NodeFlags.ContainsAttribute");
+                        Write(", CSharpSyntaxNodeCache.GetNodeFlags(this.context) | GreenNode.NodeFlags.ContainsAttributes");
                     }
                     else
                     {
-                        Write(", SyntaxNodeCache.GetDefaultNodeFlags() | GreenNode.NodeFlags.ContainsAttribute");
+                        Write(", SyntaxNodeCache.GetDefaultNodeFlags() | GreenNode.NodeFlags.ContainsAttributes");
                     }
                 }
 
