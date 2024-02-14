@@ -5696,7 +5696,7 @@
     <value>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</value>
   </data>
   <data name="ERR_LockTypeUnsupported" xml:space="preserve">
-    <value>A value of type 'System.Threading.Lock' in SyncLock will use likely unintended monitor-based locking. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</value>
+    <value>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</value>
   </data>
   <data name="WRN_ConvertingLock" xml:space="preserve">
     <value>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</value>
