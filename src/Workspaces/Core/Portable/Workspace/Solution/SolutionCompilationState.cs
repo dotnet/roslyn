@@ -1187,7 +1187,7 @@ internal sealed partial class SolutionCompilationState
         }
     }
 
-    public SolutionCompilationState AddDocument(ImmutableArray<DocumentInfo> documentInfos)
+    public SolutionCompilationState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
     {
         return AddDocumentsToMultipleProjects(documentInfos,
             static (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
