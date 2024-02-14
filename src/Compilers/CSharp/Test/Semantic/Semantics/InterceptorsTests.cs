@@ -4971,7 +4971,7 @@ partial struct CustomHandler
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, @"C:\src\Program.cs"), (source2, @"Generator\Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        var comp = CreateCompilation(new[] { (source, PlatformInformation.IsWindows ? @"C:\src\Program.cs" : "/src/Program.cs"), (source2, PlatformInformation.IsWindows ? @"Generator\Generated.cs" : "Generator/Generated.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
             // Generator\Generated.cs(6,25): error CS9139: Cannot intercept: compilation does not contain a file with path '../src/Program.cs'.
             //     [InterceptsLocation("../src/Program.cs", 6, 11)]
@@ -5030,7 +5030,7 @@ partial struct CustomHandler
             }
             """;
 
-        // parent directory of the drive root is just the drive root
+        // The relative path resolution of `C:\..` is just `C:\` (and `/..` resolves to `/`).
         var source2 = """
             using System;
             using System.Runtime.CompilerServices;
@@ -5148,7 +5148,7 @@ partial struct CustomHandler
     [Fact]
     public void RelativePaths_08()
     {
-        // Unmapped file paths are not absolute. Relative path resolution is not performed.
+        // SyntaxTree file paths are not absolute. Relative path resolution is not performed.
         var source = """
             C c = new C();
             c.M();
