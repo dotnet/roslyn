@@ -1034,23 +1034,47 @@ internal sealed partial class SolutionCompilationState
         var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
 
+        using var _ = ArrayBuilder<DocumentState>.GetInstance(out var documentsToRemove);
+
         foreach (var projectId in this.SolutionState.ProjectIds)
         {
             // if we don't have one or it is stale, create a new partial solution
-            var tracker = GetCompilationTracker(projectId);
-            var newTracker = tracker.FreezePartialState(cancellationToken);
+            var oldTracker = GetCompilationTracker(projectId);
+            var newTracker = oldTracker.FreezePartialState(cancellationToken);
 
             Contract.ThrowIfFalse(newIdToProjectStateMapBuilder.ContainsKey(projectId));
-            newIdToProjectStateMapBuilder[projectId] = newTracker.ProjectState;
+
+            var oldProjectState = oldTracker.ProjectState;
+            var newProjectState = newTracker.ProjectState;
+
+            newIdToProjectStateMapBuilder[projectId] = newProjectState;
             newIdToTrackerMapBuilder[projectId] = newTracker;
+
+            // Freezing projects can make them lose all documents (in the case where no compilation had been produced at
+            // all). If that happens, we need to remove those documents as well from teh final filepath-to-documentid
+            // map.
+
+            // Fast check that we do in debug/release
+            Contract.ThrowIfFalse(newProjectState.DocumentStates.Count == 0 || newProjectState.DocumentStates.Count == oldProjectState.DocumentStates.Count);
+
+            // Slower check only in release.
+            Debug.Assert(newProjectState.DocumentStates.Count == 0 || newProjectState.DocumentStates.States.SetEquals(oldProjectState.DocumentStates.States));
+
+            if (newProjectState.DocumentStates.Count == 0)
+                documentsToRemove.AddRange(oldProjectState.DocumentStates.States.Values);
         }
 
         var newIdToProjectStateMap = newIdToProjectStateMapBuilder.ToImmutable();
         var newIdToTrackerMap = newIdToTrackerMapBuilder.ToImmutable();
 
+        var filePathToDocumentIdsMap = this.SolutionState.CreateFilePathToDocumentIdsMapWithRemovedDocuments(documentsToRemove);
+        var dependencyGraph = SolutionState.CreateDependencyGraph(this.SolutionState.ProjectIds, newIdToProjectStateMap);
+
         var newState = this.SolutionState.Branch(
             idToProjectStateMap: newIdToProjectStateMap,
-            dependencyGraph: SolutionState.CreateDependencyGraph(this.SolutionState.ProjectIds, newIdToProjectStateMap));
+            filePathToDocumentIdsMap: filePathToDocumentIdsMap,
+            dependencyGraph: dependencyGraph);
+
         var newCompilationState = this.Branch(
             newState,
             newIdToTrackerMap,
@@ -1322,22 +1346,20 @@ internal sealed partial class SolutionCompilationState
                 throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentIdsInProject.Key));
             }
 
-            var removedDocumentStatesBuilder = ArrayBuilder<T>.GetInstance();
-
+            using var _ = ArrayBuilder<T>.GetInstance(out var removedDocumentStates);
             foreach (var documentId in documentIdsInProject)
-            {
-                removedDocumentStatesBuilder.Add(getExistingTextDocumentState(oldProjectState, documentId));
-            }
+                removedDocumentStates.Add(getExistingTextDocumentState(oldProjectState, documentId));
 
-            var removedDocumentStatesForProject = removedDocumentStatesBuilder.ToImmutableAndFree();
-
-            var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
+            var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(
+                oldProjectState,
+                documentIdsInProject.ToImmutableArray(),
+                removedDocumentStates.ToImmutable());
 
             var stateChange = newCompilationState.SolutionState.ForkProject(
                 oldProjectState,
                 newProjectState,
                 // Intentionally using this.Solution here and not newSolutionState
-                newFilePathToDocumentIdsMap: this.SolutionState.CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStatesForProject));
+                newFilePathToDocumentIdsMap: this.SolutionState.CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStates));
 
             newCompilationState = newCompilationState.ForkProject(
                 stateChange,
