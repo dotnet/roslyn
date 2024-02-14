@@ -250,6 +250,7 @@
         "NonShipping"
       ],
       "vsBranch": "main",
+      "insertionTitlePrefix": "[Do not merge, please close me]",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false
     }
