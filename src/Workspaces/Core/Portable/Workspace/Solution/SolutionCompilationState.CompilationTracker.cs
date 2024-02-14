@@ -187,15 +187,12 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public ICompilationTracker FreezePartialState(
-                SolutionCompilationState compilationState,
-                CancellationToken cancellationToken)
+            public ICompilationTracker FreezePartialState(CancellationToken cancellationToken)
             {
                 return FreezePartialStateWorker(docState: null, cancellationToken);
             }
 
             public ICompilationTracker FreezePartialStateWithDocument(
-                SolutionCompilationState compilationState,
                 DocumentState docState,
                 CancellationToken cancellationToken)
             {

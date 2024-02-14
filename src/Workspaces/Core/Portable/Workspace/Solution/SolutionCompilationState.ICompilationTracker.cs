@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis
 
             Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
 
-            ICompilationTracker FreezePartialState(SolutionCompilationState compilationState, CancellationToken cancellationToken);
-            ICompilationTracker FreezePartialStateWithDocument(SolutionCompilationState compilationState, DocumentState docState, CancellationToken cancellationToken);
+            ICompilationTracker FreezePartialState(CancellationToken cancellationToken);
+            ICompilationTracker FreezePartialStateWithDocument(DocumentState docState, CancellationToken cancellationToken);
 
             Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
             Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);

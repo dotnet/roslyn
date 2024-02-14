@@ -1025,7 +1025,7 @@ internal sealed partial class SolutionCompilationState
         {
             // if we don't have one or it is stale, create a new partial solution
             var tracker = GetCompilationTracker(projectId);
-            var newTracker = tracker.FreezePartialState(this, cancellationToken);
+            var newTracker = tracker.FreezePartialState(cancellationToken);
 
             Contract.ThrowIfFalse(newIdToProjectStateMapBuilder.ContainsKey(projectId));
             newIdToProjectStateMapBuilder[projectId] = newTracker.ProjectState;
@@ -1151,7 +1151,7 @@ internal sealed partial class SolutionCompilationState
             {
                 // if we don't have one or it is stale, create a new partial solution
                 var tracker = @this.GetCompilationTracker(docState.Id.ProjectId);
-                var newTracker = tracker.FreezePartialStateWithDocument(@this, docState, cancellationToken);
+                var newTracker = tracker.FreezePartialStateWithDocument(docState, cancellationToken);
 
                 Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(docState.Id.ProjectId));
                 newIdToProjectStateMap = newIdToProjectStateMap.SetItem(docState.Id.ProjectId, newTracker.ProjectState);
