@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
                 SyntaxKind.RecordDeclaration,
                 SyntaxKind.CollectionExpression,
                 SyntaxKind.ExpressionElement,
-                SyntaxKind.SpreadElement
+                SyntaxKind.SpreadElement,
                 // PROTOTYPE
                 SyntaxKind.ExtensionDeclaration,
                 SyntaxKind.ForType,

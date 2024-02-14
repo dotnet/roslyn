@@ -197,6 +197,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
 
+        internal override bool IsExtension => false;
+
+        internal override bool IsExplicitExtension => false;
+
+        internal override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics => null;
+
         public override ImmutableArray<Symbol> GetMembers() => _members;
 
         public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray(static (m, name) => m.Name == name, name);
@@ -259,5 +265,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null) => _interfaces;
 
         internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls() => SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+
+        internal override TypeSymbol? GetDeclaredExtensionUnderlyingType()
+            => throw ExceptionUtilities.Unreachable();
     }
 }
