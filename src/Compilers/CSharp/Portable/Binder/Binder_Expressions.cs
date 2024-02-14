@@ -7430,12 +7430,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void LookupInstanceMember(LookupResult lookupResult, TypeSymbol leftType, bool leftIsBaseReference, string rightName, int rightArity, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            LookupOptions options = MakeOptionsForInstanceMemberLookup(invoked, leftIsBaseReference);
-            this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
-        }
-
-        private static LookupOptions MakeOptionsForInstanceMemberLookup(bool invoked, bool leftIsBaseReference)
-        {
             LookupOptions options = LookupOptions.AllMethodsOnArityZero;
             if (invoked)
             {
@@ -7447,7 +7441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.UseBaseReferenceAccessibility;
             }
 
-            return options;
+            this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
         }
 
         private void BindMemberAccessReportError(BoundMethodGroup node, BindingDiagnosticBag diagnostics)
