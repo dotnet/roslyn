@@ -177,12 +177,14 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     internal static string GetNetCoreBuildHostPath()
     {
         // The .NET Core build host is deployed as a content folder next to the application into the BuildHost-netcore path
-        return Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-netcore", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll");
+        var buildHostPath = Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-netcore", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll");
+        AssertBuildHostExists(buildHostPath);
+        return buildHostPath;
     }
 
     private ProcessStartInfo CreateDotNetFrameworkBuildHostStartInfo()
     {
-        var netFrameworkBuildHost = GetPathToDotNetFrameworkBuildHost();
+        var netFrameworkBuildHost = GetDotNetFrameworkBuildHostPath();
         var processStartInfo = new ProcessStartInfo()
         {
             FileName = netFrameworkBuildHost,
@@ -200,19 +202,25 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             FileName = "mono"
         };
 
-        AddArgument(processStartInfo, GetPathToDotNetFrameworkBuildHost());
+        AddArgument(processStartInfo, GetDotNetFrameworkBuildHostPath());
 
         AppendBuildHostCommandLineArgumentsConfigureProcess(processStartInfo);
 
         return processStartInfo;
     }
 
-    private static string GetPathToDotNetFrameworkBuildHost()
+    private static string GetDotNetFrameworkBuildHostPath()
     {
         // The .NET Framework build host is deployed as a content folder next to the application into the BuildHost-net472 path
         var netFrameworkBuildHost = Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-net472", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe");
-        Contract.ThrowIfFalse(File.Exists(netFrameworkBuildHost), $"Unable to locate the .NET Framework build host at {netFrameworkBuildHost}");
+        AssertBuildHostExists(netFrameworkBuildHost);
         return netFrameworkBuildHost;
+    }
+
+    private static void AssertBuildHostExists(string buildHostPath)
+    {
+        if (!File.Exists(buildHostPath))
+            throw new Exception(string.Format(WorkspaceMSBuildResources.The_build_host_could_not_be_found_at_0, buildHostPath));
     }
 
     private void AppendBuildHostCommandLineArgumentsConfigureProcess(ProcessStartInfo processStartInfo)
