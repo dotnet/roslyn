@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         name: name,
                         assemblyName: name,
                         language: languageName,
-                        compilationOutputFilePaths: default,
+                        compilationOutputInfo: default,
                         checksumAlgorithm: SourceHashAlgorithms.Default,
                         isSubmission: true),
                     compilationOptions: compilationOptions,

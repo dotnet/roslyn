@@ -338,7 +338,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         name: projectName,
                         assemblyName: projectName,
                         language,
-                        compilationOutputFilePaths: default,
+                        compilationOutputInfo: default,
                         checksumAlgorithm: SourceHashAlgorithms.Default));
 
                 OnProjectAdded(projectInfo);
