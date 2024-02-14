@@ -55,11 +55,6 @@ namespace Microsoft.CodeAnalysis
                     CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
                     GeneratorInfo = generatorInfo;
 
-                    // When in the frozen state, all documents must be final. We never want to run generators for frozen
-                    // states as the point is to be fast (while potentially incomplete).
-                    if (IsFrozen)
-                        Contract.ThrowIfFalse(generatorInfo.DocumentsAreFinal);
-
 #if DEBUG
                     // As a sanity check, we should never see the generated trees inside of the compilation that should
                     // not have generated trees.
@@ -117,11 +112,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     Contract.ThrowIfTrue(pendingTranslationSteps is null);
 
-                    // If we're not frozen, transition back to the non-final state as we def want to rerun generators
-                    // for either of these non-final states.
-                    if (!isFrozen)
-                        generatorInfo = generatorInfo with { DocumentsAreFinal = false };
-
                     // If we don't have any intermediate projects to process, just initialize our
                     // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
                     // if our referenced projects are changing, so we'll have to rerun to consume changes.
@@ -175,7 +165,6 @@ namespace Microsoft.CodeAnalysis
                     UnrootedSymbolSet unrootedSymbolSet)
                     : base(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo)
                 {
-                    Contract.ThrowIfFalse(generatorInfo.DocumentsAreFinal);
                     Contract.ThrowIfNull(finalCompilationWithGeneratedDocuments);
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     FinalCompilationWithGeneratedDocuments = finalCompilationWithGeneratedDocuments;
@@ -201,8 +190,6 @@ namespace Microsoft.CodeAnalysis
                     ProjectId projectId,
                     Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
                 {
-                    Contract.ThrowIfFalse(generatorInfo.DocumentsAreFinal);
-
                     // Keep track of information about symbols from this Compilation.  This will help support other APIs
                     // the solution exposes that allows the user to map back from symbols to project information.
 

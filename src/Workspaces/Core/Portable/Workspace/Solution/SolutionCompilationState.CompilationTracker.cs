@@ -289,9 +289,8 @@ namespace Microsoft.CodeAnalysis
                     Contract.ThrowIfFalse(compilationPair.CompilationWithoutGeneratedDocuments.ContainsSyntaxTree(tree));
                 }
 
-                // Mark whatever generator state we have as not only final, and mark our FinalState as frozen as well.
-                // We'll want to keep whatever we have here through whatever future transformations occur.
-                generatorInfo = generatorInfo with { DocumentsAreFinal = true };
+                // Mark our FinalState as frozen. We'll want to keep whatever we have here through whatever future
+                // transformations occur.
 
                 var finalState = FinalCompilationTrackerState.Create(
                     isFrozen: true,
@@ -761,6 +760,7 @@ namespace Microsoft.CodeAnalysis
 
                         // We will finalize the compilation by adding full contents here.
                         var (compilationWithGeneratedDocuments, generatedDocuments, generatorDriver) = await AddExistingOrComputeNewGeneratorInfoAsync(
+                            isFrozen,
                             compilationState,
                             compilationWithoutGeneratedDocuments,
                             generatorInfo,
@@ -768,7 +768,7 @@ namespace Microsoft.CodeAnalysis
                             cancellationToken).ConfigureAwait(false);
 
                         // After producing the sg documents, we must always be in the final state for the generator data.
-                        var nextGeneratorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorDriver, DocumentsAreFinal: true);
+                        var nextGeneratorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorDriver);
 
                         var finalState = FinalCompilationTrackerState.Create(
                             isFrozen,
