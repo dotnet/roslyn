@@ -1372,6 +1372,132 @@ Block[B6] - Exit
         }
 
         [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        public void LockFlow_LockObject_ConditionalBody()
+        {
+            var source = """
+                using System;
+                using System.Threading;
+
+                class C
+                {
+                    void M(bool b)
+                    /*<bind>*/{
+                        Lock l = new Lock();
+                        lock (l)
+                        {
+                            if (b)
+                            {
+                                Console.Write("Body");
+                            }
+                            else
+                            {
+                                Console.Write("Else");
+                            }
+                        }
+                    }/*</bind>*/
+                }
+                """;
+
+            var expectedFlowGraph = """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Entering: {R1}
+                .locals {R1}
+                {
+                    Locals: [System.Threading.Lock l]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (1)
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l = new Lock()')
+                              Left:
+                                ILocalReferenceOperation: l (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l = new Lock()')
+                              Right:
+                                IObjectCreationOperation (Constructor: System.Threading.Lock..ctor()) (OperationKind.ObjectCreation, Type: System.Threading.Lock) (Syntax: 'new Lock()')
+                                  Arguments(0)
+                                  Initializer:
+                                    null
+                        Next (Regular) Block[B2]
+                            Entering: {R2}
+                    .locals {R2}
+                    {
+                        CaptureIds: [0]
+                        Block[B2] - Block
+                            Predecessors: [B1]
+                            Statements (1)
+                                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l')
+                                  Value:
+                                    IInvocationOperation ( System.Threading.Lock.Scope System.Threading.Lock.EnterLockScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l')
+                                      Instance Receiver:
+                                        ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock) (Syntax: 'l')
+                                      Arguments(0)
+                            Next (Regular) Block[B3]
+                                Entering: {R3} {R4}
+                        .try {R3, R4}
+                        {
+                            Block[B3] - Block
+                                Predecessors: [B2]
+                                Statements (0)
+                                Jump if False (Regular) to Block[B5]
+                                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                                Next (Regular) Block[B4]
+                            Block[B4] - Block
+                                Predecessors: [B3]
+                                Statements (1)
+                                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write("Body");')
+                                      Expression:
+                                        IInvocationOperation (void System.Console.Write(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write("Body")')
+                                          Instance Receiver:
+                                            null
+                                          Arguments(1):
+                                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Body"')
+                                                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Body") (Syntax: '"Body"')
+                                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                Next (Regular) Block[B7]
+                                    Finalizing: {R5}
+                                    Leaving: {R4} {R3} {R2} {R1}
+                            Block[B5] - Block
+                                Predecessors: [B3]
+                                Statements (1)
+                                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write("Else");')
+                                      Expression:
+                                        IInvocationOperation (void System.Console.Write(System.String value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write("Else")')
+                                          Instance Receiver:
+                                            null
+                                          Arguments(1):
+                                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '"Else"')
+                                                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Else") (Syntax: '"Else"')
+                                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                Next (Regular) Block[B7]
+                                    Finalizing: {R5}
+                                    Leaving: {R4} {R3} {R2} {R1}
+                        }
+                        .finally {R5}
+                        {
+                            Block[B6] - Block
+                                Predecessors (0)
+                                Statements (1)
+                                    IInvocationOperation ( void System.Threading.Lock.Scope.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'l')
+                                      Instance Receiver:
+                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l')
+                                      Arguments(0)
+                                Next (StructuredExceptionHandling) Block[null]
+                        }
+                    }
+                }
+                Block[B7] - Exit
+                    Predecessors: [B4] [B5]
+                    Statements (0)
+                """;
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>([source, LockTypeDefinition], expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         public void LockFlow_LockObject_Conditional()
         {
             var source = """
