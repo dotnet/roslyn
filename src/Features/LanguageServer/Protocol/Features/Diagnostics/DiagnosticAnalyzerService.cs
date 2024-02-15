@@ -77,11 +77,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
         {
+#if false
             var service = workspace.Services.GetService<ISolutionCrawlerService>();
             if (service != null && _map.TryGetValue(workspace, out var analyzer))
             {
                 service.Reanalyze(workspace, analyzer, projectIds, documentIds, highPriority);
             }
+#endif
         }
 
         public Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(

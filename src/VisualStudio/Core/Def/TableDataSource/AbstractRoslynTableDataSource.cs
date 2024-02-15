@@ -41,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private void ConnectToSolutionCrawlerService(Workspace workspace)
         {
+#if false
             var crawlerService = workspace.Services.GetService<ISolutionCrawlerService>();
             if (crawlerService == null)
             {
@@ -53,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             // set initial value
             SolutionCrawlerProgressChanged(reporter.InProgress);
+#endif
         }
 
         private void OnSolutionCrawlerProgressChanged(object sender, ProgressData progressData)

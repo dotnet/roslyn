@@ -96,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         {
             _taskCenterService = await _taskStatusCenterService.GetValueAsync().ConfigureAwait(false);
 
+#if false
             var crawlerService = _workspace.Services.GetRequiredService<ISolutionCrawlerService>();
             var reporter = crawlerService.GetProgressReporter(_workspace);
 
@@ -106,6 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             }
 
             reporter.ProgressChanged += OnSolutionCrawlerProgressChanged;
+#endif
         }
 
         /// <summary>
