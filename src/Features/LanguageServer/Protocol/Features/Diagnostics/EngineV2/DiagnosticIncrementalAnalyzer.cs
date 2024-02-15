@@ -71,12 +71,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)
         {
+#if false
             if (DiagnosticAnalyzerService.IsGlobalOptionAffectingDiagnostics(e.Option) &&
                 GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
             {
                 var service = Workspace.Services.GetService<ISolutionCrawlerService>();
                 service?.Reanalyze(Workspace, this, projectIds: null, documentIds: null, highPriority: false);
             }
+#endif
         }
 
         internal IGlobalOptionService GlobalOptions => AnalyzerService.GlobalOptions;

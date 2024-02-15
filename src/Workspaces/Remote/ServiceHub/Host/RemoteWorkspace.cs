@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis.Remote
         protected override void Dispose(bool finalize)
         {
             base.Dispose(finalize);
+#if false
             Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Unregister(this);
+#endif
         }
 
         public AssetProvider CreateAssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource)

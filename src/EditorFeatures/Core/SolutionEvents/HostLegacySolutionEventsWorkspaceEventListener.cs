@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 
         public void StartListening(Workspace workspace, object? serviceOpt)
         {
+#if false
             if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
             {
                 workspace.WorkspaceChanged += OnWorkspaceChanged;
@@ -52,6 +53,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
                     workspace.WorkspaceChanged -= OnWorkspaceChanged;
                 });
             }
+#endif
         }
 
         private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)

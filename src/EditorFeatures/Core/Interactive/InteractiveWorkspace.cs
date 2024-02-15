@@ -20,16 +20,20 @@ namespace Microsoft.CodeAnalysis.Interactive
             : base(hostServices, WorkspaceKind.Interactive)
         {
             // register work coordinator for this workspace
+#if false
             if (globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
             {
                 Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(this);
             }
+#endif
         }
 
         protected override void Dispose(bool finalize)
         {
             // workspace is going away. unregister this workspace from work coordinator
+#if false
             Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Unregister(this, blockingShutdown: true);
+#endif
 
             base.Dispose(finalize);
         }

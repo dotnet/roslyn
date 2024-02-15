@@ -527,11 +527,17 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         private void StartSolutionCrawler()
         {
+#if false
             if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
                 DiagnosticProvider.Enable(this);
+#endif
         }
 
         private void StopSolutionCrawler()
-            => DiagnosticProvider.Disable(this);
+        {
+#if false
+            DiagnosticProvider.Disable(this);
+#endif
+        }
     }
 }

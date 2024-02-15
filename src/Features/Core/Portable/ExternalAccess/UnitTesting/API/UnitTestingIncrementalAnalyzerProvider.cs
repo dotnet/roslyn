@@ -38,11 +38,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         public static UnitTestingIncrementalAnalyzerProvider? TryRegister(Workspace workspace, string analyzerName, IUnitTestingIncrementalAnalyzerProviderImplementation provider)
         {
+#if false
             var solutionCrawlerRegistrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             if (solutionCrawlerRegistrationService == null)
             {
                 return null;
             }
+#endif
 
             var analyzerProvider = new UnitTestingIncrementalAnalyzerProvider(workspace, provider);
 
@@ -51,7 +53,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                 highPriorityForActiveFile: false,
                 [workspace.Kind]);
 
+#if false
             solutionCrawlerRegistrationService.AddAnalyzerProvider(analyzerProvider, metadata);
+#endif
             return analyzerProvider;
         }
     }

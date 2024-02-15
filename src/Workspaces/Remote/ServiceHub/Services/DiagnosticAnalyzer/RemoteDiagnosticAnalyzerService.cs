@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 // register solution crawler:
                 var workspace = GetWorkspace();
+#if false
                 workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(workspace);
+#endif
 
                 return ValueTaskFactory.CompletedTask;
             }, cancellationToken);

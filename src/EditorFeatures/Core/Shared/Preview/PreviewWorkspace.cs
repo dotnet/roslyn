@@ -32,10 +32,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
         }
 
+#if false
         public void EnableSolutionCrawler()
         {
             Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(this);
         }
+#endif
 
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
@@ -107,7 +109,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         {
             base.Dispose(finalize);
 
+#if false
             Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Unregister(this);
+#endif
             ClearSolution();
         }
     }

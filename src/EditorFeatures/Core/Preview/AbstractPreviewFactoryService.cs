@@ -701,11 +701,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 rightWorkspace = null;
             };
 
+#if false
             if (_editorOptionsService.GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
             {
                 leftWorkspace?.Target.EnableSolutionCrawler();
                 rightWorkspace?.Target.EnableSolutionCrawler();
             }
+#endif
 
             return CreateDifferenceViewerPreview(diffViewer);
         }

@@ -329,6 +329,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             });
         }
 
+#if false
         [Fact]
         public async Task TestRemoteWorkspaceSolutionCrawler()
         {
@@ -374,6 +375,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // check solution update correctly ran solution crawler
             Assert.True(await testAnalyzerProvider.Analyzer.Called);
         }
+#endif
 
         [Fact]
         public async Task TestRemoteWorkspace()

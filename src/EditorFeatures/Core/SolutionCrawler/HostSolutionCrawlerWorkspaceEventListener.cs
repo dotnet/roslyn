@@ -19,18 +19,22 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public void StartListening(Workspace workspace, object? serviceOpt)
         {
+#if false
             if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
             {
                 workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(workspace);
             }
+#endif
         }
 
         public void StopListening(Workspace workspace)
         {
+#if false
             // we do this so that we can stop solution crawler faster and fire some telemetry. 
             // this is to reduce a case where we keep going even when VS is shutting down since we don't know about that
             var registration = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             registration.Unregister(workspace, blockingShutdown: true);
+#endif
         }
     }
 }

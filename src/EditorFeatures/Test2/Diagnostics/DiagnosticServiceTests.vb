@@ -2502,6 +2502,7 @@ class MyClass
             End Using
         End Function
 
+#If False Then
         <WpfFact>
         Public Sub ReanalysisScopeExcludesMissingDocuments()
             Dim test = <Workspace>
@@ -2518,6 +2519,7 @@ class MyClass
                 Assert.Empty(reanalysisScope.GetDocumentIds(solution))
             End Using
         End Sub
+#End If
 
         <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
         Private NotInheritable Class AnalyzerWithCustomDiagnosticCategory

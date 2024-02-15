@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             _workspace = workspace;
 
+#if false
             _registrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(workspace);
 
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 throw new InvalidOperationException();
 
             AnalyzerService = (DiagnosticAnalyzerService?)_registrationService.GetTestAccessor().AnalyzerProviders.SelectMany(pair => pair.Value).SingleOrDefault(lazyProvider => lazyProvider.Metadata.Name == WellKnownSolutionCrawlerAnalyzers.Diagnostic && lazyProvider.Metadata.HighPriorityForActiveFile)?.Value;
+#endif
             DiagnosticService = (DiagnosticService)workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
 
             if (updateSource is object)
@@ -96,7 +98,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         public void Dispose()
-            => _registrationService.Unregister(_workspace);
+        {
+#if false
+            _registrationService.Unregister(_workspace);
+#endif
+        }
 
         public async Task WaitForTags()
         {
