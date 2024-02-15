@@ -8,16 +8,6 @@
     <UsingToolXliff>false</UsingToolXliff>
   </PropertyGroup>
 
-  <!-- Recognize MSTest projects -->
-  <PropertyGroup Condition="'$(TestRunnerName)' == '' and ($(MSBuildProjectName.EndsWith('.MSTest.UnitTests')) or $(MSBuildProjectName.EndsWith('.MSTest.Tests')))">
-    <TestRunnerName>MSTest</TestRunnerName>
-  </PropertyGroup>
-
-  <!-- Recognize NUnit projects -->
-  <PropertyGroup Condition="'$(TestRunnerName)' == '' and ($(MSBuildProjectName.EndsWith('.NUnit.UnitTests')) or $(MSBuildProjectName.EndsWith('.NUnit.Tests')))">
-    <TestRunnerName>NUnit</TestRunnerName>
-  </PropertyGroup>
-
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>

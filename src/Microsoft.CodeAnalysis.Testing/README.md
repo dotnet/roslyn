@@ -17,33 +17,7 @@ To reference prerelease packages, add a **NuGet.Config** file to your solution d
 </configuration>
 ```
 
-### MSTest
-
-* C#
-  * Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.MSTest
-  * Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.MSTest
-  * Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.MSTest
-  * Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.MSTest
-* Visual Basic
-  * Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.MSTest
-  * Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.MSTest
-  * Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.MSTest
-  * Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.MSTest
-
-### NUnit
-
-* C#
-  * Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.NUnit
-  * Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.NUnit
-  * Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.NUnit
-  * Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.NUnit
-* Visual Basic
-  * Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.NUnit
-  * Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.NUnit
-  * Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.NUnit
-  * Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.NUnit
-
-### xUnit.net
+### Packages
 
 * C#
   * Microsoft.CodeAnalysis.CSharp.Analyzer.Testing
@@ -59,10 +33,10 @@ To reference prerelease packages, add a **NuGet.Config** file to your solution d
 ## Verifier overview
 
 Testing analyzers and code fixes starts with the selection of a *verifier* helper type. A default analyzer and code fix
-verifier types is defined for each test framework and language combination:
+verifier types is defined for each language:
 
-* `AnalyzerVerifier<TAnalyzer>`
-* `CodeFixVerifier<TAnalyzer, TCodeFix>`
+* `CSharpAnalyzerVerifier<TAnalyzer, TVerifier>` / `VisualBasicAnalyzerVerifier<TAnalyzer, TVerifier>`
+* `CSharpCodeFixVerifier<TAnalyzer, TCodeFix, TVerifier>` / `VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix, TVerifier>`
 
 The verifier types provide limited functionality intended to serve the majority of analyzer and code fix tests:
 
@@ -73,8 +47,8 @@ The verifier types provide limited functionality intended to serve the majority 
 Each of the verifier helper types is supported by a *test* helper type, which provides the primary implementation of
 each test scenario:
 
-* `AnalyzerTest<TAnalyzer, TVerifier>`
-* `CodeFixTest<TAnalyzer, TCodeFix, TVerifier>`
+* `CSharpAnalyzerTest<TAnalyzer, TVerifier>` / `VisualBasicAnalyzerTest<TAnalyzer, TVerifier>`
+* `CSharpCodeFixTest<TAnalyzer, TCodeFix, TVerifier>` / `VisualBasicCodeFixTest<TAnalyzer, TCodeFix, TVerifier>`
 
 ### Imports
 

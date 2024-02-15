@@ -1,10 +1,10 @@
 ﻿Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CSharp.Testing
-Imports Microsoft.CodeAnalysis.Testing.Verifiers
+Imports Microsoft.CodeAnalysis.Testing
 
 Partial Public NotInheritable Class CSharpCodeRefactoringVerifier(Of TCodeRefactoring As {CodeRefactoringProvider, New})
     Public Class Test
-        Inherits CSharpCodeRefactoringTest(Of TCodeRefactoring, MSTestVerifier)
+        Inherits CSharpCodeRefactoringTest(Of TCodeRefactoring, DefaultVerifier)
 
         Public Sub New()
             SolutionTransforms.Add(
