@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis
                     if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
                 }
 
-                this.flags |= (NodeFlags.HasAnnotations | NodeFlags.ContainsAnnotations);
+                this.flags |= (NodeFlags.HasAnnotationsDirectly | NodeFlags.ContainsAnnotations);
                 s_annotationsTable.Add(this, annotations);
             }
         }
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
                     if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
                 }
 
-                this.flags |= (NodeFlags.HasAnnotations | NodeFlags.ContainsAnnotations);
+                this.flags |= (NodeFlags.HasAnnotationsDirectly | NodeFlags.ContainsAnnotations);
                 s_annotationsTable.Add(this, annotations);
             }
         }
@@ -260,10 +260,25 @@ namespace Microsoft.CodeAnalysis
         internal enum NodeFlags : ushort
         {
             None = 0,
-            ContainsDiagnostics = 1 << 0,
-            ContainsStructuredTrivia = 1 << 1,
-            ContainsDirectives = 1 << 2,
-            ContainsSkippedText = 1 << 3,
+            /// <summary>
+            /// If this node is missing or not.  We use a non-zero value for the not-missing case so that this value
+            /// automatically merges upwards when building parent nodes.  In other words, once we have one node that is
+            /// not-missing, all nodes above it are definitely not-missing as well.
+            /// </summary>
+            IsNotMissing = 1 << 0,
+            /// <summary>
+            /// If this node directly has annotations (not its descendants).  <see cref="ContainsAnnotations"/> can be
+            /// used to determine if a node or any of its descendants has annotations.
+            /// </summary>
+            HasAnnotationsDirectly = 1 << 1,
+
+            FactoryContextIsInAsync = 1 << 2,
+            FactoryContextIsInQuery = 1 << 3,
+            FactoryContextIsInIterator = FactoryContextIsInQuery,  // VB does not use "InQuery", but uses "InIterator" instead
+
+            // Flags that are inherited upwards when building parent nodes.  They should all start with "Contains" to
+            // indicate that the information could be found on it or anywhere in its children.
+
             /// <summary>
             /// If this node, or any of its descendants has annotations attached to them.
             /// </summary>
@@ -272,17 +287,12 @@ namespace Microsoft.CodeAnalysis
             /// If this node, or any of its descendants has attributes attached to it.
             /// </summary>
             ContainsAttributes = 1 << 5,
-            /// <summary>
-            /// If this node directly has annotations (not its descendants).
-            /// </summary>
-            HasAnnotations = 1 << 6,
-            IsNotMissing = 1 << 7,
+            ContainsDiagnostics = 1 << 6,
+            ContainsDirectives = 1 << 7,
+            ContainsSkippedText = 1 << 8,
+            ContainsStructuredTrivia = 1 << 9,
 
-            FactoryContextIsInAsync = 1 << 8,
-            FactoryContextIsInQuery = 1 << 9,
-            FactoryContextIsInIterator = FactoryContextIsInQuery,  // VB does not use "InQuery", but uses "InIterator" instead
-
-            InheritMask = ContainsDiagnostics | ContainsStructuredTrivia | ContainsDirectives | ContainsSkippedText | ContainsAnnotations | ContainsAttributes | IsNotMissing,
+            InheritMask = IsNotMissing | ContainsAnnotations | ContainsAttributes | ContainsDiagnostics | ContainsDirectives | ContainsSkippedText | ContainsStructuredTrivia,
         }
 
         internal NodeFlags Flags
@@ -385,7 +395,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (this.flags & NodeFlags.HasAnnotations) != 0;
+                return (this.flags & NodeFlags.HasAnnotationsDirectly) != 0;
             }
         }
 
