@@ -6,8 +6,6 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
 
 #if !CODE_STYLE
@@ -54,8 +52,11 @@ internal static partial class AddImportPlacementOptionsProviders
 
     public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptions? fallbackOptions, CancellationToken cancellationToken)
     {
+        var project = document.Project;
+        var services = project.Services;
+        var solutionOptions = project.Solution.Options;
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetAddImportPlacementOptions(document.Project.Services, document.AllowImportsInHiddenRegions(), fallbackOptions);
+        return configOptions.GetAddImportPlacementOptions(services, document.AllowImportsInHiddenRegions(), solutionOptions.GetAddImportPlacementOptions(services, document.AllowImportsInHiddenRegions(), fallbackOptions));
     }
 
     // Normally we don't allow generation into a hidden region in the file.  However, if we have a

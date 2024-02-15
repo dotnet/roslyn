@@ -80,8 +80,11 @@ namespace Microsoft.CodeAnalysis.Simplification
 
         public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptions? fallbackOptions, CancellationToken cancellationToken)
         {
+            var project = document.Project;
+            var services = project.Services;
+            var solutionOptions = project.Solution.Options;
             var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return configOptions.GetSimplifierOptions(document.Project.Services, fallbackOptions);
+            return configOptions.GetSimplifierOptions(services, solutionOptions.GetSimplifierOptions(services, fallbackOptions));
         }
 
         public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)

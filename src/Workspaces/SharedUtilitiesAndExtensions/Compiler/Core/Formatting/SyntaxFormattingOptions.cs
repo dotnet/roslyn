@@ -6,7 +6,6 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
 
@@ -65,8 +64,11 @@ internal static partial class SyntaxFormattingOptionsProviders
 
     public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
     {
+        var project = document.Project;
+        var services = project.Services;
+        var solutionOptions = project.Solution.Options;
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetSyntaxFormattingOptions(document.Project.Services, fallbackOptions);
+        return configOptions.GetSyntaxFormattingOptions(services, solutionOptions.GetSyntaxFormattingOptions(services, fallbackOptions));
     }
 
     public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
