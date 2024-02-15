@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    using LockTypeInfo = (MethodSymbol EnterLockScopeMethod, TypeSymbol ScopeType, MethodSymbol ScopeDisposeMethod);
+    using LockTypeInfo = (MethodSymbol EnterScopeMethod, TypeSymbol ScopeType, MethodSymbol ScopeDisposeMethod);
 
     internal sealed class LockBinder : LockOrUsingBinder
     {
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckFeatureAvailability(exprSyntax, MessageID.IDS_LockObject, diagnostics);
 
                 // Report use-site errors for members we will use in lowering.
-                _ = diagnostics.ReportUseSite(lockTypeInfo.EnterLockScopeMethod, exprSyntax) ||
+                _ = diagnostics.ReportUseSite(lockTypeInfo.EnterScopeMethod, exprSyntax) ||
                     diagnostics.ReportUseSite(lockTypeInfo.ScopeType, exprSyntax) ||
                     diagnostics.ReportUseSite(lockTypeInfo.ScopeDisposeMethod, exprSyntax);
 
@@ -83,18 +83,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             const string LockTypeFullName = $"{nameof(System)}.{nameof(System.Threading)}.{WellKnownMemberNames.LockTypeName}";
 
-            var enterLockScopeMethod = TryFindPublicVoidParameterlessMethod(lockType, WellKnownMemberNames.EnterLockScopeMethodName);
-            if (enterLockScopeMethod is not { ReturnsVoid: false, RefKind: RefKind.None })
+            var enterScopeMethod = TryFindPublicVoidParameterlessMethod(lockType, WellKnownMemberNames.EnterScopeMethodName);
+            if (enterScopeMethod is not { ReturnsVoid: false, RefKind: RefKind.None })
             {
-                Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, LockTypeFullName, WellKnownMemberNames.EnterLockScopeMethodName);
+                Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, LockTypeFullName, WellKnownMemberNames.EnterScopeMethodName);
                 return null;
             }
 
-            var scopeType = enterLockScopeMethod.ReturnType;
+            var scopeType = enterScopeMethod.ReturnType;
             if (scopeType is not NamedTypeSymbol { Name: WellKnownMemberNames.LockScopeTypeName, Arity: 0, IsValueType: true, IsRefLikeType: true, DeclaredAccessibility: Accessibility.Public } ||
                 !TypeSymbol.Equals(scopeType.ContainingType, lockType, TypeCompareKind.ConsiderEverything))
             {
-                Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, LockTypeFullName, WellKnownMemberNames.EnterLockScopeMethodName);
+                Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, LockTypeFullName, WellKnownMemberNames.EnterScopeMethodName);
                 return null;
             }
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new LockTypeInfo
             {
-                EnterLockScopeMethod = enterLockScopeMethod,
+                EnterScopeMethod = enterScopeMethod,
                 ScopeType = scopeType,
                 ScopeDisposeMethod = disposeMethod,
             };

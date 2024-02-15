@@ -14,7 +14,7 @@ namespace System.Threading
 {
     public class Lock
     {
-        public Scope EnterLockScope() => new Scope();
+        public Scope EnterScope() => new Scope();
 
         public ref struct Scope
         {

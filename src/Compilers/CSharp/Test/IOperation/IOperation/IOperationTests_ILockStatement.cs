@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope() => new Scope();
+                    public Scope EnterScope() => new Scope();
 
                     public ref struct Scope
                     {
@@ -420,7 +420,7 @@ ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'lock (new o ... }')
         }
 
         [Fact, CompilerTrait(CompilerFeature.IOperation)]
-        public void ILockStatement_LockObject_MissingEnterLockScope()
+        public void ILockStatement_LockObject_MissingEnterScope()
         {
             var source = """
                 using System;
@@ -447,9 +447,9 @@ ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'lock (new o ... }')
 
             var expectedDiagnostics = new[]
             {
-                // (5,17): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+                // (5,17): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
                 // /*<bind>*/lock (l)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(5, 17)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(5, 17)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LockStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -471,7 +471,7 @@ ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'lock (new o ... }')
                 {
                     public class Lock
                     {
-                        public Scope EnterLockScope() => new Scope();
+                        public Scope EnterScope() => new Scope();
 
                         public ref struct Scope { }
                     }
@@ -497,7 +497,7 @@ ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'lock (new o ... }')
         }
 
         [Fact, CompilerTrait(CompilerFeature.IOperation)]
-        public void ILockStatement_LockObject_EnterLockScopeVirtual()
+        public void ILockStatement_LockObject_EnterScopeVirtual()
         {
             var source = """
                 using System;
@@ -512,7 +512,7 @@ ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'lock (new o ... }')
                 {
                     public class Lock
                     {
-                        public virtual Scope EnterLockScope() => new();
+                        public virtual Scope EnterScope() => new();
 
                         public ref struct Scope
                         {
@@ -522,7 +522,7 @@ ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'lock (new o ... }')
 
                     public class LockDerived : Lock
                     {
-                        public override Scope EnterLockScope() => new();
+                        public override Scope EnterScope() => new();
                     }
                 }
                 """;
@@ -1236,7 +1236,7 @@ Block[B6] - Exit
                             Statements (1)
                                 IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l')
                                   Value:
-                                    IInvocationOperation ( System.Threading.Lock.Scope System.Threading.Lock.EnterLockScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l')
+                                    IInvocationOperation ( System.Threading.Lock.Scope System.Threading.Lock.EnterScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l')
                                       Instance Receiver:
                                         ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock) (Syntax: 'l')
                                       Arguments(0)
@@ -1323,7 +1323,7 @@ Block[B6] - Exit
                             Statements (1)
                                 IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l')
                                   Value:
-                                    IInvocationOperation ( System.Threading.Lock.Scope System.Threading.Lock.EnterLockScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l')
+                                    IInvocationOperation ( System.Threading.Lock.Scope System.Threading.Lock.EnterScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l')
                                       Instance Receiver:
                                         ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock) (Syntax: 'l')
                                       Arguments(0)
@@ -1427,7 +1427,7 @@ Block[B6] - Exit
                             Statements (1)
                                 IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l')
                                   Value:
-                                    IInvocationOperation ( System.Threading.Lock.Scope System.Threading.Lock.EnterLockScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l')
+                                    IInvocationOperation ( System.Threading.Lock.Scope System.Threading.Lock.EnterScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l')
                                       Instance Receiver:
                                         ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock) (Syntax: 'l')
                                       Arguments(0)
@@ -1551,7 +1551,7 @@ Block[B6] - Exit
                             Statements (1)
                                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b ? l1 : l2')
                                   Value:
-                                    IInvocationOperation ( System.Threading.Lock.Scope System.Threading.Lock.EnterLockScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'b ? l1 : l2')
+                                    IInvocationOperation ( System.Threading.Lock.Scope System.Threading.Lock.EnterScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'b ? l1 : l2')
                                       Instance Receiver:
                                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock, IsImplicit) (Syntax: 'b ? l1 : l2')
                                       Arguments(0)
@@ -1788,7 +1788,7 @@ Block[B6] - Exit
                             Statements (1)
                                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l1 ?? l2')
                                   Value:
-                                    IInvocationOperation ( System.Threading.Lock.Scope System.Threading.Lock.EnterLockScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l1 ?? l2')
+                                    IInvocationOperation ( System.Threading.Lock.Scope System.Threading.Lock.EnterScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l1 ?? l2')
                                       Instance Receiver:
                                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Threading.Lock, IsImplicit) (Syntax: 'l1 ?? l2')
                                       Arguments(0)
@@ -1828,7 +1828,7 @@ Block[B6] - Exit
         }
 
         [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        public void LockFlow_LockObject_MissingEnterLockScope()
+        public void LockFlow_LockObject_MissingEnterScope()
         {
             var source = """
                 using System;
@@ -1885,16 +1885,16 @@ Block[B6] - Exit
 
             var expectedDiagnostics = new[]
             {
-                // (9,15): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+                // (9,15): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
                 //         lock (l)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(9, 15)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(9, 15)
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
         [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        public void LockFlow_LockObject_MissingEnterLockScope_NonEmptyBody()
+        public void LockFlow_LockObject_MissingEnterScope_NonEmptyBody()
         {
             var source = """
                 using System;
@@ -1962,9 +1962,9 @@ Block[B6] - Exit
 
             var expectedDiagnostics = new[]
             {
-                // (9,15): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+                // (9,15): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
                 //         lock (l)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(9, 15)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(9, 15)
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
@@ -1992,7 +1992,7 @@ Block[B6] - Exit
                 {
                     public class Lock
                     {
-                        public Scope EnterLockScope() => new Scope();
+                        public Scope EnterScope() => new Scope();
 
                         public ref struct Scope { }
                     }
@@ -2042,7 +2042,7 @@ Block[B6] - Exit
         }
 
         [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        public void LockFlow_LockObject_EnterLockScopeVirtual()
+        public void LockFlow_LockObject_EnterScopeVirtual()
         {
             var source = """
                 using System;
@@ -2063,7 +2063,7 @@ Block[B6] - Exit
                 {
                     public class Lock
                     {
-                        public virtual Scope EnterLockScope() => new();
+                        public virtual Scope EnterScope() => new();
 
                         public ref struct Scope
                         {
@@ -2073,7 +2073,7 @@ Block[B6] - Exit
 
                     public class LockDerived : Lock
                     {
-                        public override Scope EnterLockScope() => new();
+                        public override Scope EnterScope() => new();
                     }
                 }
                 """;
@@ -2111,7 +2111,7 @@ Block[B6] - Exit
                             Statements (1)
                                 IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l')
                                   Value:
-                                    IInvocationOperation (virtual System.Threading.Lock.Scope System.Threading.Lock.EnterLockScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l')
+                                    IInvocationOperation (virtual System.Threading.Lock.Scope System.Threading.Lock.EnterScope()) (OperationKind.Invocation, Type: System.Threading.Lock.Scope, IsImplicit) (Syntax: 'l')
                                       Instance Receiver:
                                         ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Threading.Lock) (Syntax: 'l')
                                       Arguments(0)
