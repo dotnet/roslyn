@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis
             private ushort _data;
 
             /// <summary>
-            /// 
+            /// Returns the slot count if it was small enough to be stored directly in this object.  Otherwise, returns
+            /// <see cref="SlotCountTooLarge"/> to indicate it could not be directly stored.
             /// </summary>
             public byte SmallSlotCount
             {
