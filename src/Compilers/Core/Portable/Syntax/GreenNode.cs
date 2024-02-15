@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         private NodeFlagsAndSlotCount _nodeFlagsAndSlotCount;
         private int _fullWidth;
 
-        private NodeFlags Flags => _nodeFlagsAndSlotCount.NodeFlags;
+        internal NodeFlags Flags => _nodeFlagsAndSlotCount.NodeFlags;
 
         private static readonly ConditionalWeakTable<GreenNode, DiagnosticInfo[]> s_diagnosticsTable =
             new ConditionalWeakTable<GreenNode, DiagnosticInfo[]>();
