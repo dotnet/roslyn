@@ -237,9 +237,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public Task NonSourceDocumentResetAsync(TextDocument document, CancellationToken cancellationToken)
-            => TextDocumentResetAsync(document, cancellationToken);
-
         private Task TextDocumentResetAsync(TextDocument document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentReset, GetResetLogMessage, document, cancellationToken))
