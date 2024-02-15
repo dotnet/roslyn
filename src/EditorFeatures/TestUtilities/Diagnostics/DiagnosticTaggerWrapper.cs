@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     {
         private readonly EditorTestWorkspace _workspace;
         public readonly DiagnosticAnalyzerService? AnalyzerService;
+#if false
         private readonly SolutionCrawlerRegistrationService _registrationService;
+#endif
         public readonly DiagnosticService DiagnosticService;
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
