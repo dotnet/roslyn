@@ -269,14 +269,14 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             ContainsAnnotations = 1 << 4,
             /// <summary>
-            /// If this node directly has annotations (not its descendants).
-            /// </summary>
-            HasAnnotations = 1 << 5,
-            IsNotMissing = 1 << 6,
-            /// <summary>
             /// If this node, or any of its descendants has attributes attached to it.
             /// </summary>
-            ContainsAttributes = 1 << 7,
+            ContainsAttributes = 1 << 5,
+            /// <summary>
+            /// If this node directly has annotations (not its descendants).
+            /// </summary>
+            HasAnnotations = 1 << 6,
+            IsNotMissing = 1 << 7,
 
             FactoryContextIsInAsync = 1 << 8,
             FactoryContextIsInQuery = 1 << 9,
