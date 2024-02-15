@@ -14321,8 +14321,8 @@ class C
 
         [Theory]
         [InlineData("")]
-        [InlineData([$"/pathmap:DIRPATH=/_/"])]
-        [InlineData([$"/pathmap:SRCDIRPATH=a/,OBJDIRPATH=b/"])]
+        [InlineData($"/pathmap:DIRPATH=/_/")]
+        [InlineData($"/pathmap:SRCDIRPATH=a/,OBJDIRPATH=b/")]
         public void Interceptors_RelativePath_GeneratedFiles_EndToEnd_GeneratedFilesOutSpecified(string pathMapArgument)
         {
             var dir = Temp.CreateDirectory();
