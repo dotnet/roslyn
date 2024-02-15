@@ -57,6 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 #endif
         }
 
+#if false
         private void OnSolutionCrawlerProgressChanged(object sender, ProgressData progressData)
         {
             switch (progressData.Status)
@@ -69,6 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     break;
             }
         }
+#endif
 
         private void SolutionCrawlerProgressChanged(bool running)
         {
