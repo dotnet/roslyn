@@ -915,5 +915,71 @@ BC42508: A value of type 'System.Threading.Lock' converted to a different type w
                      ~~
 ")
         End Sub
+
+        <Fact>
+        Public Sub LockType_Derived_Execution()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Threading
+
+Module Program
+    Sub Main()
+        Dim l1 As DerivedLock = New DerivedLock()
+        Dim l2 As Lock = l1
+        Dim l3 As DerivedLock = CType(l2, DerivedLock)
+        SyncLock l3
+            Console.WriteLine("locked")
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+
+    Public Class DerivedLock
+        Inherits Lock
+        Implements IDerivedLock
+    End Class
+
+    Interface IDerivedLock
+    End Interface
+End Namespace
+]]>.Value
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            Dim verifier = CompileAndVerify(comp, expectedOutput:="locked")
+            ' (9, 39) : warning BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+            verifier.VerifyDiagnostics(Diagnostic(ERRID.WRN_ConvertingLock, "l2").WithLocation(9, 39))
+            verifier.VerifyIL("Program.Main", <![CDATA[
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (Object V_0,
+                Boolean V_1)
+  IL_0000:  newobj     "Sub System.Threading.DerivedLock..ctor()"
+  IL_0005:  castclass  "System.Threading.DerivedLock"
+  IL_000a:  stloc.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  stloc.1
+  .try
+  {
+    IL_000d:  ldloc.0
+    IL_000e:  ldloca.s   V_1
+    IL_0010:  call       "Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)"
+    IL_0015:  ldstr      "locked"
+    IL_001a:  call       "Sub System.Console.WriteLine(String)"
+    IL_001f:  leave.s    IL_002b
+  }
+  finally
+  {
+    IL_0021:  ldloc.1
+    IL_0022:  brfalse.s  IL_002a
+    IL_0024:  ldloc.0
+    IL_0025:  call       "Sub System.Threading.Monitor.Exit(Object)"
+    IL_002a:  endfinally
+  }
+  IL_002b:  ret
+}]]>)
+        End Sub
     End Class
 End Namespace
