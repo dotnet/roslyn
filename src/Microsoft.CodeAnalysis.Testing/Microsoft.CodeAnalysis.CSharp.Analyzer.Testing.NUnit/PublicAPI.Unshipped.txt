@@ -1,4 +1,0 @@
-Microsoft.CodeAnalysis.CSharp.Testing.NUnit.AnalyzerVerifier
-Microsoft.CodeAnalysis.CSharp.Testing.NUnit.AnalyzerVerifier<TAnalyzer>
-Microsoft.CodeAnalysis.CSharp.Testing.NUnit.AnalyzerVerifier<TAnalyzer>.AnalyzerVerifier() -> void
-static Microsoft.CodeAnalysis.CSharp.Testing.NUnit.AnalyzerVerifier.Create<TAnalyzer>() -> Microsoft.CodeAnalysis.CSharp.Testing.NUnit.AnalyzerVerifier<TAnalyzer>

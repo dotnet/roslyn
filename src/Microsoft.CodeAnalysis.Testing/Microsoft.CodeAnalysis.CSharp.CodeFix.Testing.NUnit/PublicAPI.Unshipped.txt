@@ -1,4 +1,0 @@
-Microsoft.CodeAnalysis.CSharp.Testing.NUnit.CodeFixVerifier
-Microsoft.CodeAnalysis.CSharp.Testing.NUnit.CodeFixVerifier<TAnalyzer, TCodeFix>
-Microsoft.CodeAnalysis.CSharp.Testing.NUnit.CodeFixVerifier<TAnalyzer, TCodeFix>.CodeFixVerifier() -> void
-static Microsoft.CodeAnalysis.CSharp.Testing.NUnit.CodeFixVerifier.Create<TAnalyzer, TCodeFix>() -> Microsoft.CodeAnalysis.CSharp.Testing.NUnit.CodeFixVerifier<TAnalyzer, TCodeFix>
