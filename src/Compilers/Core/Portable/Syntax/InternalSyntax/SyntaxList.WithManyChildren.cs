@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 // Attempt to store small lengths directly into the storage provided within GreenNode. If, however, the
                 // length is too long, we will store a special value in the space, which will `SlotCount` to call back
                 // into `GetSlotCount` to retrieve the true length.
-                this.SlotCount = n < NodeFlagsAndSlotCount.SlotCountTooLarge
+                this.SlotCount = n < SlotCountTooLarge
                     ? (byte)n
-                    : NodeFlagsAndSlotCount.SlotCountTooLarge;
+                    : SlotCountTooLarge;
 
                 for (int i = 0; i < children.Length; i++)
                 {

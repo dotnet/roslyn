@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Combination of <see cref="NodeFlags"/> and <see cref="SlotCount"/> stored in a single 16bit value.
         /// </summary>
-        protected struct NodeFlagsAndSlotCount
+        private struct NodeFlagsAndSlotCount
         {
             /// <summary>
             /// 4 bits for the SlotCount.  This allows slot counts of 0-14 to be stored as a direct byte.  All 1s
@@ -21,12 +21,6 @@ namespace Microsoft.CodeAnalysis
             private const ushort NodeFlagsMask = 0b0000111111111111;
 
             private const int SlotCountShift = 12;
-
-            /// <summary>
-            /// Value used to indicate the slot count was too large to be encoded directly in our <see cref="_data"/>
-            /// value.  Callers will have to store the value elsewhere and retrieve the full value themselves.
-            /// </summary>
-            public const int SlotCountTooLarge = 0b0000000000001111;
 
             /// <summary>
             /// 12 bits for the NodeFlags.  This allows for up to 12 distinct bits to be stored to designate interesting

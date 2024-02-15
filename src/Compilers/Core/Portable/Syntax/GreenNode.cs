@@ -29,6 +29,12 @@ namespace Microsoft.CodeAnalysis
         // (say for additional node-flags), we can always directly use a packed int64 here, and manage where all these
         // bits go manually.
 
+        /// <summary>
+        /// Value used to indicate the slot count was too large to be encoded directly in our <see cref="_nodeFlagsAndSlotCount"/>
+        /// value.  Callers will have to store the value elsewhere and retrieve the full value themselves.
+        /// </summary>
+        protected const int SlotCountTooLarge = 0b0000000000001111;
+
         private readonly ushort _kind;
         private NodeFlagsAndSlotCount _nodeFlagsAndSlotCount;
         private int _fullWidth;
@@ -158,12 +164,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 int count = _slotCount;
-                if (count == NodeFlagsAndSlotCount.SlotCountTooLarge)
-                {
-                    count = GetSlotCount();
-                }
-
-                return count;
+                return count == SlotCountTooLarge ? GetSlotCount() : count;
             }
 
             protected set
