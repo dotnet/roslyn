@@ -83,10 +83,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Protected Overrides Function GetSlotCount() As Integer
-            Throw ExceptionUtilities.Unreachable
-        End Function
-
         Protected Property _slotCount As Integer
             Get
                 Return Me.SlotCount

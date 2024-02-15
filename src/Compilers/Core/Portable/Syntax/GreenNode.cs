@@ -45,13 +45,6 @@ namespace Microsoft.CodeAnalysis
             set => _nodeFlagsAndSlotCount.NodeFlags = value;
         }
 
-        /// <inheritdoc cref="NodeFlagsAndSlotCount.SmallSlotCount"/>>
-        private byte _slotCount
-        {
-            get => _nodeFlagsAndSlotCount.SmallSlotCount;
-            set => _nodeFlagsAndSlotCount.SmallSlotCount = value;
-        }
-
         private static readonly ConditionalWeakTable<GreenNode, DiagnosticInfo[]> s_diagnosticsTable =
             new ConditionalWeakTable<GreenNode, DiagnosticInfo[]>();
 
@@ -163,13 +156,14 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                int count = _slotCount;
+                var count = _nodeFlagsAndSlotCount.SmallSlotCount;
                 return count == SlotCountTooLarge ? GetSlotCount() : count;
             }
 
             protected set
             {
-                _slotCount = (byte)value;
+                Debug.Assert(value <= byte.MaxValue);
+                _nodeFlagsAndSlotCount.SmallSlotCount = (byte)value;
             }
         }
 
@@ -185,7 +179,7 @@ namespace Microsoft.CodeAnalysis
         // for slot counts >= byte.MaxValue
         protected virtual int GetSlotCount()
         {
-            return _slotCount;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public virtual int GetSlotOffset(int index)
@@ -747,7 +741,11 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
                 node = firstChild;
-            } while (node?._slotCount > 0);
+            }
+            // Note: it's ok to examine SmallSlotCount here.  All we're trying to do is make sure we have at least one
+            // child.  And SmallSlotCount works both for small counts and large counts.  This avoids an unnecessary
+            // virtual call for large list nodes.
+            while (node?._nodeFlagsAndSlotCount.SmallSlotCount > 0);
 
             return node;
         }
@@ -769,7 +767,11 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
                 node = lastChild;
-            } while (node?._slotCount > 0);
+            }
+            // Note: it's ok to examine SmallSlotCount here.  All we're trying to do is make sure we have at least one
+            // child.  And SmallSlotCount works both for small counts and large counts.  This avoids an unnecessary
+            // virtual call for large list nodes.
+            while (node?._nodeFlagsAndSlotCount.SmallSlotCount > 0);
 
             return node;
         }
@@ -792,7 +794,10 @@ namespace Microsoft.CodeAnalysis
                 }
                 node = nonmissingChild;
             }
-            while (node?._slotCount > 0);
+            // Note: it's ok to examine SmallSlotCount here.  All we're trying to do is make sure we have at least one
+            // child.  And SmallSlotCount works both for small counts and large counts.  This avoids an unnecessary
+            // virtual call for large list nodes.
+            while (node?._nodeFlagsAndSlotCount.SmallSlotCount > 0);
 
             return node;
         }
