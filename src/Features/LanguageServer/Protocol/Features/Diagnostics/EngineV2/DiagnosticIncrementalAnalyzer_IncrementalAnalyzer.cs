@@ -237,9 +237,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
-            => TextDocumentResetAsync(document, cancellationToken);
-
         public Task NonSourceDocumentResetAsync(TextDocument document, CancellationToken cancellationToken)
             => TextDocumentResetAsync(document, cancellationToken);
 

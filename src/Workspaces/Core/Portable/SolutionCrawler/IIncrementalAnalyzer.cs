@@ -18,11 +18,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         Task DocumentCloseAsync(Document document, CancellationToken cancellationToken);
         Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken);
 
-        /// <summary>
-        /// Resets all the document state cached by the analyzer.
-        /// </summary>
-        Task DocumentResetAsync(Document document, CancellationToken cancellationToken);
-
         Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken);
         Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken);
         Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken);
