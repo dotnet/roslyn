@@ -2151,6 +2151,7 @@ public class LockTests : CSharpTestBase
                     var l1 = M1();
                     var l2 = M2(l1);
                     M3(l2);
+                    M4(l2);
                 }
 
                 static DerivedLock M1()
@@ -2171,6 +2172,12 @@ public class LockTests : CSharpTestBase
                 {
                     DerivedLock l3 = (DerivedLock)l2;
                     lock (l3) { Console.Write("3"); }
+                }
+            
+                static void M4(Lock l2)
+                {
+                    IDerivedLock l4 = (IDerivedLock)l2;
+                    lock (l4) { Console.Write("4"); }
                 }
             }
 
@@ -2193,14 +2200,20 @@ public class LockTests : CSharpTestBase
                     }
                 }
 
-                public class DerivedLock : Lock { }
+                public class DerivedLock : Lock, IDerivedLock { }
+
+                public interface IDerivedLock { }
             }
             """;
         var verifier = CompileAndVerify(source, verify: Verification.FailsILVerify,
-           expectedOutput: "1E2D3");
-        // Note: no warnings here as we don't expect `Lock` to be unsealed,
-        // so this doesn't warrant a warning in spec and implementation.
-        verifier.VerifyDiagnostics();
+           expectedOutput: "1E2D34");
+        verifier.VerifyDiagnostics(
+            // (30,39): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            //         DerivedLock l3 = (DerivedLock)l2;
+            Diagnostic(ErrorCode.WRN_ConvertingLock, "l2").WithLocation(30, 39),
+            // (36,41): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            //         IDerivedLock l4 = (IDerivedLock)l2;
+            Diagnostic(ErrorCode.WRN_ConvertingLock, "l2").WithLocation(36, 41));
         // Should use Monitor locking.
         verifier.VerifyIL("Program.M1", """
             {
@@ -2254,6 +2267,38 @@ public class LockTests : CSharpTestBase
                 IL_000a:  ldloca.s   V_1
                 IL_000c:  call       "void System.Threading.Monitor.Enter(object, ref bool)"
                 IL_0011:  ldstr      "3"
+                IL_0016:  call       "void System.Console.Write(string)"
+                IL_001b:  leave.s    IL_0027
+              }
+              finally
+              {
+                IL_001d:  ldloc.1
+                IL_001e:  brfalse.s  IL_0026
+                IL_0020:  ldloc.0
+                IL_0021:  call       "void System.Threading.Monitor.Exit(object)"
+                IL_0026:  endfinally
+              }
+              IL_0027:  ret
+            }
+            """);
+        // Should use Monitor locking.
+        verifier.VerifyIL("Program.M4", """
+            {
+              // Code size       40 (0x28)
+              .maxstack  2
+              .locals init (System.Threading.IDerivedLock V_0,
+                            bool V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  castclass  "System.Threading.IDerivedLock"
+              IL_0006:  stloc.0
+              IL_0007:  ldc.i4.0
+              IL_0008:  stloc.1
+              .try
+              {
+                IL_0009:  ldloc.0
+                IL_000a:  ldloca.s   V_1
+                IL_000c:  call       "void System.Threading.Monitor.Enter(object, ref bool)"
+                IL_0011:  ldstr      "4"
                 IL_0016:  call       "void System.Console.Write(string)"
                 IL_001b:  leave.s    IL_0027
               }

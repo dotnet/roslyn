@@ -847,5 +847,142 @@ BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. C
                  ~~~~~~~~~~~~~~
 ")
         End Sub
+
+        <Fact>
+        Public Sub LockType_Derived()
+            Dim source = "
+Imports System
+Imports System.Threading
+
+Module Program
+    Private Sub Main()
+        Dim l1 As DerivedLock = New DerivedLock()
+        SyncLock l1
+        End SyncLock
+
+        Dim l2 As Lock = l1
+        SyncLock l2 ' 1
+        End SyncLock
+
+        Dim l3 As DerivedLock = CType(l2, DerivedLock) ' 2
+        l3 = DirectCast(l2, DerivedLock) ' 3
+        l3 = TryCast(l2, DerivedLock) ' 4
+        SyncLock l3
+        End SyncLock
+
+        Dim l4 As IDerivedLock = CType(l2, IDerivedLock) ' 5
+        l4 = DirectCast(l2, IDerivedLock) ' 6
+        l4 = TryCast(l2, IDerivedLock) ' 7
+        SyncLock l4
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+
+    Public Class DerivedLock
+        Inherits Lock
+        Implements IDerivedLock
+    End Class
+
+    Interface IDerivedLock
+    End Interface
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics(
+"BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock l2 ' 1
+                 ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim l3 As DerivedLock = CType(l2, DerivedLock) ' 2
+                                      ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        l3 = DirectCast(l2, DerivedLock) ' 3
+                        ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        l3 = TryCast(l2, DerivedLock) ' 4
+                     ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim l4 As IDerivedLock = CType(l2, IDerivedLock) ' 5
+                                       ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        l4 = DirectCast(l2, IDerivedLock) ' 6
+                        ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        l4 = TryCast(l2, IDerivedLock) ' 7
+                     ~~
+")
+        End Sub
+
+        <Fact>
+        Public Sub LockType_Derived_Execution()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Threading
+
+Module Program
+    Sub Main()
+        Dim l1 As DerivedLock = New DerivedLock()
+        Dim l2 As Lock = l1
+        Dim l3 As DerivedLock = CType(l2, DerivedLock)
+        SyncLock l3
+            Console.WriteLine("locked")
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+
+    Public Class DerivedLock
+        Inherits Lock
+        Implements IDerivedLock
+    End Class
+
+    Interface IDerivedLock
+    End Interface
+End Namespace
+]]>.Value
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            Dim verifier = CompileAndVerify(comp, expectedOutput:="locked")
+            verifier.Diagnostics.AssertTheseDiagnostics(<![CDATA[
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim l3 As DerivedLock = CType(l2, DerivedLock)
+                                      ~~
+]]>)
+            verifier.VerifyIL("Program.Main", <![CDATA[
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (Object V_0,
+                Boolean V_1)
+  IL_0000:  newobj     "Sub System.Threading.DerivedLock..ctor()"
+  IL_0005:  castclass  "System.Threading.DerivedLock"
+  IL_000a:  stloc.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  stloc.1
+  .try
+  {
+    IL_000d:  ldloc.0
+    IL_000e:  ldloca.s   V_1
+    IL_0010:  call       "Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)"
+    IL_0015:  ldstr      "locked"
+    IL_001a:  call       "Sub System.Console.WriteLine(String)"
+    IL_001f:  leave.s    IL_002b
+  }
+  finally
+  {
+    IL_0021:  ldloc.1
+    IL_0022:  brfalse.s  IL_002a
+    IL_0024:  ldloc.0
+    IL_0025:  call       "Sub System.Threading.Monitor.Exit(Object)"
+    IL_002a:  endfinally
+  }
+  IL_002b:  ret
+}]]>)
+        End Sub
     End Class
 End Namespace
