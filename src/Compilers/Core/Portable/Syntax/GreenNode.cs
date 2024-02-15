@@ -29,6 +29,12 @@ namespace Microsoft.CodeAnalysis
         // (say for additional node-flags), we can always directly use a packed int64 here, and manage where all these
         // bits go manually.
 
+        /// <summary>
+        /// Value used to indicate the slot count was too large to be encoded directly in our <see cref="_nodeFlagsAndSlotCount"/>
+        /// value.  Callers will have to store the value elsewhere and retrieve the full value themselves.
+        /// </summary>
+        protected const int SlotCountTooLarge = 0b0000000000001111;
+
         private readonly ushort _kind;
         private NodeFlagsAndSlotCount _nodeFlagsAndSlotCount;
         private int _fullWidth;
@@ -39,10 +45,11 @@ namespace Microsoft.CodeAnalysis
             set => _nodeFlagsAndSlotCount.NodeFlags = value;
         }
 
+        /// <inheritdoc cref="NodeFlagsAndSlotCount.SmallSlotCount"/>>
         private byte _slotCount
         {
-            get => _nodeFlagsAndSlotCount.SlotCount;
-            set => _nodeFlagsAndSlotCount.SlotCount = value;
+            get => _nodeFlagsAndSlotCount.SmallSlotCount;
+            set => _nodeFlagsAndSlotCount.SmallSlotCount = value;
         }
 
         private static readonly ConditionalWeakTable<GreenNode, DiagnosticInfo[]> s_diagnosticsTable =
@@ -157,12 +164,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 int count = _slotCount;
-                if (count == byte.MaxValue)
-                {
-                    count = GetSlotCount();
-                }
-
-                return count;
+                return count == SlotCountTooLarge ? GetSlotCount() : count;
             }
 
             protected set

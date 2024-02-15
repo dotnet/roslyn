@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var condition = ifOperation.Condition.Syntax;
+            var condition = WrapIfStatementIfNecessary(ifOperation);
             if (CanSimplify(trueValue, falseValue, isRef, out var negate))
             {
                 return negate
@@ -112,10 +112,15 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                     : (TExpressionSyntax)condition.WithoutTrivia();
             }
 
+            var trueExpression = MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, trueStatement, trueValue));
+            var falseExpression = MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, falseStatement, falseValue));
+            trueExpression = WrapReturnExpressionIfNecessary(trueExpression, trueStatement);
+            falseExpression = WrapReturnExpressionIfNecessary(falseExpression, falseStatement);
+
             var conditionalExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
                 condition.WithoutTrivia(),
-                MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, trueStatement, trueValue)),
-                MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, falseStatement, falseValue)));
+                trueExpression,
+                falseExpression);
 
             conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
             var makeMultiLine = await MakeMultiLineAsync(
@@ -129,6 +134,12 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             return MakeRef(generatorInternal, isRef, conditionalExpression);
         }
+
+        protected virtual SyntaxNode WrapIfStatementIfNecessary(IConditionalOperation operation)
+            => operation.Condition.Syntax;
+
+        protected virtual TExpressionSyntax WrapReturnExpressionIfNecessary(TExpressionSyntax returnExpression, IOperation returnOperation)
+            => returnExpression;
 
         private static TExpressionSyntax MakeRef(SyntaxGeneratorInternal generator, bool isRef, TExpressionSyntax syntaxNode)
             => isRef ? (TExpressionSyntax)generator.RefExpression(syntaxNode) : syntaxNode;

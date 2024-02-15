@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
     /// persist them to the SUO file to persist this data across sessions.
     /// </summary>
 #pragma warning disable CS0618 // Type or member is obsolete
-    internal abstract partial class AbstractStructureTaggerProvider : AsynchronousTaggerProvider<IStructureTag2>
+    internal abstract partial class AbstractStructureTaggerProvider : AsynchronousTaggerProvider<IContainerStructureTag>
     {
         private const string RegionDirective = "#region";
         private const string UsingDirective = "using";
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         }
 
         protected sealed override async Task ProduceTagsAsync(
-            TaggerContext<IStructureTag2> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
+            TaggerContext<IContainerStructureTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
             try
             {
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         }
 
         private void ProcessSpans(
-            TaggerContext<IStructureTag2> context,
+            TaggerContext<IContainerStructureTag> context,
             SnapshotSpan snapshotSpan,
             BlockStructureService outliningService,
             ImmutableArray<BlockSpan> spans)
@@ -221,11 +221,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             foreach (var span in spans)
             {
                 var tag = new StructureTag(this, span, snapshot);
-                context.AddTag(new TagSpan<IStructureTag2>(span.TextSpan.ToSnapshotSpan(snapshot), tag));
+                context.AddTag(new TagSpan<IContainerStructureTag>(span.TextSpan.ToSnapshotSpan(snapshot), tag));
             }
         }
 
-        protected override bool TagEquals(IStructureTag2 tag1, IStructureTag2 tag2)
+        protected override bool TagEquals(IContainerStructureTag tag1, IContainerStructureTag tag2)
         {
             Contract.ThrowIfFalse(tag1 is StructureTag);
             Contract.ThrowIfFalse(tag2 is StructureTag);
