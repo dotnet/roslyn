@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Lowers a lock statement to a try-finally block that calls (before and after the body, respectively):
         /// <list type="bullet">
-        /// <item>Lock.EnterLockScope and Lock+Scope.Dispose if the argument is of type Lock, or</item>
+        /// <item>Lock.EnterScope and Lock+Scope.Dispose if the argument is of type Lock, or</item>
         /// <item>Monitor.Enter and Monitor.Exit.</item>
         /// </list>
         /// </summary>
@@ -48,17 +48,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return node.Update(rewrittenArgument, rewrittenBody).WithHasErrors();
                 }
 
-                // lock (x) { body } -> using (x.EnterLockScope()) { body }
+                // lock (x) { body } -> using (x.EnterScope()) { body }
 
                 var tryBlock = rewrittenBody is BoundBlock block ? block : BoundBlock.SynthesizedNoLocals(lockSyntax, rewrittenBody);
 
-                var enterLockScopeCall = BoundCall.Synthesized(
+                var enterScopeCall = BoundCall.Synthesized(
                     rewrittenArgument.Syntax,
                     rewrittenArgument,
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
-                    lockTypeInfo.EnterLockScopeMethod);
+                    lockTypeInfo.EnterScopeMethod);
 
-                BoundLocal boundTemp = _factory.StoreToTemp(enterLockScopeCall,
+                BoundLocal boundTemp = _factory.StoreToTemp(enterScopeCall,
                     out BoundAssignmentOperator tempAssignment,
                     syntaxOpt: rewrittenArgument.Syntax,
                     kind: SynthesizedLocalKind.Using);

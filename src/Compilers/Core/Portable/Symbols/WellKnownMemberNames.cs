@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis
         public const string TopLevelStatementsEntryPointTypeName = "Program";
 
         internal const string LockTypeName = "Lock";
-        internal const string EnterLockScopeMethodName = "EnterLockScope";
+        internal const string EnterScopeMethodName = "EnterScope";
         internal const string LockScopeTypeName = "Scope";
     }
 }

@@ -4203,7 +4203,7 @@ oneMoreTime:
         {
             StartVisitingStatement(operation);
 
-            // `lock (l) { }` on value of type `System.Threading.Lock` is lowered to `using (l.EnterLockScope()) { }`.
+            // `lock (l) { }` on value of type `System.Threading.Lock` is lowered to `using (l.EnterScope()) { }`.
             if (operation.LockedValue.Type?.IsWellKnownTypeLock() == true)
             {
                 if (operation.LockedValue.Type.TryFindLockTypeInfo() is { } lockTypeInfo)
@@ -4220,16 +4220,16 @@ oneMoreTime:
                             var lockObject = VisitRequired(resource);
 
                             return new InvocationOperation(
-                                targetMethod: lockTypeInfo.EnterLockScopeMethod,
+                                targetMethod: lockTypeInfo.EnterScopeMethod,
                                 constrainedToType: null,
                                 instance: lockObject,
-                                isVirtual: lockTypeInfo.EnterLockScopeMethod.IsVirtual ||
-                                    lockTypeInfo.EnterLockScopeMethod.IsAbstract ||
-                                    lockTypeInfo.EnterLockScopeMethod.IsOverride,
+                                isVirtual: lockTypeInfo.EnterScopeMethod.IsVirtual ||
+                                    lockTypeInfo.EnterScopeMethod.IsAbstract ||
+                                    lockTypeInfo.EnterScopeMethod.IsOverride,
                                 arguments: ImmutableArray<IArgumentOperation>.Empty,
                                 semanticModel: null,
                                 syntax: lockObject.Syntax,
-                                type: lockTypeInfo.EnterLockScopeMethod.ReturnType,
+                                type: lockTypeInfo.EnterScopeMethod.ReturnType,
                                 isImplicit: true);
                         });
 

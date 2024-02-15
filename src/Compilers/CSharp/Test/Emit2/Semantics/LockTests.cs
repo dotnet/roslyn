@@ -18,7 +18,7 @@ public class LockTests : CSharpTestBase
         {
             public class Lock
             {
-                public Scope EnterLockScope()
+                public Scope EnterScope()
                 {
                     Console.Write("E");
                     return new Scope();
@@ -65,7 +65,7 @@ public class LockTests : CSharpTestBase
                 static void M2()
                 {
                     Console.Write("1");
-                    using (_lock.EnterLockScope())
+                    using (_lock.EnterScope())
                     {
                         Console.Write("2");
                     }
@@ -84,7 +84,7 @@ public class LockTests : CSharpTestBase
               IL_0000:  ldstr      "1"
               IL_0005:  call       "void System.Console.Write(string)"
               IL_000a:  ldsfld     "System.Threading.Lock C._lock"
-              IL_000f:  callvirt   "System.Threading.Lock.Scope System.Threading.Lock.EnterLockScope()"
+              IL_000f:  callvirt   "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
               IL_0014:  stloc.0
               .try
               {
@@ -135,7 +135,7 @@ public class LockTests : CSharpTestBase
     }
 
     [Fact]
-    public void MissingEnterLockScope()
+    public void MissingEnterScope()
     {
         var source = """
             System.Threading.Lock l = new();
@@ -147,13 +147,13 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(2, 7));
     }
 
     [Fact]
-    public void EnterLockScopeReturnsVoid()
+    public void EnterScopeReturnsVoid()
     {
         var source = """
             System.Threading.Lock l = new();
@@ -163,18 +163,18 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public void EnterLockScope() { }
+                    public void EnterScope() { }
                 }
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(2, 7));
     }
 
     [Fact]
-    public void EnterLockScopeStatic()
+    public void EnterScopeStatic()
     {
         var source = """
             System.Threading.Lock l = new();
@@ -184,7 +184,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public static Scope EnterLockScope() => new Scope();
+                    public static Scope EnterScope() => new Scope();
 
                     public ref struct Scope
                     {
@@ -194,13 +194,13 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(2, 7));
     }
 
     [Fact]
-    public void EnterLockScopeTakesParameters()
+    public void EnterScopeTakesParameters()
     {
         var source = """
             System.Threading.Lock l = new();
@@ -210,7 +210,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope(int arg) => new Scope();
+                    public Scope EnterScope(int arg) => new Scope();
 
                     public ref struct Scope
                     {
@@ -220,13 +220,13 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(2, 7));
     }
 
     [Fact]
-    public void EnterLockScopeTakesParameters_Optional()
+    public void EnterScopeTakesParameters_Optional()
     {
         var source = """
             System.Threading.Lock l = new();
@@ -236,7 +236,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope(int arg = 1) => new Scope();
+                    public Scope EnterScope(int arg = 1) => new Scope();
 
                     public ref struct Scope
                     {
@@ -246,13 +246,13 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(2, 7));
     }
 
     [Fact]
-    public void EnterLockScopeTakesParameters_ParamsArray()
+    public void EnterScopeTakesParameters_ParamsArray()
     {
         var source = """
             System.Threading.Lock l = new();
@@ -262,7 +262,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope(params int[] args) => new Scope();
+                    public Scope EnterScope(params int[] args) => new Scope();
 
                     public ref struct Scope
                     {
@@ -272,13 +272,13 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(2, 7));
     }
 
     [Fact]
-    public void EnterLockScopeMultipleOverloads_01()
+    public void EnterScopeMultipleOverloads_01()
     {
         var source = """
             System.Threading.Lock l = new();
@@ -288,8 +288,8 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope() => new Scope();
-                    public Scope EnterLockScope() => new Scope();
+                    public Scope EnterScope() => new Scope();
+                    public Scope EnterScope() => new Scope();
 
                     public ref struct Scope
                     {
@@ -299,16 +299,16 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7),
-            // (9,22): error CS0111: Type 'Lock' already defines a member called 'EnterLockScope' with the same parameter types
-            //         public Scope EnterLockScope() => new Scope();
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "EnterLockScope").WithArguments("EnterLockScope", "System.Threading.Lock").WithLocation(9, 22));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(2, 7),
+            // (9,22): error CS0111: Type 'Lock' already defines a member called 'EnterScope' with the same parameter types
+            //         public Scope EnterScope() => new Scope();
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "EnterScope").WithArguments("EnterScope", "System.Threading.Lock").WithLocation(9, 22));
     }
 
     [Fact]
-    public void EnterLockScopeMultipleOverloads_02()
+    public void EnterScopeMultipleOverloads_02()
     {
         var source = """
             System.Threading.Lock l = new();
@@ -318,13 +318,13 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope()
+                    public Scope EnterScope()
                     {
                         Console.Write("E");
                         return new Scope();
                     }
 
-                    public Scope EnterLockScope(int x)
+                    public Scope EnterScope(int x)
                     {
                         Console.Write("X");
                         return new Scope();
@@ -341,7 +341,7 @@ public class LockTests : CSharpTestBase
     }
 
     [Fact]
-    public void EnterLockScopeMultipleOverloads_03()
+    public void EnterScopeMultipleOverloads_03()
     {
         var source = """
             System.Threading.Lock l = new();
@@ -351,13 +351,13 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope()
+                    public Scope EnterScope()
                     {
                         Console.Write("E");
                         return new Scope();
                     }
 
-                    public Scope EnterLockScope<T>()
+                    public Scope EnterScope<T>()
                     {
                         Console.Write("T");
                         return new Scope();
@@ -374,7 +374,7 @@ public class LockTests : CSharpTestBase
     }
 
     [Fact]
-    public void EnterLockScopeHidden()
+    public void EnterScopeHidden()
     {
         var source = """
             System.Threading.Lock l = new();
@@ -384,7 +384,7 @@ public class LockTests : CSharpTestBase
             {
                 public class LockBase
                 {
-                    public Lock.Scope EnterLockScope()
+                    public Lock.Scope EnterScope()
                     {
                         Console.Write("B");
                         return new();
@@ -393,7 +393,7 @@ public class LockTests : CSharpTestBase
 
                 public class Lock : LockBase
                 {
-                    public new Scope EnterLockScope()
+                    public new Scope EnterScope()
                     {
                         Console.Write("E");
                         return new();
@@ -410,7 +410,7 @@ public class LockTests : CSharpTestBase
     }
 
     [Fact]
-    public void EnterLockScopeOverride()
+    public void EnterScopeOverride()
     {
         var source = """
             System.Threading.Lock l = new();
@@ -420,7 +420,7 @@ public class LockTests : CSharpTestBase
             {
                 public class LockBase
                 {
-                    public virtual Lock.Scope EnterLockScope()
+                    public virtual Lock.Scope EnterScope()
                     {
                         Console.Write("B");
                         return new();
@@ -429,7 +429,7 @@ public class LockTests : CSharpTestBase
 
                 public class Lock : LockBase
                 {
-                    public override Scope EnterLockScope()
+                    public override Scope EnterScope()
                     {
                         Console.Write("E");
                         return new();
@@ -446,7 +446,7 @@ public class LockTests : CSharpTestBase
     }
 
     [Fact]
-    public void EnterLockScopeVirtual()
+    public void EnterScopeVirtual()
     {
         var source = """
             System.Threading.Lock l = new System.Threading.LockDerived();
@@ -456,7 +456,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public virtual Scope EnterLockScope()
+                    public virtual Scope EnterScope()
                     {
                         Console.Write("E");
                         return new();
@@ -470,7 +470,7 @@ public class LockTests : CSharpTestBase
 
                 public class LockDerived : Lock
                 {
-                    public override Scope EnterLockScope()
+                    public override Scope EnterScope()
                     {
                         Console.Write("O");
                         return new();
@@ -482,7 +482,7 @@ public class LockTests : CSharpTestBase
     }
 
     [Fact]
-    public void EnterLockScopeExplicitImplementation()
+    public void EnterScopeExplicitImplementation()
     {
         var source = """
             System.Threading.Lock l = new();
@@ -492,12 +492,12 @@ public class LockTests : CSharpTestBase
             {
                 public interface ILock
                 {
-                    Lock.Scope EnterLockScope();
+                    Lock.Scope EnterScope();
                 }
 
                 public class Lock : ILock
                 {
-                    Scope ILock.EnterLockScope() => new Scope();
+                    Scope ILock.EnterScope() => new Scope();
 
                     public ref struct Scope
                     {
@@ -507,9 +507,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(2, 7));
     }
 
     [Fact]
@@ -523,7 +523,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope() => new Scope();
+                    public Scope EnterScope() => new Scope();
 
                     public ref struct Scope { }
                 }
@@ -546,7 +546,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope() => new Scope();
+                    public Scope EnterScope() => new Scope();
 
                     public ref struct Scope
                     {
@@ -572,7 +572,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope() => new Scope();
+                    public Scope EnterScope() => new Scope();
 
                     public ref struct Scope
                     {
@@ -598,7 +598,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope() => new Scope();
+                    public Scope EnterScope() => new Scope();
 
                     public ref struct Scope
                     {
@@ -624,7 +624,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope() => new Scope();
+                    public Scope EnterScope() => new Scope();
 
                     public ref struct Scope
                     {
@@ -650,7 +650,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope() => new Scope();
+                    public Scope EnterScope() => new Scope();
 
                     public ref struct Scope
                     {
@@ -676,7 +676,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope() => new Scope();
+                    public Scope EnterScope() => new Scope();
 
                     public ref struct Scope
                     {
@@ -706,7 +706,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope()
+                    public Scope EnterScope()
                     {
                         Console.Write("E");
                         return new Scope();
@@ -734,7 +734,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope()
+                    public Scope EnterScope()
                     {
                         Console.Write("E");
                         return new Scope();
@@ -768,7 +768,7 @@ public class LockTests : CSharpTestBase
             {
                 internal class Lock
                 {
-                    public Scope EnterLockScope()
+                    public Scope EnterScope()
                     {
                         Console.Write("E");
                         return new Scope();
@@ -799,7 +799,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope() => new Scope();
+                    public Scope EnterScope() => new Scope();
 
                     internal ref struct Scope
                     {
@@ -809,16 +809,16 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7),
-            // (8,22): error CS0050: Inconsistent accessibility: return type 'Lock.Scope' is less accessible than method 'Lock.EnterLockScope()'
-            //         public Scope EnterLockScope() => new Scope();
-            Diagnostic(ErrorCode.ERR_BadVisReturnType, "EnterLockScope").WithArguments("System.Threading.Lock.EnterLockScope()", "System.Threading.Lock.Scope").WithLocation(8, 22));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(2, 7),
+            // (8,22): error CS0050: Inconsistent accessibility: return type 'Lock.Scope' is less accessible than method 'Lock.EnterScope()'
+            //         public Scope EnterScope() => new Scope();
+            Diagnostic(ErrorCode.ERR_BadVisReturnType, "EnterScope").WithArguments("System.Threading.Lock.EnterScope()", "System.Threading.Lock.Scope").WithLocation(8, 22));
     }
 
     [Fact]
-    public void Obsolete_EnterLockScope()
+    public void Obsolete_EnterScope()
     {
         var source = """
             using System;
@@ -826,14 +826,14 @@ public class LockTests : CSharpTestBase
 
             Lock l = new();
             lock (l) { Console.Write("1"); }
-            using (l.EnterLockScope()) { Console.Write("2"); }
+            using (l.EnterScope()) { Console.Write("2"); }
 
             namespace System.Threading
             {
                 public class Lock
                 {
                     [System.Obsolete]
-                    public Scope EnterLockScope()
+                    public Scope EnterScope()
                     {
                         Console.Write("E");
                         return new Scope();
@@ -847,9 +847,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CompileAndVerify(source, expectedOutput: "E1DE2D", verify: Verification.FailsILVerify).VerifyDiagnostics(
-            // (6,8): warning CS0612: 'Lock.EnterLockScope()' is obsolete
-            // using (l.EnterLockScope()) { Console.Write("2"); }
-            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "l.EnterLockScope()").WithArguments("System.Threading.Lock.EnterLockScope()").WithLocation(6, 8));
+            // (6,8): warning CS0612: 'Lock.EnterScope()' is obsolete
+            // using (l.EnterScope()) { Console.Write("2"); }
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "l.EnterScope()").WithArguments("System.Threading.Lock.EnterScope()").WithLocation(6, 8));
     }
 
     [Fact]
@@ -861,14 +861,14 @@ public class LockTests : CSharpTestBase
 
             Lock l = new();
             lock (l) { Console.Write("1"); }
-            using (l.EnterLockScope()) { Console.Write("2"); }
+            using (l.EnterScope()) { Console.Write("2"); }
 
             namespace System.Threading
             {
                 [System.Obsolete]
                 public class Lock
                 {
-                    public Scope EnterLockScope()
+                    public Scope EnterScope()
                     {
                         Console.Write("E");
                         return new Scope();
@@ -896,13 +896,13 @@ public class LockTests : CSharpTestBase
 
             Lock l = new();
             lock (l) { Console.Write("1"); }
-            using (l.EnterLockScope()) { Console.Write("2"); }
+            using (l.EnterScope()) { Console.Write("2"); }
 
             namespace System.Threading
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope()
+                    public Scope EnterScope()
                     {
                         Console.Write("E");
                         return new Scope();
@@ -918,7 +918,7 @@ public class LockTests : CSharpTestBase
             """;
         CompileAndVerify(source, expectedOutput: "E1DE2D", verify: Verification.FailsILVerify).VerifyDiagnostics(
             // (12,16): warning CS0612: 'Lock.Scope' is obsolete
-            //         public Scope EnterLockScope()
+            //         public Scope EnterScope()
             Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Scope").WithArguments("System.Threading.Lock.Scope").WithLocation(12, 16),
             // (15,24): warning CS0612: 'Lock.Scope' is obsolete
             //             return new Scope();
@@ -934,13 +934,13 @@ public class LockTests : CSharpTestBase
 
             Lock l = new();
             lock (l) { Console.Write("1"); }
-            using (l.EnterLockScope()) { Console.Write("2"); }
+            using (l.EnterScope()) { Console.Write("2"); }
 
             namespace System.Threading
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope()
+                    public Scope EnterScope()
                     {
                         Console.Write("E");
                         return new Scope();
@@ -956,8 +956,8 @@ public class LockTests : CSharpTestBase
             """;
         CompileAndVerify(source, expectedOutput: "E1DE2D", verify: Verification.FailsILVerify).VerifyDiagnostics(
             // (6,8): warning CS0612: 'Lock.Scope.Dispose()' is obsolete
-            // using (l.EnterLockScope()) { Console.Write("2"); }
-            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "l.EnterLockScope()").WithArguments("System.Threading.Lock.Scope.Dispose()").WithLocation(6, 8));
+            // using (l.EnterScope()) { Console.Write("2"); }
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "l.EnterScope()").WithArguments("System.Threading.Lock.Scope.Dispose()").WithLocation(6, 8));
     }
 
     [Fact]
@@ -977,7 +977,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock<T>
                 {
-                    public Scope EnterLockScope()
+                    public Scope EnterScope()
                     {
                         Console.Write("E");
                         return new Scope();
@@ -1029,7 +1029,7 @@ public class LockTests : CSharpTestBase
     }
 
     [Fact]
-    public void GenericEnterLockScope()
+    public void GenericEnterScope()
     {
         var source = """
             System.Threading.Lock l = new();
@@ -1039,7 +1039,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope<T>() => new Scope();
+                    public Scope EnterScope<T>() => new Scope();
 
                     public ref struct Scope
                     {
@@ -1049,9 +1049,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(2, 7));
     }
 
     [Fact]
@@ -1065,7 +1065,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope<int> EnterLockScope() => new Scope<int>();
+                    public Scope<int> EnterScope() => new Scope<int>();
 
                     public ref struct Scope<T>
                     {
@@ -1075,9 +1075,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(2, 7));
     }
 
     [Fact]
@@ -1091,7 +1091,7 @@ public class LockTests : CSharpTestBase
             {
                 public struct Lock
                 {
-                    public Scope EnterLockScope() => new Scope();
+                    public Scope EnterScope() => new Scope();
 
                     public ref struct Scope
                     {
@@ -1123,7 +1123,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope()
+                    public Scope EnterScope()
                     {
                         Console.Write("E");
                         return new Scope();
@@ -1140,9 +1140,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (6,15): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (6,15): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
             //         lock (l) { System.Console.Write("L"); }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(6, 15));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(6, 15));
     }
 
     [Fact]
@@ -1156,7 +1156,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public MyScope EnterLockScope() => new MyScope();
+                    public MyScope EnterScope() => new MyScope();
 
                     public ref struct MyScope
                     {
@@ -1166,9 +1166,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(2, 7));
     }
 
     [Fact]
@@ -1182,7 +1182,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope() => new Scope();
+                    public Scope EnterScope() => new Scope();
                 }
 
                 public ref struct Scope
@@ -1192,9 +1192,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(2, 7));
     }
 
     [Fact]
@@ -1208,7 +1208,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope() => new Scope();
+                    public Scope EnterScope() => new Scope();
 
                     public class Scope
                     {
@@ -1218,9 +1218,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterLockScope'
+            // (2,7): error CS0656: Missing compiler required member 'System.Threading.Lock.EnterScope'
             // lock (l) { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterLockScope").WithLocation(2, 7));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "l").WithArguments("System.Threading.Lock", "EnterScope").WithLocation(2, 7));
     }
 
     [Fact]
@@ -1240,7 +1240,7 @@ public class LockTests : CSharpTestBase
             {
                 public interface Lock
                 {
-                    Scope EnterLockScope();
+                    Scope EnterScope();
 
                     public ref struct Scope
                     {
@@ -1253,7 +1253,7 @@ public class LockTests : CSharpTestBase
             
                 public class MyLock : Lock
                 {
-                    public Lock.Scope EnterLockScope()
+                    public Lock.Scope EnterScope()
                     {
                         Console.Write("E");
                         return new();
@@ -1281,7 +1281,7 @@ public class LockTests : CSharpTestBase
             {
                 public interface Lock
                 {
-                    Scope EnterLockScope()
+                    Scope EnterScope()
                     {
                         Console.Write("I");
                         return new();
@@ -1298,7 +1298,7 @@ public class LockTests : CSharpTestBase
             
                 public class MyLock : Lock
                 {
-                    public Lock.Scope EnterLockScope()
+                    public Lock.Scope EnterScope()
                     {
                         Console.Write("E");
                         return new();
@@ -1329,7 +1329,7 @@ public class LockTests : CSharpTestBase
                 {
                     public class Lock
                     {
-                        public Scope EnterLockScope()
+                        public Scope EnterScope()
                         {
                             Console.Write("E");
                             return new Scope();
@@ -1398,7 +1398,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope()
+                    public Scope EnterScope()
                     {
                         System.Console.Write("E");
                         return new Scope();
@@ -1479,7 +1479,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope()
+                    public Scope EnterScope()
                     {
                         Console.Write("E1 ");
                         return new Scope();
@@ -1510,7 +1510,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope()
+                    public Scope EnterScope()
                     {
                         Console.Write("E2 ");
                         return new Scope();
@@ -1679,7 +1679,7 @@ public class LockTests : CSharpTestBase
                 {
                     lock (l)
                     {
-                        l.EnterLockScope();
+                        l.EnterScope();
                     }
                 }
             }
@@ -1731,7 +1731,7 @@ public class LockTests : CSharpTestBase
               .maxstack  1
               .locals init (System.Threading.Lock.Scope V_0)
               IL_0000:  ldnull
-              IL_0001:  callvirt   "System.Threading.Lock.Scope System.Threading.Lock.EnterLockScope()"
+              IL_0001:  callvirt   "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
               IL_0006:  stloc.0
               .try
               {
@@ -2079,7 +2079,7 @@ public class LockTests : CSharpTestBase
 
                 public class Lock : ILock
                 {
-                    public Scope EnterLockScope()
+                    public Scope EnterScope()
                     {
                         Console.Write("E");
                         return new Scope();
@@ -2178,7 +2178,7 @@ public class LockTests : CSharpTestBase
             {
                 public class Lock
                 {
-                    public Scope EnterLockScope()
+                    public Scope EnterScope()
                     {
                         Console.Write("E");
                         return new Scope();
@@ -2438,14 +2438,14 @@ public class LockTests : CSharpTestBase
     }
 
     [Fact]
-    public void UseSiteError_EnterLockScope()
+    public void UseSiteError_EnterScope()
     {
         // namespace System.Threading
         // {
         //     public class Lock
         //     {
         //         [System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute("Test")]
-        //         public Scope EnterLockScope() => throw null;
+        //         public Scope EnterScope() => throw null;
         //
         //         public ref struct Scope
         //         {
@@ -2462,7 +2462,7 @@ public class LockTests : CSharpTestBase
                     ret
                 }
 
-                .method public hidebysig instance class System.Threading.Lock/Scope EnterLockScope () cil managed
+                .method public hidebysig instance class System.Threading.Lock/Scope EnterScope () cil managed
                 {
                     .custom instance void System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
                         01 00 04 54 65 73 74 00 00
@@ -2517,9 +2517,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilationWithIL(source, ilSource).VerifyDiagnostics(
-            // (5,15): error CS9041: 'Lock.EnterLockScope()' requires compiler feature 'Test', which is not supported by this version of the C# compiler.
+            // (5,15): error CS9041: 'Lock.EnterScope()' requires compiler feature 'Test', which is not supported by this version of the C# compiler.
             //         lock (l) { }
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "l").WithArguments("System.Threading.Lock.EnterLockScope()", "Test").WithLocation(5, 15));
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "l").WithArguments("System.Threading.Lock.EnterScope()", "Test").WithLocation(5, 15));
     }
 
     [Fact]
@@ -2529,7 +2529,7 @@ public class LockTests : CSharpTestBase
         // {
         //     public class Lock
         //     {
-        //         public Scope EnterLockScope() => throw null;
+        //         public Scope EnterScope() => throw null;
         //
         //         [System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute("Test")]
         //         public ref struct Scope
@@ -2547,7 +2547,7 @@ public class LockTests : CSharpTestBase
                     ret
                 }
 
-                .method public hidebysig instance class System.Threading.Lock/Scope EnterLockScope () cil managed
+                .method public hidebysig instance class System.Threading.Lock/Scope EnterScope () cil managed
                 {
                     .maxstack 8
                     ldnull
@@ -2615,7 +2615,7 @@ public class LockTests : CSharpTestBase
         // {
         //     public class Lock
         //     {
-        //         public Scope EnterLockScope() => throw null;
+        //         public Scope EnterScope() => throw null;
         //
         //         public ref struct Scope
         //         {
@@ -2633,7 +2633,7 @@ public class LockTests : CSharpTestBase
                     ret
                 }
 
-                .method public hidebysig instance class System.Threading.Lock/Scope EnterLockScope () cil managed
+                .method public hidebysig instance class System.Threading.Lock/Scope EnterScope () cil managed
                 {
                     .maxstack 8
                     ldnull

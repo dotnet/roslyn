@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
-    using LockTypeInfo = (IMethodSymbol EnterLockScopeMethod, IMethodSymbol ScopeDisposeMethod);
+    using LockTypeInfo = (IMethodSymbol EnterScopeMethod, IMethodSymbol ScopeDisposeMethod);
 
     public static partial class ISymbolExtensions
     {
@@ -142,13 +142,13 @@ namespace Microsoft.CodeAnalysis
         // Keep consistent with LockBinder.TryFindLockTypeInfo.
         internal static LockTypeInfo? TryFindLockTypeInfo(this ITypeSymbol lockType)
         {
-            IMethodSymbol? enterLockScopeMethod = TryFindPublicVoidParameterlessMethod(lockType, WellKnownMemberNames.EnterLockScopeMethodName);
-            if (enterLockScopeMethod is not { ReturnsVoid: false, RefKind: RefKind.None })
+            IMethodSymbol? enterScopeMethod = TryFindPublicVoidParameterlessMethod(lockType, WellKnownMemberNames.EnterScopeMethodName);
+            if (enterScopeMethod is not { ReturnsVoid: false, RefKind: RefKind.None })
             {
                 return null;
             }
 
-            ITypeSymbol? scopeType = enterLockScopeMethod.ReturnType;
+            ITypeSymbol? scopeType = enterScopeMethod.ReturnType;
             if (scopeType is not INamedTypeSymbol { Name: WellKnownMemberNames.LockScopeTypeName, Arity: 0, IsValueType: true, IsRefLikeType: true, DeclaredAccessibility: Accessibility.Public } ||
                 !lockType.Equals(scopeType.ContainingType, SymbolEqualityComparer.ConsiderEverything))
             {
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis
 
             return new LockTypeInfo
             {
-                EnterLockScopeMethod = enterLockScopeMethod,
+                EnterScopeMethod = enterScopeMethod,
                 ScopeDisposeMethod = disposeMethod,
             };
         }
