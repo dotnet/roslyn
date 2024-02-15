@@ -1297,14 +1297,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return typeSymbol.IsWellKnownCompilerServicesTopLevelType("IsExternalInit")
         End Function
 
+        ' Keep in sync with C# equivalent.
         <Extension>
         Friend Function IsWellKnownTypeLock(typeSymbol As TypeSymbol) As Boolean
             Dim namedTypeSymbol = TryCast(typeSymbol, NamedTypeSymbol)
             Return namedTypeSymbol IsNot Nothing AndAlso
-                namedTypeSymbol.Name = "Lock" AndAlso
+                namedTypeSymbol.Name = WellKnownMemberNames.LockTypeName AndAlso
                 namedTypeSymbol.Arity = 0 AndAlso
                 namedTypeSymbol.ContainingType Is Nothing AndAlso
-                namedTypeSymbol.IsContainedInNamespace("System", "Threading")
+                namedTypeSymbol.IsContainedInNamespace(NameOf(System), NameOf(System.Threading))
         End Function
 
         <Extension>

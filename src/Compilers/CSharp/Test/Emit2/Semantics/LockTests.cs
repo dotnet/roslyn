@@ -818,6 +818,149 @@ public class LockTests : CSharpTestBase
     }
 
     [Fact]
+    public void Obsolete_EnterLockScope()
+    {
+        var source = """
+            using System;
+            using System.Threading;
+
+            Lock l = new();
+            lock (l) { Console.Write("1"); }
+            using (l.EnterLockScope()) { Console.Write("2"); }
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    [System.Obsolete]
+                    public Scope EnterLockScope()
+                    {
+                        Console.Write("E");
+                        return new Scope();
+                    }
+
+                    public ref struct Scope
+                    {
+                        public void Dispose() => Console.Write("D");
+                    }
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "E1DE2D", verify: Verification.FailsILVerify).VerifyDiagnostics(
+            // (6,8): warning CS0612: 'Lock.EnterLockScope()' is obsolete
+            // using (l.EnterLockScope()) { Console.Write("2"); }
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "l.EnterLockScope()").WithArguments("System.Threading.Lock.EnterLockScope()").WithLocation(6, 8));
+    }
+
+    [Fact]
+    public void Obsolete_Lock()
+    {
+        var source = """
+            using System;
+            using System.Threading;
+
+            Lock l = new();
+            lock (l) { Console.Write("1"); }
+            using (l.EnterLockScope()) { Console.Write("2"); }
+
+            namespace System.Threading
+            {
+                [System.Obsolete]
+                public class Lock
+                {
+                    public Scope EnterLockScope()
+                    {
+                        Console.Write("E");
+                        return new Scope();
+                    }
+
+                    public ref struct Scope
+                    {
+                        public void Dispose() => Console.Write("D");
+                    }
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "E1DE2D", verify: Verification.FailsILVerify).VerifyDiagnostics(
+            // (4,1): warning CS0612: 'Lock' is obsolete
+            // Lock l = new();
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Lock").WithArguments("System.Threading.Lock").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void Obsolete_Scope()
+    {
+        var source = """
+            using System;
+            using System.Threading;
+
+            Lock l = new();
+            lock (l) { Console.Write("1"); }
+            using (l.EnterLockScope()) { Console.Write("2"); }
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public Scope EnterLockScope()
+                    {
+                        Console.Write("E");
+                        return new Scope();
+                    }
+            
+                    [System.Obsolete]
+                    public ref struct Scope
+                    {
+                        public void Dispose() => Console.Write("D");
+                    }
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "E1DE2D", verify: Verification.FailsILVerify).VerifyDiagnostics(
+            // (12,16): warning CS0612: 'Lock.Scope' is obsolete
+            //         public Scope EnterLockScope()
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Scope").WithArguments("System.Threading.Lock.Scope").WithLocation(12, 16),
+            // (15,24): warning CS0612: 'Lock.Scope' is obsolete
+            //             return new Scope();
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Scope").WithArguments("System.Threading.Lock.Scope").WithLocation(15, 24));
+    }
+
+    [Fact]
+    public void Obsolete_Dispose()
+    {
+        var source = """
+            using System;
+            using System.Threading;
+
+            Lock l = new();
+            lock (l) { Console.Write("1"); }
+            using (l.EnterLockScope()) { Console.Write("2"); }
+
+            namespace System.Threading
+            {
+                public class Lock
+                {
+                    public Scope EnterLockScope()
+                    {
+                        Console.Write("E");
+                        return new Scope();
+                    }
+            
+                    public ref struct Scope
+                    {
+                        [System.Obsolete]
+                        public void Dispose() => Console.Write("D");
+                    }
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "E1DE2D", verify: Verification.FailsILVerify).VerifyDiagnostics(
+            // (6,8): warning CS0612: 'Lock.Scope.Dispose()' is obsolete
+            // using (l.EnterLockScope()) { Console.Write("2"); }
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "l.EnterLockScope()").WithArguments("System.Threading.Lock.Scope.Dispose()").WithLocation(6, 8));
+    }
+
+    [Fact]
     public void GenericLock()
     {
         var source = """
@@ -1489,7 +1632,7 @@ public class LockTests : CSharpTestBase
     }
 
     [Fact]
-    public void Nullable()
+    public void Nullable_01()
     {
         var source = """
             #nullable enable
@@ -1516,6 +1659,37 @@ public class LockTests : CSharpTestBase
             // (14,15): warning CS8602: Dereference of a possibly null reference.
             //         lock (l) { Console.Write("1"); }
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "l").WithLocation(14, 15));
+    }
+
+    [Fact]
+    public void Nullable_02()
+    {
+        var source = """
+            #nullable enable
+            using System.Threading;
+
+            static class C
+            {
+                static void Main()
+                {
+                    M(new Lock());
+                }
+
+                static void M(Lock? l)
+                {
+                    lock (l)
+                    {
+                        l.EnterLockScope();
+                    }
+                }
+            }
+            """;
+        var verifier = CompileAndVerify([source, LockTypeDefinition], verify: Verification.FailsILVerify,
+           expectedOutput: "EED");
+        verifier.VerifyDiagnostics(
+            // (13,15): warning CS8602: Dereference of a possibly null reference.
+            //         lock (l)
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "l").WithLocation(13, 15));
     }
 
     [Theory, CombinatorialData]
@@ -1740,6 +1914,34 @@ public class LockTests : CSharpTestBase
             // (9,15): error CS4013: Instance of type 'Lock.Scope' cannot be used inside a nested function, query expression, iterator block or async method
             //         lock (new Lock())
             Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "new Lock()").WithArguments("System.Threading.Lock.Scope").WithLocation(9, 15));
+    }
+
+    [Fact]
+    public void Yield_Async()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async IAsyncEnumerable<int> M()
+                {
+                    yield return 1;
+                    lock (new Lock())
+                    {
+                        yield return 2;
+                    }
+                    await Task.Yield();
+                    yield return 3;
+                }
+            }
+            """;
+        CreateCompilationWithTasksExtensions([source, LockTypeDefinition, AsyncStreamsTypes]).VerifyDiagnostics(
+            // (10,15): error CS9215: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
+            //         lock (new Lock())
+            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(10, 15));
     }
 
     [Theory, CombinatorialData]

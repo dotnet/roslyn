@@ -78,31 +78,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLockStatement(_syntax, expr, stmt, hasErrors);
         }
 
+        // Keep consistent with ISymbolExtensions.TryFindLockTypeInfo.
         internal static LockTypeInfo? TryFindLockTypeInfo(TypeSymbol lockType, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
-            const string LockTypeFullName = "System.Threading.Lock";
-            const string EnterLockScopeMethodName = "EnterLockScope";
-            const string LockScopeTypeName = "Scope";
+            const string LockTypeFullName = $"{nameof(System)}.{nameof(System.Threading)}.{WellKnownMemberNames.LockTypeName}";
 
-            var enterLockScopeMethod = TryFindPublicVoidParameterlessMethod(lockType, EnterLockScopeMethodName);
+            var enterLockScopeMethod = TryFindPublicVoidParameterlessMethod(lockType, WellKnownMemberNames.EnterLockScopeMethodName);
             if (enterLockScopeMethod is not { ReturnsVoid: false, RefKind: RefKind.None })
             {
-                Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, LockTypeFullName, EnterLockScopeMethodName);
+                Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, LockTypeFullName, WellKnownMemberNames.EnterLockScopeMethodName);
                 return null;
             }
 
             var scopeType = enterLockScopeMethod.ReturnType;
-            if (!(scopeType is NamedTypeSymbol { Name: LockScopeTypeName, Arity: 0, IsValueType: true, IsRefLikeType: true, DeclaredAccessibility: Accessibility.Public } &&
-                TypeSymbol.Equals(scopeType.ContainingType, lockType, TypeCompareKind.ConsiderEverything)))
+            if (scopeType is not NamedTypeSymbol { Name: WellKnownMemberNames.LockScopeTypeName, Arity: 0, IsValueType: true, IsRefLikeType: true, DeclaredAccessibility: Accessibility.Public } ||
+                !TypeSymbol.Equals(scopeType.ContainingType, lockType, TypeCompareKind.ConsiderEverything))
             {
-                Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, LockTypeFullName, EnterLockScopeMethodName);
+                Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, LockTypeFullName, WellKnownMemberNames.EnterLockScopeMethodName);
                 return null;
             }
 
             var disposeMethod = TryFindPublicVoidParameterlessMethod(scopeType, WellKnownMemberNames.DisposeMethodName);
             if (disposeMethod is not { ReturnsVoid: true })
             {
-                Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, $"{LockTypeFullName}+{LockScopeTypeName}", WellKnownMemberNames.DisposeMethodName);
+                Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, $"{LockTypeFullName}+{WellKnownMemberNames.LockScopeTypeName}", WellKnownMemberNames.DisposeMethodName);
                 return null;
             }
 
@@ -114,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
         }
 
+        // Keep consistent with ISymbolExtensions.TryFindPublicVoidParameterlessMethod.
         private static MethodSymbol? TryFindPublicVoidParameterlessMethod(TypeSymbol type, string name)
         {
             var members = type.GetMembers(name);

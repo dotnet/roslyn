@@ -4732,7 +4732,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                      lockExpression.Syntax,
                                      ErrorFactory.ErrorInfo(ERRID.ERR_SyncLockRequiresReferenceType1, lockExpressionType))
                 ElseIf lockExpressionType.IsWellKnownTypeLock() Then
-                    ReportDiagnostic(diagnostics, lockExpression.Syntax, ERRID.WRN_LockTypeUnsupported)
+                    ReportDiagnostic(diagnostics, lockExpression.Syntax, ERRID.ERR_LockTypeUnsupported)
                 End If
             End If
 
