@@ -83,16 +83,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
-        Protected Property _slotCount As Integer
-            Get
-                Return Me.SlotCount
-            End Get
-
-            Set(value As Integer)
-                Me.SlotCount = value
-            End Set
-        End Property
-
         Friend Function GetFirstToken() As SyntaxToken
             Return DirectCast(Me.GetFirstTerminal(), SyntaxToken)
         End Function

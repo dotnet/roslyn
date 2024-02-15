@@ -372,7 +372,7 @@ Friend Class GreenNodeWriter
             Dim allChildren = GetAllChildrenOfStructure(nodeStructure)
             Dim childrenCount = allChildren.Count
             If childrenCount <> 0 Then
-                _writer.WriteLine("            MyBase._slotCount = {0}", childrenCount)
+                _writer.WriteLine("            Me.SlotCount = {0}", childrenCount)
             End If
         End If
 
