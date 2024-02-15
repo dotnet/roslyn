@@ -11084,7 +11084,7 @@ class Program
             }
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE(ParamsCollections): Enable after a PROTOTYPE comment in CSharpOperationFactory.CreateDisposeArguments is addressed
+        [Fact]
         public void UsingPatternWithParamsTest()
         {
             var source = @"
@@ -11112,7 +11112,7 @@ class C2
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "DisposedDisposed").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE(ParamsCollections): Enable after a PROTOTYPE comment in CSharpOperationFactory.CreateDisposeArguments is addressed
+        [Fact]
         public void UsingPatternWithParamsTest_Foreach()
         {
             var source = @"
@@ -11140,12 +11140,116 @@ class C2
         }
     }
 }";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+
             CompileAndVerify(
-                source, options: TestOptions.DebugExe, expectedOutput: "Disposed",
+                comp, expectedOutput: "Disposed",
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
                             Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" }
                             : Verification.Passes
                 ).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+
+            comp.VerifyOperationTree(node, expectedOperationTree: """
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
+  Locals: Local_1: System.Int32 i
+  LoopControlVariable:
+    IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+      Initializer:
+        null
+  Collection:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C2, IsImplicit) (Syntax: 'new C2()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IObjectCreationOperation (Constructor: C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'new C2()')
+          Arguments(0)
+          Initializer:
+            null
+  Body:
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  NextVariables(0)
+""");
+
+            VerifyFlowGraph(comp, node.Parent.Parent, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C2()')
+                Value:
+                IInvocationOperation ( S1 C2.GetEnumerator()) (OperationKind.Invocation, Type: S1, IsImplicit) (Syntax: 'new C2()')
+                    Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C2, IsImplicit) (Syntax: 'new C2()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                        Operand:
+                        IObjectCreationOperation (Constructor: C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'new C2()')
+                            Arguments(0)
+                            Initializer:
+                            null
+                    Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B5]
+                IInvocationOperation ( System.Boolean S1.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new C2()')
+                    Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1, IsImplicit) (Syntax: 'new C2()')
+                    Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (1)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                        Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                        Right:
+                        IPropertyReferenceOperation: System.Int32 S1.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                            Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1, IsImplicit) (Syntax: 'new C2()')
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IInvocationOperation ( void S1.Dispose(params System.Collections.Generic.IEnumerable<System.Int32> args)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new C2()')
+                    Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1, IsImplicit) (Syntax: 'new C2()')
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: args) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'foreach (va ... }')
+                        ICollectionExpressionOperation (0 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'foreach (va ... }')
+                            Elements(0)
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B5] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
         }
 
         [Fact]
@@ -13233,7 +13337,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "MyCollection MoveNextAsync");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE(ParamsCollections): Enable after a PROTOTYPE comment in CSharpOperationFactory.CreateDisposeArguments is addressed
+        [Fact]
         public void PatternBasedDisposal_WithParams()
         {
             string source = @"
