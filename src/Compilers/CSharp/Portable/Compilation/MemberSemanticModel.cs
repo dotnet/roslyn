@@ -1910,10 +1910,8 @@ done:
         /// </summary>
         protected void EnsureNullabilityAnalysisPerformedIfNecessary()
         {
-#pragma warning disable RSEXPERIMENTAL001 // internal use of experimental API
-            bool isNullableAnalysisEnabled = !DisableNullableAnalysis && IsNullableAnalysisEnabled();
-#pragma warning restore RSEXPERIMENTAL001
-            if (!isNullableAnalysisEnabled && !Compilation.IsNullableAnalysisEnabledAlways)
+            var isNullableAnalysisEnabled = IsNullableAnalysisEnabled();
+            if (!Compilation.IsNullableAnalysisEnabledAlways)
             {
                 return;
             }

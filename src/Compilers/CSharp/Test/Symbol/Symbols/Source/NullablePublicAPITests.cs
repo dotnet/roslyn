@@ -5162,8 +5162,9 @@ class C
             Assert.Equal("System.Object?", model.GetTypeInfo(binaryRightArgument).Type.ToTestDisplayString(includeNonNullable: true));
         }
 
-        [Fact]
-        public void NullableDisableSemanticModel_01()
+        [Theory]
+        [CombinatorialData]
+        public void NullableDisableSemanticModel_01(bool runNullableAnalysisAlways)
         {
             var source = """
                 #nullable enable
@@ -5179,7 +5180,7 @@ class C
                 }
                 """;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: runNullableAnalysisAlways ? TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "always") : TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString();
@@ -5198,7 +5199,41 @@ class C
                 Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
                 Assert.Equal(expectedAnnotation, typeInfo.Type.NullableAnnotation);
             }
+        }
 
+        [Fact]
+        public void NullableDisableSemanticModel_02()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    void M(string x)
+                    {
+                        if (x == null)
+                        {
+                            x.ToString();
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never"));
+            comp.VerifyDiagnostics();
+
+            test(SemanticModelOptions.None, expectedAnnotation: PublicNullableAnnotation.None);
+            test(SemanticModelOptions.DisableNullableAnalysis, expectedAnnotation: PublicNullableAnnotation.None);
+
+            void test(SemanticModelOptions options, PublicNullableAnnotation expectedAnnotation)
+            {
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree, options);
+                var xUsage = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single().Expression;
+                var typeInfo = model.GetTypeInfo(xUsage);
+                Assert.NotNull(typeInfo.Type);
+                Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
+                Assert.Equal(expectedAnnotation, typeInfo.Type.NullableAnnotation);
+            }
         }
     }
 }
