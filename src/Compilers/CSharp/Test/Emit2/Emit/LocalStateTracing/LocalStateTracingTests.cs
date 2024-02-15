@@ -170,8 +170,8 @@ namespace Microsoft.CodeAnalysis.Runtime
             [LogLambdaEntry]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
             [LogStateMachineMethodEntry]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x8 }
             [LogStateMachineLambdaEntry]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x8 }
-            [Entry]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xd1 }
-            [MemoryToString]: Unmanaged pointers are not a verifiable type. { Offset = 0xa }
+            [Entry]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xbc }
+            [MemoryToString]: Unmanaged pointers are not a verifiable type. { Offset = 0x5 }
             [LogLocalStore]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
             [LogLocalStoreUnmanaged]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
             [LogParameterStore]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
