@@ -39,10 +39,11 @@ namespace Microsoft.CodeAnalysis
             set => _nodeFlagsAndSlotCount.NodeFlags = value;
         }
 
+        /// <inheritdoc cref="NodeFlagsAndSlotCount.SmallSlotCount"/>>
         private byte _slotCount
         {
-            get => _nodeFlagsAndSlotCount.SlotCount;
-            set => _nodeFlagsAndSlotCount.SlotCount = value;
+            get => _nodeFlagsAndSlotCount.SmallSlotCount;
+            set => _nodeFlagsAndSlotCount.SmallSlotCount = value;
         }
 
         private static readonly ConditionalWeakTable<GreenNode, DiagnosticInfo[]> s_diagnosticsTable =
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 int count = _slotCount;
-                if (count == byte.MaxValue)
+                if (count == NodeFlagsAndSlotCount.SlotCountTooLarge)
                 {
                     count = GetSlotCount();
                 }
