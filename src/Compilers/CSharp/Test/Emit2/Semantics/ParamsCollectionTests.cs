@@ -13394,5 +13394,417 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync MyCollection DisposeAsync Done");
         }
+
+        [Fact]
+        public void OperatorWithParams_01()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+class C
+{
+    static void Test(Program p, List<long> l, long[] a)
+    {
+        p = (Program)l;
+        p = (Program)a;
+
+        _ = p + l;
+        _ = p + a;
+    }
+}
+
+class Program
+{
+    public static implicit operator Program(params List<long> x)
+    {
+        return null;
+    }
+
+    public static Program operator +(Program x, params List<long> y)
+    {
+        return null;
+    }
+
+    public static implicit operator Program(params long[] x)
+    {
+        return null;
+    }
+
+    public static Program operator +(Program x, params long[] y)
+    {
+        return null;
+    }
+}
+";
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (18,45): error CS1670: params is not valid in this context
+                //     public static implicit operator Program(params List<long> x)
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(18, 45),
+                // (23,49): error CS1670: params is not valid in this context
+                //     public static Program operator +(Program x, params List<long> y)
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(23, 49),
+                // (28,45): error CS1670: params is not valid in this context
+                //     public static implicit operator Program(params long[] x)
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(28, 45),
+                // (33,49): error CS1670: params is not valid in this context
+                //     public static Program operator +(Program x, params long[] y)
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(33, 49)
+                );
+        }
+
+        [Fact]
+        public void OperatorWithParams_02()
+        {
+            // public class Program
+            // {
+            //     public static implicit operator Program(params List<long> x)
+            //     {
+            //         return null;
+            //     }
+            //   
+            //     public static Program operator +(Program x, params List<long> y)
+            //     {
+            //         return null;
+            //     }
+            //   
+            //     public static implicit operator Program(params long[] x)
+            //     {
+            //         return null;
+            //     }
+            //   
+            //     public static Program operator +(Program x, params long[] y)
+            //     {
+            //         return null;
+            //     }
+            // }
+            var ilSource = """
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname static 
+        class Program op_Implicit (
+            class [mscorlib]System.Collections.Generic.List`1<int64> x
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname static 
+        class Program op_Addition (
+            class Program x,
+            class [mscorlib]System.Collections.Generic.List`1<int64> y
+        ) cil managed 
+    {
+        .param [2]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname static 
+        class Program op_Implicit (
+            int64[] x
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname static 
+        class Program op_Addition (
+            class Program x,
+            int64[] y
+        ) cil managed 
+    {
+        .param [2]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+""";
+
+            var src = @"
+using System.Collections.Generic;
+
+class C
+{
+    static void Test(Program p, List<long> l, long[] a)
+    {
+        p = (Program)l;
+        p = (Program)a;
+
+        _ = p + l;
+        _ = p + a;
+    }
+}
+";
+            CreateCompilationWithIL(src, ilSource).VerifyEmitDiagnostics(
+                // (8,13): error CS0030: Cannot convert type 'System.Collections.Generic.List<long>' to 'Program'
+                //         p = (Program)l;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Program)l").WithArguments("System.Collections.Generic.List<long>", "Program").WithLocation(8, 13),
+                // (9,13): error CS0030: Cannot convert type 'long[]' to 'Program'
+                //         p = (Program)a;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Program)a").WithArguments("long[]", "Program").WithLocation(9, 13),
+                // (11,13): error CS0019: Operator '+' cannot be applied to operands of type 'Program' and 'List<long>'
+                //         _ = p + l;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "p + l").WithArguments("+", "Program", "System.Collections.Generic.List<long>").WithLocation(11, 13),
+                // (12,13): error CS0019: Operator '+' cannot be applied to operands of type 'Program' and 'long[]'
+                //         _ = p + a;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "p + a").WithArguments("+", "Program", "long[]").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void ExtensionMethodWithParams_01()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+class C
+{
+    static void Test(IEnumerable<long> l, long[] a)
+    {
+        l.M1();
+        a.M2();
+    }
+}
+
+static class Ext
+{
+    public static void M1(this params IEnumerable<long> x)
+    {
+    }
+
+    public static void M2(this params long[] x)
+    {
+    }
+}
+";
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (15,32): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void M1(this params IEnumerable<long> x)
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(15, 32),
+                // (19,32): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void M2(this params long[] x)
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(19, 32)
+                );
+        }
+
+        [Fact]
+        public void ExtensionMethodWithParams_02()
+        {
+            // static class Ext
+            // {
+            //     public static void M1(this params IEnumerable<long> x)
+            //     {
+            //     }
+            // 
+            //     public static void M2(this params long[] x)
+            //     {
+            //     }
+            // }
+            var ilSource = """
+.class public auto ansi abstract sealed beforefieldinit Ext
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+
+    .method public hidebysig static 
+        void M1 (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> x
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ret
+    }
+
+    .method public hidebysig static 
+        void M2 (
+            int64[] x
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ret
+    }
+}
+
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+""";
+
+            var src = @"
+using System.Collections.Generic;
+
+class C
+{
+    static void Test(IEnumerable<long> l, long[] a)
+    {
+        l.M1();
+        a.M2();
+    }
+}
+";
+            CreateCompilationWithIL(src, ilSource).VerifyEmitDiagnostics(
+                // (8,11): error CS1061: 'IEnumerable<long>' does not contain a definition for 'M1' and no accessible extension method 'M1' accepting a first argument of type 'IEnumerable<long>' could be found (are you missing a using directive or an assembly reference?)
+                //         l.M1();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M1").WithArguments("System.Collections.Generic.IEnumerable<long>", "M1").WithLocation(8, 11),
+                // (9,11): error CS1061: 'long[]' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'long[]' could be found (are you missing a using directive or an assembly reference?)
+                //         a.M2();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("long[]", "M2").WithLocation(9, 11)
+                );
+        }
+
+        [Fact]
+        public void VarargWithParams_01()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+class C1
+{
+    C1(params IEnumerable<long> x, __arglist)
+    {
+    }
+
+    C1(params long[] x, __arglist)
+    {
+    }
+
+    static void M1(params IEnumerable<long> x, __arglist)
+    {
+    }
+
+    static void M2(params long[] x, __arglist)
+    {
+    }
+}
+
+class C2
+{
+    C2(IEnumerable<long> x, __arglist)
+    {
+    }
+
+    C2(long[] x, __arglist)
+    {
+    }
+
+    static void M3(IEnumerable<long> x, __arglist)
+    {
+    }
+
+    static void M4(long[] x, __arglist)
+    {
+    }
+}
+";
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (6,5): error CS0224: A method with vararg cannot be generic, be in a generic type, or have a params parameter
+                //     C1(params IEnumerable<long> x, __arglist)
+                Diagnostic(ErrorCode.ERR_BadVarargs, "C1").WithLocation(6, 5),
+                // (6,8): error CS0231: A params parameter must be the last parameter in a parameter list
+                //     C1(params IEnumerable<long> x, __arglist)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params IEnumerable<long> x").WithLocation(6, 8),
+                // (10,5): error CS0224: A method with vararg cannot be generic, be in a generic type, or have a params parameter
+                //     C1(params long[] x, __arglist)
+                Diagnostic(ErrorCode.ERR_BadVarargs, "C1").WithLocation(10, 5),
+                // (10,8): error CS0231: A params parameter must be the last parameter in a parameter list
+                //     C1(params long[] x, __arglist)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] x").WithLocation(10, 8),
+                // (14,17): error CS0224: A method with vararg cannot be generic, be in a generic type, or have a params parameter
+                //     static void M1(params IEnumerable<long> x, __arglist)
+                Diagnostic(ErrorCode.ERR_BadVarargs, "M1").WithLocation(14, 17),
+                // (14,20): error CS0231: A params parameter must be the last parameter in a parameter list
+                //     static void M1(params IEnumerable<long> x, __arglist)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params IEnumerable<long> x").WithLocation(14, 20),
+                // (18,17): error CS0224: A method with vararg cannot be generic, be in a generic type, or have a params parameter
+                //     static void M2(params long[] x, __arglist)
+                Diagnostic(ErrorCode.ERR_BadVarargs, "M2").WithLocation(18, 17),
+                // (18,20): error CS0231: A params parameter must be the last parameter in a parameter list
+                //     static void M2(params long[] x, __arglist)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] x").WithLocation(18, 20)
+                );
+        }
     }
 }

@@ -1100,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case RefKind.Ref:
                 case RefKind.In:
                 case RefKind.RefReadOnlyParameter:
-                    return !parameter.IsParams; // PROTOTYPE(ParamsCollections): Test this code path
+                    return !parameter.IsParams;
                 default:
                     return false;
             }
@@ -1108,7 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private bool IsValidUserDefinedOperatorSignature(int parameterCount)
         {
-            if (this.ReturnsVoid || this.IsGenericMethod || this.IsVararg || this.ParameterCount != parameterCount || this.IsParams()) // PROTOTYPE(ParamsCollections): Test this code path
+            if (this.ReturnsVoid || this.IsGenericMethod || this.IsVararg || this.ParameterCount != parameterCount || this.IsParams())
             {
                 return false;
             }
