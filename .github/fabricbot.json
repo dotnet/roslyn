@@ -11,6 +11,10 @@
           "operator": "and",
           "operands": [
             {
+              "name": "isPr",
+              "parameters": {}
+            },
+            {
               "name": "labelAdded",
               "parameters": {
                 "label": "auto-merge"
@@ -63,6 +67,10 @@
           "operator": "and",
           "operands": [
             {
+              "name": "isPr",
+              "parameters": {}
+            },
+            {
               "name": "isActivitySender",
               "parameters": {
                 "user": "dotnet-maestro[bot]"
@@ -113,6 +121,10 @@
         "conditions": {
           "operator": "and",
           "operands": [
+            {
+              "name": "isPr",
+              "parameters": {}
+            },
             {
               "operator": "or",
               "operands": [
@@ -169,6 +181,10 @@
           "operator": "and",
           "operands": [
             {
+              "name": "isPr",
+              "parameters": {}
+            },
+            {
               "name": "isActivitySender",
               "parameters": {
                 "user": "dotnet-bot"
@@ -188,7 +204,7 @@
             }
           ]
         },
-        "eventType": "issue",
+        "eventType": "pull_request",
         "eventNames": [
           "issues",
           "project_card"
@@ -357,6 +373,10 @@
           "operator": "and",
           "operands": [
             {
+              "name": "isIssue",
+              "parameters": {}
+            },
+            {
               "name": "isOpen",
               "parameters": {}
             },
@@ -398,6 +418,10 @@
         "conditions": {
           "operator": "and",
           "operands": [
+            {
+              "name": "isPr",
+              "parameters": {}
+            },
             {
               "name": "isAction",
               "parameters": {
@@ -525,6 +549,10 @@
         "conditions": {
           "operator": "and",
           "operands": [
+            {
+              "name": "isPr",
+              "parameters": {}
+            },
             {
               "name": "prMatchesPattern",
               "parameters": {
@@ -765,6 +793,10 @@
         "conditions": {
           "operator": "and",
           "operands": [
+            {
+              "name": "isIssue",
+              "parameters": {}
+            },
             {
               "name": "hasLabel",
               "parameters": {
