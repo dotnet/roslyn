@@ -441,9 +441,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (arg.ConstantValueOpt is { IsString: true, StringValue: [char c] })
                 {
-                    needsSpanRefParamConstructor = true;
-                    charType = _factory.SpecialType(SpecialType.System_Char);
-                    preparedArgs.Add(new BoundLiteral(arg.Syntax, constantValueOpt: ConstantValue.Create(c), charType));
+                    preparedArgs.Add(
+                        new BoundLiteral(
+                            arg.Syntax, constantValueOpt: ConstantValue.Create(c),
+                            charType ?? _compilation.GetSpecialType(SpecialType.System_Char))); // We will pull 'charType' from BoundCall, if it is bad an error has been already reported elsewhere
                     continue;
                 }
 
