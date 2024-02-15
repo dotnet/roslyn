@@ -3,43 +3,6 @@
   "tasks": [
     {
       "taskType": "trigger",
-      "capabilityId": "AutoMerge",
-      "subCapability": "AutoMerge",
-      "version": "1.0",
-      "config": {
-        "taskName": "Automatically merge PR once CI passes",
-        "label": "auto-merge",
-        "minMinutesOpen": "12",
-        "mergeType": "merge",
-        "deleteBranches": true,
-        "requireAllStatuses": false,
-        "minimumNumberOfCheckRuns": 0,
-        "removeLabelOnPush": true,
-        "silentMode": true,
-        "conditionalMergeTypes": [
-          {
-            "condition": {
-              "placeholder": ""
-            }
-          }
-        ],
-        "requireAllStatuses_exemptList": [
-          "codecov",
-          "msftbot",
-          "dependabot",
-          "DotNet Maestro",
-          "DotNet Maestro - Int",
-          ".NET Helix (Int)"
-        ],
-        "requireSpecificCheckRuns": true,
-        "requireSpecificCheckRunsList": [
-          "roslyn-CI"
-        ]
-      },
-      "disabled": false
-    },
-    {
-      "taskType": "trigger",
       "capabilityId": "IssueResponder",
       "subCapability": "PullRequestResponder",
       "version": "1.0",
