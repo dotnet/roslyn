@@ -974,6 +974,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
         }
 
+#if false
         private class TestAnalyzerProvider : IIncrementalAnalyzerProvider
         {
             public readonly TestAnalyzer Analyzer = new TestAnalyzer();
@@ -1001,5 +1002,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 }
             }
         }
+#endif
     }
 }
