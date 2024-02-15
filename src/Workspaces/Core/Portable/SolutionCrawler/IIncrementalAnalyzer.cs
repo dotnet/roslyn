@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken);
 
         void LogAnalyzerCountSummary();
-        int Priority { get; }
         void Shutdown();
     }
 }

@@ -237,11 +237,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public void LogAnalyzerCountSummary()
             => _telemetry.ReportAndClear(_correlationId);
 
-        /// <summary>
-        /// The highest priority (lowest value) amongst all incremental analyzers (others have priority 1).
-        /// </summary>
-        public int Priority => 0;
-
         internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
             => _stateManager.GetOrCreateStateSets(project).Select(s => s.Analyzer);
 
