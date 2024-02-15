@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ensureAllUnderlyingConversionsChecked(syntax, source, conversion, wasCompilerGenerated, destination, diagnostics);
 
-                    if (conversion.Kind == ConversionKind.ImplicitReference &&
+                    if (conversion.Kind is ConversionKind.ImplicitReference or ConversionKind.ExplicitReference &&
                         source.Type is { } sourceType &&
                         sourceType.IsWellKnownTypeLock())
                     {

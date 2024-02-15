@@ -847,5 +847,73 @@ BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. C
                  ~~~~~~~~~~~~~~
 ")
         End Sub
+
+        <Fact>
+        Public Sub LockType_Derived()
+            Dim source = "
+Imports System
+Imports System.Threading
+
+Module Program
+    Private Sub Main()
+        Dim l1 As DerivedLock = New DerivedLock()
+        SyncLock l1
+        End SyncLock
+
+        Dim l2 As Lock = l1
+        SyncLock l2 ' 1
+        End SyncLock
+
+        Dim l3 As DerivedLock = CType(l2, DerivedLock) ' 2
+        l3 = DirectCast(l2, DerivedLock) ' 3
+        l3 = TryCast(l2, DerivedLock) ' 4
+        SyncLock l3
+        End SyncLock
+
+        Dim l4 As IDerivedLock = CType(l2, IDerivedLock) ' 5
+        l4 = DirectCast(l2, IDerivedLock) ' 6
+        l4 = TryCast(l2, IDerivedLock) ' 7
+        SyncLock l4
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+
+    Public Class DerivedLock
+        Inherits Lock
+        Implements IDerivedLock
+    End Class
+
+    Interface IDerivedLock
+    End Interface
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics(
+"BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock l2 ' 1
+                 ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim l3 As DerivedLock = CType(l2, DerivedLock) ' 2
+                                      ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        l3 = DirectCast(l2, DerivedLock) ' 3
+                        ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        l3 = TryCast(l2, DerivedLock) ' 4
+                     ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim l4 As IDerivedLock = CType(l2, IDerivedLock) ' 5
+                                       ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        l4 = DirectCast(l2, IDerivedLock) ' 6
+                        ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        l4 = TryCast(l2, IDerivedLock) ' 7
+                     ~~
+")
+        End Sub
     End Class
 End Namespace

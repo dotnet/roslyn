@@ -1050,7 +1050,7 @@ DoneWithDiagnostics:
 
             Dim tupleElements As BoundConvertedTupleElements = CreateConversionForTupleElements(tree, sourceType, targetType, convKind, isExplicit)
 
-            If convKind = ConversionKind.WideningReference AndAlso
+            If (convKind = ConversionKind.WideningReference OrElse convKind = ConversionKind.NarrowingReference) AndAlso
                 sourceType.IsWellKnownTypeLock() Then
                 ReportDiagnostic(diagnostics, argument.Syntax, ERRID.WRN_ConvertingLock)
             End If
