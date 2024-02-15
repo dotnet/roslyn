@@ -25,10 +25,32 @@ namespace Microsoft.CodeAnalysis
 
         internal const int ListKind = 1;
 
+        // Pack the kind, node-flags, slot-count, and full-width into 64bits. Note: if we need more bits in the future
+        // (say for additional node-flags), we can always directly use a packed int64 here, and manage where all these
+        // bits go manually.
+
+        /// <summary>
+        /// Value used to indicate the slot count was too large to be encoded directly in our <see cref="_nodeFlagsAndSlotCount"/>
+        /// value.  Callers will have to store the value elsewhere and retrieve the full value themselves.
+        /// </summary>
+        protected const int SlotCountTooLarge = 0b0000000000001111;
+
         private readonly ushort _kind;
-        protected NodeFlags flags;
-        private byte _slotCount;
+        private NodeFlagsAndSlotCount _nodeFlagsAndSlotCount;
         private int _fullWidth;
+
+        protected NodeFlags flags
+        {
+            get => _nodeFlagsAndSlotCount.NodeFlags;
+            set => _nodeFlagsAndSlotCount.NodeFlags = value;
+        }
+
+        /// <inheritdoc cref="NodeFlagsAndSlotCount.SmallSlotCount"/>>
+        private byte _slotCount
+        {
+            get => _nodeFlagsAndSlotCount.SmallSlotCount;
+            set => _nodeFlagsAndSlotCount.SmallSlotCount = value;
+        }
 
         private static readonly ConditionalWeakTable<GreenNode, DiagnosticInfo[]> s_diagnosticsTable =
             new ConditionalWeakTable<GreenNode, DiagnosticInfo[]>();
@@ -142,12 +164,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 int count = _slotCount;
-                if (count == byte.MaxValue)
-                {
-                    count = GetSlotCount();
-                }
-
-                return count;
+                return count == SlotCountTooLarge ? GetSlotCount() : count;
             }
 
             protected set
@@ -234,8 +251,13 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region Flags 
+
+        /// <summary>
+        /// Special flags a node can have.  Note: while this is typed as being `ushort`, we can only practically use 12
+        /// of those 16 bits as we use the remaining 4 bits to store the slot count of a node.
+        /// </summary>
         [Flags]
-        internal enum NodeFlags : byte
+        internal enum NodeFlags : ushort
         {
             None = 0,
             ContainsDiagnostics = 1 << 0,
@@ -244,12 +266,13 @@ namespace Microsoft.CodeAnalysis
             ContainsSkippedText = 1 << 3,
             ContainsAnnotations = 1 << 4,
             IsNotMissing = 1 << 5,
+            ContainsAttributes = 1 << 6,
 
-            FactoryContextIsInAsync = 1 << 6,
-            FactoryContextIsInQuery = 1 << 7,
+            FactoryContextIsInAsync = 1 << 7,
+            FactoryContextIsInQuery = 1 << 8,
             FactoryContextIsInIterator = FactoryContextIsInQuery,  // VB does not use "InQuery", but uses "InIterator" instead
 
-            InheritMask = ContainsDiagnostics | ContainsStructuredTrivia | ContainsDirectives | ContainsSkippedText | ContainsAnnotations | IsNotMissing,
+            InheritMask = ContainsDiagnostics | ContainsStructuredTrivia | ContainsDirectives | ContainsSkippedText | ContainsAnnotations | ContainsAttributes | IsNotMissing,
         }
 
         internal NodeFlags Flags
@@ -321,6 +344,14 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 return (this.flags & NodeFlags.ContainsDirectives) != 0;
+            }
+        }
+
+        public bool ContainsAttributes
+        {
+            get
+            {
+                return (this.flags & NodeFlags.ContainsAttributes) != 0;
             }
         }
 

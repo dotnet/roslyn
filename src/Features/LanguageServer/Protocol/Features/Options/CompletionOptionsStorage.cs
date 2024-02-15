@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion;
 
@@ -14,7 +15,14 @@ internal static class CompletionOptionsStorage
         {
             TriggerOnTyping = options.GetOption(TriggerOnTyping, language),
             TriggerOnTypingLetters = options.GetOption(TriggerOnTypingLetters, language),
-            TriggerOnDeletion = options.GetOption(TriggerOnDeletion, language),
+            TriggerOnDeletion = language switch
+            {
+                LanguageNames.CSharp => options.GetOption(TriggerOnTypingLetters, language) && options.GetOption(TriggerOnDeletion, language) is true,
+                // If the option is null (i.e. default) or 'true', then we want to trigger completion.
+                // Only if the option is false do we not want to trigger.
+                LanguageNames.VisualBasic => options.GetOption(TriggerOnDeletion, language) is not false,
+                _ => throw ExceptionUtilities.Unreachable()
+            },
             TriggerInArgumentLists = options.GetOption(TriggerInArgumentLists, language),
             EnterKeyBehavior = options.GetOption(EnterKeyBehavior, language),
             SnippetsBehavior = options.GetOption(SnippetsBehavior, language),

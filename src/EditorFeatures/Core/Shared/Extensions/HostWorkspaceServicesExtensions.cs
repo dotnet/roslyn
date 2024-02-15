@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// <summary>
         /// A cache of host services -> (language name -> content type name).
         /// </summary>
-        private static readonly ConditionalWeakTable<SolutionServices, Dictionary<string, string>> s_hostServicesToContentTypeMap
-            = new();
+        private static readonly ConditionalWeakTable<SolutionServices, Dictionary<string, string>> s_hostServicesToContentTypeMap = new();
 
         private static string? GetDefaultContentTypeName(SolutionServices workspaceServices, string language)
         {

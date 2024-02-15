@@ -102,16 +102,16 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 return;
             }
 
-            map ??= new Dictionary<DocumentId, List<DiagnosticData>>();
-            map.GetOrAdd(document.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(diagnostic, document));
+            map ??= [];
+            map.GetOrAdd(document.Id, _ => []).Add(DiagnosticData.Create(diagnostic, document));
 
-            _lazyDocumentsWithDiagnostics ??= new HashSet<DocumentId>();
+            _lazyDocumentsWithDiagnostics ??= [];
             _lazyDocumentsWithDiagnostics.Add(document.Id);
         }
 
         private void AddOtherDiagnostic(DiagnosticData data)
         {
-            _lazyOthers ??= new List<DiagnosticData>();
+            _lazyOthers ??= [];
             _lazyOthers.Add(data);
         }
 

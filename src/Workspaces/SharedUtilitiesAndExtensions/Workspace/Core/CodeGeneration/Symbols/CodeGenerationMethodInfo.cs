@@ -11,8 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationMethodInfo
     {
-        private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationMethodInfo> s_methodToInfoMap =
-            new();
+        private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationMethodInfo> s_methodToInfoMap = new();
 
         private readonly bool _isNew;
         private readonly bool _isUnsafe;

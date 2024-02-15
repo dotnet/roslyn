@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             // This is e.g. useful in the name simplification, where a whole qualified name is annotated
             protected bool alwaysSimplify;
 
-            private readonly HashSet<SyntaxNode> _processedParentNodes = new();
+            private readonly HashSet<SyntaxNode> _processedParentNodes = [];
 
             protected AbstractReductionRewriter(ObjectPool<IReductionRewriter> pool)
                 => _pool = pool;

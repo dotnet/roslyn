@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             private readonly Dictionary<ISymbol, PooledHashSet<IOperation>> _reachingWrites;
 
             private BasicBlockAnalysisData()
-                => _reachingWrites = new Dictionary<ISymbol, PooledHashSet<IOperation>>();
+                => _reachingWrites = [];
 
             public static BasicBlockAnalysisData GetInstance() => s_pool.Allocate();
 

@@ -14,8 +14,7 @@ namespace Roslyn.Utilities
     {
         private readonly NonReentrantLock _guard = new();
 
-        private readonly Dictionary<string, object> _eventNameToRegistries =
-            new();
+        private readonly Dictionary<string, object> _eventNameToRegistries = [];
 
         public EventMap()
         {
