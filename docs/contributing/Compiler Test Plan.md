@@ -115,7 +115,6 @@ This document provides guidance for thinking about language interactions and tes
 - extension based Dispose, DisposeAsync, GetEnumerator, GetAsyncEnumerator, Deconstruct, GetAwaiter etc.
 - UTF8 String Literals (string literals with 'u8' or 'U8' type suffix).
 - Inline array element access and slicing.
-- Lock statement, which behaves differently on an instance of the `System.Threading.Lock` type.
 
 # Misc
 - reserved keywords (sometimes contextual)
@@ -184,7 +183,7 @@ return … ;
 try  { … } catch (…) when (…) { … } finally { … } 
 checked { … } 
 unchecked { … } 
-lock(…) … 
+lock(…) … // including variant on an instance of the `System.Threading.Lock` type
 using (…) … // including `await` variant
 yield return …; 
 yield break; 
