@@ -39,11 +39,7 @@ namespace Microsoft.CodeAnalysis
         private NodeFlagsAndSlotCount _nodeFlagsAndSlotCount;
         private int _fullWidth;
 
-        public NodeFlags Flags
-        {
-            get => _nodeFlagsAndSlotCount.NodeFlags;
-            private set => _nodeFlagsAndSlotCount.NodeFlags = value;
-        }
+        private NodeFlags Flags => _nodeFlagsAndSlotCount.NodeFlags;
 
         private static readonly ConditionalWeakTable<GreenNode, DiagnosticInfo[]> s_diagnosticsTable =
             new ConditionalWeakTable<GreenNode, DiagnosticInfo[]>();
@@ -291,12 +287,12 @@ namespace Microsoft.CodeAnalysis
 
         internal void SetFlags(NodeFlags flags)
         {
-            this.Flags |= flags;
+            _nodeFlagsAndSlotCount.NodeFlags |= flags;
         }
 
         internal void ClearFlags(NodeFlags flags)
         {
-            this.Flags &= ~flags;
+            _nodeFlagsAndSlotCount.NodeFlags &= ~flags;
         }
 
         internal bool IsMissing

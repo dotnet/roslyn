@@ -35,14 +35,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 If trailingTrivia Is Nothing Then
 
                     ' Leading doc comment (which may include whitespace). No trailing trivia.
-                    Return leadingTrivia.RawKind = SyntaxKind.DocumentationCommentExteriorTrivia AndAlso leadingTrivia.Flags = NodeFlags.IsNotMissing AndAlso
+                    Return leadingTrivia.RawKind = SyntaxKind.DocumentationCommentExteriorTrivia AndAlso Not leadingTrivia.IsMissing AndAlso
                         leadingTrivia.FullWidth <= s_maximumCachedTriviaWidth
 
                 Else
 
                     ' Leading whitespace and a trailing single space.
-                    Return leadingTrivia.RawKind = SyntaxKind.WhitespaceTrivia AndAlso leadingTrivia.Flags = NodeFlags.IsNotMissing AndAlso
-                         trailingTrivia.RawKind = SyntaxKind.WhitespaceTrivia AndAlso trailingTrivia.Flags = NodeFlags.IsNotMissing AndAlso
+                    Return leadingTrivia.RawKind = SyntaxKind.WhitespaceTrivia AndAlso Not leadingTrivia.IsMissing AndAlso
+                         trailingTrivia.RawKind = SyntaxKind.WhitespaceTrivia AndAlso Not trailingTrivia.IsMissing AndAlso
                          trailingTrivia.FullWidth = 1 AndAlso trailingTrivia.ToFullString() = " " AndAlso
                          leadingTrivia.FullWidth <= s_maximumCachedTriviaWidth
 
