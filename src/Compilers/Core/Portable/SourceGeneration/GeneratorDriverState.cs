@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis
             StateTable = stateTable;
             SyntaxStore = syntaxStore;
             DriverOptions = driverOptions;
+            DisabledOutputs = driverOptions.DisabledOutputs;
+            TrackIncrementalSteps = driverOptions.TrackIncrementalGeneratorSteps;
             RunTime = runtime;
             ParseOptionsChanged = parseOptionsChanged;
             Debug.Assert(Generators.Length == GeneratorStates.Length);
@@ -89,16 +91,18 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly SyntaxStore SyntaxStore;
 
-        internal readonly GeneratorDriverOptions DriverOptions;
+        private readonly GeneratorDriverOptions DriverOptions;
 
         /// <summary>
         /// A bit field containing the output kinds that should not be produced by this generator driver.
         /// </summary>
-        internal IncrementalGeneratorOutputKind DisabledOutputs => DriverOptions.DisabledOutputs;
+        // https://github.com/dotnet/roslyn/issues/72129: Change from field to property once issue is addressed
+        internal readonly IncrementalGeneratorOutputKind DisabledOutputs;
 
         internal readonly TimeSpan RunTime;
 
-        internal bool TrackIncrementalSteps => DriverOptions.TrackIncrementalGeneratorSteps;
+        // https://github.com/dotnet/roslyn/issues/72129: Change from field to property once issue is addressed
+        internal readonly bool TrackIncrementalSteps;
 
         /// <summary>
         /// Tracks if the <see cref="ParseOptions"/> have been changed meaning post init trees will need to be re-parsed.
