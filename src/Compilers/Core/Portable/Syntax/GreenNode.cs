@@ -388,6 +388,7 @@ namespace Microsoft.CodeAnalysis
                 return (this.flags & NodeFlags.HasAnnotations) != 0;
             }
         }
+
         #endregion
 
         #region Spans
