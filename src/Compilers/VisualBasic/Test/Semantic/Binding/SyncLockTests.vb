@@ -948,8 +948,11 @@ End Namespace
 ]]>.Value
             Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
             Dim verifier = CompileAndVerify(comp, expectedOutput:="locked")
-            ' (9, 39) : warning BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
-            verifier.VerifyDiagnostics(Diagnostic(ERRID.WRN_ConvertingLock, "l2").WithLocation(9, 39))
+            verifier.Diagnostics.AssertTheseDiagnostics(<![CDATA[
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim l3 As DerivedLock = CType(l2, DerivedLock)
+                                      ~~
+]]>)
             verifier.VerifyIL("Program.Main", <![CDATA[
 {
   // Code size       44 (0x2c)
