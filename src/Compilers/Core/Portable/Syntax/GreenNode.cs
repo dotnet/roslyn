@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         public NodeFlags Flags
         {
             get => _nodeFlagsAndSlotCount.NodeFlags;
-            protected set => _nodeFlagsAndSlotCount.NodeFlags = value;
+            private set => _nodeFlagsAndSlotCount.NodeFlags = value;
         }
 
         private static readonly ConditionalWeakTable<GreenNode, DiagnosticInfo[]> s_diagnosticsTable =
