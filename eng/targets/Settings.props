@@ -39,6 +39,9 @@
          Microsoft.Common.CurrentVersion.targets to see how it is consumed -->
     <WindowsAppContainer>false</WindowsAppContainer>
 
+    <!-- This is a servicing branch that builds against TFMs that are no longer under support. -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
     <Nullable>enable</Nullable>
   </PropertyGroup>
