@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
 {
     public sealed partial class AnalyzerConfig
     {
-        internal static ConcurrentDictionary<string, Regex> RegexMap = [];
+        internal static readonly ConcurrentDictionary<string, Regex> RegexMap = [];
 
         internal readonly struct SectionNameMatcher
         {
