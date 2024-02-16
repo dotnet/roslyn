@@ -3630,9 +3630,10 @@ public class C : A {
 
             var frozenDocument = forkedProject.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
 
-            // There will be documents.  That's because freezing the solution ends up jumping back to hte point in time
-            // before the remove/add happened (so the original doc is there).  Then, the new doc is added as a sibling.
-            // That they have the same path is not relevant.  They have different IDs and thus are considered different.
+            // There will be two documents.  That's because freezing the solution ends up jumping back to hte point in
+            // time before the remove/add happened (so the original doc is there).  Then, the new doc is added as a
+            // sibling. That they have the same path is not relevant.  They have different IDs and thus are considered
+            // different.
             Assert.Equal(2, frozenDocument.Project.Documents.Count());
             var frozenCompilation = await frozenDocument.Project.GetCompilationAsync();
             Assert.True(frozenCompilation.ContainsSyntaxTree(await frozenDocument.GetSyntaxTreeAsync()));
@@ -3643,24 +3644,28 @@ public class C : A {
         public async Task TestFrozenPartialSemanticsHandlesRemoveAndAddWithNullPathAndDifferentNames()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
-            var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+            var originalProject = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
                 .AddDocument("RegularDocument.cs", "// Source File", filePath: null).Project;
 
             // Fetch the compilation to ensure further changes produce in progress states
-            var originalCompilation = await project.GetCompilationAsync();
-            project = project.RemoveDocument(project.DocumentIds.Single())
+            var originalCompilation = await originalProject.GetCompilationAsync();
+            var forkedProject = originalProject.RemoveDocument(originalProject.DocumentIds.Single())
                 .AddDocument("RegularDocument2.cs", "// Source File", filePath: null).Project;
 
-            // Freeze semantics -- with the new document; this should still give us a project with one document: just
-            // the newly added one.
-            var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+            var frozenDocument = forkedProject.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
 
-            Assert.Equal(1, frozenDocument.Project.Documents.Count());
-            var treesInCompilation = (await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees;
-            Assert.Equal(1, treesInCompilation.Count());
-
-            foreach (var document in frozenDocument.Project.Documents)
-                Assert.Contains(await document.GetRequiredSyntaxTreeAsync(CancellationToken.None), treesInCompilation);
+            // There will be two documents.  That's because freezing the solution ends up jumping back to hte point in
+            // time before the remove/add happened (so the original doc is there).  Then, the new doc is added as a
+            // sibling. That they have the same path is not relevant.  They have different IDs and thus are considered
+            // different.
+            // There will be two documents.  That's because freezing the solution ends up jumping back to hte point in
+            // time before the remove/add happened (so the original doc is there).  Then, the new doc is added as a
+            // sibling. That they have the same path is not relevant.  They have different IDs and thus are considered
+            // different.
+            Assert.Equal(2, frozenDocument.Project.Documents.Count());
+            var frozenCompilation = await frozenDocument.Project.GetCompilationAsync();
+            Assert.True(frozenCompilation.ContainsSyntaxTree(await frozenDocument.GetSyntaxTreeAsync()));
+            Assert.True(frozenCompilation.ContainsSyntaxTree(await originalProject.Documents.Single().GetSyntaxTreeAsync()));
         }
 
         [Fact]
