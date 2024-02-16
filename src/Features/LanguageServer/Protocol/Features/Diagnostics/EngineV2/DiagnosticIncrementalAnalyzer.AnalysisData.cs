@@ -62,10 +62,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public DocumentAnalysisData ToPersistData()
                 => new(Version, LineCount, Items);
 
+#if false
             public bool FromCache
             {
                 get { return OldItems.IsDefault; }
             }
+#endif
         }
 
         /// <summary>
