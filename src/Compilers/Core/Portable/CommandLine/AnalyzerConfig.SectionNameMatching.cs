@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
 {
     public sealed partial class AnalyzerConfig
     {
-        internal static readonly ConcurrentDictionary<string, Regex> RegexMap = [];
+        private static readonly ConcurrentDictionary<string, Regex> s_regexMap = [];
 
         internal readonly struct SectionNameMatcher
         {
@@ -116,11 +116,7 @@ namespace Microsoft.CodeAnalysis
             sb.Append('$');
 
             var pattern = sb.ToString();
-            if (!RegexMap.TryGetValue(pattern, out var regex))
-            {
-                regex = new Regex(pattern, RegexOptions.Compiled);
-                regex = RegexMap.GetOrAdd(pattern, regex);
-            }
+            var regex = s_regexMap.GetOrAdd(pattern, static pattern => new(pattern, RegexOptions.Compiled));
 
             return new SectionNameMatcher(regex, numberRangePairs.ToImmutableAndFree());
         }
