@@ -198,7 +198,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public Task NonSourceDocumentOpenAsync(TextDocument document, CancellationToken cancellationToken)
             => TextDocumentOpenAsync(document, cancellationToken);
-#endif
 
         private async Task TextDocumentOpenAsync(TextDocument document, CancellationToken cancellationToken)
         {
@@ -215,7 +214,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-#if false
         public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
             => TextDocumentCloseAsync(document, cancellationToken);
 
