@@ -30,7 +30,6 @@ extends:
           - ImageOverride -equals AzurePipelinesUbuntu20.04compliantGPT
           os: Linux
         templateContext:
-          outputParentDirectory: $(Pipeline.Workspace)
           outputs:
           - output: nuget
             displayName: 📦 Push packages to nuget.org

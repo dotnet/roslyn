@@ -44,7 +44,6 @@ stages:
         - ImageOverride -equals AzurePipelinesUbuntu20.04compliantGPT
         os: Linux
       templateContext:
-        outputParentDirectory: $(Pipeline.Workspace)
         outputs:
         - output: nuget
           displayName: 📦 Push nuget packages
