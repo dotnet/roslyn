@@ -202,6 +202,7 @@ namespace Microsoft.CodeAnalysis
                     FinalCompilationTrackerState => this.ProjectState,
                     // If we have an in progress state with no steps, then we're just at the current project state.
                     InProgressState { PendingTranslationSteps: [] } => this.ProjectState,
+                    // Otherwise, reset us to whatever state the InProgressState had currently transitioned to.
                     InProgressState inProgressState => inProgressState.PendingTranslationSteps.First().oldState,
                     _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
                 };
@@ -215,7 +216,7 @@ namespace Microsoft.CodeAnalysis
                     if (state is FinalCompilationTrackerState finalState)
                     {
                         // Checked by caller.
-                        Contract.ThrowIfFalse(finalState.IsFrozen);
+                        Contract.ThrowIfTrue(finalState.IsFrozen);
                         // If we're already finalized then just return what we have, and with the frozen bit flipped so
                         // that any future forks keep things frozen.
                         return finalState.WithIsFrozen();
