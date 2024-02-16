@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal
     [Export(typeof(IBrokeredDebuggerServices))]
     internal sealed class BrokeredDebuggerServices : IBrokeredDebuggerServices, IDisposable
     {
+        // HotReloadSessionNotificationService
         private static readonly ServiceRpcDescriptor HotReloadSessionNotificationServiceDescriptor = CreateDescriptor(
             new(HotReloadSessionNotificationServiceInfo.Moniker, new Version(HotReloadSessionNotificationServiceInfo.Version)),
         clientInterface: null);

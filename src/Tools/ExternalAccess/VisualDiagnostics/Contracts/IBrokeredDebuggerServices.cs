@@ -8,6 +8,9 @@ using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts
 {
+    /// <summary>
+    /// Facade interface for getting various service brokers
+    /// </summary>
     internal interface IBrokeredDebuggerServices
     {
         Task<IServiceBroker> ServiceBrokerAsync();
