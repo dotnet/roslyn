@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             => AnalyzeDocumentForKindAsync(document, AnalysisKind.Semantic, cancellationToken);
         public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
             => AnalyzeDocumentForKindAsync(textDocument, AnalysisKind.Syntax, cancellationToken);
-#endif
 
         private async Task AnalyzeDocumentForKindAsync(TextDocument document, AnalysisKind kind, CancellationToken cancellationToken)
         {
@@ -135,7 +134,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-#if false
         public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             await AnalyzeProjectAsync(project, forceAnalyzerRun: false, cancellationToken).ConfigureAwait(false);
