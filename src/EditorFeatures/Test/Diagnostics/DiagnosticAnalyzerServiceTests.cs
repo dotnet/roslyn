@@ -235,7 +235,9 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             // open document
             workspace.OpenDocument(document.Id);
+#if false
             await analyzer.DocumentOpenAsync(document, CancellationToken.None).ConfigureAwait(false);
+#endif
 
             // run analysis
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
@@ -336,7 +338,9 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             // open document
             workspace.OpenDocument(document.Id);
+#if false
             await analyzer.DocumentOpenAsync(document, CancellationToken.None).ConfigureAwait(false);
+#endif
 
             // cause analysis
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);

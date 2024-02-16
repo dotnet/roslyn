@@ -194,10 +194,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
+#if false
         public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
             => TextDocumentOpenAsync(document, cancellationToken);
 
-#if false
         public Task NonSourceDocumentOpenAsync(TextDocument document, CancellationToken cancellationToken)
             => TextDocumentOpenAsync(document, cancellationToken);
 #endif
