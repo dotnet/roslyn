@@ -333,10 +333,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private static bool IsTouchDocumentActionForDocument(CompilationAndGeneratorDriverTranslationAction action, DocumentId id)
-                => action is CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction touchDocumentAction &&
-                   touchDocumentAction.DocumentId == id;
-
             /// <summary>
             /// Gets the final compilation if it is available.
             /// </summary>
