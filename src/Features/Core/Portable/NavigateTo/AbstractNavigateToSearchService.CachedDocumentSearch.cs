@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             async Task ProcessProjectGroupAsync(IGrouping<ProjectKey, DocumentKey> group)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await Task.Yield();
+                await Task.Yield().ConfigureAwait(false);
                 var project = group.Key;
 
                 // Break the project into high-pri docs and low pri docs.

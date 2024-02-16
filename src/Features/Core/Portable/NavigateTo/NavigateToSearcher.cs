@@ -333,7 +333,7 @@ internal sealed class NavigateToSearcher
 
         async Task SearchCoreAsync(IGrouping<INavigateToSearchService, Project> grouping)
         {
-            await Task.Yield();
+            await Task.Yield().ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             var searchService = grouping.Key;

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             try
             {
-                await Task.Yield();
+                await Task.Yield().ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // We're doing a real search over the fully loaded solution now.  No need to hold onto the cached map
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await Task.Yield();
+            await Task.Yield().ConfigureAwait(false);
             var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
 
             await ProcessIndexAsync(
