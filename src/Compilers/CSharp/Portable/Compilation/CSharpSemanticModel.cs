@@ -1811,6 +1811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return sealedResults.AsImmutable();
             }
 
+            // Use ImmutableArray.CreateBuilder directly as we know the exact size up front.
             var builder = ImmutableArray.CreateBuilder<ISymbol>(sealedResults.Count - cannotBeReferencedByNameCount);
             foreach (var symbol in sealedResults)
             {
