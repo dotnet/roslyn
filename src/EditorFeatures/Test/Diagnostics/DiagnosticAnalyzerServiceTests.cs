@@ -526,8 +526,9 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
+#if false
             await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
-
+#endif
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             Assert.True(called);
@@ -635,8 +636,9 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(project.Solution.Workspace);
+#if false
             await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
-
+#endif
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             Assert.Equal(expectAnalyzerExecuted, called);
@@ -701,7 +703,9 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     break;
 
                 case BackgroundAnalysisScope.FullSolution:
+#if false
                     await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
+#endif
                     break;
 
                 default:
@@ -823,7 +827,9 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     break;
 
                 case BackgroundAnalysisScope.FullSolution:
+#if false
                     await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
+#endif
                     break;
 
                 default:
@@ -967,7 +973,9 @@ class A
                     break;
 
                 case BackgroundAnalysisScope.FullSolution:
+#if false
                     await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
+#endif
                     break;
             }
 
@@ -1296,9 +1304,15 @@ class A
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
             if (analyzeProject)
+            {
+#if false
                 await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
+#endif
+            }
             else
+            {
                 await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
+            }
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
@@ -1358,7 +1372,9 @@ class A
 #endif
             }
 
+#if false
             await analyzer.AnalyzeProjectAsync(textDocument.Project, semanticsChanged: true, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
+#endif
         }
 
         private class Analyzer : DiagnosticAnalyzer

@@ -135,10 +135,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
+#if false
         public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             await AnalyzeProjectAsync(project, forceAnalyzerRun: false, cancellationToken).ConfigureAwait(false);
         }
+#endif
 
         public Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
             => AnalyzeProjectAsync(project, forceAnalyzerRun: true, cancellationToken);
