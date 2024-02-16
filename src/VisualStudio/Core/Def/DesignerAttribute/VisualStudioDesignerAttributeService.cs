@@ -121,32 +121,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             if (client == null)
                 return;
 
-            var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
-            var priorityDocument = trackingService.GetActiveDocument(solution);
-
-            // If there is an active document, then process changes to it right away, so that the UI updates quickly
-            // when the user adds/removes a form from a particular document.
-            if (RemoteSupportedLanguages.IsSupported(priorityDocument?.Project.Language))
-            {
-                // We only need to do a project sync to compute the up to date data for this particular file.
-                var priorityDocumentId = priorityDocument.Id;
-                await client.TryInvokeAsync<IRemoteDesignerAttributeDiscoveryService>(
-                    priorityDocument.Project,
-                    (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
-                        callbackId, checksum, priorityDocumentId, cancellationToken),
-                    callbackTarget: this,
-                    cancellationToken).ConfigureAwait(false);
-            }
-
-            // Wait a little after the priority document and process the rest of the solution at a lower priority.
-            await _listener.Delay(DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
-
-            await client.TryInvokeAsync<IRemoteDesignerAttributeDiscoveryService>(
-                solution,
-                (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
-                    callbackId, checksum, cancellationToken),
-                callbackTarget: this,
-                cancellationToken).ConfigureAwait(false);
+            var trackingService = solution.Services.GetRequiredService<IDocumentTrackingService>();
+            await DesignerAttributeDiscoveryService.DiscoverDesignerAttributesAsync(
+                solution, trackingService.GetActiveDocument(solution), client, _listener, this, cancellationToken).ConfigureAwait(false);
         }
 
         private async ValueTask NotifyProjectSystemAsync(
