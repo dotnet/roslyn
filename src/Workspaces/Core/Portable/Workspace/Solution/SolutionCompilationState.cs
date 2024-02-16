@@ -1057,17 +1057,30 @@ internal sealed partial class SolutionCompilationState
             // Freezing projects can cause them to have an entirely different set of documents (since it effectively
             // rewinds the project back to the last time it produced a compilation).  Ensure we keep track of the docs
             // added or removed from the project states to keep the final filepath-to-documentid map accurate.
+            //
+            // Note: we only have to do this if the actual project-state changed.  If we were able to use the same
+            // instance (common if we already got the compilation for a project), then nothing changes with the set
+            // of documents.
+            //
+            // Examples of where the documents may absolutely change though are when we haven't even gotten a
+            // compilation yet.  In that case, the project transitions to an empty state, which means we should remove
+            // all its documents from the filePathToDocumentIdsMap.  Similarly, if we were at some in-progress-state we
+            // might reset the project back to a prior state from when the last compilation was requested, losing
+            // information about documents recently added or removed.
 
-            foreach (var (documentId, oldDocumentState) in oldProjectState.DocumentStates.States)
+            if (oldProjectState != newProjectState)
             {
-                if (!newProjectState.DocumentStates.States.ContainsKey(documentId))
-                    documentsToRemove.Add(oldDocumentState);
-            }
+                foreach (var (documentId, oldDocumentState) in oldProjectState.DocumentStates.States)
+                {
+                    if (!newProjectState.DocumentStates.States.ContainsKey(documentId))
+                        documentsToRemove.Add(oldDocumentState);
+                }
 
-            foreach (var (documentId, newDocumentState) in newProjectState.DocumentStates.States)
-            {
-                if (!oldProjectState.DocumentStates.States.ContainsKey(documentId))
-                    documentsToAdd.Add(newDocumentState);
+                foreach (var (documentId, newDocumentState) in newProjectState.DocumentStates.States)
+                {
+                    if (!oldProjectState.DocumentStates.States.ContainsKey(documentId))
+                        documentsToAdd.Add(newDocumentState);
+                }
             }
         }
 
