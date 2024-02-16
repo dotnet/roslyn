@@ -107,9 +107,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             IDesignerAttributeDiscoveryService.ICallback callback,
             CancellationToken cancellationToken)
         {
-            if (!solution.GetRequiredProject(priorityDocumentId.ProjectId).SupportsCompilation)
-                return;
-
             // Create a frozen snapshot guaranteed to have this document in it.  Note: it's important that we do
             // this, and not just depend on the solution.WithFrozenPartialCompilationsAsync below.  Very
             // importantly, that solution may not contain this document yet.  This does mean we'll process two

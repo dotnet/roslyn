@@ -122,12 +122,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
 
             var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
-            var priorityDocumentId = trackingService.GetActiveDocument(solution)?.Id;
+            var activeDocument = trackingService.GetActiveDocument(solution);
 
             // If there is an active document, then process changes to it right away, so that the UI updates quickly
             // when the user adds/removes a form from a particular document.
-            if (priorityDocumentId != null)
+            if (RemoteSupportedLanguages.IsSupported(activeDocument?.Project.Language))
             {
+                var priorityDocumentId = activeDocument.Id;
                 await client.TryInvokeAsync<IRemoteDesignerAttributeDiscoveryService>(
                     solution,
                     (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
