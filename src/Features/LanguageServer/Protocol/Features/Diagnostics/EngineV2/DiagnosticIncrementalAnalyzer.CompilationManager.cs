@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
+#if false
         /// <summary>
         /// Return CompilationWithAnalyzer for given project with given stateSets
         /// </summary>
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             return compilationWithAnalyzers;
         }
+#endif
 
         private static Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(Project project, IdeAnalyzerOptions ideOptions, IEnumerable<StateSet> stateSets, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             => DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, ideOptions, stateSets.Select(s => s.Analyzer), includeSuppressedDiagnostics, cancellationToken);
