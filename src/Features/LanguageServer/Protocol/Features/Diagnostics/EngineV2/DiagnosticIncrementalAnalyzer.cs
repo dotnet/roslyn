@@ -66,7 +66,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, analyzerService.Listener);
 
+#if false
             GlobalOptions.AddOptionChangedHandler(this, OnGlobalOptionChanged);
+#endif
         }
 
         private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)
@@ -105,11 +107,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             ClearAllDiagnostics(stateSets, project.Id);
         }
 
+#if false
         public void Shutdown()
         {
             GlobalOptions.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
 
-            var stateSets = _stateManager.GetAllStateSets();
+        var stateSets = _stateManager.GetAllStateSets();
 
             AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
@@ -131,6 +134,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 raiseEvents(argsBuilder.ToImmutableAndClear());
             });
         }
+#endif
 
         private void ClearAllDiagnostics(ImmutableArray<StateSet> stateSets, ProjectId projectId)
         {
