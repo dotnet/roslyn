@@ -1180,7 +1180,7 @@ internal sealed partial class SolutionCompilationState
     {
         return AddDocumentsToMultipleProjects(documentInfos,
             static (documentInfo, project) => new AdditionalDocumentState(project.LanguageServices.SolutionServices, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-            static (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
+            static (oldProject, documents) => (oldProject.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
     }
 
     public SolutionCompilationState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
@@ -1304,14 +1304,14 @@ internal sealed partial class SolutionCompilationState
                 throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentIdsInProject.Key));
             }
 
-            var removedDocumentStatesBuilder = ArrayBuilder<T>.GetInstance();
+            using var _ = ArrayBuilder<T>.GetInstance(out var removedDocumentStates);
 
             foreach (var documentId in documentIdsInProject)
             {
-                removedDocumentStatesBuilder.Add(getExistingTextDocumentState(oldProjectState, documentId));
+                removedDocumentStates.Add(getExistingTextDocumentState(oldProjectState, documentId));
             }
 
-            var removedDocumentStatesForProject = removedDocumentStatesBuilder.ToImmutableAndFree();
+            var removedDocumentStatesForProject = removedDocumentStates.ToImmutable();
 
             var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
 
