@@ -203,34 +203,25 @@ namespace Microsoft.CodeAnalysis
 
                 Contract.ThrowIfFalse(state is null or InProgressState);
 
-                var (inProgressProject, compilationWithoutGeneratedDocuments, generatorInfo) = state switch
-                {
-                    // If we have no state at all, represent that with a project state without any documents (and as
-                    // such an empty compilation).
-                    null
-                        => (this.ProjectState.RemoveAllDocuments(), CreateEmptyCompilation(), CompilationTrackerGeneratorInfo.Empty),
-                    InProgressState { PendingTranslationSteps: [(var projectState, _), ..] } inProgressState
-                        => (projectState, inProgressState.CompilationWithoutGeneratedDocuments, inProgressState.GeneratorInfo),
-                    InProgressState inProgressState
-                        => (this.ProjectState, inProgressState.CompilationWithoutGeneratedDocuments, inProgressState.GeneratorInfo),
-                    _ => throw ExceptionUtilities.Unreachable()
-                };
-
-                // Add any generated syntax trees we had to get the compilation with generated docs in it.
-                var compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments.AddSyntaxTrees(
-                    generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken)));
+                GetPartialCompilationState(
+                    state,
+                    out var inProgressProject,
+                    out var compilationWithoutGeneratedDocuments,
+                    out var compilationWithGeneratedDocuments,
+                    out var generatorInfo,
+                    cancellationToken);
 
                 // Transition us to a frozen in progress state.  With the best compilations up to this point, but no
                 // more pending actions, and with the frozen bit flipped so that any future forks keep things
                 // frozen.
-                var frozenState = InProgressState.Create(
+                var inProgressState = InProgressState.Create(
                     isFrozen: true,
                     compilationWithoutGeneratedDocuments,
                     generatorInfo,
                     compilationWithGeneratedDocuments,
                     ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty);
 
-                return new CompilationTracker(inProgressProject, frozenState, this.SkeletonReferenceCache.Clone());
+                return new CompilationTracker(inProgressProject, inProgressState, this.SkeletonReferenceCache.Clone());
             }
 
             public ICompilationTracker FreezePartialStateWithDocument(
@@ -301,61 +292,44 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private void GetPartialCompilationState(
                 CompilationTrackerState? state,
-                DocumentId? documentId,
                 out ProjectState inProgressProject,
-                out Compilation? compilationWithoutGeneratedDocuments,
-                out Compilation? compilationWithGeneratedDocuments,
+                out Compilation compilationWithoutGeneratedDocuments,
+                out Compilation compilationWithGeneratedDocuments,
                 out CompilationTrackerGeneratorInfo generatorInfo,
                 CancellationToken cancellationToken)
             {
-                compilationWithoutGeneratedDocuments = state?.CompilationWithoutGeneratedDocuments;
-
-                generatorInfo = state?.GeneratorInfo ?? CompilationTrackerGeneratorInfo.Empty;
-
-                // check whether we can bail out quickly for typing case
-                var inProgressState = state as InProgressState;
-
-                inProgressProject = inProgressState is { PendingTranslationSteps: [(var oldState, _), ..] }
-                    ? oldState
-                    : this.ProjectState;
-
-                // all changes left for this document is modifying the given document; since the compilation is already fully up to date
-                // we don't need to do any further checking of it's references
-                if (documentId != null &&
-                    inProgressState != null &&
-                    compilationWithoutGeneratedDocuments != null &&
-                    inProgressState.PendingTranslationSteps.Count > 0 &&
-                    inProgressState.PendingTranslationSteps.All(t => IsTouchDocumentActionForDocument(t.action, documentId)))
+                if (state is null)
                 {
-                    // We'll add in whatever generated documents we do have; these may be from a prior run prior to some changes
-                    // being made to the project, but it's the best we have so we'll use it.
+                    inProgressProject = this.ProjectState.RemoveAllDocuments();
+                    generatorInfo = CompilationTrackerGeneratorInfo.Empty;
 
-                    compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments.AddSyntaxTrees(generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
-
-                    return;
+                    compilationWithoutGeneratedDocuments = this.CreateEmptyCompilation();
+                    compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments;
                 }
-
-                // if we already have a final compilation we are done.
-                if (compilationWithoutGeneratedDocuments != null && state is FinalCompilationTrackerState finalState)
+                else if (state is FinalCompilationTrackerState finalState)
                 {
-                    var finalCompilation = finalState.FinalCompilationWithGeneratedDocuments;
-                    Contract.ThrowIfNull(finalCompilation, "We have a FinalState, so we must have a non-null final compilation");
+                    inProgressProject = this.ProjectState;
+                    generatorInfo = finalState.GeneratorInfo;
 
-                    compilations = new CompilationPair(compilationWithoutGeneratedDocuments, finalCompilation);
-                    return;
+                    compilationWithoutGeneratedDocuments = finalState.CompilationWithoutGeneratedDocuments;
+                    compilationWithGeneratedDocuments = finalState.FinalCompilationWithGeneratedDocuments;
+
                 }
-
-                // 1) if we have an in-progress compilation use it.  
-                // 2) If we don't, then create a simple empty compilation/project. 
-                // 3) then, make sure that all it's p2p refs and whatnot are correct.
-                if (compilationWithoutGeneratedDocuments == null)
+                else if (state is InProgressState inProgressState)
                 {
-                    inProgressProject = inProgressProject.RemoveAllDocuments();
-                    compilationWithoutGeneratedDocuments = CreateEmptyCompilation();
-                }
+                    generatorInfo = inProgressState.GeneratorInfo;
+                    inProgressProject = inProgressState is { PendingTranslationSteps: [(var oldState, _), ..] }
+                        ? oldState
+                        : this.ProjectState;
 
-                compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments.AddSyntaxTrees(
-                    generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
+                    compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
+                    compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments.AddSyntaxTrees(
+                        generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken)));
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(state.GetType());
+                }
             }
 
             private static bool IsTouchDocumentActionForDocument(CompilationAndGeneratorDriverTranslationAction action, DocumentId id)
