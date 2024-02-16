@@ -1071,7 +1071,9 @@ class A
             {
                 if (actionKind == AnalyzerRegisterActionKind.SyntaxTree)
                 {
+#if false
                     await incrementalAnalyzer.AnalyzeSyntaxAsync(document, InvocationReasons.SyntaxChanged, analyzer.CancellationToken);
+#endif
                 }
                 else
                 {
@@ -1090,7 +1092,9 @@ class A
             // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
             if (actionKind == AnalyzerRegisterActionKind.SyntaxTree)
             {
+#if false
                 await incrementalAnalyzer.AnalyzeSyntaxAsync(document, InvocationReasons.SyntaxChanged, CancellationToken.None);
+#endif
             }
             else
             {
@@ -1368,7 +1372,9 @@ class A
         {
             if (textDocument is Document document)
             {
+#if false
                 await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
+#endif
                 await analyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
             }
             else

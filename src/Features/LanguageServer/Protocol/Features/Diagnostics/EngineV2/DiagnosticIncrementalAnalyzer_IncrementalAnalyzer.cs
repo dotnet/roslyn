@@ -22,9 +22,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
+#if false
         public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             => AnalyzeDocumentForKindAsync(document, AnalysisKind.Syntax, cancellationToken);
-
+#endif
         public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             => AnalyzeDocumentForKindAsync(document, AnalysisKind.Semantic, cancellationToken);
 
