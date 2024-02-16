@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -44,6 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </remarks>
     internal abstract class CSharpSemanticModel : SemanticModel
     {
+        private static readonly ObjectPool<SegmentedList<ISymbol>> s_symbolListPool = new(() => new());
+
         /// <summary>
         /// The compilation this object was obtained from.
         /// </summary>
@@ -1633,7 +1636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder.AddMemberLookupSymbolsInfo(info, container, options, binder);
             }
 
-            var results = ArrayBuilder<ISymbol>.GetInstance(info.Count);
+            var builder = s_symbolListPool.Allocate();
 
             if (name == null)
             {
@@ -1641,13 +1644,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and find all the corresponding symbols.
                 foreach (string foundName in info.Names)
                 {
-                    AppendSymbolsWithName(results, foundName, binder, container, options, info);
+                    AppendSymbolsWithName(builder, foundName, binder, container, options, info);
                 }
             }
             else
             {
                 // They provided a name.  Find all the arities for that name, and then look all of those up.
-                AppendSymbolsWithName(results, name, binder, container, options, info);
+                AppendSymbolsWithName(builder, name, binder, container, options, info);
             }
 
             info.Free();
@@ -1670,7 +1673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var reduced = extensionMethod.ReduceExtensionMethod(containingType, Compilation);
                         if ((object)reduced != null)
                         {
-                            results.Add(reduced.GetPublicSymbol());
+                            builder.Add(reduced.GetPublicSymbol());
                         }
                     }
                 }
@@ -1678,13 +1681,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lookupResult.Free();
             }
 
-            ImmutableArray<ISymbol> sealedResults = results.ToImmutableAndFree();
-            return name == null
-                ? FilterNotReferencable(sealedResults)
-                : sealedResults;
+            var result = name == null
+                ? FilterNotReferenceable(builder)
+                : builder.ToImmutable();
+
+            builder.Clear();
+            s_symbolListPool.Free(builder);
+
+            return result;
         }
 
-        private void AppendSymbolsWithName(ArrayBuilder<ISymbol> results, string name, Binder binder, NamespaceOrTypeSymbol container, LookupOptions options, LookupSymbolsInfo info)
+        private void AppendSymbolsWithName(SegmentedList<ISymbol> results, string name, Binder binder, NamespaceOrTypeSymbol container, LookupOptions options, LookupSymbolsInfo info)
         {
             LookupSymbolsInfo.IArityEnumerable arities;
             Symbol uniqueSymbol;
@@ -1718,7 +1725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void AppendSymbolsWithNameAndArity(
-            ArrayBuilder<ISymbol> results,
+            SegmentedList<ISymbol> results,
             string name,
             int arity,
             Binder binder,
@@ -1795,25 +1802,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal abstract Symbol RemapSymbolIfNecessaryCore(Symbol symbol);
 
-        private static ImmutableArray<ISymbol> FilterNotReferencable(ImmutableArray<ISymbol> sealedResults)
+        private static ImmutableArray<ISymbol> FilterNotReferenceable(SegmentedList<ISymbol> sealedResults)
         {
-            ArrayBuilder<ISymbol> builder = null;
-            int pos = 0;
-            foreach (var result in sealedResults)
+            var cannotBeReferencedByNameCount = sealedResults.Count(static s => !s.CanBeReferencedByName);
+
+            if (cannotBeReferencedByNameCount == 0)
             {
-                if (result.CanBeReferencedByName)
-                {
-                    builder?.Add(result);
-                }
-                else if (builder == null)
-                {
-                    builder = ArrayBuilder<ISymbol>.GetInstance();
-                    builder.AddRange(sealedResults, pos);
-                }
-                pos++;
+                return sealedResults.AsImmutable();
             }
 
-            return builder?.ToImmutableAndFree() ?? sealedResults;
+            var builder = ImmutableArray.CreateBuilder<ISymbol>(sealedResults.Count - cannotBeReferencedByNameCount);
+            foreach (var symbol in sealedResults)
+            {
+                if (symbol.CanBeReferencedByName)
+                {
+                    builder.Add(symbol);
+                }
+            }
+
+            return builder.MoveToImmutable();
         }
 
         /// <summary>
@@ -4110,19 +4117,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Binder binder = binderOpt ?? GetEnclosingBinder(GetAdjustedNodePosition(boundNode.Syntax));
-            var symbols = ArrayBuilder<ISymbol>.GetInstance();
+            var symbols = s_symbolListPool.Allocate();
             AppendSymbolsWithNameAndArity(symbols, WellKnownMemberNames.Indexer, 0, binder, type, LookupOptions.MustBeInstance);
 
-            if (symbols.Count == 0)
-            {
-                symbols.Free();
-                return ImmutableArray<IPropertySymbol>.Empty;
-            }
+            var result = (symbols.Count == 0)
+                ? ImmutableArray<IPropertySymbol>.Empty
+                : FilterOverriddenOrHiddenIndexers(symbols);
 
-            return FilterOverriddenOrHiddenIndexers(symbols.ToImmutableAndFree());
+            symbols.Clear();
+            s_symbolListPool.Free(symbols);
+            return result;
         }
 
-        private static ImmutableArray<IPropertySymbol> FilterOverriddenOrHiddenIndexers(ImmutableArray<ISymbol> symbols)
+        private static ImmutableArray<IPropertySymbol> FilterOverriddenOrHiddenIndexers(SegmentedList<ISymbol> symbols)
         {
             PooledHashSet<Symbol> hiddenSymbols = null;
             foreach (ISymbol iSymbol in symbols)
@@ -4523,7 +4530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var symbols = ArrayBuilder<ISymbol>.GetInstance();
+                var symbols = s_symbolListPool.Allocate();
 
                 foreach (ISymbol invocationSym in containingInvocationInfo.CandidateSymbols)
                 {
@@ -4542,15 +4549,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (symbols.Count == 0)
-                {
-                    symbols.Free();
-                    return SymbolInfo.None;
-                }
-                else
-                {
-                    return new SymbolInfo(symbols.ToImmutableAndFree(), containingInvocationInfo.CandidateReason);
-                }
+                var result = symbols.Count == 0
+                    ? SymbolInfo.None
+                    : new SymbolInfo(symbols.ToImmutable(), containingInvocationInfo.CandidateReason);
+
+                symbols.Clear();
+                s_symbolListPool.Free(symbols);
+
+                return result;
             }
         }
 

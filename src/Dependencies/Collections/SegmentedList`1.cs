@@ -11,6 +11,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -1159,6 +1160,17 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
             }
             return true;
+        }
+
+        public ImmutableArray<T> ToImmutable()
+        {
+            var builder = ImmutableArray.CreateBuilder<T>(Count);
+            foreach (var item in this)
+            {
+                builder.Add(item);
+            }
+
+            return builder.MoveToImmutable();
         }
 
         public struct Enumerator : IEnumerator<T>, IEnumerator
