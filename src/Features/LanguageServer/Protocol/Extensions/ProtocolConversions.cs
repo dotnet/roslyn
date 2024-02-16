@@ -39,9 +39,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         private static readonly char[] s_dirSeparators = [PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar];
 
-        public const string SourceGeneratedFileScheme = "roslyn-source-generated";
-        public const string SourceGeneratedGuidFormat = "D";
-
         private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
 
         // NOTE: While the spec allows it, don't use Function and Method, as both VS and VS Code display them the same
@@ -216,23 +213,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             static string EscapeUriPart(string stringToEscape)
                 => Uri.EscapeUriString(stringToEscape).Replace("#", "%23");
 #pragma warning restore
-        }
-
-        public static Uri CreateUriForSourceGeneratedDocument(SourceGeneratedDocument document)
-        {
-            // For source generated documents, we'll produce a URI specifically for LSP that has a scheme the client can register for; the "host" portion will
-            // just be the project ID of the document, then the path will be the GUID that is the document ID, with the rest of it being the generated file path
-            // just so any display of the end of the URI (like a file tab) works well.
-
-            // Ensure the hint path is converted to a URI-friendly format
-            var hintPathParts = document.HintName.Split(s_dirSeparators);
-            var hintPathPortion = string.Join("/", hintPathParts.Select(Uri.EscapeDataString));
-
-            return CreateAbsoluteUri(
-                SourceGeneratedFileScheme + "://" +
-                document.Id.ProjectId.Id.ToString(SourceGeneratedGuidFormat) + "/" +
-                document.Id.Id.ToString(SourceGeneratedGuidFormat) + "/" +
-                hintPathPortion);
         }
 
         private static bool IsAscii(char c)
