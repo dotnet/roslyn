@@ -562,126 +562,11 @@ namespace Microsoft.CodeAnalysis
                 // <summary>
                 // Add all appropriate references to the compilation and set it as our final compilation state.
                 // </summary>
-                async Task<FinalCompilationTrackerState> FinalizeCompilationAsync(
-                    InProgressState inProgressState)
+                async Task<FinalCompilationTrackerState> FinalizeCompilationAsync(InProgressState inProgressState)
                 {
                     try
                     {
-                        // Caller should collapse the in progress state first.
-                        Contract.ThrowIfTrue(inProgressState.PendingTranslationSteps.Count > 0);
-
-                        // The final state we produce will be frozen or not depending on if a frozen state was passed into it.
-                        var isFrozen = inProgressState.IsFrozen;
-                        var generatorInfo = inProgressState.GeneratorInfo;
-                        var compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
-                        var staleCompilationWithGeneratedDocuments = inProgressState.StaleCompilationWithGeneratedDocuments;
-
-                        // Project is complete only if the following are all true:
-                        //  1. HasAllInformation flag is set for the project
-                        //  2. Either the project has non-zero metadata references OR this is the corlib project.
-                        //     For the latter, we use a heuristic if the underlying compilation defines "System.Object" type.
-                        var hasSuccessfullyLoaded = this.ProjectState.HasAllInformation &&
-                            (this.ProjectState.MetadataReferences.Count > 0 ||
-                             compilationWithoutGeneratedDocuments.GetTypeByMetadataName("System.Object") != null);
-
-                        var newReferences = new List<MetadataReference>();
-                        var metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
-                        newReferences.AddRange(this.ProjectState.MetadataReferences);
-
-                        foreach (var projectReference in this.ProjectState.ProjectReferences)
-                        {
-                            var referencedProject = compilationState.SolutionState.GetProjectState(projectReference.ProjectId);
-
-                            // Even though we're creating a final compilation (vs. an in progress compilation),
-                            // it's possible that the target project has been removed.
-                            if (referencedProject != null)
-                            {
-                                // If both projects are submissions, we'll count this as a previous submission link
-                                // instead of a regular metadata reference
-                                if (referencedProject.IsSubmission)
-                                {
-                                    // if the referenced project is a submission project must be a submission as well:
-                                    Debug.Assert(this.ProjectState.IsSubmission);
-
-                                    // We now need to (potentially) update the prior submission compilation. That Compilation is held in the
-                                    // ScriptCompilationInfo that we need to replace as a unit.
-                                    var previousSubmissionCompilation =
-                                        await compilationState.GetCompilationAsync(
-                                            projectReference.ProjectId, cancellationToken).ConfigureAwait(false);
-
-                                    if (compilationWithoutGeneratedDocuments.ScriptCompilationInfo!.PreviousScriptCompilation != previousSubmissionCompilation)
-                                    {
-                                        compilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments.WithScriptCompilationInfo(
-                                            compilationWithoutGeneratedDocuments.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
-
-                                        staleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments?.WithScriptCompilationInfo(
-                                            staleCompilationWithGeneratedDocuments.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
-                                    }
-                                }
-                                else
-                                {
-                                    var metadataReference = isFrozen
-                                        ? compilationState.GetPartialMetadataReference(projectReference, this.ProjectState)
-                                        : await compilationState.GetMetadataReferenceAsync(projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
-
-                                    if (metadataReference is null && isFrozen)
-                                    {
-                                        // if we failed to get the metadata and we were frozen, check to see if we
-                                        // previously had existing metadata and reuse it instead.
-                                        var inProgressCompilationNotRef = staleCompilationWithGeneratedDocuments ?? compilationWithoutGeneratedDocuments;
-                                        metadataReference = inProgressCompilationNotRef.ExternalReferences.FirstOrDefault(
-                                            r => GetProjectId(inProgressCompilationNotRef.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol) == projectReference.ProjectId);
-                                    }
-
-                                    // A reference can fail to be created if a skeleton assembly could not be constructed.
-                                    if (metadataReference == null)
-                                    {
-                                        hasSuccessfullyLoaded = false;
-                                    }
-                                    else
-                                    {
-                                        newReferences.Add(metadataReference);
-                                        metadataReferenceToProjectId.Add(metadataReference, projectReference.ProjectId);
-                                    }
-                                }
-                            }
-                        }
-
-                        // Now that we know the set of references this compilation should have, update them if they're not already.
-                        // Generators cannot add references, so we can use the same set of references both for the compilation
-                        // that doesn't have generated files, and the one we're trying to reuse that has generated files.
-                        // Since we updated both of these compilations together in response to edits, we only have to check one
-                        // for a potential mismatch.
-                        if (!Enumerable.SequenceEqual(compilationWithoutGeneratedDocuments.ExternalReferences, newReferences))
-                        {
-                            compilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments.WithReferences(newReferences);
-                            staleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments?.WithReferences(newReferences);
-                        }
-
-                        // We will finalize the compilation by adding full contents here.
-                        var (compilationWithGeneratedDocuments, generatedDocuments, generatorDriver) = await AddExistingOrComputeNewGeneratorInfoAsync(
-                            isFrozen,
-                            compilationState,
-                            compilationWithoutGeneratedDocuments,
-                            generatorInfo,
-                            staleCompilationWithGeneratedDocuments,
-                            cancellationToken).ConfigureAwait(false);
-
-                        // After producing the sg documents, we must always be in the final state for the generator data.
-                        var nextGeneratorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorDriver);
-
-                        var finalState = FinalCompilationTrackerState.Create(
-                            isFrozen,
-                            compilationWithGeneratedDocuments,
-                            compilationWithoutGeneratedDocuments,
-                            hasSuccessfullyLoaded,
-                            nextGeneratorInfo,
-                            this.ProjectState.Id,
-                            metadataReferenceToProjectId);
-
-                        this.WriteState(finalState);
-
-                        return finalState;
+                        return await FinalizeCompilationWorkerAsync(inProgressState).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                     {
@@ -698,6 +583,141 @@ namespace Microsoft.CodeAnalysis
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                     {
                         throw ExceptionUtilities.Unreachable();
+                    }
+                }
+
+                async Task<FinalCompilationTrackerState> FinalizeCompilationWorkerAsync(InProgressState inProgressState)
+                {
+                    // Caller should collapse the in progress state first.
+                    Contract.ThrowIfTrue(inProgressState.PendingTranslationSteps.Count > 0);
+
+                    // The final state we produce will be frozen or not depending on if a frozen state was passed into it.
+                    var isFrozen = inProgressState.IsFrozen;
+                    var generatorInfo = inProgressState.GeneratorInfo;
+                    var compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
+                    var staleCompilationWithGeneratedDocuments = inProgressState.StaleCompilationWithGeneratedDocuments;
+
+                    // Project is complete only if the following are all true:
+                    //  1. HasAllInformation flag is set for the project
+                    //  2. Either the project has non-zero metadata references OR this is the corlib project.
+                    //     For the latter, we use a heuristic if the underlying compilation defines "System.Object" type.
+                    var hasSuccessfullyLoaded = this.ProjectState.HasAllInformation &&
+                        (this.ProjectState.MetadataReferences.Count > 0 ||
+                         compilationWithoutGeneratedDocuments.GetTypeByMetadataName("System.Object") != null);
+
+                    var newReferences = new List<MetadataReference>();
+                    var metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
+                    newReferences.AddRange(this.ProjectState.MetadataReferences);
+
+                    foreach (var projectReference in this.ProjectState.ProjectReferences)
+                    {
+                        var referencedProject = compilationState.SolutionState.GetProjectState(projectReference.ProjectId);
+
+                        // Even though we're creating a final compilation (vs. an in progress compilation),
+                        // it's possible that the target project has been removed.
+                        if (referencedProject is null)
+                            continue;
+
+                        // If both projects are submissions, we'll count this as a previous submission link
+                        // instead of a regular metadata reference
+                        if (referencedProject.IsSubmission)
+                        {
+                            // if the referenced project is a submission project must be a submission as well:
+                            Debug.Assert(this.ProjectState.IsSubmission);
+
+                            // We now need to (potentially) update the prior submission compilation. That Compilation is held in the
+                            // ScriptCompilationInfo that we need to replace as a unit.
+                            var previousSubmissionCompilation =
+                                await compilationState.GetCompilationAsync(
+                                    projectReference.ProjectId, cancellationToken).ConfigureAwait(false);
+
+                            if (compilationWithoutGeneratedDocuments.ScriptCompilationInfo!.PreviousScriptCompilation != previousSubmissionCompilation)
+                            {
+                                compilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments.WithScriptCompilationInfo(
+                                    compilationWithoutGeneratedDocuments.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
+
+                                staleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments?.WithScriptCompilationInfo(
+                                    staleCompilationWithGeneratedDocuments.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
+                            }
+                        }
+                        else
+                        {
+                            // Not a submission.  Add as a metadata reference.
+
+                            if (isFrozen)
+                            {
+                                // In the frozen case, attempt to get a partial reference, or fallback to the last
+                                // successful reference for this project if we can find one. 
+                                var metadataReference = compilationState.GetPartialMetadataReference(projectReference, this.ProjectState);
+
+                                if (metadataReference is null)
+                                {
+                                    // if we failed to get the metadata and we were frozen, check to see if we
+                                    // previously had existing metadata and reuse it instead.
+                                    var inProgressCompilationNotRef = staleCompilationWithGeneratedDocuments ?? compilationWithoutGeneratedDocuments;
+                                    metadataReference = inProgressCompilationNotRef.ExternalReferences.FirstOrDefault(
+                                        r => GetProjectId(inProgressCompilationNotRef.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol) == projectReference.ProjectId);
+                                }
+
+                                AddMetadataReference(projectReference, metadataReference);
+                            }
+                            else
+                            {
+                                // For the non-frozen case, attempt to get the full metadata reference.
+                                var metadataReference = await compilationState.GetMetadataReferenceAsync(projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
+                                AddMetadataReference(projectReference, metadataReference);
+                            }
+                        }
+                    }
+
+                    // Now that we know the set of references this compilation should have, update them if they're not already.
+                    // Generators cannot add references, so we can use the same set of references both for the compilation
+                    // that doesn't have generated files, and the one we're trying to reuse that has generated files.
+                    // Since we updated both of these compilations together in response to edits, we only have to check one
+                    // for a potential mismatch.
+                    if (!Enumerable.SequenceEqual(compilationWithoutGeneratedDocuments.ExternalReferences, newReferences))
+                    {
+                        compilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments.WithReferences(newReferences);
+                        staleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments?.WithReferences(newReferences);
+                    }
+
+                    // We will finalize the compilation by adding full contents here.
+                    var (compilationWithGeneratedDocuments, generatedDocuments, generatorDriver) = await AddExistingOrComputeNewGeneratorInfoAsync(
+                        isFrozen,
+                        compilationState,
+                        compilationWithoutGeneratedDocuments,
+                        generatorInfo,
+                        staleCompilationWithGeneratedDocuments,
+                        cancellationToken).ConfigureAwait(false);
+
+                    // After producing the sg documents, we must always be in the final state for the generator data.
+                    var nextGeneratorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorDriver);
+
+                    var finalState = FinalCompilationTrackerState.Create(
+                        isFrozen,
+                        compilationWithGeneratedDocuments,
+                        compilationWithoutGeneratedDocuments,
+                        hasSuccessfullyLoaded,
+                        nextGeneratorInfo,
+                        this.ProjectState.Id,
+                        metadataReferenceToProjectId);
+
+                    this.WriteState(finalState);
+
+                    return finalState;
+
+                    void AddMetadataReference(ProjectReference projectReference, MetadataReference? metadataReference)
+                    {
+                        // A reference can fail to be created if a skeleton assembly could not be constructed.
+                        if (metadataReference != null)
+                        {
+                            newReferences.Add(metadataReference);
+                            metadataReferenceToProjectId.Add(metadataReference, projectReference.ProjectId);
+                        }
+                        else
+                        {
+                            hasSuccessfullyLoaded = false;
+                        }
                     }
                 }
             }
