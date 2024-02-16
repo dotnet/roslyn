@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? staleCompilationWithGeneratedDocuments,
-                    ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
+                    ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
                     : base(isFrozen,
                            compilationWithoutGeneratedDocuments,
                            generatorInfo)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? staleCompilationWithGeneratedDocuments,
-                    ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
+                    ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
                 {
                     Contract.ThrowIfTrue(pendingTranslationSteps is null);
 
@@ -166,7 +166,10 @@ namespace Microsoft.CodeAnalysis
                     : base(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo)
                 {
                     Contract.ThrowIfNull(finalCompilationWithGeneratedDocuments);
-                    HasSuccessfullyLoaded = hasSuccessfullyLoaded;
+
+                    // As a policy, all partial-state projects are said to have incomplete references, since the
+                    // state has no guarantees.
+                    HasSuccessfullyLoaded = hasSuccessfullyLoaded && !isFrozen;
                     FinalCompilationWithGeneratedDocuments = finalCompilationWithGeneratedDocuments;
                     UnrootedSymbolSet = unrootedSymbolSet;
 
@@ -204,6 +207,14 @@ namespace Microsoft.CodeAnalysis
                         generatorInfo,
                         unrootedSymbolSet);
                 }
+
+                public FinalCompilationTrackerState WithIsFrozen()
+                    => new(isFrozen: true,
+                        FinalCompilationWithGeneratedDocuments,
+                        CompilationWithoutGeneratedDocuments,
+                        HasSuccessfullyLoaded,
+                        GeneratorInfo,
+                        UnrootedSymbolSet);
 
                 private static void RecordAssemblySymbols(ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
                 {

@@ -3649,13 +3649,13 @@ public class C : A {
             project = project.RemoveDocument(project.DocumentIds.Single())
                 .AddDocument("RegularDocument2.cs", "// Source File", filePath: null).Project;
 
-            // Freeze semantics -- with the new document; this should still give us a project with two documents: the new
-            // one will be added, and the old one will stay around since the name differed.
+            // Freeze semantics -- with the new document; this should still give us a project with one document: just
+            // the newly added one.
             var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
 
-            Assert.Equal(2, frozenDocument.Project.Documents.Count());
+            Assert.Equal(1, frozenDocument.Project.Documents.Count());
             var treesInCompilation = (await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees;
-            Assert.Equal(2, treesInCompilation.Count());
+            Assert.Equal(1, treesInCompilation.Count());
 
             foreach (var document in frozenDocument.Project.Documents)
                 Assert.Contains(await document.GetRequiredSyntaxTreeAsync(CancellationToken.None), treesInCompilation);
