@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _projectCompilationsWithAnalyzers.Clear();
 #endif
         }
-#endif
 
         [Conditional("DEBUG")]
         private static void AssertAnalyzers(CompilationWithAnalyzers? compilation, IEnumerable<StateSet> stateSets)
@@ -92,5 +91,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // make sure analyzers are same.
             Contract.ThrowIfFalse(compilation.Analyzers.SetEquals(stateSets.Select(s => s.Analyzer).Where(a => !a.IsWorkspaceDiagnosticAnalyzer())));
         }
+#endif
     }
 }
