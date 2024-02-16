@@ -347,7 +347,9 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             // close document
             workspace.CloseDocument(document.Id);
+#if false
             await analyzer.DocumentCloseAsync(document, CancellationToken.None).ConfigureAwait(false);
+#endif
 
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 

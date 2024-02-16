@@ -217,10 +217,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
+#if false
         public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
             => TextDocumentCloseAsync(document, cancellationToken);
 
-#if false
         public Task NonSourceDocumentCloseAsync(TextDocument document, CancellationToken cancellationToken)
             => TextDocumentCloseAsync(document, cancellationToken);
 #endif
