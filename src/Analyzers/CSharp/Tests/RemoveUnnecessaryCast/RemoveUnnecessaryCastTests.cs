@@ -13757,7 +13757,7 @@ public class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71926")]
-    public async Task NecessaryDelegateCast()
+    public async Task NecessaryDelegateCast1()
     {
         await new VerifyCS.Test
         {
@@ -13771,6 +13771,36 @@ public class RemoveUnnecessaryCastTests
                     {
                         var main = (Delegate)Main; // IDE0004: Cast is redundant.
                         var x = Unsafe.As<Delegate, object>(ref main);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72134")]
+    public async Task NecessaryDelegateCast2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public class MyClass
+                {
+                    static void Main()
+                    {
+                        Goo f = (Action)(() => { }); // IDE0004: Cast is redundant.
+
+                    }
+                }
+
+                public class Goo
+                {
+                    public static implicit operator Goo(Action value)
+                    {
+                        return default!;
                     }
                 }
                 """,
