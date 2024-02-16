@@ -27,41 +27,6 @@ namespace Microsoft.CodeAnalysis
 
                 public Compilation CompilationWithoutGeneratedDocuments { get; }
                 public Compilation CompilationWithGeneratedDocuments { get; }
-
-                public CompilationPair ReplaceSyntaxTree(SyntaxTree oldTree, SyntaxTree newTree)
-                {
-                    return WithChange(static (compilation, trees) => compilation.ReplaceSyntaxTree(trees.oldTree, trees.newTree), (oldTree, newTree));
-                }
-
-                public CompilationPair AddSyntaxTree(SyntaxTree newTree)
-                {
-                    return WithChange(static (compilation, t) => compilation.AddSyntaxTrees(t), newTree);
-                }
-
-                public CompilationPair WithPreviousScriptCompilation(Compilation previousScriptCompilation)
-                {
-                    return WithChange(static (compilation, priorCompilation) => compilation.WithScriptCompilationInfo(compilation.ScriptCompilationInfo!.WithPreviousScriptCompilation(priorCompilation)), previousScriptCompilation);
-                }
-
-                public CompilationPair WithReferences(IReadOnlyCollection<MetadataReference> metadataReferences)
-                {
-                    return WithChange(static (c, r) => c.WithReferences(r), metadataReferences);
-                }
-
-                private CompilationPair WithChange<TArg>(Func<Compilation, TArg, Compilation> change, TArg arg)
-                {
-                    var changedWithoutGeneratedDocuments = change(CompilationWithoutGeneratedDocuments, arg);
-
-                    if (CompilationWithoutGeneratedDocuments == CompilationWithGeneratedDocuments)
-                    {
-                        // If we didn't have any generated files, then no reason to transform twice
-                        return new CompilationPair(changedWithoutGeneratedDocuments, changedWithoutGeneratedDocuments);
-                    }
-
-                    var changedWithGeneratedDocuments = change(CompilationWithGeneratedDocuments, arg);
-
-                    return new CompilationPair(changedWithoutGeneratedDocuments, changedWithGeneratedDocuments);
-                }
             }
         }
     }
