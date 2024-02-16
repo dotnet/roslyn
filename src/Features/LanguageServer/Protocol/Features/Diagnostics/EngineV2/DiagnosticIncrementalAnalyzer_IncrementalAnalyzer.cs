@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 #if false
         public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             => AnalyzeDocumentForKindAsync(document, AnalysisKind.Syntax, cancellationToken);
-#endif
         public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             => AnalyzeDocumentForKindAsync(document, AnalysisKind.Semantic, cancellationToken);
+#endif
 
         public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
             => AnalyzeDocumentForKindAsync(textDocument, AnalysisKind.Syntax, cancellationToken);

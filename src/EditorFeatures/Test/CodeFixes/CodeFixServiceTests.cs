@@ -1073,7 +1073,10 @@ class C
             // Trigger background analysis to ensure analyzer diagnostics are computed and cached. 
             // We enable full solution analysis so the 'AnalyzeDocumentAsync' doesn't skip analysis based on whether the document is active/open.
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
+
+#if false
             await diagnosticIncrementalAnalyzer.AnalyzeDocumentAsync(sourceDocument, bodyOpt: null!, InvocationReasons.DocumentChanged, CancellationToken.None);
+#endif
             await VerifyCachedDiagnosticsAsync(sourceDocument, expectedCachedDiagnostic: diagnosticOnFixLineInPriorSnapshot, testSpan, diagnosticIncrementalAnalyzer);
 
             // Compute and apply code edit
@@ -1106,7 +1109,9 @@ class C
             if (testWithCachedDiagnostics)
             {
                 // Trigger background analysis to ensure analyzer diagnostics are computed and cached. 
+#if false
                 await diagnosticIncrementalAnalyzer.AnalyzeDocumentAsync(sourceDocument, bodyOpt: null!, InvocationReasons.DocumentChanged, CancellationToken.None);
+#endif
                 await VerifyCachedDiagnosticsAsync(sourceDocument, expectedCachedDiagnostic: !expectedNoFixes, testSpan, diagnosticIncrementalAnalyzer);
             }
 

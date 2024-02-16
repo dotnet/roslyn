@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal interface IIncrementalAnalyzer
     {
-        Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken);
 #if false
+        Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken);
         Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken);
         Task DocumentCloseAsync(Document document, CancellationToken cancellationToken);
         Task DocumentOpenAsync(Document document, CancellationToken cancellationToken);

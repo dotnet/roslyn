@@ -824,12 +824,16 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     workspace.OpenDocument(document.Id);
                     var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetService<IDocumentTrackingService>();
                     documentTrackingService.SetActiveDocument(document.Id);
+#if false
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
+#endif
                     break;
 
                 case BackgroundAnalysisScope.OpenFiles:
                     workspace.OpenDocument(document.Id);
+#if false
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
+#endif
                     break;
 
                 case BackgroundAnalysisScope.FullSolution:
@@ -966,7 +970,9 @@ class A
 
                     var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
                     documentTrackingService.SetActiveDocument(document.Id);
+#if false
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
+#endif
                     break;
 
                 case BackgroundAnalysisScope.OpenFiles:
@@ -975,7 +981,9 @@ class A
                     else
                         workspace.OpenDocument(document.Id);
 
+#if false
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
+#endif
                     break;
 
                 case BackgroundAnalysisScope.FullSolution:
@@ -1077,7 +1085,9 @@ class A
                 }
                 else
                 {
+#if false
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, analyzer.CancellationToken);
+#endif
                 }
 
                 throw ExceptionUtilities.Unreachable();
@@ -1098,7 +1108,9 @@ class A
             }
             else
             {
+#if false
                 await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
+#endif
             }
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
@@ -1321,7 +1333,9 @@ class A
             }
             else
             {
+#if false
                 await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
+#endif
             }
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
@@ -1370,21 +1384,17 @@ class A
 
         private static async Task RunAllAnalysisAsync(IIncrementalAnalyzer analyzer, TextDocument textDocument)
         {
+#if false
             if (textDocument is Document document)
             {
-#if false
                 await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
-#endif
                 await analyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
             }
             else
             {
-#if false
                 await analyzer.AnalyzeNonSourceDocumentAsync(textDocument, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
-#endif
             }
 
-#if false
             await analyzer.AnalyzeProjectAsync(textDocument.Project, semanticsChanged: true, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
 #endif
         }
