@@ -237,7 +237,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
         }
-#endif
 
         private Task TextDocumentResetAsync(TextDocument document, CancellationToken cancellationToken)
         {
@@ -257,6 +256,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             return Task.CompletedTask;
         }
+#endif
 
         private void RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(TextDocument document, IEnumerable<StateSet> stateSets, bool documentHadDiagnostics)
         {
