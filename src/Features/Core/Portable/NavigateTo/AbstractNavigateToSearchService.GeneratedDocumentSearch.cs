@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             Contract.ThrowIfTrue(projects.IsEmpty);
             Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
 
@@ -60,6 +61,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
@@ -68,6 +70,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // compilations are available for later projects when needed.
             foreach (var project in projects)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
                 var sourceGeneratedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
                 using var _ = GetPooledHashSet<Document>(sourceGeneratedDocs, out var documents);
