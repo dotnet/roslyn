@@ -1,5 +1,7 @@
 # Identify LCE files and the binary files they describe
 $BinRoot = [System.IO.Path]::GetFullPath("$PSScriptRoot\..\..\bin")
+if (!(Test-Path $BinRoot))  { return }
+
 $FilesToCopy = @()
 $FilesToCopy += Get-ChildItem -Recurse -File -Path $BinRoot |? { $_.FullName -match '\\Localize\\' }
 
