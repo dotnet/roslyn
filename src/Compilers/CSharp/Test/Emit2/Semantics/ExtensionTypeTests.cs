@@ -16473,6 +16473,7 @@ implicit extension E for C
 
         verifier.VerifyDiagnostics();
 
+        // PROTOTYPE Fix when adding support for emitting non-static members
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
   // Code size       24 (0x18)
@@ -17962,6 +17963,7 @@ implicit extension E for C
 
         verifier.VerifyDiagnostics();
 
+        // PROTOTYPE Fix when adding support for emitting non-static members
         verifier.VerifyIL("D.Main", """
 {
   // Code size       29 (0x1d)
