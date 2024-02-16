@@ -1911,6 +1911,8 @@ done:
         protected void EnsureNullabilityAnalysisPerformedIfNecessary()
         {
             bool isNullableAnalysisEnabled = IsNullableAnalysisEnabled();
+            // When 'isNullableAnalysisEnabled' is false, we may still need to
+            // perform a nullable analysis here whose results are discarded.
             if (!isNullableAnalysisEnabled && !Compilation.IsNullableAnalysisEnabledAlways)
             {
                 return;

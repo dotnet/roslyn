@@ -5221,10 +5221,10 @@ class C
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never"));
             comp.VerifyDiagnostics();
 
-            test(SemanticModelOptions.None, expectedAnnotation: PublicNullableAnnotation.None);
-            test(SemanticModelOptions.DisableNullableAnalysis, expectedAnnotation: PublicNullableAnnotation.None);
+            test(SemanticModelOptions.None);
+            test(SemanticModelOptions.DisableNullableAnalysis);
 
-            void test(SemanticModelOptions options, PublicNullableAnnotation expectedAnnotation)
+            void test(SemanticModelOptions options)
             {
                 var tree = comp.SyntaxTrees.Single();
                 var model = comp.GetSemanticModel(tree, options);
@@ -5232,7 +5232,7 @@ class C
                 var typeInfo = model.GetTypeInfo(xUsage);
                 Assert.NotNull(typeInfo.Type);
                 Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
-                Assert.Equal(expectedAnnotation, typeInfo.Type.NullableAnnotation);
+                Assert.Equal(PublicNullableAnnotation.None, typeInfo.Type.NullableAnnotation);
             }
         }
     }
