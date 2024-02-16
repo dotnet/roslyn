@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public CompilationTracker FreezePartialState(CancellationToken cancellationToken)
+            public ICompilationTracker FreezePartialState(CancellationToken cancellationToken)
             {
                 var state = this.ReadState();
 
