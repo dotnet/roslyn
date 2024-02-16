@@ -203,25 +203,34 @@ namespace Microsoft.CodeAnalysis
 
                 Contract.ThrowIfFalse(state is null or InProgressState);
 
-                GetPartialCompilationState(
-                    state,
-                    documentId: null,
-                    out var inProgressProject,
-                    out var compilationPair,
-                    out var generatorInfo,
-                    cancellationToken);
+                var (inProgressProject, compilationWithoutGeneratedDocuments, generatorInfo) = state switch
+                {
+                    // If we have no state at all, represent that with a project state without any documents (and as
+                    // such an empty compilation).
+                    null
+                        => (this.ProjectState.RemoveAllDocuments(), CreateEmptyCompilation(), CompilationTrackerGeneratorInfo.Empty),
+                    InProgressState { PendingTranslationSteps: [(var projectState, _), ..] } inProgressState
+                        => (projectState, inProgressState.CompilationWithoutGeneratedDocuments, inProgressState.GeneratorInfo),
+                    InProgressState inProgressState
+                        => (this.ProjectState, inProgressState.CompilationWithoutGeneratedDocuments, inProgressState.GeneratorInfo),
+                    _ => throw ExceptionUtilities.Unreachable()
+                };
+
+                // Add any generated syntax trees we had to get the compilation with generated docs in it.
+                var compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments.AddSyntaxTrees(
+                    generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken)));
 
                 // Transition us to a frozen in progress state.  With the best compilations up to this point, but no
                 // more pending actions, and with the frozen bit flipped so that any future forks keep things
                 // frozen.
-                var inProgressState = InProgressState.Create(
+                var frozenState = InProgressState.Create(
                     isFrozen: true,
-                    compilationPair.CompilationWithoutGeneratedDocuments,
+                    compilationWithoutGeneratedDocuments,
                     generatorInfo,
-                    compilationPair.CompilationWithGeneratedDocuments,
+                    compilationWithGeneratedDocuments,
                     ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty);
 
-                return new CompilationTracker(inProgressProject, inProgressState, this.SkeletonReferenceCache.Clone());
+                return new CompilationTracker(inProgressProject, frozenState, this.SkeletonReferenceCache.Clone());
             }
 
             public ICompilationTracker FreezePartialStateWithDocument(
@@ -294,11 +303,12 @@ namespace Microsoft.CodeAnalysis
                 CompilationTrackerState? state,
                 DocumentId? documentId,
                 out ProjectState inProgressProject,
-                out CompilationPair compilations,
+                out Compilation? compilationWithoutGeneratedDocuments,
+                out Compilation? compilationWithGeneratedDocuments,
                 out CompilationTrackerGeneratorInfo generatorInfo,
                 CancellationToken cancellationToken)
             {
-                var compilationWithoutGeneratedDocuments = state?.CompilationWithoutGeneratedDocuments;
+                compilationWithoutGeneratedDocuments = state?.CompilationWithoutGeneratedDocuments;
 
                 generatorInfo = state?.GeneratorInfo ?? CompilationTrackerGeneratorInfo.Empty;
 
@@ -319,9 +329,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     // We'll add in whatever generated documents we do have; these may be from a prior run prior to some changes
                     // being made to the project, but it's the best we have so we'll use it.
-                    compilations = new CompilationPair(
-                        compilationWithoutGeneratedDocuments,
-                        compilationWithoutGeneratedDocuments.AddSyntaxTrees(generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
+
+                    compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments.AddSyntaxTrees(generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
 
                     return;
                 }
@@ -345,9 +354,8 @@ namespace Microsoft.CodeAnalysis
                     compilationWithoutGeneratedDocuments = CreateEmptyCompilation();
                 }
 
-                compilations = new CompilationPair(
-                    compilationWithoutGeneratedDocuments,
-                    compilationWithoutGeneratedDocuments.AddSyntaxTrees(generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
+                compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments.AddSyntaxTrees(
+                    generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
             }
 
             private static bool IsTouchDocumentActionForDocument(CompilationAndGeneratorDriverTranslationAction action, DocumentId id)
