@@ -1040,6 +1040,8 @@ internal sealed partial class SolutionCompilationState
 
         foreach (var projectId in this.SolutionState.ProjectIds)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // if we don't have one or it is stale, create a new partial solution
             var oldTracker = GetCompilationTracker(projectId);
             var newTracker = oldTracker.FreezePartialState(cancellationToken);
@@ -1068,7 +1070,8 @@ internal sealed partial class SolutionCompilationState
             // might reset the project back to a prior state from when the last compilation was requested, losing
             // information about documents recently added or removed.
 
-            if (oldProjectState != newProjectState)
+            if (oldProjectState != newProjectState &&
+                oldProjectState.DocumentStates.Ids != newProjectState.DocumentStates.Ids)
             {
                 foreach (var (documentId, oldDocumentState) in oldProjectState.DocumentStates.States)
                 {
