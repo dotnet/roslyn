@@ -191,14 +191,6 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = this.ReadState();
 
-                GetPartialCompilationState(
-                    state,
-                    documentId: null,
-                    out var inProgressProject,
-                    out var compilationPair,
-                    out var generatorInfo,
-                    cancellationToken);
-
                 // If we're already finalized then just return what we have, and with the frozen bit flipped so that
                 // any future forks keep things frozen.
                 if (state is FinalCompilationTrackerState finalState)
@@ -208,20 +200,28 @@ namespace Microsoft.CodeAnalysis
                         ? this
                         : new CompilationTracker(this.ProjectState, finalState.WithIsFrozen(), this.SkeletonReferenceCache.Clone());
                 }
-                else
-                {
-                    // Transition us to a frozen in progress state.  With the best compilations up to this point, but no
-                    // more pending actions, and with the frozen bit flipped so that any future forks keep things
-                    // frozen.
-                    var inProgressState = InProgressState.Create(
-                        isFrozen: true,
-                        compilationPair.CompilationWithoutGeneratedDocuments,
-                        generatorInfo,
-                        compilationPair.CompilationWithGeneratedDocuments,
-                        ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty);
 
-                    return new CompilationTracker(inProgressProject, inProgressState, this.SkeletonReferenceCache.Clone());
-                }
+                Contract.ThrowIfFalse(state is null or InProgressState);
+
+                GetPartialCompilationState(
+                    state,
+                    documentId: null,
+                    out var inProgressProject,
+                    out var compilationPair,
+                    out var generatorInfo,
+                    cancellationToken);
+
+                // Transition us to a frozen in progress state.  With the best compilations up to this point, but no
+                // more pending actions, and with the frozen bit flipped so that any future forks keep things
+                // frozen.
+                var inProgressState = InProgressState.Create(
+                    isFrozen: true,
+                    compilationPair.CompilationWithoutGeneratedDocuments,
+                    generatorInfo,
+                    compilationPair.CompilationWithGeneratedDocuments,
+                    ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty);
+
+                return new CompilationTracker(inProgressProject, inProgressState, this.SkeletonReferenceCache.Clone());
             }
 
             public ICompilationTracker FreezePartialStateWithDocument(
@@ -229,14 +229,6 @@ namespace Microsoft.CodeAnalysis
                 CancellationToken cancellationToken)
             {
                 var state = this.ReadState();
-
-                GetPartialCompilationState(
-                    state,
-                    docState.Id,
-                    out var inProgressProject,
-                    out var compilationPair,
-                    out var generatorInfo,
-                    cancellationToken);
 
                 // If we're already finalized, and no change has been made to this document.  Then just return what we
                 // have (just with the frozen bit flipped so that any future forks keep things frozen).
@@ -249,40 +241,46 @@ namespace Microsoft.CodeAnalysis
                         ? this
                         : new CompilationTracker(this.ProjectState, finalState.WithIsFrozen(), this.SkeletonReferenceCache.Clone());
                 }
+
+                GetPartialCompilationState(
+                    state,
+                    docState.Id,
+                    out var inProgressProject,
+                    out var compilationPair,
+                    out var generatorInfo,
+                    cancellationToken);
+
+                // Otherwise, we're not finalized, or the document has changed.  We'll create an in-progress state
+                // to represent the new state of the project, with all the necessary translation steps to
+                // incorporate the new document.
+                ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> pendingActions;
+                if (inProgressProject.DocumentStates.TryGetState(docState.Id, out oldState))
+                {
+                    // The document had been previously parsed and it's there, so we can update it with our current
+                    // state. Note if no compilation existed GetPartialCompilationState would have produced an empty
+                    // one, and removed any documents, so inProgressProject.DocumentStates would have been empty
+                    // originally.
+                    pendingActions = [(oldState: inProgressProject, new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldState, docState))];
+                    inProgressProject = inProgressProject.UpdateDocument(docState, contentChanged: true);
+                }
                 else
                 {
-                    // Otherwise, we're not finalized, or the document has changed.  We'll create an in-progress state
-                    // to represent the new state of the project, with all the necessary translation steps to
-                    // incorporate the new document.
-                    ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> pendingActions;
-                    if (inProgressProject.DocumentStates.TryGetState(docState.Id, out oldState))
-                    {
-                        // The document had been previously parsed and it's there, so we can update it with our current
-                        // state. Note if no compilation existed GetPartialCompilationState would have produced an empty
-                        // one, and removed any documents, so inProgressProject.DocumentStates would have been empty
-                        // originally.
-                        pendingActions = [(oldState: inProgressProject, new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldState, docState))];
-                        inProgressProject = inProgressProject.UpdateDocument(docState, contentChanged: true);
-                    }
-                    else
-                    {
-                        // The document wasn't present in the original snapshot at all, and we just need to add the
-                        // document.
-                        pendingActions = [(oldState: inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
-                        inProgressProject = inProgressProject.AddDocuments([docState]);
-                    }
-
-                    // Transition us to a frozen in progress state.  With the best compilations up to this point, and the
-                    // pending actions we'll need to perform on it to get to the final state.
-                    var inProgressState = InProgressState.Create(
-                        isFrozen: true,
-                        compilationPair.CompilationWithoutGeneratedDocuments,
-                        generatorInfo,
-                        compilationPair.CompilationWithGeneratedDocuments,
-                        pendingActions);
-
-                    return new CompilationTracker(inProgressProject, inProgressState, this.SkeletonReferenceCache.Clone());
+                    // The document wasn't present in the original snapshot at all, and we just need to add the
+                    // document.
+                    pendingActions = [(oldState: inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
+                    inProgressProject = inProgressProject.AddDocuments([docState]);
                 }
+
+                // Transition us to a frozen in progress state.  With the best compilations up to this point, and the
+                // pending actions we'll need to perform on it to get to the final state.
+                var inProgressState = InProgressState.Create(
+                    isFrozen: true,
+                    compilationPair.CompilationWithoutGeneratedDocuments,
+                    generatorInfo,
+                    compilationPair.CompilationWithGeneratedDocuments,
+                    pendingActions);
+
+                return new CompilationTracker(inProgressProject, inProgressState, this.SkeletonReferenceCache.Clone());
             }
 
             /// <summary>
