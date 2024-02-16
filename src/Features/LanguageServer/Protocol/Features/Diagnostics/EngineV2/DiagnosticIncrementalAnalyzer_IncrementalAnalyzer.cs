@@ -27,10 +27,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             => AnalyzeDocumentForKindAsync(document, AnalysisKind.Syntax, cancellationToken);
         public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             => AnalyzeDocumentForKindAsync(document, AnalysisKind.Semantic, cancellationToken);
-#endif
-
         public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
             => AnalyzeDocumentForKindAsync(textDocument, AnalysisKind.Syntax, cancellationToken);
+#endif
 
         private async Task AnalyzeDocumentForKindAsync(TextDocument document, AnalysisKind kind, CancellationToken cancellationToken)
         {

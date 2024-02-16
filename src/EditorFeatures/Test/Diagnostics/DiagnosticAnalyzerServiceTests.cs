@@ -465,7 +465,6 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
 #if false
             var analyzers = incrementalAnalyzer.GetAnalyzersTestOnly(project).ToArray();
-#endif 
 
             AssertEx.Equal(new[]
             {
@@ -479,6 +478,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 typeof(Priority15Analyzer),
                 typeof(Priority20Analyzer)
             }, analyzers.Select(a => a.GetType()));
+#endif 
         }
 
         [Fact]
