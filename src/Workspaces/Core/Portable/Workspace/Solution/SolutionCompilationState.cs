@@ -1043,6 +1043,8 @@ internal sealed partial class SolutionCompilationState
             // if we don't have one or it is stale, create a new partial solution
             var oldTracker = GetCompilationTracker(projectId);
             var newTracker = oldTracker.FreezePartialState(cancellationToken);
+            if (oldTracker == newTracker)
+                continue;
 
             Contract.ThrowIfFalse(newIdToProjectStateMapBuilder.ContainsKey(projectId));
 
@@ -1052,9 +1054,9 @@ internal sealed partial class SolutionCompilationState
             newIdToProjectStateMapBuilder[projectId] = newProjectState;
             newIdToTrackerMapBuilder[projectId] = newTracker;
 
-            // Freezing projects can make them lose all documents (in the case where no compilation had been produced at
-            // all). If that happens, we need to remove those documents as well from teh final filepath-to-documentid
-            // map.
+            // Freezing projects can cause them to have an entirely different set of documents (since it effectively
+            // rewinds the project back to the last time it produced a compilation).  Ensure we keep track of the docs
+            // added or removed from the project states to keep the final filepath-to-documentid map accurate.
 
             foreach (var (documentId, oldDocumentState) in oldProjectState.DocumentStates.States)
             {
