@@ -190,22 +190,20 @@ public class FileTransformGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var pipeline = context.AdditionalTextsProvider.Select(static (text, cancellationToken) =>
-        {
-            if (!text.Path.EndsWith("*.xml"))
+        var pipeline = context.AdditionalTextsProvider
+            .Where(static (text, cancellationToken) => text.Path.EndsWith(".xml"))
+            .Select(static (text, cancellationToken) =>
             {
-                return default;
-            }
-
-            return (Name: Path.GetFileName(text.Path), Code: MyXmlToCSharpCompiler.Compile(text.GetText(cancellationToken)));
-        })
-        .Where((pair) => pair is not ((null, _) or (_, null)));
+                var name = Path.GetFileName(text.Path);
+                var code = MyXmlToCSharpCompiler.Compile(text.GetText(cancellationToken));
+                return (name, code);
+            });
 
         context.RegisterSourceOutput(pipeline,
             static (context, pair) => 
                 // Note: this AddSource is simplified. You will likely want to include the path in the name of the file to avoid
                 // issues with duplicate file names in different paths in the same project.
-                context.AddSource($"{pair.Name}generated.cs", SourceText.From(pair.Code, Encoding.UTF8)));
+                context.AddSource($"{pair.name}generated.cs", SourceText.From(pair.code, Encoding.UTF8)));
     }
 }
 ```
@@ -262,7 +260,6 @@ public class AugmentingGenerator : IIncrementalGenerator
             }
         );
 
-        // Register a factory that can create our custom syntax receiver
         context.RegisterSourceOutput(pipeline, static (context, model) =>
         {
             var sourceText = SourceText.From($$"""
@@ -635,11 +632,11 @@ The recommended approach is to use [Microsoft.CodeAnalysis.Testing](https://gith
 - `Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit`
 - `Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.XUnit`
 
-PROTOTYPE: Write more here
+TODO: https://github.com/dotnet/roslyn/issues/72149
 
 ### Auto interface implementation
 
-TODO:
+TODO: https://github.com/dotnet/roslyn/issues/72149
 
 ## Breaking Changes:
 
