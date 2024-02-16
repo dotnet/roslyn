@@ -1359,16 +1359,17 @@ internal sealed partial class SolutionCompilationState
             foreach (var documentId in documentIdsInProject)
                 removedDocumentStates.Add(getExistingTextDocumentState(oldProjectState, documentId));
 
+            var removedDocumentStatesForProject = removedDocumentStates.ToImmutable();
             var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(
                 oldProjectState,
                 documentIdsInProject.ToImmutableArray(),
-                removedDocumentStates.ToImmutable());
+                removedDocumentStatesForProject);
 
             var stateChange = newCompilationState.SolutionState.ForkProject(
                 oldProjectState,
                 newProjectState,
                 // Intentionally using this.Solution here and not newSolutionState
-                newFilePathToDocumentIdsMap: this.SolutionState.CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStates));
+                newFilePathToDocumentIdsMap: this.SolutionState.CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStatesForProject));
 
             newCompilationState = newCompilationState.ForkProject(
                 stateChange,
