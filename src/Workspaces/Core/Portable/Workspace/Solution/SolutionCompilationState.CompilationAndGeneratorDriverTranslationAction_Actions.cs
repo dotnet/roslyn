@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis
                 // compilation with stale trees around, answering true is still important.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
 
-                // Touching an additional document doesn't change the compilation in any way.  So can return as is.
                 public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                     => Task.FromResult(oldCompilation);
 
