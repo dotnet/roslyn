@@ -219,7 +219,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public Task NonSourceDocumentCloseAsync(TextDocument document, CancellationToken cancellationToken)
             => TextDocumentCloseAsync(document, cancellationToken);
-#endif
 
         private async Task TextDocumentCloseAsync(TextDocument document, CancellationToken cancellationToken)
         {
@@ -238,6 +237,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
         }
+#endif
 
         private Task TextDocumentResetAsync(TextDocument document, CancellationToken cancellationToken)
         {
