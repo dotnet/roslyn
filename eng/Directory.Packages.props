@@ -185,6 +185,7 @@
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" />
     <PackageVersion Include="System.Composition" Version="$(SystemCompositionVersion)" />
     <PackageVersion Include="System.ComponentModel.Composition" Version="7.0.0" />
+    <PackageVersion Include="System.Diagnostics.EventLog" Version="$(SystemDiagnosticsEventLogVersion)" />
     <PackageVersion Include="System.IO.Hashing" Version="8.0.0" />
     <PackageVersion Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
     <PackageVersion Include="System.IO.Pipes.AccessControl" Version="5.0.0" />
@@ -192,12 +193,14 @@
     <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
     <PackageVersion Include="System.Runtime.Loader" Version="4.3.0" />
     <PackageVersion Include="System.Resources.Extensions" Version="7.0.0" />
+    <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="$(SystemSecurityCryptographyProtectedDataVersion)" />
     <PackageVersion Include="System.Security.Permissions" Version="$(SystemSecurityPermissionsVersion)" />
     <PackageVersion Include="System.Security.Principal" Version="4.3.0" />
     <PackageVersion Include="System.Text.Encoding.CodePages" Version="7.0.0" />
     <PackageVersion Include="System.Text.Encoding.Extensions" Version="4.3.0" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="7.0.0" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageVersion Include="System.Windows.Extensions" Version="$(SystemWindowsExtensionsVersion)" />
 
     <!-- We need System.ValueTuple assembly version at least 4.0.3.0 on net47 to make F5 work against Dev15 - see https://github.com/dotnet/roslyn/issues/29705 -->
     <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
