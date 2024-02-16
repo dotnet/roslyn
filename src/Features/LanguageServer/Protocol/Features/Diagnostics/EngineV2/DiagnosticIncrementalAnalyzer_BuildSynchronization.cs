@@ -134,7 +134,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             return builder.ToImmutable();
         }
-#endif
 
         private static ImmutableArray<DiagnosticData> ConvertToLiveDiagnostics(
             ILookup<string, DiagnosticData> lookup, ImmutableArray<DiagnosticDescriptor> descriptors, HashSet<string> seen)
@@ -209,5 +208,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             return sb.ToString();
         }
+#endif
     }
 }
