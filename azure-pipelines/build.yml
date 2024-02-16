@@ -19,6 +19,9 @@ parameters:
 - name: RunTests
   type: boolean
   default: true
+- name: EnableLocalization
+  type: boolean
+  default: false
 - name: EnableCompliance
   type: boolean
   default: false
@@ -58,7 +61,7 @@ jobs:
         sbom:
           enabled: true
         localization:
-          enabled: false
+          enabled: ${{ parameters.EnableLocalization }}
           ${{ if eq(variables['Build.Reason'], 'pullRequest') }}:
             languages: ENU,JPN
       outputParentDirectory: $(Build.ArtifactStagingDirectory)
@@ -74,6 +77,11 @@ jobs:
         displayName: 📢 Publish VSInsertion-Windows
         targetPath: $(Build.ArtifactStagingDirectory)/VSInsertion-Windows
         artifactName: VSInsertion-Windows
+      - ${{ if parameters.EnableLocalization }}:
+        - output: pipelineArtifact
+          displayName: 📢 Publish LocBin-Windows
+          targetPath: $(Build.ArtifactStagingDirectory)/LocBin-Windows
+          artifactName: LocBin-Windows
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
