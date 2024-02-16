@@ -3553,7 +3553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Visit(node, expressionIsRead: false);
         }
 
-        private bool TypeAllowsConditionalState(TypeSymbol? type)
+        private static bool TypeAllowsConditionalState(TypeSymbol? type)
         {
             return type is not null
                 && (type.SpecialType == SpecialType.System_Boolean || type.IsDynamic() || type.IsErrorType());
