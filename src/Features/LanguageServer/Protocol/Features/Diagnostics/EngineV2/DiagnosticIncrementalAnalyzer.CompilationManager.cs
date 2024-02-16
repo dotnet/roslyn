@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private static Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(Project project, IdeAnalyzerOptions ideOptions, IEnumerable<StateSet> stateSets, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             => DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, ideOptions, stateSets.Select(s => s.Analyzer), includeSuppressedDiagnostics, cancellationToken);
 
+#if false
         private void ClearCompilationsWithAnalyzersCache(Project project)
             => _projectCompilationsWithAnalyzers.Remove(project);
 
@@ -75,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _projectCompilationsWithAnalyzers.Clear();
 #endif
         }
+#endif
 
         [Conditional("DEBUG")]
         private static void AssertAnalyzers(CompilationWithAnalyzers? compilation, IEnumerable<StateSet> stateSets)
