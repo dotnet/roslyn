@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<DocumentDifferenceResult?> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        public async Task<SyntaxNode?> GetChangedMemberAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
             // in remote workspace, we don't trust any version based on VersionStamp. we only trust content based information such as
             // checksum or tree comparison and etc.
@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.Remote
             if (oldRoot.IsEquivalentTo(newRoot, topLevel: true))
             {
                 // only method body changed
-                return new DocumentDifferenceResult(InvocationReasons.SyntaxChanged);
+                return null;
             }
 
             // semantic has changed as well.
-            return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
+            return null;
         }
     }
 }

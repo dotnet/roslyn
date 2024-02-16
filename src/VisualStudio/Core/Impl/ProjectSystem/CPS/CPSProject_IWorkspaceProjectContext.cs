@@ -31,7 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
         private readonly IProjectCodeModel _projectCodeModel;
+#if false
         private readonly Lazy<ProjectExternalErrorReporter?> _externalErrorReporter;
+#endif
 
         private readonly ConcurrentQueue<ProjectSystemProject.BatchScope> _batchScopes = new();
 
@@ -70,6 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             _projectSystemProject = projectSystemProject;
             _visualStudioWorkspace = visualStudioWorkspace;
 
+#if false
             _externalErrorReporter = new Lazy<ProjectExternalErrorReporter?>(() =>
             {
                 var prefix = projectSystemProject.Language switch
@@ -82,6 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
                 return (prefix != null) ? new ProjectExternalErrorReporter(projectSystemProject.Id, prefix, projectSystemProject.Language, visualStudioWorkspace) : null;
             });
+#endif
 
             _projectCodeModel = projectCodeModelFactory.CreateProjectCodeModel(projectSystemProject.Id, new CPSCodeModelInstanceFactory(this));
 

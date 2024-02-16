@@ -47,7 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IAsynchronousOperationListener _listener;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
+#if false
         private readonly ExternalErrorDiagnosticUpdateSource _buildErrorDiagnosticService;
+#endif
         private readonly ICodeFixService _codeFixService;
         private readonly IFixMultipleOccurrencesService _fixMultipleOccurencesService;
         private readonly ICodeActionEditHandlerService _editHandlerService;
@@ -77,7 +79,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             _threadingContext = threadingContext;
             _workspace = workspace;
             _diagnosticService = diagnosticService;
+#if false
             _buildErrorDiagnosticService = workspace.ExternalErrorDiagnosticUpdateSource;
+#endif
             _codeFixService = codeFixService;
             _suppressionStateService = suppressionStateService;
             _editHandlerService = editHandlerService;
@@ -156,6 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         {
             using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
 
+#if false
             var buildDiagnostics = _buildErrorDiagnosticService.GetBuildErrors().Where(d => d.ProjectId != null && d.Severity != DiagnosticSeverity.Hidden);
             var solution = _workspace.CurrentSolution;
             foreach (var diagnosticsByProject in buildDiagnostics.GroupBy(d => d.ProjectId))
@@ -198,6 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     }
                 }
             }
+#endif
 
             return builder.ToImmutable();
         }

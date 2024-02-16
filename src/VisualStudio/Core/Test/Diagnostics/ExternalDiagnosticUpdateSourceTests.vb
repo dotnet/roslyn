@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+#If False Then
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -708,3 +709,4 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Class
     End Class
 End Namespace
+#end if
