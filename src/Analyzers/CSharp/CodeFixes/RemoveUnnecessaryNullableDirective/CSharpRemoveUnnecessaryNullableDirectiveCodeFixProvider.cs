@@ -5,14 +5,18 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryNullableDirective
 {
@@ -53,10 +57,46 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryNullableDirec
             CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            foreach (var diagnostic in diagnostics)
+            var nullableDirectivesByNodes = diagnostics.GroupBy(x =>
+                x.Location.FindNode(findInsideTrivia: false, getInnermostNodeForTie: false, cancellationToken), x =>
+                x.Location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken))
+                .ToDictionary(x => x.Key, x => x.ToList());
+
+            foreach (var (node, nullableDirectives) in nullableDirectivesByNodes)
             {
-                var nullableDirective = diagnostic.Location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken);
-                editor.RemoveNode(nullableDirective, SyntaxRemoveOptions.KeepNoTrivia);
+                if (node is CompilationUnitSyntax)
+                {
+                    foreach (var nullableDirective in nullableDirectives)
+                        editor.RemoveNode(nullableDirective, SyntaxRemoveOptions.KeepNoTrivia);
+                    continue;
+                }
+
+                var leadingTrivia = node.GetLeadingTrivia();
+                var indexes = nullableDirectives.Select(x => leadingTrivia.IndexOf(x.ParentTrivia))
+                                                .OrderByDescending(x => x).ToArray();
+                foreach (var index in indexes)
+                {
+                    var i = index;
+                    leadingTrivia = leadingTrivia.RemoveAt(i);
+                    i--;
+                    while (i >= 0)
+                    {
+                        if (leadingTrivia[i].IsEndOfLine())
+                        {
+                            leadingTrivia = leadingTrivia.RemoveAt(i);
+                            break;
+                        }
+                        if (leadingTrivia[i].IsWhitespace())
+                        {
+                            leadingTrivia = leadingTrivia.RemoveAt(i);
+                        }
+                        i--;
+                    }
+                }
+
+                var newToken = nullableDirectives[0].ParentTrivia.Token.WithLeadingTrivia(leadingTrivia);
+                var newNode = node.ReplaceToken(nullableDirectives[0].ParentTrivia.Token, newToken);
+                editor.ReplaceNode(node, newNode);
             }
 
             return Task.CompletedTask;

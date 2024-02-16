@@ -182,9 +182,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 """
                 // File Header
 
-
                 class Program
                 {
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantDirectiveBetweenUsingAndNamespace()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                using System;
+                
+                [|#nullable enable|]
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
                 }
                 """);
         }
