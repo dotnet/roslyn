@@ -187,78 +187,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public ICompilationTracker FreezePartialState(CancellationToken cancellationToken)
-            {
-                var state = this.ReadState();
-
-                // If we're finalized and already frozen, we can just use ourselves.
-                if (state is FinalCompilationTrackerState { IsFrozen: true } finalState)
-                    return this;
-
-                var projectState = state switch
-                {
-                    // If we don't have an existing state, then transition to a project state without any data.
-                    null => this.ProjectState.RemoveAllDocuments(),
-                    FinalCompilationTrackerState => this.ProjectState,
-                    // If we have an in progress state with no steps, then we're just at the current project state.
-                    InProgressState { PendingTranslationSteps: [] } => this.ProjectState,
-                    // Otherwise, reset us to whatever state the InProgressState had currently transitioned to.
-                    InProgressState inProgressState => inProgressState.PendingTranslationSteps.First().oldState,
-                    _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
-                };
-
-                var frozenState = GetFrozenCompilationState(state);
-                Contract.ThrowIfFalse(frozenState.IsFrozen);
-                return new CompilationTracker(projectState, frozenState, this.SkeletonReferenceCache.Clone());
-
-                CompilationTrackerState GetFrozenCompilationState(CompilationTrackerState? state)
-                {
-                    if (state is FinalCompilationTrackerState finalState)
-                    {
-                        // Checked by caller.
-                        Contract.ThrowIfTrue(finalState.IsFrozen);
-                        // If we're already finalized then just return what we have, and with the frozen bit flipped so
-                        // that any future forks keep things frozen.
-                        return finalState.WithIsFrozen();
-                    }
-                    else if (state is null)
-                    {
-                        // We have no data at all. Create a frozen empty project/compilation to represent this state.
-                        var inProgressProject = this.ProjectState.RemoveAllDocuments();
-                        var compilationWithoutGeneratedDocuments = this.CreateEmptyCompilation();
-                        var compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments;
-
-                        return InProgressState.Create(
-                            isFrozen: true,
-                            compilationWithoutGeneratedDocuments,
-                            CompilationTrackerGeneratorInfo.Empty,
-                            compilationWithGeneratedDocuments,
-                            ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty);
-                    }
-                    else if (state is InProgressState inProgressState)
-                    {
-                        // Grab whatever is in the in-progress-state so far, add any generated docs, and snap 
-                        // us to a frozen state with that information.
-                        var generatorInfo = inProgressState.GeneratorInfo;
-
-                        var compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
-                        var compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments.AddSyntaxTrees(
-                            generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken)));
-
-                        return InProgressState.Create(
-                            isFrozen: true,
-                            compilationWithoutGeneratedDocuments,
-                            generatorInfo,
-                            compilationWithGeneratedDocuments,
-                            ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty);
-                    }
-                    else
-                    {
-                        throw ExceptionUtilities.UnexpectedValue(state.GetType());
-                    }
-                }
-            }
-
             /// <summary>
             /// Gets the final compilation if it is available.
             /// </summary>
@@ -707,6 +635,78 @@ namespace Microsoft.CodeAnalysis
                 var finalState = await GetOrBuildFinalStateAsync(
                     compilationState, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return finalState.HasSuccessfullyLoaded;
+            }
+
+            public ICompilationTracker FreezePartialState(CancellationToken cancellationToken)
+            {
+                var state = this.ReadState();
+
+                // If we're finalized and already frozen, we can just use ourselves.
+                if (state is FinalCompilationTrackerState { IsFrozen: true } finalState)
+                    return this;
+
+                var projectState = state switch
+                {
+                    // If we don't have an existing state, then transition to a project state without any data.
+                    null => this.ProjectState.RemoveAllDocuments(),
+                    FinalCompilationTrackerState => this.ProjectState,
+                    // If we have an in progress state with no steps, then we're just at the current project state.
+                    InProgressState { PendingTranslationSteps: [] } => this.ProjectState,
+                    // Otherwise, reset us to whatever state the InProgressState had currently transitioned to.
+                    InProgressState inProgressState => inProgressState.PendingTranslationSteps.First().oldState,
+                    _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
+                };
+
+                var frozenState = GetFrozenCompilationState(state);
+                Contract.ThrowIfFalse(frozenState.IsFrozen);
+                return new CompilationTracker(projectState, frozenState, this.SkeletonReferenceCache.Clone());
+
+                CompilationTrackerState GetFrozenCompilationState(CompilationTrackerState? state)
+                {
+                    if (state is FinalCompilationTrackerState finalState)
+                    {
+                        // Checked by caller.
+                        Contract.ThrowIfTrue(finalState.IsFrozen);
+                        // If we're already finalized then just return what we have, and with the frozen bit flipped so
+                        // that any future forks keep things frozen.
+                        return finalState.WithIsFrozen();
+                    }
+                    else if (state is null)
+                    {
+                        // We have no data at all. Create a frozen empty project/compilation to represent this state.
+                        var inProgressProject = this.ProjectState.RemoveAllDocuments();
+                        var compilationWithoutGeneratedDocuments = this.CreateEmptyCompilation();
+                        var compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments;
+
+                        return InProgressState.Create(
+                            isFrozen: true,
+                            compilationWithoutGeneratedDocuments,
+                            CompilationTrackerGeneratorInfo.Empty,
+                            compilationWithGeneratedDocuments,
+                            ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty);
+                    }
+                    else if (state is InProgressState inProgressState)
+                    {
+                        // Grab whatever is in the in-progress-state so far, add any generated docs, and snap 
+                        // us to a frozen state with that information.
+                        var generatorInfo = inProgressState.GeneratorInfo;
+
+                        var compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
+                        var compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments.AddSyntaxTrees(
+                            generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken)));
+
+                        return InProgressState.Create(
+                            isFrozen: true,
+                            compilationWithoutGeneratedDocuments,
+                            generatorInfo,
+                            compilationWithGeneratedDocuments,
+                            ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty);
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(state.GetType());
+                    }
+                }
             }
 
             public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
