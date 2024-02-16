@@ -1910,8 +1910,8 @@ done:
         /// </summary>
         protected void EnsureNullabilityAnalysisPerformedIfNecessary()
         {
-            var isNullableAnalysisEnabled = IsNullableAnalysisEnabled();
-            if (!Compilation.IsNullableAnalysisEnabledAlways)
+            bool isNullableAnalysisEnabled = IsNullableAnalysisEnabled();
+            if (!isNullableAnalysisEnabled && !Compilation.IsNullableAnalysisEnabledAlways)
             {
                 return;
             }
@@ -1978,7 +1978,6 @@ done:
             void rewriteAndCache()
             {
                 var diagnostics = DiagnosticBag.GetInstance();
-#if DEBUG
                 if (!isNullableAnalysisEnabled)
                 {
                     Debug.Assert(Compilation.IsNullableAnalysisEnabledAlways);
@@ -1986,7 +1985,6 @@ done:
                     diagnostics.Free();
                     return;
                 }
-#endif
 
                 boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, createSnapshots: true, out snapshotManager, ref remappedSymbols);
                 diagnostics.Free();
