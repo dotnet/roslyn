@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken);
         Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
 
+#if false
         Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken);
         Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken);
 
-#if false
         Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken);
         void LogAnalyzerCountSummary();
 #endif
