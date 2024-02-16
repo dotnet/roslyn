@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return builder == null
-                ? ImmutableList<SyntaxNode>.Empty
+                ? []
                 : builder.ToImmutable();
         }
 

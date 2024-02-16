@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 cancellationToken.ThrowIfCancellationRequested();
                 if (name != null && string.IsNullOrWhiteSpace(name))
                 {
-                    return ImmutableArray<SymbolResult<ISymbol>>.Empty;
+                    return [];
                 }
 
                 using var query = Exact ? SearchQuery.Create(name, ignoreCase: true) : SearchQuery.CreateFuzzy(name);

@@ -1367,7 +1367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static void GetLocalNames(SyntaxToken syntaxToken, [NotNull] ref List<SyntaxToken>? result)
         {
-            result ??= new List<SyntaxToken>();
+            result ??= [];
             result.Add(syntaxToken);
         }
 
@@ -1607,7 +1607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 newToken.Text, Math.Min(newToken.Text.Length, LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation));
 
         private static ImmutableArray<T> CreateArrayForDistanceCalculation<T>(IEnumerable<T>? enumerable)
-            => enumerable is null ? ImmutableArray<T>.Empty : enumerable.Take(LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation).ToImmutableArray();
+            => enumerable is null ? [] : enumerable.Take(LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation).ToImmutableArray();
 
         /// <summary>
         /// Calculates the distance between two sequences of syntax tokens, disregarding trivia. 

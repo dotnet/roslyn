@@ -28,6 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddMissingImports
         protected sealed override ImmutableArray<string> FixableDiagnosticIds => AddImportDiagnosticIds.FixableDiagnosticIds;
 
         protected override ImmutableArray<AbstractFormattingRule> GetFormatRules(SourceText text)
-            => ImmutableArray.Create<AbstractFormattingRule>(new CleanUpNewLinesFormatter(text), new IndentBlockFormattingRule());
+            => [new CleanUpNewLinesFormatter(text), new IndentBlockFormattingRule()];
     }
 }

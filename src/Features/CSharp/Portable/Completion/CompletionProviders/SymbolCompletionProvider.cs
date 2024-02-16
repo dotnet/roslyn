@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal sealed class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider<CSharpSyntaxContext>
     {
-        private static readonly Dictionary<(bool importDirective, bool preselect, bool tupleLiteral), CompletionItemRules> s_cachedRules = new();
+        private static readonly Dictionary<(bool importDirective, bool preselect, bool tupleLiteral), CompletionItemRules> s_cachedRules = [];
 
         static SymbolCompletionProvider()
         {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '<'));
 
                 var importDirectiveBaseline = CompletionItemRules.Create(commitCharacterRules:
-                    ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')));
+                    [CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')]);
 
                 var rule = context.importDirective ? importDirectiveBaseline : generalBaseline;
 

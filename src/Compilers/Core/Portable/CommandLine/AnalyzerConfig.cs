@@ -19,9 +19,29 @@ namespace Microsoft.CodeAnalysis
     public sealed partial class AnalyzerConfig
     {
         // Matches EditorConfig section header such as "[*.{js,py}]", see https://editorconfig.org for details
-        private static readonly Regex s_sectionMatcher = new Regex(@"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$", RegexOptions.Compiled);
+        private const string s_sectionMatcherPattern = @"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$";
+
         // Matches EditorConfig property such as "indent_style = space", see https://editorconfig.org for details
-        private static readonly Regex s_propertyMatcher = new Regex(@"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$", RegexOptions.Compiled);
+        private const string s_propertyMatcherPattern = @"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$";
+
+#if NETCOREAPP
+
+        [GeneratedRegex(s_sectionMatcherPattern)]
+        private static partial Regex GetSectionMatcherRegex();
+
+        [GeneratedRegex(s_propertyMatcherPattern)]
+        private static partial Regex GetPropertyMatcherRegex();
+
+#else
+        private static readonly Regex s_sectionMatcher = new Regex(s_sectionMatcherPattern, RegexOptions.Compiled);
+
+        private static readonly Regex s_propertyMatcher = new Regex(s_propertyMatcherPattern, RegexOptions.Compiled);
+
+        private static Regex GetSectionMatcherRegex() => s_sectionMatcher;
+
+        private static Regex GetPropertyMatcherRegex() => s_propertyMatcher;
+
+#endif
 
         /// <summary>
         /// Key that indicates if this config is a global config
@@ -198,7 +218,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                var sectionMatches = s_sectionMatcher.Matches(line);
+                var sectionMatches = GetSectionMatcherRegex().Matches(line);
                 if (sectionMatches.Count > 0 && sectionMatches[0].Groups.Count > 0)
                 {
                     addNewSection();
@@ -212,7 +232,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                var propMatches = s_propertyMatcher.Matches(line);
+                var propMatches = GetPropertyMatcherRegex().Matches(line);
                 if (propMatches.Count > 0 && propMatches[0].Groups.Count > 1)
                 {
                     var key = propMatches[0].Groups[1].Value;

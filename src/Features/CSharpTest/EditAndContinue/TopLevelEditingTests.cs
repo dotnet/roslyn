@@ -504,7 +504,7 @@ namespace N
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("N.C.M2")) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("N.C.M2"))],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -664,7 +664,7 @@ namespace N
                 "Update [[CreateNewOnMetadataUpdate]" + oldKeyword + " C { }]@145 -> [[CreateNewOnMetadataUpdate]" + newKeyword + " C { }]@145");
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -720,7 +720,7 @@ namespace N
             var srcB2 = accessibilityB + " partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults(),
@@ -759,7 +759,7 @@ namespace N
                 "Update [[CreateNewOnMetadataUpdate]public class C { }]@145 -> [[CreateNewOnMetadataUpdate]internal class C { }]@145");
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -879,13 +879,13 @@ class C
             var srcB2 = "partial class C { void F() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F"))
-                    }),
+                    ]),
                 ]);
         }
 
@@ -1040,7 +1040,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -1134,8 +1134,7 @@ class C
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
-        [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1831006")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1831006")]
         public void Type_Attribute_Update_Null()
         {
             var attribute = @"
@@ -1149,7 +1148,7 @@ public class A : Attribute { public A1(int[] array, Type type, Type[] types) {} 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C")) },
+                semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -1171,7 +1170,7 @@ public class A3 : System.Attribute { }
                 "Update [[CreateNewOnMetadataUpdate, A1, A2]class C { }]@267 -> [[CreateNewOnMetadataUpdate, A2, A3]class C { }]@267");
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -1184,7 +1183,7 @@ public class A3 : System.Attribute { }
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -1198,7 +1197,7 @@ public class A3 : System.Attribute { }
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -1211,7 +1210,7 @@ public class A3 : System.Attribute { }
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -1234,7 +1233,7 @@ public class A3 : System.Attribute { }
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -1254,16 +1253,16 @@ public class A3 : System.Attribute { }
             var srcB2 = "[B]partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")
-                    }),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    ]),
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")
-                    }),
+                    ]),
                 ],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
@@ -1738,7 +1737,7 @@ interface I {}
 interface J {}";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC, srcC) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC, srcC)],
                 [
                     DocumentResults(),
                     DocumentResults(),
@@ -1758,7 +1757,7 @@ interface J {}";
             var srcC2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
                 [
                     DocumentResults(),
 
@@ -1783,7 +1782,7 @@ interface I {}
 interface J {}";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC, srcC) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC, srcC)],
                 [
                     DocumentResults(),
                     DocumentResults(),
@@ -1870,7 +1869,7 @@ public class D
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -1961,7 +1960,7 @@ public interface I
             var srcB2 = modifier + " partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults()
@@ -2147,15 +2146,15 @@ interface I
 }
 ";
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("I").GetMember("M"))
-                        }),
+                        ]),
                 ]);
         }
 
@@ -2337,7 +2336,7 @@ class C<T>
 ";
             var edits = GetTopEdits(src1, src2);
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -2355,25 +2354,25 @@ interface I<T> { void F() {} }
             var srcB2 = srcA1;
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("S")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("I")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("S.F")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("I.F"))
-                        })
+                        ])
                 ],
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
@@ -2436,19 +2435,19 @@ interface I { void F() {} }
             var srcB2 = "partial class C { void G() {} void M() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.F"), deletedSymbolContainerProvider: c => c.GetMember("C"))
-                        }),
+                        ]),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("M")),
-                        })
+                        ])
                 ]);
         }
 
@@ -2459,7 +2458,7 @@ interface I { void F() {} }
             var src2 = "partial class C { void F() {}  }";
 
             GetTopEdits(src1, src2).VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C"), preserveLocalVariables: false) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C"), preserveLocalVariables: false)],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -2472,15 +2471,15 @@ interface I { void F() {} }
             var srcB2 = "partial class C { void G() {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("G"), preserveLocalVariables: false)
-                        }),
+                        ]),
                 ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
@@ -2494,14 +2493,14 @@ interface I { void F() {} }
             var srcB2 = "partial class C { void G() {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")
-                        }),
+                        ]),
                 ],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
@@ -2520,17 +2519,17 @@ interface I { void F() {} }
             var srcB2 = srcA1;
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("S").GetMember("F")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("I").GetMember("F")),
-                        })
+                        ])
                 ]);
         }
 
@@ -2544,14 +2543,14 @@ interface I { void F() {} }
             var srcB2 = "[CreateNewOnMetadataUpdate]class C { void F() {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")),
-                        })
+                        ])
                 ],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
@@ -2581,20 +2580,20 @@ interface I
 
             // TODO: The methods without bodies do not need to be updated.
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("AbstractMethod")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("VirtualMethod")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("ToString")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("I.G")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("I").GetMember("G")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("I").GetMember("F")),
-                        })
+                        ])
                 ]);
         }
 
@@ -2635,20 +2634,20 @@ interface I
 }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("AbstractMethod")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("VirtualMethod")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("ToString")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("I.G")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("I").GetMember("G")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("I").GetMember("F")),
-                        })
+                        ])
                 ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
@@ -2678,17 +2677,17 @@ class C
 }
 ";
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").GetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").SetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true),
-                        })
+                        ])
                 ]);
         }
 
@@ -2719,17 +2718,17 @@ partial class C
 }
 ";
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").GetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").SetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true),
-                        })
+                        ])
                 ]);
         }
 
@@ -2762,15 +2761,15 @@ class C
 ";
             // note that accessors are not updated since they do not have bodies
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").GetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").SetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true),
-                        }),
+                        ]),
 
                     DocumentResults()
                 ]);
@@ -2858,7 +2857,7 @@ class C
                 "Move [class C {}]@41 -> @14");
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { editsA, editsB },
+                [editsA, editsB],
                 [
                     DocumentResults(),
                     DocumentResults(),
@@ -2881,7 +2880,7 @@ class C
                 "Insert [record C;]@0");
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -2894,7 +2893,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -3110,10 +3109,9 @@ public abstract record C<T>
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => methodName switch { ".ctor" => c.GetCopyConstructor("C"), "Equals" => c.GetSpecializedEqualsOverload("C"), _ => c.GetMember("C." + methodName) }),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.UpdateParameters);
         }
 
@@ -3137,10 +3135,9 @@ public abstract record C<T>
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMembers("C.PrintMembers").First().ISymbol),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.UpdateParameters | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -3204,10 +3201,9 @@ public abstract record C<T>
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => methodName switch { ".ctor" => c.GetCopyConstructor("C"), "Equals" => c.GetSpecializedEqualsOverload("C"), _ => c.GetMember("C." + methodName) }),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.UpdateParameters);
         }
 
@@ -3239,14 +3235,13 @@ public abstract record C<T>
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -3273,13 +3268,12 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -3293,15 +3287,14 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -3315,14 +3308,13 @@ record C(int X)
             var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._z")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -3336,15 +3328,14 @@ record C(int X)
             var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._z")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), syntaxMap[0]),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -3394,8 +3385,7 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
@@ -3403,7 +3393,7 @@ record C(int X)
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -3418,15 +3408,14 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -3488,11 +3477,10 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -3505,12 +3493,11 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -3534,8 +3521,7 @@ record C(int X)
             var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
@@ -3544,7 +3530,7 @@ record C(int X)
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -3612,12 +3598,12 @@ record C(int X)
             var srcB2 = "partial record C;";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
@@ -3625,7 +3611,7 @@ record C(int X)
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_X")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_X")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        })
+                        ])
                 ]);
         }
 
@@ -3643,8 +3629,7 @@ record C(int X)
             // Methods using backing field must be updated, unless they are explicitly declared.
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
@@ -3652,7 +3637,7 @@ record C(int X)
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.X").GetMethod),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.X").SetMethod),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -3713,12 +3698,12 @@ record C(int X)
             // Methods using backing field must be updated, unless they are explicitly declared.
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
@@ -3726,7 +3711,7 @@ record C(int X)
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.X").GetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.X").SetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), partialType : "C", preserveLocalVariables: true),
-                        })
+                        ])
                 ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
@@ -3741,8 +3726,7 @@ record C(int X)
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
@@ -3751,7 +3735,7 @@ record C(int X)
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
 
             edits.VerifySemanticDiagnostics(
@@ -3769,8 +3753,7 @@ record C(int X)
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
@@ -3778,7 +3761,7 @@ record C(int X)
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
 
             edits.VerifySemanticDiagnostics(
@@ -3812,14 +3795,13 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -3832,10 +3814,9 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -3848,10 +3829,9 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -3875,15 +3855,14 @@ record C(int X)
             var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -3909,15 +3888,15 @@ record C(int X)
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(new[]
-            {
+            edits.VerifySemantics(
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
-            });
+            ]);
         }
 
         [Fact]
@@ -3929,8 +3908,7 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_X"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
@@ -3938,7 +3916,7 @@ record C(int X)
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_X")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
-                });
+                ]);
         }
 
         [Fact]
@@ -3952,15 +3930,15 @@ record C(int X)
             // Note: We do not report rude edits when a synthesized auto-property is replaced by an explicit one.
             // The synthesized property accessors are updated to throw and the backing field remains in the type.
             // The deleted field will remain unused since adding the primary property back is a rude edit.
-            edits.VerifySemantics(new[]
-                {
+            edits.VerifySemantics(
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
-                });
+                ]);
         }
 
         [Fact]
@@ -4016,10 +3994,9 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -4059,12 +4036,12 @@ record C(int X)
             var srcB2 = "partial record C { public int X { get; init; }" + initializer + " }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
@@ -4072,7 +4049,7 @@ record C(int X)
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_X")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_X")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        })
+                        ])
                 ]);
         }
 
@@ -4110,12 +4087,12 @@ record C(int X)
             var srcB2 = "partial record C { public int X { " + body + " } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
@@ -4123,7 +4100,7 @@ record C(int X)
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_X")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_X")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        })
+                        ])
                 ]);
         }
 
@@ -4137,8 +4114,7 @@ record C(int X)
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
@@ -4147,7 +4123,7 @@ record C(int X)
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
 
             edits.VerifySemanticDiagnostics(
@@ -4165,8 +4141,7 @@ record C(int X)
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
@@ -4174,7 +4149,7 @@ record C(int X)
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
 
             edits.VerifySemanticDiagnostics(
@@ -4192,15 +4167,15 @@ record C(int X)
             var srcB2 = "partial record C { public int Y { get; init; } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.Y").GetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.Y").SetMethod)
-                        }),
+                        ]),
                 ]);
         }
 
@@ -4325,12 +4300,12 @@ record C(int X)
             var srcB2 = "";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("N.A"))
-                    }),
+                    ]),
                     DocumentResults()
                 ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
@@ -4499,7 +4474,7 @@ record C(int X)
             edits.VerifyEdits("Update [Red = 1]@185 -> [Red = 2]@185");
 
             edits.VerifySemantics(
-                 new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("Color")) },
+                 [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("Color"))],
                  capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -4822,12 +4797,11 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.Invoke")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.EndInvoke"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -4845,12 +4819,11 @@ record C(int X)
                 "Update [public delegate int D(int a);]@39 -> [[return: A]public delegate int D(int a);]@39");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.Invoke")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.EndInvoke"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -4878,7 +4851,7 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                 new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("D")) },
+                 [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("D"))],
                  capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -4913,11 +4886,10 @@ record C(int X)
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                      SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.Invoke")),
                      SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.BeginInvoke"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.UpdateParameters);
         }
 
@@ -4964,11 +4936,10 @@ record C(int X)
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.Invoke")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.BeginInvoke"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
 
             edits.VerifySemanticDiagnostics(
@@ -5131,7 +5102,7 @@ record C(int X)
                 "Update [public delegate int D(int a);]@48 -> [[A]public delegate int D(int a);]@48");
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D")) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D"))],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -5149,12 +5120,11 @@ record C(int X)
                 "Update [public delegate int D(int a);]@39 -> [[return: A][A]public delegate int D(int a);]@39");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.Invoke")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.EndInvoke")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -5252,16 +5222,16 @@ record C(int X)
             var editsB = GetTopEdits(srcB1, srcB2);
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { editsA, editsB },
+                [editsA, editsB],
                 [
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")
-                    }),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    ]),
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.D.M"))
-                    })
+                    ])
                 ],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
@@ -5276,11 +5246,11 @@ record C(int X)
 
             EditAndContinueValidation.VerifySemantics(
                 edits,
-                semanticEdits: new[]
-                {
+                semanticEdits:
+                [
                     SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.D.M"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -5294,11 +5264,11 @@ record C(int X)
 
             EditAndContinueValidation.VerifySemantics(
                 edits,
-                semanticEdits: new[]
-                {
+                semanticEdits:
+                [
                     SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.D.M"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -5312,11 +5282,11 @@ record C(int X)
 
             EditAndContinueValidation.VerifySemantics(
                 edits,
-                semanticEdits: new[]
-                {
+                semanticEdits:
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.D.M"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -5397,7 +5367,7 @@ record C(int X)
                 "Move [class C {}]@49 -> @18");
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { editsA, editsB },
+                [editsA, editsB],
                 [
                     DocumentResults(),
                     DocumentResults(),
@@ -5505,7 +5475,7 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                 new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                 [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
                  capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -5518,7 +5488,7 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                 new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                 [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
                  capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -5531,7 +5501,7 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                 new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                 [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
                  capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -5556,7 +5526,7 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C.D")) },
+                [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C.D"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -5577,10 +5547,10 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.D"), preserveLocalVariables: false)
-            });
+            ]);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
@@ -5692,10 +5662,10 @@ class C
                 "Delete [()]@32");
 
             edits.VerifySemantics(
-                new[] {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.D")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -5772,7 +5742,7 @@ class D<T>
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults()
@@ -5788,7 +5758,7 @@ class D<T>
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         diagnostics:
@@ -5809,7 +5779,7 @@ class D<T>
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         diagnostics:
@@ -5830,7 +5800,7 @@ class D<T>
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         diagnostics: [Diagnostic(RudeEditKind.Insert, "B = 2", FeaturesResources.enum_value)]),
@@ -5848,7 +5818,7 @@ class D<T>
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         // delegate does not have any user-defined method body and this does not need a PDB update
@@ -5867,7 +5837,7 @@ class D<T>
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         diagnostics: [Diagnostic(RudeEditKind.TypeUpdate, "delegate void D(int x)", GetResource("delegate"))]),
@@ -5885,7 +5855,7 @@ class D<T>
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         diagnostics:
@@ -5906,7 +5876,7 @@ class D<T>
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         diagnostics:
@@ -5930,18 +5900,18 @@ class D<T>
             var srcC2 = "partial struct S { partial class C { void F2(int x) {} } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
                 [
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Delete, c =>  c.GetMembers("S.C.F2").FirstOrDefault(m => m.GetParameterTypes().Any(t => t.SpecialType == SpecialType.System_Byte))?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("S.C"))
-                        }),
+                        ]),
 
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("S.C.F2").FirstOrDefault(m => m.GetParameterTypes().Any(t => t.SpecialType == SpecialType.System_Int32))?.ISymbol) })
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("S.C.F2").FirstOrDefault(m => m.GetParameterTypes().Any(t => t.SpecialType == SpecialType.System_Int32))?.ISymbol)])
                 ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
@@ -5956,16 +5926,16 @@ class D<T>
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C"), partialType: "C")
-                    }),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    ]),
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C"), partialType: "C")
-                    }),
+                    ]),
                 ],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
@@ -6000,13 +5970,13 @@ class D<T>
             var srcC2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
                 [
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C"), partialType: "C")
-                    }),
+                    ]),
                     DocumentResults(),
                 ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
@@ -6024,7 +5994,7 @@ class D<T>
             var srcC2 = "partial class C<T> { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
                 [
                     DocumentResults(),
 
@@ -6039,7 +6009,7 @@ class D<T>
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
                 [
                     DocumentResults(),
 
@@ -6066,7 +6036,7 @@ class D<T>
             var srcC2 = "partial class C<T> { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
                 [
                     DocumentResults(),
 
@@ -6096,16 +6066,16 @@ class D<T>
             var srcE = "interface I {} interface J {}";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2), GetTopEdits(srcE, srcE) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2), GetTopEdits(srcE, srcE)],
                 [
                     DocumentResults(),
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F")) }),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F"))]),
 
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("G")) }),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("G"))]),
 
                     DocumentResults(),
                 ]);
@@ -6126,16 +6096,16 @@ class B : System.Attribute {}
             var srcB2 = "[B]partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C"), partialType: "C")
-                    }),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    ]),
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C"), partialType: "C")
-                    }),
+                    ]),
                 ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
@@ -6154,18 +6124,18 @@ class B : System.Attribute {}
             var srcD2 = "[B]partial class C { void G() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2)],
                 [
                     DocumentResults(),
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"))
-                    }),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    ]),
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.G"))
-                    }),
+                    ]),
                 ]);
         }
 
@@ -6181,7 +6151,7 @@ class B : System.Attribute {}
             var srcC2 = "partial class C { void F(int y = 2) { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
                 [
                     DocumentResults(),
                     DocumentResults(diagnostics: [Diagnostic(RudeEditKind.InitializerUpdate, "int x = 2", FeaturesResources.parameter)]),
@@ -6207,7 +6177,7 @@ class B : System.Attribute {}
             var srcF2 = "partial interface I { partial class C { virtual void N2() {} } }"; // insert new virtual into new partial decl
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2), GetTopEdits(srcE1, srcE2), GetTopEdits(srcF1, srcF2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2), GetTopEdits(srcE1, srcE2), GetTopEdits(srcF1, srcF2)],
                 [
                     // A
                     DocumentResults(),
@@ -6217,7 +6187,7 @@ class B : System.Attribute {}
 
                     // C
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("I").GetMember<INamedTypeSymbol>("C").GetMember("F1")) }),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("I").GetMember<INamedTypeSymbol>("C").GetMember("F1"))]),
 
                     // D
                     DocumentResults(
@@ -6225,7 +6195,7 @@ class B : System.Attribute {}
 
                     // E
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("I").GetMember<INamedTypeSymbol>("C").GetMember("F2")) }),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("I").GetMember<INamedTypeSymbol>("C").GetMember("F2"))]),
 
                     // F
                     DocumentResults(
@@ -6365,7 +6335,7 @@ class B : System.Attribute {}
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("N.C")) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("N.C"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -6382,7 +6352,7 @@ class B : System.Attribute {}
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("N.M.C")) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("N.M.C"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -6655,18 +6625,18 @@ class B : System.Attribute {}
             var srcB2 = @"namespace M { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("M.C"), partialType: "M.C"),
-                        }),
+                        ]),
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("M.C"), partialType: "M.C"),
-                        }),
+                        ]),
                 ],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
@@ -6680,7 +6650,7 @@ class B : System.Attribute {}
             var srcB2 = @"namespace M { partial class/*3*/C {} } namespace M { partial class/*4*/C {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(diagnostics:
                     [
@@ -6895,11 +6865,11 @@ partial class C
                 "Delete [F2]@284");
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { edits },
+                [edits],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.M")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P1").GetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P1").SetMethod),
@@ -6913,7 +6883,7 @@ partial class C
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMembers<IPropertySymbol>("C.this[]").Single(m => m.Parameters[0].Type.Name == "Byte")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.E").AddMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.E").RemoveMethod),
-                        })
+                        ])
                 ]);
         }
 
@@ -6926,13 +6896,13 @@ partial class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F"), preserveLocalVariables: false)
-                        }),
+                        ]),
 
                     DocumentResults()
                 ]);
@@ -6947,15 +6917,15 @@ partial class C
             var srcB2 = "partial class C { void F() {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"))
-                        })
+                        ])
                 ]);
         }
 
@@ -6968,18 +6938,18 @@ partial class C
             var srcB2 = "partial class C { void F<T>() {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"))
-                    })
+                    ])
                 ],
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults(diagnostics:
@@ -6999,18 +6969,18 @@ partial class C
             var srcB2 = "partial class C<T> { void F() {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"))
-                    })
+                    ])
                 ],
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults(diagnostics:
@@ -7030,15 +7000,15 @@ partial class C
             var srcB2 = "partial class C { ~C() {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("Finalize"), preserveLocalVariables: false),
-                        })
+                        ])
                 ]);
         }
 
@@ -7052,7 +7022,7 @@ partial class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         diagnostics:
@@ -7073,18 +7043,18 @@ partial class C
             var srcB2 = "partial class C { void F1() {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
-                    DocumentResults(semanticEdits: new[]
-                        {
+                    DocumentResults(semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F2")),
-                        }),
+                        ]),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F1")),
-                        })
+                        ])
                 ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
@@ -7132,7 +7102,7 @@ partial class C
             var srcB2 = "partial class C { void F(byte x) {} }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMembers<IMethodSymbol>("C.F").Single(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Char }]))]),
@@ -7151,7 +7121,7 @@ partial class C
             var srcB2 = "partial class C { int this[byte y] { get => 1; set {} } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(semanticEdits:
                         [
@@ -7206,13 +7176,13 @@ partial class C
 ";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)
-                    })
+                    ])
                 ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
@@ -7227,14 +7197,14 @@ partial class C
             var srcB2 = "partial class C { int P { get => 2; set { Console.WriteLine(2); } } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").GetMethod),
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").SetMethod)
-                    })
+                    ])
                 ]);
         }
 
@@ -7248,13 +7218,13 @@ partial class C
             var srcB2 = "partial class C { int P => 2; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").GetMethod)
-                    })
+                    ])
                 ]);
         }
 
@@ -7268,13 +7238,13 @@ partial class C
             var srcB2 = "partial class C { int f = 1; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                    })
+                    ])
                 ]);
         }
 
@@ -7288,13 +7258,13 @@ partial class C
             var srcB2 = "partial class C { int f; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                    })
+                    ])
                 ]);
         }
 
@@ -7308,13 +7278,13 @@ partial class C
             var srcB2 = "partial class C { C(int x) { f = x + 1; } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), partialType: "C", preserveLocalVariables: true)
-                    })
+                    ])
                 ]);
         }
 
@@ -7327,19 +7297,19 @@ partial class C
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("S.F").FirstOrDefault(m => m.GetParameterCount() == 1)?.ISymbol)
-                        }),
+                        ]),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("S.F").FirstOrDefault(m => m.GetParameterCount() == 0)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("S"))
-                        }),
+                        ]),
                 ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
@@ -7353,19 +7323,19 @@ partial class C
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("S.F").FirstOrDefault(m => m.GetParameterTypes().Any(t => t.SpecialType == SpecialType.System_Byte))?.ISymbol)
-                        }),
+                        ]),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("S.F").FirstOrDefault(m => m.GetParameterTypes().Any(t => t.SpecialType == SpecialType.System_Int32))?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("S"))
-                        }),
+                        ]),
                 ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
@@ -7379,19 +7349,19 @@ partial class C
             var srcB2 = "partial struct S { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("S.F").FirstOrDefault(m => m.GetArity() == 1)?.ISymbol)
-                        }),
+                        ]),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("S.F").FirstOrDefault(m => m.GetArity() == 0)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("S"))
-                        }),
+                        ]),
                 ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.GenericAddMethodToExistingType);
         }
@@ -7622,11 +7592,10 @@ class Test
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.M"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.M"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -7643,11 +7612,10 @@ class Test
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.M"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.M"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -7667,11 +7635,10 @@ class Test
                 "Update [(int, int) M() { throw new System.Exception(); }]@10 -> [(string, int) M() { throw new System.Exception(); }]@10");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.M"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.M"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -7691,11 +7658,10 @@ class Test
                 "Update [(int, int, int a) M() { return (1, 2, 3); }]@10 -> [(int, int) M() { return (1, 2); }]@10");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.M"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.M"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -7715,11 +7681,10 @@ class Test
                 "Update [(int, int) M() { return (1, 2); }]@10 -> [(int, int, int a) M() { return (1, 2, 3); }]@10");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.M"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.M"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -7770,7 +7735,7 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), preserveLocalVariables: false) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), preserveLocalVariables: false)]);
         }
 
         [Fact]
@@ -7798,7 +7763,7 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), preserveLocalVariables: false) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), preserveLocalVariables: false)]);
         }
 
         [Fact]
@@ -7811,10 +7776,10 @@ class C
 
             edits.VerifyEdits("Update [static int F(int a) => 1;]@10 -> [static int F(int a) { return 2; }]@10");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: false)
-            });
+            ]);
         }
 
         [Fact]
@@ -7827,10 +7792,10 @@ class C
 
             edits.VerifyEdits("Update [static int F(int a) { return 2; }]@10 -> [static int F(int a) => 1;]@10");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: false)
-            });
+            ]);
         }
 
         [Fact]
@@ -7866,7 +7831,7 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap[0]) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap[0])]);
         }
 
         [Fact]
@@ -7925,7 +7890,7 @@ class C
                 "Delete [()]@26");
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -7987,7 +7952,7 @@ class C
                 "Delete [()]@25");
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -8014,7 +7979,7 @@ class C
                 "Delete [int a]@43");
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), deletedSymbolContainerProvider: c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -8130,7 +8095,7 @@ class C
                 "Insert [int a]@44");
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.goo")) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.goo"))],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -8292,13 +8257,13 @@ class C
 ";
             // TODO: The method does not need to be updated since there are no sequence points generated for it.
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.puts")),
-                    })
+                    ])
                 ]);
         }
 
@@ -8335,13 +8300,13 @@ class C
 }
 ";
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.puts")),
-                    })
+                    ])
                 ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
@@ -8399,11 +8364,10 @@ class C
                 "Insert [string[] args]@35");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.Main"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Main"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -8431,11 +8395,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.M"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.M"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -8467,11 +8430,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.M").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IMethodSymbol>("C.M").PartialImplementationPart, partialType: "C")
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -8507,11 +8469,10 @@ class C
                 "Update [bool x]@35 -> [int x]@35");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.Main").FirstOrDefault(m => m.GetParameterTypes().Any(t => t.SpecialType == SpecialType.System_Boolean))?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.Main").FirstOrDefault(m => m.GetParameterTypes().Any(t => t.SpecialType == SpecialType.System_Int32))?.ISymbol)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -8544,11 +8505,10 @@ class C
                 "Update [bool someBool]@35 -> [int someInt]@35");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.Main").FirstOrDefault(m => m.GetParameterTypes().Any(t => t.SpecialType == SpecialType.System_Boolean))?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.Main").FirstOrDefault(m => m.GetParameterTypes().Any(t => t.SpecialType == SpecialType.System_Int32))?.ISymbol)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -8577,11 +8537,10 @@ class C
                 "Delete [string[] args]@35");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.Main"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Main"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -8609,11 +8568,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.M"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.M"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -8652,10 +8610,9 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.UpdateParameters);
         }
 
@@ -8685,10 +8642,9 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.UpdateParameters);
         }
 
@@ -8724,11 +8680,10 @@ class C
             edits.VerifyEdits(expectedEdit);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.Main"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.EntryPoint"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -8770,11 +8725,10 @@ class C<T>
                     EditAndContinueCapabilities.GenericAddMethodToExistingType);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.F"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.G"))
-                },
+                ],
                 capabilities:
                     EditAndContinueCapabilities.AddMethodToExistingType |
                     EditAndContinueCapabilities.GenericAddMethodToExistingType |
@@ -8817,11 +8771,10 @@ class C
                     EditAndContinueCapabilities.GenericAddMethodToExistingType);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.F"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.G"))
-                },
+                ],
                 capabilities:
                     EditAndContinueCapabilities.AddMethodToExistingType |
                     EditAndContinueCapabilities.GenericAddMethodToExistingType |
@@ -8888,10 +8841,9 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -9128,7 +9080,7 @@ class Test
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Test.Main")) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Test.Main"))],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -9165,7 +9117,7 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M")) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"))],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -9204,7 +9156,7 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M")) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"))]);
 
             edits.VerifySemanticDiagnostics();
         }
@@ -9833,11 +9785,10 @@ class C
                 "Insert [in int b]@16");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.M"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.M"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -9857,11 +9808,10 @@ class C
                 "Update [int b]@16 -> [in int b]@16");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.M"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.M"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -9893,11 +9843,10 @@ class C
                 "Update [int M() => throw null;]@13 -> [ref readonly int M() => throw null;]@13");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("Test.M"), deletedSymbolContainerProvider: c => c.GetMember("Test")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("Test.M"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -9979,7 +9928,7 @@ public class SubClass : BaseClass, IConflict
             var srcC2 = "partial class C { partial void F(); }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
                 [
                     DocumentResults(),
                     DocumentResults(),
@@ -10000,12 +9949,12 @@ public class SubClass : BaseClass, IConflict
             var srcC2 = "partial class C { partial void F() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
                 [
                     DocumentResults(),
                     DocumentResults(),
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F").PartialImplementationPart, partialType: "C") }),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F").PartialImplementationPart, partialType: "C")]),
                 ]);
         }
 
@@ -10019,12 +9968,12 @@ public class SubClass : BaseClass, IConflict
             var srcB2 = "partial class C { partial void F(); }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F").PartialImplementationPart, partialType: "C") }),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F").PartialImplementationPart, partialType: "C")]),
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F").PartialImplementationPart, partialType: "C") }),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F").PartialImplementationPart, partialType: "C")]),
                 ]);
         }
 
@@ -10038,15 +9987,15 @@ public class SubClass : BaseClass, IConflict
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.F"), deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C")
-                        }),
+                        ]),
                 ]);
         }
 
@@ -10060,7 +10009,7 @@ public class SubClass : BaseClass, IConflict
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         semanticEdits: [SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C")]),
@@ -10083,14 +10032,14 @@ public class SubClass : BaseClass, IConflict
             var srcD2 = "partial class C { partial void F() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2)],
                 [
                     DocumentResults(),
                     DocumentResults(),
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C") }),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")]),
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C") })
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")])
                 ]);
         }
 
@@ -10104,7 +10053,7 @@ public class SubClass : BaseClass, IConflict
             var srcB2 = "partial class C { partial void F() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults(
@@ -10123,12 +10072,12 @@ public class SubClass : BaseClass, IConflict
             var srcB2 = "partial class C { partial void F() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C") }),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")]),
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C") }),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")]),
                 ],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
@@ -10225,15 +10174,15 @@ public class SubClass : BaseClass, IConflict
             var srcB2 = "partial class C { partial void F() { } partial void F(); }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")
-                        }),
+                        ]),
                 ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
@@ -10305,7 +10254,7 @@ public class SubClass : BaseClass, IConflict
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -10385,11 +10334,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.op_Implicit"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.op_Addition"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -10413,19 +10361,19 @@ partial class C
             var srcB2 = srcA1;
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("op_Addition"))
-                        }),
+                        ]),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("op_Implicit"))
-                        }),
+                        ]),
                 ]);
         }
 
@@ -10461,11 +10409,11 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.op_Implicit")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.op_Addition")),
-            });
+            ]);
         }
 
         [Fact]
@@ -10486,11 +10434,11 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.op_Implicit")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.op_Addition")),
-            });
+            ]);
         }
 
         [Fact]
@@ -10503,10 +10451,10 @@ class C
 
             edits.VerifyEdits("Update [public static C operator +(C c, C d) => d;]@10 -> [public static C operator +(C c, C d) { return c; }]@10");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.op_Addition"))
-            });
+            ]);
         }
 
         [Fact]
@@ -10519,10 +10467,10 @@ class C
 
             edits.VerifyEdits("Update [public static C operator +(C c, C d) { return c; }]@10 -> [public static C operator +(C c, C d) => d;]@10");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.op_Addition"))
-            });
+            ]);
         }
 
         [Fact]
@@ -10541,11 +10489,11 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-                {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.op_Addition"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.op_Subtraction"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -10623,7 +10571,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.op_LogicalNot"), deletedSymbolContainerProvider: c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.op_LogicalNot"), deletedSymbolContainerProvider: c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -10641,10 +10589,9 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), preserveLocalVariables: true)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -10658,10 +10605,9 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), preserveLocalVariables: true)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -10735,15 +10681,13 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.P")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68458")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68458")]
         public void Constructor_Parameter_AddAttribute_Record_ReplacingSynthesizedWithCustomProperty()
         {
             var src1 = "record C(int P) { }" + s_attributeSource;
@@ -10754,8 +10698,7 @@ class C
             // We update more members than strictly necessary to avoid more complex analysis.
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
@@ -10764,7 +10707,7 @@ class C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
                     // TOOD: Should include update of P: https://github.com/dotnet/roslyn/issues/68458
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -10778,13 +10721,12 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -10802,11 +10744,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-               new[]
-               {
+               [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single())
-               },
+               ],
                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -10824,11 +10765,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -10846,19 +10786,19 @@ class C
             var srcB2 = "partial class C(int a);";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                        }),
+                        ]),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C"), partialType: "C")
-                        }),
+                        ]),
                 ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
@@ -10871,8 +10811,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.x"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_x"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_x"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10887,7 +10826,7 @@ class C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -10933,11 +10872,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single()),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -10950,11 +10888,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -10969,8 +10906,8 @@ class C
             // The properties are updated to throw and the backing field remains in the type.
             // The deleted field will remain unused since adding the property back is a rude edit.
             edits.VerifySemantics(
-                semanticEdits: new[]
-                {
+                semanticEdits:
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -10982,7 +10919,7 @@ class C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -11005,8 +10942,8 @@ record C(int X);
             // The properties are updated to throw and the backing field remains in the type.
             // The deleted field will remain unused since adding the property back is a rude edit.
             edits.VerifySemantics(
-                semanticEdits: new[]
-                {
+                semanticEdits:
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -11018,7 +10955,7 @@ record C(int X);
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -11033,8 +10970,8 @@ record C(int X);
             // The properties are updated to throw and the backing field remains in the type.
             // The deleted field will remain unused since adding the property back is a rude edit.
             edits.VerifySemantics(
-                semanticEdits: new[]
-                {
+                semanticEdits:
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -11045,7 +10982,7 @@ record C(int X);
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -11058,8 +10995,7 @@ record C(int X);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
@@ -11071,7 +11007,7 @@ record C(int X);
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -11084,8 +11020,7 @@ record C(int X);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Y")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
@@ -11095,7 +11030,7 @@ record C(int X);
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -11109,8 +11044,7 @@ record C(int X);
             var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Y"), syntaxMap: syntaxMap[0]),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
@@ -11120,7 +11054,7 @@ record C(int X);
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -11133,8 +11067,7 @@ record C(int X);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Y")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
@@ -11144,7 +11077,7 @@ record C(int X);
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -11157,8 +11090,7 @@ record C(int X);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
@@ -11170,7 +11102,7 @@ record C(int X);
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -11183,8 +11115,7 @@ record C(int X);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -11195,7 +11126,7 @@ record C(int X);
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -11208,8 +11139,7 @@ record C(int X);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMembers<IMethodSymbol>("C.Deconstruct").Single(m => m.Parameters is [_])),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -11221,7 +11151,7 @@ record C(int X);
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -11234,8 +11164,7 @@ record C(int X);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -11247,7 +11176,7 @@ record C(int X);
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -11260,8 +11189,7 @@ record C(int X);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Y"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -11273,7 +11201,7 @@ record C(int X);
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -11299,11 +11227,11 @@ class C(int x)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                semanticEdits: new[]
-                {
+                semanticEdits:
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -11346,11 +11274,10 @@ class C(int x)
                 "Insert [int b]@26");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single())
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -11372,11 +11299,10 @@ class C(int x)
                 "Insert [int b]@16");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -11384,8 +11310,7 @@ class C(int x)
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/69159")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69159")]
         public void Constructor_Parameter_Insert_Primary_Captured_Class()
         {
             var src1 = "class C(int a) { int X => a; }";
@@ -11393,12 +11318,11 @@ class C(int x)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_X")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
 
             // TODO: should report rude edit https://github.com/dotnet/roslyn/issues/69159
@@ -11430,8 +11354,7 @@ class C(int x)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -11443,7 +11366,7 @@ class C(int x)
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.U")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -11501,11 +11424,10 @@ record struct C(int x, int y)
                 "Insert [in int b]@12");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetParameterlessConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single())
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -11522,8 +11444,7 @@ record struct C(int x, int y)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
@@ -11532,7 +11453,7 @@ record struct C(int x, int y)
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -11545,8 +11466,7 @@ record struct C(int x, int y)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
@@ -11555,7 +11475,7 @@ record struct C(int x, int y)
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -11568,8 +11488,7 @@ record struct C(int x, int y)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMembers<IMethodSymbol>("C.Deconstruct").Single(m => m.Parameters is [_, _])),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -11579,7 +11498,7 @@ record struct C(int x, int y)
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -11592,8 +11511,7 @@ record struct C(int x, int y)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -11603,7 +11521,7 @@ record struct C(int x, int y)
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -11616,8 +11534,7 @@ record struct C(int x, int y)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
@@ -11627,7 +11544,7 @@ record struct C(int x, int y)
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -11687,11 +11604,11 @@ class C(int x, int y)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                semanticEdits: new[]
-                {
+                semanticEdits:
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -11775,8 +11692,7 @@ class C(int x, int y)
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
         public void Constructor_Parameter_Reorder_Primary_NotLifted_Record_Struct()
         {
             var src1 = "record struct C(int x, byte y) { }";
@@ -11788,8 +11704,7 @@ class C(int x, int y)
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
         public void Constructor_Parameter_Reorder_Primary_Lifted_Struct()
         {
             var src1 = "struct C(int x, byte y) { int M() => x + y; }";
@@ -11801,8 +11716,7 @@ class C(int x, int y)
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
         public void Constructor_Parameter_Reorder_Primary_Lifted_Class()
         {
             var src1 = "class C(int x, byte y) { int M() => x + y; }";
@@ -11817,8 +11731,7 @@ class C(int x, int y)
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68708")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69894")]
         public void Constructor_Parameter_Reorder_Primary_Lifted_Record()
         {
@@ -11995,14 +11908,14 @@ class C(int x, int y)
             var srcB2 = keywords + " C(int P);";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
                 ]);
         }
 
@@ -12019,16 +11932,16 @@ class C(int x, int y)
             var srcB2 = keywords + " C(int P);";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
                 ]);
         }
 
@@ -12044,15 +11957,15 @@ class C(int x, int y)
             var srcB2 = "partial " + keyword + " C { public C(int a) { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "a"}]), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
                 ]);
         }
 
@@ -12066,13 +11979,13 @@ class C(int x, int y)
             var srcB2 = "partial record C { public int P { get; init; } public C(int P) { } public void Deconstruct(out int P) { P = this.P; } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
@@ -12081,7 +11994,7 @@ class C(int x, int y)
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "P"}]), partialType: "C", preserveLocalVariables: true),
-                        }),
+                        ]),
                 ]);
         }
 
@@ -12124,13 +12037,13 @@ class C(int x, int y)
             var srcB2 = "partial record C(int P) { public int P { get; init; } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "P" }]), partialType: "C", preserveLocalVariables: true),
@@ -12139,7 +12052,7 @@ class C(int x, int y)
                             SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
-                        }),
+                        ]),
                 ]);
         }
 
@@ -12153,18 +12066,18 @@ class C(int x, int y)
             var srcB2 = "partial record C(int P) { public int P; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
-                    DocumentResults(semanticEdits: new[]
-                        {
+                    DocumentResults(semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                             SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                             SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                        }),
+                        ]),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
@@ -12172,7 +12085,7 @@ class C(int x, int y)
                             SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.P")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [{ Name: "P" }]), partialType: "C", preserveLocalVariables: true),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Deconstruct")),
-                        }),
+                        ]),
                 ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
         }
@@ -12187,27 +12100,27 @@ class C(int x, int y)
             var srcB2 = "partial record C() { public C(int P) : this() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                             SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                             SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                        }
+                        ]
                     ),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [{ Name: "P" }])),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is []), partialType: "C", preserveLocalVariables: true),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
-                        }),
+                        ]),
                 ]);
         }
 
@@ -12221,26 +12134,26 @@ class C(int x, int y)
             var srcB2 = "partial record C(int P) { public int P; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                             SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                             SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                        }),
+                        ]),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                             SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.P")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), partialType: "C", preserveLocalVariables: true),
-                        }),
+                        ]),
                 ], capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -12306,10 +12219,9 @@ class C<T>
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
@@ -12364,10 +12276,9 @@ class C<T>
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
@@ -12426,8 +12337,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Constructor_Instance_Update_Initializer_StackAlloc_Update()
         {
             var src1 = "class C { C() : this(stackalloc int[1]) {} C(Span<int> span) {} }";
@@ -12438,8 +12348,7 @@ class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc int[2]", FeaturesResources.constructor));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Constructor_Instance_Update_Initializer_StackAlloc_Delete()
         {
             var src1 = "class C { C() : this(stackalloc int[1]) {} C(Span<int> span) {} }";
@@ -12450,8 +12359,7 @@ class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "C()", FeaturesResources.constructor));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Constructor_Instance_Update_Initializer_StackAlloc_Insert()
         {
             var src1 = "class C { C() : this(default) {} C(Span<int> span) {} }";
@@ -12516,10 +12424,9 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-                });
+                ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -12547,10 +12454,9 @@ public class C : B
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-                });
+                ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -12578,10 +12484,9 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-                });
+                ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -12609,10 +12514,9 @@ public class C : B
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-                });
+                ]);
         }
 
         [Fact]
@@ -12652,8 +12556,7 @@ partial class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("C").PartialImplementationPart, partialType: "C"));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2068")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2068")]
         public void Constructor_Instance_Update_Modifier_Extern_Add()
         {
             var src1 = "class C { }";
@@ -12679,10 +12582,9 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "X" }]))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -12695,10 +12597,9 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "X" }]))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -12728,11 +12629,10 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "X"}])),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetParameterlessConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -12745,11 +12645,10 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetParameterlessConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -12762,8 +12661,7 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.P")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
@@ -12772,7 +12670,7 @@ partial class C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetParameterlessConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -12785,8 +12683,7 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.P")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryConstructor("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetPrimaryDeconstructor("C")),
@@ -12795,7 +12692,7 @@ partial class C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetParameterlessConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C"))
-                },
+                ],
                 capabilities:
                     EditAndContinueCapabilities.AddMethodToExistingType |
                     EditAndContinueCapabilities.AddInstanceFieldToExistingType |
@@ -12838,10 +12735,9 @@ partial class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)
-                });
+                ]);
         }
 
         [Fact]
@@ -12877,7 +12773,7 @@ partial class C
             var srcB2 = "partial class C { static int G(System.Span<int> span) => 1; public C() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
@@ -12928,7 +12824,7 @@ partial class C
             var srcB2 = "partial class C { static int G(System.Span<int> span) => 1; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
 
@@ -12956,7 +12852,7 @@ partial class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -12976,13 +12872,13 @@ partial class C
             var srcB2 = "partial " + keyword + " C { " + accessibility + " C() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     // no change in document A
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true) }),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)]),
                 ]);
         }
 
@@ -12999,7 +12895,7 @@ partial class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetParameterlessConstructor("C")) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetParameterlessConstructor("C"))],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -13016,7 +12912,7 @@ partial class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetParameterlessConstructor("C")) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetParameterlessConstructor("C"))],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -13033,13 +12929,13 @@ partial class C
             var srcB2 = "partial " + keyword + " C { public C(int a) { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Insert, c => c.GetParameterlessConstructor("C"), partialType: "C")
-                        }),
+                        ]),
 
                     // no change in document B
                     DocumentResults(),
@@ -13060,13 +12956,13 @@ partial class C
             var srcB2 = "partial " + keyword + " C(int a) { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Insert, c => c.GetParameterlessConstructor("C"))
-                        }),
+                        ]),
 
                     // no change in document B
                     DocumentResults(),
@@ -13151,10 +13047,9 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "X" }]), deletedSymbolContainerProvider: c => c.GetMember("C"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -13167,10 +13062,9 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "X" }]), deletedSymbolContainerProvider: c => c.GetMember("C"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -13183,8 +13077,7 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
@@ -13193,7 +13086,7 @@ partial class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -13208,11 +13101,10 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     // The compiler emits default constructor automatically
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "X"}]), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -13225,11 +13117,10 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     // The compiler emits default constructor automatically
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -13242,8 +13133,7 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     // The compiler emits default constructor automatically
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
@@ -13254,7 +13144,7 @@ partial class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -13287,7 +13177,7 @@ partial class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -13318,10 +13208,9 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)
-                });
+                ]);
         }
 
         [Theory]
@@ -13334,7 +13223,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "x" }]), deletedSymbolContainerProvider: c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "x" }]), deletedSymbolContainerProvider: c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -13348,7 +13237,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "b" }]), deletedSymbolContainerProvider: c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [{ Name: "b" }]), deletedSymbolContainerProvider: c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -13361,7 +13250,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.FirstOrDefault(c => c.Parameters.Length == 1), deletedSymbolContainerProvider: c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.FirstOrDefault(c => c.Parameters.Length == 1), deletedSymbolContainerProvider: c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -13374,8 +13263,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetPrimaryDeconstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
@@ -13385,7 +13273,7 @@ class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -13410,13 +13298,13 @@ class C
             var srcB2 = "partial class C { int x = 2; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true) }),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)]),
 
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true) })
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)])
                 ]);
         }
 
@@ -13616,16 +13504,16 @@ partial record C;
             var srcB2 = "partial class C { C() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
                 ]);
         }
 
@@ -13639,16 +13527,16 @@ partial record C;
             var srcB2 = "partial class C { public C() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
                 ]);
         }
 
@@ -13662,7 +13550,7 @@ partial record C;
             var srcB2 = "partial class C { public C() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     // delete of the constructor in partial part will be reported as rude edit in the other document where it was inserted back with changed accessibility
                     DocumentResults(
@@ -13683,13 +13571,13 @@ partial record C;
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
 
                     // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                     DocumentResults(),
@@ -13706,13 +13594,13 @@ partial record C;
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
 
                     // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                     DocumentResults(),
@@ -13729,13 +13617,13 @@ partial record C;
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
 
                     // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                     DocumentResults(),
@@ -13752,13 +13640,13 @@ partial record C;
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
 
                     // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                     DocumentResults(),
@@ -13775,7 +13663,7 @@ partial record C;
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         diagnostics: [Diagnostic(RudeEditKind.ChangingAccessibility, "public C()", FeaturesResources.constructor)]),
@@ -13795,7 +13683,7 @@ partial record C;
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         diagnostics: [Diagnostic(RudeEditKind.ChangingAccessibility, "internal C()", FeaturesResources.constructor)]),
@@ -13852,7 +13740,7 @@ partial class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0])]);
         }
 
         [Fact]
@@ -13897,7 +13785,7 @@ partial class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0])]);
         }
 
         [Fact]
@@ -13956,7 +13844,7 @@ partial class C : I, J
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0])]);
         }
 
         [Fact]
@@ -14002,7 +13890,7 @@ partial class C
             var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0])],
                 capabilities: EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
 
             edits.VerifySemanticDiagnostics(
@@ -14106,19 +13994,19 @@ partial class C
             var syntaxMapB = GetSyntaxMap(srcB1, srcB2)[0];
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     // No changes in document A
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters.Single().Type.Name == "Int32"), partialType: "C", syntaxMap: syntaxMapB),
                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters.Single().Type.Name == "Boolean"), partialType: "C", syntaxMap: syntaxMapB),
                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters.Single().Type.Name == "UInt32"), partialType: "C", syntaxMap: syntaxMapB),
                            SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters.Single().Type.Name == "Byte"), partialType: "C", syntaxMap: null),
-                        })
+                        ])
                 ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
@@ -14165,14 +14053,14 @@ partial class C
 ";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     // No changes in document A
                     DocumentResults(),
 
                     // The actual edits do not matter since there are semantic errors in the compilation.
                     // We just should not crash.
-                    DocumentResults(diagnostics: Array.Empty<RudeEditDiagnosticDescription>())
+                    DocumentResults(diagnostics: [])
                 ]);
         }
 
@@ -14186,18 +14074,18 @@ partial class C
             var srcB2 = "partial class C { int G = 2; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
                 ]);
         }
 
@@ -14211,17 +14099,17 @@ partial class C
             var srcB2 = "partial class C { int x = 2; void F() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true) }),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)]),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
                 ]);
         }
 
@@ -14235,17 +14123,17 @@ partial class C
             var srcB2 = "partial class C { int x = 2; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
 
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true) }),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)]),
                 ]);
         }
 
@@ -14259,24 +14147,23 @@ partial class C
             var srcB2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { int x = 2; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")
-                        }),
+                        ]),
 
-                    DocumentResults(semanticEdits: new[]
-                        {
+                    DocumentResults(semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")
-                        }),
+                        ]),
                 ],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/2068")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2068")]
         public void Constructor_Static_Update_Modifier_Extern_Add()
         {
             var src1 = "class C { }";
@@ -14310,7 +14197,7 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -14323,7 +14210,7 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single()) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single())],
                 EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -14337,16 +14224,16 @@ partial class C
             var srcB2 = "partial class C { static C() { } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                     DocumentResults(),
 
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
                 ]);
         }
 
@@ -14360,13 +14247,13 @@ partial class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
 
                     // delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
                     DocumentResults(),
@@ -14432,10 +14319,9 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Finalize"), preserveLocalVariables: false)
-                });
+                ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -14459,10 +14345,9 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Finalize"), preserveLocalVariables: false)
-                });
+                ]);
         }
 
         #endregion
@@ -14482,7 +14367,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
         }
 
         [Fact]
@@ -14495,7 +14380,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
         }
 
         [Fact]
@@ -14511,7 +14396,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
         }
 
         [Fact]
@@ -14538,14 +14423,14 @@ public class C
             var srcB2 = "partial class C { int F ; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
                 ]);
         }
 
@@ -14559,15 +14444,15 @@ public class C
             var srcB2 = "partial class C { int F { get; } }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_F"))
-                        }),
+                        ]),
                 ]);
         }
 
@@ -14641,14 +14526,14 @@ public class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.a").GetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
                     DocumentResults(),
                 ]);
         }
@@ -14666,7 +14551,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
         }
 
         [Fact]
@@ -14683,11 +14568,10 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.a").GetMethod),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -14729,13 +14613,12 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.a"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_a"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_a"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-                });
+                ]);
         }
 
         [Fact]
@@ -14753,7 +14636,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true)]);
         }
 
         [Fact]
@@ -14766,7 +14649,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true)]);
         }
 
         [Fact]
@@ -14807,7 +14690,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
         }
 
         [Fact]
@@ -14820,7 +14703,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
         }
 
         [Fact]
@@ -14836,7 +14719,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true)]);
         }
 
         [Fact]
@@ -14849,7 +14732,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true)]);
         }
 
         [Theory]
@@ -14867,7 +14750,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
         }
 
         [Theory]
@@ -14883,7 +14766,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
         }
 
         [Fact]
@@ -14899,7 +14782,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
         }
 
         [Fact]
@@ -14912,7 +14795,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
         }
 
         [Fact]
@@ -14928,7 +14811,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
         }
 
         [Fact]
@@ -14944,11 +14827,10 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.ToString() == "C.C(int)"), preserveLocalVariables: true),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.ToString() == "C.C(string)"), preserveLocalVariables: true),
-                });
+                ]);
         }
 
         [Fact]
@@ -14964,11 +14846,10 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.ToString() == "C.C(int)"), preserveLocalVariables: true),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.ToString() == "C.C(bool)"), preserveLocalVariables: true),
-                });
+                ]);
         }
 
         [Fact]
@@ -14981,11 +14862,10 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.ToString() == "C.C(int)"), preserveLocalVariables: true),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.ToString() == "C.C(bool)"), preserveLocalVariables: true),
-                });
+                ]);
         }
 
         [Fact]
@@ -14998,11 +14878,10 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.ToString() == "C.C(int)"), preserveLocalVariables: true),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.ToString() == "C.C(bool)"), preserveLocalVariables: true),
-                });
+                ]);
         }
 
         [Fact]
@@ -15018,10 +14897,9 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.ToString() == "C.C(bool)"), preserveLocalVariables: true)
-                });
+                ]);
         }
 
         [Fact]
@@ -15037,7 +14915,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single()) });
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single())]);
         }
 
         [Fact]
@@ -15054,7 +14932,7 @@ public class C
                 "Update [a]@21 -> [a = 0]@21");
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single()) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single())],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -15071,7 +14949,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
         }
 
         [Theory]
@@ -15087,7 +14965,7 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
         }
 
         [Fact]
@@ -15108,10 +14986,9 @@ public class C
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
@@ -15128,10 +15005,9 @@ public class C
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
         }
 
@@ -15162,8 +15038,7 @@ public class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void MemberInitializer_Update_StackAllocInConstructor_Initializer_Field()
         {
             var src1 = "class C : B { int a = 1; C() : base(stackalloc int[1]) { } } class B(System.Span<int> s);";
@@ -15187,8 +15062,7 @@ public class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/67307")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67307")]
         public void MemberInitializer_Update_StackAllocInOtherInitializer()
         {
             var src1 = "class C { int a = 1; int b = G(stackalloc int[10]); static int G(Span<int> span) => 1; }";
@@ -15470,10 +15344,9 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), preserveLocalVariables: true)
-                });
+                ]);
         }
 
         [Fact]
@@ -15486,10 +15359,9 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), preserveLocalVariables: true)
-                });
+                ]);
         }
 
         [Fact]
@@ -15505,10 +15377,9 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), preserveLocalVariables: true)
-                });
+                ]);
         }
 
         [Fact]
@@ -15521,10 +15392,9 @@ public class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), preserveLocalVariables: true)
-                });
+                ]);
         }
 
         [Theory]
@@ -15608,7 +15478,7 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0])]);
         }
 
         [Fact]
@@ -15641,7 +15511,7 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0])]);
         }
 
         [Fact]
@@ -15678,7 +15548,7 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0])]);
         }
 
         [Fact]
@@ -15715,7 +15585,7 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0]) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0])]);
         }
 
         [Fact]
@@ -15754,11 +15624,10 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors[0], syntaxMap[0]),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors[1], syntaxMap[0])
-                });
+                ]);
         }
 
         [Fact]
@@ -15797,11 +15666,10 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors[0], syntaxMap[0]),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors[1], syntaxMap[0])
-                });
+                ]);
         }
 
         [Fact]
@@ -15840,11 +15708,10 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors[0], syntaxMap[0]),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors[1], syntaxMap[0])
-                });
+                ]);
         }
 
         [Fact]
@@ -15883,10 +15750,9 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(ctor => ctor.ToTestDisplayString() == "C..ctor(System.Int32 a)"), syntaxMap[0])
-                });
+                ]);
         }
 
         [Fact]
@@ -15925,10 +15791,9 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(ctor => ctor.ToTestDisplayString() == "C..ctor(System.Int32 a)"), syntaxMap[0])
-                });
+                ]);
         }
 
         [Fact]
@@ -15967,10 +15832,9 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(ctor => ctor.ToTestDisplayString() == "C..ctor(System.Boolean b)"), syntaxMap[0])
-                });
+                ]);
         }
 
         [Fact]
@@ -16009,10 +15873,9 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(ctor => ctor.ToTestDisplayString() == "C..ctor(System.Boolean b)"))
-                });
+                ]);
         }
 
         [Fact]
@@ -16051,10 +15914,9 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(ctor => ctor.ToTestDisplayString() == "C..ctor(System.Boolean b)"), syntaxMap[0])
-                });
+                ]);
         }
 
         [Fact]
@@ -16092,10 +15954,9 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(ctor => ctor.ToTestDisplayString() == "C..ctor(System.Boolean b)"))
-                });
+                ]);
         }
 
         [Fact]
@@ -16150,10 +16011,9 @@ class C : B
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(ctor => ctor.ToTestDisplayString() == "C..ctor(System.Boolean b)"), syntaxMap[0])
-                });
+                ]);
         }
 
         [Theory]
@@ -16190,10 +16050,9 @@ class C : B
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0])
-                });
+                ]);
         }
 
         [Theory]
@@ -16231,10 +16090,9 @@ class C : B
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0])
-                });
+                ]);
         }
 
         [Fact]
@@ -16277,11 +16135,10 @@ partial class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), syntaxMap[0]),
-                });
+                ]);
         }
 
         [Theory]
@@ -16295,10 +16152,9 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is [_, _]), preserveLocalVariables: true),
-                });
+                ]);
         }
 
         [Fact]
@@ -16334,11 +16190,10 @@ class C
 
             edits.VerifySemantics(
                 activeStatements,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors[0], syntaxMap[0]),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors[1], syntaxMap[0]),
-                });
+                ]);
         }
 
         [Fact]
@@ -16405,16 +16260,16 @@ partial class C
             var srcB2 = "partial class C { int y = 2; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")
-                    }),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    ]),
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")
-                    }),
+                    ]),
                 ],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
@@ -16490,7 +16345,7 @@ partial class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         diagnostics:
@@ -16512,13 +16367,13 @@ partial class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"))
-                        }),
+                        ]),
 
                     DocumentResults(),
                 ],
@@ -16602,11 +16457,10 @@ partial class C
                 "Insert [a = 1]@14");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.a")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -16671,12 +16525,11 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.b")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.c")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.d")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType);
         }
 
@@ -16790,11 +16643,10 @@ class C
             var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.B")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0])
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -16831,11 +16683,10 @@ class C
             var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.B")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0])
-                },
+                ],
                 capabilities:
                     EditAndContinueCapabilities.AddInstanceFieldToExistingType |
                     EditAndContinueCapabilities.AddStaticFieldToExistingType |
@@ -16975,12 +16826,11 @@ class C
             var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.B")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single()),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetParameterlessConstructor("C"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -17055,11 +16905,10 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.a")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.b"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -17081,11 +16930,10 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.a")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -17099,15 +16947,15 @@ class C
             var srcB2 = "partial class C { [System.Obsolete]int a = 2; }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.a")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
                 ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
@@ -17255,13 +17103,12 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Q")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Q")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -17277,10 +17124,10 @@ class C
                 "Update [int P => 1;]@10 -> [int P => 2;]@10",
                 "Update [=> 1]@16 -> [=> 2]@16");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false)
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48628")]
@@ -17310,10 +17157,10 @@ class C
                 "Insert [get { return 2; }]@18",
                 "Delete [=> 1]@16");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false)
-            });
+            ]);
         }
 
         [Fact]
@@ -17332,11 +17179,10 @@ class C
                 "Delete [=> 1]@16");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_P"), preserveLocalVariables: false)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -17354,10 +17200,10 @@ class C
                 "Delete [{ get { return 2; } }]@16",
                 "Delete [get { return 2; }]@18");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false)
-            });
+            ]);
         }
 
         [Fact]
@@ -17376,11 +17222,10 @@ class C
                 "Delete [set { }]@36");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -17397,10 +17242,10 @@ class C
                 "Insert [get => 2;]@18",
                 "Delete [=> 1]@16");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false),
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -17416,10 +17261,10 @@ class C
                 "Delete [{ get => 2; }]@16",
                 "Delete [get => 2;]@18");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false),
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -17432,10 +17277,10 @@ class C
 
             edits.VerifyEdits("Update [get { return 2; }]@18 -> [get => 2;]@18");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false),
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -17448,10 +17293,10 @@ class C
 
             edits.VerifyEdits("Update [set { }]@18 -> [set => F();]@18");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").SetMethod),
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -17464,10 +17309,10 @@ class C
 
             edits.VerifyEdits("Update [init { }]@18 -> [init => F();]@18");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").SetMethod, preserveLocalVariables: false),
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -17480,10 +17325,10 @@ class C
 
             edits.VerifyEdits("Update [get => 2;]@18 -> [get { return 2; }]@18");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false)
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -17496,10 +17341,10 @@ class C
 
             edits.VerifyEdits("Update [get => 2;]@18 -> [get { return 2; }]@18");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false),
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -17512,11 +17357,11 @@ class C
 
             edits.VerifyEdits("Update [get { return 2; }]@18 -> [get => 2;]@18");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P"), preserveLocalVariables: false)
-            });
+            ]);
         }
 
         [Fact]
@@ -17528,13 +17373,12 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Q")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Q"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -17574,15 +17418,14 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Q")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_Q")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Q")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -17595,15 +17438,14 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Q")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_Q")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Q")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -17632,13 +17474,12 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Q")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Q"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -17669,12 +17510,11 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -17687,11 +17527,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -17704,12 +17543,11 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -17725,12 +17563,11 @@ class C
             // The properties are updated to throw and the backing field remains in the type.
             // The deleted field will remain unused since adding the property/event back is a rude edit.
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -17743,10 +17580,9 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -17759,10 +17595,9 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -17849,15 +17684,14 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.P")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_P")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_P")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -17893,15 +17727,14 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_P")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_P")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.P")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -17931,12 +17764,11 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
 
             edits.VerifySemanticDiagnostics(
@@ -17954,7 +17786,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.P")) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.P"))],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
 
             edits.VerifySemanticDiagnostics(
@@ -17971,11 +17803,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
 
             edits.VerifySemanticDiagnostics(
@@ -17992,7 +17823,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").SetMethod) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").SetMethod)],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
 
             edits.VerifySemanticDiagnostics(
@@ -18009,7 +17840,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P")) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P"))],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -18022,7 +17853,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P")) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P"))],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -18173,7 +18004,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P")) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P"))],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -18186,7 +18017,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P")) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P"))],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType);
         }
 
@@ -18199,7 +18030,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P")) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P"))],
                 capabilities:
                     EditAndContinueCapabilities.AddMethodToExistingType |
                     EditAndContinueCapabilities.AddInstanceFieldToExistingType |
@@ -18220,7 +18051,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P")) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P"))],
                 capabilities:
                     EditAndContinueCapabilities.AddMethodToExistingType |
                     EditAndContinueCapabilities.AddStaticFieldToExistingType |
@@ -18259,10 +18090,9 @@ class C
             edits.VerifyEdits("Delete [set { _p = value; }]@44");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -18361,11 +18191,10 @@ class C
             edits.VerifyEdits("Delete [get;]@18");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_P")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -18412,11 +18241,10 @@ class C
             edits.VerifyEdits("Delete [set;]@23");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), preserveLocalVariables: true),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -18431,11 +18259,10 @@ class C
             edits.VerifyEdits("Delete [init;]@23");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), preserveLocalVariables: true),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -18462,10 +18289,9 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").GetMethod)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -18484,10 +18310,9 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").GetMethod)
-                },
+                ],
                 capabilities:
                     EditAndContinueCapabilities.AddInstanceFieldToExistingType |
                     EditAndContinueCapabilities.GenericAddFieldToExistingType |
@@ -18509,10 +18334,9 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").GetMethod)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -18525,10 +18349,9 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").GetMethod)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
 
             edits.VerifySemanticDiagnostics(
@@ -18547,10 +18370,9 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").GetMethod)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -18563,10 +18385,9 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").GetMethod)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.GenericUpdateMethod);
 
             edits.VerifySemanticDiagnostics(
@@ -18606,13 +18427,12 @@ class C
                 "Update [int P { get; }]@13 -> [ref readonly int P { get; }]@13");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("Test.P"), deletedSymbolContainerProvider: c => c.GetMember("Test")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("Test.get_P"), deletedSymbolContainerProvider: c => c.GetMember("Test")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("Test.P")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("Test.get_P")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -18630,14 +18450,14 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").GetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").SetMethod)
-                        }),
+                        ]),
 
                     DocumentResults(),
                 ]);
@@ -18653,14 +18473,14 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("Q").GetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("Q").SetMethod)
-                        }),
+                        ]),
 
                     DocumentResults(),
                 ]);
@@ -18678,16 +18498,16 @@ class C
             // Accessors need to be updated even though they do not have an explicit body. 
             // There is still a sequence point generated for them whose location needs to be updated.
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").GetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").SetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("Q").GetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("Q").SetMethod),
-                        }),
+                        ]),
                     DocumentResults(),
                 ]);
         }
@@ -18704,15 +18524,15 @@ class C
             // Accessors need to be updated even though they do not have an explicit body. 
             // There is still a sequence point generated for them whose location needs to be updated.
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").GetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").SetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
 
                     DocumentResults(),
                 ]);
@@ -18728,10 +18548,10 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").GetMethod) }),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").GetMethod)]),
 
                     DocumentResults(),
                 ]);
@@ -18809,15 +18629,14 @@ readonly struct S
             var edits = GetTopEdits(src1, src2);
 
             // updates only for accessors whose modifiers were explicitly updated
-            edits.VerifySemantics(new[]
-            {
+            edits.VerifySemantics(
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("S").GetMember<IPropertySymbol>("P2").GetMethod, preserveLocalVariables: false),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("S").GetMember<IPropertySymbol>("P3").SetMethod, preserveLocalVariables: false)
-            });
+            ]);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/69317")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69317")]
         public void Property_Rename_ShadowingPrimaryParameter()
         {
             var src1 = @"
@@ -18842,20 +18661,18 @@ class C(int A, int B)
             // Update D getter/setter to use deleted B property
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.B"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_B"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_B"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.D")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_D")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_D")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/69317")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69317")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69216")]
         public void Property_Rename_ShadowingPrimaryParameter_WithInitializer()
         {
@@ -18881,8 +18698,7 @@ class C(int A, int B)
             // Update D getter/setter to use deleted B property
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.B"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_B"), deletedSymbolContainerProvider: c => c.GetMember("C")),
@@ -18890,7 +18706,7 @@ class C(int A, int B)
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.D")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_D")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_D")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -18937,10 +18753,10 @@ class C(int A, int B)
             edits.VerifyEdits(
                 "Update [get { return 1; }]@28 -> [get { return 2; }]@28");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: false)
-            });
+            ]);
         }
 
         [Fact]
@@ -18954,10 +18770,10 @@ class C(int A, int B)
             edits.VerifyEdits(
                 "Update [set { System.Console.WriteLine(value); }]@46 -> [set { System.Console.WriteLine(value + 1); }]@46");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: false)
-            });
+            ]);
         }
 
         [Fact]
@@ -18971,10 +18787,10 @@ class C(int A, int B)
             edits.VerifyEdits(
                 "Update [init { System.Console.WriteLine(value); }]@46 -> [init { System.Console.WriteLine(value + 1); }]@46");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: false)
-            });
+            ]);
         }
 
         [Fact]
@@ -18989,11 +18805,11 @@ class C(int A, int B)
                 "Update [int this[int a] => 1;]@10 -> [int this[int a] => 2;]@10",
                 "Update [=> 1]@26 -> [=> 2]@26");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.this[]")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"))
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -19010,11 +18826,11 @@ class C(int A, int B)
                 "Insert [get { return 1; }]@28",
                 "Delete [=> 1]@26");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.this[]")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"))
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -19031,11 +18847,11 @@ class C(int A, int B)
                 "Delete [{ get { return 1; } }]@26",
                 "Delete [get { return 1; }]@28");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.this[]")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"))
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -19048,10 +18864,10 @@ class C(int A, int B)
 
             edits.VerifyEdits("Update [get => 1;]@28 -> [get { return 1; }]@28");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: false)
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -19079,11 +18895,11 @@ class C(int A, int B)
                 "Delete [{ get => 1; }]@26",
                 "Delete [get => 1;]@28");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.this[]")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"))
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -19099,11 +18915,11 @@ class C(int A, int B)
                 "Insert [get => 1;]@28",
                 "Delete [=> 1]@26");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.this[]")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"))
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -19116,10 +18932,10 @@ class C(int A, int B)
 
             edits.VerifyEdits("Update [get { return 1; }]@28 -> [get => 1;]@28");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: false),
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -19132,11 +18948,11 @@ class C(int A, int B)
 
             edits.VerifyEdits("Update [set { }]@28 -> [set => F();]@28");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F")),
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -19149,11 +18965,11 @@ class C(int A, int B)
 
             edits.VerifyEdits("Update [init { }]@28 -> [init => F();]@28");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F")),
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -19166,11 +18982,11 @@ class C(int A, int B)
 
             edits.VerifyEdits("Update [get => 1;]@28 -> [get { return 1; }]@28");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: false),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item"), preserveLocalVariables: false)
-            });
+            ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17681")]
@@ -19188,12 +19004,11 @@ class C(int A, int B)
                 "Delete [set { Console.WriteLine(0); }]@46");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.this[]")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -19213,12 +19028,11 @@ class C(int A, int B)
                 "Delete [=> 1]@26");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.this[]")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_Item"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -19381,15 +19195,14 @@ class C(int A, int B)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.this[]"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.this[]")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Item")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_Item")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -19406,13 +19219,12 @@ class C(int A, int B)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.this[]"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.this[]")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Item")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -19460,15 +19272,14 @@ class C(int A, int B)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.this[]"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.this[]")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Item")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_Item")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -19481,12 +19292,11 @@ class C(int A, int B)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_Item")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.this[]")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.UpdateParameters);
 
             edits.VerifySemanticDiagnostics(
@@ -19507,10 +19317,9 @@ class C(int A, int B)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.this[]"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
 
             edits.VerifySemanticDiagnostics(
@@ -19527,15 +19336,14 @@ class C(int A, int B)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.this[]"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.this[]")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Item")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_Item")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -19548,15 +19356,14 @@ class C(int A, int B)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.this[]"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.this[]")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Item")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_Item")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -19656,7 +19463,7 @@ class C
             edits.VerifyEdits("Insert [set { }]@67");
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("this[]").SetMethod) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("this[]").SetMethod)],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -19679,12 +19486,11 @@ class C<T>
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.this[]"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -19711,10 +19517,9 @@ class C<T>
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -19734,10 +19539,9 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -19821,13 +19625,12 @@ class C
                 "Update [int this[int i] => throw null;]@10 -> [ref readonly int this[int i] => throw null;]@10");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.this[]"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.this[]")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Item")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -19845,15 +19648,15 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.this[]")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.this[]").GetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.this[]").SetMethod)
-                        }),
+                        ]),
 
                     DocumentResults(),
                 ]);
@@ -19869,15 +19672,15 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.this[]")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.this[]").GetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.this[]").SetMethod)
-                        }),
+                        ]),
 
                     DocumentResults(),
                 ]);
@@ -19895,15 +19698,15 @@ class C
             // Accessors need to be updated even though they do not have an explicit body. 
             // There is still a sequence point generated for them whose location needs to be updated.
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.this[]")),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.this[]").GetMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.this[]").SetMethod),
-                        }),
+                        ]),
                     DocumentResults(),
                 ]);
         }
@@ -19986,13 +19789,13 @@ readonly struct S
 
             // Updates only for accessors whose modifiers were explicitly updated.
             // Indexers themselves are only updated when their modifiers change. The update is not necessary and could be eliminated.
-            edits.VerifySemantics(new[]
-            {
+            edits.VerifySemantics(
+            [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMembers<IPropertySymbol>("S.this[]").Single(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_UInt32 }]).GetMethod),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMembers<IPropertySymbol>("S.this[]").Single(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Byte }]).SetMethod),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMembers<IPropertySymbol>("S.this[]").Single(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Int32 }])),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMembers<IPropertySymbol>("S.this[]").Single(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_SByte }])),
-            });
+            ]);
         }
 
         #endregion
@@ -20080,10 +19883,9 @@ readonly struct S
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("E"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -20096,12 +19898,11 @@ readonly struct S
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.E"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.add_E"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.remove_E"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -20240,14 +20041,14 @@ public class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IEventSymbol>("E").AddMethod),
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IEventSymbol>("E").RemoveMethod)
-                        }),
+                        ]),
 
                     DocumentResults(),
                 ]);
@@ -20327,10 +20128,9 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-               new[]
-               {
+               [
                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F"))
-               },
+               ],
                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -20358,12 +20158,11 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-               new[]
-               {
+               [
                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F")),
                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").AddMethod),
                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)
-               },
+               ],
                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -20391,7 +20190,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -20419,7 +20218,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F")) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F"))],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -20447,12 +20246,11 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-               new[]
-               {
+               [
                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F")),
                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").AddMethod),
                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)
-               },
+               ],
                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -20480,10 +20278,9 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-               new[]
-               {
+               [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)
-               },
+               ],
                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -20530,15 +20327,14 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.E"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.add_E"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.remove_E"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.F")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.add_F")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.remove_F")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -20568,14 +20364,13 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.E")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.add_E"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.remove_E"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.add_E")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.remove_E")),
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -20637,13 +20432,13 @@ class C
             var srcB2 = "partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
-                        semanticEdits: new[]
-                        {
+                        semanticEdits:
+                        [
                             SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true)
-                        }),
+                        ]),
 
                     DocumentResults(),
                 ]);
@@ -20664,10 +20459,9 @@ class C
                 "Update [int a]@24 -> [int b]@24");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.UpdateParameters);
 
             edits.VerifySemanticDiagnostics(
@@ -20688,10 +20482,9 @@ class C
                 "Update [int a]@19 -> [int b]@19");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.UpdateParameters);
 
             edits.VerifySemanticDiagnostics(
@@ -20735,10 +20528,10 @@ class C
                 "Insert [int a]@24");
 
             edits.VerifySemantics(
-                new[] {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 0)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 1)?.ISymbol)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -20754,10 +20547,10 @@ class C
                 "Insert [ref int b]@31");
 
             edits.VerifySemantics(
-                new[] {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 1)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 2)?.ISymbol)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -20773,10 +20566,10 @@ class C
                 "Insert [int a]@23");
 
             edits.VerifySemantics(
-                new[] {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.M"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.M"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -20791,10 +20584,10 @@ class C
                 "Delete [int a]@24");
 
             edits.VerifySemantics(
-                new[] {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 1)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 0)?.ISymbol)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -20810,10 +20603,10 @@ class C
                 "Delete [int a]@24");
 
             edits.VerifySemantics(
-                new[] {
+                [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 2)?.ISymbol, deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterCount() == 1)?.ISymbol)
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
@@ -20828,10 +20621,9 @@ class C
                 "Reorder [int b]@31 -> @24");
 
             edits.VerifySemantics(
-               new[]
-               {
+               [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"))
-               },
+               ],
                capabilities: EditAndContinueCapabilities.UpdateParameters);
 
             edits.VerifySemanticDiagnostics(
@@ -20841,8 +20633,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Fact]
-        [WorkItem(67268, "https://github.com/dotnet/roslyn/issues/67268")]
+        [Fact, WorkItem(67268, "https://github.com/dotnet/roslyn/issues/67268")]
         public void Parameter_Reorder_Constructor()
         {
             var src1 = @"class C { C(int a, int b) {} }";
@@ -20853,10 +20644,9 @@ class C
                 "Reorder [int b]@19 -> @12");
 
             edits.VerifySemantics(
-               new[]
-               {
+               [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-               },
+               ],
                capabilities: EditAndContinueCapabilities.UpdateParameters);
 
             edits.VerifySemanticDiagnostics(
@@ -20878,10 +20668,9 @@ class C
                 "Reorder [int b]@31 -> @24");
 
             edits.VerifySemantics(
-               new[]
-               {
+               [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"))
-               },
+               ],
                capabilities: EditAndContinueCapabilities.UpdateParameters);
 
             edits.VerifySemanticDiagnostics(
@@ -20901,11 +20690,10 @@ class C
                 "Reorder [int b]@34 -> @24");
 
             edits.VerifySemantics(
-               new[]
-               {
+               [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.M"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.M"))
-               },
+               ],
                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -20925,10 +20713,9 @@ class C
                 "Update [int a]@24 -> [int c]@31");
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"))
-                },
+                ],
                 capabilities: EditAndContinueCapabilities.UpdateParameters);
 
             edits.VerifySemanticDiagnostics(
@@ -20948,10 +20735,9 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[]
-                {
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"))
-                },
+                ],
                 capabilities:
                     EditAndContinueCapabilities.UpdateParameters |
                     EditAndContinueCapabilities.GenericAddMethodToExistingType |
@@ -20987,11 +20773,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-               new[]
-               {
+               [
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.F"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.F"))
-               },
+               ],
                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -21094,7 +20879,7 @@ class C { static void M(string a) { } }
             var srcB2 = @"partial class C { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(
                         diagnostics:
@@ -21119,7 +20904,7 @@ class C { static void M(string a) { } }
                 "Update [int a]@63 -> [[A]int a]@63");
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M")) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"))],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -21248,7 +21033,7 @@ class C { static void M(string a) { } }
                 "Update [[A(0)]int a]@67 -> [[A(1)]int a]@67");
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F")) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"))],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -21267,7 +21052,7 @@ class C { static void M(string a) { } }
                 "Update [[A(0)]int a]@67 -> [[A(1)]int a]@67");
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F")) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"))],
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
@@ -21756,7 +21541,7 @@ class B : System.Attribute {}
             var srcB2 = "partial class C<[B]T> { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(diagnostics:
                     [
@@ -21785,16 +21570,16 @@ class B : System.Attribute {}
             var srcB2 = "partial class C<[B]T> { }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")
-                    }),
-                    DocumentResults(semanticEdits: new[]
-                    {
+                    ]),
+                    DocumentResults(semanticEdits:
+                    [
                         SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")
-                    }),
+                    ]),
                 ],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
@@ -21859,10 +21644,10 @@ class B : System.Attribute {}
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                semanticEdits: new[]
-                {
+                semanticEdits:
+                [
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C"))
-                });
+                ]);
         }
 
         [Theory]
@@ -22021,7 +21806,7 @@ Console.WriteLine(""Hello World"");
             edits.VerifyEdits("Insert [Console.WriteLine(\"Hello World\");]@19");
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("Program.<Main>$")) },
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("Program.<Main>$"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -22237,7 +22022,7 @@ await Task.Delay(200);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true)],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -22287,7 +22072,7 @@ await Task.Delay(100);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true) },
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true)],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
 
             edits.VerifySemanticDiagnostics(
@@ -22582,7 +22367,7 @@ Console.WriteLine(1);
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), syntaxMap[0]) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), syntaxMap[0])]);
         }
 
         [Fact]
@@ -22613,7 +22398,7 @@ public class C { }
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), syntaxMap[0]) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), syntaxMap[0])]);
         }
 
         [Fact]
@@ -22642,7 +22427,7 @@ public class C { }
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), syntaxMap[0]) });
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), syntaxMap[0])]);
         }
 
         [Fact]
@@ -22705,10 +22490,10 @@ public class B
 }";
 
             EditAndContinueValidation.VerifySemantics(
-                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
                 [
                     DocumentResults(),
-                    DocumentResults(semanticEdits: new [] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")) }),
+                    DocumentResults(semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"))]),
                 ]);
         }
 

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(0, originalDoc.Folders.Count);
 
-            var changedDoc = originalDoc.WithFolders(new[] { "A", "B" });
+            var changedDoc = originalDoc.WithFolders(["A", "B"]);
             Assert.Equal(2, changedDoc.Folders.Count);
             Assert.Equal("A", changedDoc.Folders[0]);
             Assert.Equal("B", changedDoc.Folders[1]);

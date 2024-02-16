@@ -100,17 +100,6 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the server provides support for multiple context requests.
-        /// </summary>
-        [DataMember(Name = "_vs_MultipleContextSupportProvider")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public VSInternalMultipleContextFeatures? MultipleContextSupportProvider
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Gets or sets a value indicating whether the server provides support for inline completion requests.
         /// </summary>
         [DataMember(Name = "_vs_inlineCompletionOptions")]

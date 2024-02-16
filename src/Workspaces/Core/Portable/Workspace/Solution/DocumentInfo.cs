@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis
                 Id.WriteTo(writer);
 
                 writer.WriteString(Name);
-                writer.WriteValue(Folders.ToArray());
+                writer.WriteArray(Folders.ToImmutableArrayOrEmpty(), static (w, f) => w.WriteString(f));
                 writer.WriteByte(checked((byte)SourceCodeKind));
                 writer.WriteString(FilePath);
                 writer.WriteBoolean(IsGenerated);
@@ -244,8 +245,8 @@ namespace Microsoft.CodeAnalysis
             {
                 var documentId = DocumentId.ReadFrom(reader);
 
-                var name = reader.ReadString();
-                var folders = (string[])reader.ReadValue();
+                var name = reader.ReadRequiredString();
+                var folders = reader.ReadArray(static r => r.ReadRequiredString());
                 var sourceCodeKind = (SourceCodeKind)reader.ReadByte();
                 var filePath = reader.ReadString();
                 var isGenerated = reader.ReadBoolean();

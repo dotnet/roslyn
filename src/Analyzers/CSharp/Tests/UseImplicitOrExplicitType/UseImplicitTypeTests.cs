@@ -2838,8 +2838,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39171")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39171")]
         public async Task NoSuggestionForSwitchExpressionDifferentTypes()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2865,8 +2864,7 @@ options: ImplicitTypeEverywhere());
                 """, new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/39171")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39171")]
         public async Task SuggestSwitchExpressionSameOrInheritedTypes()
         {
             await TestInRegularAndScriptAsync(

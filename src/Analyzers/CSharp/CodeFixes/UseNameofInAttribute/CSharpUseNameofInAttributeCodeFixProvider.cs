@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseNameofInAttribute
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseNameofInAttributeDiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseNameofInAttributeDiagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

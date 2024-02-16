@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode;
 internal class UseSystemHashCodeCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
-        = ImmutableArray.Create(IDEDiagnosticIds.UseSystemHashCode);
+        = [IDEDiagnosticIds.UseSystemHashCode];
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {

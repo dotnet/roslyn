@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             {
                 return CreateToken(
                     JsonKind.EndOfFile, leadingTrivia,
-                    VirtualCharSequence.Empty, ImmutableArray<JsonTrivia>.Empty);
+                    VirtualCharSequence.Empty, []);
             }
 
             var (chars, kind, diagnostic) = ScanNextTokenWorker();

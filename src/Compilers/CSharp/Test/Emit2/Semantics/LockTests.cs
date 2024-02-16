@@ -1761,7 +1761,7 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (4,7): error CS9215: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
+            // (4,7): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
             // lock (new Lock())
             Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(4, 7),
             // (6,5): error CS1996: Cannot await in the body of a lock statement
@@ -1785,7 +1785,7 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (8,15): error CS9215: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
+            // (8,15): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
             //         lock (new Lock()) { }
             Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(8, 15));
     }
@@ -1807,7 +1807,7 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (9,15): error CS9215: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
+            // (9,15): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
             //         lock (new Lock()) { }
             Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(9, 15));
     }
@@ -1827,7 +1827,7 @@ public class LockTests : CSharpTestBase
             local();
             """;
         CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (6,11): error CS9215: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
+            // (6,11): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
             //     lock (new Lock()) { }
             Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(6, 11));
     }
@@ -1848,7 +1848,7 @@ public class LockTests : CSharpTestBase
             local();
             """;
         CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (7,11): error CS9215: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
+            // (7,11): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
             //     lock (new Lock()) { }
             Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(7, 11));
     }
@@ -1866,7 +1866,7 @@ public class LockTests : CSharpTestBase
             };
             """;
         CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (6,11): error CS9215: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
+            // (6,11): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
             //     lock (new Lock()) { }
             Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(6, 11));
     }
@@ -1885,7 +1885,7 @@ public class LockTests : CSharpTestBase
             };
             """;
         CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (7,11): error CS9215: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
+            // (7,11): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
             //     lock (new Lock()) { }
             Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(7, 11));
     }
@@ -1939,7 +1939,7 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilationWithTasksExtensions([source, LockTypeDefinition, AsyncStreamsTypes]).VerifyDiagnostics(
-            // (10,15): error CS9215: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
+            // (10,15): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
             //         lock (new Lock())
             Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(10, 15));
     }
@@ -1975,16 +1975,16 @@ public class LockTests : CSharpTestBase
         var verifier = CompileAndVerify([source, LockTypeDefinition], verify: Verification.FailsILVerify,
            expectedOutput: "1234567");
         verifier.VerifyDiagnostics(
-            // 0.cs(6,13): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            // 0.cs(6,13): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
             // object  o = l;
             Diagnostic(ErrorCode.WRN_ConvertingLock, "l").WithLocation(6, 13),
-            // 0.cs(9,16): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            // 0.cs(9,16): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
             // lock ((object )l) { Console.Write("2"); }
             Diagnostic(ErrorCode.WRN_ConvertingLock, "l").WithLocation(9, 16),
-            // 0.cs(11,7): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            // 0.cs(11,7): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
             // lock (l as object ) { Console.Write("3"); }
             Diagnostic(ErrorCode.WRN_ConvertingLock, "l").WithLocation(11, 7),
-            // 0.cs(13,5): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            // 0.cs(13,5): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
             // o = l as object ;
             Diagnostic(ErrorCode.WRN_ConvertingLock, "l").WithLocation(13, 5));
     }
@@ -2040,7 +2040,7 @@ public class LockTests : CSharpTestBase
             System.Object[]
             """);
         verifier.VerifyDiagnostics(
-            // 0.cs(7,22): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            // 0.cs(7,22): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
             // var array2 = new[] { new Lock(), new object() };
             Diagnostic(ErrorCode.WRN_ConvertingLock, "new Lock()").WithLocation(7, 22));
     }
@@ -2098,10 +2098,10 @@ public class LockTests : CSharpTestBase
         var verifier = CompileAndVerify(source, verify: Verification.FailsILVerify,
            expectedOutput: "1E2D");
         verifier.VerifyDiagnostics(
-            // (14,20): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            // (14,20): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
             //         ILock l1 = new Lock();
             Diagnostic(ErrorCode.WRN_ConvertingLock, "new Lock()").WithLocation(14, 20),
-            // (20,20): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            // (20,20): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
             //         ILock l2 = new Lock();
             Diagnostic(ErrorCode.WRN_ConvertingLock, "new Lock()").WithLocation(20, 20));
         // Should use Monitor locking.
@@ -2208,10 +2208,10 @@ public class LockTests : CSharpTestBase
         var verifier = CompileAndVerify(source, verify: Verification.FailsILVerify,
            expectedOutput: "1E2D34");
         verifier.VerifyDiagnostics(
-            // (30,39): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            // (30,39): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
             //         DerivedLock l3 = (DerivedLock)l2;
             Diagnostic(ErrorCode.WRN_ConvertingLock, "l2").WithLocation(30, 39),
-            // (36,41): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            // (36,41): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
             //         IDerivedLock l4 = (IDerivedLock)l2;
             Diagnostic(ErrorCode.WRN_ConvertingLock, "l2").WithLocation(36, 41));
         // Should use Monitor locking.
@@ -2328,7 +2328,7 @@ public class LockTests : CSharpTestBase
         var verifier = CompileAndVerify([source, LockTypeDefinition], verify: Verification.FailsILVerify,
            expectedOutput: "ELD");
         verifier.VerifyDiagnostics(
-            // 0.cs(4,12): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            // 0.cs(4,12): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
             // object o = new Lock();
             Diagnostic(ErrorCode.WRN_ConvertingLock, "new Lock()").WithLocation(4, 12));
     }
@@ -2445,7 +2445,7 @@ public class LockTests : CSharpTestBase
         var verifier = CompileAndVerify([source, LockTypeDefinition], verify: Verification.FailsILVerify,
            expectedOutput: "L");
         verifier.VerifyDiagnostics(
-            // (4,13): warning CS9214: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            // (4,13): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
             // C.M<object>(new Lock());
             Diagnostic(ErrorCode.WRN_ConvertingLock, "new Lock()").WithLocation(4, 13));
         // Should use Monitor locking.

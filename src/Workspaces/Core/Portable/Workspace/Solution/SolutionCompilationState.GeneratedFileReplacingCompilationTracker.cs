@@ -57,7 +57,13 @@ namespace Microsoft.CodeAnalysis
                 throw new NotImplementedException();
             }
 
-            public ICompilationTracker FreezePartialStateWithTree(SolutionCompilationState compilationState, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
+            public ICompilationTracker FreezePartialState(CancellationToken cancellationToken)
+            {
+                // Ensure the underlying tracker is totally frozen, and then ensure our replaced generated doc is present.
+                return new GeneratedFileReplacingCompilationTracker(UnderlyingTracker.FreezePartialState(cancellationToken), replacementDocumentState);
+            }
+
+            public ICompilationTracker FreezePartialStateWithDocument(DocumentState docState, CancellationToken cancellationToken)
             {
                 // Because we override SourceGeneratedDocument.WithFrozenPartialSemantics directly, we shouldn't be able to get here.
                 throw ExceptionUtilities.Unreachable();
@@ -154,7 +160,7 @@ namespace Microsoft.CodeAnalysis
                     // an edit which would cause this file to no longer exist, but they're still operating on an open representation
                     // of that file. To ensure that this snapshot is still usable, we'll just add this document back in. This is not a
                     // semantically correct operation, but working on stale snapshots never has that guarantee.
-                    return underlyingGeneratedDocumentStates.AddRange(ImmutableArray.Create(replacementDocumentState));
+                    return underlyingGeneratedDocumentStates.AddRange([replacementDocumentState]);
                 }
             }
 

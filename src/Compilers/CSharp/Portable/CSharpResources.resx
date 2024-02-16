@@ -6859,6 +6859,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CollectionExpressionTargetNoElementType" xml:space="preserve">
     <value>Collection expression target '{0}' has no element type.</value>
   </data>
+  <data name="ERR_CollectionExpressionMissingConstructor" xml:space="preserve">
+    <value>Collection expression type must have an applicable constructor that can be called with no arguments.</value>
+  </data>
+  <data name="ERR_CollectionExpressionMissingAdd" xml:space="preserve">
+    <value>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</value>
+  </data>
   <data name="ERR_CollectionBuilderAttributeInvalidType" xml:space="preserve">
     <value>The CollectionBuilderAttribute builder type must be a non-generic class or struct.</value>
   </data>

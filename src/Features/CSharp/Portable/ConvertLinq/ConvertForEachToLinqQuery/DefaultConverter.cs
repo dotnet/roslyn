@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     SyntaxFactory.Identifier("_"),
                     CreateQueryExpressionOrLinqInvocation(
                         SyntaxFactory.AnonymousObjectCreationExpression(),
-                        Enumerable.Empty<SyntaxToken>(),
-                        Enumerable.Empty<SyntaxToken>(),
+                        [],
+                        [],
                         convertToQuery),
                     block);
             }
@@ -66,29 +66,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     identifiers.Single(),
                     CreateQueryExpressionOrLinqInvocation(
                         SyntaxFactory.IdentifierName(identifiers.Single()),
-                        Enumerable.Empty<SyntaxToken>(),
-                        Enumerable.Empty<SyntaxToken>(),
+                        [],
+                        [],
                         convertToQuery),
                     block);
             }
             else
             {
                 var tupleForSelectExpression = SyntaxFactory.TupleExpression(
-                    SyntaxFactory.SeparatedList(identifiers.Select(
-                        identifier => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(identifier)))));
+                    [.. identifiers.Select(
+                        identifier => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(identifier)))]);
                 var declaration = SyntaxFactory.DeclarationExpression(
                     VarNameIdentifier,
                     SyntaxFactory.ParenthesizedVariableDesignation(
-                        SyntaxFactory.SeparatedList<VariableDesignationSyntax>(identifiers.Select(
-                            identifier => SyntaxFactory.SingleVariableDesignation(identifier)))));
+                        [.. identifiers.Select(SyntaxFactory.SingleVariableDesignation)]));
 
                 // Generate foreach(var (a,b) ... select (a, b))
                 return SyntaxFactory.ForEachVariableStatement(
                     declaration,
                     CreateQueryExpressionOrLinqInvocation(
                         tupleForSelectExpression,
-                        Enumerable.Empty<SyntaxToken>(),
-                        Enumerable.Empty<SyntaxToken>(),
+                        [],
+                        [],
                         convertToQuery),
                     block);
             }

@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
-        <target state="new">Collapse local functions when collapsing to definitions</target>
+        <target state="translated">Tanımlara daraltılırken yerel işlevleri daralt</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_metadata_signature_files_on_open">
@@ -422,9 +422,9 @@
         <target state="translated">Source Link ve Embedded kaynaklarda gezinmeyi etkinleştir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
-        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="translated">'Pull' tanılamasını etkinleştir (deneysel, yeniden başlatma gerekir)</target>
+      <trans-unit id="Enable_pull_diagnostics_requires_restart">
+        <source>Enable 'pull' diagnostics (requires restart)</source>
+        <target state="new">Enable 'pull' diagnostics (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enabled">
@@ -1104,7 +1104,7 @@
       </trans-unit>
       <trans-unit id="Prefer_collection_expression">
         <source>Prefer collection expression</source>
-        <target state="translated">Koleksiyon ifadesini tercih eder</target>
+        <target state="translated">Koleksiyon ifadesini tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
@@ -1684,12 +1684,12 @@
       </trans-unit>
       <trans-unit id="When_types_exactly_match">
         <source>When types exactly match</source>
-        <target state="new">When types exactly match</target>
+        <target state="translated">Türler tam olarak eşleştiğinde</target>
         <note />
       </trans-unit>
       <trans-unit id="When_types_loosely_match">
         <source>When types loosely match</source>
-        <target state="new">When types loosely match</target>
+        <target state="translated">Türler yaklaşık olarak eşleştiğinde</target>
         <note />
       </trans-unit>
       <trans-unit id="Where_should_the_rename_UI_be_shown">

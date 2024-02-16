@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             hasAnyCodeStyleOption: false, isUnnecessary: false);
 
         public CSharpMakeStructFieldsWritableDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_diagnosticDescriptor), GeneratedCodeAnalysisFlags.ReportDiagnostics)
+            : base([s_diagnosticDescriptor], GeneratedCodeAnalysisFlags.ReportDiagnostics)
         {
         }
 

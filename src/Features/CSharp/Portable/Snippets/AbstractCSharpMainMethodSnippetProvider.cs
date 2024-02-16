@@ -3,21 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     internal abstract class AbstractCSharpMainMethodSnippetProvider : AbstractMainMethodSnippetProvider
     {
-        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var syntaxContext = (CSharpSyntaxContext)document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+            var semanticModel = context.SyntaxContext.SemanticModel;
+            var syntaxContext = (CSharpSyntaxContext)context.SyntaxContext;
 
             if (!syntaxContext.IsMemberDeclarationContext(
                 validModifiers: SyntaxKindSet.AccessibilityModifiers,
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
             // If there are any members with name `Main` in enclosing type, inserting `Main` method will create an error
             if (enclosingTypeSymbol is not null &&
-                !semanticModel.LookupSymbols(position, container: enclosingTypeSymbol, name: WellKnownMemberNames.EntryPointMethodName).IsEmpty)
+                !semanticModel.LookupSymbols(context.Position, container: enclosingTypeSymbol, name: WellKnownMemberNames.EntryPointMethodName).IsEmpty)
             {
                 return false;
             }

@@ -6065,6 +6065,40 @@ public " + keyword + @" C(int I1);
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
         }
 
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1931501")]
+        public void XmlDoc_InsideType(
+            [CombinatorialValues("class ", "struct")] string keyword,
+            [CombinatorialValues("x", "p")] string identifier,
+            [CombinatorialValues("param", "paramref")] string tag)
+        {
+            var source = $$"""
+                {{keyword}} C(int p)
+                {
+                    /// <{{tag}} name="{{identifier}}"></{{tag}}>
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            comp.VerifyDiagnostics(
+                // (1,14): warning CS9113: Parameter 'p' is unread.
+                // struct C(int p)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p").WithArguments("p").WithLocation(1, 14),
+                // (3,5): warning CS1587: XML comment is not placed on a valid language element
+                //     /// <param name="x"></param>
+                Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(3, 5));
+
+            var tree = comp.SyntaxTrees.Single();
+            var doc = tree.GetRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>().Single();
+            var x = doc.DescendantNodes().OfType<IdentifierNameSyntax>().Single();
+            Assert.Equal(identifier, x.Identifier.ValueText);
+
+            var model = comp.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(x);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.True(symbolInfo.IsEmpty);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
         [Theory]
         [CombinatorialData]
         public void XmlDoc_Cref([CombinatorialValues("class ", "struct")] string keyword)

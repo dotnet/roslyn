@@ -31,6 +31,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
             globalOptions.SetGlobalOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.CSharp, true);
             globalOptions.SetGlobalOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.VisualBasic, true);
+            await TestServices.Workarounds.DisableAutoSurroundAsync(HangMitigatingCancellationToken);
         }
 
         [IdeFact]

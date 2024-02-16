@@ -13,11 +13,13 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
-[LanguageServerEndpoint(Methods.TextDocumentDidCloseName)]
+[RazorMethod(Methods.TextDocumentDidCloseName)]
 [ExportRazorStatelessLspService(typeof(RazorCohostDidCloseEndpoint)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RazorCohostDidCloseEndpoint([Import(AllowDefault = true)] IRazorCohostDidCloseHandler? didCloseHandler) : ILspServiceNotificationHandler<DidCloseTextDocumentParams>, ITextDocumentIdentifierHandler<DidCloseTextDocumentParams, TextDocumentIdentifier>
+internal sealed class RazorCohostDidCloseEndpoint(
+    [Import(AllowDefault = true)] IRazorCohostTextDocumentSyncHandler? razorDocSyncHandler)
+    : ILspServiceNotificationHandler<DidCloseTextDocumentParams>, ITextDocumentIdentifierHandler<DidCloseTextDocumentParams, TextDocumentIdentifier>
 {
     public bool MutatesSolutionState => true;
     public bool RequiresLSPSolution => false;
@@ -32,13 +34,11 @@ internal sealed class RazorCohostDidCloseEndpoint([Import(AllowDefault = true)] 
         await context.StopTrackingAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
 
         // Razor can't handle this request because they don't have access to the RequestContext, but they might want to do something with it
-        if (didCloseHandler is not null)
-        {
-            await didCloseHandler.HandleAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
-        }
+        await razorDocSyncHandler.NotifyRazorAsync(request.TextDocument.Uri, version: -1, context, cancellationToken).ConfigureAwait(false);
     }
 }
 
+[Obsolete("This API is made of regret, no longer functions, and will be removed very soon")]
 internal interface IRazorCohostDidCloseHandler
 {
     Task HandleAsync(Uri uri, CancellationToken cancellationToken);

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var builder = psb.Builder;
                 builder.Append(_values.ToString());
                 if (_hasLarge && builder.Length > 0)
-                    builder.Append(",");
+                    builder.Append(',');
                 if (_hasLarge)
                     builder.Append("Large");
                 return psb.ToStringAndFree();

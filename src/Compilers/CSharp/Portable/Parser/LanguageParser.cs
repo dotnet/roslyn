@@ -12367,7 +12367,7 @@ done:;
                 SkipBadInitializerListTokens,
                 allowTrailingSeparator: true,
                 requireOneElement: false,
-                allowSemicolonAsSeparator: false);
+                allowSemicolonAsSeparator: true);
 
             var kind = isObjectInitializer(initializers) ? SyntaxKind.ObjectInitializerExpression : SyntaxKind.CollectionInitializerExpression;
 

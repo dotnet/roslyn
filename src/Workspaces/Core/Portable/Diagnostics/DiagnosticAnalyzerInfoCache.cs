@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal DiagnosticAnalyzerInfoCache()
         {
-            _descriptorsInfo = new ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo>();
-            _suppressionsInfo = new ConditionalWeakTable<DiagnosticSuppressor, SuppressionDescriptorsInfo>();
-            _idToDescriptorsMap = new ConcurrentDictionary<string, DiagnosticDescriptor?>();
+            _descriptorsInfo = new();
+            _suppressionsInfo = new();
+            _idToDescriptorsMap = [];
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var descriptorInfo = GetOrCreateDescriptorsInfo(analyzer);
             return descriptorInfo.HasCompilationEndDescriptor
                 ? descriptorInfo.SupportedDescriptors.WhereAsArray(d => d.IsCompilationEnd())
-                : ImmutableArray<DiagnosticDescriptor>.Empty;
+                : [];
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // No need to report the exception to the user.
                 // Eventually, when the analyzer runs the compiler analyzer driver will report a diagnostic.
-                descriptors = ImmutableArray<DiagnosticDescriptor>.Empty;
+                descriptors = [];
             }
 
             PopulateIdToDescriptorMap(descriptors);
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // No need to report the exception to the user.
                 // Eventually, when the suppressor runs the compiler analyzer driver will report a diagnostic.
-                suppressions = ImmutableArray<SuppressionDescriptor>.Empty;
+                suppressions = [];
             }
 
             return new SuppressionDescriptorsInfo(suppressions);

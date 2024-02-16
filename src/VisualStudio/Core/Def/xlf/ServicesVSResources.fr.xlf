@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
-        <target state="new">Collapse local functions when collapsing to definitions</target>
+        <target state="translated">Réduire des fonctions locales lors de la réduction aux définitions</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_metadata_signature_files_on_open">
@@ -422,9 +422,9 @@
         <target state="translated">Activer la navigation vers les sources Source Link et incorporées</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
-        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="translated">Activer les diagnostics de 'tirage (pull)' (expérimental, nécessite un redémarrage)</target>
+      <trans-unit id="Enable_pull_diagnostics_requires_restart">
+        <source>Enable 'pull' diagnostics (requires restart)</source>
+        <target state="new">Enable 'pull' diagnostics (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enabled">
@@ -1104,7 +1104,7 @@
       </trans-unit>
       <trans-unit id="Prefer_collection_expression">
         <source>Prefer collection expression</source>
-        <target state="translated">Préférer l’expression collection</target>
+        <target state="translated">Préférer une expression de collection</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
@@ -1499,7 +1499,7 @@
       </trans-unit>
       <trans-unit id="SystemVoid_is_not_a_valid_type_for_a_parameter">
         <source>'System.Void' is not a valid type for a parameter</source>
-        <target state="translated">'System.Void' n’est pas un type valide pour un paramètre</target>
+        <target state="translated">« System.Void » n’est pas un type valide pour un paramètre</target>
         <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
@@ -1684,12 +1684,12 @@
       </trans-unit>
       <trans-unit id="When_types_exactly_match">
         <source>When types exactly match</source>
-        <target state="new">When types exactly match</target>
+        <target state="translated">Lorsque les types correspondent exactement</target>
         <note />
       </trans-unit>
       <trans-unit id="When_types_loosely_match">
         <source>When types loosely match</source>
-        <target state="new">When types loosely match</target>
+        <target state="translated">Lorsque les types correspondent peu</target>
         <note />
       </trans-unit>
       <trans-unit id="Where_should_the_rename_UI_be_shown">

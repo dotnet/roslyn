@@ -12,6 +12,7 @@
       A supporting package for Razor:
       https://github.com/dotnet/razor
     </PackageDescription>
+    <ExcludeFromVerticalBuild>false</ExcludeFromVerticalBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -44,7 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" Version="$(MicrosoftVisualStudioLanguageServerClientVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

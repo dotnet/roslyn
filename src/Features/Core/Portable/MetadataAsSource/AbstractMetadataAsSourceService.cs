@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 : CodeGenerationSymbolFactory.CreateNamespaceSymbol(
                     topLevelNamespaceSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat),
                     null,
-                    new[] { wrappedType });
+                    [wrappedType]);
         }
     }
 }

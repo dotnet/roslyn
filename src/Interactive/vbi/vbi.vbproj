@@ -17,7 +17,7 @@
     <ProjectReference Include="..\..\Scripting\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Scripting.vbproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualBasic" Version="$(MicrosoftVisualBasicVersion)" />
+    <PackageReference Include="Microsoft.VisualBasic" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

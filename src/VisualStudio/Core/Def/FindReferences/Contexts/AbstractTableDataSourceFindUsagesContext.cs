@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// us to not display it if it has no references, and we don't run into any 
             /// references for it (common with implicitly declared symbols).
             /// </summary>
-            protected readonly List<DefinitionItem> Definitions = new();
+            protected readonly List<DefinitionItem> Definitions = [];
 
             /// <summary>
             /// We will hear about the same definition over and over again.  i.e. for each reference 
@@ -96,8 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// bucket for it.  The first time we hear about a definition we'll make a single task
             /// and then always return that for all future references found.
             /// </summary>
-            private readonly Dictionary<DefinitionItem, RoslynDefinitionBucket> _definitionToBucket =
-                new();
+            private readonly Dictionary<DefinitionItem, RoslynDefinitionBucket> _definitionToBucket = [];
 
             /// <summary>
             /// We want to hide declarations of a symbol if the user is grouping by definition.
@@ -167,9 +166,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected abstract Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken);
             protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken);
             protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken);
-
-            public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-                => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
 
             private static ImmutableArray<string> SelectCustomColumnsToInclude(ImmutableArray<ITableColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
             {
@@ -489,7 +485,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected static DefinitionItem CreateNoResultsDefinitionItem(string message)
                 => DefinitionItem.CreateNonNavigableItem(
                     GlyphTags.GetTags(Glyph.StatusInformation),
-                    ImmutableArray.Create(new TaggedText(TextTags.Text, message)));
+                    [new TaggedText(TextTags.Text, message)]);
 
             #endregion
 

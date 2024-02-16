@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
         public const string KeyName = "Name";
         public const string KeyValue = "Value";
         public const string KeyLanguageName = "LanguageName";
-        public const string KeyMetricName = "MetricName>";
+        public const string KeyMetricName = "MetricName";
 
         public static void SetLogProvider(ITelemetryLogProvider logProvider)
         {
@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Telemetry
         public static void Log(FunctionId functionId, KeyValueLogMessage logMessage)
         {
             GetLog(functionId)?.Log(logMessage);
+
+            logMessage.Free();
         }
 
         /// <summary>
@@ -61,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
             });
 
             aggregatingLog.Log(logMessage);
+            logMessage.Free();
         }
 
         public static void LogAggregated(FunctionId functionId, KeyValueLogMessage logMessage)
@@ -69,6 +72,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
                 return;
 
             aggregatingLog.Log(logMessage);
+            logMessage.Free();
         }
 
         /// <summary>

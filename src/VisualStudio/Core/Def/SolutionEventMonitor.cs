@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private readonly UIContext _solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
         private readonly IGlobalOperationNotificationService _notificationService;
-        private readonly Dictionary<string, IDisposable> _operations = new();
+        private readonly Dictionary<string, IDisposable> _operations = [];
 
         public SolutionEventMonitor(IGlobalOperationNotificationService notificationService)
         {

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         {
             if (buffer.Properties.TryGetProperty<IContainedDocument>(typeof(IContainedDocument), out var containedDocument))
             {
-                return containedDocument.ApplyChanges(new[] { change });
+                return containedDocument.ApplyChanges([change]);
             }
 
             using var edit = buffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         FindReferenceCache cache,
         HashSet<string>? globalAliases)
     {
-        private static readonly HashSet<string> s_empty = new();
+        private static readonly HashSet<string> s_empty = [];
 
         public readonly Document Document = document;
         public readonly SemanticModel SemanticModel = semanticModel;

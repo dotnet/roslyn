@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
                 if (!result.HasValue)
                 {
-                    return ImmutableArray<DocumentHighlights>.Empty;
+                    return [];
                 }
 
                 return await result.Value.SelectAsArrayAsync(h => h.RehydrateAsync(solution)).ConfigureAwait(false);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
                 semanticModel, position, solution.Services, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
-                return ImmutableArray<DocumentHighlights>.Empty;
+                return [];
 
             // Get unique tags for referenced symbols
             var tags = await GetTagsForReferencedSymbolAsync(
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             // SymbolFinder will consider that the symbol `X`. However, the doc highlights won't include
             // the `new` part, so it's not appropriate for us to highlight `X` in that case.
             if (!tags.Any(static (t, position) => t.HighlightSpans.Any(static (hs, position) => hs.TextSpan.IntersectsWith(position), position), position))
-                return ImmutableArray<DocumentHighlights>.Empty;
+                return [];
 
             return tags;
         }
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     symbol, options, cancellationToken).ConfigureAwait(false);
             }
 
-            return ImmutableArray<DocumentHighlights>.Empty;
+            return [];
         }
 
         private static bool ShouldConsiderSymbol(ISymbol symbol)
@@ -266,11 +266,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             using var _1 = ArrayBuilder<DocumentHighlights>.GetInstance(tagMap.Count, out var list);
             foreach (var kvp in tagMap)
             {
-                using var _2 = ArrayBuilder<HighlightSpan>.GetInstance(kvp.Value.Count, out var spans);
-                foreach (var span in kvp.Value)
-                    spans.Add(span);
-
-                list.Add(new DocumentHighlights(kvp.Key, spans.ToImmutableAndClear()));
+                list.Add(new DocumentHighlights(kvp.Key, [.. kvp.Value]));
             }
 
             return list.ToImmutableAndClear();

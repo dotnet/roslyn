@@ -97,7 +97,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
 
             if (TryGetExplicitTypeOfLambdaParameter(lambdaSyntax, parameter.Ordinal, out var explicitLambdaParameterType))
             {
-                parameterTypeSymbols = ImmutableArray.Create(explicitLambdaParameterType);
+                parameterTypeSymbols = [explicitLambdaParameterType];
             }
             else
             {
@@ -273,7 +273,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
         {
             var declarationSyntax = _context.TargetToken.GetAncestor<TNamespaceDeclarationSyntax>();
             if (declarationSyntax == null)
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             var semanticModel = _context.SemanticModel;
             var containingNamespaceSymbol = semanticModel.Compilation.GetCompilationNamespace(
@@ -373,7 +373,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             }
 
             if (container is not INamespaceOrTypeSymbol namespaceOrType)
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             if (unwrapNullable && namespaceOrType is ITypeSymbol typeSymbol)
             {

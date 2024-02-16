@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS1571, CS1572, CS1710);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS1571, CS1572, CS1710];
 
         protected override string DocCommentSignifierToken { get; } = "///";
 

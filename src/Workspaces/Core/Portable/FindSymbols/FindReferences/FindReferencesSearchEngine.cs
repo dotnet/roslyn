@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class FindReferencesSearchEngine
     {
-        private static readonly ObjectPool<MetadataUnifyingSymbolHashSet> s_metadataUnifyingSymbolHashSetPool = new(() => new());
+        private static readonly ObjectPool<MetadataUnifyingSymbolHashSet> s_metadataUnifyingSymbolHashSetPool = new(() => []);
 
         private readonly Solution _solution;
         private readonly IImmutableSet<Document>? _documents;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public Task FindReferencesAsync(ISymbol symbol, CancellationToken cancellationToken)
-            => FindReferencesAsync(ImmutableArray.Create(symbol), cancellationToken);
+            => FindReferencesAsync([symbol], cancellationToken);
 
         public async Task FindReferencesAsync(
             ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)

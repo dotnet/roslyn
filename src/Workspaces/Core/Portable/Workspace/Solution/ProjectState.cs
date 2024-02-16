@@ -134,9 +134,9 @@ namespace Microsoft.CodeAnalysis
         private static ProjectInfo ClearAllDocumentsFromProjectInfo(ProjectInfo projectInfo)
         {
             return projectInfo
-                .WithDocuments(ImmutableArray<DocumentInfo>.Empty)
-                .WithAdditionalDocuments(ImmutableArray<DocumentInfo>.Empty)
-                .WithAnalyzerConfigDocuments(ImmutableArray<DocumentInfo>.Empty);
+                .WithDocuments([])
+                .WithAdditionalDocuments([])
+                .WithAnalyzerConfigDocuments([]);
         }
 
         private ProjectInfo FixProjectInfo(ProjectInfo projectInfo)
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly struct AnalyzerConfigOptionsCache(AnalyzerConfigSet configSet)
         {
-            private readonly ConcurrentDictionary<string, AnalyzerConfigData> _sourcePathToResult = new();
+            private readonly ConcurrentDictionary<string, AnalyzerConfigData> _sourcePathToResult = [];
             private readonly Func<string, AnalyzerConfigData> _computeFunction = path => new AnalyzerConfigData(configSet.GetOptionsForSourcePath(path));
             private readonly Lazy<AnalyzerConfigData> _global = new Lazy<AnalyzerConfigData>(() => new AnalyzerConfigData(configSet.GlobalConfigOptions));
 

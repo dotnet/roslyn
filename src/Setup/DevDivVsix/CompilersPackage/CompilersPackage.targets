@@ -42,12 +42,13 @@
     </Copy>
   </Target>
 
+  <!-- TODO: https://github.com/dotnet/source-build/issues/3981 for where this should be excluded in vertical modes. -->
   <Target Name="_GenerateSwrFile"
           AfterTargets="Build"
           BeforeTargets="SwixBuild"
           DependsOnTargets="_SetSwrFilePath;InitializeDesktopCompilerArtifacts;_PrepareDesktopCompilerArtifactsForOptimization;ApplyOptimizations"
           Outputs="$(_SwrFilePath)"
-          Condition="'$(DotNetBuildFromSource)' != 'true'">
+          Condition="'$(DotNetBuildFromSource)' != 'true' and '$(DotNetBuildVertical)' != 'true'">
 
     <ItemGroup>
       <_File Include="@(DesktopCompilerArtifact)">

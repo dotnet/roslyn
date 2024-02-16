@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId];
 
         public override FixAllProvider GetFixAllProvider()
         {
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
                 .Select(d => d.WithAdditionalAnnotations(Formatter.Annotation, s_warningAnnotation));
 
             // Remove usings and fix leading trivia for compilation unit.
-            var compilationUnitWithoutUsings = compilationUnit.WithUsings(SyntaxFactory.List(compilationUnit.Usings.Where(u => u.GlobalKeyword != default)));
+            var compilationUnitWithoutUsings = compilationUnit.WithUsings([.. compilationUnit.Usings.Where(u => u.GlobalKeyword != default)]);
             var compilationUnitWithoutBlankLine = compilationUnitWithoutUsings.Usings.Count == 0
                 ? RemoveLeadingBlankLinesFromFirstMember(compilationUnitWithoutUsings)
                 : compilationUnitWithoutUsings;
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
                     // Add any orphaned trivia to this node.
                     deduplicatedUsingsBuilder.Add(usingDirective.WithPrependedLeadingTrivia(orphanedTrivia));
-                    orphanedTrivia = Enumerable.Empty<SyntaxTrivia>();
+                    orphanedTrivia = [];
                 }
             }
 

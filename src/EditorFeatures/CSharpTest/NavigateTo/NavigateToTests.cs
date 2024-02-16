@@ -1456,10 +1456,9 @@ class C
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
-                new()
-                {
+                [
                     new NavigateToItem("Outer", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
-                },
+                ],
                 await _aggregator.GetItemsAsync("Outer"));
         }
 
@@ -1490,10 +1489,9 @@ class C
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
-                new()
-                {
+                [
                     new NavigateToItem("Outer", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
-                },
+                ],
                 await _aggregator.GetItemsAsync("Outer"));
         }
 
@@ -1523,7 +1521,7 @@ class C
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
-                new() { },
+                [],
                 await _aggregator.GetItemsAsync("Outer"));
         }
 
@@ -1553,11 +1551,10 @@ class C
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
-                new()
-                {
+                [
                     new NavigateToItem("Outer", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
                     new NavigateToItem("Outer", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
-                },
+                ],
                 await _aggregator.GetItemsAsync("Outer"));
         }
 
@@ -1588,11 +1585,10 @@ class C
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
-                new()
-                {
+                [
                     new NavigateToItem("Outer", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
                     new NavigateToItem("Outer", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
-                },
+                ],
                 await _aggregator.GetItemsAsync("Outer"));
         }
 
@@ -1615,10 +1611,9 @@ class C
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
-                new()
-                {
+                [
                     new NavigateToItem("Outer", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
-                },
+                ],
                 await _aggregator.GetItemsAsync("Outer"));
         }
 
@@ -1642,10 +1637,9 @@ class C
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
-                new()
-                {
+                [
                     new NavigateToItem("Outer", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
-                },
+                ],
                 await _aggregator.GetItemsAsync("Outer"));
         }
 
@@ -1668,10 +1662,9 @@ class C
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
-                new()
-                {
+                [
                     new NavigateToItem("C", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
-                },
+                ],
                 await _aggregator.GetItemsAsync("C"));
         }
 
@@ -1679,7 +1672,7 @@ class C
         public async Task DoIncludeSymbolsFromMultipleSourceGeneratedFiles()
         {
             using var workspace = EditorTestWorkspace.CreateCSharp(
-                files: Array.Empty<string>(),
+                files: [],
                 sourceGeneratedFiles: new[]
                 {
                     """
@@ -1699,11 +1692,10 @@ class C
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
-                new()
-                {
+                [
                     new NavigateToItem("C", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
                     new NavigateToItem("C", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
-                },
+                ],
                 await _aggregator.GetItemsAsync("C"));
         }
 

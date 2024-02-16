@@ -4637,22 +4637,18 @@ class innerClass
 }";
 
             var property = SyntaxFactory.PropertyDeclaration(
-                SyntaxFactory.List<AttributeListSyntax>(),
-                SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)),
+                attributeLists: [],
+                [SyntaxFactory.Token(SyntaxKind.PublicKeyword)],
                 SyntaxFactory.ParseTypeName("int"),
                 null,
                 SyntaxFactory.Identifier("Prop"),
-                SyntaxFactory.AccessorList(
-                    SyntaxFactory.List(
-                        new AccessorDeclarationSyntax[]
-                        {
-                        SyntaxFactory.AccessorDeclaration(
-                            SyntaxKind.GetAccessorDeclaration,
-                            SyntaxFactory.Block(SyntaxFactory.SingletonList(SyntaxFactory.ParseStatement("return c;")))),
-                        SyntaxFactory.AccessorDeclaration(
-                            SyntaxKind.SetAccessorDeclaration,
-                            SyntaxFactory.Block(SyntaxFactory.SingletonList(SyntaxFactory.ParseStatement("c = value;"))))
-                        })));
+                SyntaxFactory.AccessorList([
+                    SyntaxFactory.AccessorDeclaration(
+                        SyntaxKind.GetAccessorDeclaration,
+                        SyntaxFactory.Block(SyntaxFactory.ParseStatement("return c;"))),
+                    SyntaxFactory.AccessorDeclaration(
+                        SyntaxKind.SetAccessorDeclaration,
+                        SyntaxFactory.Block(SyntaxFactory.ParseStatement("c = value;")))]));
 
             Assert.NotNull(property);
             using var workspace = new AdhocWorkspace();
@@ -5281,8 +5277,10 @@ _ = this is  C(  ){}  ; }
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34683")]
         public async Task FormatRecursivePattern_InBinaryOperation()
         {
-            var changingOptions = new OptionsCollection(LanguageNames.CSharp);
-            changingOptions.Add(CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, true);
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, true }
+            };
             var code = @"class C
 {
     void M()
