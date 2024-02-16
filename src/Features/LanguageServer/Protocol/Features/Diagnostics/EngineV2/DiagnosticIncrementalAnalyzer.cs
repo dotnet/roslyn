@@ -241,10 +241,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 #if false
         public void LogAnalyzerCountSummary()
             => _telemetry.ReportAndClear(_correlationId);
-#endif
 
         internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
             => _stateManager.GetOrCreateStateSets(project).Select(s => s.Analyzer);
+#endif
 
         private static string GetDocumentLogMessage(string title, TextDocument document, DiagnosticAnalyzer analyzer)
             => $"{title}: ({document.Id}, {document.Project.Id}), ({analyzer})";

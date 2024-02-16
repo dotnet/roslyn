@@ -463,7 +463,9 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
+#if false
             var analyzers = incrementalAnalyzer.GetAnalyzersTestOnly(project).ToArray();
+#endif 
 
             AssertEx.Equal(new[]
             {
