@@ -42,15 +42,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public async Task<(ImmutableArray<ImmutableArray<CompletionItem>>, bool)> GetAllTopLevelTypesAsync(
-            Project currentProject,
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
             CompletionOptions options,
             CancellationToken cancellationToken)
         {
-            var (getCacheResults, isPartialResult) = await GetCacheEntriesAsync(currentProject, forceCacheCreation, cancellationToken).ConfigureAwait(false);
+            var currentProject = syntaxContext.Document.Project;
+            var (getCacheResults, isPartialResult) = await GetCacheEntriesAsync(currentProject, syntaxContext.SemanticModel.Compilation, forceCacheCreation, cancellationToken).ConfigureAwait(false);
 
-            var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var currentCompilation = syntaxContext.SemanticModel.Compilation;
             return (getCacheResults.SelectAsArray(GetItemsFromCacheResult), isPartialResult);
 
             ImmutableArray<CompletionItem> GetItemsFromCacheResult(TypeImportCompletionCacheEntry cacheEntry)
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     options.HideAdvancedMembers);
         }
 
-        private async Task<(ImmutableArray<TypeImportCompletionCacheEntry> results, bool isPartial)> GetCacheEntriesAsync(Project currentProject, bool forceCacheCreation, CancellationToken cancellationToken)
+        private async Task<(ImmutableArray<TypeImportCompletionCacheEntry> results, bool isPartial)> GetCacheEntriesAsync(Project currentProject, Compilation originCompilation, bool forceCacheCreation, CancellationToken cancellationToken)
         {
             try
             {
@@ -102,7 +102,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
 
-                var originCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var editorBrowsableInfo = new Lazy<EditorBrowsableInfo>(() => new EditorBrowsableInfo(originCompilation));
                 foreach (var peReference in currentProject.MetadataReferences.OfType<PortableExecutableReference>())
                 {
@@ -146,7 +145,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var service = (AbstractTypeImportCompletionService)project.GetRequiredLanguageService<ITypeImportCompletionService>();
-                _ = await service.GetCacheEntriesAsync(project, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                _ = await service.GetCacheEntriesAsync(project, compilation, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
             }
         }
 

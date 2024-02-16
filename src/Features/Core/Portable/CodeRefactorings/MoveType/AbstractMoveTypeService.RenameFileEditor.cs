@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var oldSolution = SemanticDocument.Document.Project.Solution;
                 var newSolution = oldSolution.WithDocumentName(documentId, FileName);
 
-                return ImmutableArray.Create<CodeActionOperation>(
-                    new ApplyChangesOperation(newSolution));
+                return [new ApplyChangesOperation(newSolution)];
             }
         }
     }

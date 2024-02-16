@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         public const string CS7036 = nameof(CS7036); // CS7036: There is no argument given that corresponds to the required parameter 'v' of 'C.C(int)'
 
         public static readonly ImmutableArray<string> AllDiagnosticIds =
-            ImmutableArray.Create(CS0122, CS1729, CS1739, CS1503, CS1660, CS7036);
+            [CS0122, CS1729, CS1739, CS1503, CS1660, CS7036];
 
         public static readonly ImmutableArray<string> TooManyArgumentsDiagnosticIds =
-            ImmutableArray.Create(CS1729);
+            [CS1729];
 
         public static readonly ImmutableArray<string> CannotConvertDiagnosticIds =
-            ImmutableArray.Create(CS1503, CS1660);
+            [CS1503, CS1660];
     }
 }

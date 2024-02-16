@@ -47,13 +47,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal const string ExcludedCommitCharactersMap = nameof(ExcludedCommitCharactersMap);
 
         private static readonly ImmutableArray<ImageElement> s_warningImageAttributeImagesArray =
-            ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element));
+            [new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element)];
 
         private static readonly EditorOptionKey<bool> s_nonBlockingCompletionEditorOption = new(NonBlockingCompletion);
 
         // Use CWT to cache data needed to create VSCompletionItem, so the table would be cleared when Roslyn completion item cache is cleared.
-        private static readonly ConditionalWeakTable<RoslynCompletionItem, StrongBox<VSCompletionItemData>> s_roslynItemToVsItemData =
-            new();
+        private static readonly ConditionalWeakTable<RoslynCompletionItem, StrongBox<VSCompletionItemData>> s_roslynItemToVsItemData = new();
 
         // Cancellation series we use to stop background task for expanded items when exclusive items are returned by core providers.
         private readonly CancellationSeries _expandedItemsTaskCancellationSeries = new();
@@ -539,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
 
                 var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(roslynItem, document.Project.Solution);
-                var attributeImages = supportedPlatforms != null ? s_warningImageAttributeImagesArray : ImmutableArray<ImageElement>.Empty;
+                var attributeImages = supportedPlatforms != null ? s_warningImageAttributeImagesArray : [];
 
                 itemData = new VSCompletionItemData(
                     DisplayText: roslynItem.GetEntireDisplayText(),

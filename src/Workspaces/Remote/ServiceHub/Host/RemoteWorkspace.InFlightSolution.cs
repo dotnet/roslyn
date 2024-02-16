@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfTrue(InFlightCount < 1);
                 InFlightCount--;
                 if (InFlightCount != 0)
-                    return ImmutableArray<Task>.Empty;
+                    return [];
 
                 _cancellationTokenSource_doNotAccessDirectly.Cancel();
                 _cancellationTokenSource_doNotAccessDirectly.Dispose();

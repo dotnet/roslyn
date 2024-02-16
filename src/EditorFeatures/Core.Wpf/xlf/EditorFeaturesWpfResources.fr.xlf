@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion">
         <source>Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</source>
-        <target state="new">Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</target>
+        <target state="translated">Entrée pour renommer, Maj+Entrée pour afficher un aperçu, Ctrl+Espace pour les suggestions de renommage</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_performing_rename_0">
@@ -34,12 +34,12 @@
       </trans-unit>
       <trans-unit id="Generating_suggestions">
         <source>Generating suggestions...</source>
-        <target state="new">Generating suggestions...</target>
+        <target state="translated">Génération en cours de suggestions...</target>
         <note />
       </trans-unit>
       <trans-unit id="Get_AI_suggestions">
         <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
-        <target state="new">Get AI-powered rename suggestions (Ctrl+Space)</target>
+        <target state="translated">Obtenir des suggestions de renommage basées sur l’intelligence artificielle (Ctrl+Espace)</target>
         <note />
       </trans-unit>
       <trans-unit id="Interactive_host_process_platform">

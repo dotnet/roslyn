@@ -39,19 +39,19 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         /// </summary>
         protected bool ConstructedFromInlineExpression { get; private set; }
 
-        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+            var syntaxContext = context.SyntaxContext;
+            var semanticModel = syntaxContext.SemanticModel;
             var targetToken = syntaxContext.TargetToken;
 
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (TryGetInlineExpressionInfo(targetToken, syntaxFacts, semanticModel, out var expressionInfo, cancellationToken) && expressionInfo.TypeInfo.Type is { } type)
             {
                 return IsValidAccessingType(type, semanticModel.Compilation);
             }
 
-            return await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
+            return base.IsValidSnippetLocation(in context, cancellationToken);
         }
 
         protected sealed override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)

@@ -1326,8 +1326,7 @@ static class B
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
-                // ILVerify: Unrecognized arguments for delegate .ctor.
-                CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: $"{expectedMethod}: {expectedType}");
+                CompileAndVerify(comp, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
             {
@@ -1371,8 +1370,7 @@ static class B
 }
 """;
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            var verifier = CompileAndVerify(comp, expectedOutput: "RAN(42) A.F: System.Action<System.Object>", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN(42) A.F: System.Action<System.Object>");
             verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -1415,8 +1413,7 @@ static class B
 }
 """;
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            var verifier = CompileAndVerify(comp, expectedOutput: "RAN B.F: System.Action", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN B.F: System.Action");
             verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -1551,8 +1548,7 @@ namespace N
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
-                // ILVerify: Unrecognized arguments for delegate .ctor.
-                CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: $"{expectedMethod}: {expectedType}");
+                CompileAndVerify(comp, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
             {
@@ -1632,8 +1628,7 @@ namespace N
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
-                // ILVerify: Unrecognized arguments for delegate .ctor.
-                CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: $"{expectedMethod}: {expectedType}");
+                CompileAndVerify(comp, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
             {
@@ -1688,8 +1683,7 @@ namespace N
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
                 );
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: System.Action");
+            CompileAndVerify(comp, expectedOutput: "A.F: System.Action");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1739,8 +1733,7 @@ namespace N
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
                 );
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: System.Action<System.Object>");
+            CompileAndVerify(comp, expectedOutput: "A.F: System.Action<System.Object>");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1790,8 +1783,7 @@ namespace N
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
                 );
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: <>A{00000001}<System.Object>");
+            CompileAndVerify(comp, expectedOutput: "A.F: <>A{00000001}<System.Object>");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1841,8 +1833,7 @@ namespace N
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
                 );
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: System.Func<System.Object>");
+            CompileAndVerify(comp, expectedOutput: "A.F: System.Func<System.Object>");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1892,8 +1883,7 @@ namespace N
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
                 );
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: <>F{00000001}<System.Object>");
+            CompileAndVerify(comp, expectedOutput: "A.F: <>F{00000001}<System.Object>");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1943,8 +1933,7 @@ namespace N
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
                 );
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: System.Action<System.Object>");
+            CompileAndVerify(comp, expectedOutput: "A.F: System.Action<System.Object>");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1989,8 +1978,7 @@ namespace N
 }
 """;
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            var verifier = CompileAndVerify(comp, expectedOutput: "RAN N.B.F: System.Action", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN N.B.F: System.Action");
             verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -2093,8 +2081,7 @@ public static class E
             comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "C.M E.M C.M");
+            CompileAndVerify(comp, expectedOutput: "C.M E.M C.M");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -2280,8 +2267,7 @@ namespace N
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
                 );
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E1.M E1.M");
+            CompileAndVerify(comp, expectedOutput: "E1.M E1.M");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -2330,8 +2316,7 @@ namespace N
             comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E2.M E2.M");
+            CompileAndVerify(comp, expectedOutput: "E2.M E2.M");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -2370,8 +2355,7 @@ public static class E
             comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E.M");
+            CompileAndVerify(comp, expectedOutput: "E.M");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -2414,8 +2398,7 @@ public static class E
             comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E.M E.M");
+            CompileAndVerify(comp, expectedOutput: "E.M E.M");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -2613,8 +2596,7 @@ public static class E
                 );
 
             comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            var verifier = CompileAndVerify(comp, expectedOutput: "E.M", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "E.M");
             verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -2662,8 +2644,7 @@ namespace N
                 );
 
             comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            var verifier = CompileAndVerify(comp, expectedOutput: "E2.M E2.M", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "E2.M E2.M");
             verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -2711,8 +2692,7 @@ namespace N
                 );
 
             comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            var verifier = CompileAndVerify(comp, expectedOutput: "E1.M E1.M", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "E1.M E1.M");
             verifier.VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
@@ -2763,8 +2743,7 @@ public static class E
             comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E.M<T, U> E.M<T, U>");
+            CompileAndVerify(comp, expectedOutput: "E.M<T, U> E.M<T, U>");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -2812,8 +2791,7 @@ namespace N
 
             comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E2.M<T, U> E2.M<T, U>");
+            CompileAndVerify(comp, expectedOutput: "E2.M<T, U> E2.M<T, U>");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -2902,8 +2880,7 @@ public static class DExt
 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics();
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, expectedOutput: "ran11", verify: Verification.FailsILVerify);
+            CompileAndVerify(comp, expectedOutput: "ran11");
 
             comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
@@ -2957,8 +2934,7 @@ static class E
 }
 """;
             var comp = CreateCompilation(source);
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            var verifier = CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran");
             verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -2986,8 +2962,7 @@ static class E
 }
 """;
             var comp = CreateCompilation(source);
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            var verifier = CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran");
             verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -3141,8 +3116,7 @@ static class E2
 }
 """;
             var comp = CreateCompilation(source);
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            var verifier = CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran");
             verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -3173,8 +3147,7 @@ static class E2
 }
 """;
             var comp = CreateCompilation(source);
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            var verifier = CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran");
             verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -3209,8 +3182,7 @@ static class A
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new object().F").WithLocation(1, 9));
 
             var comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            var verifier = CompileAndVerify(comp, expectedOutput: "A.F", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "A.F");
             verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -3736,8 +3708,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "System.Action<System.Int32>, System.Action");
+            CompileAndVerify(comp, expectedOutput: "System.Action<System.Int32>, System.Action");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -10351,8 +10322,7 @@ static class E
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: @"(41, 42)");
+            var verifier = CompileAndVerify(comp, expectedOutput: @"(41, 42)");
             verifier.VerifyIL("Program.M1",
 @"{
   // Code size       20 (0x14)
@@ -10931,13 +10901,27 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
-            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 24 }
-            CompileAndVerify(comp, expectedOutput:
+            var verifier = CompileAndVerify(comp, expectedOutput:
 @"0
 System.Object
 <>f__AnonymousDelegate0
 <>f__AnonymousDelegate1
-", verify: Verification.FailsILVerify);
+", verify: Verification.FailsILVerify with { ILVerifyMessage = "[F2]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x18 }" });
+
+            verifier.VerifyIL("Program.F2<T>()", """
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (S<T> V_0)
+  IL_0000:  ldtoken    "T"
+  IL_0005:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_000a:  call       "void System.Console.WriteLine(object)"
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    "S<T>"
+  IL_0017:  ldloc.0
+  IL_0018:  ret
+}
+""");
         }
 
         [Fact]
@@ -15472,8 +15456,7 @@ public class Program
 }
 """;
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            var verifier = CompileAndVerify(source, verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(source);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main",
 @"
@@ -15603,8 +15586,7 @@ public class Program
 }
 """;
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput:
+            CompileAndVerify(source, expectedOutput:
 @"<>f__AnonymousDelegate0`4[Program,System.String,System.Int64,System.String]
 <>f__AnonymousDelegate1`3[System.String,System.Int64,System.String]
 20 b 1

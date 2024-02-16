@@ -13,8 +13,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 {
     internal static class FunctionIdOptions
     {
-        private static readonly ConcurrentDictionary<FunctionId, Option2<bool>> s_options =
-            new();
+        private static readonly ConcurrentDictionary<FunctionId, Option2<bool>> s_options = [];
 
         private static readonly Func<FunctionId, Option2<bool>> s_optionCreator = CreateOption;
 

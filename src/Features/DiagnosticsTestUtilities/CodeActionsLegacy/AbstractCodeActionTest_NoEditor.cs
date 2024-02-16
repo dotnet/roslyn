@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             var refactoring = await GetCodeRefactoringAsync(workspace, parameters);
             var actions = refactoring == null
-                ? ImmutableArray<CodeAction>.Empty
+                ? []
                 : refactoring.CodeActions.Select(n => n.action).AsImmutable();
             actions = MassageActions(actions);
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     document, span, fixAllScope.Value, CancellationToken.None).ConfigureAwait(false);
                 if (documentsAndSpansToFix.IsEmpty)
                 {
-                    return (ImmutableArray<CodeAction>.Empty, null);
+                    return ([], null);
                 }
             }
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var fixAllCodeAction = await GetFixAllFixAsync(actionToInvoke,
                 refactoring.Provider, refactoring.CodeActionOptionsProvider, document, span, fixAllScope.Value).ConfigureAwait(false);
             if (fixAllCodeAction == null)
-                return (ImmutableArray<CodeAction>.Empty, null);
+                return ([], null);
 
             return (ImmutableArray.Create(fixAllCodeAction), fixAllCodeAction);
         }

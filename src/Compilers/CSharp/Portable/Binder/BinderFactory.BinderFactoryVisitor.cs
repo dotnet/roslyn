@@ -1223,8 +1223,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new WithParametersBinder(method.Parameters, nextBinder);
                 }
 
-                if (memberSyntax is TypeDeclarationSyntax { ParameterList: { ParameterCount: > 0 } })
+                if (memberSyntax is TypeDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } typeDeclaration)
                 {
+                    _ = typeDeclaration.ParameterList;
                     Binder outerBinder = VisitCore(memberSyntax);
                     SourceNamedTypeSymbol type = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);
                     var primaryConstructor = type.PrimaryConstructor;

@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsThis => false;
 
-        public ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray.Create<CustomModifier>();
+        public ImmutableArray<CustomModifier> RefCustomModifiers => [];
 
-        public ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray.Create<CustomModifier>();
+        public ImmutableArray<CustomModifier> CustomModifiers => [];
 
         public ScopedKind ScopedKind => ScopedKind.None;
 

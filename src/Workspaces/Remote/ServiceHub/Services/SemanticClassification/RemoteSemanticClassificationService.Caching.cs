@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var _1 = ArrayBuilder<string>.GetInstance(classificationTypesCount, out var classificationTypes);
 
                 for (var i = 0; i < classificationTypesCount; i++)
-                    classificationTypes.Add(reader.ReadString());
+                    classificationTypes.Add(reader.ReadRequiredString());
 
                 var classifiedSpanCount = reader.ReadInt32();
                 using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(classifiedSpanCount, out var classifiedSpans);

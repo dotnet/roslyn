@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var syntaxGenerator = editor.Generator;
                 var index = childNodes.IndexOf(typeToMove);
 
-                var itemsBefore = index > 0 ? childNodes.Take(index) : Enumerable.Empty<SyntaxNode>();
-                var itemsAfter = index < childNodes.Count - 1 ? childNodes.Skip(index + 1) : Enumerable.Empty<SyntaxNode>();
+                var itemsBefore = index > 0 ? childNodes.Take(index) : [];
+                var itemsAfter = index < childNodes.Count - 1 ? childNodes.Skip(index + 1) : [];
 
                 var name = syntaxFactsService.GetDisplayName(namespaceDeclaration, DisplayNameOptions.IncludeNamespaces);
                 var newNamespaceDeclaration = syntaxGenerator.NamespaceDeclaration(name, WithElasticTrivia(typeToMove)).WithAdditionalAnnotations(NamespaceScopeMovedAnnotation);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                         editor.RemoveNode(nodeToRemove, SyntaxRemoveOptions.KeepNoTrivia);
                     }
 
-                    editor.InsertAfter(namespaceDeclaration, new[] { newNamespaceDeclaration, itemsAfterNamespaceDeclaration });
+                    editor.InsertAfter(namespaceDeclaration, [newNamespaceDeclaration, itemsAfterNamespaceDeclaration]);
                 }
                 else if (itemsBefore.Any())
                 {

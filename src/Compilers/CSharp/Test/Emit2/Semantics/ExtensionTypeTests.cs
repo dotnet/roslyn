@@ -16468,7 +16468,24 @@ implicit extension E for C
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
 
-        CompileAndVerify(comp, expectedOutput: "E.M", verify: Verification.FailsPEVerify);
+        var verifier = CompileAndVerify(comp, expectedOutput: "E.M",
+            verify: Verification.FailsILVerify with { ILVerifyMessage = "[<Main>$]: Unrecognized arguments for delegate .ctor. { Offset = 0xb }" });
+
+        verifier.VerifyDiagnostics();
+
+        // PROTOTYPE Fix when adding support for emitting non-static members
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  ldftn      "void E.M(int)"
+  IL_000b:  newobj     "D..ctor(object, nint)"
+  IL_0010:  ldc.i4.s   42
+  IL_0012:  callvirt   "void D.Invoke(int)"
+  IL_0017:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -17940,7 +17957,28 @@ implicit extension E for C
 """;
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var verifier = CompileAndVerify(comp, expectedOutput: "ran",
+            verify: Verification.FailsILVerify with { ILVerifyMessage = "[Main]: Unrecognized arguments for delegate .ctor. { Offset = 0x11 }" });
+
+        verifier.VerifyDiagnostics();
+
+        // PROTOTYPE Fix when adding support for emitting non-static members
+        verifier.VerifyIL("D.Main", """
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (int V_0) //i
+  IL_0000:  nop
+  IL_0001:  newobj     "D..ctor()"
+  IL_0006:  newobj     "C..ctor()"
+  IL_000b:  ldftn      "int E.M()"
+  IL_0011:  newobj     "System.Func<int>..ctor(object, nint)"
+  IL_0016:  call       "int D.Select<int>(System.Func<int>)"
+  IL_001b:  stloc.0
+  IL_001c:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18111,7 +18149,7 @@ namespace N
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: "ran ran ran", verify: Verification.Fails).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18203,7 +18241,7 @@ class C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: "ran ran ran", verify: Verification.Fails).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18253,7 +18291,7 @@ namespace N
 """;
         // PROTOTYPE revisit when implementing GetUniqueSignatureFromMethodGroup, the `var` case should bind to the property
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, expectedOutput: "ran ran ran", verify: Verification.Fails).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18313,8 +18351,7 @@ namespace N2
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics();
-        // Existing ILVerification failure tracked by https://github.com/dotnet/roslyn/issues/68749
-        var verifier = CompileAndVerify(comp, expectedOutput: "ran ran ran", verify: Verification.Fails);
+        var verifier = CompileAndVerify(comp, expectedOutput: "ran ran ran");
 
         verifier.VerifyIL("N1.C.Main", """
 {

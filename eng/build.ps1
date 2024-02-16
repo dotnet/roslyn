@@ -32,8 +32,7 @@ param (
 
   # Options
   [switch]$bootstrap,
-  [string]$bootstrapConfiguration = "Release",
-  [string]$bootstrapToolset = "",
+  [string]$bootstrapDir = "",
   [switch][Alias('bl')]$binaryLog,
   [string]$binaryLogName = "",
   [switch]$ci,
@@ -105,7 +104,7 @@ function Print-Usage() {
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
   Write-Host "  -bootstrap                Build using a bootstrap compilers"
-  Write-Host "  -bootstrapConfiguration   Build configuration for bootstrap compiler: 'Debug' or 'Release'"
+  Write-Host "  -bootstrapDir             Build using bootstrap compiler at specified location"
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
   Write-Host "  -collectDumps             Collect dumps from test runs"
   Write-Host "  -runAnalyzers             Run analyzers during build operations (short: -a)"
@@ -178,6 +177,10 @@ function Process-Arguments() {
 
   if ($binaryLog -and ($binaryLogName -eq "")) {
     $script:binaryLogName = "Build.binlog"
+  }
+
+  if ($bootstrapDir -ne "") {
+    $script:bootstrap = $true
   }
 
   $anyUnit = $testDesktop -or $testCoreClr
@@ -386,7 +389,7 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
   }
 
-  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net7.0"
+  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net8.0"
 
   if (!(Test-Path $runTests)) {
     Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
@@ -463,7 +466,7 @@ function TestUsingRunTests() {
 
   try {
     Write-Host "$runTests $args"
-    Exec-Console $dotnetExe "$runTests $args"
+    Exec-Command $dotnetExe "$runTests $args"
   } finally {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
     if ($ci) {
@@ -538,7 +541,7 @@ function EnablePreviewSdks() {
 # deploying at build time.
 function Deploy-VsixViaTool() {
 
-  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net7.0\VSIXExpInstaller\VSIXExpInstaller.exe"
+  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net8.0\VSIXExpInstaller\VSIXExpInstaller.exe"
   Write-Host "VSIX EXE path: " $vsixExe
   if (-not (Test-Path $vsixExe)) {
     Write-Host "VSIX EXE not found: '$vsixExe'." -ForegroundColor Red
@@ -588,7 +591,7 @@ function Deploy-VsixViaTool() {
     $vsixFile = Join-Path $VSSetupDir $vsixFileName
     $fullArg = "$baseArgs $vsixFile"
     Write-Host "`tInstalling $vsixFileName"
-    Exec-Console $vsixExe $fullArg
+    Exec-Command $vsixExe $fullArg
   }
 
   # Set up registry
@@ -739,26 +742,17 @@ try {
       Setup-IntegrationTestRun
     }
 
-    $global:_DotNetInstallDir = Join-Path $RepoRoot ".dotnet"
-    InstallDotNetSdk $global:_DotNetInstallDir $GlobalJson.tools.dotnet
+    $dotnet = (InitializeDotNetCli -install:$true)
   }
 
   if ($restore) {
     &(Ensure-DotNetSdk) tool restore
   }
 
-  try
-  {
-    if ($bootstrap) {
-      $bootstrapDir = Make-BootstrapBuild $bootstrapToolset
-    }
-  }
-  catch
-  {
-    if ($ci) {
-      Write-LogIssue -Type "error" -Message "(NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
-    }
-    throw $_
+  if ($bootstrap -and $bootstrapDir -eq "") {
+    Write-Host "Building bootstrap Compiler"
+    Exec-Script (Join-Path $PSScriptRoot "make-bootstrap.ps1") "-name build -force -ci:$ci"
+    $bootstrapDir = Join-Path $ArtifactsDir "bootstrap" "build"
   }
 
   if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish) {

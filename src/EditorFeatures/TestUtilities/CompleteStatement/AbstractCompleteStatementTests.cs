@@ -6,11 +6,13 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
@@ -27,19 +29,38 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
         /// <summary>
         /// Verify that typing a semicolon at the location in <paramref name="initialMarkup"/> 
         /// marked with 
-        ///     - <c>$$</c> for caret position
-        ///     - or, <c>[|</c> and <c>|]</c> for selected span
+        ///     - one or more <c>$$</c> for caret positions to test
+        ///     - or, <c>[|</c> and <c>|]</c> for testing a selected span
         /// does not perform any special "complete statement" operations, e.g. inserting missing 
         /// delimiters or moving the caret prior to the semicolon character insertion. In other words, 
         /// statement completion does not impact typing behavior for the case.
         /// </summary>
         protected void VerifyNoSpecialSemicolonHandling(string initialMarkup)
         {
-            var expected = initialMarkup.Contains("$$")
-                ? initialMarkup.Replace("$$", ";$$")
-                : initialMarkup.Replace("|]", ";$$|]");
+            TestFileMarkupParser.GetPositionsAndSpans(initialMarkup, out var output, out var positions, out var spans);
+            Contract.ThrowIfTrue(positions.IsEmpty && spans.IsEmpty, "Expected at least one test position");
+            Contract.ThrowIfTrue(!positions.IsEmpty && !spans.IsEmpty, "Cannot test positions and spans at the same time");
 
-            VerifyTypingSemicolon(initialMarkup, expected);
+            foreach (var position in positions)
+            {
+                VerifyTypingSemicolon(
+                    output.Insert(position, "$$"),
+                    output.Insert(position, ";$$"));
+            }
+
+            if (!spans.IsEmpty)
+            {
+                // Only allow unnamed spans for these tests
+                Contract.ThrowIfFalse(spans.Keys.ToArray() is [""]);
+
+                foreach (var span in spans[""])
+                {
+                    // Insert the end text first so the second insertion position doesn't require an offset
+                    VerifyTypingSemicolon(
+                        output.Insert(span.End, "|]").Insert(span.Start, "[|"),
+                        output.Insert(span.End, ";$$|]").Insert(span.Start, "[|"));
+                }
+            }
         }
 
         /// <summary>
@@ -99,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
                 setOptions?.Invoke(workspace);
 
                 execute(view, workspace);
-                MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
+                TestFileMarkupParser.GetPosition(expectedMarkup, out var expectedCode, out var expectedPosition);
 
                 AssertEx.EqualOrDiff(expectedCode, view.TextSnapshot.GetText());
 

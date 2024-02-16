@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis
         /// updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
         /// <returns>True if <see cref="CurrentSolution"/> was set to the transformed solution, false if the
         /// transformation did not change the solution.</returns>
-        private protected (bool updated, Solution newSolution) SetCurrentSolution(
+        internal (bool updated, Solution newSolution) SetCurrentSolution(
             Func<Solution, Solution> transformation,
             Func<Solution, Solution, (WorkspaceChangeKind changeKind, ProjectId? projectId, DocumentId? documentId)> changeKind,
             Action<Solution, Solution>? onBeforeUpdate = null,
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var relatedDocumentId in relatedDocumentIds)
                 {
                     var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
-                    return solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState);
+                    return solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
                 }
 
                 return solution;
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis
                     foreach (var relatedDocumentId in relatedDocumentIds)
                     {
                         if (processedDocuments.Add(relatedDocumentId))
-                            solution = solution.WithDocumentContentsFrom(relatedDocumentId, changedDocument.DocumentState);
+                            solution = solution.WithDocumentContentsFrom(relatedDocumentId, changedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
                     }
                 }
 
@@ -1154,7 +1154,7 @@ namespace Microsoft.CodeAnalysis
                             foreach (var linkedDocumentId in linkedDocumentIds)
                             {
                                 previousSolution = newSolution;
-                                newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState);
+                                newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
 
                                 if (previousSolution != newSolution)
                                     updatedDocumentIds.Add(linkedDocumentId);
@@ -1252,7 +1252,7 @@ namespace Microsoft.CodeAnalysis
                 CheckProjectIsInSolution(oldSolution, documentId.ProjectId);
                 CheckAnalyzerConfigDocumentIsNotInSolution(oldSolution, documentId);
 
-                return oldSolution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo));
+                return oldSolution.AddAnalyzerConfigDocuments([documentInfo]);
             },
             WorkspaceChangeKind.AnalyzerConfigDocumentAdded, documentId: documentId);
         }

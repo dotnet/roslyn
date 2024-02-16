@@ -71,6 +71,9 @@ namespace Microsoft.CodeAnalysis
             _dependencyGraph = dependencyGraph;
             _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
 
+            // when solution state is changed, we recalculate its checksum
+            _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectConeId: null, c));
+
             CheckInvariants();
 
             // make sure we don't accidentally capture any state but the list of references:
@@ -1035,7 +1038,16 @@ namespace Microsoft.CodeAnalysis
             return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);
         }
 
-        public StateChange WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
+        /// <param name="forceEvenIfTreesWouldDiffer">Whether or not the specified document is forced to have the same text and
+        /// green-tree-root from <paramref name="documentState"/>.  If <see langword="true"/>, then they will share
+        /// these values.  If <see langword="false"/>, then they will only be shared when safe to do so (for example,
+        /// when parse-options and pp-directives would not cause issues.</param>
+        /// <remarks>
+        /// Forcing should only happen in frozen-partial snapshots, where we are ok with inaccuracies in the trees we
+        /// get back and want perf to be very high.  Any codepaths from frozen-partial should pass <see
+        /// langword="true"/> for this.  Any codepaths from Workspace.UnifyLinkedDocumentContents should pass <see
+        /// langword="false"/>.</remarks>
+        public StateChange WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             var oldProject = GetRequiredProjectState(documentId.ProjectId);
@@ -1049,7 +1061,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return UpdateDocumentState(
-                oldDocument.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource),
+                oldDocument.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource, forceEvenIfTreesWouldDiffer),
                 contentChanged: true);
         }
 
@@ -1178,12 +1190,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (string.IsNullOrEmpty(filePath))
             {
-                return ImmutableArray<DocumentId>.Empty;
+                return [];
             }
 
             return _filePathToDocumentIdsMap.TryGetValue(filePath!, out var documentIds)
                 ? documentIds
-                : ImmutableArray<DocumentId>.Empty;
+                : [];
         }
 
         public static ProjectDependencyGraph CreateDependencyGraph(
@@ -1241,21 +1253,21 @@ namespace Microsoft.CodeAnalysis
             if (projectState == null)
             {
                 // this document no longer exist
-                return ImmutableArray<DocumentId>.Empty;
+                return [];
             }
 
             var documentState = projectState.DocumentStates.GetState(documentId);
             if (documentState == null)
             {
                 // this document no longer exist
-                return ImmutableArray<DocumentId>.Empty;
+                return [];
             }
 
             var filePath = documentState.FilePath;
             if (string.IsNullOrEmpty(filePath))
             {
                 // this document can't have any related document. only related document is itself.
-                return ImmutableArray.Create(documentId);
+                return [documentId];
             }
 
             var documentIds = GetDocumentIdsWithFilePath(filePath);

@@ -30,7 +30,7 @@ internal partial class SolutionAssetStorage
     /// the same storage here so that all OOP calls can safely call back into us and get the assets they need, even
     /// if individual calls get canceled.
     /// </summary>
-    private readonly Dictionary<Checksum, Scope> _checksumToScope = new();
+    private readonly Dictionary<Checksum, Scope> _checksumToScope = [];
 
     public Scope GetScope(Checksum solutionChecksum)
     {

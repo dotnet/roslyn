@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             public TestDiagnosticUpdateSource(bool support, DiagnosticData[]? diagnosticData)
             {
                 _support = support;
-                _diagnosticData = (diagnosticData ?? Array.Empty<DiagnosticData>()).ToImmutableArray();
+                _diagnosticData = (diagnosticData ?? []).ToImmutableArray();
             }
 
             public bool SupportGetDiagnostics { get { return _support; } }

@@ -5,10 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Snippets
     internal abstract class AbstractSnippetService(IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> lazySnippetProviders) : ISnippetService
     {
         private readonly ImmutableArray<Lazy<ISnippetProvider, LanguageMetadata>> _lazySnippetProviders = lazySnippetProviders.ToImmutableArray();
-        private readonly Dictionary<string, ISnippetProvider> _identifierToProviderMap = new();
+        private readonly Dictionary<string, ISnippetProvider> _identifierToProviderMap = [];
         private readonly object _snippetProvidersLock = new();
         private ImmutableArray<ISnippetProvider> _snippetProviders;
 
@@ -39,12 +37,12 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Iterates through all providers and determines if the snippet 
         /// can be added to the Completion list at the corresponding position.
         /// </summary>
-        public async Task<ImmutableArray<SnippetData>> GetSnippetsAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<SnippetData>> GetSnippetsAsync(SnippetContext context, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<SnippetData>.GetInstance(out var arrayBuilder);
-            foreach (var provider in GetSnippetProviders(document))
+            foreach (var provider in GetSnippetProviders(context.Document))
             {
-                var snippetData = await provider.GetSnippetDataAsync(document, position, cancellationToken).ConfigureAwait(false);
+                var snippetData = await provider.GetSnippetDataAsync(context, cancellationToken).ConfigureAwait(false);
                 arrayBuilder.AddIfNotNull(snippetData);
             }
 

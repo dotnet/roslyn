@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
             private StatementSyntax _parentStatement;
             private SyntaxToken _token;
-            private readonly List<string> _expressions = new List<string>();
+            private readonly List<string> _expressions = [];
 
             internal IList<string> Do(CancellationToken cancellationToken)
             {

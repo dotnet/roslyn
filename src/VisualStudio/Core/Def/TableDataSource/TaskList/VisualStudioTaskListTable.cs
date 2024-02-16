@@ -42,13 +42,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             ConnectWorkspaceEvents();
         }
 
-        internal override ImmutableArray<string> Columns { get; } = ImmutableArray.Create(
+        internal override ImmutableArray<string> Columns { get; } =
+        [
             StandardTableColumnDefinitions.Priority,
             StandardTableColumnDefinitions.Text,
             StandardTableColumnDefinitions.ProjectName,
             StandardTableColumnDefinitions.DocumentName,
             StandardTableColumnDefinitions.Line,
-            StandardTableColumnDefinitions.Column);
+            StandardTableColumnDefinitions.Column,
+        ];
 
         protected override void AddTableSourceIfNecessary(Solution solution)
         {

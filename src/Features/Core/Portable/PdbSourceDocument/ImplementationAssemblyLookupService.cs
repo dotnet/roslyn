@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     var foundNamespace = md.GetString(et.Namespace);
                     var foundTypeName = md.GetString(et.Name);
 
-                    result ??= new();
+                    result ??= [];
                     result.Add((foundNamespace, foundTypeName), assemblyName);
                 }
             }

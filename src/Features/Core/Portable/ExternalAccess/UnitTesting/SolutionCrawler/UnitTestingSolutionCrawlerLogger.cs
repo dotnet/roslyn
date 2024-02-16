@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
                     else if (key is ValueTuple<string, Guid> propertyNameAndId)
                     {
-                        var list = statMap.GetOrAdd(propertyNameAndId.Item1, _ => new List<int>());
+                        var list = statMap.GetOrAdd(propertyNameAndId.Item1, _ => []);
                         list.Add(counter.GetCount());
                     }
                     else

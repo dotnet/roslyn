@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly OpenTextBufferProvider _openTextBufferProvider;
         private readonly IMetadataAsSourceFileService _fileTrackingMetadataAsSourceService;
 
-        private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = new();
+        private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = [];
 
         /// <summary>
         /// <see cref="WorkspaceRegistration"/> instances for all open buffers being tracked by by this object

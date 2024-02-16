@@ -227,7 +227,6 @@ public class Class1
         // Verbatim strings
         [InlineData("$$ @\"Test\"")]
         [InlineData(" $$@\"Test\"")]
-        [InlineData(" @$$\"Test\"")]
         [InlineData("@\"Test\"$$ ")]
         [InlineData("@\"Test\" $$")]
 
@@ -241,7 +240,6 @@ public class Class1
         [InlineData("$$ \"Test\"u8")]
         [InlineData(" $$\"Test\"u8")]
         [InlineData("\"Test\"u8$$ ")]
-        [InlineData("\"Test\"$$u8 ")]
         [InlineData("\"Test\"u8 $$")]
         public void ArgumentListOfMethodInvocation_OutsideStringAsMethodArgument(string argument)
         {
@@ -256,10 +254,12 @@ public class Class1
         [WpfTheory]
         [InlineData("\"Test$$\"")]
         [InlineData("@\"Test$$\"")]
+        [InlineData(" @$$\"Test\"")]
         [InlineData("\"\"\"Test$$\"\"\"")]
         [InlineData("\"\"\"Test\"$$\"\"")]
         [InlineData("\"\"\"Test\"\"$$\"")]
         [InlineData("\"Test$$\"u8")]
+        [InlineData("\"Test\"$$u8 ")]
         public void ArgumentListOfMethodInvocation_InsideStringAsMethodArgument(string argument)
         {
             var code = CreateTestWithMethodCall($@"var test = Console.WriteLine({argument})");
@@ -1261,8 +1261,7 @@ class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WpfFact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32250")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/32250")]
         public void ForLoopInitializers()
         {
             var code =
@@ -1290,8 +1289,7 @@ class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WpfFact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32250")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/32250")]
         public void ForLoopInitializers2()
         {
             var code =
@@ -3425,8 +3423,7 @@ public class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/35260")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/35260")]
         public void DoWhile5()
         {
             var code =
@@ -3462,8 +3459,7 @@ public class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/35260")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/35260")]
         public void DoWhile6()
         {
             var code =
@@ -3990,8 +3986,7 @@ class Program
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34176")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34176")]
         public void DoNotComplete_VerbatimStringAsMethodArgument_EndOfLine_NotEndOfString()
         {
             var code = @"
@@ -4001,8 +3996,7 @@ class Program
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34176")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34176")]
         public void DoNotComplete_VerbatimStringAsMethodArgument_EndOfString_NotEndOfLine()
         {
 
@@ -4183,8 +4177,7 @@ using System.$$Linq
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/33851")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33851")]
         public void AtEndOfLineOutsideParens()
         {
             var code = @"
@@ -4202,8 +4195,7 @@ public class Class1
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/33851")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33851")]
         public void OutsideParensBeforeSpaceDot()
         {
             var code = @"
@@ -4220,8 +4212,7 @@ public class Class1
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
         public void BeforeAttribute()
         {
             var code = @"
@@ -4238,8 +4229,7 @@ private const string s =
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
         public void ElementBindingExpression()
         {
             var code = @"
@@ -4263,8 +4253,7 @@ class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
         public void BeforeElementBindingExpression()
         {
             var code = @"
@@ -4279,8 +4268,7 @@ class C
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
         public void AfterElementBindingExpression()
         {
             var code = @"
@@ -4296,8 +4284,7 @@ class C
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
         public void ImplicitElementAccessSyntax()
         {
             var code = @"
@@ -4325,8 +4312,7 @@ class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
         public void BeforeImplicitElementAccessSyntax()
         {
             var code = @"
@@ -4354,8 +4340,7 @@ class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34666")]
         public void AfterImplicitElementAccessSyntax()
         {
             var code = @"
@@ -4383,8 +4368,7 @@ class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
         public void AttributeParsedAsElementAccessExpression()
         {
             var code = @"
@@ -4406,8 +4390,7 @@ internal class TestMethodAttribute : Attribute
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
         public void MemberAccessOffOfMethod()
         {
             var code = @"
@@ -4431,8 +4414,7 @@ class Program
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
         public void LinqQuery()
         {
             var code = @"
@@ -4466,8 +4448,7 @@ class Query
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
         public void LinqQuery2()
         {
             var code = @"
@@ -4499,8 +4480,7 @@ class Query
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
         public void BinaryExpression()
         {
             var code = @"
@@ -4532,8 +4512,7 @@ class D
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
         public void BinaryExpression2()
         {
             var code = @"
@@ -4565,8 +4544,7 @@ class D
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
         public void AsOperator()
         {
             var code = @"
@@ -4598,8 +4576,7 @@ class D
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
         public void TernaryOperator()
         {
             var code = @"
@@ -4635,8 +4612,7 @@ class Query
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34983")]
         public void SemicolonInCharacterLiteral()
         {
             var code = @"
@@ -4668,8 +4644,7 @@ class D
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/35260")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/35260")]
         public void IncompleteLambda()
         {
             var code = @"
@@ -4710,8 +4685,7 @@ class C
         internal override ICommandHandler GetCommandHandler(EditorTestWorkspace workspace)
             => workspace.ExportProvider.GetExportedValues<ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/32337")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/32337")]
         public void ArgumentList_MultipleCharsSelected()
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM([|x[0]|], x[1])");
@@ -4719,8 +4693,7 @@ class C
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
         public void ParameterList_DelegateDeclaration()
         {
             var code = @"
@@ -4736,8 +4709,7 @@ class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
         public void ParameterList_DelegateDeclaration2()
         {
             var code = @"
@@ -4748,8 +4720,7 @@ class C
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
         public void ParameterList_DelegateDeclaration3()
         {
             var code = @"
@@ -4765,8 +4736,7 @@ class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
         public void ParameterList_MultilineDelegateDeclaration()
         {
             var code = @"
@@ -4786,8 +4756,7 @@ class C
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
         public void ParameterList_Constructor()
         {
             var code = @"
@@ -4800,8 +4769,7 @@ class D
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
         public void ParameterList_Destructor()
         {
             var code = @"
@@ -4818,8 +4786,7 @@ class D
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/34051")]
         public void ParameterList_MethodDeclaration()
         {
             var code = @"
@@ -4832,8 +4799,7 @@ class D
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/54709")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/54709")]
         public void YieldReturn()
         {
             var code = @"
@@ -4853,6 +4819,24 @@ class D
     }
 }";
             VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71933")]
+        [WpfFact]
+        public void InsideDisabledCode()
+        {
+            var code = CreateTestWithMethodCall("""
+
+                Console.WriteLine(
+                #if false
+                    // Comment$$
+                    "$$"$$
+                #endif
+                );
+
+                """);
+
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/917499")]
@@ -4889,8 +4873,7 @@ class D
             VerifyTypingSemicolon(code, expected);
         }
 
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/923157")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/923157")]
         public void BrokenCode_ReturnIfCaretDoesNotMove()
         {
             var code = @"
@@ -4979,8 +4962,7 @@ public class Bar
             VerifyNoSpecialSemicolonHandling(code);
         }
 
-        [WpfFact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/70224")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/70224")]
         public void TestNotBeforeKeywordInSwitchExpression()
         {
             var code = @"

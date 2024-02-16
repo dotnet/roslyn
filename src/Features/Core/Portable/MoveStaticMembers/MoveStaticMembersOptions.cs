@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         public static MoveStaticMembersOptions Cancelled = new(
             string.Empty,
             string.Empty,
-            ImmutableArray<ISymbol>.Empty,
+            [],
             isCancelled: true);
 
         public MoveStaticMembersOptions(

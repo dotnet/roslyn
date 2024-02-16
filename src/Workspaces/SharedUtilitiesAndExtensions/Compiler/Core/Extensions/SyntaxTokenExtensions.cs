@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return token;
             }
 
-            return token.With(new SyntaxTriviaList(), new SyntaxTriviaList());
+            return token.With([], []);
         }
 
         public static SyntaxToken With(this SyntaxToken token, SyntaxTriviaList leading, SyntaxTriviaList trailing)

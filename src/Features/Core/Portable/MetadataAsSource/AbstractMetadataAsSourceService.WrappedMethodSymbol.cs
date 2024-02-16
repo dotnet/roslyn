@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 get
                 {
                     return CanImplementImplicitly
-                        ? ImmutableArray.Create<IMethodSymbol>()
+                        ? []
                         : _symbol.ExplicitInterfaceImplementations;
                 }
             }

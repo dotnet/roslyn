@@ -93,10 +93,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public virtual bool HidesBaseMethodsByName => false;
 
         public ImmutableArray<CustomModifier> RefCustomModifiers
-            => ImmutableArray.Create<CustomModifier>();
+            => [];
 
         public virtual ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-            => ImmutableArray.Create<CustomModifier>();
+            => [];
 
         public virtual ISymbol AssociatedSymbol => null;
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public SignatureCallingConvention CallingConvention => SignatureCallingConvention.Default;
 
-        public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => ImmutableArray<INamedTypeSymbol>.Empty;
+        public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => [];
 
         public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
             => new CodeGenerationConstructedMethodSymbol(this, typeArguments.ToImmutableArray());

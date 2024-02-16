@@ -61,8 +61,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private static readonly SyntaxAnnotation s_existingLocalDeclarationWithoutInitializerAnnotation = new();
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
-                                     IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId);
+            => [IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId, IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId];
 
         protected abstract ISyntaxFormatting GetSyntaxFormatting();
 
