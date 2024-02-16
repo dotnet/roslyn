@@ -10,12 +10,10 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -233,9 +231,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             return DiagnosticAnalysisResult.CreateEmpty(projectId, version);
         }
-
-        public void LogAnalyzerCountSummary()
-            => _telemetry.ReportAndClear(_correlationId);
 
         internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
             => _stateManager.GetOrCreateStateSets(project).Select(s => s.Analyzer);
