@@ -323,7 +323,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             return Task.CompletedTask;
         }
-#endif
 
         private void RaiseDiagnosticsRemovedForDocument(DocumentId documentId, IEnumerable<StateSet> stateSets)
         {
@@ -343,7 +342,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             });
         }
 
-#if false
         public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellation)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_RemoveProject, GetRemoveLogMessage, projectId, CancellationToken.None))
