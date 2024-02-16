@@ -247,15 +247,6 @@ namespace Microsoft.CodeAnalysis
                     compilationWithoutGeneratedDocuments = this.CreateEmptyCompilation();
                     compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments;
                 }
-                else if (state is FinalCompilationTrackerState finalState)
-                {
-                    inProgressProject = this.ProjectState;
-                    generatorInfo = finalState.GeneratorInfo;
-
-                    compilationWithoutGeneratedDocuments = finalState.CompilationWithoutGeneratedDocuments;
-                    compilationWithGeneratedDocuments = finalState.FinalCompilationWithGeneratedDocuments;
-
-                }
                 else if (state is InProgressState inProgressState)
                 {
                     generatorInfo = inProgressState.GeneratorInfo;
