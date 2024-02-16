@@ -413,6 +413,10 @@ namespace Microsoft.CodeAnalysis
 
             var builder = _filePathToDocumentIdsMap.ToBuilder();
 
+            // Add first, then remove.  This helps avoid the case where a filepath now sees no documents, so we remove
+            // the entry entirely for it in the dictionary, only to add it back in.  Adding then removing will at least
+            // keep the entry, but increase the docs for it, then lower it back down.
+
             AddDocumentFilePaths(documentsToAdd, builder);
             RemoveDocumentFilePaths(documentsToRemove, builder);
 
