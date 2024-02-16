@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </remarks>
     internal abstract class CSharpSemanticModel : SemanticModel
     {
-        private static readonly ObjectPool<SegmentedList<ISymbol>> s_symbolListPool = new(() => new());
+        private static readonly ObjectPool<SegmentedList<ISymbol>> s_symbolListPool = new ObjectPool<SegmentedList<ISymbol>>(() => new SegmentedList<ISymbol>());
 
         /// <summary>
         /// The compilation this object was obtained from.
