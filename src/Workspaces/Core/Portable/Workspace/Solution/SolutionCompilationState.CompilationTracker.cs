@@ -189,9 +189,11 @@ namespace Microsoft.CodeAnalysis
 
             public ICompilationTracker FreezePartialState(CancellationToken cancellationToken)
             {
+                var state = this.ReadState();
+
                 GetPartialCompilationState(
+                    state,
                     documentId: null,
-                    out var state,
                     out var inProgressProject,
                     out var compilationPair,
                     out var generatorInfo,
@@ -226,9 +228,11 @@ namespace Microsoft.CodeAnalysis
                 DocumentState docState,
                 CancellationToken cancellationToken)
             {
+                var state = this.ReadState();
+
                 GetPartialCompilationState(
+                    state,
                     docState.Id,
-                    out var state,
                     out var inProgressProject,
                     out var compilationPair,
                     out var generatorInfo,
@@ -289,14 +293,13 @@ namespace Microsoft.CodeAnalysis
             /// returned will have a compilation that is retained so that it cannot disappear.
             /// </summary>
             private void GetPartialCompilationState(
+                CompilationTrackerState? state,
                 DocumentId? documentId,
-                out CompilationTrackerState? state,
                 out ProjectState inProgressProject,
                 out CompilationPair compilations,
                 out CompilationTrackerGeneratorInfo generatorInfo,
                 CancellationToken cancellationToken)
             {
-                state = ReadState();
                 var compilationWithoutGeneratedDocuments = state?.CompilationWithoutGeneratedDocuments;
 
                 generatorInfo = state?.GeneratorInfo ?? CompilationTrackerGeneratorInfo.Empty;
