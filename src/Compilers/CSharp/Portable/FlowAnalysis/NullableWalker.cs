@@ -6461,11 +6461,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (IsAnalyzingAttribute)
                 return FlowAnalysisAnnotations.None;
 
+            var annotations = parameter.FlowAnalysisAnnotations;
+
             // Conditional annotations are ignored on parameters of non-boolean members.
             if (parameter.ContainingSymbol.GetTypeOrReturnType().Type.SpecialType != SpecialType.System_Boolean)
             {
-                var annotations = parameter.FlowAnalysisAnnotations;
-
                 // NotNull = NotNullWhenTrue + NotNullWhenFalse
                 bool hasNotNullWhenTrue = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNullWhenTrue;
                 bool hasNotNullWhenFalse = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNullWhenFalse;
@@ -6482,10 +6482,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     annotations &= ~FlowAnalysisAnnotations.MaybeNull;
                 }
 
-                return annotations;
             }
 
-            return parameter.FlowAnalysisAnnotations;
+            return annotations;
         }
 
         /// <summary>
