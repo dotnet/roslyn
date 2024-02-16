@@ -531,10 +531,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             });
         }
 
+#if false
         private void AddDocumentDiagnosticsArgsIfNeeded(
             ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
             TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind, ImmutableArray<DiagnosticData> items)
             => AddDocumentDiagnosticsArgsIfNeeded(ref builder, document, analyzer, kind, [], items);
+#endif
 
         private void AddDocumentDiagnosticsArgsIfNeeded(
             ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
