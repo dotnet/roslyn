@@ -35,13 +35,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzerCallback(Workspace workspace)
         {
+#if false
             // subscribe to active context changed event for new workspace
             workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
+#endif
 
             return new DiagnosticIncrementalAnalyzer(this, CorrelationIdFactory.GetNextId(), workspace, AnalyzerInfoCache);
         }
 
+#if false
         private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
             => Reanalyze(e.Solution.Workspace, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
+#endif
     }
 }
