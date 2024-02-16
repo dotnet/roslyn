@@ -404,17 +404,17 @@ namespace Microsoft.CodeAnalysis
                 dependencyGraph: newDependencyGraph);
         }
 
-        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedAndAddedDocuments(
-            ArrayBuilder<DocumentState> documentsToRemove,
-            ArrayBuilder<DocumentState> documentsToAdd)
+        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedAndRemovedDocuments(
+            ArrayBuilder<DocumentState> documentsToAdd,
+            ArrayBuilder<DocumentState> documentsToRemove)
         {
             if (documentsToRemove.Count == 0 && documentsToAdd.Count == 0)
                 return _filePathToDocumentIdsMap;
 
             var builder = _filePathToDocumentIdsMap.ToBuilder();
 
-            RemoveDocumentFilePaths(documentsToRemove, builder);
             AddDocumentFilePaths(documentsToAdd, builder);
+            RemoveDocumentFilePaths(documentsToRemove, builder);
 
             return builder.ToImmutable();
         }

@@ -1074,9 +1074,9 @@ internal sealed partial class SolutionCompilationState
         var newIdToProjectStateMap = newIdToProjectStateMapBuilder.ToImmutable();
         var newIdToTrackerMap = newIdToTrackerMapBuilder.ToImmutable();
 
-        var filePathToDocumentIdsMap = this.SolutionState.CreateFilePathToDocumentIdsMapWithRemovedAndAddedDocuments(
-            documentsToRemove: documentsToRemove,
-            documentsToAdd: documentsToAdd);
+        var filePathToDocumentIdsMap = this.SolutionState.CreateFilePathToDocumentIdsMapWithAddedAndRemovedDocuments(
+            documentsToAdd: documentsToAdd,
+            documentsToRemove: documentsToRemove);
         var dependencyGraph = SolutionState.CreateDependencyGraph(this.SolutionState.ProjectIds, newIdToProjectStateMap);
 
         var newState = this.SolutionState.Branch(
