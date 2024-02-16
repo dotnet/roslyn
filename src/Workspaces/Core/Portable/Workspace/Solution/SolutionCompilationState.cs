@@ -1360,8 +1360,7 @@ internal sealed partial class SolutionCompilationState
                 removedDocumentStates.Add(getExistingTextDocumentState(oldProjectState, documentId));
 
             var removedDocumentStatesForProject = removedDocumentStates.ToImmutable();
-            var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(
-                oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
+            var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
 
             var stateChange = newCompilationState.SolutionState.ForkProject(
                 oldProjectState,
