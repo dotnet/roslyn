@@ -142,39 +142,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
             }
 
-            if (HasDuplicateAnalyzers(analyzers))
+            if (analyzers.HasDuplicates())
             {
                 // Has duplicate analyzer instances.
                 throw new ArgumentException(CodeAnalysisResources.DuplicateAnalyzerInstances, nameof(analyzers));
-            }
-        }
-
-        private static bool HasDuplicateAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers)
-        {
-            switch (analyzers.Length)
-            {
-                case 0:
-                case 1:
-                    return false;
-
-                case 2:
-                    return analyzers[0] == analyzers[1];
-
-                default:
-                    var seenAnalyzers = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
-                    var foundDuplicate = false;
-
-                    foreach (var i in analyzers)
-                    {
-                        if (!seenAnalyzers.Add(i))
-                        {
-                            foundDuplicate = true;
-                            break;
-                        }
-                    }
-
-                    seenAnalyzers.Free();
-                    return foundDuplicate;
             }
         }
 
@@ -205,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.UnsupportedAnalyzerInstance, nameof(_analyzers));
             }
 
-            if (HasDuplicateAnalyzers(analyzers))
+            if (analyzers.HasDuplicates())
             {
                 // Has duplicate analyzer instances.
                 throw new ArgumentException(CodeAnalysisResources.DuplicateAnalyzerInstances, nameof(analyzers));

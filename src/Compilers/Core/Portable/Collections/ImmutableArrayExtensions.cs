@@ -864,7 +864,36 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
-        internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T>? comparer = null)
+        internal static bool HasDuplicates<T>(this ImmutableArray<T> array)
+        {
+            switch (array.Length)
+            {
+                case 0:
+                case 1:
+                    return false;
+
+                case 2:
+                    return EqualityComparer<T>.Default.Equals(array[0], array[1]);
+
+                default:
+                    var set = PooledHashSet<T>.GetInstance();
+                    var foundDuplicate = false;
+
+                    foreach (var element in array)
+                    {
+                        if (!set.Add(element))
+                        {
+                            foundDuplicate = true;
+                            break;
+                        }
+                    }
+
+                    set.Free();
+                    return foundDuplicate;
+            }
+        }
+
+        internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer)
         {
             switch (array.Length)
             {
@@ -878,9 +907,9 @@ namespace Microsoft.CodeAnalysis
 
                 default:
                     var set = new HashSet<T>(comparer);
-                    foreach (var i in array)
+                    foreach (var element in array)
                     {
-                        if (!set.Add(i))
+                        if (!set.Add(element))
                         {
                             return true;
                         }
