@@ -3620,21 +3620,23 @@ public class C : A {
         public async Task TestFrozenPartialSemanticsHandlesDocumentWithSamePathBeingRemovedAndAdded()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
-            var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+            var originalProject = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
                 .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
 
             // Fetch the compilation to ensure further changes produce in progress states
-            var originalCompilation = await project.GetCompilationAsync();
-            project = project.RemoveDocument(project.DocumentIds.Single())
+            var originalCompilation = await originalProject.GetCompilationAsync();
+            var forkedProject = originalProject.RemoveDocument(originalProject.DocumentIds.Single())
                 .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
 
-            // Freeze semantics -- with the new document; this should still give us a project with a single document, the previous
-            // tree having been removed.
-            var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+            var frozenDocument = forkedProject.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
 
-            Assert.Single(frozenDocument.Project.Documents);
-            var singleTree = Assert.Single((await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
-            Assert.Same(await frozenDocument.GetSyntaxTreeAsync(), singleTree);
+            // There will be documents.  That's because freezing the solution ends up jumping back to hte point in time
+            // before the remove/add happened (so the original doc is there).  Then, the new doc is added as a sibling.
+            // That they have the same path is not relevant.  They have different IDs and thus are considered different.
+            Assert.Equal(2, frozenDocument.Project.Documents.Count());
+            var frozenCompilation = await frozenDocument.Project.GetCompilationAsync();
+            Assert.True(frozenCompilation.ContainsSyntaxTree(await frozenDocument.GetSyntaxTreeAsync()));
+            Assert.True(frozenCompilation.ContainsSyntaxTree(await originalProject.Documents.Single().GetSyntaxTreeAsync()));
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
