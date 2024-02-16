@@ -381,7 +381,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             return Task.CompletedTask;
         }
-#endif
 
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
@@ -390,6 +389,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             return Task.CompletedTask;
         }
+#endif
 
         /// <summary>
         /// Return list of <see cref="StateSet"/> to be used for full solution analysis.
