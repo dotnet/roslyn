@@ -175,6 +175,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
+        [Fact]
+        public async Task TestDesignerAttributesUnsupportedLanguage()
+        {
+        }
+
         private class DesignerAttributeComputerCallback : IDesignerAttributeDiscoveryService.ICallback
         {
             private readonly TaskCompletionSource<ImmutableArray<DesignerAttributeData>> _infosSource = new();

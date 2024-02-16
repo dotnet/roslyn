@@ -128,9 +128,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             // when the user adds/removes a form from a particular document.
             if (RemoteSupportedLanguages.IsSupported(activeDocument?.Project.Language))
             {
+                // We only need to do a project sync to compute the up to date data for this particular file.
                 var priorityDocumentId = activeDocument.Id;
                 await client.TryInvokeAsync<IRemoteDesignerAttributeDiscoveryService>(
-                    solution,
+                    activeDocument.Project,
                     (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
                         callbackId, checksum, priorityDocumentId, cancellationToken),
                     callbackTarget: this,
