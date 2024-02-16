@@ -256,7 +256,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             return Task.CompletedTask;
         }
-#endif
 
         private void RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(TextDocument document, IEnumerable<StateSet> stateSets, bool documentHadDiagnostics)
         {
@@ -282,7 +281,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             RaiseDiagnosticsRemovedForDocument(document.Id, stateSets);
         }
 
-#if false
         public async Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
         {
             // Retrigger analysis of newly active document to always get up-to-date diagnostics.
