@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
+#if false
         public async ValueTask SynchronizeWithBuildAsync(
             ImmutableDictionary<ProjectId,
             ImmutableArray<DiagnosticData>> buildDiagnostics,
@@ -100,6 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
         }
+#endif
 
         [Conditional("DEBUG")]
         private static void DebugVerifyBuildDiagnostics(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics)

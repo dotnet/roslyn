@@ -415,6 +415,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var location = Location.Create(document.FilePath, textSpan: default, lineSpan: default);
             var properties = ImmutableDictionary<string, string>.Empty.Add(WellKnownDiagnosticPropertyNames.Origin, WellKnownDiagnosticTags.Build);
 
+#if false
             await service.SynchronizeWithBuildAsync(
                 workspace,
                 ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>>.Empty.Add(
@@ -423,6 +424,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 new TaskQueue(service.Listener, TaskScheduler.Default),
                 onBuildCompleted: true,
                 CancellationToken.None);
+#endif
 
             // wait for all events to raised
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
@@ -478,7 +480,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 typeof(Priority15Analyzer),
                 typeof(Priority20Analyzer)
             }, analyzers.Select(a => a.GetType()));
-#endif 
+#endif
         }
 
         [Fact]
