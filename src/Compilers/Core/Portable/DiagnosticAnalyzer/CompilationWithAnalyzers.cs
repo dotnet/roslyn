@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 default:
                     var seenAnalyzers = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
-                    bool foundDuplicate = false;
+                    var foundDuplicate = false;
 
                     foreach (var i in analyzers)
                     {
