@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMethodUnsafeDifference, implementation.GetFirstLocation());
             }
 
-            if (definition.IsParams() != implementation.IsParams()) // PROTOTYPE(ParamsCollections): Test this code path 
+            if (definition.IsParams() != implementation.IsParams())
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodParamsDifference, implementation.GetFirstLocation());
             }
@@ -899,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (isVararg && (IsGenericMethod || ContainingType.IsGenericType || Parameters.Length > 0 && Parameters[Parameters.Length - 1].IsParams))
             {
-                diagnostics.Add(ErrorCode.ERR_BadVarargs, location); // PROTOTYPE(ParamsCollections): Test this code path
+                diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
             }
             else if (isVararg && IsAsync)
             {

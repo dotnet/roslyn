@@ -11084,7 +11084,7 @@ class Program
             }
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE(ParamsCollections): Enable after a PROTOTYPE comment in CSharpOperationFactory.CreateDisposeArguments is addressed
+        [Fact]
         public void UsingPatternWithParamsTest()
         {
             var source = @"
@@ -11112,7 +11112,7 @@ class C2
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "DisposedDisposed").VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE(ParamsCollections): Enable after a PROTOTYPE comment in CSharpOperationFactory.CreateDisposeArguments is addressed
+        [Fact]
         public void UsingPatternWithParamsTest_Foreach()
         {
             var source = @"
@@ -11140,12 +11140,116 @@ class C2
         }
     }
 }";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+
             CompileAndVerify(
-                source, options: TestOptions.DebugExe, expectedOutput: "Disposed",
+                comp, expectedOutput: "Disposed",
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
                             Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" }
                             : Verification.Passes
                 ).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+
+            comp.VerifyOperationTree(node, expectedOperationTree: """
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (va ... }')
+  Locals: Local_1: System.Int32 i
+  LoopControlVariable:
+    IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+      Initializer:
+        null
+  Collection:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C2, IsImplicit) (Syntax: 'new C2()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IObjectCreationOperation (Constructor: C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'new C2()')
+          Arguments(0)
+          Initializer:
+            null
+  Body:
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  NextVariables(0)
+""");
+
+            VerifyFlowGraph(comp, node.Parent.Parent, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C2()')
+                Value:
+                IInvocationOperation ( S1 C2.GetEnumerator()) (OperationKind.Invocation, Type: S1, IsImplicit) (Syntax: 'new C2()')
+                    Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C2, IsImplicit) (Syntax: 'new C2()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                        Operand:
+                        IObjectCreationOperation (Constructor: C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'new C2()')
+                            Arguments(0)
+                            Initializer:
+                            null
+                    Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B5]
+                IInvocationOperation ( System.Boolean S1.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new C2()')
+                    Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1, IsImplicit) (Syntax: 'new C2()')
+                    Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (1)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                        Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                        Right:
+                        IPropertyReferenceOperation: System.Int32 S1.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                            Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1, IsImplicit) (Syntax: 'new C2()')
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IInvocationOperation ( void S1.Dispose(params System.Collections.Generic.IEnumerable<System.Int32> args)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new C2()')
+                    Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1, IsImplicit) (Syntax: 'new C2()')
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: args) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'foreach (va ... }')
+                        ICollectionExpressionOperation (0 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'foreach (va ... }')
+                            Elements(0)
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B5] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
         }
 
         [Fact]
@@ -13233,7 +13337,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "MyCollection MoveNextAsync");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE(ParamsCollections): Enable after a PROTOTYPE comment in CSharpOperationFactory.CreateDisposeArguments is addressed
+        [Fact]
         public void PatternBasedDisposal_WithParams()
         {
             string source = @"
@@ -13289,6 +13393,418 @@ class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync MyCollection DisposeAsync Done");
+        }
+
+        [Fact]
+        public void OperatorWithParams_01()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+class C
+{
+    static void Test(Program p, List<long> l, long[] a)
+    {
+        p = (Program)l;
+        p = (Program)a;
+
+        _ = p + l;
+        _ = p + a;
+    }
+}
+
+class Program
+{
+    public static implicit operator Program(params List<long> x)
+    {
+        return null;
+    }
+
+    public static Program operator +(Program x, params List<long> y)
+    {
+        return null;
+    }
+
+    public static implicit operator Program(params long[] x)
+    {
+        return null;
+    }
+
+    public static Program operator +(Program x, params long[] y)
+    {
+        return null;
+    }
+}
+";
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (18,45): error CS1670: params is not valid in this context
+                //     public static implicit operator Program(params List<long> x)
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(18, 45),
+                // (23,49): error CS1670: params is not valid in this context
+                //     public static Program operator +(Program x, params List<long> y)
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(23, 49),
+                // (28,45): error CS1670: params is not valid in this context
+                //     public static implicit operator Program(params long[] x)
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(28, 45),
+                // (33,49): error CS1670: params is not valid in this context
+                //     public static Program operator +(Program x, params long[] y)
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(33, 49)
+                );
+        }
+
+        [Fact]
+        public void OperatorWithParams_02()
+        {
+            // public class Program
+            // {
+            //     public static implicit operator Program(params List<long> x)
+            //     {
+            //         return null;
+            //     }
+            //   
+            //     public static Program operator +(Program x, params List<long> y)
+            //     {
+            //         return null;
+            //     }
+            //   
+            //     public static implicit operator Program(params long[] x)
+            //     {
+            //         return null;
+            //     }
+            //   
+            //     public static Program operator +(Program x, params long[] y)
+            //     {
+            //         return null;
+            //     }
+            // }
+            var ilSource = """
+.class public auto ansi beforefieldinit Program
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname static 
+        class Program op_Implicit (
+            class [mscorlib]System.Collections.Generic.List`1<int64> x
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname static 
+        class Program op_Addition (
+            class Program x,
+            class [mscorlib]System.Collections.Generic.List`1<int64> y
+        ) cil managed 
+    {
+        .param [2]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname static 
+        class Program op_Implicit (
+            int64[] x
+        ) cil managed 
+    {
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname static 
+        class Program op_Addition (
+            class Program x,
+            int64[] y
+        ) cil managed 
+    {
+        .param [2]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+""";
+
+            var src = @"
+using System.Collections.Generic;
+
+class C
+{
+    static void Test(Program p, List<long> l, long[] a)
+    {
+        p = (Program)l;
+        p = (Program)a;
+
+        _ = p + l;
+        _ = p + a;
+    }
+}
+";
+            CreateCompilationWithIL(src, ilSource).VerifyEmitDiagnostics(
+                // (8,13): error CS0030: Cannot convert type 'System.Collections.Generic.List<long>' to 'Program'
+                //         p = (Program)l;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Program)l").WithArguments("System.Collections.Generic.List<long>", "Program").WithLocation(8, 13),
+                // (9,13): error CS0030: Cannot convert type 'long[]' to 'Program'
+                //         p = (Program)a;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Program)a").WithArguments("long[]", "Program").WithLocation(9, 13),
+                // (11,13): error CS0019: Operator '+' cannot be applied to operands of type 'Program' and 'List<long>'
+                //         _ = p + l;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "p + l").WithArguments("+", "Program", "System.Collections.Generic.List<long>").WithLocation(11, 13),
+                // (12,13): error CS0019: Operator '+' cannot be applied to operands of type 'Program' and 'long[]'
+                //         _ = p + a;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "p + a").WithArguments("+", "Program", "long[]").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void ExtensionMethodWithParams_01()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+class C
+{
+    static void Test(IEnumerable<long> l, long[] a)
+    {
+        l.M1();
+        a.M2();
+    }
+}
+
+static class Ext
+{
+    public static void M1(this params IEnumerable<long> x)
+    {
+    }
+
+    public static void M2(this params long[] x)
+    {
+    }
+}
+";
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (15,32): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void M1(this params IEnumerable<long> x)
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(15, 32),
+                // (19,32): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void M2(this params long[] x)
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(19, 32)
+                );
+        }
+
+        [Fact]
+        public void ExtensionMethodWithParams_02()
+        {
+            // static class Ext
+            // {
+            //     public static void M1(this params IEnumerable<long> x)
+            //     {
+            //     }
+            // 
+            //     public static void M2(this params long[] x)
+            //     {
+            //     }
+            // }
+            var ilSource = """
+.class public auto ansi abstract sealed beforefieldinit Ext
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+
+    .method public hidebysig static 
+        void M1 (
+            class [mscorlib]System.Collections.Generic.IEnumerable`1<int64> x
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .param [1]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ret
+    }
+
+    .method public hidebysig static 
+        void M2 (
+            int64[] x
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+                01 00 00 00
+            )
+
+        .maxstack 8
+
+        IL_0000: ret
+    }
+}
+
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ParamCollectionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+""";
+
+            var src = @"
+using System.Collections.Generic;
+
+class C
+{
+    static void Test(IEnumerable<long> l, long[] a)
+    {
+        l.M1();
+        a.M2();
+    }
+}
+";
+            CreateCompilationWithIL(src, ilSource).VerifyEmitDiagnostics(
+                // (8,11): error CS1061: 'IEnumerable<long>' does not contain a definition for 'M1' and no accessible extension method 'M1' accepting a first argument of type 'IEnumerable<long>' could be found (are you missing a using directive or an assembly reference?)
+                //         l.M1();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M1").WithArguments("System.Collections.Generic.IEnumerable<long>", "M1").WithLocation(8, 11),
+                // (9,11): error CS1061: 'long[]' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'long[]' could be found (are you missing a using directive or an assembly reference?)
+                //         a.M2();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("long[]", "M2").WithLocation(9, 11)
+                );
+        }
+
+        [Fact]
+        public void VarargWithParams_01()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+class C1
+{
+    C1(params IEnumerable<long> x, __arglist)
+    {
+    }
+
+    C1(params long[] x, __arglist)
+    {
+    }
+
+    static void M1(params IEnumerable<long> x, __arglist)
+    {
+    }
+
+    static void M2(params long[] x, __arglist)
+    {
+    }
+}
+
+class C2
+{
+    C2(IEnumerable<long> x, __arglist)
+    {
+    }
+
+    C2(long[] x, __arglist)
+    {
+    }
+
+    static void M3(IEnumerable<long> x, __arglist)
+    {
+    }
+
+    static void M4(long[] x, __arglist)
+    {
+    }
+}
+";
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (6,5): error CS0224: A method with vararg cannot be generic, be in a generic type, or have a params parameter
+                //     C1(params IEnumerable<long> x, __arglist)
+                Diagnostic(ErrorCode.ERR_BadVarargs, "C1").WithLocation(6, 5),
+                // (6,8): error CS0231: A params parameter must be the last parameter in a parameter list
+                //     C1(params IEnumerable<long> x, __arglist)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params IEnumerable<long> x").WithLocation(6, 8),
+                // (10,5): error CS0224: A method with vararg cannot be generic, be in a generic type, or have a params parameter
+                //     C1(params long[] x, __arglist)
+                Diagnostic(ErrorCode.ERR_BadVarargs, "C1").WithLocation(10, 5),
+                // (10,8): error CS0231: A params parameter must be the last parameter in a parameter list
+                //     C1(params long[] x, __arglist)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] x").WithLocation(10, 8),
+                // (14,17): error CS0224: A method with vararg cannot be generic, be in a generic type, or have a params parameter
+                //     static void M1(params IEnumerable<long> x, __arglist)
+                Diagnostic(ErrorCode.ERR_BadVarargs, "M1").WithLocation(14, 17),
+                // (14,20): error CS0231: A params parameter must be the last parameter in a parameter list
+                //     static void M1(params IEnumerable<long> x, __arglist)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params IEnumerable<long> x").WithLocation(14, 20),
+                // (18,17): error CS0224: A method with vararg cannot be generic, be in a generic type, or have a params parameter
+                //     static void M2(params long[] x, __arglist)
+                Diagnostic(ErrorCode.ERR_BadVarargs, "M2").WithLocation(18, 17),
+                // (18,20): error CS0231: A params parameter must be the last parameter in a parameter list
+                //     static void M2(params long[] x, __arglist)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] x").WithLocation(18, 20)
+                );
         }
     }
 }
