@@ -1910,9 +1910,20 @@ done:
         /// </summary>
         protected void EnsureNullabilityAnalysisPerformedIfNecessary()
         {
+#if !DEBUG
+            // In release mode, when the semantic model options include DisableNullableAnalysis,
+            // we want to completely avoid doing any work for nullable analysis.
+#pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
+            if (DisableNullableAnalysis)
+#pragma warning restore RSEXPERIMENTAL001
+            {
+                return;
+            }
+#endif
+
             bool isNullableAnalysisEnabled = IsNullableAnalysisEnabled();
-            // When 'isNullableAnalysisEnabled' is false, we may still need to
-            // perform a nullable analysis here whose results are discarded.
+            // When 'isNullableAnalysisEnabled' is false but 'Compilation.IsNullableAnalysisEnabledAlways' is true here,
+            // we still need to perform a nullable analysis whose results are discarded for debug verification purposes.
             if (!isNullableAnalysisEnabled && !Compilation.IsNullableAnalysisEnabledAlways)
             {
                 return;
@@ -1980,6 +1991,7 @@ done:
             void rewriteAndCache()
             {
                 var diagnostics = DiagnosticBag.GetInstance();
+#if DEBUG
                 if (!isNullableAnalysisEnabled)
                 {
                     Debug.Assert(Compilation.IsNullableAnalysisEnabledAlways);
@@ -1987,6 +1999,7 @@ done:
                     diagnostics.Free();
                     return;
                 }
+#endif
 
                 boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, createSnapshots: true, out snapshotManager, ref remappedSymbols);
                 diagnostics.Free();
