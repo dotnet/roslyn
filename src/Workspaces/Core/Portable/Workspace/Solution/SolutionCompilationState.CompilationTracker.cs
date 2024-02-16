@@ -242,17 +242,18 @@ namespace Microsoft.CodeAnalysis
                         : new CompilationTracker(this.ProjectState, finalState.WithIsFrozen(), this.SkeletonReferenceCache.Clone());
                 }
 
-                GetPartialCompilationState(
-                    state,
-                    docState.Id,
-                    out var inProgressProject,
-                    out var compilationPair,
-                    out var generatorInfo,
-                    cancellationToken);
-
                 // Otherwise, we're not finalized, or the document has changed.  We'll create an in-progress state
                 // to represent the new state of the project, with all the necessary translation steps to
                 // incorporate the new document.
+
+                GetPartialCompilationState(
+                    state,
+                    out var inProgressProject,
+                    out var compilationWithoutGeneratedDocuments,
+                    out var compilationWithGeneratedDocuments,
+                    out var generatorInfo,
+                    cancellationToken);
+
                 ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> pendingActions;
                 if (inProgressProject.DocumentStates.TryGetState(docState.Id, out oldState))
                 {
@@ -275,9 +276,9 @@ namespace Microsoft.CodeAnalysis
                 // pending actions we'll need to perform on it to get to the final state.
                 var inProgressState = InProgressState.Create(
                     isFrozen: true,
-                    compilationPair.CompilationWithoutGeneratedDocuments,
+                    compilationWithoutGeneratedDocuments,
                     generatorInfo,
-                    compilationPair.CompilationWithGeneratedDocuments,
+                    compilationWithGeneratedDocuments,
                     pendingActions);
 
                 return new CompilationTracker(inProgressProject, inProgressState, this.SkeletonReferenceCache.Clone());
