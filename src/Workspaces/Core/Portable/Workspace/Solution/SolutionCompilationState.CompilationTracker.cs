@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis
                     // Otherwise, we're not finalized, or the document has changed.  We'll create an in-progress state
                     // to represent the new state of the project, with all the necessary translation steps to
                     // incorporate the new document.
-                    var pendingActions = ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty;
+                    var pendingActions = ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)>.Empty;
                     if (!inProgressProject.DocumentStates.TryGetState(docState.Id, out oldState) || oldState != docState)
                     {
                         // We do not have the exact document. It either means this document was recently added, or the
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis
                             // our current state. Note if no compilation existed GetPartialCompilationState would have
                             // produced an empty one, and removed any documents, so inProgressProject.DocumentStates would
                             // have been empty originally.
-                            pendingActions = [(inProgressProject, new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldState, docState))];
+                            pendingActions = [(oldState: inProgressProject, new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldState, docState))];
                             inProgressProject = inProgressProject.UpdateDocument(docState, contentChanged: true);
                         }
                         else
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis
                             if (oldState is null)
                             {
                                 // Scenario 2.
-                                pendingActions = [(inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
+                                pendingActions = [(oldState: inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
                                 inProgressProject = inProgressProject.AddDocuments([docState]);
                             }
                             else
@@ -296,8 +296,8 @@ namespace Microsoft.CodeAnalysis
                                 // instead. We'll find the old document ID, remove that state, and then add ours.
                                 var inProgressWithDocumentRemoved = inProgressProject.RemoveDocuments([oldState.Id]);
                                 pendingActions = [
-                                    (inProgressProject, new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction([oldState])),
-                                    (inProgressWithDocumentRemoved, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
+                                    (oldState: inProgressProject, new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction([oldState])),
+                                    (oldState: inProgressWithDocumentRemoved, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
                                 inProgressProject = inProgressWithDocumentRemoved
                                     .AddDocuments([docState]);
                             }
