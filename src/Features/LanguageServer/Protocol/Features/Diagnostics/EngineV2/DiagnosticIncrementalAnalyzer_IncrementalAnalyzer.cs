@@ -305,6 +305,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 await AnalyzeDocumentForKindAsync(document, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false);
         }
 
+#if false
         public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_RemoveDocument, GetRemoveLogMessage, documentId, CancellationToken.None))
@@ -326,6 +327,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             return Task.CompletedTask;
         }
+#endif
 
         private void RaiseDiagnosticsRemovedForDocument(DocumentId documentId, IEnumerable<StateSet> stateSets)
         {
@@ -345,6 +347,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             });
         }
 
+#if false
         public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellation)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_RemoveProject, GetRemoveLogMessage, projectId, CancellationToken.None))
@@ -376,6 +379,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             return Task.CompletedTask;
         }
+#endif
 
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {

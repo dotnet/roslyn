@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken);
         Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken);
 
+#if false
         Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken);
         Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
 
-#if false
         Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken);
         Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken);
 
