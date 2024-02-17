@@ -973,12 +973,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 var builder = ImmutableHashSet.CreateBuilder<ReportDiagnostic>();
+                var categoryBasedKey = AnalyzerOptionsExtensions.GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(descriptor.Category);
                 foreach (var tree in compilation.SyntaxTrees)
                 {
                     var severityForTree = defaultSeverity;
 
                     if (syntaxTreeProvider.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out severity) ||
-                        analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, cancellationToken, out severity))
+                        analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, categoryBasedKey, cancellationToken, out severity))
                     {
                         Debug.Assert(severity != ReportDiagnostic.Default);
 

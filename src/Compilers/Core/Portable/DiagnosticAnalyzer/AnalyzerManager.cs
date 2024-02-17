@@ -317,11 +317,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (analyzerExecutor.Compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
                 {
+                    var categoryBasedKey = AnalyzerOptionsExtensions.GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(descriptor.Category);
                     foreach (var tree in analysisScope.SyntaxTrees)
                     {
                         // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
                         if (treeOptions.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out var configuredValue) ||
-                            analyzerExecutor.AnalyzerOptions.TryGetSeverityFromBulkConfiguration(tree, analyzerExecutor.Compilation, descriptor, cancellationToken, out configuredValue))
+                            analyzerExecutor.AnalyzerOptions.TryGetSeverityFromBulkConfiguration(tree, analyzerExecutor.Compilation, descriptor, categoryBasedKey, cancellationToken, out configuredValue))
                         {
                             if (configuredValue != ReportDiagnostic.Suppress && !severityFilter.Contains(configuredValue))
                             {

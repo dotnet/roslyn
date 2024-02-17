@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private const string DotnetAnalyzerDiagnosticSeverityKey = DotnetAnalyzerDiagnosticPrefix + "." + SeveritySuffix;
 
-        private static string GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(string category)
+        internal static string GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(string category)
             => $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{category}.{SeveritySuffix}";
 
         /// <summary>
@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SyntaxTree tree,
             Compilation compilation,
             DiagnosticDescriptor descriptor,
+            string? categoryBasedKey,
             CancellationToken cancellationToken,
             out ReportDiagnostic severity)
         {
@@ -63,7 +64,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // If user has explicitly configured default severity for the diagnostic category, that should be respected.
             // For example, 'dotnet_analyzer_diagnostic.category-security.severity = error'
-            var categoryBasedKey = GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(descriptor.Category);
+            Debug.Assert(categoryBasedKey is null || categoryBasedKey == GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(descriptor.Category));
+            categoryBasedKey ??= GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(descriptor.Category);
             if (analyzerConfigOptions.TryGetValue(categoryBasedKey, out var value) &&
                 AnalyzerConfigSet.TryParseSeverity(value, out severity))
             {
@@ -89,5 +91,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             severity = default;
             return false;
         }
+
+        public static bool TryGetSeverityFromBulkConfiguration(
+            this AnalyzerOptions? analyzerOptions,
+            SyntaxTree tree,
+            Compilation compilation,
+            DiagnosticDescriptor descriptor,
+            CancellationToken cancellationToken,
+            out ReportDiagnostic severity)
+            => TryGetSeverityFromBulkConfiguration(analyzerOptions, tree, compilation, descriptor, categoryBasedKey: null, cancellationToken, out severity);
     }
 }
