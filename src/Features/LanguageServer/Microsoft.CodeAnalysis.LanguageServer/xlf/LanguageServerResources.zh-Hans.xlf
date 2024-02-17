@@ -47,9 +47,9 @@
         <target state="translated">正在发现测试...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Exception_thrown_while_loading_0">
-        <source>Exception thrown while loading {0}</source>
-        <target state="translated">加载 {0} 时引发异常</target>
+      <trans-unit id="Exception_thrown_0">
+        <source>Exception thrown: {0}</source>
+        <target state="new">Exception thrown: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed">

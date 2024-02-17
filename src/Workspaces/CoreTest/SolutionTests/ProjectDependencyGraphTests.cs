@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var dependencyGraph = solution.GetProjectDependencyGraph();
             var projectAId = solution.GetProjectsByName("A").Single().Id;
             var projectBId = solution.GetProjectsByName("B").Single().Id;
-            dependencyGraph = dependencyGraph.WithAdditionalProjectReferences(projectAId, new[] { new ProjectReference(projectBId) });
+            dependencyGraph = dependencyGraph.WithAdditionalProjectReferences(projectAId, [new ProjectReference(projectBId)]);
 
             VerifyTransitiveReferences(solution, dependencyGraph, project: "A", expectedResults: ["B"]);
         }
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var projectBId = ProjectId.CreateNewId("B");
 
             var projectAInfo = ProjectInfo.Create(projectAId, VersionStamp.Create(), "A", "A", LanguageNames.CSharp,
-                                    projectReferences: new[] { new ProjectReference(projectBId) });
+                                    projectReferences: [new ProjectReference(projectBId)]);
 
             solution = solution.AddProject(projectAInfo);
 
@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var referencesByTargetProject = new Dictionary<string, List<ProjectReference>>();
             foreach (var targetProject in projectReferences)
             {
-                var references = referencesByTargetProject.GetOrAdd(targetProject, _ => new List<ProjectReference>());
+                var references = referencesByTargetProject.GetOrAdd(targetProject, _ => []);
                 if (references.Count == 0)
                 {
                     references.Add(new ProjectReference(solution.GetProjectsByName(targetProject).Single().Id));

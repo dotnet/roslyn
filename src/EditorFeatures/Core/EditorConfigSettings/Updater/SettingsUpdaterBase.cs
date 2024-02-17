@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
 {
     internal abstract class SettingsUpdaterBase<TOption, TValue> : ISettingUpdater<TOption, TValue>
     {
-        private readonly List<(TOption option, TValue value)> _queue = new();
+        private readonly List<(TOption option, TValue value)> _queue = [];
         private readonly SemaphoreSlim _guard = new(1);
         private readonly IAsynchronousOperationListener _listener;
         protected readonly Workspace Workspace;

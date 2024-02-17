@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// </summary>
     public abstract class CodeAction
     {
-        private static readonly Dictionary<Type, bool> s_isNonProgressGetChangedSolutionAsyncOverridden = new();
-        private static readonly Dictionary<Type, bool> s_isNonProgressComputeOperationsAsyncOverridden = new();
+        private static readonly Dictionary<Type, bool> s_isNonProgressGetChangedSolutionAsyncOverridden = [];
+        private static readonly Dictionary<Type, bool> s_isNonProgressComputeOperationsAsyncOverridden = [];
 
         /// <summary>
         /// Special tag that indicates that it's this is a privileged code action that is allowed to use the <see

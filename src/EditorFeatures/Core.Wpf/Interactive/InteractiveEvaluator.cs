@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// Includes both command buffers as well as language buffers.
         /// Does not include the current buffer unless it has been submitted.
         /// </remarks>
-        private readonly List<ITextBuffer> _submittedBuffers = new();
+        private readonly List<ITextBuffer> _submittedBuffers = [];
 
         #endregion
 

@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             private readonly int _position;
             private readonly Document _originatingDocument;
+
+            /// <summary>
+            /// The semantic model provided for <see cref="_originatingDocument"/>. This may be a speculative semantic
+            /// model with limited validity based on the context surrounding <see cref="_position"/>.
+            /// </summary>
             private readonly SemanticModel _originatingSemanticModel;
             private readonly ITypeSymbol _receiverTypeSymbol;
             private readonly ImmutableArray<string> _receiverTypeNames;
@@ -31,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // This dictionary is used as cache among all projects and PE references. 
             // The key is the receiver type as in the extension method declaration (symbol retrived from originating compilation).
             // The value indicates if we can reduce an extension method with this receiver type given receiver type.
-            private readonly ConcurrentDictionary<ITypeSymbol, bool> _checkedReceiverTypes = new();
+            private readonly ConcurrentDictionary<ITypeSymbol, bool> _checkedReceiverTypes = [];
 
             public SymbolComputer(
                 Document document,
@@ -49,18 +54,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var receiverTypeNames = GetReceiverTypeNames(receiverTypeSymbol);
                 _receiverTypeNames = AddComplexTypes(receiverTypeNames);
                 _cacheService = GetCacheService(document.Project);
-            }
-
-            public static async Task<SymbolComputer> CreateAsync(
-                Document document,
-                int position,
-                ITypeSymbol receiverTypeSymbol,
-                ISet<string> namespaceInScope,
-                CancellationToken cancellationToken)
-            {
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                return new SymbolComputer(
-                    document, semanticModel, receiverTypeSymbol, position, namespaceInScope);
             }
 
             private static IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object> GetCacheService(Project project)
@@ -178,7 +171,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 var originatingAssembly = _originatingSemanticModel.Compilation.Assembly;
                 var filter = CreateAggregatedFilter(cacheEntry);
-                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                // Avoid recalculating a compilation for the originating document, particularly for the case where the
+                // provided semantic model is a speculative semantic model.
+                var compilation = project == _originatingDocument.Project
+                    ? _originatingSemanticModel.Compilation
+                    : await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var assembly = compilation.Assembly;
                 var internalsVisible = originatingAssembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
 

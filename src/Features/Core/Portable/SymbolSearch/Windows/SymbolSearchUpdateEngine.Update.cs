@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// </summary>
         private static readonly LinkedList<string> s_logs = new();
 
-        private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel = new();
+        private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel = [];
 
         // Interfaces that abstract out the external functionality we need.  Used so we can easily
         // mock behavior during tests.

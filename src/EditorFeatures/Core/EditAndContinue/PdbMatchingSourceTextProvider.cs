@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private bool _isActive;
         private int _baselineSolutionVersion;
-        private readonly Dictionary<string, (DocumentState state, int solutionVersion)> _documentsWithChangedLoaderByPath = new();
+        private readonly Dictionary<string, (DocumentState state, int solutionVersion)> _documentsWithChangedLoaderByPath = [];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

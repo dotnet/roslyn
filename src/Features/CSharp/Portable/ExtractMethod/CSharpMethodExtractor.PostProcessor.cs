@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var lastTokenWithAsset = block.CloseBraceToken.CopyAnnotationsTo(lastToken).WithAppendedTrailingTrivia(block.CloseBraceToken.GetAllTrivia());
 
                 // create new block with new tokens
-                block = block.ReplaceTokens(new[] { firstToken, lastToken }, (o, c) => (o == firstToken) ? firstTokenWithAsset : lastTokenWithAsset);
+                block = block.ReplaceTokens([firstToken, lastToken], (o, c) => (o == firstToken) ? firstTokenWithAsset : lastTokenWithAsset);
 
                 // return only statements without the wrapping block
                 return ImmutableArray.CreateRange(block.Statements);
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var type = _semanticModel.GetSpeculativeTypeInfo(_contextPosition, statement.Declaration.Type, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
                 Contract.ThrowIfNull(type);
 
-                map.GetOrAdd(type, _ => new List<LocalDeclarationStatementSyntax>()).Add(statement);
+                map.GetOrAdd(type, _ => []).Add(statement);
             }
 
             private static IEnumerable<LocalDeclarationStatementSyntax> GetMergedDeclarationStatements(

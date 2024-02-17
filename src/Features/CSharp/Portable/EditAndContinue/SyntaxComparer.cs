@@ -1367,7 +1367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static void GetLocalNames(SyntaxToken syntaxToken, [NotNull] ref List<SyntaxToken>? result)
         {
-            result ??= new List<SyntaxToken>();
+            result ??= [];
             result.Add(syntaxToken);
         }
 

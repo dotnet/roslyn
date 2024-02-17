@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
 
         public event EventHandler<TaskListUpdatedArgs>? TaskListUpdated;
 
-        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TaskListItem>> _documentToTaskListItems = new();
+        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TaskListItem>> _documentToTaskListItems = [];
 
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.

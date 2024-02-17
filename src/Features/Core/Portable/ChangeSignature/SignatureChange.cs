@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public readonly ParameterConfiguration OriginalConfiguration;
         public readonly ParameterConfiguration UpdatedConfiguration;
 
-        private readonly Dictionary<int, int?> _originalIndexToUpdatedIndexMap = new();
+        private readonly Dictionary<int, int?> _originalIndexToUpdatedIndexMap = [];
 
         public SignatureChange(ParameterConfiguration originalConfiguration, ParameterConfiguration updatedConfiguration)
         {

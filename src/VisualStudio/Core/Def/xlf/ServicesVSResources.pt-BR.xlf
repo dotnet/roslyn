@@ -1104,7 +1104,7 @@
       </trans-unit>
       <trans-unit id="Prefer_collection_expression">
         <source>Prefer collection expression</source>
-        <target state="translated">Preferir expressão de coleção</target>
+        <target state="translated">Preferir a expressão de coleção</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">

@@ -2904,7 +2904,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     RudeEditKind.UpdateAroundActiveStatement,
                     GetDiagnosticSpan(newSwitch, EditKind.Update),
                     newSwitch,
-                    new[] { CSharpFeaturesResources.switch_statement_case_clause }));
+                    [CSharpFeaturesResources.switch_statement_case_clause]));
             }
         }
 

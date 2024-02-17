@@ -89,12 +89,12 @@ internal readonly record struct SourceGeneratedDocumentIdentity : IEquatable<Sou
     {
         var documentId = DocumentId.ReadFrom(reader);
 
-        var hintName = reader.ReadString();
-        var generatorAssemblyName = reader.ReadString();
+        var hintName = reader.ReadRequiredString();
+        var generatorAssemblyName = reader.ReadRequiredString();
         var generatorAssemblyPath = reader.ReadString();
-        var generatorAssemblyVersion = Version.Parse(reader.ReadString());
-        var generatorTypeName = reader.ReadString();
-        var filePath = reader.ReadString();
+        var generatorAssemblyVersion = Version.Parse(reader.ReadRequiredString());
+        var generatorTypeName = reader.ReadRequiredString();
+        var filePath = reader.ReadRequiredString();
 
         return new SourceGeneratedDocumentIdentity(
             documentId,

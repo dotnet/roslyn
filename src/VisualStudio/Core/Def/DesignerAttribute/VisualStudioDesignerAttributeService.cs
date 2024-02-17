@@ -14,13 +14,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -39,13 +37,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// Used to acquire the legacy project designer service.
         /// </summary>
         private readonly IServiceProvider _serviceProvider;
+        private readonly IAsynchronousOperationListener _listener;
 
         /// <summary>
         /// Cache from project to the CPS designer service for it.  Computed on demand (which
         /// requires using the UI thread), but then cached for all subsequent notifications about
         /// that project.
         /// </summary>
-        private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?> _cpsProjects = new();
+        private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?> _cpsProjects = [];
 
         /// <summary>
         /// Cached designer service for notifying legacy projects about designer attributes.
@@ -70,18 +69,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             _workspace = workspace;
             _serviceProvider = serviceProvider;
 
-            var listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
+            _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
 
             _workQueue = new AsyncBatchingWorkQueue(
                 DelayTimeSpan.Idle,
                 this.ProcessWorkspaceChangeAsync,
-                listener,
+                _listener,
                 ThreadingContext.DisposalToken);
 
             _projectSystemNotificationQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
                 DelayTimeSpan.Idle,
                 this.NotifyProjectSystemAsync,
-                listener,
+                _listener,
                 ThreadingContext.DisposalToken);
         }
 
@@ -123,12 +122,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
 
             var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
-            var priorityDocument = trackingService.TryGetActiveDocument();
+            var priorityDocumentId = trackingService.GetActiveDocument(solution)?.Id;
+
+            // If there is an active document, then process changes to it right away, so that the UI updates quickly
+            // when the user adds/removes a form from a particular document.
+            if (priorityDocumentId != null)
+            {
+                await client.TryInvokeAsync<IRemoteDesignerAttributeDiscoveryService>(
+                    solution,
+                    (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
+                        callbackId, checksum, priorityDocumentId, cancellationToken),
+                    callbackTarget: this,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            // Wait a little after the priority document and process the rest of the solution at a lower priority.
+            await _listener.Delay(DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
 
             await client.TryInvokeAsync<IRemoteDesignerAttributeDiscoveryService>(
                 solution,
                 (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
-                    callbackId, checksum, priorityDocument, useFrozenSnapshots: true, cancellationToken),
+                    callbackId, checksum, cancellationToken),
                 callbackTarget: this,
                 cancellationToken).ConfigureAwait(false);
         }

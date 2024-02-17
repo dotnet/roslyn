@@ -93,12 +93,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <remarks>Should be updated with <see cref="ImmutableInterlocked"/>.</remarks>
         private ImmutableDictionary<ProjectId, Func<string?>> _projectToRuleSetFilePath = ImmutableDictionary<ProjectId, Func<string?>>.Empty;
 
-        private readonly Dictionary<string, List<ProjectSystemProject>> _projectSystemNameToProjectsMap = new();
+        private readonly Dictionary<string, List<ProjectSystemProject>> _projectSystemNameToProjectsMap = [];
 
         /// <summary>
         /// Only safe to use on the UI thread.
         /// </summary>
-        private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = new();
+        private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = [];
 
         private VirtualMemoryNotificationListener? _memoryListener;
 
@@ -216,9 +216,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _memoryListener = memoryListener;
             }
 
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
+
             // This must be called after the _openFileTracker was assigned; this way we know that a file added from the project system either got checked
             // in CheckForAddedFileBeingOpenMaybeAsync, or we catch it here.
-            await openFileTracker.CheckForOpenFilesThatWeMissedAsync(_threadingContext.DisposalToken).ConfigureAwait(false);
+            openFileTracker.CheckForOpenFilesThatWeMissed();
 
             // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
             await TaskScheduler.Default;

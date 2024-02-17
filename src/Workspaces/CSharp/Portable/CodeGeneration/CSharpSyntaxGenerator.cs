@@ -966,8 +966,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return node is AttributeSyntax attr ? SyntaxFactory.AttributeList([attr]) : (AttributeListSyntax)node;
         }
 
-        private static readonly ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>> s_declAttributes
-            = new();
+        private static readonly ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>> s_declAttributes = new();
 
         public override IReadOnlyList<SyntaxNode> GetAttributes(SyntaxNode declaration)
         {
@@ -980,8 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return attrs;
         }
 
-        private static readonly ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>> s_declReturnAttributes
-            = new();
+        private static readonly ConditionalWeakTable<SyntaxNode, IReadOnlyList<SyntaxNode>> s_declReturnAttributes = new();
 
         public override IReadOnlyList<SyntaxNode> GetReturnAttributes(SyntaxNode declaration)
         {
@@ -2747,7 +2745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     var index = IndexOf(GetSubDeclarations(fullDecl), declaration);
 
                     // replace declaration with multiple declarations
-                    return ReplaceRange(root, fullDecl, SplitAndReplace(fullDecl, index, new[] { newDeclaration }));
+                    return ReplaceRange(root, fullDecl, SplitAndReplace(fullDecl, index, [newDeclaration]));
                 }
 
                 // attempt normal replace
@@ -2937,8 +2935,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private IEnumerable<SyntaxNode> SplitAndInsert(SyntaxNode multiPartDeclaration, int index, IEnumerable<SyntaxNode> newDeclarations)
         {
             var count = GetDeclarationCount(multiPartDeclaration);
-            var newNodes = new List<SyntaxNode>();
-            newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
+            var newNodes = new List<SyntaxNode>
+            {
+                this.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace)
+            };
             newNodes.AddRange(newDeclarations);
             newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, 0, index).WithLeadingTrivia(SyntaxFactory.ElasticSpace));
             return newNodes;
@@ -3055,8 +3055,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var newNode = node.WithTrailingTrivia(node.GetTrailingTrivia().AddRange(previousToken.TrailingTrivia));
                 var newPreviousToken = previousToken.WithTrailingTrivia(default(SyntaxTriviaList));
                 return root.ReplaceSyntax(
-                    nodes: new[] { node }, computeReplacementNode: (o, r) => newNode,
-                    tokens: new[] { previousToken }, computeReplacementToken: (o, r) => newPreviousToken,
+                    nodes: [node], computeReplacementNode: (o, r) => newNode,
+                    tokens: [previousToken], computeReplacementToken: (o, r) => newPreviousToken,
                     trivia: null, computeReplacementTrivia: null);
             }
 

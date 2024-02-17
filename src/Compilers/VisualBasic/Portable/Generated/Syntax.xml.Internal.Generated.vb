@@ -8178,6 +8178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._argumentList = argumentList
             End If
 
+            SetFlags(NodeFlags.ContainsAttributes)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, target As AttributeTargetSyntax, name As TypeSyntax, argumentList As ArgumentListSyntax, context As ISyntaxFactoryContext)
@@ -8196,6 +8197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._argumentList = argumentList
             End If
 
+            SetFlags(NodeFlags.ContainsAttributes)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), target As AttributeTargetSyntax, name As TypeSyntax, argumentList As ArgumentListSyntax)
@@ -8213,6 +8215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._argumentList = argumentList
             End If
 
+            SetFlags(NodeFlags.ContainsAttributes)
         End Sub
 
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
@@ -37511,19 +37514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </param>
         Friend Shared Function Attribute(target As AttributeTargetSyntax, name As TypeSyntax, argumentList As ArgumentListSyntax) As AttributeSyntax
             Debug.Assert(name IsNot Nothing)
-
-            Dim hash As Integer
-            Dim cached = SyntaxNodeCache.TryGetNode(SyntaxKind.Attribute, target, name, argumentList, hash)
-            If cached IsNot Nothing Then
-                Return DirectCast(cached, AttributeSyntax)
-            End If
-
-            Dim result = New AttributeSyntax(SyntaxKind.Attribute, target, name, argumentList)
-            If hash >= 0 Then
-                SyntaxNodeCache.AddNode(result, hash)
-            End If
-
-            Return result
+            Return New AttributeSyntax(SyntaxKind.Attribute, target, name, argumentList)
         End Function
 
 
@@ -49589,19 +49580,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </param>
         Friend Function Attribute(target As AttributeTargetSyntax, name As TypeSyntax, argumentList As ArgumentListSyntax) As AttributeSyntax
             Debug.Assert(name IsNot Nothing)
-
-            Dim hash As Integer
-            Dim cached = VisualBasicSyntaxNodeCache.TryGetNode(SyntaxKind.Attribute, target, name, argumentList, _factoryContext, hash)
-            If cached IsNot Nothing Then
-                Return DirectCast(cached, AttributeSyntax)
-            End If
-
-            Dim result = New AttributeSyntax(SyntaxKind.Attribute, target, name, argumentList, _factoryContext)
-            If hash >= 0 Then
-                SyntaxNodeCache.AddNode(result, hash)
-            End If
-
-            Return result
+            Return New AttributeSyntax(SyntaxKind.Attribute, target, name, argumentList, _factoryContext)
         End Function
 
 

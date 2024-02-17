@@ -351,7 +351,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// </summary>
             private readonly object _gate = new();
             private bool _disposed = false;
-            private readonly HashSet<RegularWatchedFile> _activeFileWatchingTokens = new();
+            private readonly HashSet<RegularWatchedFile> _activeFileWatchingTokens = [];
 
             /// <summary>
             /// The list of cookies we used to make watchers for <see cref="_watchedDirectories"/>.
@@ -360,7 +360,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// This does not need to be used under <see cref="_gate"/>, as it's only used inside the actual queue of file watcher
             /// actions.
             /// </remarks>
-            private readonly List<uint> _directoryWatchCookies = new();
+            private readonly List<uint> _directoryWatchCookies = [];
 
             public Context(FileChangeWatcher fileChangeWatcher, ImmutableArray<WatchedDirectory> watchedDirectories)
             {

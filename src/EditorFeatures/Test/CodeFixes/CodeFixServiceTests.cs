@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         internal class TestErrorLogger : IErrorLoggerService
         {
-            public Dictionary<string, string> Messages = new Dictionary<string, string>();
+            public Dictionary<string, string> Messages = [];
 
             public void LogException(object source, Exception exception)
                 => Messages.Add(source.GetType().Name, ToLogFormat(exception));
@@ -985,8 +985,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 #pragma warning disable RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
         [ExportCodeFixProvider(
             LanguageNames.CSharp,
-            DocumentKinds = new[] { nameof(TextDocumentKind.AdditionalDocument) },
-            DocumentExtensions = new[] { ".txt" })]
+            DocumentKinds = [nameof(TextDocumentKind.AdditionalDocument)],
+            DocumentExtensions = [".txt"])]
         [Shared]
         internal sealed class AdditionalFileFixerWithDocumentKindsAndExtensions : AbstractAdditionalFileCodeFixProvider
         {
@@ -995,7 +995,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         [ExportCodeFixProvider(
             LanguageNames.CSharp,
-            DocumentKinds = new[] { nameof(TextDocumentKind.AdditionalDocument) })]
+            DocumentKinds = [nameof(TextDocumentKind.AdditionalDocument)])]
         [Shared]
         internal sealed class AdditionalFileFixerWithDocumentKinds : AbstractAdditionalFileCodeFixProvider
         {
@@ -1004,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         [ExportCodeFixProvider(
             LanguageNames.CSharp,
-            DocumentExtensions = new[] { ".txt" })]
+            DocumentExtensions = [".txt"])]
         [Shared]
         internal sealed class AdditionalFileFixerWithDocumentExtensions : AbstractAdditionalFileCodeFixProvider
         {

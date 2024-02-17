@@ -168,4 +168,7 @@
   <data name="Path_for_additional_document_0_was_null" xml:space="preserve">
     <value>Path for additional document '{0}' was null}</value>
   </data>
+  <data name="The_build_host_could_not_be_found_at_0" xml:space="preserve">
+    <value>The build host could not be found at '{0}'</value>
+  </data>
 </root>

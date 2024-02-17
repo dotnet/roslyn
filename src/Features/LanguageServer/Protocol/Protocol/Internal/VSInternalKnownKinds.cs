@@ -219,8 +219,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Collection of response kind strings.
         /// </summary>
-        public static readonly IReadOnlyCollection<string> AllKinds = new[]
-        {
+        public static readonly IReadOnlyCollection<string> AllKinds =
+        [
             Text,
             Method,
             Function,
@@ -262,6 +262,6 @@ namespace Roslyn.LanguageServer.Protocol
             Delegate,
             Tag,
             Attribute,
-        };
+        ];
     }
 }

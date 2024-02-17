@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="CSharp_Interactive">
         <source>C# Interactive</source>
-        <target state="new">C# Interactive</target>
+        <target state="translated">C# Etkileşimli</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             private readonly ISemanticFactsService _semanticFacts = semanticFacts;
             private readonly CancellationToken _cancellationToken = cancellationToken;
             private readonly QueryExpressionSyntax _source = source;
-            private readonly List<string> _introducedLocalNames = new();
+            private readonly List<string> _introducedLocalNames = [];
 
             public bool TryConvert(out DocumentUpdateInfo documentUpdateInfo)
             {
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 
                 var localFunctionInvocation = SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(localFunctionToken)).WithAdditionalAnnotations(Simplifier.Annotation);
                 var newParentExpressionStatement = parentStatement.ReplaceNode(_source.WalkUpParentheses(), localFunctionInvocation.WithAdditionalAnnotations(Simplifier.Annotation));
-                documentUpdateInfo = new DocumentUpdateInfo(parentStatement, new[] { localFunctionDeclaration, newParentExpressionStatement });
+                documentUpdateInfo = new DocumentUpdateInfo(parentStatement, [localFunctionDeclaration, newParentExpressionStatement]);
                 return true;
             }
 
@@ -957,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 {
                     Stack = new Stack<CSharpSyntaxNode>();
                     Stack.Push(fromClause);
-                    IdentifierNames = new HashSet<string> { fromClause.Identifier.ValueText };
+                    IdentifierNames = [fromClause.Identifier.ValueText];
                 }
 
                 public bool TryAdd(CSharpSyntaxNode node, SyntaxToken identifier)
