@@ -141,6 +141,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             }
                         }
 
+                        if (SymbolEqualityComparer.Default.Equals(type, _symbolType) || SymbolEqualityComparer.Default.Equals(type, _operationType))
+                        {
+                            ReportDiagnostic(type, typeNode, symbolContext);
+                            return;
+                        }
+
                         foreach (INamedTypeSymbol iface in type.AllInterfaces)
                         {
                             if (SymbolEqualityComparer.Default.Equals(iface, _symbolType) || SymbolEqualityComparer.Default.Equals(iface, _operationType))

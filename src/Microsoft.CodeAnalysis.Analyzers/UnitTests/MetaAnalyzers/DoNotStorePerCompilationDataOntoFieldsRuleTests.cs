@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
     public class DoNotStorePerCompilationDataOntoFieldsRuleTests
     {
-        [Fact]
+        [Fact, WorkItem(7196, "https://github.com/dotnet/roslyn-analyzers/issues/7196")]
         public async Task CSharp_VerifyDiagnosticAsync()
         {
             var source = @"
@@ -44,6 +44,8 @@ class MyAnalyzer : DiagnosticAnalyzer
     private readonly List<MyNamedType> x3;
     private static Dictionary<MyCompilation, MyNamedType> x4;
     private static readonly IBinaryOperation x5;
+    private static readonly ISymbol x6;
+    private static readonly IOperation x7;
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
@@ -63,13 +65,15 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetCSharpExpectedDiagnostic(20, 28, violatingTypeName: typeof(CSharpCompilation).FullName),
                 GetCSharpExpectedDiagnostic(21, 27, violatingTypeName: typeof(INamedTypeSymbol).FullName),
                 GetCSharpExpectedDiagnostic(22, 31, violatingTypeName: "MyCompilation"),
-                GetCSharpExpectedDiagnostic(23, 29, violatingTypeName: typeof(IBinaryOperation).FullName)
+                GetCSharpExpectedDiagnostic(23, 29, violatingTypeName: typeof(IBinaryOperation).FullName),
+                GetCSharpExpectedDiagnostic(24, 29, violatingTypeName: typeof(ISymbol).FullName),
+                GetCSharpExpectedDiagnostic(25, 29, violatingTypeName: typeof(IOperation).FullName)
             };
 
             await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
 
-        [Fact]
+        [Fact, WorkItem(7196, "https://github.com/dotnet/roslyn-analyzers/issues/7196")]
         public async Task VisualBasic_VerifyDiagnosticAsync()
         {
             var source = @"
@@ -95,6 +99,8 @@ Class MyAnalyzer
     Private ReadOnly x3 As List(Of MyNamedType)
     Private Shared x4 As Dictionary(Of MyCompilation, MyNamedType)
     Private Shared ReadOnly x5 As IBinaryOperation
+    Private Shared ReadOnly x6 As ISymbol
+    Private Shared ReadOnly x7 As IOperation
 
     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
         Get
@@ -112,7 +118,9 @@ End Class
                 GetBasicExpectedDiagnostic(20, 34, violatingTypeName: typeof(VisualBasicCompilation).FullName),
                 GetBasicExpectedDiagnostic(21, 36, violatingTypeName: typeof(INamedTypeSymbol).FullName),
                 GetBasicExpectedDiagnostic(22, 40, violatingTypeName: "MyCompilation"),
-                GetBasicExpectedDiagnostic(23, 35, violatingTypeName: typeof(IBinaryOperation).FullName)
+                GetBasicExpectedDiagnostic(23, 35, violatingTypeName: typeof(IBinaryOperation).FullName),
+                GetBasicExpectedDiagnostic(24, 35, violatingTypeName: typeof(ISymbol).FullName),
+                GetBasicExpectedDiagnostic(25, 35, violatingTypeName: typeof(IOperation).FullName)
             };
 
             await VerifyVB.VerifyAnalyzerAsync(source, expected);
