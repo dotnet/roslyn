@@ -35,6 +35,12 @@ internal sealed class SourceGeneratedFileGetTextHandler : ILspServiceDocumentReq
         // it wouldn't really make sense for the server to be asked for the contents of a regular file. Since this endpoint is intended for
         // source-generated files only, this would indicate that something else has gone wrong.
         Contract.ThrowIfFalse(document is SourceGeneratedDocument);
-        return new SourceGeneratedDocumentText { Text = (await document.GetTextAsync(cancellationToken).ConfigureAwait(false)).ToString() };
+
+        // If a source file is open we ensure the generated document matches what's currently open in the LSP client so that way everything
+        // stays in sync and we don't have mismatched ranges. But for this particular case, we want to ignore that.
+        document = await document.Project.Solution.WithoutFrozenSourceGeneratedDocuments().GetDocumentAsync(document.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+
+        var text = document != null ? await document.GetTextAsync(cancellationToken).ConfigureAwait(false) : null;
+        return new SourceGeneratedDocumentText { Text = text?.ToString() };
     }
 }

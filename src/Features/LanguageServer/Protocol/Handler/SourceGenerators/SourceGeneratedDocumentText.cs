@@ -10,5 +10,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 internal sealed class SourceGeneratedDocumentText
 {
     [DataMember(Name = "text")]
-    public required string Text { get; init; }
+    public required string? Text { get; init; }
 }

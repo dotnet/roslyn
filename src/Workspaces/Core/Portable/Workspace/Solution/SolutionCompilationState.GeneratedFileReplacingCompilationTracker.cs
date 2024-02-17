@@ -51,10 +51,8 @@ namespace Microsoft.CodeAnalysis
 
             public ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate)
             {
-                // TODO: This only needs to be implemented if a feature that operates from a source generated file then makes
-                // further mutations to that project, which isn't needed for now. This will be need to be fixed up when we complete
-                // https://github.com/dotnet/roslyn/issues/49533.
-                throw new NotImplementedException();
+                // We'll apply the translation to the underlying tracker, and then replace the documents again.
+                return new GeneratedFileReplacingCompilationTracker(UnderlyingTracker.Fork(newProject, translate), replacementDocumentStates);
             }
 
             public ICompilationTracker FreezePartialState(CancellationToken cancellationToken)
@@ -65,8 +63,9 @@ namespace Microsoft.CodeAnalysis
 
             public ICompilationTracker FreezePartialStateWithDocument(DocumentState docState, CancellationToken cancellationToken)
             {
-                // Because we override SourceGeneratedDocument.WithFrozenPartialSemantics directly, we shouldn't be able to get here.
-                throw ExceptionUtilities.Unreachable();
+                // Because we override SourceGeneratedDocument.WithFrozenPartialSemantics directly, this freeze operation will only be called with a regular
+                // document. In this case, we'll freeze the underlying compilation tracker, and then wrap it with the frozen generated documents again.
+                return new GeneratedFileReplacingCompilationTracker(UnderlyingTracker.FreezePartialStateWithDocument(docState, cancellationToken), replacementDocumentStates);
             }
 
             public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
