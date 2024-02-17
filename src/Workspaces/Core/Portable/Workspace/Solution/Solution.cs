@@ -1549,7 +1549,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Document WithFrozenSourceGeneratedDocument(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)
         {
-            var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocument(documentIdentity, text);
+            var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, text)]);
             var newSolution = newCompilationState != _compilationState
                 ? new Solution(newCompilationState)
                 : this;
@@ -1559,6 +1559,14 @@ namespace Microsoft.CodeAnalysis
 
             var newProject = newSolution.GetRequiredProject(newDocumentState.Id.ProjectId);
             return newProject.GetOrCreateSourceGeneratedDocument(newDocumentState);
+        }
+
+        internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)> documents)
+        {
+            var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments(documents);
+            return newCompilationState != _compilationState
+                ? new Solution(newCompilationState)
+                : this;
         }
 
         /// <summary>
