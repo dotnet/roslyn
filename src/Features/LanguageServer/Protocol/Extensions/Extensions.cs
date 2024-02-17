@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             if (documentUri.Scheme != SourceGeneratedDocumentUris.Scheme)
                 return solution.GetDocumentIdsWithFilePath(ProtocolConversions.GetDocumentFilePathFromUri(documentUri));
 
-            var documentId = SourceGeneratedDocumentUris.DeserializeDocumentId(solution, documentUri);
+            var documentId = SourceGeneratedDocumentUris.DeserializeIdentity(solution, documentUri)?.DocumentId;
             return documentId is not null ? [documentId] : [];
         }
 
@@ -111,8 +111,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             if (documentIdentifier.Uri.Scheme == SourceGeneratedDocumentUris.Scheme)
             {
                 // In the case of a URI scheme for source generated files, we generate a different URI for each project, thus this URI cannot be linked into multiple projects;
-                // this means we can safely call .Single() and not worry about calling FindDocumentInProjectContext.
-                var documentId = solution.GetDocumentIds(documentIdentifier.Uri).Single();
+                // this means we can safely call .SingleOrDefault() and not worry about calling FindDocumentInProjectContext.
+                var documentId = solution.GetDocumentIds(documentIdentifier.Uri).SingleOrDefault();
                 return await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             }
             else

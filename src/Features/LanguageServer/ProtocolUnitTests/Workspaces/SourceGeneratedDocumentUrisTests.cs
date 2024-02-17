@@ -33,12 +33,12 @@ public class SourceGeneratedDocumentUrisTests : AbstractLanguageServerProtocolTe
 
         var uri = SourceGeneratedDocumentUris.Create(identity);
         Assert.Equal(SourceGeneratedDocumentUris.Scheme, uri.Scheme);
-        var deserialized = SourceGeneratedDocumentUris.DeserializeDocumentId(testLspServer.TestWorkspace.CurrentSolution, uri);
+        var deserialized = SourceGeneratedDocumentUris.DeserializeIdentity(testLspServer.TestWorkspace.CurrentSolution, uri);
 
         AssertEx.NotNull(deserialized);
-        Assert.Equal(generatedDocumentId, deserialized);
+        Assert.Equal(identity, deserialized.Value);
 
         // Debug name is not considered as a the usual part of equality, but we want to ensure we pass this through too
-        Assert.Equal(generatedDocumentId.DebugName, deserialized.DebugName);
+        Assert.Equal(generatedDocumentId.DebugName, deserialized.Value.DocumentId.DebugName);
     }
 }
