@@ -99,5 +99,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(expected: @"..\Beta2\Gamma", actual: result);
         }
+        
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72043")]
+        public void GetRelativePath_CrashingWithTwoUp()
+        {
+            var baseDirectory = @"C:\Alpha\Beta";
+            var fullPath = @"C:\Gamma";
+
+            var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
+
+            Assert.Equal(expected: @"..\..\Gamma", actual: result);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72043")]
+        public void GetRelativePath_CrashingWithOneUp()
+        {
+            var baseDirectory = @"C:\Alpha";
+            var fullPath = @"C:\";
+
+            var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
+
+            Assert.Equal(expected: @"..", actual: result);
+        }
     }
 }

@@ -562,7 +562,8 @@ namespace Roslyn.Utilities
             int index = 0;
 
             // find index where full path diverges from base path
-            for (; index < directoryPathParts.Length; index++)
+            var maxSearchIndex = Math.Min(directoryPathParts.Length, fullPathParts.Length);
+            for (; index < maxSearchIndex; index++)
             {
                 if (!PathsEqual(directoryPathParts[index], fullPathParts[index]))
                 {
@@ -587,12 +588,22 @@ namespace Roslyn.Utilities
                 }
             }
 
-            // add the rest of the full path parts
-            for (int i = index; i < fullPathParts.Length; i++)
+            // add the rest of the full path parts only if there is something to add.
+            if (index < fullPathParts.Length)
             {
-                relativePath = CombinePathsUnchecked(relativePath, fullPathParts[i]);
+                for (int i = index; i < fullPathParts.Length; i++)
+                {
+                    relativePath = CombinePathsUnchecked(relativePath, fullPathParts[i]);
+                }
             }
-
+            else
+            {
+                // There was nothing to add from fullPath, we have a path ending
+                // with either "../" or it is empty. Trim trailing separator in former case.
+                if (!string.IsNullOrEmpty(relativePath))
+                    relativePath = TrimTrailingSeparators(relativePath);
+            }
+            
             return relativePath;
         }
 
