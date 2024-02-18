@@ -601,7 +601,9 @@ namespace Roslyn.Utilities
                 // There was nothing to add from fullPath, we have a path ending
                 // with either "../" or it is empty. Trim trailing separator in former case.
                 if (!string.IsNullOrEmpty(relativePath))
+                {
                     relativePath = TrimTrailingSeparators(relativePath);
+                }
             }
             
             return relativePath;
