@@ -215,9 +215,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundSequence { SideEffects.Length: 0, Value: BoundCall sequenceCall } sequence:
-                    if ((object)sequenceCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_2ReadOnlySpans) ||
-                        (object)sequenceCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_3ReadOnlySpans) ||
-                        (object)sequenceCall.Method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_4ReadOnlySpans))
+                    if ((object)sequenceCall.Method == _compilation.GetSpecialTypeMember(SpecialMember.System_String__Concat_2ReadOnlySpans) ||
+                        (object)sequenceCall.Method == _compilation.GetSpecialTypeMember(SpecialMember.System_String__Concat_3ReadOnlySpans) ||
+                        (object)sequenceCall.Method == _compilation.GetSpecialTypeMember(SpecialMember.System_String__Concat_4ReadOnlySpans))
                     {
                         // Faced a span-based `string.Concat` call. Since we can produce such call on the previous iterations ourselves, we need to unwrap it.
                         // The key thing is that we need not to only extract arguments, but also unwrap them from being spans and for chars also wrap them into `ToString` calls.
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             switch (wrappedArg)
                             {
                                 // Check whether a call is an implicit `string -> ReadOnlySpan<char>` conversion
-                                case BoundCall { Method: var argMethod, Arguments: [var singleArgument] } when (object)argMethod == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar):
+                                case BoundCall { Method: var argMethod, Arguments: [var singleArgument] } when (object)argMethod == _compilation.GetSpecialTypeMember(SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar):
                                     unwrappedArgsBuilder.Add(singleArgument);
                                     break;
                                 // This complicated check is for a sequence, which wraps a span around single char.
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     Value: BoundObjectCreationExpression { Constructor: var objectCreationConstructor, Arguments: [BoundLocal constructorLocal] }
                                 } when constructorLocal == assignment.Left &&
                                        locals.Remove(constructorLocal.LocalSymbol) &&
-                                       (object)objectCreationConstructor.OriginalDefinition == _compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference) &&
+                                       (object)objectCreationConstructor.OriginalDefinition == _compilation.GetSpecialTypeMember(SpecialMember.System_ReadOnlySpan_T__ctor_Reference) &&
                                        objectCreationConstructor.ContainingType.IsReadOnlySpanChar():
                                     var wrappedExpr = ConvertConcatExprToString(assignment.Right);
                                     unwrappedArgsBuilder.Add(wrappedExpr);
@@ -466,13 +466,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var concatMember = preparedArgs.Count switch
             {
-                2 => WellKnownMember.System_String__Concat_2ReadOnlySpans,
-                3 => WellKnownMember.System_String__Concat_3ReadOnlySpans,
-                4 => WellKnownMember.System_String__Concat_4ReadOnlySpans,
+                2 => SpecialMember.System_String__Concat_2ReadOnlySpans,
+                3 => SpecialMember.System_String__Concat_3ReadOnlySpans,
+                4 => SpecialMember.System_String__Concat_4ReadOnlySpans,
                 _ => throw ExceptionUtilities.Unreachable(),
             };
 
-            if (TryGetWellKnownTypeMember(syntax, concatMember, out MethodSymbol? spanConcat, isOptional: true) &&
+            if (TryGetSpecialTypeMethod(syntax, concatMember, out MethodSymbol? spanConcat, isOptional: true) &&
                 tryGetNeededToSpanMembers(this, syntax, needsImplicitConversionFromStringToSpan, charType, out MethodSymbol? readOnlySpanCtorRefParamChar, out MethodSymbol? stringImplicitConversionToReadOnlySpan))
             {
                 result = rewriteStringConcatenationWithSpanBasedConcat(
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 readOnlySpanCtorRefParamChar = null;
                 stringImplicitConversionToReadOnlySpan = null;
 
-                if (self.TryGetWellKnownTypeMember(syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol? readOnlySpanCtorRefParamGeneric, isOptional: true) &&
+                if (self.TryGetSpecialTypeMethod(syntax, SpecialMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol? readOnlySpanCtorRefParamGeneric, isOptional: true) &&
                     readOnlySpanCtorRefParamGeneric.Parameters[0].RefKind != RefKind.Out)
                 {
                     var readOnlySpanOfChar = readOnlySpanCtorRefParamGeneric.ContainingType.Construct(charType);
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (needsImplicitConversionFromStringToSpan)
                 {
-                    return self.TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar, out stringImplicitConversionToReadOnlySpan, isOptional: true);
+                    return self.TryGetSpecialTypeMethod(syntax, SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar, out stringImplicitConversionToReadOnlySpan, isOptional: true);
                 }
 
                 return true;

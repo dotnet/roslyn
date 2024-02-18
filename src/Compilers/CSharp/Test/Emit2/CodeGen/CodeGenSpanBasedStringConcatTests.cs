@@ -306,10 +306,10 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    public void ConcatTwo_ConstantCharToString(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    public void ConcatTwo_ConstantCharToString(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -330,9 +330,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "sccs" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -364,10 +364,10 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    public void ConcatTwo_AllConstantCharToStrings(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    public void ConcatTwo_AllConstantCharToStrings(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -385,9 +385,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "ab" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -408,8 +408,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    public void ConcatTwoCharToStrings(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    public void ConcatTwoCharToStrings(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -429,9 +429,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "ab" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -458,9 +458,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
     public void ConcatTwo_ReadOnlySpan_MissingMemberForOptimization(int member)
     {
         var source = """
@@ -482,7 +482,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-        comp.MakeMemberMissing((WellKnownMember)member);
+        comp.MakeMemberMissing((SpecialMember)member);
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "sccs" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
@@ -923,8 +923,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    public void ConcatThree_ReadOnlySpan1(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    public void ConcatThree_ReadOnlySpan1(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -950,9 +950,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "cssscsssccsc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -1033,8 +1033,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    public void ConcatThree_ReadOnlySpan2(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    public void ConcatThree_ReadOnlySpan2(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -1060,9 +1060,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "cssscsssccsc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -1193,8 +1193,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    public void ConcatThree_ReadOnlySpan_SideEffect(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    public void ConcatThree_ReadOnlySpan_SideEffect(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -1240,9 +1240,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? expectedOutput : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -1323,8 +1323,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    public void ConcatThree_ReadOnlySpan_ReferenceToSameLocation(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    public void ConcatThree_ReadOnlySpan_ReferenceToSameLocation(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -1351,9 +1351,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "aab" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -1390,8 +1390,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    public void ConcatThree_ReadOnlySpan_MutateLocal(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    public void ConcatThree_ReadOnlySpan_MutateLocal(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -1417,9 +1417,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "aab" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -1457,11 +1457,11 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    public void ConcatThree_ConstantCharToString(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
+    public void ConcatThree_ConstantCharToString(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -1486,9 +1486,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "cssscsssccsc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -1544,11 +1544,11 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    public void ConcatThree_AllConstantCharToStrings(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
+    public void ConcatThree_AllConstantCharToStrings(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -1566,9 +1566,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -1589,9 +1589,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    public void ConcatThreeCharToStrings(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    public void ConcatThreeCharToStrings(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -1612,9 +1612,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -1646,9 +1646,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
     public void ConcatThree_ReadOnlySpan_MissingMemberForOptimization(int member)
     {
         var source = """
@@ -1674,7 +1674,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-        comp.MakeMemberMissing((WellKnownMember)member);
+        comp.MakeMemberMissing((SpecialMember)member);
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "cssscsssccsc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
@@ -1732,10 +1732,10 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    public void ConcatThree_UserInputOfSpanBasedConcat_ConcatWithString(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    public void ConcatThree_UserInputOfSpanBasedConcat_ConcatWithString(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -1758,9 +1758,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abccab" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -1858,8 +1858,8 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
     public void ConcatThree_UserInputOfSpanBasedConcat_ConcatWithChar_MissingMemberForSpanBasedConcat(int member)
     {
         var source = """
@@ -1882,7 +1882,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-        comp.MakeMemberMissing((WellKnownMember)member);
+        comp.MakeMemberMissing((SpecialMember)member);
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abccab" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
@@ -2391,9 +2391,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    public void ConcatFour_ReadOnlySpan1(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
+    public void ConcatFour_ReadOnlySpan1(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -2425,9 +2425,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "csssscsssscssssccscsscsccssc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -2579,9 +2579,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    public void ConcatFour_ReadOnlySpan2(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
+    public void ConcatFour_ReadOnlySpan2(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -2613,9 +2613,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "csssscsssscssssccscsscsccssc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -2832,9 +2832,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    public void ConcatFour_ReadOnlySpan_SideEffect(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
+    public void ConcatFour_ReadOnlySpan_SideEffect(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -2889,9 +2889,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? expectedOutput : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -3043,9 +3043,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    public void ConcatFour_ReadOnlySpan_ReferenceToSameLocation(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
+    public void ConcatFour_ReadOnlySpan_ReferenceToSameLocation(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -3074,9 +3074,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "aaab" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -3120,9 +3120,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    public void ConcatFour_ReadOnlySpan_MutateLocal(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
+    public void ConcatFour_ReadOnlySpan_MutateLocal(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -3149,9 +3149,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abab" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -3193,12 +3193,12 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_4ReadOnlySpans)]
-    public void ConcatFour_ConstantCharToString(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_4ReadOnlySpans)]
+    public void ConcatFour_ConstantCharToString(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -3229,9 +3229,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "csssscsssscssssccscsscsccssc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -3327,12 +3327,12 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_4ReadOnlySpans)]
-    public void ConcatFour_AllConstantCharToStrings(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_4ReadOnlySpans)]
+    public void ConcatFour_AllConstantCharToStrings(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -3350,9 +3350,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcd" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -3373,10 +3373,10 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    public void ConcatFourCharToStrings(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
+    public void ConcatFourCharToStrings(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -3398,9 +3398,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcd" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -3437,9 +3437,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData((int)WellKnownMember.System_String__Concat_4ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__Concat_4ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
     public void ConcatFour_ReadOnlySpan_MissingMemberForOptimization(int member)
     {
         var source = """
@@ -3471,7 +3471,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-        comp.MakeMemberMissing((WellKnownMember)member);
+        comp.MakeMemberMissing((SpecialMember)member);
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "csssscsssscssssccscsscsccssc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
@@ -3574,10 +3574,10 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithString(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
+    public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithString(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -3602,9 +3602,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abccccabcabc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -3910,9 +3910,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    public void ConcatFour_TwoUserInputsOfSpanBasedConcatOf2(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    public void ConcatFour_TwoUserInputsOfSpanBasedConcatOf2(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -3934,9 +3934,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcd" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -3960,10 +3960,10 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    public void ConcatFour_UserInputOfSpanBasedConcatOf3_ConcatWithString(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    public void ConcatFour_UserInputOfSpanBasedConcatOf3_ConcatWithString(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -3987,9 +3987,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcddabc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
@@ -4092,9 +4092,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
     public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithChar_MissingMemberForSpanBasedConcatConcat(int member)
     {
         var source = """
@@ -4119,7 +4119,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-        comp.MakeMemberMissing((WellKnownMember)member);
+        comp.MakeMemberMissing((SpecialMember)member);
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abccccabcabc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
@@ -4175,9 +4175,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
     public void ConcatFour_UserInputOfSpanBasedConcatOf2_ConcatWithStringAndChar_MissingMemberForSpanBasedConcat(int member)
     {
         var source = """
@@ -4209,7 +4209,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-        comp.MakeMemberMissing((WellKnownMember)member);
+        comp.MakeMemberMissing((SpecialMember)member);
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcdabdccdabdcabcabddabc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
@@ -4307,9 +4307,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
     public void ConcatFour_UserInputOfSpanBasedConcatOf3_ConcatWithChar_MissingMemberForSpanBasedConcat(int member)
     {
         var source = """
@@ -4333,7 +4333,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
-        comp.MakeMemberMissing((WellKnownMember)member);
+        comp.MakeMemberMissing((SpecialMember)member);
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcddabc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
@@ -4915,12 +4915,12 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_4ReadOnlySpans)]
-    public void ConcatFive_Char(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_4ReadOnlySpans)]
+    public void ConcatFive_Char(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -4942,9 +4942,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "scsssssssc" : null, verify: ExecutionConditionUtil.IsCoreClr ? default : Verification.Skipped);
@@ -5104,12 +5104,12 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
-    [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
-    [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
-    [InlineData((int)WellKnownMember.System_String__Concat_2ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_3ReadOnlySpans)]
-    [InlineData((int)WellKnownMember.System_String__Concat_4ReadOnlySpans)]
-    public void ConcatFiveCharToStrings(int? missingUnimportantWellKnownMember)
+    [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+    [InlineData((int)SpecialMember.System_ReadOnlySpan_T__ctor_Reference)]
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_4ReadOnlySpans)]
+    public void ConcatFiveCharToStrings(int? missingUnimportantMember)
     {
         var source = """
             using System;
@@ -5132,9 +5132,9 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
 
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
 
-        if (missingUnimportantWellKnownMember.HasValue)
+        if (missingUnimportantMember.HasValue)
         {
-            comp.MakeMemberMissing((WellKnownMember)missingUnimportantWellKnownMember.Value);
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
         }
 
         var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "abcde" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);

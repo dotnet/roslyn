@@ -555,14 +555,19 @@ namespace System
                 if (special == SpecialMember.Count) continue; // Not a real value;
 
                 var symbol = comp.GetSpecialTypeMember(special);
-                if (special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces
+                if (special == SpecialMember.System_String__Concat_2ReadOnlySpans
+                    || special == SpecialMember.System_String__Concat_3ReadOnlySpans
+                    || special == SpecialMember.System_String__Concat_4ReadOnlySpans
+                    || special == SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields
                     || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
-                    || special == SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor)
+                    || special == SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor
+                    || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference)
                 {
                     Assert.Null(symbol); // Not available
                 }
@@ -959,14 +964,9 @@ namespace System
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Array:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length:
-                    case WellKnownMember.System_ReadOnlySpan_T__ctor_Reference:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
                     case WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int:
-                    case WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar:
-                    case WellKnownMember.System_String__Concat_2ReadOnlySpans:
-                    case WellKnownMember.System_String__Concat_3ReadOnlySpans:
-                    case WellKnownMember.System_String__Concat_4ReadOnlySpans:
                     case WellKnownMember.System_Index__ctor:
                     case WellKnownMember.System_Index__GetOffset:
                     case WellKnownMember.System_Range__ctor:

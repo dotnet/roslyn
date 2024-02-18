@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                call.Method,
                                                ImmutableArray.Create(Spill(builder, call.Arguments[0]), Spill(builder, call.Arguments[1])));
                         }
-                        else if (call.Method == _F.Compilation.GetWellKnownTypeMember(WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar))
+                        else if (call.Method == _F.Compilation.GetSpecialTypeMember(SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar))
                         {
                             Debug.Assert(call.Arguments.Length == 1);
                             return call.Update([Spill(builder, call.Arguments[0])]);
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (refKind == RefKind.None &&
                             objectCreationExpression.InitializerExpressionOpt is null &&
-                            objectCreationExpression.Constructor.OriginalDefinition == _F.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Reference))
+                            objectCreationExpression.Constructor.OriginalDefinition == _F.Compilation.GetSpecialTypeMember(SpecialMember.System_ReadOnlySpan_T__ctor_Reference))
                         {
                             Debug.Assert(objectCreationExpression.Arguments.Length == 1);
                             var argRefKinds = objectCreationExpression.ArgumentRefKindsOpt;
