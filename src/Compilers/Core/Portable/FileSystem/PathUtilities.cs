@@ -605,7 +605,7 @@ namespace Roslyn.Utilities
                     relativePath = TrimTrailingSeparators(relativePath);
                 }
             }
-            
+
             return relativePath;
         }
 
