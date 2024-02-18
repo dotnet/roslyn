@@ -532,7 +532,8 @@ namespace System
 
                 if (special is SpecialType.System_Runtime_CompilerServices_RuntimeFeature or
                                SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute or
-                               SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute)
+                               SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute or
+                               SpecialType.System_ReadOnlySpan_T)
                 {
                     Assert.Equal(SymbolKind.ErrorType, symbol.Kind); // Not available
                 }

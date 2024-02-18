@@ -264,8 +264,13 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_InlineArrayAttribute = 46,
 
         /// <summary>
+        /// Indicates that the type is <see cref="ReadOnlySpan{T}"/>
+        /// </summary>
+        System_ReadOnlySpan_T = 47,
+
+        /// <summary>
         /// Count of special types. This is not a count of enum members.
         /// </summary>
-        Count = System_Runtime_CompilerServices_InlineArrayAttribute
+        Count = System_ReadOnlySpan_T
     }
 }
