@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis
             _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
 
             // when solution state is changed, we recalculate its checksum
-            _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectsToInclude: null, c));
+            _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectConeId: null, c));
 
             CheckInvariants();
 
@@ -370,25 +371,6 @@ namespace Microsoft.CodeAnalysis
             return this.AddProject(newProject);
         }
 
-        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
-        {
-            var builder = _filePathToDocumentIdsMap.ToBuilder();
-
-            foreach (var documentState in documentStates)
-            {
-                var filePath = documentState.FilePath;
-
-                if (RoslynString.IsNullOrEmpty(filePath))
-                {
-                    continue;
-                }
-
-                builder.MultiAdd(filePath, documentState.Id);
-            }
-
-            return builder.ToImmutable();
-        }
-
         private static IEnumerable<TextDocumentState> GetDocumentStates(ProjectState projectState)
             => projectState.DocumentStates.States.Values
                    .Concat<TextDocumentState>(projectState.AdditionalDocumentStates.States.Values)
@@ -422,10 +404,37 @@ namespace Microsoft.CodeAnalysis
                 dependencyGraph: newDependencyGraph);
         }
 
+        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
+        {
+            var builder = _filePathToDocumentIdsMap.ToBuilder();
+            AddDocumentFilePaths(documentStates, builder);
+            return builder.ToImmutable();
+        }
+
+        private static void AddDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        {
+            foreach (var documentState in documentStates)
+            {
+                var filePath = documentState.FilePath;
+
+                if (RoslynString.IsNullOrEmpty(filePath))
+                {
+                    continue;
+                }
+
+                builder.MultiAdd(filePath, documentState.Id);
+            }
+        }
+
         public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
+            RemoveDocumentFilePaths(documentStates, builder);
+            return builder.ToImmutable();
+        }
 
+        private static void RemoveDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        {
             foreach (var documentState in documentStates)
             {
                 var filePath = documentState.FilePath;
@@ -442,8 +451,6 @@ namespace Microsoft.CodeAnalysis
 
                 builder.MultiRemove(filePath, documentState.Id);
             }
-
-            return builder.ToImmutable();
         }
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithFilePath(DocumentId documentId, string? oldFilePath, string? newFilePath)
@@ -940,6 +947,18 @@ namespace Microsoft.CodeAnalysis
             return UpdateDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
         }
 
+        public StateChange WithDocumentState(DocumentState newDocument)
+        {
+            var oldDocument = GetRequiredDocumentState(newDocument.Id);
+            if (oldDocument == newDocument)
+            {
+                var oldProject = GetRequiredProjectState(newDocument.Id.ProjectId);
+                return new(this, oldProject, oldProject);
+            }
+
+            return UpdateDocumentState(newDocument, contentChanged: true);
+        }
+
         /// <summary>
         /// Creates a new solution instance with the additional document specified updated to have the text
         /// specified.
@@ -1038,7 +1057,16 @@ namespace Microsoft.CodeAnalysis
             return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);
         }
 
-        public StateChange WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
+        /// <param name="forceEvenIfTreesWouldDiffer">Whether or not the specified document is forced to have the same text and
+        /// green-tree-root from <paramref name="documentState"/>.  If <see langword="true"/>, then they will share
+        /// these values.  If <see langword="false"/>, then they will only be shared when safe to do so (for example,
+        /// when parse-options and pp-directives would not cause issues.</param>
+        /// <remarks>
+        /// Forcing should only happen in frozen-partial snapshots, where we are ok with inaccuracies in the trees we
+        /// get back and want perf to be very high.  Any codepaths from frozen-partial should pass <see
+        /// langword="true"/> for this.  Any codepaths from Workspace.UnifyLinkedDocumentContents should pass <see
+        /// langword="false"/>.</remarks>
+        public StateChange WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
             var oldProject = GetRequiredProjectState(documentId.ProjectId);
@@ -1052,7 +1080,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return UpdateDocumentState(
-                oldDocument.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource),
+                oldDocument.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource, forceEvenIfTreesWouldDiffer),
                 contentChanged: true);
         }
 
@@ -1181,12 +1209,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (string.IsNullOrEmpty(filePath))
             {
-                return ImmutableArray<DocumentId>.Empty;
+                return [];
             }
 
             return _filePathToDocumentIdsMap.TryGetValue(filePath!, out var documentIds)
                 ? documentIds
-                : ImmutableArray<DocumentId>.Empty;
+                : [];
         }
 
         public static ProjectDependencyGraph CreateDependencyGraph(
@@ -1244,21 +1272,21 @@ namespace Microsoft.CodeAnalysis
             if (projectState == null)
             {
                 // this document no longer exist
-                return ImmutableArray<DocumentId>.Empty;
+                return [];
             }
 
             var documentState = projectState.DocumentStates.GetState(documentId);
             if (documentState == null)
             {
                 // this document no longer exist
-                return ImmutableArray<DocumentId>.Empty;
+                return [];
             }
 
             var filePath = documentState.FilePath;
             if (string.IsNullOrEmpty(filePath))
             {
                 // this document can't have any related document. only related document is itself.
-                return ImmutableArray.Create(documentId);
+                return [documentId];
             }
 
             var documentIds = GetDocumentIdsWithFilePath(filePath);

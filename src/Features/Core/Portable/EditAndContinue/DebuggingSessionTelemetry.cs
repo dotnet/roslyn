@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly object _guard = new();
 
         private readonly Guid _solutionSessionId = solutionSessionId;
-        private readonly List<EditSessionTelemetry.Data> _editSessionData = new();
+        private readonly List<EditSessionTelemetry.Data> _editSessionData = [];
         private int _emptyEditSessionCount;
         private int _emptyHotReloadEditSessionCount;
 

@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         private class LocalVariableDeclarationVisitor : OperationWalker
         {
             private readonly CancellationToken _cancellationToken;
-            private readonly HashSet<ISymbol> _allSymbols = new();
+            private readonly HashSet<ISymbol> _allSymbols = [];
 
             private LocalVariableDeclarationVisitor(CancellationToken cancellationToken)
             {

@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (token.Span.Start - lastEnd > 0)
                 {
-                    sb.Append(" ");
+                    sb.Append(' ');
                 }
 
                 sb.Append(token.ToString());

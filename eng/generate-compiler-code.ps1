@@ -11,7 +11,7 @@ $ErrorActionPreference="Stop"
 function Run-Tool($projectFilePath, $toolArgs, $targetFramework) {
   $toolName = Split-Path -leaf $projectFilePath
   Write-Host "Running $toolName $toolArgs"
-  Exec-Console $dotnet "run --project $projectFilePath --framework $targetFramework $toolArgs"
+  Exec-DotNet "run --project $projectFilePath --framework $targetFramework $toolArgs"
 }
 
 function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxProject, $errorFactsProject, $generatedDir, $generatedTestDir) {
@@ -41,7 +41,7 @@ function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxProje
 # in code with the freshly generated code. 
 function Test-GeneratedContent($generatedDir, $scratchDir) {
   $algo = "MD5"
-  foreach ($fileName in (Get-ChildItem $scratchDir)) { 
+  foreach ($fileName in (Get-ChildItem $scratchDir | Select-Object -ExpandProperty Name)) {
     Write-Host "Checking $fileName"
     $realFilePath = Join-Path $generatedDir $fileName
     $scratchFilePath = Join-Path $scratchDir $fileName

@@ -156,9 +156,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return new EmitSolutionUpdateResults.Data()
                     {
-                        ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, ImmutableArray<ManagedHotReloadUpdate>.Empty),
+                        ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, []),
                         Diagnostics = GetUnexpectedUpdateError(solution, e),
-                        RudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty,
+                        RudeEdits = [],
                         SyntaxError = null,
                     };
                 }
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
             var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
-            return ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
+            return [DiagnosticData.Create(solution, diagnostic, project: null)];
         }
 
         /// <summary>

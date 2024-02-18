@@ -1,7 +1,6 @@
 #nullable enable
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers.OmnisharpAnalyzerAssemblyLoaderFactory
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers.OmniSharpWorkspaceAnalyzerOptionsFactory
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeAction
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.Deconstruct(out Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions ImplementTypeOptions, out Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions! LineFormattingOptions) -> void
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.Equals(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions other) -> bool
@@ -299,7 +298,6 @@ readonly Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.PickMembers.OmniSharpPi
 readonly Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.PickMembers.OmniSharpPickMembersResult.SelectedAll -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers.OmnisharpAnalyzerAssemblyLoaderFactory.CreateShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null) -> Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader!
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers.OmniSharpWorkspaceAnalyzerOptionsFactory.Create(Microsoft.CodeAnalysis.Solution! solution, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions! options) -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions!
-static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeAction.GetNestedCodeActions(this Microsoft.CodeAnalysis.CodeActions.CodeAction! codeAction) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeActions.CodeAction!>
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.operator !=(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions left, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.operator ==(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions left, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeFixContextFactory.CreateCodeFixContext(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan span, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!> diagnostics, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction!, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>! registerCodeFix, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions options, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.CodeFixes.CodeFixContext

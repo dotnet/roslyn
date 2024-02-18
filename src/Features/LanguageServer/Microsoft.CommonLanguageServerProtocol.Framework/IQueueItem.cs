@@ -17,25 +17,24 @@ public interface IQueueItem<TRequestContext>
     /// <summary>
     /// Executes the work specified by this queue item.
     /// </summary>
-    /// <param name="requestContext">the context created by <see cref="CreateRequestContextAsync(CancellationToken)"/></param>
+    /// <param name="requestContext">the context created by <see cref="CreateRequestContextAsync(IMethodHandler, CancellationToken)"/></param>
+    /// <param name="handler">The handler to use to execute the request.</param>
     /// <param name="cancellationToken" />
     /// <returns>A <see cref="Task "/> which completes when the request has finished.</returns>
-    Task StartRequestAsync(TRequestContext? requestContext, CancellationToken cancellationToken);
+    Task StartRequestAsync(TRequestContext requestContext, IMethodHandler handler, CancellationToken cancellationToken);
 
     /// <summary>
     /// Creates the context that is sent to the handler for this queue item.
     /// Note - this method is always called serially inside the queue before
-    /// running the actual request in <see cref="StartRequestAsync(TRequestContext?, CancellationToken)"/>
+    /// running the actual request in <see cref="StartRequestAsync(TRequestContext, IMethodHandler, CancellationToken)"/>
     /// Throwing in this method will cause the server to shutdown.
     /// </summary>
-    Task<TRequestContext?> CreateRequestContextAsync(CancellationToken cancellationToken);
-
-    ILspServices LspServices { get; }
+    Task<TRequestContext> CreateRequestContextAsync(IMethodHandler handler, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Indicates that this request may mutate the server state, so that the queue may handle its execution appropriatly.
+    /// Provides access to LSP services.
     /// </summary>
-    bool MutatesServerState { get; }
+    ILspServices LspServices { get; }
 
     /// <summary>
     /// The method being executed.
@@ -43,7 +42,17 @@ public interface IQueueItem<TRequestContext>
     string MethodName { get; }
 
     /// <summary>
-    /// The handler which will run this operation.
+    /// The language of the request. The default is <see cref="LanguageServerConstants.DefaultLanguageName"/>
     /// </summary>
-    IMethodHandler MethodHandler { get; }
+    string Language { get; }
+
+    /// <summary>
+    /// The type of the request.
+    /// </summary>
+    Type? RequestType { get; }
+
+    /// <summary>
+    /// The type of the response.
+    /// </summary>
+    Type? ResponseType { get; }
 }

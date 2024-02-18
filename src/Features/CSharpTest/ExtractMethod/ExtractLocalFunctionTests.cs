@@ -1713,7 +1713,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
             await TestInRegularAndScript1Async(code, expectedCode, CodeActionIndexWhenExtractMethodMissing);
         }
 
@@ -1864,7 +1864,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_local_function });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
             await TestInRegularAndScript1Async(code, expectedCode, CodeActionIndexWhenExtractMethodMissing);
         }
 
@@ -4116,7 +4116,7 @@ class Program
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method }, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)));
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method], new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -4132,7 +4132,7 @@ class Program
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method }, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)));
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method], new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -4952,7 +4952,7 @@ class Program
                     public int Blah => [|this.field|];
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -4966,7 +4966,7 @@ class Program
                     public int this[int i] => [|this.field|];
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -4984,7 +4984,7 @@ class Program
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -5002,7 +5002,7 @@ class Program
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -5020,7 +5020,7 @@ class Program
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
@@ -5038,7 +5038,7 @@ class Program
                     }
                 }
                 """;
-            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method });
+            await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]

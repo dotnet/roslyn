@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly Lazy<VisualStudioWorkspace> _workspace;
 
         private readonly object _gate = new();
-        private readonly Dictionary<ProjectId, HashSet<object>> _diagnosticMap = new();
+        private readonly Dictionary<ProjectId, HashSet<object>> _diagnosticMap = [];
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
         private readonly ITextBufferAssociatedViewService _associatedViewService;
         private readonly IThreadingContext _threadingContext;
 
-        private readonly Dictionary<ITextBuffer, VisibleTrackerData> _subjectBufferToCallbacks = new();
+        private readonly Dictionary<ITextBuffer, VisibleTrackerData> _subjectBufferToCallbacks = [];
 
         protected AbstractTextBufferVisibilityTracker(
             ITextBufferAssociatedViewService associatedViewService,
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
 
         protected sealed class VisibleTrackerData : IDisposable
         {
-            public readonly HashSet<ITextView> TextViews = new();
+            public readonly HashSet<ITextView> TextViews = [];
 
             private readonly AbstractTextBufferVisibilityTracker<TTextView, TVisibilityChangedCallback> _tracker;
             private readonly ITextBuffer _subjectBuffer;
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
             /// The callbacks that want to be notified when our <see cref="TextViews"/> change visibility.  Stored as an
             /// <see cref="ImmutableHashSet{T}"/> so we can enumerate it safely without it changing underneath us.
             /// </summary>
-            public ImmutableHashSet<Action> Callbacks { get; private set; } = ImmutableHashSet<Action>.Empty;
+            public ImmutableHashSet<Action> Callbacks { get; private set; } = [];
 
             public VisibleTrackerData(
                 AbstractTextBufferVisibilityTracker<TTextView, TVisibilityChangedCallback> tracker,
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
                 Contract.ThrowIfTrue(Callbacks.Count > 0);
 
                 // Clear out all our textviews.  This will disconnect us from any events we have registered with them.
-                UpdateTextViews(Array.Empty<ITextView>());
+                UpdateTextViews([]);
 
                 Contract.ThrowIfTrue(TextViews.Count > 0);
             }

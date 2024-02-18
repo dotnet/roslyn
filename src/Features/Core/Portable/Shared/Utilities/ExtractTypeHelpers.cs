@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     foreach (var originalTypeParameter in potentialTypeParameters)
                     {
                         if (!allReferencedTypeParameters.Contains(originalTypeParameter) &&
-                            DoesTypeReferenceTypeParameter(constraint, originalTypeParameter, new HashSet<ITypeSymbol>()))
+                            DoesTypeReferenceTypeParameter(constraint, originalTypeParameter, []))
                         {
                             allReferencedTypeParameters.Add(originalTypeParameter);
                             unanalyzedTypeParameters.Enqueue(originalTypeParameter);
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var directlyReferencedTypeParameters);
             foreach (var typeParameter in potentialTypeParameters)
             {
-                if (includedMembers.Any(m => DoesMemberReferenceTypeParameter(m, typeParameter, new HashSet<ITypeSymbol>())))
+                if (includedMembers.Any(m => DoesMemberReferenceTypeParameter(m, typeParameter, [])))
                 {
                     directlyReferencedTypeParameters.Add(typeParameter);
                 }

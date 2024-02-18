@@ -5,11 +5,10 @@
 #nullable disable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
@@ -17,8 +16,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
@@ -38,31 +35,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         ICommandHandler<InsertSnippetCommandArgs>,
         IChainedCommandHandler<AutomaticLineEnderCommandArgs>
     {
-        protected readonly SignatureHelpControllerProvider SignatureHelpControllerProvider;
-        protected readonly IEditorCommandHandlerServiceFactory EditorCommandHandlerServiceFactory;
-        protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
-        protected readonly EditorOptionsService EditorOptionsService;
-        protected readonly SVsServiceProvider ServiceProvider;
+        private readonly EditorOptionsService _editorOptionsService;
+        private readonly IVsService<IVsTextManager2> _textManager;
 
         public string DisplayName => FeaturesResources.Snippets;
 
         public AbstractSnippetCommandHandler(
             IThreadingContext threadingContext,
-            SignatureHelpControllerProvider signatureHelpControllerProvider,
-            IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             EditorOptionsService editorOptionsService,
-            SVsServiceProvider serviceProvider)
+            IVsService<IVsTextManager2> textManager)
             : base(threadingContext)
         {
-            SignatureHelpControllerProvider = signatureHelpControllerProvider;
-            EditorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
-            EditorAdaptersFactoryService = editorAdaptersFactoryService;
-            EditorOptionsService = editorOptionsService;
-            ServiceProvider = serviceProvider;
+            _editorOptionsService = editorOptionsService;
+            _textManager = textManager;
         }
 
-        protected abstract AbstractSnippetExpansionClient GetSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer);
+        protected ISnippetExpansionClientFactory GetSnippetExpansionClientFactory(Document document)
+            => document.Project.Services.SolutionServices.GetRequiredService<ISnippetExpansionClientFactory>();
+
         protected abstract bool IsSnippetExpansionContext(Document document, int startPosition, CancellationToken cancellationToken);
         protected abstract bool TryInvokeInsertionUI(ITextView textView, ITextBuffer subjectBuffer, bool surroundWith = false);
 
@@ -72,15 +62,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         public bool ExecuteCommand(TabKeyCommandArgs args, CommandExecutionContext context)
         {
             AssertIsForeground();
+            if (AreSnippetsEnabledWithClient(args, out var snippetExpansionClient)
+                && snippetExpansionClient.TryHandleTab())
+            {
+                return true;
+            }
+
             if (!AreSnippetsEnabled(args))
             {
                 return false;
-            }
-
-            if (args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient) &&
-                snippetExpansionClient.TryHandleTab())
-            {
-                return true;
             }
 
             // Insert snippet/show picker only if we don't have a selection: the user probably wants to indent instead
@@ -125,8 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         public void ExecuteCommand(AutomaticLineEnderCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
             AssertIsForeground();
-            if (AreSnippetsEnabled(args)
-                && args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient)
+            if (AreSnippetsEnabledWithClient(args, out var snippetExpansionClient)
                 && snippetExpansionClient.IsFullMethodCallSnippet)
             {
                 // Commit the snippet. Leave the caret in place, but clear the selection. Subsequent handlers in the
@@ -141,13 +130,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
         {
             AssertIsForeground();
-            if (!AreSnippetsEnabled(args))
+            if (!AreSnippetsEnabledWithClient(args, out var snippetExpansionClient))
             {
                 return false;
             }
 
-            if (args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient) &&
-                snippetExpansionClient.TryHandleReturn())
+            if (snippetExpansionClient.TryHandleReturn())
             {
                 return true;
             }
@@ -175,13 +163,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)
         {
             AssertIsForeground();
-            if (!AreSnippetsEnabled(args))
+            if (!AreSnippetsEnabledWithClient(args, out var snippetExpansionClient))
             {
                 return false;
             }
 
-            if (args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient) &&
-                snippetExpansionClient.TryHandleEscape())
+            if (snippetExpansionClient.TryHandleEscape())
             {
                 return true;
             }
@@ -209,13 +196,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         public bool ExecuteCommand(BackTabKeyCommandArgs args, CommandExecutionContext context)
         {
             AssertIsForeground();
-            if (!AreSnippetsEnabled(args))
+            if (!AreSnippetsEnabledWithClient(args, out var snippetExpansionClient))
             {
                 return false;
             }
 
-            if (args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient) &&
-                snippetExpansionClient.TryHandleBackTab())
+            if (snippetExpansionClient.TryHandleBackTab())
             {
                 return true;
             }
@@ -299,12 +285,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            return GetSnippetExpansionClient(textView, subjectBuffer).TryInsertExpansion(span.Value.Start, span.Value.End, cancellationToken);
+            return GetSnippetExpansionClientFactory(document).GetOrCreateSnippetExpansionClient(document, textView, subjectBuffer).TryInsertExpansion(span.Value.Start, span.Value.End, cancellationToken);
         }
 
         protected bool TryGetExpansionManager(out IVsExpansionManager expansionManager)
         {
-            var textManager = (IVsTextManager2)ServiceProvider.GetService(typeof(SVsTextManager));
+            var textManager = ThreadingContext.JoinableTaskFactory.Run(() => _textManager.GetValueOrNullAsync(CancellationToken.None));
             if (textManager == null)
             {
                 expansionManager = null;
@@ -315,6 +301,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return expansionManager != null;
         }
 
+#nullable enable
         protected bool AreSnippetsEnabled(EditorCommandArgs args)
         {
             // Don't execute in cloud environment, should be handled by LSP
@@ -323,9 +310,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            return EditorOptionsService.GlobalOptions.GetOption(SnippetsOptionsStorage.Snippets) &&
+            if (!_editorOptionsService.GlobalOptions.GetOption(SnippetsOptionsStorage.Snippets))
+            {
+                return false;
+            }
+
+            var textContainer = args.SubjectBuffer.AsTextContainer();
+            if (Workspace.TryGetWorkspace(textContainer, out var workspace) && workspace.Kind == WorkspaceKind.Interactive)
+            {
                 // TODO (https://github.com/dotnet/roslyn/issues/5107): enable in interactive
-                !(Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace) && workspace.Kind == WorkspaceKind.Interactive);
+                return false;
+            }
+
+            return true;
+        }
+
+        protected bool AreSnippetsEnabledWithClient(EditorCommandArgs args, [NotNullWhen(true)] out SnippetExpansionClient? snippetExpansionClient)
+        {
+            if (!AreSnippetsEnabled(args))
+            {
+                snippetExpansionClient = null;
+                return false;
+            }
+
+            var document = args.SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+            if (document is null)
+            {
+                snippetExpansionClient = null;
+                return false;
+            }
+
+            var expansionClientFactory = document.Project.Services.SolutionServices.GetService<ISnippetExpansionClientFactory>();
+            snippetExpansionClient = expansionClientFactory?.TryGetSnippetExpansionClient(args.TextView);
+            return snippetExpansionClient is not null;
         }
     }
 }

@@ -101,6 +101,15 @@ internal static class CodeCleanupOptionsProviders
 
     public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CodeCleanupOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
         => await document.GetCodeCleanupOptionsAsync(await ((OptionsProvider<CodeCleanupOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+
+    private sealed class Provider(OptionsProvider<CodeCleanupOptions> provider) : AbstractCodeCleanupOptionsProvider
+    {
+        public override ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+            => provider.GetOptionsAsync(languageServices, cancellationToken);
+    }
+
+    public static CodeCleanupOptionsProvider ToCodeCleanupOptionsProvider(this OptionsProvider<CodeCleanupOptions> provider)
+        => new Provider(provider);
 #endif
 }
 

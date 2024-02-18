@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Notification
     {
         private readonly object _gate = new();
 
-        private readonly HashSet<IDisposable> _registrations = new();
-        private readonly HashSet<string> _operations = new();
+        private readonly HashSet<IDisposable> _registrations = [];
+        private readonly HashSet<string> _operations = [];
 
         private readonly TaskQueue _eventQueue;
 

@@ -83,7 +83,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
     // identically.
 
     /// <inheritdoc cref="AbstractAsynchronousTaggerProvider{TTag}.Options"/>
-    protected virtual ImmutableArray<IOption2> Options => ImmutableArray<IOption2>.Empty;
+    protected virtual ImmutableArray<IOption2> Options => [];
 
     /// <inheritdoc cref="AbstractAsynchronousTaggerProvider{TTag}.TextChangeBehavior"/>
     protected virtual TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.None;

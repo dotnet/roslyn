@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRefLangVersion">
         <source>Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</source>
-        <target state="translated">O {0} argumento não pode ser passado com o palavra-chave 'ref' na versão da {1}. Para passar argumentos 'ref' para parâmetros 'in', atualize para a versão de {2} ou superior.</target>
+        <target state="translated">O argumento {0} não pode ser passado com o palavra-chave 'ref' na versão {1} da linguagem. Para passar argumentos 'ref' para parâmetros 'in', atualize para a versão {2} ou superior da linguagem.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
@@ -409,12 +409,12 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidType">
         <source>The CollectionBuilderAttribute builder type must be a non-generic class or struct.</source>
-        <target state="translated">O tipo de construtor CollectionBuilderAttribute deve ser uma classe ou struct não genérico.</target>
+        <target state="translated">O tipo de construtor CollectionBuilderAttribute deve ser uma classe ou estrutura não genérica.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
         <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="translated">Não foi possível localizar um método '{0}' acessível com a assinatura esperada: um método estático com um único parâmetro do tipo 'ReadOnlySpan&lt;{1}&gt;' e tipo de retorno '{2}'.</target>
+        <target state="translated">Não foi possível encontrar um método '{0}' acessível com a assinatura esperada: um método estático com um único parâmetro do tipo 'ReadOnlySpan&lt;{1}&gt;' e tipo de retorno '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">
@@ -424,7 +424,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionEscape">
         <source>A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</source>
-        <target state="new">A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</target>
+        <target state="translated">Uma expressão de coleção do tipo '{0}' não pode ser usada nesse contexto porque ela pode ser exposta fora do escopo atual.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
@@ -432,9 +432,19 @@
         <target state="translated">Esta versão de '{0}' não pode ser usada com expressões de coleção.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingAdd">
+        <source>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</source>
+        <target state="new">Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingConstructor">
+        <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
+        <target state="new">Collection expression type must have an applicable constructor that can be called with no arguments.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
         <source>There is no target type for the collection expression.</source>
-        <target state="new">There is no target type for the collection expression.</target>
+        <target state="translated">Não há um tipo de destino para a expressão de coleção.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetNoElementType">
@@ -444,7 +454,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
-        <target state="new">Cannot initialize type '{0}' with a collection expression because the type is not constructible.</target>
+        <target state="translated">Não é possível inicializar o tipo '{0}' com uma expressão de coleção porque o tipo não é construível.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -634,7 +644,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsCollectionExpression">
         <source>An expression tree may not contain a collection expression.</source>
-        <target state="new">An expression tree may not contain a collection expression.</target>
+        <target state="translated">Uma árvore de expressão não pode conter uma expressão de coleção.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -709,7 +719,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion12">
         <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</target>
+        <target state="translated">O recurso '{0}' não está disponível em C# 12.0. Use a versão da linguagem {1} ou superior.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -929,7 +939,7 @@
       </trans-unit>
       <trans-unit id="ERR_InlineArrayForEachNotSupported">
         <source>foreach statement on an inline array of type '{0}' is not supported</source>
-        <target state="translated">não há suporte para a instrução foreach em uma matriz embutida '{0}' tipo</target>
+        <target state="translated">a instrução foreach em uma matriz em linha do tipo '{0}' não é compatível</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayIndexOutOfRange">
@@ -939,7 +949,7 @@
       </trans-unit>
       <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
         <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
-        <target state="translated">O campo de elemento de matriz embutido não pode ser declarado como necessário, somente leitura, volátil ou como buffer de tamanho fixo.</target>
+        <target state="translated">O campo de elemento da matriz em linha não pode ser declarado como obrigatório, somente leitura, volátil ou como um buffer de tamanho fixo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -954,7 +964,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorArityNotCompatible">
         <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
-        <target state="translated">O '{0}' método deve ser não genérico ou ter arity {1} para corresponder '{2}'.</target>
+        <target state="translated">O método '{0}' deve ser não genérico ou ter aridade {1} para corresponder '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
@@ -979,7 +989,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorContainingTypeCannotBeGeneric">
         <source>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</source>
-        <target state="new">Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</target>
+        <target state="translated">O método '{0}' não pode ser usado como interceptor porque o tipo que o contém tem parâmetros de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
@@ -1124,7 +1134,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
-        <target state="new">The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</target>
+        <target state="translated">O argumento diagnosticId para o atributo 'Experimental' deve ser um identificador válido</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -1474,7 +1484,7 @@
       </trans-unit>
       <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
         <source>A ref readonly parameter cannot have the Out attribute.</source>
-        <target state="translated">Um parâmetro readonly ref não pode ter o atributo Out.</target>
+        <target state="translated">Um parâmetro ref readonly não pode ter o atributo Out.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
@@ -1864,7 +1874,7 @@
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
         <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
-        <target state="new">Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</target>
+        <target state="translated">O operador de propagação '..' não pode operar em variáveis do tipo '{0}' porque '{0}' não contém uma instância pública ou definição de extensão para '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
@@ -2129,7 +2139,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
         <source>collection expressions</source>
-        <target state="new">collection expressions</target>
+        <target state="translated">expressões de coleção</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
@@ -2259,7 +2269,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRefReadonlyParameters">
         <source>ref readonly parameters</source>
-        <target state="translated">parâmetros somente leitura ref</target>
+        <target state="translated">parâmetros ref readonly</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -2354,7 +2364,7 @@
       </trans-unit>
       <trans-unit id="IDS_StringEscapeCharacter">
         <source>string escape character</source>
-        <target state="translated">caractere de escape de cadeia de caracteres</target>
+        <target state="translated">cadeia de caracteres de escape</target>
         <note />
       </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
@@ -2394,22 +2404,22 @@
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
         <source>Argument {0} should be passed with the 'in' keyword</source>
-        <target state="new">Argument {0} should be passed with the 'in' keyword</target>
+        <target state="translated">O argumento {0} deve ser passado com a palavra-chave 'in'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn_Title">
         <source>Argument should be passed with the 'in' keyword</source>
-        <target state="new">Argument should be passed with the 'in' keyword</target>
+        <target state="translated">O argumento deve ser passado com a palavra-chave 'in'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedRefOrIn">
         <source>Argument {0} should be passed with 'ref' or 'in' keyword</source>
-        <target state="translated">O {0} argumento deve ser passado com 'ref' ou 'in' palavra-chave</target>
+        <target state="translated">O argumento {0} deve ser passado com a palavra-chave 'ref' ou 'in'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
         <source>Argument should be passed with 'ref' or 'in' keyword</source>
-        <target state="translated">O argumento deve ser passado com 'ref' ou 'in' palavra-chave</target>
+        <target state="translated">O argumento deve ser passado com a palavra-chave 'ref' ou 'in'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed">
@@ -2424,22 +2434,22 @@
       </trans-unit>
       <trans-unit id="WRN_BadArgRef">
         <source>The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
-        <target state="translated">O modificador 'ref' do argumento {0} correspondente ao parâmetro 'in' é equivalente a 'in'. Considere usar 'in'.</target>
+        <target state="translated">O modificador 'ref' do argumento {0} correspondente ao parâmetro 'in' é equivalente a 'in'. Considere usar 'in' em vez disso.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef_Title">
         <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
-        <target state="translated">O modificador 'ref' de um argumento correspondente ao parâmetro 'in' é equivalente a 'in'. Considere usar 'in'.</target>
+        <target state="translated">O modificador 'ref' do argumento correspondente ao parâmetro 'in' é equivalente a 'in'. Considere usar 'in' em vez disso.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
-        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
+        <target state="translated">O parâmetro de atribuição 'SizeConst' deve ser especificado.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired_Title">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
-        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
+        <target state="translated">O parâmetro de atribuição 'SizeConst' deve ser especificado.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallArgMixing">
@@ -2534,22 +2544,22 @@
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate">
         <source>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
-        <target state="translated">A expressão de coleção do tipo '{0}' pode incurar alocações de heap inesperadas. Considere criar explicitamente uma matriz e converter em '{0}' tornar a alocação explícita.</target>
+        <target state="translated">A expressão de coleção do tipo '{0}' pode incorrer em alocações inesperadas de heap. Considere a possibilidade de criar explicitamente uma matriz e, em seguida, converter para '{0}' para tornar a alocação explícita.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate_Title">
         <source>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
-        <target state="translated">A expressão de coleção pode incursão de alocações de heap inesperadas. Considere criar explicitamente uma matriz e converter para o tipo final para tornar a alocação explícita.</target>
+        <target state="translated">A expressão Collection pode incorrer em alocações inesperadas de heap. Considere a possibilidade de criar explicitamente uma matriz e, em seguida, converter para o tipo final para tornar a alocação explícita.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate">
         <source>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
-        <target state="translated">A expressão de coleção do tipo '{0}' pode incursar alocações de heap inesperadas devido ao uso de espalhamentos '..'. Considere criar explicitamente uma matriz e converter em '{0}' tornar a alocação explícita.</target>
+        <target state="translated">A expressão de coleção do tipo '{0}' pode incorrer em alocações de heap inesperadas devido ao uso de spreads '..'. Considere a possibilidade de criar explicitamente uma matriz e, em seguida, converter para '{0}' para tornar a alocação explícita.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title">
         <source>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
-        <target state="translated">A expressão de coleção pode incursão de alocações de heap inesperadas devido ao uso de espalhamentos '..'. Considere criar explicitamente uma matriz e converter para o tipo final para tornar a alocação explícita.</target>
+        <target state="translated">A expressão Collection pode incorrer em alocações inesperadas de heap devido ao uso de spreads '..'. Considere a possibilidade de criar explicitamente uma matriz e, em seguida, converter para o tipo final para tornar a alocação explícita.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
@@ -2624,47 +2634,47 @@
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
         <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
-        <target state="translated">O operador de conversão de matriz embutida não será usado para conversão da expressão do tipo declarante.</target>
+        <target state="translated">O operador de conversão de matriz em linha não será usado para a conversão da expressão do tipo declarativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed_Title">
         <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
-        <target state="translated">O operador de conversão de matriz embutida não será usado para conversão da expressão do tipo declarante.</target>
+        <target state="translated">O operador de conversão de matriz em linha não será usado para a conversão da expressão do tipo declarativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayIndexerNotUsed">
         <source>Inline array indexer will not be used for element access expression.</source>
-        <target state="translated">O indexador de matriz embutido não será usado para a expressão de acesso a elementos.</target>
+        <target state="translated">O indexador de matriz em linha não será usado para a expressão de acesso ao elemento.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayIndexerNotUsed_Title">
         <source>Inline array indexer will not be used for element access expression.</source>
-        <target state="translated">O indexador de matriz embutido não será usado para a expressão de acesso a elementos.</target>
+        <target state="translated">O indexador de matriz em linha não será usado para a expressão de acesso ao elemento.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
         <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
-        <target state="new">'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</target>
+        <target state="translated">O recurso de linguagem 'Inline arrays' não é compatível com um tipo de matriz em linha que não seja válido como argumento de tipo ou que tenha um tipo de elemento que não seja válido como argumento de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
         <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
-        <target state="new">'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</target>
+        <target state="translated">O recurso de linguagem 'Inline arrays' não é compatível com um tipo de matriz em linha que não seja válido como argumento de tipo ou que tenha um tipo de elemento que não seja válido como argumento de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">
         <source>Inline array 'Slice' method will not be used for element access expression.</source>
-        <target state="translated">O método 'Slice' da matriz embutida não será usado para a expressão de acesso ao elemento.</target>
+        <target state="translated">O método 'Slice' da matriz em linha não será usado para a expressão de acesso ao elemento.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed_Title">
         <source>Inline array 'Slice' method will not be used for element access expression.</source>
-        <target state="translated">O método 'Slice' da matriz embutida não será usado para a expressão de acesso ao elemento.</target>
+        <target state="translated">O método 'Slice' da matriz em linha não será usado para a expressão de acesso ao elemento.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_HidingDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</source>
-        <target state="translated">O modificador de tipo de referência '{0}' parâmetro não corresponde ao parâmetro correspondente '{1}' no membro oculto.</target>
+        <target state="translated">O modificador de tipo de referência do parâmetro '{0}' não corresponde ao parâmetro '{1}' correspondente no membro oculto.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_HidingDifferentRefness_Title">
@@ -2774,7 +2784,7 @@
       </trans-unit>
       <trans-unit id="WRN_OverridingDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</source>
-        <target state="translated">O modificador de tipo de referência '{0}' parâmetro não corresponde ao parâmetro correspondente '{1}' no membro substituído ou implementado.</target>
+        <target state="translated">O modificador de tipo de referência do parâmetro '{0}' não corresponde ao parâmetro '{1}' correspondente no membro substituído ou implementado.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_OverridingDifferentRefness_Title">
@@ -2814,12 +2824,12 @@
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
         <source>Primary constructor parameter '{0}' is shadowed by a member from base.</source>
-        <target state="translated">O parâmetro do '{0}' primário é sombreado por um membro da base.</target>
+        <target state="translated">O parâmetro '{0}' do construtor primário é sombreado por um membro da base.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase_Title">
         <source>Primary constructor parameter is shadowed by a member from base</source>
-        <target state="translated">O parâmetro do construtor primário é sombreado por um membro da base</target>
+        <target state="translated">O parâmetro do construtor primário é sombreado por um membro da base.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2889,7 +2899,7 @@
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyNotVariable">
         <source>Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</source>
-        <target state="translated">O {0} deve ser uma variável porque é passado para um parâmetro 'ref readonly'</target>
+        <target state="translated">O argumento {0} deve ser uma variável porque é passado para um parâmetro 'ref readonly'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyNotVariable_Title">
@@ -4790,7 +4800,7 @@
       </trans-unit>
       <trans-unit id="WRN_TargetDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in target.</source>
-        <target state="translated">O modificador de tipo de referência '{0}' parâmetro não corresponde ao parâmetro correspondente '{1}' no destino.</target>
+        <target state="translated">O modificador de tipo de referência do parâmetro '{0}' não corresponde ao parâmetro '{1}' correspondente no destino.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TargetDifferentRefness_Title">
@@ -5065,7 +5075,7 @@
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationRefField">
         <source>Ref field '{0}' should be ref-assigned before use.</source>
-        <target state="translated">O campo '{0}' referência deve ser atribuído ref antes do uso.</target>
+        <target state="translated">O campo ref '{0}' deve ser atribuído como referência antes do uso.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationRefField_Title">

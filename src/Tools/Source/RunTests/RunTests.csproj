@@ -6,6 +6,7 @@
     <TargetFramework>$(NetRoslyn)</TargetFramework>
     <SignAssembly>false</SignAssembly>
     <IsShipping>false</IsShipping>
+    <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />

@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 {
@@ -81,9 +80,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 return;
             }
 
-            var (strippedDocument, newPosition) = await GetDocumentWithoutInvokingTextAsync(document, position, cancellationToken).ConfigureAwait(false);
-
-            var snippets = await service.GetSnippetsAsync(strippedDocument, newPosition, cancellationToken).ConfigureAwait(false);
+            var syntaxContext = await context.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
+            var snippetContext = new SnippetContext(syntaxContext);
+            var snippets = await service.GetSnippetsAsync(snippetContext, cancellationToken).ConfigureAwait(false);
 
             foreach (var snippetData in snippets)
             {

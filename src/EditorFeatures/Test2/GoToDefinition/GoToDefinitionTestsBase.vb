@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
                 Dim presenterCalled As Boolean = False
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
-                Dim presenter = New MockStreamingFindUsagesPresenter(workspace.GlobalOptions, Sub() presenterCalled = True)
+                Dim presenter = New MockStreamingFindUsagesPresenter(Sub() presenterCalled = True)
 
                 Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
                     DirectCast(New CSharpDefinitionLocationService(threadingContext, presenter), IDefinitionLocationService),

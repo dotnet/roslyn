@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
-                    return ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
+                    return [];
                 }
             }
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
-                    return ImmutableArray<string>.Empty;
+                    return [];
                 }
             }
         }
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // filter out documents that are not synchronized to remote process before we attempt remote invoke:
             if (!RemoteSupportedLanguages.IsSupported(document.Project.Language))
             {
-                return ImmutableArray<Diagnostic>.Empty;
+                return [];
             }
 
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (!diagnosticData.HasValue)
             {
-                return ImmutableArray<Diagnostic>.Empty;
+                return [];
             }
 
             var project = document.Project;
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var span = data.DataLocation.UnmappedFileSpan != data.DataLocation.MappedFileSpan ? data.DataLocation.MappedFileSpan.Span : default;
             var location = Location.Create(designTimeDocument.FilePath, textSpan: default, span);
 
-            return data.ToDiagnostic(location, ImmutableArray<Location>.Empty);
+            return data.ToDiagnostic(location, []);
         }
 
         public async ValueTask SetFileLoggingDirectoryAsync(string? logDirectory, CancellationToken cancellationToken)

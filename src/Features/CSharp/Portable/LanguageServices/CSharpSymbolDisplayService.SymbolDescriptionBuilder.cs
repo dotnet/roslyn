@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     return await GetInitializerSourcePartsAsync(initializer).ConfigureAwait(false);
                 }
 
-                return ImmutableArray<SymbolDisplayPart>.Empty;
+                return [];
             }
 
             private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     return await GetInitializerSourcePartsAsync(syntax.Initializer).ConfigureAwait(false);
                 }
 
-                return ImmutableArray<SymbolDisplayPart>.Empty;
+                return [];
             }
 
             private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     return await GetInitializerSourcePartsAsync(syntax.Default).ConfigureAwait(false);
                 }
 
-                return ImmutableArray<SymbolDisplayPart>.Empty;
+                return [];
             }
 
             private async Task<T?> GetFirstDeclarationAsync<T>(ISymbol symbol) where T : SyntaxNode
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     }
                 }
 
-                return ImmutableArray<SymbolDisplayPart>.Empty;
+                return [];
             }
 
             protected override void AddCaptures(ISymbol symbol)

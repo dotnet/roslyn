@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                          TypeKind.Enum);
             }
 
-            return ImmutableArray<INamedTypeSymbol>.Empty;
+            return [];
         }
     }
 }

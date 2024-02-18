@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
     {
         private readonly NonReentrantLock _gate = new();
 
-        private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new();
+        private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = [];
         private CancellationTokenSource _expeditedDelayCancellationTokenSource;
 
-        private List<DiagnosticAsyncToken> _diagnosticTokenList = new();
+        private List<DiagnosticAsyncToken> _diagnosticTokenList = [];
         private int _counter;
         private bool _trackActiveTokens;
 
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     }
 
                     _trackActiveTokens = value;
-                    _diagnosticTokenList = new List<DiagnosticAsyncToken>();
+                    _diagnosticTokenList = [];
                 }
             }
         }
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 {
                     if (_diagnosticTokenList == null)
                     {
-                        return ImmutableArray<DiagnosticAsyncToken>.Empty;
+                        return [];
                     }
 
                     return _diagnosticTokenList.ToImmutableArray();

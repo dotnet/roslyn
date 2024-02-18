@@ -264,8 +264,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
             /// <summary>
             /// Tracks the analysis state of syntax trees in a compilation.
             /// </summary>
-            private readonly ConcurrentDictionary<SyntaxTree, SyntaxTreeState> _codeBlockIntervals
-                = new();
+            private readonly ConcurrentDictionary<SyntaxTree, SyntaxTreeState> _codeBlockIntervals = [];
 
             public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
             {

@@ -14,8 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private class Graph<TExtension, TMetadata>
             where TMetadata : OrderableMetadata
         {
-            public readonly Dictionary<Lazy<TExtension, TMetadata>, Node<TExtension, TMetadata>> Nodes =
-                new();
+            public readonly Dictionary<Lazy<TExtension, TMetadata>, Node<TExtension, TMetadata>> Nodes = [];
 
             public IEnumerable<Lazy<TExtension, TMetadata>> FindExtensions(string name)
             {

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // We might need to handle large amount of items with import completion enabled, so use a dedicated pool to minimize/avoid array allocations
             // (especially in LOH). In practice, the size of pool should be 1 because we don't expect UpdateCompletionListAsync to be called concurrently,
             // which essentially makes the pooled list a singleton, but we still use ObjectPool for concurrency handling just to be robust.
-            private static readonly ObjectPool<List<MatchResult>> s_listOfMatchResultPool = new(factory: () => new());
+            private static readonly ObjectPool<List<MatchResult>> s_listOfMatchResultPool = new(factory: () => []);
 
             public CompletionListUpdater(
                 ITrackingSpan applicableToSpan,
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     var vsItem = GetCorrespondingVsCompletionItem(matchResult, cancellationToken);
                     var highlightedSpans = _highlightMatchingPortions
                         ? GetHighlightedSpans(matchResult, patternMatchers)
-                        : ImmutableArray<Span>.Empty;
+                        : [];
 
                     return new CompletionItemWithHighlight(vsItem, highlightedSpans);
                 }));
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                     // If there's no match for Roslyn item's filter text which is identical to its display text,
                     // then we can safely assume there'd be no matching to VS item's display text.
-                    return ImmutableArray<Span>.Empty;
+                    return [];
                 }
 
                 // PERF: static local function to avoid lambda allocation on hot path
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             private ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(IReadOnlyList<MatchResult> matchResults, CancellationToken cancellationToken)
             {
                 if (!_showCompletionItemFilters)
-                    return ImmutableArray<CompletionFilterWithState>.Empty;
+                    return [];
 
                 // See which filters might be enabled based on the typed code
                 using var _ = PooledHashSet<CompletionFilter>.GetInstance(out var filters);

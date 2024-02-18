@@ -35,7 +35,7 @@ internal class ServerConfigurationFactory
         // Update any other global options based on the configuration the server was started with.
 
         // Check if the devkit extension is included to see if devkit is enabled.
-        var isDevkitEnabled = serverConfiguration.ExtensionAssemblyPaths.Any(path => Path.GetFileName(path) == "Microsoft.VisualStudio.LanguageServices.DevKit.dll");
+        var isDevkitEnabled = serverConfiguration.DevKitDependencyPath != null;
         // Set the standalone option so other features know whether devkit is running.
         _globalOptionService.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, isDevkitEnabled);
     }
@@ -48,4 +48,5 @@ internal record class ServerConfiguration(
     string? TelemetryLevel,
     string? SessionId,
     IEnumerable<string> ExtensionAssemblyPaths,
+    string? DevKitDependencyPath,
     string ExtensionLogDirectory);

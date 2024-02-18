@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(document, span.Start, TypeDiscoveryRule.TypeNameOnly, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             return typeAnalysisResult.CanExtractInterface
-                ? ImmutableArray.Create(new ExtractInterfaceCodeAction(this, typeAnalysisResult))
-                : ImmutableArray<ExtractInterfaceCodeAction>.Empty;
+                ? [new ExtractInterfaceCodeAction(this, typeAnalysisResult)]
+                : [];
         }
 
         public async Task<ExtractInterfaceResult> ExtractInterfaceAsync(
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     case SymbolKind.Event:
                         var @event = member as IEventSymbol;
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreateEventSymbol(
-                            attributes: ImmutableArray<AttributeData>.Empty,
+                            attributes: [],
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true),
                             type: @event.Type,
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     case SymbolKind.Method:
                         var method = member as IMethodSymbol;
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreateMethodSymbol(
-                            attributes: ImmutableArray<AttributeData>.Empty,
+                            attributes: [],
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: method.RequiresUnsafeModifier()),
                             returnType: method.ReturnType,
@@ -411,8 +411,17 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                         break;
                     case SymbolKind.Property:
                         var property = member as IPropertySymbol;
+                        IMethodSymbol getMethod = null;
+                        var hasGetMethod = property.GetMethod != null && property.GetMethod.DeclaredAccessibility == Accessibility.Public;
+                        if (hasGetMethod)
+                        {
+                            // We recreate the get accessor because it is possible it has the readonly modifier due
+                            // to being an auto property on a struct which is invalid for an interface member
+                            getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(property.GetMethod, property.GetMethod.GetAttributes());
+                        }
+
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
-                            attributes: ImmutableArray<AttributeData>.Empty,
+                            attributes: [],
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: property.RequiresUnsafeModifier()),
                             type: property.Type,
@@ -420,7 +429,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             explicitInterfaceImplementations: default,
                             name: property.Name,
                             parameters: property.Parameters,
-                            getMethod: property.GetMethod == null ? null : (property.GetMethod.DeclaredAccessibility == Accessibility.Public ? property.GetMethod : null),
+                            getMethod: getMethod,
                             setMethod: property.SetMethod == null ? null : (property.SetMethod.DeclaredAccessibility == Accessibility.Public ? property.SetMethod : null),
                             isIndexer: property.IsIndexer));
                         break;

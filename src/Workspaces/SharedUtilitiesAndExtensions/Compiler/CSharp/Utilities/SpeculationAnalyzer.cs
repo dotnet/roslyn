@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                         var replacedParams = replacedParenthesizedLambda.ParameterList.Parameters;
                         Debug.Assert(originalParams.Count == replacedParams.Count);
 
-                        paramNames = new List<string>();
+                        paramNames = [];
                         for (var i = 0; i < originalParams.Count; i++)
                         {
                             var originalParam = originalParams[i];
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                             return false;
                         }
 
-                        paramNames = new List<string>() { originalSimpleLambda.Parameter.Identifier.ValueText };
+                        paramNames = [originalSimpleLambda.Parameter.Identifier.ValueText];
                         originalLambdaBody = originalSimpleLambda.Body;
                         replacedLambdaBody = replacedSimpleLambda.Body;
                         break;

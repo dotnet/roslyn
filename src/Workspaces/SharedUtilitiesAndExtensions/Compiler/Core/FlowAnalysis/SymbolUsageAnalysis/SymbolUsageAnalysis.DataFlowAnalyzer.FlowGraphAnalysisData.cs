@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         return true;
                     }
 
-                    targets = ImmutableHashSet<IOperation>.Empty;
+                    targets = [];
                     return false;
                 }
 

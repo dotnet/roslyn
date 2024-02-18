@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -10,6 +11,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 using Microsoft.VisualStudio.Shell;
@@ -98,6 +101,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
                 key.Apply(inputSimulator);
 
+                // If it is enter key, we also need to wait for navigation to complete after the input is handled.
+                if (key.VirtualKeyCode == VirtualKeyCode.RETURN)
+                {
+                    await WaitNavigationItemShowsUpAsync(cancellationToken);
+                }
             }
 
             await WaitForApplicationIdleAsync(cancellationToken);
@@ -107,10 +115,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         {
             // Wait for the NavigateTo Features completes on Roslyn side.
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.NavigateTo], cancellationToken);
+
             // Since the all-in-one search experience populates its results asychronously we need
             // to give it time to update the UI. Note: This is not a perfect solution.
-            await Task.Delay(1000);
-            await WaitForApplicationIdleAsync(cancellationToken);
+            var exportProvider = await TestServices.Shell.GetComponentModelServiceAsync<ExportProvider>(cancellationToken);
+            var searchViewModel = exportProvider.GetExportedValue<object>("Microsoft.VisualStudio.PlatformUI.Packages.Search.UI.SearchViewModel");
+
+            // First wait for the controller operations
+            await (Task)searchViewModel.GetType().GetMethod("WaitAsync", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(searchViewModel, []);
+
+            // Then wait for the view model operations
+            await (Task)searchViewModel.GetType().GetMethod("WaitForUpdateAsync", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(searchViewModel, []);
+            await (Task)searchViewModel.GetType().GetMethod("WaitForInvokeAsync", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(searchViewModel, []);
+
+            // Wait for any additional NavigateTo Features completes on Roslyn side.
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.NavigateTo], cancellationToken);
         }
 
         internal async Task MoveMouseAsync(Point point, CancellationToken cancellationToken)

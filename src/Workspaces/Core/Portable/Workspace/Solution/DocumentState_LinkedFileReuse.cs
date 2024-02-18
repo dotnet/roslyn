@@ -19,7 +19,10 @@ namespace Microsoft.CodeAnalysis
         /// name="siblingTextSource"/> if possible, or which will incrementally parse the current tree to bring it up to
         /// date with <paramref name="siblingTextSource"/> otherwise.
         /// </summary>
-        public DocumentState UpdateTextAndTreeContents(ITextAndVersionSource siblingTextSource, AsyncLazy<TreeAndVersion>? siblingTreeSource)
+        public DocumentState UpdateTextAndTreeContents(
+            ITextAndVersionSource siblingTextSource,
+            AsyncLazy<TreeAndVersion>? siblingTreeSource,
+            bool forceEvenIfTreesWouldDiffer)
         {
             if (!SupportsSyntaxTree)
             {
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis
             var treeSource = this.TreeSource;
 
             var newTreeSource = GetReuseTreeSource(
-                filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource);
+                filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer);
 
             return new DocumentState(
                 languageServices,
@@ -71,11 +74,12 @@ namespace Microsoft.CodeAnalysis
                 ParseOptions parseOptions,
                 AsyncLazy<TreeAndVersion> treeSource,
                 ITextAndVersionSource siblingTextSource,
-                AsyncLazy<TreeAndVersion> siblingTreeSource)
+                AsyncLazy<TreeAndVersion> siblingTreeSource,
+                bool forceEvenIfTreesWouldDiffer)
             {
                 return new AsyncLazy<TreeAndVersion>(
-                    cancellationToken => TryReuseSiblingTreeAsync(filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, cancellationToken),
-                    cancellationToken => TryReuseSiblingTree(filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, cancellationToken));
+                    cancellationToken => TryReuseSiblingTreeAsync(filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer, cancellationToken),
+                    cancellationToken => TryReuseSiblingTree(filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer, cancellationToken));
             }
 
             static bool TryReuseSiblingRoot(
@@ -85,12 +89,13 @@ namespace Microsoft.CodeAnalysis
                 ParseOptions parseOptions,
                 SyntaxNode siblingRoot,
                 VersionStamp siblingVersion,
+                bool forceEvenIfTreesWouldDiffer,
                 [NotNullWhen(true)] out TreeAndVersion? newTreeAndVersion)
             {
                 var siblingTree = siblingRoot.SyntaxTree;
 
                 // Look for things that disqualify us from being able to use our sibling's root.
-                if (!CanReuseSiblingRoot())
+                if (!CanReuseSiblingRoot(forceEvenIfTreesWouldDiffer))
                 {
                     newTreeAndVersion = null;
                     return false;
@@ -128,8 +133,12 @@ namespace Microsoft.CodeAnalysis
                 // Note: we deliberately do not look at language version because it often is different across project
                 // flavors.  So we would often get no benefit to sharing if we restricted to only when the lang version
                 // is the same.
-                bool CanReuseSiblingRoot()
+                bool CanReuseSiblingRoot(bool forceEvenIfTreesWouldDiffer)
                 {
+                    // If we're forcing reuse of a sibling tree, then this always succeeds.
+                    if (forceEvenIfTreesWouldDiffer)
+                        return true;
+
                     Interlocked.Increment(ref s_tryReuseSyntaxTree);
                     var siblingParseOptions = siblingTree.Options;
 
@@ -179,6 +188,7 @@ namespace Microsoft.CodeAnalysis
                 AsyncLazy<TreeAndVersion> treeSource,
                 ITextAndVersionSource siblingTextSource,
                 AsyncLazy<TreeAndVersion> siblingTreeSource,
+                bool forceEvenIfTreesWouldDiffer,
                 CancellationToken cancellationToken)
             {
                 var siblingTreeAndVersion = await siblingTreeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -186,7 +196,7 @@ namespace Microsoft.CodeAnalysis
 
                 var siblingRoot = await siblingTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-                if (TryReuseSiblingRoot(filePath, languageServices, loadTextOptions, parseOptions, siblingRoot, siblingTreeAndVersion.Version, out var newTreeAndVersion))
+                if (TryReuseSiblingRoot(filePath, languageServices, loadTextOptions, parseOptions, siblingRoot, siblingTreeAndVersion.Version, forceEvenIfTreesWouldDiffer, out var newTreeAndVersion))
                     return newTreeAndVersion;
 
                 // Couldn't use the sibling file to get the tree contents.  Instead, incrementally parse our tree to the text passed in.
@@ -201,6 +211,7 @@ namespace Microsoft.CodeAnalysis
                 AsyncLazy<TreeAndVersion> treeSource,
                 ITextAndVersionSource siblingTextSource,
                 AsyncLazy<TreeAndVersion> siblingTreeSource,
+                bool forceEvenIfTreesWouldDiffer,
                 CancellationToken cancellationToken)
             {
                 var siblingTreeAndVersion = siblingTreeSource.GetValue(cancellationToken);
@@ -208,7 +219,7 @@ namespace Microsoft.CodeAnalysis
 
                 var siblingRoot = siblingTree.GetRoot(cancellationToken);
 
-                if (TryReuseSiblingRoot(filePath, languageServices, loadTextOptions, parseOptions, siblingRoot, siblingTreeAndVersion.Version, out var newTreeAndVersion))
+                if (TryReuseSiblingRoot(filePath, languageServices, loadTextOptions, parseOptions, siblingRoot, siblingTreeAndVersion.Version, forceEvenIfTreesWouldDiffer, out var newTreeAndVersion))
                     return newTreeAndVersion;
 
                 // Couldn't use the sibling file to get the tree contents.  Instead, incrementally parse our tree to the text passed in.

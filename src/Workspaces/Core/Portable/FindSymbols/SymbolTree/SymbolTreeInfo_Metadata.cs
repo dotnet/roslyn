@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly MetadataNode _rootNode = MetadataNode.Allocate(name: "");
 
             // The set of type definitions we've read out of the current metadata reader.
-            private readonly List<MetadataDefinition> _allTypeDefinitions = new();
+            private readonly List<MetadataDefinition> _allTypeDefinitions = [];
 
             // Map from node represents extension method to list of possible parameter type info.
             // We can have more than one if there's multiple methods with same name but different receiver type.
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //      public static bool AnotherExtensionMethod1(this int x);
             //      public static bool AnotherExtensionMethod1(this bool x);
             //
-            private readonly MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMethodToParameterTypeInfo = new();
+            private readonly MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMethodToParameterTypeInfo = [];
             private bool _containsExtensionsMethod = false;
 
             private static ImmutableArray<ModuleMetadata> GetModuleMetadata(Metadata? metadata)
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                     else if (metadata is ModuleMetadata module)
                     {
-                        return ImmutableArray.Create(module);
+                        return [module];
                     }
                 }
                 catch (BadImageFormatException)
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // https://devdiv.visualstudio.com/DevDiv/_workitems?id=234447
                 }
 
-                return ImmutableArray<ModuleMetadata>.Empty;
+                return [];
             }
 
             internal SymbolTreeInfo Create()

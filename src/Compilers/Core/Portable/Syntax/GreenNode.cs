@@ -25,10 +25,32 @@ namespace Microsoft.CodeAnalysis
 
         internal const int ListKind = 1;
 
+        // Pack the kind, node-flags, slot-count, and full-width into 64bits. Note: if we need more bits in the future
+        // (say for additional node-flags), we can always directly use a packed int64 here, and manage where all these
+        // bits go manually.
+
+        /// <summary>
+        /// Value used to indicate the slot count was too large to be encoded directly in our <see cref="_nodeFlagsAndSlotCount"/>
+        /// value.  Callers will have to store the value elsewhere and retrieve the full value themselves.
+        /// </summary>
+        protected const int SlotCountTooLarge = 0b0000000000001111;
+
         private readonly ushort _kind;
-        protected NodeFlags flags;
-        private byte _slotCount;
+        private NodeFlagsAndSlotCount _nodeFlagsAndSlotCount;
         private int _fullWidth;
+
+        protected NodeFlags flags
+        {
+            get => _nodeFlagsAndSlotCount.NodeFlags;
+            set => _nodeFlagsAndSlotCount.NodeFlags = value;
+        }
+
+        /// <inheritdoc cref="NodeFlagsAndSlotCount.SmallSlotCount"/>>
+        private byte _slotCount
+        {
+            get => _nodeFlagsAndSlotCount.SmallSlotCount;
+            set => _nodeFlagsAndSlotCount.SmallSlotCount = value;
+        }
 
         private static readonly ConditionalWeakTable<GreenNode, DiagnosticInfo[]> s_diagnosticsTable =
             new ConditionalWeakTable<GreenNode, DiagnosticInfo[]>();
@@ -82,7 +104,7 @@ namespace Microsoft.CodeAnalysis
                     if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
                 }
 
-                this.flags |= NodeFlags.ContainsAnnotations;
+                this.flags |= (NodeFlags.HasAnnotationsDirectly | NodeFlags.ContainsAnnotations);
                 s_annotationsTable.Add(this, annotations);
             }
         }
@@ -97,7 +119,7 @@ namespace Microsoft.CodeAnalysis
                     if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
                 }
 
-                this.flags |= NodeFlags.ContainsAnnotations;
+                this.flags |= (NodeFlags.HasAnnotationsDirectly | NodeFlags.ContainsAnnotations);
                 s_annotationsTable.Add(this, annotations);
             }
         }
@@ -142,12 +164,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 int count = _slotCount;
-                if (count == byte.MaxValue)
-                {
-                    count = GetSlotCount();
-                }
-
-                return count;
+                return count == SlotCountTooLarge ? GetSlotCount() : count;
             }
 
             protected set
@@ -234,22 +251,48 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region Flags 
+
+        /// <summary>
+        /// Special flags a node can have.  Note: while this is typed as being `ushort`, we can only practically use 12
+        /// of those 16 bits as we use the remaining 4 bits to store the slot count of a node.
+        /// </summary>
         [Flags]
-        internal enum NodeFlags : byte
+        internal enum NodeFlags : ushort
         {
             None = 0,
-            ContainsDiagnostics = 1 << 0,
-            ContainsStructuredTrivia = 1 << 1,
-            ContainsDirectives = 1 << 2,
-            ContainsSkippedText = 1 << 3,
-            ContainsAnnotations = 1 << 4,
-            IsNotMissing = 1 << 5,
+            /// <summary>
+            /// If this node is missing or not.  We use a non-zero value for the not-missing case so that this value
+            /// automatically merges upwards when building parent nodes.  In other words, once we have one node that is
+            /// not-missing, all nodes above it are definitely not-missing as well.
+            /// </summary>
+            IsNotMissing = 1 << 0,
+            /// <summary>
+            /// If this node directly has annotations (not its descendants).  <see cref="ContainsAnnotations"/> can be
+            /// used to determine if a node or any of its descendants has annotations.
+            /// </summary>
+            HasAnnotationsDirectly = 1 << 1,
 
-            FactoryContextIsInAsync = 1 << 6,
-            FactoryContextIsInQuery = 1 << 7,
+            FactoryContextIsInAsync = 1 << 2,
+            FactoryContextIsInQuery = 1 << 3,
             FactoryContextIsInIterator = FactoryContextIsInQuery,  // VB does not use "InQuery", but uses "InIterator" instead
 
-            InheritMask = ContainsDiagnostics | ContainsStructuredTrivia | ContainsDirectives | ContainsSkippedText | ContainsAnnotations | IsNotMissing,
+            // Flags that are inherited upwards when building parent nodes.  They should all start with "Contains" to
+            // indicate that the information could be found on it or anywhere in its children.
+
+            /// <summary>
+            /// If this node, or any of its descendants has annotations attached to them.
+            /// </summary>
+            ContainsAnnotations = 1 << 4,
+            /// <summary>
+            /// If this node, or any of its descendants has attributes attached to it.
+            /// </summary>
+            ContainsAttributes = 1 << 5,
+            ContainsDiagnostics = 1 << 6,
+            ContainsDirectives = 1 << 7,
+            ContainsSkippedText = 1 << 8,
+            ContainsStructuredTrivia = 1 << 9,
+
+            InheritMask = IsNotMissing | ContainsAnnotations | ContainsAttributes | ContainsDiagnostics | ContainsDirectives | ContainsSkippedText | ContainsStructuredTrivia,
         }
 
         internal NodeFlags Flags
@@ -324,6 +367,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public bool ContainsAttributes
+        {
+            get
+            {
+                return (this.flags & NodeFlags.ContainsAttributes) != 0;
+            }
+        }
+
         public bool ContainsDiagnostics
         {
             get
@@ -339,6 +390,15 @@ namespace Microsoft.CodeAnalysis
                 return (this.flags & NodeFlags.ContainsAnnotations) != 0;
             }
         }
+
+        public bool HasAnnotationsDirectly
+        {
+            get
+            {
+                return (this.flags & NodeFlags.HasAnnotationsDirectly) != 0;
+            }
+        }
+
         #endregion
 
         #region Spans
@@ -510,17 +570,15 @@ namespace Microsoft.CodeAnalysis
 
         public SyntaxAnnotation[] GetAnnotations()
         {
-            if (this.ContainsAnnotations)
-            {
-                SyntaxAnnotation[]? annotations;
-                if (s_annotationsTable.TryGetValue(this, out annotations))
-                {
-                    System.Diagnostics.Debug.Assert(annotations.Length != 0, "we should return nonempty annotations or NoAnnotations");
-                    return annotations;
-                }
-            }
+            if (!this.HasAnnotationsDirectly)
+                return s_noAnnotations;
 
-            return s_noAnnotations;
+            var found = s_annotationsTable.TryGetValue(this, out var annotations);
+            Debug.Assert(found, "We must be able to find annotations since we had the bit set on ourselves");
+            Debug.Assert(annotations != null, "annotations should not be null");
+            Debug.Assert(annotations != s_noAnnotations, "annotations should not be s_noAnnotations");
+            Debug.Assert(annotations.Length != 0, "annotations should be non-empty");
+            return annotations;
         }
 
         internal abstract GreenNode SetAnnotations(SyntaxAnnotation[]? annotations);
@@ -818,7 +876,7 @@ namespace Microsoft.CodeAnalysis
 
         #region Factories 
 
-        public abstract SyntaxToken CreateSeparator<TNode>(SyntaxNode element) where TNode : SyntaxNode;
+        public abstract SyntaxToken CreateSeparator(SyntaxNode element);
         public abstract bool IsTriviaWithEndOfLine(); // trivia node has end of line
 
         /*
@@ -846,15 +904,15 @@ namespace Microsoft.CodeAnalysis
                 case 1:
                     return select(list[0]);
                 case 2:
-                    return SyntaxList.List(select(list[0]), select(list[1]));
+                    return Syntax.InternalSyntax.SyntaxList.List(select(list[0]), select(list[1]));
                 case 3:
-                    return SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
+                    return Syntax.InternalSyntax.SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
                 default:
                     {
                         var array = new ArrayElement<GreenNode>[list.Count];
                         for (int i = 0; i < array.Length; i++)
                             array[i].Value = select(list[i]);
-                        return SyntaxList.List(array);
+                        return Syntax.InternalSyntax.SyntaxList.List(array);
                     }
             }
         }
@@ -868,15 +926,15 @@ namespace Microsoft.CodeAnalysis
                 case 1:
                     return select(list[0]);
                 case 2:
-                    return SyntaxList.List(select(list[0]), select(list[1]));
+                    return Syntax.InternalSyntax.SyntaxList.List(select(list[0]), select(list[1]));
                 case 3:
-                    return SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
+                    return Syntax.InternalSyntax.SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
                 default:
                     {
                         var array = new ArrayElement<GreenNode>[list.Count];
                         for (int i = 0; i < array.Length; i++)
                             array[i].Value = select(list[i]);
-                        return SyntaxList.List(array);
+                        return Syntax.InternalSyntax.SyntaxList.List(array);
                     }
             }
         }

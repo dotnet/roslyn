@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         where TState : TextDocumentState
     {
         public static readonly TextDocumentStates<TState> Empty =
-            new(ImmutableList<DocumentId>.Empty, ImmutableSortedDictionary.Create<DocumentId, TState>(DocumentIdComparer.Instance));
+            new([], ImmutableSortedDictionary.Create<DocumentId, TState>(DocumentIdComparer.Instance));
 
         private readonly ImmutableList<DocumentId> _ids;
 
@@ -236,6 +237,13 @@ namespace Microsoft.CodeAnalysis
 
                 return x.Id.CompareTo(y.Id);
             }
+        }
+
+        public async ValueTask<ChecksumsAndIds<DocumentId>> GetChecksumsAndIdsAsync(CancellationToken cancellationToken)
+        {
+            var documentChecksumTasks = SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
+            var documentChecksums = new ChecksumCollection(await documentChecksumTasks.WhenAll().ConfigureAwait(false));
+            return new(documentChecksums, SelectAsArray(static s => s.Id));
         }
     }
 }

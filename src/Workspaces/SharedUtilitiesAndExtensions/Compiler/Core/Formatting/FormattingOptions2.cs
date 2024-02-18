@@ -66,12 +66,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             .WithPublicOption(PublicFeatureName, "SmartIndent", static value => (PublicIndentStyle)value, static value => (IndentStyle)value);
 
 #if !CODE_STYLE
-        internal static readonly ImmutableArray<IOption2> Options = ImmutableArray.Create<IOption2>(
-            UseTabs,
-            TabSize,
-            IndentationSize,
-            NewLine,
-            InsertFinalNewLine);
+        internal static readonly ImmutableArray<IOption2> Options = [UseTabs, TabSize, IndentationSize, NewLine, InsertFinalNewLine];
 #endif
     }
 
