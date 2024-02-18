@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(expected: @"..\Beta2\Gamma", actual: result);
         }
-        
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72043")]
         public void GetRelativePath_CrashingWithTwoUp()
         {
