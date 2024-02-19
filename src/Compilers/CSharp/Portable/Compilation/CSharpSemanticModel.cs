@@ -4531,7 +4531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var symbols = s_symbolListPool.Allocate();
+                var symbols = ArrayBuilder<ISymbol>.GetInstance();
 
                 foreach (ISymbol invocationSym in containingInvocationInfo.CandidateSymbols)
                 {
@@ -4550,14 +4550,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                var result = symbols.Count == 0
-                    ? SymbolInfo.None
-                    : new SymbolInfo(symbols.ToImmutable(), containingInvocationInfo.CandidateReason);
-
-                symbols.Clear();
-                s_symbolListPool.Free(symbols);
-
-                return result;
+                if (symbols.Count == 0)
+                {
+                    symbols.Free();
+                    return SymbolInfo.None;
+                }
+                else
+                {
+                    return new SymbolInfo(symbols.ToImmutableAndFree(), containingInvocationInfo.CandidateReason);
+                }
             }
         }
 
