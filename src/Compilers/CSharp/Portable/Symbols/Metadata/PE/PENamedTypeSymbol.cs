@@ -1911,7 +1911,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
                 else
                 {
-                    isOrdinaryStruct = (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Nullable_T);
+                    isOrdinaryStruct = this.SpecialType is SpecialType.System_Nullable_T
+                                                        or SpecialType.System_ReadOnlySpan_T;
                 }
             }
 
