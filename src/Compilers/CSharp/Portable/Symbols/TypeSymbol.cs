@@ -1883,9 +1883,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (implementingMethod.HasUnscopedRefAttributeOnMethodOrProperty())
                         {
-                            diagnostics.Add(
-                                ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation,
-                                GetImplicitImplementationDiagnosticLocation(implementedMethod, implementingType, implementingMethod));
+                            if (implementedMethod.HasUnscopedRefAttributeOnMethodOrProperty())
+                            {
+                                if (!implementingMethod.IsExplicitInterfaceImplementation && implementingMethod is SourceMethodSymbolWithAttributes &&
+                                    implementedMethod.ContainingModule != implementingMethod.ContainingModule)
+                                {
+                                    checkRefStructInterfacesFeatureAvailabilityOnUnscopedRefAttribute(implementingMethod.HasUnscopedRefAttribute ? implementingMethod : implementingMethod.AssociatedSymbol, diagnostics);
+                                }
+                            }
+                            else
+                            {
+                                diagnostics.Add(
+                                    ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation,
+                                    GetImplicitImplementationDiagnosticLocation(implementedMethod, implementingType, implementingMethod),
+                                    implementedMethod);
+                            }
                         }
                     }
 
@@ -1946,6 +1958,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             break;
                         default:
                             throw ExceptionUtilities.UnexpectedValue(interfaceMember.Kind);
+                    }
+                }
+            }
+
+            static void checkRefStructInterfacesFeatureAvailabilityOnUnscopedRefAttribute(Symbol implementingSymbol, BindingDiagnosticBag diagnostics)
+            {
+                foreach (var attributeData in implementingSymbol.GetAttributes())
+                {
+                    if (attributeData is SourceAttributeData { ApplicationSyntaxReference: { } applicationSyntaxReference } &&
+                        attributeData.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
+                    {
+                        MessageID.IDS_RefStructInterfaces.CheckFeatureAvailability(diagnostics, implementingSymbol.DeclaringCompilation, applicationSyntaxReference.GetLocation());
+                        break;
                     }
                 }
             }

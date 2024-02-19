@@ -593,6 +593,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (this.IsValidUnscopedRefAttributeTarget())
                 {
                     arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasUnscopedRefAttribute = true;
+
+                    if (ContainingType.IsInterface || IsExplicitInterfaceImplementation)
+                    {
+                        MessageID.IDS_RefStructInterfaces.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+                    }
                 }
                 else
                 {

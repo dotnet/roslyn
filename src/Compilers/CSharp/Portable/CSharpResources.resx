@@ -7480,10 +7480,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.</value>
   </data>
   <data name="ERR_UnscopedRefAttributeUnsupportedMemberTarget" xml:space="preserve">
-    <value>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</value>
+    <value>UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.</value>
   </data>
   <data name="ERR_UnscopedRefAttributeInterfaceImplementation" xml:space="preserve">
-    <value>UnscopedRefAttribute cannot be applied to an interface implementation.</value>
+    <value>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</value>
   </data>
   <data name="ERR_UnrecognizedRefSafetyRulesAttributeVersion" xml:space="preserve">
     <value>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</value>
@@ -7844,5 +7844,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_ImplicitIndexerInitializer" xml:space="preserve">
     <value>implicit indexer initializer</value>
+  </data>
+  <data name="IDS_RefStructInterfaces" xml:space="preserve">
+    <value>ref struct interfaces</value>
   </data>
 </root>

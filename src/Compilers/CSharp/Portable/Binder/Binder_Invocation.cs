@@ -1211,7 +1211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, MethodSymbol method)
         {
-            if (receiver is BoundValuePlaceholderBase || receiver?.Type?.IsValueType != true)
+            if (receiver is BoundValuePlaceholderBase || receiver?.Type is null or { IsReferenceType: true })
             {
                 return ThreeState.False;
             }
