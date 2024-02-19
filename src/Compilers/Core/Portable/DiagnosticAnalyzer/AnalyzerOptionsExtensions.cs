@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Concurrent;
 using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -17,8 +15,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private const string DotnetAnalyzerDiagnosticSeverityKey = DotnetAnalyzerDiagnosticPrefix + "." + SeveritySuffix;
 
+        private static readonly ConcurrentDictionary<string, string> s_categoryToSeverityKeyMap = new();
+
         internal static string GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(string category)
-            => $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{category}.{SeveritySuffix}";
+            => s_categoryToSeverityKeyMap.GetOrAdd(category, category => $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{category}.{SeveritySuffix}");
 
         /// <summary>
         /// Tries to get configured severity for the given <paramref name="descriptor"/>
@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SyntaxTree tree,
             Compilation compilation,
             DiagnosticDescriptor descriptor,
-            string? categoryBasedKey,
             CancellationToken cancellationToken,
             out ReportDiagnostic severity)
         {
@@ -64,8 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // If user has explicitly configured default severity for the diagnostic category, that should be respected.
             // For example, 'dotnet_analyzer_diagnostic.category-security.severity = error'
-            Debug.Assert(categoryBasedKey is null || categoryBasedKey == GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(descriptor.Category));
-            categoryBasedKey ??= GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(descriptor.Category);
+            var categoryBasedKey = GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(descriptor.Category);
             if (analyzerConfigOptions.TryGetValue(categoryBasedKey, out var value) &&
                 AnalyzerConfigSet.TryParseSeverity(value, out severity))
             {
@@ -91,14 +89,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             severity = default;
             return false;
         }
-
-        public static bool TryGetSeverityFromBulkConfiguration(
-            this AnalyzerOptions? analyzerOptions,
-            SyntaxTree tree,
-            Compilation compilation,
-            DiagnosticDescriptor descriptor,
-            CancellationToken cancellationToken,
-            out ReportDiagnostic severity)
-            => TryGetSeverityFromBulkConfiguration(analyzerOptions, tree, compilation, descriptor, categoryBasedKey: null, cancellationToken, out severity);
     }
 }

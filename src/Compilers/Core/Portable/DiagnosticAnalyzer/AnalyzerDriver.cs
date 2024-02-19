@@ -979,7 +979,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var severityForTree = defaultSeverity;
 
                     if (syntaxTreeProvider.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out severity) ||
-                        analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, categoryBasedKey, cancellationToken, out severity))
+                        analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, cancellationToken, out severity))
                     {
                         Debug.Assert(severity != ReportDiagnostic.Default);
 
