@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -63,18 +62,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).ToSet();
 
-                using var _ = ArrayBuilder<SymbolAndSelectionInfo>.GetInstance(out var result);
-
-                foreach (var symbol in recommendedSymbols.NamedSymbols)
-                {
-                    // Don't preselect intrinsic type symbols so we can preselect their keywords instead. We will also
-                    // ignore nullability for purposes of preselection -- if a method is returning a string? but we've
-                    // inferred we're assigning to a string or vice versa we'll still count those as the same.
-                    var preselect = inferredTypes.Contains(GetSymbolType(symbol), SymbolEqualityComparer.Default) && !IsInstrinsic(symbol);
-                    result.Add(new SymbolAndSelectionInfo(symbol, preselect));
-                }
-
-                return result.ToImmutable();
+                return recommendedSymbols.NamedSymbols.SelectAsArray(
+                    static (symbol, args) =>
+                    {
+                        // Don't preselect intrinsic type symbols so we can preselect their keywords instead. We will also
+                        // ignore nullability for purposes of preselection -- if a method is returning a string? but we've
+                        // inferred we're assigning to a string or vice versa we'll still count those as the same.
+                        var preselect = args.inferredTypes.Contains(GetSymbolType(symbol), SymbolEqualityComparer.Default) && !args.self.IsInstrinsic(symbol);
+                        return new SymbolAndSelectionInfo(symbol, preselect);
+                    },
+                    (inferredTypes, self: this));
             }
         }
 
