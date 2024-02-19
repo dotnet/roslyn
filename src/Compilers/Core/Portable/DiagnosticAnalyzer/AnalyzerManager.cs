@@ -317,7 +317,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (analyzerExecutor.Compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
                 {
-                    var categoryBasedKey = AnalyzerOptionsExtensions.GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(descriptor.Category);
                     foreach (var tree in analysisScope.SyntaxTrees)
                     {
                         // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
