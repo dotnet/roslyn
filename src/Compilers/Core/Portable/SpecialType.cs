@@ -264,8 +264,13 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_InlineArrayAttribute = 46,
 
         /// <summary>
-        /// Indicates that the type is <see cref="ReadOnlySpan{T}"/>
+        /// Indicates that the type is <see cref="ReadOnlySpan{T}"/> from the COR library.
         /// </summary>
+        /// <remarks>
+        /// Check for this special type cannot be used to find the "canonical" definition of <see cref="ReadOnlySpan{T}"/>
+        /// since it is fully legal for it to come from sources other than the COR library, e.g. from `System.Memory` package.
+        /// The special type entry mostly exist so that compiler can tell this type apart when resolving other members of the COR library
+        /// </remarks>
         System_ReadOnlySpan_T = 47,
 
         /// <summary>
