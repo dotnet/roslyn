@@ -68,10 +68,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         // Don't preselect intrinsic type symbols so we can preselect their keywords instead. We will also
                         // ignore nullability for purposes of preselection -- if a method is returning a string? but we've
                         // inferred we're assigning to a string or vice versa we'll still count those as the same.
-                        var preselect = args.InferredTypes.Contains(GetSymbolType(symbol), SymbolEqualityComparer.Default) && !args.This.IsInstrinsic(symbol);
+                        var preselect = args.inferredTypes.Contains(GetSymbolType(symbol), SymbolEqualityComparer.Default) && !args.self.IsInstrinsic(symbol);
                         return new SymbolAndSelectionInfo(symbol, preselect);
                     },
-                    (InferredTypes: inferredTypes, This: this));
+                    (inferredTypes, self: this));
             }
         }
 
