@@ -864,6 +864,11 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
+        /// <summary>
+        /// Determines whether duplicates exist using default equality comparer.
+        /// </summary>
+        /// <param name="array">Array to search for duplicates</param>
+        /// <returns>Whether duplicates were found</returns>
         internal static bool HasDuplicates<T>(this ImmutableArray<T> array)
         {
             switch (array.Length)
@@ -893,6 +898,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Determines whether duplicates exist using <paramref name="comparer"/>. Use other override
+        /// if you don't need a custom comparer.
+        /// </summary>
+        /// <param name="array">Array to search for duplicates</param>
+        /// <param name="comparer">Comparer to use in search</param>
+        /// <returns>Whether duplicates were found</returns>
         internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer)
         {
             switch (array.Length)
