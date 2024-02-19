@@ -170,9 +170,14 @@ namespace Microsoft.CodeAnalysis
             return node;
         }
 
-        // for slot counts >= byte.MaxValue
+        /// <summary>
+        /// Called when <see cref="NodeFlagsAndSlotCount.SmallSlotCount"/> returns a value of <see cref="SlotCountTooLarge"/>.
+        /// </summary>
         protected virtual int GetSlotCount()
         {
+            // This should only be called for nodes that couldn't store their slot count effectively in our
+            // _nodeFlagsAndSlotCount field.  The only nodes that cannot do that are the `WithManyChildren` list types.
+            // All of which should be subclassing this method.
             throw ExceptionUtilities.Unreachable();
         }
 
