@@ -22,6 +22,9 @@ internal sealed class CopyConstructorDeclarationBody(RecordDeclarationSyntax rec
     public override SyntaxNode? ExplicitBody
         => null;
 
+    public override SyntaxNode? ParameterClosure
+        => null;
+
     public override SyntaxNode? MatchRoot
         => null;
 

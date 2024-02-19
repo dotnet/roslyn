@@ -4,7 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -16,13 +15,8 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     // <Metalama /> - Make non-sealed.
-    public class SyntaxAnnotation : IObjectWritable, IEquatable<SyntaxAnnotation?>
+    public class SyntaxAnnotation : IEquatable<SyntaxAnnotation?>
     {
-        static SyntaxAnnotation()
-        {
-            ObjectBinder.RegisterTypeReader(typeof(SyntaxAnnotation), r => new SyntaxAnnotation(r));
-        }
-
         /// <summary>
         /// A predefined syntax annotation that indicates whether the syntax element has elastic trivia.
         /// </summary>
@@ -51,22 +45,6 @@ namespace Microsoft.CodeAnalysis
             : this(kind)
         {
             this.Data = data;
-        }
-
-        private SyntaxAnnotation(ObjectReader reader)
-        {
-            _id = reader.ReadInt64();
-            this.Kind = reader.ReadString();
-            this.Data = reader.ReadString();
-        }
-
-        bool IObjectWritable.ShouldReuseInSerialization => true;
-
-        void IObjectWritable.WriteTo(ObjectWriter writer)
-        {
-            writer.WriteInt64(_id);
-            writer.WriteString(this.Kind);
-            writer.WriteString(this.Data);
         }
 
         private string GetDebuggerDisplay()

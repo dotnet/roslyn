@@ -67,8 +67,4 @@
     </EmbeddedResource>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Internal\Utilities\" />
-  </ItemGroup>
-
 </Project>

@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -87,36 +85,21 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
 
     private static TConditionalExpressionSyntax? TryFindConditional(SyntaxNode? top, CancellationToken cancellationToken)
     {
-        return Recurse(top);
-
-        TConditionalExpressionSyntax? Recurse(SyntaxNode? node)
-        {
-            if (node is not null)
-            {
-                foreach (var child in node.ChildNodesAndTokens())
-                {
-                    if (child.IsToken)
-                        continue;
-
-                    var result = CheckNode(child.AsNode());
-                    if (result != null)
-                        return result;
-                }
-            }
-
+        if (top is null)
             return null;
-        }
 
-        TConditionalExpressionSyntax? CheckNode(SyntaxNode? node)
+        foreach (var node in top.DescendantNodesAndSelf(DescendIntoChildren))
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (node is TConditionalExpressionSyntax conditionalExpression)
                 return conditionalExpression;
+        }
 
-            if (node is TExpressionSyntax or TArgumentListSyntax or TArgumentSyntax)
-                return Recurse(node);
+        return null;
 
-            return null;
+        bool DescendIntoChildren(SyntaxNode node)
+        {
+            return node == top || node is TExpressionSyntax or TArgumentListSyntax or TArgumentSyntax;
         }
     }
 

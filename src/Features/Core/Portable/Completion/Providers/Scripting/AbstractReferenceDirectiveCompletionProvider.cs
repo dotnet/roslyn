@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             enterKeyRule: EnterKeyRule.Never,
             selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
-        private static readonly char[] s_pathIndicators = new char[] { '/', '\\', ':' };
+        private static readonly char[] s_pathIndicators = ['/', '\\', ':'];
 
         private static ImmutableArray<char> GetCommitCharacters()
         {

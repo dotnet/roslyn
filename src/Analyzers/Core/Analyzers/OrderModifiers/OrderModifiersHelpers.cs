@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 {
     internal abstract class AbstractOrderModifiersHelpers
     {
-        private static readonly char[] s_comma = { ',' };
+        private static readonly char[] s_comma = [','];
 
         /// <remarks>
         /// Reference type so we can read/write atomically.

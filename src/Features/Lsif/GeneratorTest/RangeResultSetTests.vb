@@ -2,9 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.LanguageServer.Protocol
+Imports Roslyn.LanguageServer.Protocol
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests

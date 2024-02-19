@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -15,11 +14,10 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
@@ -75,8 +73,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 serverCapabilities.SupportsDiagnosticRequests = true;
                 serverCapabilities.MultipleContextSupportProvider = new VSInternalMultipleContextFeatures { SupportsMultipleContextsDiagnostics = true };
                 serverCapabilities.DiagnosticProvider ??= new();
-                serverCapabilities.DiagnosticProvider.DiagnosticKinds = new VSInternalDiagnosticKind[]
-                {
+                serverCapabilities.DiagnosticProvider.DiagnosticKinds =
+                [
                     // Support a specialized requests dedicated to task-list items.  This way the client can ask just
                     // for these, independently of other diagnostics.  They can also throttle themselves to not ask if
                     // the task list would not be visible.
@@ -92,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                     new(PullDiagnosticCategories.DocumentCompilerSemantic),
                     new(PullDiagnosticCategories.DocumentAnalyzerSyntax),
                     new(PullDiagnosticCategories.DocumentAnalyzerSemantic),
-                };
+                ];
                 serverCapabilities.DiagnosticProvider.BuildOnlyDiagnosticIds = _buildOnlyDiagnostics
                     .SelectMany(lazy => lazy.Metadata.BuildOnlyDiagnostics)
                     .Distinct()

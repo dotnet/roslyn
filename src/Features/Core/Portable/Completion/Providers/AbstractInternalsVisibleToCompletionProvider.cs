@@ -3,13 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     displayTextSuffix: "",
                     rules: CompletionItemRules.Default,
                     glyph: project.GetGlyph(),
-                    properties: ImmutableDictionary.Create<string, string>().Add(ProjectGuidKey, projectGuid));
+                    properties: ImmutableArray.Create(new KeyValuePair<string, string>(ProjectGuidKey, projectGuid)));
                 context.AddItem(completionItem);
             }
 
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
-            var projectIdGuid = item.Properties[ProjectGuidKey];
+            var projectIdGuid = item.GetProperty(ProjectGuidKey);
             var projectId = ProjectId.CreateFromSerialized(new Guid(projectIdGuid));
             var project = document.Project.Solution.GetRequiredProject(projectId);
             var assemblyName = item.DisplayText;

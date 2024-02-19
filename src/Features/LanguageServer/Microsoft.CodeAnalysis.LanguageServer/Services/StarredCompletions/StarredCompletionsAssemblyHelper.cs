@@ -88,7 +88,7 @@ internal static class StarredCompletionAssemblyHelper
 
             try
             {
-                var alc = AssemblyLoadContextWrapper.TryCreate(ALCName, s_completionsAssemblyLocation, sharedDependenciesPath: null, s_logger);
+                var alc = AssemblyLoadContextWrapper.TryCreate(ALCName, s_completionsAssemblyLocation, s_logger);
                 if (alc is null)
                 {
                     s_previousCreationFailed = true;

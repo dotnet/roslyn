@@ -4,18 +4,18 @@
 
 #nullable disable
 
-using System.Collections.Generic;
+using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private class InstallWithPackageManagerCodeAction(
+        private sealed class InstallWithPackageManagerCodeAction(
             IPackageInstallerService installerService,
             string packageName) : CodeAction
         {
@@ -24,9 +24,10 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             public override string Title => FeaturesResources.Install_with_package_manager;
 
-            protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
-                return Task.FromResult(SpecializedCollections.SingletonEnumerable<CodeActionOperation>(
+                return Task.FromResult(ImmutableArray.Create<CodeActionOperation>(
                     new InstallWithPackageManagerCodeActionOperation(_installerService, _packageName)));
             }
 

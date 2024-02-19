@@ -711,17 +711,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private NullableContextStateMap GetNullableContextStateMap()
-        {
-            if (_lazyNullableContextStateMap == null)
-            {
-                // Create the #nullable directive map on demand.
-                Interlocked.CompareExchange(
-                    ref _lazyNullableContextStateMap,
-                    new StrongBox<NullableContextStateMap>(NullableContextStateMap.Create(this)),
-                    null);
-            }
-            return _lazyNullableContextStateMap.Value;
-        }
+            // Create the #nullable directive map on demand.
+            => _lazyNullableContextStateMap.Initialize(static @this => NullableContextStateMap.Create(@this), this);
 
         internal NullableContextState GetNullableContextState(int position)
             => GetNullableContextStateMap().GetContextState(position);
@@ -754,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private CSharpLineDirectiveMap? _lazyLineDirectiveMap;
         private CSharpPragmaWarningStateMap? _lazyPragmaWarningStateMap;
-        private StrongBox<NullableContextStateMap>? _lazyNullableContextStateMap;
+        private SingleInitNullable<NullableContextStateMap> _lazyNullableContextStateMap;
 
         private GeneratedKind _lazyIsGeneratedCode = GeneratedKind.Unknown;
 

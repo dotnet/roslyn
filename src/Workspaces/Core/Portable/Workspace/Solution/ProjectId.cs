@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     [DataContract]
-    public sealed class ProjectId : IEquatable<ProjectId>, IObjectWritable
+    public sealed class ProjectId : IEquatable<ProjectId>
     {
         /// <summary>
         /// The system generated unique id.
@@ -83,9 +83,7 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
             => this.Id.GetHashCode();
 
-        bool IObjectWritable.ShouldReuseInSerialization => true;
-
-        void IObjectWritable.WriteTo(ObjectWriter writer)
+        internal void WriteTo(ObjectWriter writer)
         {
             writer.WriteGuid(Id);
             writer.WriteString(DebugName);

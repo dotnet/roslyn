@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             }
         }
 
-        private static readonly char[] s_punctuation = new[] { '(', '[', '<' };
+        private static readonly char[] s_punctuation = ['(', '[', '<'];
 
         private static async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {

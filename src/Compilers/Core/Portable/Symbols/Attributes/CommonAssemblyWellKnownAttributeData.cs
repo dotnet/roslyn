@@ -466,5 +466,59 @@ namespace Microsoft.CodeAnalysis
             }
         }
         #endregion
+
+        #region GuidAttribute
+        private string _guidAttribute;
+        public string GuidAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _guidAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _guidAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
+        #region ImportedFromTypeLibAttribute
+        private bool _hasImportedFromTypeLibAttribute;
+        public bool HasImportedFromTypeLibAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasImportedFromTypeLibAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasImportedFromTypeLibAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
+        #region PrimaryInteropAssemblyAttribute
+        private bool _hasPrimaryInteropAssemblyAttribute;
+        public bool HasPrimaryInteropAssemblyAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasPrimaryInteropAssemblyAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasPrimaryInteropAssemblyAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
     }
 }

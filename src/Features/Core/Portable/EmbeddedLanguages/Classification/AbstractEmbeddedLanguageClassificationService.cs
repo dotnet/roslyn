@@ -4,13 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -36,23 +36,26 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         public async Task AddEmbeddedLanguageClassificationsAsync(
-            Document document, TextSpan textSpan, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
+            Document document, ImmutableArray<TextSpan> textSpans, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var project = document.Project;
             AddEmbeddedLanguageClassifications(
-                project.Solution.Services, project, semanticModel, textSpan, options, result, cancellationToken);
+                project.Solution.Services, project, semanticModel, textSpans, options, result, cancellationToken);
         }
 
         public void AddEmbeddedLanguageClassifications(
-            SolutionServices services, Project? project, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
+            SolutionServices services, Project? project, SemanticModel semanticModel, ImmutableArray<TextSpan> textSpans, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (project is null)
                 return;
 
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var worker = new Worker(this, services, project, semanticModel, textSpan, options, result, cancellationToken);
-            worker.VisitTokens(root);
+            foreach (var textSpan in textSpans)
+            {
+                var worker = new Worker(this, services, project, semanticModel, textSpan, options, result, cancellationToken);
+                worker.VisitTokens(root);
+            }
         }
 
         private readonly ref struct Worker(

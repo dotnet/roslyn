@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -17,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal partial class SymbolTreeInfo : IObjectWritable
+internal partial class SymbolTreeInfo
 {
     private const string PrefixSymbolTreeInfo = "<SymbolTreeInfo>";
     private static readonly Checksum SerializationFormatChecksum = Checksum.Create("25");
@@ -105,8 +104,6 @@ internal partial class SymbolTreeInfo : IObjectWritable
         // our version, then we can reuse this instance.
         return TryReadSymbolTreeInfo(reader, checksum);
     }
-
-    bool IObjectWritable.ShouldReuseInSerialization => true;
 
     public void WriteTo(ObjectWriter writer)
     {

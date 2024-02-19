@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests_WindowsExperimental : CSharpTestBase
     {
-        private const string DeprecatedAttributeSource =
+        internal const string DeprecatedAttributeSource =
 @"using System;
 namespace Windows.Foundation.Metadata
 {
@@ -30,7 +30,7 @@ namespace Windows.Foundation.Metadata
     }
 }";
 
-        private const string ExperimentalAttributeSource =
+        internal const string ExperimentalAttributeSource =
 @"using System;
 namespace Windows.Foundation.Metadata
 {

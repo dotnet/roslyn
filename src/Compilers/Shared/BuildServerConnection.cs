@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         // Spend up to 20s connecting to a new process, to allow time for it to start.
         internal const int TimeOutMsNewProcess = 20000;
 
+        // To share a mutex between processes the name should have the Global prefix
+        private const string GlobalMutexPrefix = "Global\\";
+
         /// <summary>
         /// Determines if the compiler server is supported in this environment.
         /// </summary>
@@ -162,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return new IncorrectHashBuildResponse();
             }
 
-            using var pipe = await tryConnectToServer(pipeName, timeoutOverride, logger, tryCreateServerFunc, cancellationToken).ConfigureAwait(false);
+            using var pipe = await tryConnectToServerAsync(pipeName, timeoutOverride, logger, tryCreateServerFunc, cancellationToken).ConfigureAwait(false);
             if (pipe is null)
             {
                 return new CannotConnectResponse();
@@ -175,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             // This code uses a Mutex.WaitOne / ReleaseMutex pairing. Both of these calls must occur on the same thread 
             // or an exception will be thrown. This code lives in a separate non-async function to help ensure this 
             // invariant doesn't get invalidated in the future by an `await` being inserted. 
-            static Task<NamedPipeClientStream?> tryConnectToServer(
+            static Task<NamedPipeClientStream?> tryConnectToServerAsync(
                 string pipeName,
                 int? timeoutOverride,
                 ICompilerServerLogger logger,
@@ -581,12 +584,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static string GetServerMutexName(string pipeName)
         {
-            return $"{pipeName}.server";
+            return $"{GlobalMutexPrefix}{pipeName}.server";
         }
 
         internal static string GetClientMutexName(string pipeName)
         {
-            return $"{pipeName}.client";
+            return $"{GlobalMutexPrefix}{pipeName}.client";
         }
 
         /// <summary>

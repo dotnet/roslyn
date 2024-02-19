@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 CompletionProvidersLogger.LogCustomizedCommitToAddParenthesis(commitKey);
             }
 
-            if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
+            if (await ShouldCompleteWithFullyQualifyTypeNameAsync().ConfigureAwait(false))
             {
                 var completionText = $"{containingNamespace}.{insertText}";
                 return CompletionChange.Create(new TextChange(completionItem.Span, completionText));
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var change = Utilities.Collapse(newText, changes);
             return CompletionChange.Create(change, changes);
 
-            async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
+            async Task<bool> ShouldCompleteWithFullyQualifyTypeNameAsync()
             {
                 if (ImportCompletionItem.ShouldAlwaysFullyQualify(completionItem))
                     return true;

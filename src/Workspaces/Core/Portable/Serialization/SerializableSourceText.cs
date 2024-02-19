@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.Serialization
         private SourceText? TryGetText()
             => _text ?? _computedText.GetTarget();
 
-        public ImmutableArray<byte> GetChecksum()
+        public ImmutableArray<byte> GetContentHash()
         {
-            return TryGetText()?.GetChecksum() ?? _storage!.GetChecksum();
+            return TryGetText()?.GetContentHash() ?? _storage!.GetContentHash();
         }
 
         public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)

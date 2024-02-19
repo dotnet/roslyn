@@ -276,7 +276,7 @@ class C
 end class")
         End Function
 
-        <Fact>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004")>
         Public Async Function TestInsertionLocation1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -391,7 +391,7 @@ class C
 end class")
         End Function
 
-        <Fact>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004")>
         Public Async Function TestInsertionLocation7() As Task
 
             Await TestInRegularAndScript1Async(
@@ -741,7 +741,7 @@ class C
 end class", index:=2)
         End Function
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004"), WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields3() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -766,7 +766,7 @@ class C
 end class", index:=2)
         End Function
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004"), WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields4() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -839,7 +839,7 @@ class C
 end class", index:=3)
         End Function
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004"), WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties3() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -865,7 +865,7 @@ class C
 end class", index:=3)
         End Function
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004"), WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties4() As Task
             Await TestInRegularAndScript1Async(
 "

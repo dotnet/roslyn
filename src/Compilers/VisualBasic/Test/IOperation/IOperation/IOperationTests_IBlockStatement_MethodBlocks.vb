@@ -50,7 +50,7 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub M
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
-        Public Sub IBlockStatement_SubNewBlock()
+        Public Sub IBlockStatement_SubNewBlock_01()
             Dim source = <![CDATA[
 Class Program
     Sub New()'BIND:"Sub New()"
@@ -60,7 +60,13 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub New()'B ... End Sub')
+IBlockOperation (4 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub New()'B ... End Sub')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'Sub New()'B ... End Sub')
+    Expression:
+      IInvocationOperation ( Sub System.Object..ctor()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'Sub New()'B ... End Sub')
+        Instance Receiver:
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: System.Object, IsImplicit) (Syntax: 'Sub New()'B ... End Sub')
+        Arguments(0)
   IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If 1 > 2 Th ... End If')
     Condition: 
       IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.Binary, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
@@ -81,6 +87,105 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub N
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ConstructorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub IBlockStatement_SubNewBlock_02()
+            Dim source = <![CDATA[
+Class Program
+    Sub New()'BIND:"Sub New()"
+        MyBase.New()
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub New()'B ... End Sub')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'MyBase.New()')
+    Expression:
+        IInvocationOperation ( Sub System.Object..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'MyBase.New()')
+        Instance Receiver:
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: System.Object) (Syntax: 'MyBase')
+        Arguments(0)
+    ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement:
+        null
+    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue:
+        null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ConstructorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub IBlockStatement_SubNewBlock_03()
+            Dim source = <![CDATA[
+Class Program
+    Sub New()'BIND:"Sub New()"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub New()'B ... End Sub')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'Sub New()'B ... End Sub')
+    Expression:
+      IInvocationOperation ( Sub System.Object..ctor()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'Sub New()'B ... End Sub')
+        Instance Receiver:
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: System.Object, IsImplicit) (Syntax: 'Sub New()'B ... End Sub')
+        Arguments(0)
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement:
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue:
+      null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ConstructorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub IBlockStatement_SubNewBlock_04()
+            Dim source = <![CDATA[
+Class Base
+    Sub New(x as Integer)
+    End Sub
+End Class
+
+Class Program
+    Inherits Base
+    Sub New()'BIND:"Sub New()"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (3 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'Sub New()'B ... End Sub')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'Sub New()'B ... End Sub')
+    Expression:
+      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Sub New()'B ... End Sub')
+        Children(0)
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement:
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue:
+      null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30148: First statement of this 'Sub New' must be a call to 'MyBase.New' or 'MyClass.New' because base class 'Base' of 'Program' does not have an accessible 'Sub New' that can be called with no arguments.
+    Sub New()'BIND:"Sub New()"
+        ~~~
+]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ConstructorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub

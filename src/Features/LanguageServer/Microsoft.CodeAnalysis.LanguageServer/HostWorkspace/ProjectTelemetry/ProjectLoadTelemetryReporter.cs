@@ -26,7 +26,7 @@ internal class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, Server
     /// so that we are able to compare data accurately.
     /// See https://github.com/OmniSharp/omnisharp-roslyn/blob/b2e64c6006beed49460f063117793f42ab2a8a5c/src/OmniSharp.MSBuild/ProjectLoadListener.cs#L36
     /// </summary>
-    public async Task ReportProjectLoadTelemetryAsync(Dictionary<ProjectFileInfo, (ImmutableArray<CommandLineReference> MetadataReferences, OutputKind OutputKind)> projectFileInfos, ProjectToLoad projectToLoad, CancellationToken cancellationToken)
+    public async Task ReportProjectLoadTelemetryAsync(Dictionary<ProjectFileInfo, (ImmutableArray<CommandLineReference> MetadataReferences, OutputKind OutputKind, bool HasUnresolvedDependencies)> projectFileInfos, ProjectToLoad projectToLoad, CancellationToken cancellationToken)
     {
         try
         {
@@ -44,7 +44,7 @@ internal class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, Server
             // but only the data from one of the sets of possible outputkinds / references / content / etc.
             var firstInfo = projectFileInfos.First();
             var projectFileInfo = firstInfo.Key;
-            var (metadataReferences, outputKind) = firstInfo.Value;
+            var (metadataReferences, outputKind, _) = firstInfo.Value;
 
             // Matches O# behavior to not report this event if no references found.
             if (!metadataReferences.Any())

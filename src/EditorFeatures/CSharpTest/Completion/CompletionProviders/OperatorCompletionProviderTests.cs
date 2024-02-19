@@ -302,7 +302,7 @@ public class Program
 ", SourceCodeKind.Regular);
             Assert.Equal(
                 numberOfSuggestions,
-                completionItems.Count(c => c.Properties[UnnamedSymbolCompletionProvider.KindName] == UnnamedSymbolCompletionProvider.OperatorKindName));
+                completionItems.Count(c => c.GetProperty(UnnamedSymbolCompletionProvider.KindName) == UnnamedSymbolCompletionProvider.OperatorKindName));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]

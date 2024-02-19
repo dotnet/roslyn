@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
             if (!headerSpan.IntersectsWith(position))
                 return false;
 
-            if (containsSyntaxError && ContainsOverlappingSyntaxErrror(declaration, headerSpan))
+            if (containsSyntaxError && ContainsOverlappingSyntaxError(declaration, headerSpan))
                 return false;
 
             return true;

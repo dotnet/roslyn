@@ -8809,9 +8809,8 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.NotCapturingVariable, "a As Integer", "a"))
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.get_P"), preserveLocalVariables:=True)})
         End Sub
 #End Region
 

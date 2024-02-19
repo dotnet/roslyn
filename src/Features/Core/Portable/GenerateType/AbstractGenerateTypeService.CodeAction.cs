@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 {
     internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNameSyntax, TObjectCreationExpressionSyntax, TExpressionSyntax, TTypeDeclarationSyntax, TArgumentSyntax>
     {
-        private class GenerateTypeCodeAction : CodeAction
+        private sealed class GenerateTypeCodeAction : CodeAction
         {
             private readonly bool _intoNamespace;
             private readonly bool _inNewFile;
@@ -63,7 +65,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
 
@@ -172,7 +175,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return false;
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+                object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 var operations = SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
 

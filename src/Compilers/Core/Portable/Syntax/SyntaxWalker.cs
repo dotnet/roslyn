@@ -4,6 +4,7 @@
 
 namespace Microsoft.CodeAnalysis
 {
+#pragma warning disable RS0030 // Do not use banned APIs: SyntaxWalker
     /// <summary>
     /// Walks the syntax tree, allowing subclasses to operate on all nodes, token and trivia.  The
     /// walker will perform a depth first walk of the tree.
@@ -102,4 +103,5 @@ namespace Microsoft.CodeAnalysis
             }
         }
     }
+#pragma warning restore
 }

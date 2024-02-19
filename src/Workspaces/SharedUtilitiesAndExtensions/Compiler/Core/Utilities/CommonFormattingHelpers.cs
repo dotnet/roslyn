@@ -23,17 +23,21 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static readonly Comparison<IndentBlockOperation> IndentBlockOperationComparer = (o1, o2) =>
         {
             // smaller one goes left
-            var s = o1.TextSpan.Start - o2.TextSpan.Start;
-            if (s != 0)
-            {
-                return s;
-            }
+            var d = o1.TextSpan.Start - o2.TextSpan.Start;
+            if (d != 0)
+                return d;
 
             // bigger one goes left
-            var e = o2.TextSpan.End - o1.TextSpan.End;
-            if (e != 0)
+            d = o2.TextSpan.End - o1.TextSpan.End;
+            if (d != 0)
+                return d;
+
+            if (o1.IsRelativeIndentation && o2.IsRelativeIndentation)
             {
-                return e;
+                // if they're at the same location, but indenting separate amounts, have the bigger delta go first.
+                d = o2.IndentationDeltaOrPosition - o1.IndentationDeltaOrPosition;
+                if (d != 0)
+                    return d;
             }
 
             return 0;

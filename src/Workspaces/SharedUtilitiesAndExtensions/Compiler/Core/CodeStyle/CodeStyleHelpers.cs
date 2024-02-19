@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 {
                     var firstValue = arg[..firstColonIndex];
                     value = firstValue.Trim();
-                    notification = localNotification;
+                    notification = localNotification.WithIsExplicitlySpecified(true);
                     return true;
                 }
             }

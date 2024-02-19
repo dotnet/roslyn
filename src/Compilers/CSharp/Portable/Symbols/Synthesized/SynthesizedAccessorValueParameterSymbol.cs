@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var annotations = FlowAnalysisAnnotations;
                 if ((annotations & FlowAnalysisAnnotations.DisallowNull) != 0)
                 {
-                    AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(property.DisallowNullAttributeIfExists));
+                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(property.DisallowNullAttributeIfExists));
                 }
                 if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
                 {
-                    AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(property.AllowNullAttributeIfExists));
+                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(property.AllowNullAttributeIfExists));
                 }
             }
         }

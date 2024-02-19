@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -816,6 +817,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
+        public void TestStringLiteralWithEscape_CSharp12()
+        {
+            var text = """
+                "\e"
+                """;
+            var value = "\u001b";
+            var token = LexToken(text, TestOptions.Regular12);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
+            Assert.Equal(text, token.Text);
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            AssertEx.EqualOrDiff("error CS8652: The feature 'string escape character' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(value, token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestStringLiteralWithEscape_Preview()
+        {
+            var text = """
+                "\e"
+                """;
+            var value = "\u001b";
+            var token = LexToken(text, TestOptions.RegularNext);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
+            Assert.Equal(text, token.Text);
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(value, token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestVerbatimStringLiteralWithEscape()
+        {
+            var text = """
+                @"\e"
+                """;
+            var value = @"\e";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
+            Assert.Equal(text, token.Text);
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(value, token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
         public void TestCharacterLiteral()
         {
             var value = "x";
@@ -933,6 +989,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var value = "\v";
             var text = "'\\v'";
             var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
+            Assert.Equal(text, token.Text);
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+            Assert.Equal(value, token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestCharacterLiteralEscape_E_CSharp12()
+        {
+            var value = "\u001b";
+            var text = "'\\e'";
+            var token = LexToken(text, TestOptions.Regular12);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
+            Assert.Equal(text, token.Text);
+            var errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            AssertEx.EqualOrDiff("error CS8652: The feature 'string escape character' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(value, token.ValueText);
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
+        public void TestCharacterLiteralEscape_E_CSharpPreview()
+        {
+            var value = "\u001b";
+            var text = "'\\e'";
+            var token = LexToken(text, TestOptions.RegularNext);
 
             Assert.NotEqual(default, token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());

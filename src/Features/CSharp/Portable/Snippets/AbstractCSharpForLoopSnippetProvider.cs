@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSnippetProvider
     {
-        private static readonly string[] s_iteratorBaseNames = new[] { "i", "j", "k" };
+        private static readonly string[] s_iteratorBaseNames = ["i", "j", "k"];
 
         protected abstract SyntaxKind ConditionKind { get; }
 

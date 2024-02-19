@@ -57,10 +57,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
             PdbValidationOptions options = PdbValidationOptions.Default,
+            bool expectedIsRawXml = false,
             [CallerLineNumber] int expectedValueSourceLine = 0,
             [CallerFilePath] string expectedValueSourcePath = null)
         {
-            verifier.Compilation.VerifyPdb(expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
+            verifier.Compilation.VerifyPdb(expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedIsRawXml, expectedValueSourceLine, expectedValueSourcePath);
             return verifier;
         }
 
@@ -72,10 +73,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
             PdbValidationOptions options = PdbValidationOptions.Default,
+            bool expectedIsRawXml = false,
             [CallerLineNumber] int expectedValueSourceLine = 0,
             [CallerFilePath] string expectedValueSourcePath = null)
         {
-            verifier.Compilation.VerifyPdb(qualifiedMethodName, expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
+            verifier.Compilation.VerifyPdb(qualifiedMethodName, expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedIsRawXml, expectedValueSourceLine, expectedValueSourcePath);
             return verifier;
         }
 
@@ -109,10 +111,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<int> methodTokens,
             string expectedPdb,
             DebugInformationFormat format = DebugInformationFormat.Pdb,
+            bool expectedIsRawXml = false,
             [CallerLineNumber] int expectedValueSourceLine = 0,
             [CallerFilePath] string expectedValueSourcePath = null)
         {
-            VerifyPdb(diff, methodTokens, expectedPdb, format, expectedValueSourceLine, expectedValueSourcePath, expectedIsXmlLiteral: false);
+            VerifyPdb(diff, methodTokens, expectedPdb, format, expectedValueSourceLine, expectedValueSourcePath, expectedIsRawXml);
         }
 
         public static void VerifyPdb(
@@ -123,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerLineNumber] int expectedValueSourceLine = 0,
             [CallerFilePath] string expectedValueSourcePath = null)
         {
-            VerifyPdb(diff, methodTokens, expectedPdb.ToString(), format, expectedValueSourceLine, expectedValueSourcePath, expectedIsXmlLiteral: true);
+            VerifyPdb(diff, methodTokens, expectedPdb.ToString(), format, expectedValueSourceLine, expectedValueSourcePath, expectedIsRawXml: true);
         }
 
         private static void VerifyPdb(
@@ -133,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             DebugInformationFormat format,
             int expectedValueSourceLine,
             string expectedValueSourcePath,
-            bool expectedIsXmlLiteral)
+            bool expectedIsRawXml)
         {
             Assert.NotEqual(default(DebugInformationFormat), format);
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
@@ -149,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 $"PDB format: {format}{Environment.NewLine}",
                 expectedValueSourcePath,
                 expectedValueSourceLine,
-                escapeQuotes: !expectedIsXmlLiteral);
+                escapeQuotes: !expectedIsRawXml);
         }
 
         public static void VerifyPdb(
@@ -159,10 +162,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
             PdbValidationOptions options = PdbValidationOptions.Default,
+            bool expectedIsRawXml = false,
             [CallerLineNumber] int expectedValueSourceLine = 0,
             [CallerFilePath] string expectedValueSourcePath = null)
         {
-            VerifyPdb(compilation, qualifiedMethodName: null, expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
+            VerifyPdb(compilation, qualifiedMethodName: null, expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedIsRawXml, expectedValueSourceLine, expectedValueSourcePath);
         }
 
         public static void VerifyPdb(
@@ -173,6 +177,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
             PdbValidationOptions options = PdbValidationOptions.Default,
+            bool expectedIsRawXml = false,
             [CallerLineNumber] int expectedValueSourceLine = 0,
             [CallerFilePath] string expectedValueSourcePath = null)
         {
@@ -186,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 options,
                 expectedValueSourceLine,
                 expectedValueSourcePath,
-                expectedIsXmlLiteral: false);
+                expectedIsRawXml);
         }
 
         public static void VerifyPdb(
@@ -223,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 options,
                 expectedValueSourceLine,
                 expectedValueSourcePath,
-                expectedIsXmlLiteral: true);
+                expectedIsRawXml: true);
         }
 
         private static void VerifyPdbImpl(
@@ -236,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             PdbValidationOptions options,
             int expectedValueSourceLine,
             string expectedValueSourcePath,
-            bool expectedIsXmlLiteral)
+            bool expectedIsRawXml)
         {
             // <Metalama>
             if (MetalamaCompilerTest.ShouldExecuteTransformer)
@@ -268,11 +273,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var pdbStream = new MemoryStream();
                 EmitWithPdb(peStream, pdbStream, compilation, debugEntryPoint, embeddedTexts, isPortable);
 
-                VerifyPdbMatchesExpectedXml(peStream, pdbStream, qualifiedMethodName, pdbToXmlOptions, expectedPdb, expectedValueSourceLine, expectedValueSourcePath, expectedIsXmlLiteral, isPortable);
+                VerifyPdbMatchesExpectedXml(peStream, pdbStream, qualifiedMethodName, pdbToXmlOptions, expectedPdb, expectedValueSourceLine, expectedValueSourcePath, expectedIsRawXml, isPortable);
 
                 if (testConversion && testOtherFormat)
                 {
-                    VerifyConvertedPdbMatchesExpectedXml(peStream, pdbStream, qualifiedMethodName, expectedPdb, pdbToXmlOptions, expectedIsXmlLiteral, isPortable);
+                    VerifyConvertedPdbMatchesExpectedXml(peStream, pdbStream, qualifiedMethodName, expectedPdb, pdbToXmlOptions, expectedIsRawXml, isPortable);
                 }
             }
         }
@@ -296,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 expectedPdb.ToString(),
                 expectedValueSourceLine,
                 expectedValueSourcePath,
-                expectedIsXmlLiteral: false,
+                expectedIsRawXml: false,
                 isPortable);
         }
 
@@ -308,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedPdb,
             int expectedValueSourceLine,
             string expectedValueSourcePath,
-            bool expectedIsXmlLiteral,
+            bool expectedIsRawXml,
             bool isPortable)
         {
             peStream.Position = 0;
@@ -322,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 $"PDB format: {(isPortable ? "Portable" : "Windows")}{Environment.NewLine}",
                 expectedValueSourcePath,
                 expectedValueSourceLine,
-                escapeQuotes: !expectedIsXmlLiteral);
+                escapeQuotes: !expectedIsRawXml);
         }
 
         private static void VerifyConvertedPdbMatchesExpectedXml(
@@ -331,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string qualifiedMethodName,
             string expectedPdb,
             PdbToXmlOptions pdbToXmlOptions,
-            bool expectedIsXmlLiteral,
+            bool expectedIsRawXml,
             bool originalIsPortable)
         {
             var pdbStreamConverted = new MemoryStream();
@@ -363,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 $"PDB format: {(originalIsPortable ? "Windows" : "Portable")} converted from {(originalIsPortable ? "Portable" : "Windows")}{Environment.NewLine}",
                 expectedValueSourcePath: null,
                 expectedValueSourceLine: 0,
-                escapeQuotes: !expectedIsXmlLiteral);
+                escapeQuotes: !expectedIsRawXml);
         }
 
         private static string AdjustForConversionArtifacts(string pdb)

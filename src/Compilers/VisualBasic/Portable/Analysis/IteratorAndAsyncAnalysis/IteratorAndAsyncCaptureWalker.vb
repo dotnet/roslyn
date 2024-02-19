@@ -212,6 +212,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
+        Protected Overrides Sub VisitCallAfterVisitArguments(node As BoundCall)
+            MyBase.VisitCallAfterVisitArguments(node)
+
+            Dim receiverOpt As BoundExpression = node.ReceiverOpt
+
+            If receiverOpt IsNot Nothing AndAlso Not receiverOpt.IsLValue Then
+                CheckAssignedFromArgumentWrite(receiverOpt, receiverOpt.Syntax)
+            End If
+        End Sub
+
         Public Overrides Function VisitSequence(node As BoundSequence) As BoundNode
             Dim result As BoundNode = Nothing
 

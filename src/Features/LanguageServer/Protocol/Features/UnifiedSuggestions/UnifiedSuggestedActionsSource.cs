@@ -146,10 +146,10 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             // Local functions
             async Task<IUnifiedSuggestedAction> GetUnifiedSuggestedActionAsync(Solution originalSolution, CodeAction action, CodeFix fix)
             {
-                if (action.NestedCodeActions.Length > 0)
+                if (action.NestedActions.Length > 0)
                 {
-                    using var _ = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(action.NestedCodeActions.Length, out var unifiedNestedActions);
-                    foreach (var nestedAction in action.NestedCodeActions)
+                    using var _ = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(action.NestedActions.Length, out var unifiedNestedActions);
+                    foreach (var nestedAction in action.NestedActions)
                     {
                         var unifiedNestedAction = await GetUnifiedSuggestedActionAsync(originalSolution, nestedAction, fix).ConfigureAwait(false);
                         unifiedNestedActions.Add(unifiedNestedAction);
@@ -544,10 +544,10 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             // Local functions
             async Task<IUnifiedSuggestedAction> GetUnifiedSuggestedActionSetAsync(CodeAction codeAction, TextSpan? applicableToSpan, TextSpan selection, CancellationToken cancellationToken)
             {
-                if (codeAction.NestedCodeActions.Length > 0)
+                if (codeAction.NestedActions.Length > 0)
                 {
-                    using var _1 = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(codeAction.NestedCodeActions.Length, out var nestedActions);
-                    foreach (var nestedAction in codeAction.NestedCodeActions)
+                    using var _1 = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(codeAction.NestedActions.Length, out var nestedActions);
+                    foreach (var nestedAction in codeAction.NestedActions)
                     {
                         var unifiedAction = await GetUnifiedSuggestedActionSetAsync(nestedAction, applicableToSpan, selection, cancellationToken).ConfigureAwait(false);
                         nestedActions.Add(unifiedAction);

@@ -42,8 +42,8 @@
         <target state="translated">Převést na asynchronní proceduru Sub</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
         <target state="translated">Odebrat nepotřebné importy</target>
         <note />
       </trans-unit>

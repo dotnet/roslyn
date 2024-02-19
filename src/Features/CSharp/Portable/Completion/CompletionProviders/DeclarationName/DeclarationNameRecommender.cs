@@ -46,11 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
 
             // Suggest names from existing overloads.
             if (nameInfo.PossibleSymbolKinds.Any(static k => k.SymbolKind == SymbolKind.Parameter))
-            {
-                var (_, partialSemanticModel) = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                if (partialSemanticModel is not null)
-                    AddNamesFromExistingOverloads(context, partialSemanticModel, nameInfo, result, cancellationToken);
-            }
+                AddNamesFromExistingOverloads(context, nameInfo, result, cancellationToken);
 
             var names = GetBaseNames(context.SemanticModel, nameInfo).NullToEmpty();
 
@@ -104,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
         private (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural, HashSet<ITypeSymbol> seenTypes)
         {
             // Consider C : Task<C>
-            // Visiting the C in Task<C> will stackoverflow
+            // Visiting the C in Task<C> will stack overflow
             if (seenTypes.Contains(type))
             {
                 return (type, wasPlural);
@@ -281,9 +277,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
             }
         }
 
-        private static void AddNamesFromExistingOverloads(CSharpSyntaxContext context, SemanticModel semanticModel,
-            NameDeclarationInfo declarationInfo, ArrayBuilder<(string, Glyph)> result, CancellationToken cancellationToken)
+        private static void AddNamesFromExistingOverloads(
+            CSharpSyntaxContext context, NameDeclarationInfo declarationInfo, ArrayBuilder<(string, Glyph)> result, CancellationToken cancellationToken)
         {
+            var semanticModel = context.SemanticModel;
             var namedType = semanticModel.GetEnclosingNamedType(context.Position, cancellationToken);
             if (namedType is null)
                 return;

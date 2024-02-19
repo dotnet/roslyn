@@ -44,10 +44,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 protected override bool TryTakeAnyWork_NoLock(
                     ProjectId? preferableProjectId,
-#if false // Not used in unit testing crawling
-                    ProjectDependencyGraph dependencyGraph,
-                    IDiagnosticAnalyzerService? analyzerService,
-#endif
                     out UnitTestingWorkItem workItem)
                 {
                     // there must be at least one item in the map when this is called unless host is shutting down.
@@ -58,12 +54,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
 
                     var projectId = GetBestProjectId_NoLock(
-                        _projectWorkQueue, preferableProjectId
-#if false // Not used in unit testing crawling
-                        , dependencyGraph
-                        , analyzerService
-#endif
-                        );
+                        _projectWorkQueue, preferableProjectId);
                     if (TryTake_NoLock(projectId, out workItem))
                     {
                         return true;

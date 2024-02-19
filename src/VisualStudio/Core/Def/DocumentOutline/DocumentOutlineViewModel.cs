@@ -3,40 +3,31 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.SemanticModelReuse;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using VsWebSite;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
-    using LspDocumentSymbol = DocumentSymbol;
-
     /// <summary>
     /// Responsible for updating data related to Document outline. It is expected that all public methods on this type
     /// do not need to be on the UI thread. Two properties: <see cref="SortOption"/> and <see cref="SearchText"/> are
@@ -435,7 +426,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 // Obtain the LSP response and text snapshot used.
                 var response = await DocumentSymbolsRequestAsync(
-                    _textBuffer, _languageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
+                    _textBuffer, _languageServiceBroker.RequestAsync, filePath, cancellationToken).ConfigureAwait(false);
                 if (response != null)
                 {
                     var newTextSnapshot = response.Value.snapshot;

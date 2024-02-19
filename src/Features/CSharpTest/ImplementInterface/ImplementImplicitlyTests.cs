@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -259,6 +260,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                 class C : IGoo
                 {
                     public readonly void Goo1() { }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70232")]
+        public async Task TestMissingWhenAlreadyContainingImpl()
+        {
+            await TestMissingAsync(
+                """
+                interface I
+                {
+                    event System.EventHandler Click;
+                }
+
+                class C : I
+                {
+                    event System.EventHandler I.Click { add { } remove { } }
+
+                    event System.EventHandler [||]I.Click
+
                 }
                 """);
         }

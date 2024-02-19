@@ -39,6 +39,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryCast
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             var diagnostic = TryRemoveCastExpression(
                 context.SemanticModel,
                 (TCastExpression)context.Node,

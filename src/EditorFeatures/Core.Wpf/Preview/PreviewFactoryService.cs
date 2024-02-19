@@ -63,49 +63,57 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         {
             var diffViewer = _differenceViewerService.CreateDifferenceView(diffBuffer, previewRoleSet);
 
-            const string DiffOverviewMarginName = "deltadifferenceViewerOverview";
-
-            diffViewer.ViewMode = mode;
-
-            IWpfTextView view;
-            IWpfTextViewHost host;
-            if (mode == DifferenceViewMode.RightViewOnly)
+            try
             {
-                view = diffViewer.RightView;
-                host = diffViewer.RightHost;
-            }
-            else if (mode == DifferenceViewMode.LeftViewOnly)
-            {
-                view = diffViewer.LeftView;
-                host = diffViewer.LeftHost;
-            }
-            else
-            {
-                Contract.ThrowIfFalse(mode == DifferenceViewMode.Inline);
-                view = diffViewer.InlineView;
-                host = diffViewer.InlineHost;
-            }
+                const string DiffOverviewMarginName = "deltadifferenceViewerOverview";
 
-            view.ZoomLevel *= zoomLevel;
-            view.Options.SetOptionValue(DefaultTextViewHostOptions.HorizontalScrollBarId, false);
-            view.Options.SetOptionValue(DefaultTextViewHostOptions.VerticalScrollBarId, false);
-            view.Options.SetOptionValue(DefaultTextViewHostOptions.GlyphMarginId, false);
-            view.Options.SetOptionValue(DefaultTextViewHostOptions.SelectionMarginId, false);
-            view.Options.SetOptionValue(DefaultTextViewHostOptions.SuggestionMarginId, false);
+                diffViewer.ViewMode = mode;
 
-            // Enable tab stop for the diff view host and collapse couple of unwanted margins.
-            host.HostControl.IsTabStop = true;
-            host.GetTextViewMargin(DiffOverviewMarginName).VisualElement.Visibility = Visibility.Collapsed;
-            host.GetTextViewMargin(PredefinedMarginNames.Bottom).VisualElement.Visibility = Visibility.Collapsed;
+                IWpfTextView view;
+                IWpfTextViewHost host;
+                if (mode == DifferenceViewMode.RightViewOnly)
+                {
+                    view = diffViewer.RightView;
+                    host = diffViewer.RightHost;
+                }
+                else if (mode == DifferenceViewMode.LeftViewOnly)
+                {
+                    view = diffViewer.LeftView;
+                    host = diffViewer.LeftHost;
+                }
+                else
+                {
+                    Contract.ThrowIfFalse(mode == DifferenceViewMode.Inline);
+                    view = diffViewer.InlineView;
+                    host = diffViewer.InlineHost;
+                }
 
-            // Enable focus for the diff viewer.
-            view.VisualElement.Focusable = true;
+                view.ZoomLevel *= zoomLevel;
+                view.Options.SetOptionValue(DefaultTextViewHostOptions.HorizontalScrollBarId, false);
+                view.Options.SetOptionValue(DefaultTextViewHostOptions.VerticalScrollBarId, false);
+                view.Options.SetOptionValue(DefaultTextViewHostOptions.GlyphMarginId, false);
+                view.Options.SetOptionValue(DefaultTextViewHostOptions.SelectionMarginId, false);
+                view.Options.SetOptionValue(DefaultTextViewHostOptions.SuggestionMarginId, false);
+
+                // Enable tab stop for the diff view host and collapse couple of unwanted margins.
+                host.HostControl.IsTabStop = true;
+                host.GetTextViewMargin(DiffOverviewMarginName).VisualElement.Visibility = Visibility.Collapsed;
+                host.GetTextViewMargin(PredefinedMarginNames.Bottom).VisualElement.Visibility = Visibility.Collapsed;
+
+                // Enable focus for the diff viewer.
+                view.VisualElement.Focusable = true;
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-            await diffViewer.SizeToFitAsync(ThreadingContext, cancellationToken: cancellationToken);
+                await diffViewer.SizeToFitAsync(ThreadingContext, cancellationToken: cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
-            return diffViewer;
+                return diffViewer;
+            }
+            catch
+            {
+                diffViewer.Close();
+                throw;
+            }
         }
     }
 }

@@ -21,10 +21,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         public bool SupportsDocumentTracking => false;
 
-#if false // Not used in unit testing crawling
-        public event EventHandler<DocumentId?> ActiveDocumentChanged { add { } remove { } }
-#endif
-
         public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
 
         public ImmutableArray<DocumentId> GetVisibleDocuments()

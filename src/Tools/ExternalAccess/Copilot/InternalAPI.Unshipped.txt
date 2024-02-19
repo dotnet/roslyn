@@ -1,0 +1,3 @@
+#nullable enable
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CodeMapper.ICSharpCopilotMapCodeService
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CodeMapper.ICSharpCopilotMapCodeService.MapCodeAsync(Microsoft.CodeAnalysis.Document! document, System.Collections.Immutable.ImmutableArray<string!> contents, System.Collections.Immutable.ImmutableArray<(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan textSpan)> prioritizedFocusLocations, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextChange>?>!

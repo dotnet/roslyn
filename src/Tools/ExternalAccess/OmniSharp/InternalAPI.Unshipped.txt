@@ -273,6 +273,7 @@ Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockStructur
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockStructureOptions.ToBlockStructureOptions() -> Microsoft.CodeAnalysis.Structure.BlockStructureOptions!
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockStructureService
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockTypes
+Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Workspace.OmniSharpDocumentId
 override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion.OmniSharpCompletionOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting.OmniSharpSyntaxFormattingOptionsWrapper.GetHashCode() -> int
@@ -358,6 +359,7 @@ static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockT
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockTypes.PreprocessorRegion.get -> string!
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockTypes.Statement.get -> string!
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure.OmniSharpBlockTypes.Type.get -> string!
+static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Workspace.OmniSharpDocumentId.CreateFromSerialized(Microsoft.CodeAnalysis.ProjectId! projectId, System.Guid id, bool isSourceGenerated, string? debugName) -> Microsoft.CodeAnalysis.DocumentId!
 virtual Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.NavigateTo.OmniSharpNavigateToSearcher.OmniSharpNavigateToCallback.Invoke(Microsoft.CodeAnalysis.Project! project, in Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.NavigateTo.OmniSharpNavigateToSearchResult result, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 ~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.Equals(object obj) -> bool
 ~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.ToString() -> string

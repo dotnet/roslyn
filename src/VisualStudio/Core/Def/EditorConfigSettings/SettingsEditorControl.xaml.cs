@@ -58,13 +58,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             NamingStyleControl = namingStyleView.SettingControl;
             AnalyzersControl = analyzerView.SettingControl;
 
-            _views = new[]
-            {
+            _views =
+            [
                 whitespaceView,
                 codeStyleView,
                 namingStyleView,
                 analyzerView
-            };
+            ];
 
             _tableControls = _views.SelectAsArray(view => view.TableControl).ToArray();
 

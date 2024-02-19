@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetState(DocumentId documentId, [NotNullWhen(true)] out TState? state)
             => _map.TryGetValue(documentId, out state);
 
-        public TState? GetState(DocumentId documentId)
-            => _map.TryGetValue(documentId, out var state) ? state : null;
+        public TState? GetState(DocumentId? documentId)
+            => documentId != null && _map.TryGetValue(documentId, out var state) ? state : null;
 
         public TState GetRequiredState(DocumentId documentId)
             => _map.TryGetValue(documentId, out var state) ? state : throw ExceptionUtilities.Unreachable();

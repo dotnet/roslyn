@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using Roslyn.Utilities;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.SymbolDisplay
 {
@@ -14,17 +12,20 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
     {
         protected abstract bool ShouldRestrictMinimallyQualifyLookupToNamespacesAndTypes();
 
+        [MemberNotNullWhen(true, nameof(SemanticModelOpt))]
         protected bool IsMinimizing
         {
-            get { return this.semanticModelOpt != null; }
+            get { return this.SemanticModelOpt != null; }
         }
 
         protected bool NameBoundSuccessfullyToSameSymbol(INamedTypeSymbol symbol)
         {
+            Debug.Assert(IsMinimizing);
+
             ImmutableArray<ISymbol> normalSymbols = ShouldRestrictMinimallyQualifyLookupToNamespacesAndTypes()
-                ? semanticModelOpt.LookupNamespacesAndTypes(positionOpt, name: symbol.Name)
-                : semanticModelOpt.LookupSymbols(positionOpt, name: symbol.Name);
-            ISymbol normalSymbol = SingleSymbolWithArity(normalSymbols, symbol.Arity);
+                ? SemanticModelOpt.LookupNamespacesAndTypes(PositionOpt, name: symbol.Name)
+                : SemanticModelOpt.LookupSymbols(PositionOpt, name: symbol.Name);
+            ISymbol? normalSymbol = SingleSymbolWithArity(normalSymbols, symbol.Arity);
 
             if (normalSymbol == null)
             {
@@ -40,8 +41,8 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
 
             // Binding normally failed.  We may be in a "Color Color" situation where 'Color'
             // will bind to the field, but we could still allow simplification here.
-            ImmutableArray<ISymbol> typeOnlySymbols = semanticModelOpt.LookupNamespacesAndTypes(positionOpt, name: symbol.Name);
-            ISymbol typeOnlySymbol = SingleSymbolWithArity(typeOnlySymbols, symbol.Arity);
+            ImmutableArray<ISymbol> typeOnlySymbols = SemanticModelOpt.LookupNamespacesAndTypes(PositionOpt, name: symbol.Name);
+            ISymbol? typeOnlySymbol = SingleSymbolWithArity(typeOnlySymbols, symbol.Arity);
 
             if (typeOnlySymbol == null)
             {
@@ -58,9 +59,9 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                 typeOnlySymbol.Equals(symbol.OriginalDefinition);
         }
 
-        private static ISymbol SingleSymbolWithArity(ImmutableArray<ISymbol> candidates, int desiredArity)
+        private static ISymbol? SingleSymbolWithArity(ImmutableArray<ISymbol> candidates, int desiredArity)
         {
-            ISymbol singleSymbol = null;
+            ISymbol? singleSymbol = null;
             foreach (ISymbol candidate in candidates)
             {
                 int arity;
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             return singleSymbol;
         }
 
-        protected static ITypeSymbol GetSymbolType(ISymbol symbol)
+        protected static ITypeSymbol? GetSymbolType(ISymbol symbol)
         {
             var localSymbol = symbol as ILocalSymbol;
             if (localSymbol != null)

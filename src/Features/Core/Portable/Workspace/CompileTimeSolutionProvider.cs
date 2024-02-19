@@ -41,9 +41,13 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         private const string RazorEncConfigFileName = "RazorSourceGenerator.razorencconfig";
-        private const string RazorSourceGeneratorAssemblyName = "Microsoft.NET.Sdk.Razor.SourceGenerators";
         private const string RazorSourceGeneratorTypeName = "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
-        private static readonly string s_razorSourceGeneratorFileNamePrefix = Path.Combine(RazorSourceGeneratorAssemblyName, RazorSourceGeneratorTypeName);
+        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames = ImmutableArray.Create(
+            "Microsoft.NET.Sdk.Razor.SourceGenerators",
+            "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators",
+            "Microsoft.CodeAnalysis.Razor.Compiler");
+        private static readonly ImmutableArray<string> s_razorSourceGeneratorFileNamePrefixes = s_razorSourceGeneratorAssemblyNames
+            .SelectAsArray(static assemblyName => Path.Combine(assemblyName, RazorSourceGeneratorTypeName));
 
         private readonly object _gate = new();
 
@@ -182,27 +186,36 @@ namespace Microsoft.CodeAnalysis.Host
 
             var designTimeProjectDirectoryName = PathUtilities.GetDirectoryName(designTimeDocument.Project.FilePath)!;
 
-            var generatedDocumentPath = BuildGeneratedDocumentPath(designTimeProjectDirectoryName, designTimeDocument.FilePath!, generatedDocumentPathPrefix);
+            var generatedDocumentPaths = BuildGeneratedDocumentPaths(designTimeProjectDirectoryName, designTimeDocument.FilePath!, generatedDocumentPathPrefix);
 
             var sourceGeneratedDocuments = await compileTimeSolution.GetRequiredProject(designTimeDocument.Project.Id).GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-            return sourceGeneratedDocuments.SingleOrDefault(d => d.FilePath == generatedDocumentPath);
+            return sourceGeneratedDocuments.SingleOrDefault(d => d.FilePath != null && generatedDocumentPaths.Contains(d.FilePath));
         }
 
         /// <summary>
         /// Note that in .NET 6 Preview 7 the source generator changed to passing in the relative doc path without a leading \ to GetIdentifierFromPath
         /// which caused the source generated file name to no longer be prefixed by an _.  Additionally, the file extension was changed to .g.cs
         /// </summary>
-        private static string BuildGeneratedDocumentPath(string designTimeProjectDirectoryName, string designTimeDocumentFilePath, string? generatedDocumentPathPrefix)
+        private static OneOrMany<string> BuildGeneratedDocumentPaths(string designTimeProjectDirectoryName, string designTimeDocumentFilePath, string? generatedDocumentPathPrefix)
         {
             var relativeDocumentPath = GetRelativeDocumentPath(designTimeProjectDirectoryName, designTimeDocumentFilePath);
-            return GetGeneratedDocumentPathWithoutExtension(relativeDocumentPath, generatedDocumentPathPrefix) + ".g.cs";
+
+            if (generatedDocumentPathPrefix is not null)
+            {
+                return OneOrMany.Create(GetGeneratedDocumentPath(generatedDocumentPathPrefix, relativeDocumentPath));
+            }
+
+            return OneOrMany.Create(s_razorSourceGeneratorFileNamePrefixes.SelectAsArray(
+                static (prefix, relativeDocumentPath) => GetGeneratedDocumentPath(prefix, relativeDocumentPath), relativeDocumentPath));
+
+            static string GetGeneratedDocumentPath(string prefix, string relativeDocumentPath)
+            {
+                return Path.Combine(prefix, GetIdentifierFromPath(relativeDocumentPath)) + ".g.cs";
+            }
         }
 
         private static string GetRelativeDocumentPath(string projectDirectory, string designTimeDocumentFilePath)
             => PathUtilities.GetRelativePath(projectDirectory, designTimeDocumentFilePath)[..^".g.cs".Length];
-
-        private static string GetGeneratedDocumentPathWithoutExtension(string relativeDocumentPath, string? generatedDocumentPathPrefix)
-            => Path.Combine(generatedDocumentPathPrefix ?? s_razorSourceGeneratorFileNamePrefix, GetIdentifierFromPath(relativeDocumentPath));
 
         private static bool HasMatchingFilePath(string designTimeDocumentFilePath, string designTimeProjectDirectory, string compileTimeFilePath)
         {
@@ -226,8 +239,6 @@ namespace Microsoft.CodeAnalysis.Host
             using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var result);
             using var _2 = PooledDictionary<ProjectId, ArrayBuilder<string>>.GetInstance(out var compileTimeFilePathsByProject);
 
-            generatedDocumentPathPrefix ??= s_razorSourceGeneratorFileNamePrefix;
-
             foreach (var compileTimeDocumentId in compileTimeDocumentIds)
             {
                 if (designTimeSolution.ContainsDocument(compileTimeDocumentId))
@@ -238,7 +249,9 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     var compileTimeDocument = await compileTimeSolution.GetTextDocumentAsync(compileTimeDocumentId, cancellationToken).ConfigureAwait(false);
                     var filePath = compileTimeDocument?.State.FilePath;
-                    if (filePath?.StartsWith(generatedDocumentPathPrefix) == true)
+                    if (filePath != null && (generatedDocumentPathPrefix != null
+                        ? filePath.StartsWith(generatedDocumentPathPrefix)
+                        : s_razorSourceGeneratorFileNamePrefixes.Any(static (prefix, filePath) => filePath.StartsWith(prefix), filePath)))
                     {
                         compileTimeFilePathsByProject.MultiAdd(compileTimeDocumentId.ProjectId, filePath);
                     }
