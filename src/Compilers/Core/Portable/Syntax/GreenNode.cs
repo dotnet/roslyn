@@ -39,8 +39,6 @@ namespace Microsoft.CodeAnalysis
         private NodeFlagsAndSlotCount _nodeFlagsAndSlotCount;
         private int _fullWidth;
 
-        internal NodeFlags Flags => _nodeFlagsAndSlotCount.NodeFlags;
-
         private static readonly ConditionalWeakTable<GreenNode, DiagnosticInfo[]> s_diagnosticsTable =
             new ConditionalWeakTable<GreenNode, DiagnosticInfo[]>();
 
@@ -283,6 +281,11 @@ namespace Microsoft.CodeAnalysis
             ContainsStructuredTrivia = 1 << 9,
 
             InheritMask = IsNotMissing | ContainsAnnotations | ContainsAttributes | ContainsDiagnostics | ContainsDirectives | ContainsSkippedText | ContainsStructuredTrivia,
+        }
+
+        internal NodeFlags Flags
+        {
+            get { return this._nodeFlagsAndSlotCount.NodeFlags; }
         }
 
         internal void SetFlags(NodeFlags flags)
