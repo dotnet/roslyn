@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static readonly ConcurrentDictionary<string, string> s_categoryToSeverityKeyMap = new();
 
-        internal static string GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(string category)
+        private static string GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(string category)
             => s_categoryToSeverityKeyMap.GetOrAdd(category, category => $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{category}.{SeveritySuffix}");
 
         /// <summary>
