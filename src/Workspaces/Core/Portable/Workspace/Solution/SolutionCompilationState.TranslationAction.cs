@@ -10,16 +10,19 @@ namespace Microsoft.CodeAnalysis;
 internal partial class SolutionCompilationState
 {
     /// <summary>
-    /// Represents a change that needs to be made to a <see cref="Compilation"/>, <see cref="GeneratorDriver"/>, or both in response to
-    /// some user edit.
+    /// Represents a change that needs to be made to a <see cref="Compilation"/>, <see cref="GeneratorDriver"/>, or both
+    /// in response to some user edit.
     /// </summary>
     private abstract partial class TranslationAction
     {
         /// <summary>
-        /// The original state of the project that this translation action corresponds to
+        /// The original state of the project prior to the user edit.
         /// </summary>
         public readonly ProjectState OldProjectState;
 
+        /// <summary>
+        /// The state of the project after the user edit was made.
+        /// </summary>
         public readonly ProjectState NewProjectState;
 
         protected TranslationAction(ProjectState oldProjectState, ProjectState newProjectState)
