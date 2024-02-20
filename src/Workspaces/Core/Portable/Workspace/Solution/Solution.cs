@@ -35,14 +35,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private AsyncLazy<Solution> CachedFrozenSolution { get; init; }
 
-        // Lock for the partial compilation state listed below.
-        private NonReentrantLock? _stateLockBackingField;
-        private NonReentrantLock StateLock => LazyInitializer.EnsureInitialized(ref _stateLockBackingField, NonReentrantLock.Factory);
-
         /// <summary>
-        /// Mapping of DocumentId to the frozen solution we produced for it the last time we were queried.
+        /// Mapping of DocumentId to the frozen solution we produced for it the last time we were queried.  This
+        /// instance should be used as its own lock when reading or writing to it.
         /// </summary>
-        private readonly Dictionary<DocumentId, Solution> _cachedFrozenDocumentState = [];
+        private readonly Dictionary<DocumentId, AsyncLazy<Solution>> _documentIdToFrozenSolution = [];
 
         private Solution(SolutionCompilationState compilationState)
         {
@@ -1489,16 +1486,30 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
-            using (this.StateLock.DisposableWait(cancellationToken))
+            AsyncLazy<Solution>? lazySolution;
+            lock (_documentIdToFrozenSolution)
             {
-                if (!this._cachedFrozenDocumentState.TryGetValue(documentId, out var frozenSolution))
+                if (!_documentIdToFrozenSolution.TryGetValue(documentId, out lazySolution))
                 {
-                    var newCompilationState = this.CompilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
-                    frozenSolution = new Solution(newCompilationState);
-                    _cachedFrozenDocumentState.Add(documentId, frozenSolution);
+                    // in a local function to prevent lamdba allocations when not needed.
+                    lazySolution = CreateLazyFrozenSolution(this.CompilationState, documentId);
+                    _documentIdToFrozenSolution.Add(documentId, lazySolution);
                 }
+            }
 
-                return frozenSolution;
+            return lazySolution.GetValue(cancellationToken);
+
+            static AsyncLazy<Solution> CreateLazyFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId)
+            {
+                return new AsyncLazy<Solution>(
+                    cancellationToken => Task.FromResult(ComputeFrozenSolution(compilationState, documentId, cancellationToken)),
+                    cancellationToken => ComputeFrozenSolution(compilationState, documentId, cancellationToken));
+            }
+
+            static Solution ComputeFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId, CancellationToken cancellationToken)
+            {
+                var newCompilationState = compilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
+                return new Solution(newCompilationState);
             }
         }
 
