@@ -649,11 +649,15 @@ namespace Microsoft.CodeAnalysis
                 {
                     // If we don't have an existing state, then transition to a project state without any data.
                     null => this.ProjectState.RemoveAllDocuments(),
+
                     FinalCompilationTrackerState => this.ProjectState,
+
                     // If we have an in progress state with no steps, then we're just at the current project state.
                     InProgressState { PendingTranslationSteps: [] } => this.ProjectState,
+
                     // Otherwise, reset us to whatever state the InProgressState had currently transitioned to.
                     InProgressState inProgressState => inProgressState.PendingTranslationSteps.First().oldState,
+
                     _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
                 };
 
