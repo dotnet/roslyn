@@ -76,11 +76,11 @@ namespace Microsoft.CodeAnalysis
                 /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
                 /// the state of the project prior to the mutation.
                 /// </summary>
-                public ImmutableList<CompilationAndGeneratorDriverTranslationAction> PendingTranslationSteps { get; }
+                public ImmutableList<TranslationAction> PendingTranslationActions { get; }
 
                 /// <summary>
                 /// The result of taking the original completed compilation that had generated documents and updating
-                /// them by apply the <see cref="CompilationAndGeneratorDriverTranslationAction" />; this is not a
+                /// them by apply the <see cref="TranslationAction" />; this is not a
                 /// correct snapshot in that the generators have not been rerun, but may be reusable if the generators
                 /// are later found to give the same output.
                 /// </summary>
@@ -91,15 +91,15 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? staleCompilationWithGeneratedDocuments,
-                    ImmutableList<CompilationAndGeneratorDriverTranslationAction> pendingTranslationSteps)
+                    ImmutableList<TranslationAction> pendingTranslationActions)
                     : base(isFrozen,
                            compilationWithoutGeneratedDocuments,
                            generatorInfo)
                 {
                     // Note: Intermediate projects can be empty.
-                    Contract.ThrowIfTrue(pendingTranslationSteps is null);
+                    Contract.ThrowIfTrue(pendingTranslationActions is null);
 
-                    PendingTranslationSteps = pendingTranslationSteps;
+                    PendingTranslationActions = pendingTranslationActions;
                     StaleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments;
                 }
 
@@ -108,14 +108,14 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? staleCompilationWithGeneratedDocuments,
-                    ImmutableList<CompilationAndGeneratorDriverTranslationAction> pendingTranslationSteps)
+                    ImmutableList<TranslationAction> pendingTranslationActions)
                 {
-                    Contract.ThrowIfTrue(pendingTranslationSteps is null);
+                    Contract.ThrowIfTrue(pendingTranslationActions is null);
 
                     // If we don't have any intermediate projects to process, just initialize our
                     // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
                     // if our referenced projects are changing, so we'll have to rerun to consume changes.
-                    return new InProgressState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, staleCompilationWithGeneratedDocuments, pendingTranslationSteps);
+                    return new InProgressState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, staleCompilationWithGeneratedDocuments, pendingTranslationActions);
                 }
             }
 

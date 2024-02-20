@@ -132,7 +132,7 @@ internal sealed partial class SolutionCompilationState
     /// <inheritdoc cref="SolutionState.ForkProject"/>
     private SolutionCompilationState ForkProject(
         StateChange stateChange,
-        Func<StateChange, CompilationAndGeneratorDriverTranslationAction?>? translate,
+        Func<StateChange, TranslationAction?>? translate,
         bool forkTracker)
     {
         return ForkProject(
@@ -145,7 +145,7 @@ internal sealed partial class SolutionCompilationState
     /// <inheritdoc cref="SolutionState.ForkProject"/>
     private SolutionCompilationState ForkProject<TArg>(
         StateChange stateChange,
-        Func<StateChange, TArg, CompilationAndGeneratorDriverTranslationAction?> translate,
+        Func<StateChange, TArg, TranslationAction?> translate,
         bool forkTracker,
         TArg arg)
     {
@@ -157,12 +157,12 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <summary>
-    /// Same as <see cref="ForkProject(StateChange, Func{StateChange, CompilationAndGeneratorDriverTranslationAction?}?,
+    /// Same as <see cref="ForkProject(StateChange, Func{StateChange, TranslationAction?}?,
     /// bool)"/> except that it will still fork even if newSolutionState is unchanged from <see cref="SolutionState"/>.
     /// </summary>
     private SolutionCompilationState ForceForkProject(
         StateChange stateChange,
-        CompilationAndGeneratorDriverTranslationAction? translate,
+        TranslationAction? translate,
         bool forkTracker)
     {
         var newSolutionState = stateChange.NewSolutionState;
@@ -278,7 +278,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             this.SolutionState.WithProjectAssemblyName(projectId, assemblyName),
-            static (stateChange, assemblyName) => new CompilationAndGeneratorDriverTranslationAction.ProjectAssemblyNameAction(stateChange.OldProjectState, assemblyName),
+            static (stateChange, assemblyName) => new TranslationAction.ProjectAssemblyNameAction(stateChange.OldProjectState, assemblyName),
             forkTracker: true,
             arg: assemblyName);
     }
@@ -328,7 +328,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             this.SolutionState.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm),
-            static stateChange => new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(
+            static stateChange => new TranslationAction.ReplaceAllSyntaxTreesAction(
                 stateChange.OldProjectState, stateChange.NewProjectState, isParseOptionChange: false),
             forkTracker: true);
     }
@@ -359,7 +359,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             this.SolutionState.WithProjectCompilationOptions(projectId, options),
-            static stateChange => new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(
+            static stateChange => new TranslationAction.ProjectCompilationOptionsAction(
                 stateChange.OldProjectState, stateChange.NewProjectState, isAnalyzerConfigChange: false),
             forkTracker: true);
     }
@@ -383,7 +383,7 @@ internal sealed partial class SolutionCompilationState
         {
             return ForkProject(
                 stateChange,
-                static stateChange => new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(
+                static stateChange => new TranslationAction.ReplaceAllSyntaxTreesAction(
                     stateChange.OldProjectState, stateChange.NewProjectState, isParseOptionChange: true),
                 forkTracker: true);
         }
@@ -415,7 +415,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             this.SolutionState.WithProjectDocumentsOrder(projectId, documentIds),
-            static stateChange => new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(
+            static stateChange => new TranslationAction.ReplaceAllSyntaxTreesAction(
                 stateChange.OldProjectState, stateChange.NewProjectState, isParseOptionChange: false),
             forkTracker: true);
     }
@@ -483,7 +483,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             stateChange,
-            static (stateChange, analyzerReferences) => new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(
+            static (stateChange, analyzerReferences) => new TranslationAction.AddOrRemoveAnalyzerReferencesAction(
                 stateChange.OldProjectState, referencesToAdd: analyzerReferences),
             forkTracker: true,
             arg: analyzerReferences);
@@ -518,7 +518,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             this.SolutionState.RemoveAnalyzerReference(projectId, analyzerReference),
-            static (stateChange, analyzerReference) => new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(
+            static (stateChange, analyzerReference) => new TranslationAction.AddOrRemoveAnalyzerReferencesAction(
                 stateChange.OldProjectState, referencesToRemove: [analyzerReference]),
             forkTracker: true,
             arg: analyzerReference);
@@ -549,7 +549,7 @@ internal sealed partial class SolutionCompilationState
                 var addedReferences = stateChange.NewProjectState.AnalyzerReferences.Except<AnalyzerReference>(stateChange.OldProjectState.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
                 var removedReferences = stateChange.OldProjectState.AnalyzerReferences.Except<AnalyzerReference>(stateChange.NewProjectState.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
 
-                return new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(
+                return new TranslationAction.AddOrRemoveAnalyzerReferencesAction(
                     stateChange.OldProjectState, referencesToAdd: addedReferences, referencesToRemove: removedReferences);
             },
             forkTracker: true);
@@ -706,7 +706,7 @@ internal sealed partial class SolutionCompilationState
                 var oldDocument = stateChange.OldProjectState.DocumentStates.GetRequiredState(documentId);
                 var newDocument = stateChange.NewProjectState.DocumentStates.GetRequiredState(documentId);
 
-                return new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(stateChange.OldProjectState, oldDocument, newDocument);
+                return new TranslationAction.TouchDocumentAction(stateChange.OldProjectState, oldDocument, newDocument);
             },
             forkTracker: true,
             arg: documentId);
@@ -724,7 +724,7 @@ internal sealed partial class SolutionCompilationState
                 var oldDocument = stateChange.OldProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
                 var newDocument = stateChange.NewProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
 
-                return new CompilationAndGeneratorDriverTranslationAction.TouchAdditionalDocumentAction(stateChange.OldProjectState, oldDocument, newDocument);
+                return new TranslationAction.TouchAdditionalDocumentAction(stateChange.OldProjectState, oldDocument, newDocument);
             },
             forkTracker: true,
             arg: documentId);
@@ -735,7 +735,7 @@ internal sealed partial class SolutionCompilationState
         return ForkProject(
             stateChange,
             static stateChange => stateChange.NewProjectState.CompilationOptions != null
-                ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(
+                ? new TranslationAction.ProjectCompilationOptionsAction(
                     stateChange.OldProjectState, stateChange.NewProjectState, isAnalyzerConfigChange: true)
                 : null,
             forkTracker: true);
@@ -1218,14 +1218,14 @@ internal sealed partial class SolutionCompilationState
     {
         return AddDocumentsToMultipleProjects(documentInfos,
             static (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
-            static (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(oldProject, documents)));
+            static (oldProject, documents) => (oldProject.AddDocuments(documents), new TranslationAction.AddDocumentsAction(oldProject, documents)));
     }
 
     public SolutionCompilationState AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
     {
         return AddDocumentsToMultipleProjects(documentInfos,
             static (documentInfo, project) => new AdditionalDocumentState(project.LanguageServices.SolutionServices, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-            static (oldProject, documents) => (oldProject.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(oldProject, documents)));
+            static (oldProject, documents) => (oldProject.AddAdditionalDocuments(documents), new TranslationAction.AddAdditionalDocumentsAction(oldProject, documents)));
     }
 
     public SolutionCompilationState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
@@ -1235,7 +1235,7 @@ internal sealed partial class SolutionCompilationState
             static (oldProject, documents) =>
             {
                 var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
-                return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(oldProject, newProject, isAnalyzerConfigChange: true));
+                return (newProject, new TranslationAction.ProjectCompilationOptionsAction(oldProject, newProject, isAnalyzerConfigChange: true));
             });
     }
 
@@ -1243,14 +1243,14 @@ internal sealed partial class SolutionCompilationState
     {
         return RemoveDocumentsFromMultipleProjects(documentIds,
             static (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
-            static (oldProject, documentIds, documentStates) => (oldProject.RemoveDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(oldProject, documentStates)));
+            static (oldProject, documentIds, documentStates) => (oldProject.RemoveDocuments(documentIds), new TranslationAction.RemoveDocumentsAction(oldProject, documentStates)));
     }
 
     public SolutionCompilationState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
     {
         return RemoveDocumentsFromMultipleProjects(documentIds,
             static (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredState(documentId),
-            static (oldProject, documentIds, documentStates) => (oldProject.RemoveAdditionalDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(oldProject, documentStates)));
+            static (oldProject, documentIds, documentStates) => (oldProject.RemoveAdditionalDocuments(documentIds), new TranslationAction.RemoveAdditionalDocumentsAction(oldProject, documentStates)));
     }
 
     public SolutionCompilationState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
@@ -1260,7 +1260,7 @@ internal sealed partial class SolutionCompilationState
             static (oldProject, documentIds, _) =>
             {
                 var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
-                return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(oldProject, newProject, isAnalyzerConfigChange: true));
+                return (newProject, new TranslationAction.ProjectCompilationOptionsAction(oldProject, newProject, isAnalyzerConfigChange: true));
             });
     }
 
@@ -1269,12 +1269,12 @@ internal sealed partial class SolutionCompilationState
     /// </summary>
     /// <param name="documentInfos">The set of documents to add.</param>
     /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added,
-    /// and the <see cref="SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction"/> needed as
+    /// and the <see cref="SolutionCompilationState.TranslationAction"/> needed as
     /// well.</param>
     private SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
         ImmutableArray<DocumentInfo> documentInfos,
         Func<DocumentInfo, ProjectState, TDocumentState> createDocumentState,
-        Func<ProjectState, ImmutableArray<TDocumentState>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
+        Func<ProjectState, ImmutableArray<TDocumentState>, (ProjectState newState, TranslationAction translationAction)> addDocumentsToProjectState)
         where TDocumentState : TextDocumentState
     {
         if (documentInfos.IsDefault)
@@ -1298,7 +1298,7 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
         IEnumerable<(ProjectState oldProjectState, ImmutableArray<TDocumentState> newDocumentStates)> projectIdAndNewDocuments,
-        Func<ProjectState, ImmutableArray<TDocumentState>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
+        Func<ProjectState, ImmutableArray<TDocumentState>, (ProjectState newState, TranslationAction translationAction)> addDocumentsToProjectState)
         where TDocumentState : TextDocumentState
     {
         var newCompilationState = this;
@@ -1326,7 +1326,7 @@ internal sealed partial class SolutionCompilationState
     private SolutionCompilationState RemoveDocumentsFromMultipleProjects<T>(
         ImmutableArray<DocumentId> documentIds,
         Func<ProjectState, DocumentId, T> getExistingTextDocumentState,
-        Func<ProjectState, ImmutableArray<DocumentId>, ImmutableArray<T>, (ProjectState newState, SolutionCompilationState.CompilationAndGeneratorDriverTranslationAction translationAction)> removeDocumentsFromProjectState)
+        Func<ProjectState, ImmutableArray<DocumentId>, ImmutableArray<T>, (ProjectState newState, SolutionCompilationState.TranslationAction translationAction)> removeDocumentsFromProjectState)
         where T : TextDocumentState
     {
         if (documentIds.IsEmpty)
@@ -1396,7 +1396,7 @@ internal sealed partial class SolutionCompilationState
         // changing the tracker for a particular project.
         var newCompilationState = this.ForceForkProject(
             new(this.SolutionState, projectToUpdateState, projectToUpdateState),
-            translate: new CompilationAndGeneratorDriverTranslationAction.ReplaceGeneratorDriverAction(
+            translate: new TranslationAction.ReplaceGeneratorDriverAction(
                 tracker.GeneratorDriver,
                 oldProjectState: projectToUpdateState,
                 newProjectState: projectToUpdateState),
