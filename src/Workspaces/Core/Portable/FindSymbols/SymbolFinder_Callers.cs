@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return collector.GetReferencedSymbols();
             }
 
-            return ImmutableArray<ReferencedSymbol>.Empty;
+            return [];
         }
     }
 }

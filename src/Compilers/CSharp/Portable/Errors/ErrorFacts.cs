@@ -553,6 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_Experimental:
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
+                case ErrorCode.WRN_ConvertingLock:
                     return 1;
                 default:
                     return 0;
@@ -2410,6 +2411,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CollectionExpressionImmutableArray:
                 case ErrorCode.ERR_InvalidExperimentalDiagID:
                 case ErrorCode.ERR_SpreadMissingMember:
+                case ErrorCode.ERR_CollectionExpressionTargetNoElementType:
+                case ErrorCode.ERR_CollectionExpressionMissingConstructor:
+                case ErrorCode.ERR_CollectionExpressionMissingAdd:
+                case ErrorCode.WRN_ConvertingLock:
+                case ErrorCode.ERR_BadSpecialByRefLock:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

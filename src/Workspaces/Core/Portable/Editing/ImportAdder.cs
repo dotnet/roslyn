@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Adds namespace imports / using directives for namespace references found in the document within the span specified.
         /// </summary>
         public static Task<Document> AddImportsAsync(Document document, TextSpan span, OptionSet? options = null, CancellationToken cancellationToken = default)
-            => AddImportsFromSyntaxesAsync(document, new[] { span }, options, cancellationToken);
+            => AddImportsFromSyntaxesAsync(document, [span], options, cancellationToken);
 
         /// <summary>
         /// Adds namespace imports / using directives for namespace references found in the document within the sub-trees annotated with the <see cref="SyntaxAnnotation"/>.

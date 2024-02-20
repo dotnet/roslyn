@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
@@ -25,10 +27,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
             private readonly IFindUsagesContext _underlyingContext = underlyingContext;
             private readonly object _gate = new();
-            private readonly List<DefinitionItem> _definitions = new();
-
-            public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-                => _underlyingContext.GetOptionsAsync(language, cancellationToken);
+            private readonly List<DefinitionItem> _definitions = [];
 
             public IStreamingProgressTracker ProgressTracker
                 => _underlyingContext.ProgressTracker;

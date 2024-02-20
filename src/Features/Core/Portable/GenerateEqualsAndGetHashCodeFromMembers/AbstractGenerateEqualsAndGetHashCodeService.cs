@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 expressions.Aggregate(generator.LogicalAndExpression));
 
             return compilation.CreateEqualsMethod(
-                ImmutableArray.Create(statement));
+                [statement]);
         }
 
         public async Task<IMethodSymbol> GenerateGetHashCodeMethodAsync(
@@ -185,11 +185,11 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             var valueTupleType = compilation.GetTypeByMetadataName(typeof(ValueTuple).FullName!);
             if (components.Length >= 2 && valueTupleType != null)
             {
-                return ImmutableArray.Create(factory.ReturnStatement(
+                return [factory.ReturnStatement(
                     factory.InvocationExpression(
                         factory.MemberAccessExpression(
                             factory.TupleExpression(components),
-                            GetHashCodeName))));
+                            GetHashCodeName)))];
             }
 
             // Otherwise, use 64bit math to compute the hash.  Importantly, if we always clamp

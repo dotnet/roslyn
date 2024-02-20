@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
 public sealed class UseAutoPropertyTests(ITestOutputHelper logger)
-    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest(logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpUseAutoPropertyAnalyzer(), GetCSharpUseAutoPropertyCodeFixProvider());

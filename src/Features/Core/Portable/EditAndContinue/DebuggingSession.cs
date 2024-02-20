@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// MVIDs read from the assembly built for given project id.
         /// Only contains ids for projects that support EnC.
         /// </summary>
-        private readonly Dictionary<ProjectId, (Guid Mvid, Diagnostic Error)> _projectModuleIds = new();
-        private readonly Dictionary<Guid, ProjectId> _moduleIds = new();
+        private readonly Dictionary<ProjectId, (Guid Mvid, Diagnostic Error)> _projectModuleIds = [];
+        private readonly Dictionary<Guid, ProjectId> _moduleIds = [];
         private readonly object _projectModuleIdsGuard = new();
 
         /// <summary>
@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Therefore once an initial baseline is created it needs to be kept alive till the end of the debugging session,
         /// even when it's replaced in <see cref="_projectBaselines"/> by a newer baseline.
         /// </remarks>
-        private readonly Dictionary<ProjectId, ProjectBaseline> _projectBaselines = new();
-        private readonly List<IDisposable> _initialBaselineModuleReaders = new();
+        private readonly Dictionary<ProjectId, ProjectBaseline> _projectBaselines = [];
+        private readonly List<IDisposable> _initialBaselineModuleReaders = [];
         private readonly object _projectEmitBaselinesGuard = new();
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal EditSession EditSession { get; private set; }
 
-        private readonly HashSet<Guid> _modulesPreparedForUpdate = new();
+        private readonly HashSet<Guid> _modulesPreparedForUpdate = [];
         private readonly object _modulesPreparedForUpdateGuard = new();
 
         internal readonly DebuggingSessionId Id;
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _compilationOutputsProvider = compilationOutputsProvider;
             SourceTextProvider = sourceTextProvider;
             _reportTelemetry = ReportTelemetry;
-            _telemetry = new DebuggingSessionTelemetry(solution.State.SolutionAttributes.TelemetryId);
+            _telemetry = new DebuggingSessionTelemetry(solution.SolutionState.SolutionAttributes.TelemetryId);
 
             Id = id;
             DebuggerService = debuggerService;
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (_projectBaselines.TryGetValue(baselineProject.Id, out baseline))
                 {
-                    diagnostics = ImmutableArray<Diagnostic>.Empty;
+                    diagnostics = [];
                     return true;
                 }
             }
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 EditAndContinueService.Log.Write("Failed to create baseline for '{0}': {1}", projectId, e.Message);
 
                 var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
-                diagnostics = ImmutableArray.Create(Diagnostic.Create(descriptor, Location.None, new[] { fileBeingRead, e.Message }));
+                diagnostics = [Diagnostic.Create(descriptor, Location.None, new[] { fileBeingRead, e.Message })];
             }
             finally
             {
@@ -447,20 +447,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (_isDisposed)
                 {
-                    return ImmutableArray<Diagnostic>.Empty;
+                    return [];
                 }
 
                 // Not a C# or VB project.
                 var project = document.Project;
                 if (!project.SupportsEditAndContinue())
                 {
-                    return ImmutableArray<Diagnostic>.Empty;
+                    return [];
                 }
 
                 // Document does not compile to the assembly (e.g. cshtml files, .g.cs files generated for completion only)
                 if (!document.DocumentState.SupportsEditAndContinue())
                 {
-                    return ImmutableArray<Diagnostic>.Empty;
+                    return [];
                 }
 
                 // Do not analyze documents (and report diagnostics) of projects that have not been built.
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var (mvid, _) = await GetProjectModuleIdAsync(project, cancellationToken).ConfigureAwait(false);
                 if (mvid == Guid.Empty)
                 {
-                    return ImmutableArray<Diagnostic>.Empty;
+                    return [];
                 }
 
                 var (oldDocument, oldDocumentState) = await LastCommittedSolution.GetDocumentAndStateAsync(document.Id, document, cancellationToken).ConfigureAwait(false);
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     CommittedSolution.DocumentState.DesignTimeOnly)
                 {
                     // Do not report diagnostics for existing out-of-sync documents or design-time-only documents.
-                    return ImmutableArray<Diagnostic>.Empty;
+                    return [];
                 }
 
                 var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldDocument, document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (analysis.RudeEditErrors.IsEmpty)
                 {
-                    return ImmutableArray<Diagnostic>.Empty;
+                    return [];
                 }
 
                 EditSession.Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors, project.State.Attributes.TelemetryId);
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                return ImmutableArray<Diagnostic>.Empty;
+                return [];
             }
         }
 
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             oldProject,
                             EditSession.BaseActiveStatements,
                             newDocument,
-                            newActiveStatementSpans: ImmutableArray<LinePositionSpan>.Empty,
+                            newActiveStatementSpans: [],
                             EditSession.Capabilities,
                             cancellationToken).ConfigureAwait(false);
 
@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 using var _4 = ArrayBuilder<ImmutableArray<ActiveStatementSpan>>.GetInstance(out var spans);
-                spans.AddMany(ImmutableArray<ActiveStatementSpan>.Empty, documentIds.Length);
+                spans.AddMany([], documentIds.Length);
 
                 foreach (var (mappedPath, documentBaseActiveStatements) in baseActiveStatements.DocumentPathMap)
                 {
@@ -748,7 +748,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (_isDisposed || !EditSession.InBreakState || !mappedDocument.State.SupportsEditAndContinue() || !mappedDocument.Project.SupportsEditAndContinue())
                 {
-                    return ImmutableArray<ActiveStatementSpan>.Empty;
+                    return [];
                 }
 
                 Contract.ThrowIfNull(mappedDocument.FilePath);
@@ -760,20 +760,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     // TODO: https://github.com/dotnet/roslyn/issues/1204
                     // Enumerate all documents of the new project.
-                    return ImmutableArray<ActiveStatementSpan>.Empty;
+                    return [];
                 }
 
                 var baseActiveStatements = await EditSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 if (!baseActiveStatements.DocumentPathMap.TryGetValue(mappedDocument.FilePath, out var oldMappedDocumentActiveStatements))
                 {
                     // no active statements in this document
-                    return ImmutableArray<ActiveStatementSpan>.Empty;
+                    return [];
                 }
 
                 var newDocumentActiveStatementSpans = await activeStatementSpanProvider(mappedDocument.Id, mappedDocument.FilePath, cancellationToken).ConfigureAwait(false);
                 if (newDocumentActiveStatementSpans.IsEmpty)
                 {
-                    return ImmutableArray<ActiveStatementSpan>.Empty;
+                    return [];
                 }
 
                 var analyzer = newProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();

@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly string SwitchExpressionField;
 
         public SnippetFunctionGenerateSwitchCases(
-            AbstractSnippetExpansionClient snippetExpansionClient,
+            SnippetExpansionClient snippetExpansionClient,
             ITextBuffer subjectBuffer,
             string caseGenerationLocationField,
             string switchExpressionField,

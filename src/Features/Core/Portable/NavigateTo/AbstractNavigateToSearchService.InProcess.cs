@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     internal abstract partial class AbstractNavigateToSearchService
     {
         private static readonly ImmutableArray<(PatternMatchKind roslynKind, NavigateToMatchKind vsKind)> s_kindPairs =
-            ImmutableArray.Create(
+            [
                 (PatternMatchKind.Exact, NavigateToMatchKind.Exact),
                 (PatternMatchKind.Prefix, NavigateToMatchKind.Prefix),
                 (PatternMatchKind.NonLowercaseSubstring, NavigateToMatchKind.Substring),
@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 (PatternMatchKind.CamelCaseSubstring, NavigateToMatchKind.CamelCaseSubstring),
                 (PatternMatchKind.CamelCaseNonContiguousSubstring, NavigateToMatchKind.CamelCaseNonContiguousSubstring),
                 (PatternMatchKind.Fuzzy, NavigateToMatchKind.Fuzzy),
-                // Map our value to 'Fuzzy' as that's the lower value the platform supports.
-                (PatternMatchKind.LowercaseSubstring, NavigateToMatchKind.Fuzzy));
+                (PatternMatchKind.LowercaseSubstring, NavigateToMatchKind.Fuzzy),
+            ];
 
         private static async Task SearchProjectInCurrentProcessAsync(
             Project project, ImmutableArray<Document> priorityDocuments,
@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             try
             {
-                await Task.Yield();
+                await Task.Yield().ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // We're doing a real search over the fully loaded solution now.  No need to hold onto the cached map
                 // of potentially stale indices.
@@ -81,6 +82,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             HashSet<Document> documents,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
             foreach (var document in documents)
@@ -103,7 +105,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Func<RoslynNavigateToItem, Task> onResultFound,
             CancellationToken cancellationToken)
         {
-            await Task.Yield();
+            cancellationToken.ThrowIfCancellationRequested();
+            await Task.Yield().ConfigureAwait(false);
             var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
 
             await ProcessIndexAsync(
@@ -120,6 +123,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             TopLevelSyntaxTreeIndex index,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var containerMatcher = patternContainer != null
                 ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer, includeMatchedSpans: true)
                 : null;
@@ -217,7 +221,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Document? document, DeclaredSymbolInfo declaredSymbolInfo, CancellationToken cancellationToken)
         {
             if (document == null)
-                return ImmutableArray<ProjectId>.Empty;
+                return [];
 
             using var _ = ArrayBuilder<ProjectId>.GetInstance(out var result);
 

@@ -16,6 +16,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BrokeredServices;
+using Microsoft.CodeAnalysis.BrokeredServices.UnitTests;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         private const TargetFramework DefaultTargetFramework = TargetFramework.NetStandard20;
 
         private Func<Project, CompilationOutputs> _mockCompilationOutputsProvider;
-        private readonly List<string> _telemetryLog = new();
+        private readonly List<string> _telemetryLog = [];
         private int _telemetryId;
 
         private readonly MockManagedEditAndContinueDebuggerService _debuggerService;
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             _debuggerService = new MockManagedEditAndContinueDebuggerService()
             {
-                LoadedModules = new Dictionary<Guid, ManagedHotReloadAvailability>()
+                LoadedModules = []
             };
         }
 
@@ -83,10 +85,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 .RemoveParts(typeof(MockWorkspaceEventListenerProvider))
                 .AddParts(
                     typeof(MockHostWorkspaceProvider),
-                    typeof(MockManagedHotReloadService))
+                    typeof(MockManagedHotReloadService),
+                    typeof(MockServiceBrokerProvider))
                 .AddParts(additionalParts);
 
             var workspace = new TestWorkspace(composition: composition, solutionTelemetryId: s_solutionTelemetryId);
+
+            ((MockServiceBroker)workspace.GetService<IServiceBrokerProvider>().ServiceBroker).CreateService = t => t switch
+            {
+                _ when t == typeof(Microsoft.VisualStudio.Debugger.Contracts.HotReload.IHotReloadLogger) => new MockHotReloadLogger(),
+                _ => throw ExceptionUtilities.UnexpectedValue(t)
+            };
+
             ((MockHostWorkspaceProvider)workspace.GetService<IHostWorkspaceProvider>()).Workspace = workspace;
 
             solution = workspace.CurrentSolution;
@@ -196,7 +206,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             if (initialState != CommittedSolution.DocumentState.None)
             {
-                SetDocumentsState(session, solution, initialState);
+                EditAndContinueTestHelpers.SetDocumentsState(session, solution, initialState);
             }
 
             session.GetTestAccessor().SetTelemetryLogger((id, message) => _telemetryLog.Add($"{id}: {s_timePropertiesRegex.Replace(message.GetMessage(), "")}"), () => ++_telemetryId);
@@ -250,17 +260,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var result = await session.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
             return (result.ModuleUpdates, result.Diagnostics.ToDiagnosticData(solution));
-        }
-
-        internal static void SetDocumentsState(DebuggingSession session, Solution solution, CommittedSolution.DocumentState state)
-        {
-            foreach (var project in solution.Projects)
-            {
-                foreach (var document in project.Documents)
-                {
-                    session.LastCommittedSolution.Test_SetDocumentState(document.Id, state);
-                }
-            }
         }
 
         private static IEnumerable<string> InspectDiagnostics(ImmutableArray<DiagnosticData> actual)
@@ -530,7 +529,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             sourceFileB.WriteAllText(sourceB2, encodingB);
 
             // prepare workspace as if it was loaded from project files:
-            using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(NoCompilationLanguageService) });
+            using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
 
             var projectPId = ProjectId.CreateNewId();
             solution = solution
@@ -685,7 +684,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         [CombinatorialData]
         public async Task ProjectThatDoesNotSupportEnC(bool breakMode)
         {
-            using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(NoCompilationLanguageService) });
+            using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
             var project = solution.AddProject("dummy_proj", "dummy_proj", NoCompilationConstants.LanguageName);
             var document = project.AddDocument("test", CreateText("dummy1"));
             solution = document.Project.Solution;
@@ -1853,7 +1852,7 @@ class C { int Y => 2; }
         [Fact]
         public async Task HasChanges()
         {
-            using var _ = CreateWorkspace(out var solution, out var service);
+            using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
 
             var pathA = Path.Combine(TempRoot.Root, "A.cs");
             var pathB = Path.Combine(TempRoot.Root, "B.cs");
@@ -1903,6 +1902,17 @@ class C { int Y => 2; }
 
             // remove a project:
             Assert.True(await EditSession.HasChangesAsync(solution, solution.RemoveProject(projectD.Id), CancellationToken.None));
+
+            // add a project that doesn't support EnC:
+
+            oldSolution = solution;
+            var projectE = solution.AddProject("E", "E", NoCompilationConstants.LanguageName);
+            solution = projectE.Solution;
+
+            Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
+
+            // remove a project that doesn't support EnC:
+            Assert.False(await EditSession.HasChangesAsync(solution, oldSolution, CancellationToken.None));
 
             EndDebuggingSession(debuggingSession);
         }
@@ -1990,7 +2000,7 @@ class C { int Y => 2; }
                 await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
             await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, CancellationToken.None);
-            AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId, generatedDocumentId } : new[] { generatedDocumentId }, changedOrAddedDocuments.Select(d => d.Id));
+            AssertEx.Equal(documentKind == DocumentKind.Source ? [documentId, generatedDocumentId] : [generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
 
             Assert.Equal(1, generatorExecutionCount);
 
@@ -2014,7 +2024,7 @@ class C { int Y => 2; }
             Assert.Equal(0, generatorExecutionCount);
 
             // source generator infrastructure compares content and reuses state if it matches (SourceGeneratedDocumentState.WithUpdatedGeneratedContent):
-            AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId } : Array.Empty<DocumentId>(),
+            AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId } : [],
                 await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
             await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, CancellationToken.None);
@@ -2038,11 +2048,11 @@ class C { int Y => 2; }
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, pathX, CancellationToken.None));
 
-            AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId, generatedDocumentId } : new[] { generatedDocumentId },
+            AssertEx.Equal(documentKind == DocumentKind.Source ? [documentId, generatedDocumentId] : [generatedDocumentId],
                 await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
             await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, CancellationToken.None);
-            AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId, generatedDocumentId } : new[] { generatedDocumentId }, changedOrAddedDocuments.Select(d => d.Id));
+            AssertEx.Equal(documentKind == DocumentKind.Source ? [documentId, generatedDocumentId] : [generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
 
             Assert.Equal(1, generatorExecutionCount);
 
@@ -3678,9 +3688,7 @@ class C { int Y => 1; }
         [CombinatorialData]
         public async Task ActiveStatements_ForeignDocument(bool withPath, bool designTimeOnly)
         {
-            var composition = FeaturesTestCompositions.Features.AddParts(typeof(NoCompilationLanguageService));
-
-            using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(NoCompilationLanguageService) });
+            using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
 
             var project = solution.AddProject("dummy_proj", "dummy_proj", designTimeOnly ? LanguageNames.CSharp : NoCompilationConstants.LanguageName);
             var filePath = withPath ? Path.Combine(TempRoot.Root, "test.cs") : null;
@@ -3741,8 +3749,8 @@ class C { int Y => 1; }
 
             var debugInfos = GetActiveStatementDebugInfosCSharp(
                 markedSources,
-                methodRowIds: new[] { 1, 2, 1 },
-                modules: new[] { module4, module2, module1 });
+                methodRowIds: [1, 2, 1],
+                modules: [module4, module2, module1]);
 
             // Project1: Test1.cs, Test2.cs
             // Project2: Test1.cs (link from P1)
@@ -3859,12 +3867,12 @@ class C { int Y => 1; }
 
             var debugInfos = GetActiveStatementDebugInfosCSharp(
                 markedSources,
-                methodRowIds: new[] { 1 },
-                ilOffsets: new[] { 1 },
-                flags: new[]
-                {
+                methodRowIds: [1],
+                ilOffsets: [1],
+                flags:
+                [
                     ActiveStatementFlags.LeafFrame | ActiveStatementFlags.MethodUpToDate
-                });
+                ]);
 
             using var _ = CreateWorkspace(out var solution, out var service);
             solution = AddDefaultTestProject(solution, SourceMarkers.Clear(markedSources));
@@ -3959,13 +3967,13 @@ class C
             EnterBreakState(debuggingSession, GetActiveStatementDebugInfosCSharp(
                 new[] { GetGeneratedCodeFromMarkedSource(markedSource1) },
                 filePaths: new[] { generatedDocument1.FilePath },
-                modules: new[] { moduleId },
-                methodRowIds: new[] { 1 },
-                methodVersions: new[] { 1 },
-                flags: new[]
-                {
+                modules: [moduleId],
+                methodRowIds: [1],
+                methodVersions: [1],
+                flags:
+                [
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame
-                }));
+                ]));
 
             // change the source (valid edit)
             solution = solution.WithDocumentText(document1.Id, CreateText(source2));
@@ -4041,13 +4049,13 @@ class C
 
             EnterBreakState(debuggingSession, GetActiveStatementDebugInfosCSharp(
                 new[] { markedSource1 },
-                modules: new[] { moduleId },
-                methodRowIds: new[] { 1 },
-                methodVersions: new[] { 1 },
-                flags: new[]
-                {
+                modules: [moduleId],
+                methodRowIds: [1],
+                methodVersions: [1],
+                flags:
+                [
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame
-                }));
+                ]));
 
             // change the source (rude edit)
             solution = solution.WithDocumentText(document.Id, CreateText(source2));
@@ -4127,14 +4135,14 @@ class C
 
             EnterBreakState(debuggingSession, GetActiveStatementDebugInfosCSharp(
                 new[] { markedSourceV1 },
-                modules: new[] { moduleId, moduleId },
-                methodRowIds: new[] { 2, 3 },
-                methodVersions: new[] { 1, 1 },
-                flags: new[]
-                {
+                modules: [moduleId, moduleId],
+                methodRowIds: [2, 3],
+                methodVersions: [1, 1],
+                flags:
+                [
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame,    // G
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, // F
-                }));
+                ]));
 
             solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear(markedSourceV2)));
 
@@ -4177,14 +4185,14 @@ class C
 
             EnterBreakState(debuggingSession, GetActiveStatementDebugInfosCSharp(
                 new[] { markedSourceV1 },       // matches F v1
-                modules: new[] { moduleId, moduleId },
-                methodRowIds: new[] { 2, 3 },
-                methodVersions: new[] { 1, 1 }, // frame F v1 is still executing (G has not returned)
-                flags: new[]
-                {
+                modules: [moduleId, moduleId],
+                methodRowIds: [2, 3],
+                methodVersions: [1, 1], // frame F v1 is still executing (G has not returned)
+                flags:
+                [
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame,    // G
                     ActiveStatementFlags.Stale | ActiveStatementFlags.NonLeafFrame,        // F - not up-to-date anymore and since F v1 is followed by F v3 (hot-reload) it is now stale
-                }));
+                ]));
 
             var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
@@ -4275,14 +4283,14 @@ class C
 
             EnterBreakState(debuggingSession, GetActiveStatementDebugInfosCSharp(
                 new[] { markedSource1 },
-                modules: new[] { moduleId, moduleId },
-                methodRowIds: new[] { 2, 3 },
-                methodVersions: new[] { 1, 1 },
-                flags: new[]
-                {
+                modules: [moduleId, moduleId],
+                methodRowIds: [2, 3],
+                methodVersions: [1, 1],
+                flags:
+                [
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame,    // G
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, // F
-                }));
+                ]));
 
             // check that the active statement is mapped correctly to snapshot v2:
             var expectedSpanG1 = new LinePositionSpan(new LinePosition(3, 41), new LinePosition(3, 42));
@@ -4385,14 +4393,14 @@ class C
 
             EnterBreakState(debuggingSession, GetActiveStatementDebugInfosCSharp(
                 new[] { markedSource1 },
-                modules: new[] { moduleId, moduleId },
-                methodRowIds: new[] { 2, 3 },
-                methodVersions: new[] { 1, 1 },  // frame F v1 is still executing (G has not returned)
-                flags: new[]
-                {
+                modules: [moduleId, moduleId],
+                methodRowIds: [2, 3],
+                methodVersions: [1, 1],  // frame F v1 is still executing (G has not returned)
+                flags:
+                [
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame,    // G
                     ActiveStatementFlags.NonLeafFrame, // F
-                }));
+                ]));
 
             // check that the active statement is mapped correctly to snapshot v2:
             var expectedSpanG1 = new LinePositionSpan(new LinePosition(3, 41), new LinePosition(3, 42));

@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private sealed class BuildOnlyDiagnosticsService : IBuildOnlyDiagnosticsService
         {
             private readonly object _gate = new();
-            private readonly Dictionary<DocumentId, ImmutableArray<DiagnosticData>> _documentDiagnostics = new();
-            private readonly Dictionary<ProjectId, ImmutableArray<DiagnosticData>> _projectDiagnostics = new();
+            private readonly Dictionary<DocumentId, ImmutableArray<DiagnosticData>> _documentDiagnostics = [];
+            private readonly Dictionary<ProjectId, ImmutableArray<DiagnosticData>> _projectDiagnostics = [];
 
             public BuildOnlyDiagnosticsService(Workspace workspace)
             {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return diagnostics;
                     }
 
-                    return ImmutableArray<DiagnosticData>.Empty;
+                    return [];
                 }
             }
 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return diagnostics;
                     }
 
-                    return ImmutableArray<DiagnosticData>.Empty;
+                    return [];
                 }
             }
         }

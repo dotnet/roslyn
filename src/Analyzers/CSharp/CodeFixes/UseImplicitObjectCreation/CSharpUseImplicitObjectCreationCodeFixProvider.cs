@@ -35,7 +35,7 @@ internal class CSharpUseImplicitObjectCreationCodeFixProvider : SyntaxEditorBase
     }
 
     public override ImmutableArray<string> FixableDiagnosticIds
-        => ImmutableArray.Create(IDEDiagnosticIds.UseImplicitObjectCreationDiagnosticId);
+        => [IDEDiagnosticIds.UseImplicitObjectCreationDiagnosticId];
 
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
         => !diagnostic.IsSuppressed;

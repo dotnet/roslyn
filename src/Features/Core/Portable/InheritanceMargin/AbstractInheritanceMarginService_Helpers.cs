@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             // if that location doesn't intersect with the lines of interest, immediately bail out.
             if (!spanToSearch.IntersectsWith(spanStart))
-                return ImmutableArray<InheritanceMarginItem>.Empty;
+                return [];
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var scopes = semanticModel.GetImportScopes(root.FullSpan.End, cancellationToken);
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // correspond to inner scopes for either the compilation unit or namespace.
             var lastScope = scopes.LastOrDefault();
             if (lastScope == null)
-                return ImmutableArray<InheritanceMarginItem>.Empty;
+                return [];
 
             // Pull in any project level imports, or imports from other files (e.g. global usings).
             var syntaxTree = semanticModel.SyntaxTree;
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 });
 
             if (nonLocalImports.Length == 0)
-                return ImmutableArray<InheritanceMarginItem>.Empty;
+                return [];
 
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var lineNumber = text.Lines.GetLineFromPosition(spanStart).LineNumber;
@@ -226,14 +226,14 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
                     foreach (var import in group)
                     {
-                        var item = DefinitionItem.CreateNonNavigableItem(ImmutableArray<string>.Empty, ImmutableArray<TaggedText>.Empty);
+                        var item = DefinitionItem.CreateNonNavigableItem([], []);
                         targetItems.Add(new InheritanceTargetItem(
                             InheritanceRelationship.InheritedImport, item.Detach(), Glyph.None, languageGlyph,
                             import.NamespaceOrType.ToDisplayString(), projectName));
                     }
 
                     items.Add(new InheritanceMarginItem(
-                        lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(new TaggedText(TextTags.Text, this.GlobalImportsTitle)),
+                        lineNumber, this.GlobalImportsTitle, [new TaggedText(TextTags.Text, this.GlobalImportsTitle)],
                         Glyph.Namespace, targetItems.ToImmutable()));
                 }
                 else
@@ -247,8 +247,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     foreach (var import in group)
                     {
                         var item = DefinitionItem.Create(
-                            ImmutableArray<string>.Empty, ImmutableArray<TaggedText>.Empty,
-                            new DocumentSpan(destinationDocument, import.DeclaringSyntaxReference!.Span));
+                            [], [],
+                            new DocumentSpan(destinationDocument, import.DeclaringSyntaxReference!.Span),
+                            classifiedSpans: null);
                         targetItems.Add(new InheritanceTargetItem(
                             InheritanceRelationship.InheritedImport, item.Detach(), Glyph.None, languageGlyph,
                             import.NamespaceOrType.ToDisplayString(), projectName));
@@ -259,7 +260,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     var taggedText = new TaggedText(TextTags.Text, string.Format(FeaturesResources.Directives_from_0, fileName));
 
                     items.Add(new InheritanceMarginItem(
-                        lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(taggedText), Glyph.Namespace, targetItems.ToImmutable()));
+                        lineNumber, this.GlobalImportsTitle, [taggedText], Glyph.Namespace, targetItems.ToImmutable()));
                 }
             }
 
@@ -597,7 +598,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 return builder.ToImmutableArray();
             }
 
-            return ImmutableArray<ISymbol>.Empty;
+            return [];
         }
 
         /// <summary>
@@ -632,7 +633,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 return builder.ToImmutableArray();
             }
 
-            return ImmutableArray<ISymbol>.Empty;
+            return [];
         }
 
         /// <summary>
@@ -642,7 +643,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         {
             if (memberSymbol is INamedTypeSymbol)
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
             }
             else
             {
@@ -714,9 +715,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 if (location.IsInMetadata)
                 {
                     return DefinitionItem.CreateMetadataDefinition(
-                        tags: ImmutableArray<string>.Empty,
-                        displayParts: ImmutableArray<TaggedText>.Empty,
-                        nameDisplayParts: ImmutableArray<TaggedText>.Empty,
+                        tags: [],
+                        displayParts: [],
+                        nameDisplayParts: [],
                         solution,
                         symbol);
                 }
@@ -725,12 +726,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     var document = solution.GetDocument(location.SourceTree);
                     if (document != null)
                     {
-                        var documentSpan = new DocumentSpan(document, location.SourceSpan);
                         return DefinitionItem.Create(
-                            tags: ImmutableArray<string>.Empty,
-                            displayParts: ImmutableArray<TaggedText>.Empty,
-                            documentSpan,
-                            nameDisplayParts: ImmutableArray<TaggedText>.Empty);
+                            tags: [],
+                            displayParts: [],
+                            new DocumentSpan(document, location.SourceSpan),
+                            classifiedSpans: null,
+                            nameDisplayParts: []);
                     }
                 }
             }

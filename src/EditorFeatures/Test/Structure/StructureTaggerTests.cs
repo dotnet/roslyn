@@ -53,7 +53,7 @@ namespace MyNamespace
 #endregion
 }";
 
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             var globalOptions = workspace.GlobalOptions;
 
             globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions);
@@ -119,7 +119,7 @@ public class Bar
 }
 ";
 
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             var globalOptions = workspace.GlobalOptions;
 
             globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions);
@@ -164,7 +164,7 @@ public class Bar
 }
 ";
 
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             var globalOptions = workspace.GlobalOptions;
 
             globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions);
@@ -209,7 +209,7 @@ namespace Foo
 }
 ";
 
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             var globalOptions = workspace.GlobalOptions;
 
             globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions);
@@ -261,7 +261,7 @@ Namespace MyNamespace
 #End Region
 End Namespace";
 
-            using var workspace = TestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+            using var workspace = EditorTestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             var globalOptions = workspace.GlobalOptions;
 
             globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.VisualBasic, collapseRegionsWhenCollapsingToDefinitions);
@@ -317,7 +317,7 @@ End Namespace";
     End Sub
 End Module";
 
-            using var workspace = TestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+            using var workspace = EditorTestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
             var hints = tags.Select(x => x.GetCollapsedHintForm()).Cast<ViewHostingControl>().ToArray();
@@ -326,7 +326,7 @@ End Module";
         }
 
 #pragma warning disable CS0618 // Type or member is obsolete
-        private static async Task<List<IStructureTag2>> GetTagsFromWorkspaceAsync(TestWorkspace workspace)
+        private static async Task<List<IContainerStructureTag>> GetTagsFromWorkspaceAsync(EditorTestWorkspace workspace)
         {
             var hostdoc = workspace.Documents.First();
             var view = hostdoc.GetTextView();
@@ -334,7 +334,7 @@ End Module";
             var provider = workspace.ExportProvider.GetExportedValue<AbstractStructureTaggerProvider>();
 
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
-            var context = new TaggerContext<IStructureTag2>(document, view.TextSnapshot);
+            var context = new TaggerContext<IContainerStructureTag>(document, view.TextSnapshot);
             await provider.GetTestAccessor().ProduceTagsAsync(context);
 
             return context.TagSpans.Select(x => x.Tag).OrderBy(t => t.OutliningSpan.Value.Start).ToList();

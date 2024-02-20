@@ -75,7 +75,21 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private bool NullableAnnotationsEquivalent(ITypeSymbol x, ITypeSymbol y)
-                => symbolEquivalenceComparer._ignoreNullableAnnotations || x.NullableAnnotation == y.NullableAnnotation;
+            {
+                if (symbolEquivalenceComparer._ignoreNullableAnnotations)
+                    return true;
+
+                if (x.NullableAnnotation == y.NullableAnnotation)
+                    return true;
+
+                // Workaround compiler issues where sometimes a particular symbol will have 'none' for the annotation
+                return (x.NullableAnnotation, y.NullableAnnotation) switch
+                {
+                    (NullableAnnotation.None, NullableAnnotation.NotAnnotated) => true,
+                    (NullableAnnotation.NotAnnotated, NullableAnnotation.None) => true,
+                    _ => false,
+                };
+            }
 
             private bool AreEquivalentWorker(ISymbol x, ISymbol y, SymbolKind k, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {

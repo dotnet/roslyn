@@ -16,7 +16,7 @@ namespace Roslyn.Utilities
     internal sealed class ReferenceCountedDisposableCache<TKey, TValue> where TValue : class, IDisposable
         where TKey : notnull
     {
-        private readonly Dictionary<TKey, ReferenceCountedDisposable<Entry>.WeakReference> _cache = new();
+        private readonly Dictionary<TKey, ReferenceCountedDisposable<Entry>.WeakReference> _cache = [];
         private readonly object _gate = new();
 
         public IReferenceCountedDisposable<ICacheEntry<TKey, TValue>> GetOrCreate<TArg>(TKey key, Func<TKey, TArg, TValue> valueCreator, TArg arg)

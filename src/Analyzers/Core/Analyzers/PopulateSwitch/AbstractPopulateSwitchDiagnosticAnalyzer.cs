@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     Descriptor,
                     GetDiagnosticLocation(switchBlock),
                     properties: properties,
-                    additionalLocations: new[] { switchBlock.GetLocation() });
+                    additionalLocations: [switchBlock.GetLocation()]);
                 context.ReportDiagnostic(diagnostic);
             }
         }

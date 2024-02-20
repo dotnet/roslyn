@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.Rename
             OldSolution = null;
             NewSolution = null;
             ReplacementTextValid = false;
-            DocumentIds = ImmutableArray<DocumentId>.Empty;
-            RelatedLocations = ImmutableArray<RelatedLocation>.Empty;
+            DocumentIds = [];
+            RelatedLocations = [];
             _documentToModifiedSpansMap = ImmutableDictionary<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>>.Empty;
             _documentToComplexifiedSpansMap = ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>>.Empty;
             _documentToRelatedLocationsMap = ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>>.Empty;
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public ImmutableArray<RelatedLocation> GetRelatedLocationsForDocument(DocumentId documentId)
             => _documentToRelatedLocationsMap.TryGetValue(documentId, out var result)
                 ? result
-                : ImmutableArray<RelatedLocation>.Empty;
+                : [];
 
         internal TextSpan GetResolutionTextSpan(TextSpan originalSpan, DocumentId documentId)
         {

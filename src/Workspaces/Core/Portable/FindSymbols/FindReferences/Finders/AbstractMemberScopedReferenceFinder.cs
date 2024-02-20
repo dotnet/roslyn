@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return await FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken).ConfigureAwait(false);
             }
 
-            return ImmutableArray<FinderLocation>.Empty;
+            return [];
         }
 
         private static ISymbol? GetContainer(ISymbol symbol)

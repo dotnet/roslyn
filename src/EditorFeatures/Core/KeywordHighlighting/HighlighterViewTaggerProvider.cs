@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewTaggerProvider<KeywordHighlightTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting))
     {
         private readonly IHighlightingService _highlightingService = highlightingService;
-        private static readonly PooledObjects.ObjectPool<List<TextSpan>> s_listPool = new(() => new List<TextSpan>());
+        private static readonly PooledObjects.ObjectPool<List<TextSpan>> s_listPool = new(() => []);
 
         // Whenever an edit happens, clear all highlights.  When moving the caret, preserve 
         // highlights if the caret stays within an existing tag.
         protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
 
-        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(KeywordHighlightingOptionsStorage.KeywordHighlighting);
+        protected override ImmutableArray<IOption2> Options { get; } = [KeywordHighlightingOptionsStorage.KeywordHighlighting];
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             var onExistingTags = context.HasExistingContainingTags(new SnapshotPoint(snapshot, position));
             if (onExistingTags)
             {
-                context.SetSpansTagged(ImmutableArray<SnapshotSpan>.Empty);
+                context.SetSpansTagged([]);
                 return;
             }
 

@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(symbols);
                 foreach (var (symbol, _) in symbolsMissingInLinkedContext)
-                    missingSymbols.GetOrAdd(symbol, m => new List<ProjectId>()).Add(documentId.ProjectId);
+                    missingSymbols.GetOrAdd(symbol, m => []).Add(documentId.ProjectId);
             }
 
             return missingSymbols;

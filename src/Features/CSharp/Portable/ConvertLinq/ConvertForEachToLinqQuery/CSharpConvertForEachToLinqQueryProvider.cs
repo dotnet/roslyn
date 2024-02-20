@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         else
                         {
                             // Silly case: the block is empty. Stop processing.
-                            statementsCannotBeConverted = Enumerable.Empty<StatementSyntax>();
+                            statementsCannotBeConverted = [];
                         }
 
                         break;
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         // foreach can always be converted to a from clause.
                         var currentForEachStatement = (ForEachStatementSyntax)current;
                         identifiersBuilder.Add(currentForEachStatement.Identifier);
-                        convertingNodesBuilder.Add(new ExtendedSyntaxNode(currentForEachStatement, currentLeadingTokens.ToImmutableAndFree(), Enumerable.Empty<SyntaxToken>()));
+                        convertingNodesBuilder.Add(new ExtendedSyntaxNode(currentForEachStatement, currentLeadingTokens.ToImmutableAndFree(), []));
                         currentLeadingTokens = ArrayBuilder<SyntaxToken>.GetInstance();
                         // Proceed the loop with the nested statement.
                         current = currentForEachStatement.Statement;
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         if (ifStatement.Else == null)
                         {
                             convertingNodesBuilder.Add(new ExtendedSyntaxNode(
-                                ifStatement, currentLeadingTokens.ToImmutableAndFree(), Enumerable.Empty<SyntaxToken>()));
+                                ifStatement, currentLeadingTokens.ToImmutableAndFree(), []));
                             currentLeadingTokens = ArrayBuilder<SyntaxToken>.GetInstance();
                             // Proceed the loop with the nested statement.
                             current = ifStatement.Statement;
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         }
                         else
                         {
-                            statementsCannotBeConverted = new[] { current };
+                            statementsCannotBeConverted = [current];
                             break;
                         }
 
@@ -129,12 +129,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         var localDeclaration = (LocalDeclarationStatementSyntax)current;
                         if (TryProcessLocalDeclarationStatement(localDeclaration))
                         {
-                            statementsCannotBeConverted = Enumerable.Empty<StatementSyntax>();
+                            statementsCannotBeConverted = [];
                         }
                         else
                         {
                             // As above, if there is an empty initializer, stop processing.
-                            statementsCannotBeConverted = new[] { current };
+                            statementsCannotBeConverted = [current];
                         }
 
                         break;
@@ -146,12 +146,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         // {
                         //    ;<- empty statement
                         // }
-                        statementsCannotBeConverted = Enumerable.Empty<StatementSyntax>();
+                        statementsCannotBeConverted = [];
                         break;
 
                     default:
                         // If no specific case found, stop processing.
-                        statementsCannotBeConverted = new[] { current };
+                        statementsCannotBeConverted = [current];
                         break;
                 }
             }

@@ -915,7 +915,7 @@ $$
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/71851"), CombinatorialData>
         Public Async Function TestDeletingWholeWordResetCompletionToTheDefaultItem(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -5182,8 +5182,6 @@ class C
 
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
-                state.SendTypeChars("Sys")
-
                 Dim task1 As Task = Nothing
                 Dim task2 As Task = Nothing
 
@@ -5214,6 +5212,8 @@ class C
                     End Sub
 
                 AddHandler provider.ProviderCalled, providerCalledHandler
+
+                state.SendTypeChars("Sys")
 
                 ' SendCommitUniqueCompletionListItem is a asynchronous operation.
                 ' It guarantees that ProviderCalled will be triggered and after that the completion will deadlock waiting for a task to be resolved.
@@ -5259,7 +5259,6 @@ class C
                 Dim globalOptions = state.Workspace.GetService(Of IGlobalOptionService)
                 globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
-                state.SendTypeChars("Sys")
                 Dim task1 As Task = Nothing
                 Dim task2 As Task = Nothing
 
@@ -5289,6 +5288,8 @@ class C
                     End Sub
 
                 AddHandler provider.ProviderCalled, providerCalledHandler
+
+                state.SendTypeChars("Sys")
 
                 ' SendCommitUniqueCompletionListItem is an asynchronous operation.
                 ' It guarantees that ProviderCalled will be triggered and after that the completion will deadlock waiting for a task to be resolved.
@@ -11609,7 +11610,7 @@ public class Class1
                 </Project>
             </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures)
                 Dim cursorDocument = workspace.Documents.First(Function(d As TestHostDocument)
                                                                    Return d.CursorPosition.HasValue
                                                                End Function)
@@ -12527,6 +12528,55 @@ public class C : B
                 state.SendTypeChars(" ")
 
                 Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/discussions/71432")>
+        Public Async Function TestAccessibilityChecksInPatterns1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+object x = null;
+bool b = x is N.$$;
+
+namespace N
+{
+    public class C
+    {
+        private class B1 { }
+        public class B2 { }
+    }
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendInvokeCompletionList()
+
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("C", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/discussions/71432")>
+        Public Async Function TestAccessibilityChecksInPatterns2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+object x = null;
+bool b = x is N.C.$$;
+
+namespace N
+{
+    public class C
+    {
+        private class B1 { }
+        public class B2 { }
+    }
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendInvokeCompletionList()
+
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("B2", displayTextSuffix:="")
+                Await state.AssertCompletionItemsDoNotContainAny("B1")
             End Using
         End Function
     End Class

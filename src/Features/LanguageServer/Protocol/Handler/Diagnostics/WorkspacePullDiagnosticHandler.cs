@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             => diagnosticsParams.QueryingDiagnosticKind?.Value;
 
         protected override VSInternalWorkspaceDiagnosticReport[] CreateReport(TextDocumentIdentifier identifier, Roslyn.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
-            => new[] {
+            => [
                 new VSInternalWorkspaceDiagnosticReport
                 {
                     TextDocument = identifier,
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     // same file produced by the DocumentPullDiagnosticHandler.
                     Identifier = WorkspaceDiagnosticIdentifier,
                 }
-            };
+            ];
 
         protected override VSInternalWorkspaceDiagnosticReport[] CreateRemovedReport(TextDocumentIdentifier identifier)
             => CreateReport(identifier, diagnostics: null, resultId: null);

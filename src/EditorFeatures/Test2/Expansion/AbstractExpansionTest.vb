@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
     Public MustInherit Class AbstractExpansionTest
 
         Protected Shared Async Function TestAsync(definition As XElement, expected As XElement, Optional useLastProject As Boolean = False, Optional expandParameter As Boolean = False) As System.Threading.Tasks.Task
-            Using workspace = TestWorkspace.Create(definition)
+            Using workspace = EditorTestWorkspace.Create(definition)
                 Dim hostDocument = If(Not useLastProject, workspace.Documents.Single(), workspace.Documents.Last())
 
                 If hostDocument.AnnotatedSpans.Count <> 1 Then

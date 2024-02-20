@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 host As TestHost,
                 workspaceSupportsChangeDocument As Boolean,
                 ParamArray expectedItems As ExpectedItem()) As Tasks.Task
-            Using workspace = TestWorkspace.Create(workspaceElement, composition:=If(host = TestHost.OutOfProcess, s_oopComposition, s_composition))
+            Using workspace = EditorTestWorkspace.Create(workspaceElement, composition:=If(host = TestHost.OutOfProcess, s_oopComposition, s_composition))
                 workspace.CanApplyChangeDocument = workspaceSupportsChangeDocument
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 leftItemGrayed As Boolean,
                 rightItem As ExpectedItem,
                 rightItemGrayed As Boolean) As Tasks.Task
-            Using workspace = TestWorkspace.Create(workspaceElement, composition:=If(host = TestHost.OutOfProcess, s_oopComposition, s_composition))
+            Using workspace = EditorTestWorkspace.Create(workspaceElement, composition:=If(host = TestHost.OutOfProcess, s_oopComposition, s_composition))
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 leftItemToSelectText As String,
                 selectRightItem As Func(Of IList(Of NavigationBarItem), NavigationBarItem),
                 expectedText As XElement) As Tasks.Task
-            Using workspace = TestWorkspace.Create(workspaceElement, composition:=If(host = TestHost.OutOfProcess, s_oopComposition, s_composition))
+            Using workspace = EditorTestWorkspace.Create(workspaceElement, composition:=If(host = TestHost.OutOfProcess, s_oopComposition, s_composition))
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 rightItemToSelectText As String,
                 Optional expectedVirtualSpace As Integer = 0) As Tasks.Task
 
-            Using workspace = TestWorkspace.Create(workspaceElement, composition:=If(host = TestHost.OutOfProcess, s_oopComposition, s_composition))
+            Using workspace = EditorTestWorkspace.Create(workspaceElement, composition:=If(host = TestHost.OutOfProcess, s_oopComposition, s_composition))
                 Dim sourceDocument = workspace.CurrentSolution.Projects.First().Documents.First(Function(doc) doc.FilePath = startingDocumentFilePath)
                 Dim snapshot = (Await sourceDocument.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 

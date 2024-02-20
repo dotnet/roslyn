@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 context.OpeningPoint,
                 context.ClosingPoint,
                 // We're not trying to format the indented block here, so no need to pass in additional rules.
-                braceFormattingIndentationRules: ImmutableArray<AbstractFormattingRule>.Empty,
+                braceFormattingIndentationRules: [],
                 options,
                 cancellationToken);
 
@@ -177,10 +177,10 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 // Depending on options, we might not get any formatting change.
                 // In this case, the newline edit is the only change.
                 if (formattingChanges.IsEmpty)
-                    return ImmutableArray.Create(newLineEdit.Value);
+                    return [newLineEdit.Value];
 
                 var newRanges = TextChangeRangeExtensions.Merge(
-                    ImmutableArray.Create(newLineEdit.Value.ToTextChangeRange()),
+                    [newLineEdit.Value.ToTextChangeRange()],
                     formattingChanges.SelectAsArray(f => f.ToTextChangeRange()));
 
                 using var _ = ArrayBuilder<TextChange>.GetInstance(out var mergedChanges);

@@ -73,7 +73,7 @@ comment */|}";
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var request = new LSP.FoldingRangeParams()
             {
-                TextDocument = CreateTextDocumentIdentifier(ProtocolConversions.CreateAbsoluteUri(document.FilePath))
+                TextDocument = CreateTextDocumentIdentifier(document.GetURI())
             };
 
             return await testLspServer.ExecuteRequestAsync<LSP.FoldingRangeParams, LSP.FoldingRange[]>(LSP.Methods.TextDocumentFoldingRangeName,

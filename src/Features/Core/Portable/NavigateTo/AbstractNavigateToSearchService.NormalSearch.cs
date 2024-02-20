@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         public static Task SearchDocumentInCurrentProcessAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<RoslynNavigateToItem, Task> onItemFound, CancellationToken cancellationToken)
         {
             return SearchProjectInCurrentProcessAsync(
-                document.Project, priorityDocuments: ImmutableArray<Document>.Empty, document, searchPattern, kinds,
+                document.Project, priorityDocuments: [], document, searchPattern, kinds,
                 onItemFound, () => Task.CompletedTask, cancellationToken);
         }
 
@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             Contract.ThrowIfTrue(projects.IsEmpty);
             Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
 
@@ -99,6 +100,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using var _1 = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
             using var _2 = GetPooledHashSet(projects.Where(p => !highPriProjects.Contains(p)), out var lowPriProjects);
 
@@ -115,6 +117,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                 foreach (var project in projects)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     tasks.Add(SearchProjectInCurrentProcessAsync(
                         project, priorityDocuments.WhereAsArray(d => d.Project == project), searchDocument: null,
                         searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken));

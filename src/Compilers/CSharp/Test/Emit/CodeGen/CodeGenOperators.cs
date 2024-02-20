@@ -3909,21 +3909,25 @@ False");
         {
             var text = @"
 using System;
+using System.Globalization;
  
 class C
 {
     static void Main()
     {
-        Console.WriteLine(+0f == -0f);
-        Console.WriteLine(1f / 0f);
-        Console.WriteLine(1f / -0f);
-        Console.WriteLine(-1f / 0f);
-        Console.WriteLine(-1f / -0f);
-        Console.WriteLine(1f / (1f * 0f));
-        Console.WriteLine(1f / (1f * -0f));
-        Console.WriteLine(1f / (-1f * 0f));
-        Console.WriteLine(1f / (-1f * -0f));
+        WriteLine(+0f == -0f);
+        WriteLine(1f / 0f);
+        WriteLine(1f / -0f);
+        WriteLine(-1f / 0f);
+        WriteLine(-1f / -0f);
+        WriteLine(1f / (1f * 0f));
+        WriteLine(1f / (1f * -0f));
+        WriteLine(1f / (-1f * 0f));
+        WriteLine(1f / (-1f * -0f));
     }
+
+    static void WriteLine(bool b) => Console.WriteLine(b);
+    static void WriteLine(float f) => Console.WriteLine(f.ToString(CultureInfo.InvariantCulture));
 }";
 
             var comp = CompileAndVerify(text, expectedOutput: @"
@@ -3945,21 +3949,24 @@ Infinity");
         {
             var text = @"
 using System;
+using System.Globalization;
  
 class C
 {
     static void Main()
     {
-        Console.WriteLine(+0d == -0d);
-        Console.WriteLine(1d / 0d);
-        Console.WriteLine(1d / -0d);
-        Console.WriteLine(-1d / 0d);
-        Console.WriteLine(-1d / -0d);
-        Console.WriteLine(1d / (1d * 0d));
-        Console.WriteLine(1d / (1d * -0d));
-        Console.WriteLine(1d / (-1d * 0d));
-        Console.WriteLine(1d / (-1d * -0d));
+        WriteLine(+0d == -0d);
+        WriteLine(1d / 0d);
+        WriteLine(1d / -0d);
+        WriteLine(-1d / 0d);
+        WriteLine(-1d / -0d);
+        WriteLine(1d / (1d * 0d));
+        WriteLine(1d / (1d * -0d));
+        WriteLine(1d / (-1d * 0d));
+        WriteLine(1d / (-1d * -0d));
     }
+    static void WriteLine(bool b) => Console.WriteLine(b);
+    static void WriteLine(double d) => Console.WriteLine(d.ToString(CultureInfo.InvariantCulture));
 }";
 
             var comp = CompileAndVerify(text, expectedOutput: @"
@@ -3982,21 +3989,25 @@ Infinity");
         {
             var text = @"
 using System;
+using System.Globalization;
  
 class C
 {
     static void Main()
     {
-        Console.WriteLine(+0m == -0m);
-        Console.WriteLine(1d / (double)(0m));
-        Console.WriteLine(1d / (double)(-0m));
-        Console.WriteLine(-1d / (double)(0m));
-        Console.WriteLine(-1d / (double)(-0m));
-        Console.WriteLine(1d / (double)(1m * 0m));
-        Console.WriteLine(1d / (double)(1m * -0m));
-        Console.WriteLine(1d / (double)(-1m * 0m));
-        Console.WriteLine(1d / (double)(-1m * -0m));
+        WriteLine(+0m == -0m);
+        WriteLine(1d / (double)(0m));
+        WriteLine(1d / (double)(-0m));
+        WriteLine(-1d / (double)(0m));
+        WriteLine(-1d / (double)(-0m));
+        WriteLine(1d / (double)(1m * 0m));
+        WriteLine(1d / (double)(1m * -0m));
+        WriteLine(1d / (double)(-1m * 0m));
+        WriteLine(1d / (double)(-1m * -0m));
     }
+
+    static void WriteLine(bool b) => Console.WriteLine(b);
+    static void WriteLine(double d) => Console.WriteLine(d.ToString(CultureInfo.InvariantCulture));
 }";
 
             var comp = CompileAndVerify(text, expectedOutput: @"
@@ -5445,7 +5456,7 @@ class Test
             {
                 builder.Append("a[");
                 builder.Append(i);
-                builder.Append("]");
+                builder.Append(']');
                 builder.Append(" & ");
                 builder.Append("f[");
                 builder.Append(i);
@@ -5454,7 +5465,7 @@ class Test
 
             builder.Append("a[");
             builder.Append(i);
-            builder.Append("]");
+            builder.Append(']');
 
             return builder.ToString();
         }
@@ -5609,7 +5620,7 @@ struct S1
             {
                 builder.Append("a[");
                 builder.Append(i);
-                builder.Append("]");
+                builder.Append(']');
                 builder.Append(" && ");
                 builder.Append("f[");
                 builder.Append(i);
@@ -5618,7 +5629,7 @@ struct S1
 
             builder.Append("a[");
             builder.Append(i);
-            builder.Append("]");
+            builder.Append(']');
 
             return builder.ToString();
         }

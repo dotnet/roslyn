@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return ImmutableArray.Create<CustomModifier>();
+                return [];
             }
         }
     }

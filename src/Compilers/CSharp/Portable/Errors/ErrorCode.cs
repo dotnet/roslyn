@@ -2281,8 +2281,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InvalidExperimentalDiagID = 9211,
         ERR_SpreadMissingMember = 9212,
+        ERR_CollectionExpressionTargetNoElementType = 9213,
+        ERR_CollectionExpressionMissingConstructor = 9214,
+        ERR_CollectionExpressionMissingAdd = 9215,
 
         #endregion
+
+        WRN_ConvertingLock = 9216,
+        ERR_BadSpecialByRefLock = 9217,
 
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).

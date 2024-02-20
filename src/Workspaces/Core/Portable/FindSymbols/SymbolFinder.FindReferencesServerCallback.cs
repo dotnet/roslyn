@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IStreamingFindReferencesProgress progress)
         {
             private readonly object _gate = new();
-            private readonly Dictionary<SerializableSymbolGroup, SymbolGroup> _groupMap = new();
-            private readonly Dictionary<SerializableSymbolAndProjectId, ISymbol> _definitionMap = new();
+            private readonly Dictionary<SerializableSymbolGroup, SymbolGroup> _groupMap = [];
+            private readonly Dictionary<SerializableSymbolAndProjectId, ISymbol> _definitionMap = [];
 
             public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
                 => progress.ProgressTracker.AddItemsAsync(count, cancellationToken);

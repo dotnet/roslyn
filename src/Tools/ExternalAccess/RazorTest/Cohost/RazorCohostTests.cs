@@ -150,14 +150,14 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
         Assert.Equal("Not The Original text", trackedText.Text.ToString());
     }
 
-    private TestWorkspace CreateWorkspace(string workspaceXml)
+    private EditorTestWorkspace CreateWorkspace(string workspaceXml)
     {
         var testWorkspace = CreateWorkspace(options: null, mutatingLspWorkspace: false, workspaceKind: null);
         testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml), openDocuments: false);
         return testWorkspace;
     }
 
-    private static async Task<AbstractLanguageServer<RequestContext>> InitializeLanguageServerAsync(TestWorkspace testWorkspace)
+    private static async Task<AbstractLanguageServer<RequestContext>> InitializeLanguageServerAsync(EditorTestWorkspace testWorkspace)
     {
         var languageClient = testWorkspace.ExportProvider.GetExportedValues<ILanguageClient>().OfType<RazorCohostLanguageClient>().Single();
         await languageClient.ActivateAsync(CancellationToken.None);
@@ -179,7 +179,7 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
     }
 
     [PartNotDiscoverable]
-    [LanguageServerEndpoint(MethodName)]
+    [RazorMethod(MethodName)]
     [ExportRazorStatelessLspService(typeof(RazorHandler)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]

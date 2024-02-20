@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
         IAsynchronousOperationListenerProvider listenerProvider) : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>(threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listenerProvider)
     {
-        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(DiagnosticsOptionsStorage.Squiggles);
+        protected override ImmutableArray<IOption2> Options { get; } = [DiagnosticsOptionsStorage.Squiggles];
 
         protected sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var isUnnecessary = diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
             return
-                (diagnostic.Severity == DiagnosticSeverity.Warning || diagnostic.Severity == DiagnosticSeverity.Error || isUnnecessary) &&
+                (diagnostic.Severity is DiagnosticSeverity.Warning or DiagnosticSeverity.Error || isUnnecessary) &&
                 !string.IsNullOrWhiteSpace(diagnostic.Message);
         }
 

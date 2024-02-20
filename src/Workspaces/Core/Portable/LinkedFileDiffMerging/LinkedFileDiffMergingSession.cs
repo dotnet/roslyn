@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
             // Add comments in source explaining diffs that could not be merged
 
             IEnumerable<TextChange> allChanges;
-            IList<TextSpan> mergeConflictResolutionSpan = new List<TextSpan>();
+            IList<TextSpan> mergeConflictResolutionSpan = [];
 
             if (unmergedChanges.Any())
             {
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis
 
         internal class LinkedFileDiffMergingSessionInfo
         {
-            public readonly List<LinkedFileGroupSessionInfo> LinkedFileGroups = new();
+            public readonly List<LinkedFileGroupSessionInfo> LinkedFileGroups = [];
 
             public void LogLinkedFileResult(LinkedFileGroupSessionInfo info)
                 => LinkedFileGroups.Add(info);

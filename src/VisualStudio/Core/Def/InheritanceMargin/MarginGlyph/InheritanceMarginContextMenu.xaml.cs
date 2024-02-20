@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _threadingContext,
                 _workspace,
                 string.Format(CultureInfo.InvariantCulture, EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
-                ImmutableArray.Create<DefinitionItem>(rehydrated),
+                [rehydrated],
                 cancellationToken).ConfigureAwait(false);
         }
 

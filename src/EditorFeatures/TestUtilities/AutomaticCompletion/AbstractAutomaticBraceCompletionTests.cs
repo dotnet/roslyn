@@ -10,7 +10,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -149,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        internal static Holder CreateSession(TestWorkspace workspace, char opening, char closing, OptionsCollection globalOptions = null)
+        internal static Holder CreateSession(EditorTestWorkspace workspace, char opening, char closing, OptionsCollection globalOptions = null)
         {
             var document = workspace.Documents.First();
 
@@ -172,10 +171,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
         internal class Holder : IDisposable
         {
-            public TestWorkspace Workspace { get; }
+            public EditorTestWorkspace Workspace { get; }
             public IBraceCompletionSession Session { get; }
 
-            public Holder(TestWorkspace workspace, IBraceCompletionSession session)
+            public Holder(EditorTestWorkspace workspace, IBraceCompletionSession session)
             {
                 this.Workspace = workspace;
                 this.Session = session;

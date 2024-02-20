@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         private static readonly ImmutableArray<Func<VirtualTreePoint, IComparable>> s_comparers =
-            ImmutableArray.Create<Func<VirtualTreePoint, IComparable>>(p => p.Position, prop => prop.VirtualSpaces);
+            [p => p.Position, prop => prop.VirtualSpaces];
 
         public bool Equals(VirtualTreePoint other)
             => CompareTo(other) == 0;

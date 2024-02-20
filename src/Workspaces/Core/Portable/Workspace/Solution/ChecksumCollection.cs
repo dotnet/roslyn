@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
@@ -19,12 +20,21 @@ namespace Microsoft.CodeAnalysis.Serialization;
 /// </summary>
 internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) : IReadOnlyCollection<Checksum>
 {
+    /// <summary>
+    /// Aggregate checksum produced from all the constituent checksums in <see cref="Children"/>.
+    /// </summary>
     public Checksum Checksum { get; } = Checksum.Create(children);
 
     public int Count => children.Length;
     public Checksum this[int index] => children[index];
     public ImmutableArray<Checksum> Children => children;
 
+    /// <summary>
+    /// Enumerates the child checksums (found in <see cref="Children"/>) that make up this collection.   This is
+    /// equivalent to directly enumerating the <see cref="Children"/> property.  Importantly, <see cref="Checksum"/> is
+    /// not part of this enumeration.  <see cref="Checksum"/> is the checksum <em>produced</em> by all those child
+    /// checksums.
+    /// </summary>
     public ImmutableArray<Checksum>.Enumerator GetEnumerator()
         => children.GetEnumerator();
 
@@ -97,19 +107,8 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
     }
 
     public void WriteTo(ObjectWriter writer)
-    {
-        writer.WriteInt32(this.Count);
-        foreach (var obj in this.Children)
-            obj.WriteTo(writer);
-    }
+        => writer.WriteArray(this.Children, static (w, c) => c.WriteTo(w));
 
     public static ChecksumCollection ReadFrom(ObjectReader reader)
-    {
-        var count = reader.ReadInt32();
-        using var _ = ArrayBuilder<Checksum>.GetInstance(count, out var result);
-        for (var i = 0; i < count; i++)
-            result.Add(Checksum.ReadFrom(reader));
-
-        return new(result.ToImmutableAndClear());
-    }
+        => new(reader.ReadArray(Checksum.ReadFrom));
 }

@@ -7,16 +7,17 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -50,8 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// The IVsHierarchies we have subscribed to to watch for any changes to this moniker. We track this per moniker, so
             /// when a document is closed we know what we have to incrementally unsubscribe from rather than having to unsubscribe from everything.
             /// </summary>
-            private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker
-                = new();
+            private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker = [];
 
             /// <summary>
             /// Boolean flag to indicate if any <see cref="TextDocument"/> has been opened in the workspace.
@@ -107,18 +107,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         EnsureSuggestedActionsSourceProviderEnabled();
                     }
                 });
-            }
-
-            private async Task TryOpeningDocumentsForMonikerAndSetContextOnUIThreadAsync(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, CancellationToken cancellationToken)
-            {
-                await _projectSystemProjectFactory.ApplyChangeToWorkspaceAsync(async w =>
-                {
-                    await _foregroundAffinitization.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    if (TryOpeningDocumentsForFilePathCore(w, moniker, textBuffer, hierarchy))
-                    {
-                        EnsureSuggestedActionsSourceProviderEnabled();
-                    }
-                }, cancellationToken).ConfigureAwait(true);
             }
 
             private void EnsureSuggestedActionsSourceProviderEnabled()
@@ -405,15 +393,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 EnsureSuggestedActionsSourceProviderEnabled();
             }
 
-            internal async Task CheckForOpenFilesThatWeMissedAsync(CancellationToken cancellationToken)
+            internal void CheckForOpenFilesThatWeMissed()
             {
                 // It's possible that Roslyn is loading asynchronously after documents were already opened by the user; this is a one-time check for
                 // any of those -- after this point, we are subscribed to events so we'll know of anything else.
-                await _foregroundAffinitization.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                _foregroundAffinitization.AssertIsForeground();
 
                 foreach (var (filePath, textBuffer, hierarchy) in _openTextBufferProvider.EnumerateDocumentSet())
                 {
-                    await TryOpeningDocumentsForMonikerAndSetContextOnUIThreadAsync(filePath, textBuffer, hierarchy, cancellationToken).ConfigureAwait(true);
+                    TryOpeningDocumentsForMonikerAndSetContextOnUIThread(filePath, textBuffer, hierarchy);
                 }
             }
 

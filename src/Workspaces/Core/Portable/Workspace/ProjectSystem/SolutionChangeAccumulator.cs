@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// <see cref="WorkspaceChangeKind.SolutionChanged"/> if we can't give a more precise type.
         /// </summary>
         private WorkspaceChangeKind? _workspaceChangeKind;
-        private readonly List<DocumentId> _documentIdsRemoved = new();
+        private readonly List<DocumentId> _documentIdsRemoved = [];
 
         public Solution Solution { get; private set; } = startingSolution;
         public IEnumerable<DocumentId> DocumentIdsRemoved => _documentIdsRemoved;

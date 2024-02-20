@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsWithEvents => false;
 
-        public ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+        public ImmutableArray<CustomModifier> RefCustomModifiers => [];
 
-        public ImmutableArray<CustomModifier> TypeCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+        public ImmutableArray<CustomModifier> TypeCustomModifiers => [];
     }
 }

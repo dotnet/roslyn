@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         internal SolutionOptionSet(ILegacyGlobalOptionService globalOptions)
-            : this(globalOptions, values: ImmutableDictionary<OptionKey, object?>.Empty, changedOptionKeys: ImmutableHashSet<OptionKey>.Empty)
+            : this(globalOptions, values: ImmutableDictionary<OptionKey, object?>.Empty, changedOptionKeys: [])
         {
         }
 

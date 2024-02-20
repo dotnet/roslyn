@@ -87,13 +87,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 IEventSymbol @event => ImmutableArray<ISymbol>.CastUp(@event.ExplicitInterfaceImplementations),
                 IMethodSymbol method => ImmutableArray<ISymbol>.CastUp(method.ExplicitInterfaceImplementations),
                 IPropertySymbol property => ImmutableArray<ISymbol>.CastUp(property.ExplicitInterfaceImplementations),
-                _ => ImmutableArray.Create<ISymbol>(),
+                _ => [],
             };
 
         public static ImmutableArray<ISymbol> ExplicitOrImplicitInterfaceImplementations(this ISymbol symbol)
         {
             if (symbol.Kind is not SymbolKind.Method and not SymbolKind.Property and not SymbolKind.Event)
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             var containingType = symbol.ContainingType;
             var query = from iface in containingType.AllInterfaces
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 IMethodSymbol m => m.Parameters,
                 IPropertySymbol nt => nt.Parameters,
-                _ => ImmutableArray<IParameterSymbol>.Empty,
+                _ => [],
             };
 
         public static ImmutableArray<ITypeParameterSymbol> GetTypeParameters(this ISymbol? symbol)
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 IMethodSymbol m => m.TypeParameters,
                 INamedTypeSymbol nt => nt.TypeParameters,
-                _ => ImmutableArray<ITypeParameterSymbol>.Empty,
+                _ => [],
             };
 
         public static ImmutableArray<ITypeParameterSymbol> GetAllTypeParameters(this ISymbol? symbol)
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 IMethodSymbol m => m.TypeArguments,
                 INamedTypeSymbol nt => nt.TypeArguments,
-                _ => ImmutableArray.Create<ITypeSymbol>(),
+                _ => [],
             };
 
         public static ImmutableArray<ITypeSymbol> GetAllTypeArguments(this ISymbol symbol)

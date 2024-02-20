@@ -1220,8 +1220,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new WithParametersBinder(method.Parameters, nextBinder);
                 }
 
-                if (memberSyntax is TypeDeclarationSyntax { ParameterList: { ParameterCount: > 0 } })
+                if (memberSyntax is TypeDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } typeDeclaration)
                 {
+                    _ = typeDeclaration.ParameterList;
                     Binder outerBinder = VisitCore(memberSyntax);
                     SourceNamedTypeSymbol type = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);
                     var primaryConstructor = type.PrimaryConstructor;
@@ -1392,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             StructuredTriviaSyntax structuredTrivia = GetEnclosingDocumentationComment(xmlSyntax);
             SyntaxTrivia containingTrivia = structuredTrivia.ParentTrivia;
-            SyntaxToken associatedToken = (SyntaxToken)containingTrivia.Token;
+            SyntaxToken associatedToken = containingTrivia.Token;
 
             CSharpSyntaxNode curr = (CSharpSyntaxNode)associatedToken.Parent;
             while (curr != null)
@@ -1400,7 +1401,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MemberDeclarationSyntax memberSyntax = curr as MemberDeclarationSyntax;
                 if (memberSyntax != null)
                 {
-                    // CONSIDER: require that the xml syntax precede the start of the member span?
+                    // The doc comment must be in the leading trivia of its associated member.
+                    if (!memberSyntax.GetLeadingTrivia().Contains(containingTrivia))
+                    {
+                        return null;
+                    }
+
                     return memberSyntax;
                 }
                 curr = curr.Parent;

@@ -134,10 +134,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_hasSmall)
                     builder.Append("Small");
                 if (_hasSmall && !_values.IsEmpty)
-                    builder.Append(",");
+                    builder.Append(',');
                 builder.Append(_values.ToString());
                 if (_hasLarge && builder.Length > 0)
-                    builder.Append(",");
+                    builder.Append(',');
                 if (_hasLarge)
                     builder.Append("Large");
                 return psb.ToStringAndFree();

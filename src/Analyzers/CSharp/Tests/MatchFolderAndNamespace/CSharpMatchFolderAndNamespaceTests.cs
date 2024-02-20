@@ -58,7 +58,7 @@ build_property.RootNamespace = {DefaultNamespace}
             foreach (var (fileName, content) in originalSources)
                 testState.TestState.Sources.Add((fileName, content));
 
-            fixedSources ??= Array.Empty<(string, string)>();
+            fixedSources ??= [];
             foreach (var (fileName, content) in fixedSources)
                 testState.FixedState.Sources.Add((fileName, content));
 

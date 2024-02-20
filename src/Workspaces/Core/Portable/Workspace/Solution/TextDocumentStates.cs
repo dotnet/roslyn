@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         where TState : TextDocumentState
     {
         public static readonly TextDocumentStates<TState> Empty =
-            new(ImmutableList<DocumentId>.Empty, ImmutableSortedDictionary.Create<DocumentId, TState>(DocumentIdComparer.Instance));
+            new([], ImmutableSortedDictionary.Create<DocumentId, TState>(DocumentIdComparer.Instance));
 
         private readonly ImmutableList<DocumentId> _ids;
 
@@ -100,38 +101,41 @@ namespace Microsoft.CodeAnalysis
 
         public ImmutableArray<TValue> SelectAsArray<TValue>(Func<TState, TValue> selector)
         {
-            using var _ = ArrayBuilder<TValue>.GetInstance(out var builder);
+            // Directly use ImmutableArray.Builder as we know the final size
+            var builder = ImmutableArray.CreateBuilder<TValue>(_map.Count);
 
             foreach (var (_, state) in _map)
             {
                 builder.Add(selector(state));
             }
 
-            return builder.ToImmutable();
+            return builder.MoveToImmutable();
         }
 
         public ImmutableArray<TValue> SelectAsArray<TValue, TArg>(Func<TState, TArg, TValue> selector, TArg arg)
         {
-            using var _ = ArrayBuilder<TValue>.GetInstance(out var builder);
+            // Directly use ImmutableArray.Builder as we know the final size
+            var builder = ImmutableArray.CreateBuilder<TValue>(_map.Count);
 
             foreach (var (_, state) in _map)
             {
                 builder.Add(selector(state, arg));
             }
 
-            return builder.ToImmutable();
+            return builder.MoveToImmutable();
         }
 
         public async ValueTask<ImmutableArray<TValue>> SelectAsArrayAsync<TValue, TArg>(Func<TState, TArg, CancellationToken, ValueTask<TValue>> selector, TArg arg, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<TValue>.GetInstance(out var builder);
+            // Directly use ImmutableArray.Builder as we know the final size
+            var builder = ImmutableArray.CreateBuilder<TValue>(_map.Count);
 
             foreach (var (_, state) in _map)
             {
                 builder.Add(await selector(state, arg, cancellationToken).ConfigureAwait(true));
             }
 
-            return builder.ToImmutable();
+            return builder.MoveToImmutable();
         }
 
         public TextDocumentStates<TState> AddRange(ImmutableArray<TState> states)
@@ -236,6 +240,13 @@ namespace Microsoft.CodeAnalysis
 
                 return x.Id.CompareTo(y.Id);
             }
+        }
+
+        public async ValueTask<ChecksumsAndIds<DocumentId>> GetChecksumsAndIdsAsync(CancellationToken cancellationToken)
+        {
+            var documentChecksumTasks = SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
+            var documentChecksums = new ChecksumCollection(await documentChecksumTasks.WhenAll().ConfigureAwait(false));
+            return new(documentChecksums, SelectAsArray(static s => s.Id));
         }
     }
 }

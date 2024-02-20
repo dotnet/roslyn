@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         private readonly ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _existingTags;
 
         internal ImmutableArray<SnapshotSpan> _spansTagged;
-        public readonly SegmentedList<ITagSpan<TTag>> TagSpans = new();
+        public readonly SegmentedList<ITagSpan<TTag>> TagSpans = [];
 
         public ImmutableArray<DocumentSnapshotSpan> SpansToTag { get; }
         public SnapshotPoint? CaretPosition { get; }
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             Document document, ITextSnapshot snapshot,
             SnapshotPoint? caretPosition = null,
             TextChangeRange? textChangeRange = null)
-            : this(state: null, ImmutableArray.Create(new DocumentSnapshotSpan(document, snapshot.GetFullSpan())),
+            : this(state: null, [new DocumentSnapshotSpan(document, snapshot.GetFullSpan())],
                    caretPosition, textChangeRange, existingTags: null)
         {
         }

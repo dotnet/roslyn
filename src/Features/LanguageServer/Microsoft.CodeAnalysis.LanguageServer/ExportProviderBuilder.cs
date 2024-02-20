@@ -4,23 +4,21 @@
 
 using System.Collections.Immutable;
 using System.Reflection;
-using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ExportProviderBuilder
 {
-    public static async Task<ExportProvider> CreateExportProviderAsync(IEnumerable<string> extensionAssemblyPaths, ILoggerFactory loggerFactory)
+    public static async Task<ExportProvider> CreateExportProviderAsync(ExtensionAssemblyManager extensionAssemblyManager, string? devKitDependencyPath, ILoggerFactory loggerFactory)
     {
         var logger = loggerFactory.CreateLogger<ExportProviderBuilder>();
-
         var baseDirectory = AppContext.BaseDirectory;
-
-        var resolver = new Resolver(new CustomExportAssemblyLoader(baseDirectory));
 
         // Load any Roslyn assemblies from the extension directory
         var assemblyPaths = Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll");
@@ -36,27 +34,29 @@ internal sealed class ExportProviderBuilder
             Assembly.LoadFrom(path);
         }
 
+        // DevKit assemblies are not shipped in the main language server folder
+        // and not included in ExtensionAssemblyPaths (they get loaded into the default ALC).
+        // So manually add them to the MEF catalog here.
+        if (devKitDependencyPath != null)
+        {
+            assemblyPaths = assemblyPaths.Concat(devKitDependencyPath);
+        }
+
+        // Add the extension assemblies to the MEF catalog.
+        assemblyPaths = assemblyPaths.Concat(extensionAssemblyManager.ExtensionAssemblyPaths);
+
+        logger.LogTrace($"Composing MEF catalog using:{Environment.NewLine}{string.Join($"    {Environment.NewLine}", assemblyPaths)}.");
+
+        // Create a MEF resolver that can resolve assemblies in the extension contexts.
+        var resolver = new Resolver(new CustomExportAssemblyLoader(extensionAssemblyManager, loggerFactory));
+
         var discovery = PartDiscovery.Combine(
             resolver,
             new AttributedPartDiscovery(resolver, isNonPublicSupported: true), // "NuGet MEF" attributes (Microsoft.Composition)
             new AttributedPartDiscoveryV1(resolver));
 
-        var assemblies = new List<Assembly>()
-        {
-            typeof(ExportProviderBuilder).Assembly
-        };
-
-        foreach (var extensionAssemblyPath in extensionAssemblyPaths)
-        {
-            if (AssemblyLoadContextWrapper.TryLoadExtension(extensionAssemblyPath, logger, out var extensionAssembly))
-            {
-                assemblies.Add(extensionAssembly);
-            }
-        }
-
         // TODO - we should likely cache the catalog so we don't have to rebuild it every time.
         var catalog = ComposableCatalog.Create(resolver)
-            .AddParts(await discovery.CreatePartsAsync(assemblies))
             .AddParts(await discovery.CreatePartsAsync(assemblyPaths))
             .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
 

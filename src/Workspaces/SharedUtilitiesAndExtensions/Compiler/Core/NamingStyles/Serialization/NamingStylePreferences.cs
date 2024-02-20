@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         }
 
         public static NamingStylePreferences Default { get; } = FromXElement(XElement.Parse(DefaultNamingPreferencesString));
-        public static NamingStylePreferences Empty { get; } = new(ImmutableArray<SymbolSpecification>.Empty, ImmutableArray<NamingStyle>.Empty, ImmutableArray<SerializableNamingRule>.Empty);
+        public static NamingStylePreferences Empty { get; } = new([], [], []);
 
         public static string DefaultNamingPreferencesString => _defaultNamingPreferencesString;
 

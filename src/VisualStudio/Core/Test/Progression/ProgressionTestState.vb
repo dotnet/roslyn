@@ -4,8 +4,8 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
@@ -13,14 +13,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Friend Class ProgressionTestState
         Implements IDisposable
 
-        Public ReadOnly Workspace As TestWorkspace
+        Public ReadOnly Workspace As EditorTestWorkspace
 
-        Public Sub New(workspace As TestWorkspace)
+        Public Sub New(workspace As EditorTestWorkspace)
             Me.Workspace = workspace
         End Sub
 
         Public Shared Function Create(workspaceXml As XElement) As ProgressionTestState
-            Dim workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
+            Dim workspace = EditorTestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
 
             Return New ProgressionTestState(workspace)
         End Function

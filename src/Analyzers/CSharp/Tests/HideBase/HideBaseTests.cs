@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.HideBase
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
-    public class HideBaseTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class HideBaseTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public HideBaseTests(ITestOutputHelper logger)
            : base(logger)

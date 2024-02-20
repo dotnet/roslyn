@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExplicitTypeForConst
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS0822);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS0822];
 
         public override FixAllProvider? GetFixAllProvider()
         {

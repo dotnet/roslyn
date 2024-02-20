@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             public readonly TStatement Source = source;
             public readonly ImmutableArray<TStatement> Destinations = ImmutableArray.CreateRange(destinations);
 
-            public DocumentUpdateInfo(TStatement source, TStatement destination) : this(source, new[] { destination })
+            public DocumentUpdateInfo(TStatement source, TStatement destination) : this(source, [destination])
             {
             }
 

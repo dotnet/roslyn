@@ -29,7 +29,7 @@ internal sealed class RpcClient
     private readonly SemaphoreSlim _sendingStreamSemaphore = new SemaphoreSlim(initialCount: 1);
     private readonly TextReader _receivingStream;
 
-    private readonly ConcurrentDictionary<int, (TaskCompletionSource<object?>, System.Type? expectedReturnType)> _outstandingRequests = new();
+    private readonly ConcurrentDictionary<int, (TaskCompletionSource<object?>, System.Type? expectedReturnType)> _outstandingRequests = [];
     private volatile int _nextRequestId = 0;
 
     private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
@@ -139,12 +139,36 @@ internal sealed class RpcClient
 
         var requestJson = JsonConvert.SerializeObject(request, JsonSettings.SingleLineSerializerSettings);
 
-        using (await _sendingStreamSemaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        try
         {
-            await _sendingStream.WriteLineAsync(requestJson).ConfigureAwait(false);
-            await _sendingStream.FlushAsync().ConfigureAwait(false);
+            // The only cancellation we support is cancelling before we are able to write the request to the stream; once it's been written
+            // the other side will execute it to completion. Thus cancellationToken is checked here, but nowhere else.
+            using (await _sendingStreamSemaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                await _sendingStream.WriteLineAsync(requestJson).ConfigureAwait(false);
+#if NET8_0_OR_GREATER
+                await _sendingStream.FlushAsync(CancellationToken.None).ConfigureAwait(false);
+#else
+                await _sendingStream.FlushAsync().ConfigureAwait(false);
+#endif
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // The request was cancelled, so we don't need to hold it around anymore.
+            _outstandingRequests.TryRemove(requestId, out _);
+            throw;
         }
 
         return await requestCompletionSource.Task.ConfigureAwait(false);
+    }
+
+    internal TestAccessor GetTestAccessor()
+        => new(this);
+
+    internal readonly struct TestAccessor(RpcClient client)
+    {
+        public int GetOutstandingRequestCount()
+            => client._outstandingRequests.Count;
     }
 }

@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         public static readonly CSharpSyntaxFormatting Instance = new();
 
-        private readonly ImmutableArray<AbstractFormattingRule> _rules = ImmutableArray.Create<AbstractFormattingRule>(
+        private readonly ImmutableArray<AbstractFormattingRule> _rules =
+        [
             new WrappingFormattingRule(),
             new SpacingFormattingRule(),
             new NewLineUserSettingFormattingRule(),
@@ -31,7 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             new AnchorIndentationFormattingRule(),
             new QueryExpressionFormattingRule(),
             new TokenBasedFormattingRule(),
-            DefaultOperationProvider.Instance);
+            DefaultOperationProvider.Instance,
+        ];
 
         public override ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules()
             => _rules;

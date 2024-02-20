@@ -64,8 +64,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Collection containing all well-known semantic tokens modifiers.
         /// </summary>
-        public static readonly IReadOnlyList<string> AllModifiers = new[]
-        {
+        public static readonly IReadOnlyList<string> AllModifiers =
+        [
             Declaration,
             Definition,
             Readonly,
@@ -76,6 +76,6 @@ namespace Roslyn.LanguageServer.Protocol
             Modification,
             Documentation,
             DefaultLibrary,
-        };
+        ];
     }
 }

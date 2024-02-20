@@ -102,14 +102,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // If these appear in interfaces they must be static abstract
             if (destination is CodeGenerationDestination.InterfaceType)
             {
-                return SyntaxFactory.TokenList(
+                return [
                     SyntaxFactory.Token(SyntaxKind.StaticKeyword),
-                    SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+                    SyntaxFactory.Token(SyntaxKind.AbstractKeyword)];
             }
 
-            return SyntaxFactory.TokenList(
+            return [
                 SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                SyntaxFactory.Token(SyntaxKind.StaticKeyword)];
         }
     }
 }

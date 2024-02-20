@@ -182,18 +182,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             if (!IsEndToken(endToken))
             {
-                return ImmutableArray<TextChange>.Empty;
+                return [];
             }
 
             var tokenRange = FormattingRangeHelper.FindAppropriateRange(endToken);
             if (tokenRange == null || tokenRange.Value.Item1.Equals(tokenRange.Value.Item2))
             {
-                return ImmutableArray<TextChange>.Empty;
+                return [];
             }
 
             if (IsInvalidTokenKind(tokenRange.Value.Item1) || IsInvalidTokenKind(tokenRange.Value.Item2))
             {
-                return ImmutableArray<TextChange>.Empty;
+                return [];
             }
 
             var formatter = new CSharpSmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)document.Root, document.Text);

@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         {
                             if (!projectIdsToReferencingSubmissionIds.TryGetValue(referencedProject.Id, out var referencingSubmissions))
                             {
-                                referencingSubmissions = new List<ProjectId>();
+                                referencingSubmissions = [];
                                 projectIdsToReferencingSubmissionIds.Add(referencedProject.Id, referencingSubmissions);
                             }
 
