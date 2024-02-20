@@ -1637,7 +1637,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var builder = s_symbolListPool.Allocate();
-            var addAction = builder.Add;
 
             if (name == null)
             {
@@ -1645,13 +1644,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and find all the corresponding symbols.
                 foreach (string foundName in info.Names)
                 {
-                    AppendSymbolsWithName(addAction, foundName, binder, container, options, info);
+                    AppendSymbolsWithName(builder, foundName, binder, container, options, info);
                 }
             }
             else
             {
                 // They provided a name.  Find all the arities for that name, and then look all of those up.
-                AppendSymbolsWithName(addAction, name, binder, container, options, info);
+                AppendSymbolsWithName(builder, name, binder, container, options, info);
             }
 
             info.Free();
@@ -1692,7 +1691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private void AppendSymbolsWithName(Action<ISymbol> addSymbol, string name, Binder binder, NamespaceOrTypeSymbol container, LookupOptions options, LookupSymbolsInfo info)
+        private void AppendSymbolsWithName(SegmentedList<ISymbol> results, string name, Binder binder, NamespaceOrTypeSymbol container, LookupOptions options, LookupSymbolsInfo info)
         {
             LookupSymbolsInfo.IArityEnumerable arities;
             Symbol uniqueSymbol;
@@ -1703,7 +1702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // This name mapped to something unique.  We don't need to proceed
                     // with a costly lookup.  Just add it straight to the results.
-                    addSymbol(RemapSymbolIfNecessary(uniqueSymbol).GetPublicSymbol());
+                    results.Add(RemapSymbolIfNecessary(uniqueSymbol).GetPublicSymbol());
                 }
                 else
                 {
@@ -1713,26 +1712,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         foreach (var arity in arities)
                         {
-                            this.AppendSymbolsWithNameAndArity(addSymbol, name, arity, binder, container, options);
+                            this.AppendSymbolsWithNameAndArity(results, name, arity, binder, container, options);
                         }
                     }
                     else
                     {
                         //non-unique symbol with non-zero arity doesn't seem possible.
-                        this.AppendSymbolsWithNameAndArity(addSymbol, name, 0, binder, container, options);
+                        this.AppendSymbolsWithNameAndArity(results, name, 0, binder, container, options);
                     }
                 }
             }
         }
 
         private void AppendSymbolsWithNameAndArity(
-            Action<ISymbol> addSymbol,
+            SegmentedList<ISymbol> results,
             string name,
             int arity,
             Binder binder,
             NamespaceOrTypeSymbol container,
             LookupOptions options)
         {
+            Debug.Assert(results != null);
+
             // Don't need to de-dup since AllMethodsOnArityZero can't be set at this point (not exposed in CommonLookupOptions).
             Debug.Assert((options & LookupOptions.AllMethodsOnArityZero) == 0);
 
@@ -1759,13 +1760,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!wasError)
                     {
-                        addSymbol(RemapSymbolIfNecessary(singleSymbol).GetPublicSymbol());
+                        results.Add(RemapSymbolIfNecessary(singleSymbol).GetPublicSymbol());
                     }
                     else
                     {
                         foreach (var symbol in lookupResult.Symbols)
                         {
-                            addSymbol(RemapSymbolIfNecessary(symbol).GetPublicSymbol());
+                            results.Add(RemapSymbolIfNecessary(symbol).GetPublicSymbol());
                         }
                     }
                 }
@@ -1773,7 +1774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var symbol in lookupResult.Symbols)
                     {
-                        addSymbol(RemapSymbolIfNecessary(symbol).GetPublicSymbol());
+                        results.Add(RemapSymbolIfNecessary(symbol).GetPublicSymbol());
                     }
                 }
             }
@@ -4117,19 +4118,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Binder binder = binderOpt ?? GetEnclosingBinder(GetAdjustedNodePosition(boundNode.Syntax));
-            var symbols = ArrayBuilder<ISymbol>.GetInstance();
-            AppendSymbolsWithNameAndArity(symbols.Add, WellKnownMemberNames.Indexer, 0, binder, type, LookupOptions.MustBeInstance);
+            var symbols = s_symbolListPool.Allocate();
+            AppendSymbolsWithNameAndArity(symbols, WellKnownMemberNames.Indexer, 0, binder, type, LookupOptions.MustBeInstance);
 
-            if (symbols.Count == 0)
-            {
-                symbols.Free();
-                return ImmutableArray<IPropertySymbol>.Empty;
-            }
+            var result = (symbols.Count == 0)
+                ? ImmutableArray<IPropertySymbol>.Empty
+                : FilterOverriddenOrHiddenIndexers(symbols);
 
-            return FilterOverriddenOrHiddenIndexers(symbols.ToImmutableAndFree());
+            symbols.Clear();
+            s_symbolListPool.Free(symbols);
+            return result;
         }
 
-        private static ImmutableArray<IPropertySymbol> FilterOverriddenOrHiddenIndexers(ImmutableArray<ISymbol> symbols)
+        private static ImmutableArray<IPropertySymbol> FilterOverriddenOrHiddenIndexers(SegmentedList<ISymbol> symbols)
         {
             PooledHashSet<Symbol> hiddenSymbols = null;
             foreach (ISymbol iSymbol in symbols)
