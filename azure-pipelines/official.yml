@@ -76,7 +76,7 @@ extends:
             linuxPool:
               name: AzurePipelines-EO
               demands:
-              - ImageOverride -equals AzurePipelinesUbuntu20.04compliantGPT
+              - ImageOverride -equals 1ESPT-Ubuntu22.04
               os: Linux
             macOSPool:
               name: Azure Pipelines
@@ -108,7 +108,7 @@ extends:
             linuxPool:
               name: AzurePipelines-EO
               demands:
-              - ImageOverride -equals AzurePipelinesUbuntu20.04compliantGPT
+              - ImageOverride -equals 1ESPT-Ubuntu22.04
               os: Linux
             macOSPool:
               name: Azure Pipelines
