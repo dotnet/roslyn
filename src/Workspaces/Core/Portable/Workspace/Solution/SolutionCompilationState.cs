@@ -1219,50 +1219,42 @@ internal sealed partial class SolutionCompilationState
     {
         return AddDocumentsToMultipleProjects(documentInfos,
             static (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
-            static (oldProject, documents) => (oldProject.AddDocuments(documents), new TranslationAction.AddDocumentsAction(oldProject, documents)));
+            static (oldProject, documents) => new TranslationAction.AddDocumentsAction(oldProject, oldProject.AddDocuments(documents), documents));
     }
 
     public SolutionCompilationState AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
     {
         return AddDocumentsToMultipleProjects(documentInfos,
             static (documentInfo, project) => new AdditionalDocumentState(project.LanguageServices.SolutionServices, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-            static (oldProject, documents) => (oldProject.AddAdditionalDocuments(documents), new TranslationAction.AddAdditionalDocumentsAction(oldProject, documents)));
+            static (oldProject, documents) => new TranslationAction.AddAdditionalDocumentsAction(oldProject, oldProject.AddAdditionalDocuments(documents), documents));
     }
 
     public SolutionCompilationState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
     {
         return AddDocumentsToMultipleProjects(documentInfos,
             static (documentInfo, project) => new AnalyzerConfigDocumentState(project.LanguageServices.SolutionServices, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-            static (oldProject, documents) =>
-            {
-                var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
-                return (newProject, new TranslationAction.ProjectCompilationOptionsAction(oldProject, newProject, isAnalyzerConfigChange: true));
-            });
+            static (oldProject, documents) => new TranslationAction.ProjectCompilationOptionsAction(oldProject, oldProject.AddAnalyzerConfigDocuments(documents), isAnalyzerConfigChange: true));
     }
 
     public SolutionCompilationState RemoveDocuments(ImmutableArray<DocumentId> documentIds)
     {
         return RemoveDocumentsFromMultipleProjects(documentIds,
             static (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
-            static (oldProject, documentIds, documentStates) => (oldProject.RemoveDocuments(documentIds), new TranslationAction.RemoveDocumentsAction(oldProject, documentStates)));
+            static (oldProject, documentIds, documentStates) => new TranslationAction.RemoveDocumentsAction(oldProject, oldProject.RemoveDocuments(documentIds), documentStates));
     }
 
     public SolutionCompilationState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
     {
         return RemoveDocumentsFromMultipleProjects(documentIds,
             static (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredState(documentId),
-            static (oldProject, documentIds, documentStates) => (oldProject.RemoveAdditionalDocuments(documentIds), new TranslationAction.RemoveAdditionalDocumentsAction(oldProject, documentStates)));
+            static (oldProject, documentIds, documentStates) => new TranslationAction.RemoveAdditionalDocumentsAction(oldProject, oldProject.RemoveAdditionalDocuments(documentIds), documentStates));
     }
 
     public SolutionCompilationState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
     {
         return RemoveDocumentsFromMultipleProjects(documentIds,
             static (projectState, documentId) => projectState.AnalyzerConfigDocumentStates.GetRequiredState(documentId),
-            static (oldProject, documentIds, _) =>
-            {
-                var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
-                return (newProject, new TranslationAction.ProjectCompilationOptionsAction(oldProject, newProject, isAnalyzerConfigChange: true));
-            });
+            static (oldProject, documentIds, _) => new TranslationAction.ProjectCompilationOptionsAction(oldProject, oldProject.RemoveAnalyzerConfigDocuments(documentIds), isAnalyzerConfigChange: true));
     }
 
     /// <summary>
@@ -1275,7 +1267,7 @@ internal sealed partial class SolutionCompilationState
     private SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
         ImmutableArray<DocumentInfo> documentInfos,
         Func<DocumentInfo, ProjectState, TDocumentState> createDocumentState,
-        Func<ProjectState, ImmutableArray<TDocumentState>, (ProjectState newState, TranslationAction translationAction)> addDocumentsToProjectState)
+        Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> addDocumentsToProjectState)
         where TDocumentState : TextDocumentState
     {
         if (documentInfos.IsDefault)
@@ -1299,14 +1291,15 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
         IEnumerable<(ProjectState oldProjectState, ImmutableArray<TDocumentState> newDocumentStates)> projectIdAndNewDocuments,
-        Func<ProjectState, ImmutableArray<TDocumentState>, (ProjectState newState, TranslationAction translationAction)> addDocumentsToProjectState)
+        Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> addDocumentsToProjectState)
         where TDocumentState : TextDocumentState
     {
         var newCompilationState = this;
 
         foreach (var (oldProjectState, newDocumentStates) in projectIdAndNewDocuments)
         {
-            var (newProjectState, compilationTranslationAction) = addDocumentsToProjectState(oldProjectState, newDocumentStates);
+            var compilationTranslationAction = addDocumentsToProjectState(oldProjectState, newDocumentStates);
+            var newProjectState = compilationTranslationAction.NewProjectState;
 
             var stateChange = newCompilationState.SolutionState.ForkProject(
                 oldProjectState,
@@ -1327,7 +1320,7 @@ internal sealed partial class SolutionCompilationState
     private SolutionCompilationState RemoveDocumentsFromMultipleProjects<T>(
         ImmutableArray<DocumentId> documentIds,
         Func<ProjectState, DocumentId, T> getExistingTextDocumentState,
-        Func<ProjectState, ImmutableArray<DocumentId>, ImmutableArray<T>, (ProjectState newState, SolutionCompilationState.TranslationAction translationAction)> removeDocumentsFromProjectState)
+        Func<ProjectState, ImmutableArray<DocumentId>, ImmutableArray<T>, TranslationAction> removeDocumentsFromProjectState)
         where T : TextDocumentState
     {
         if (documentIds.IsEmpty)
@@ -1359,7 +1352,8 @@ internal sealed partial class SolutionCompilationState
 
             var removedDocumentStatesForProject = removedDocumentStates.ToImmutable();
 
-            var (newProjectState, compilationTranslationAction) = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
+            var compilationTranslationAction = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
+            var newProjectState = compilationTranslationAction.NewProjectState;
 
             var stateChange = newCompilationState.SolutionState.ForkProject(
                 oldProjectState,
@@ -1398,9 +1392,9 @@ internal sealed partial class SolutionCompilationState
         var newCompilationState = this.ForceForkProject(
             new(this.SolutionState, projectToUpdateState, projectToUpdateState),
             translate: new TranslationAction.ReplaceGeneratorDriverAction(
-                tracker.GeneratorDriver,
                 oldProjectState: projectToUpdateState,
-                newProjectState: projectToUpdateState),
+                newProjectState: projectToUpdateState,
+                tracker.GeneratorDriver),
             forkTracker: true);
 
         return newCompilationState;
