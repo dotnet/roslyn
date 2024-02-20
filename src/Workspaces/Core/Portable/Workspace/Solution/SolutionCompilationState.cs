@@ -1106,7 +1106,7 @@ internal sealed partial class SolutionCompilationState
             // might reset the project back to a prior state from when the last compilation was requested, losing
             // information about documents recently added or removed.
 
-            if (oldProjectState != newProjectState )
+            if (oldProjectState != newProjectState)
             {
                 CheckDocumentStates(oldProjectState.DocumentStates, newProjectState.DocumentStates);
                 CheckDocumentStates(oldProjectState.AdditionalDocumentStates, newProjectState.AdditionalDocumentStates);

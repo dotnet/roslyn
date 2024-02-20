@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis
                             compilationWithoutGeneratedDocuments,
                             CompilationTrackerGeneratorInfo.Empty,
                             compilationWithGeneratedDocuments,
-                            ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty);
+                            pendingTranslationSteps: []);
                     }
                     else if (state is InProgressState inProgressState)
                     {
@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis
                             compilationWithoutGeneratedDocuments,
                             generatorInfo,
                             compilationWithGeneratedDocuments,
-                            ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty);
+                            pendingTranslationSteps: []);
                     }
                     else
                     {
