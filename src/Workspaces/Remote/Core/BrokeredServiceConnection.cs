@@ -195,13 +195,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // project, no callback
 
-        public override async ValueTask<bool> TryInvokeAsync(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<bool> TryInvokeAsync(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, ProjectId, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
             try
             {
                 using var scope = await _solutionAssetStorage.StoreAssetsAsync(compilationState, projectId, cancellationToken).ConfigureAwait(false);
                 using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-                await invocation(rental.Service, scope.SolutionChecksum, cancellationToken).ConfigureAwait(false);
+                await invocation(rental.Service, scope.SolutionChecksum, projectId, cancellationToken).ConfigureAwait(false);
                 return true;
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
@@ -211,13 +211,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, ProjectId, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
         {
             try
             {
                 using var scope = await _solutionAssetStorage.StoreAssetsAsync(compilationState, projectId, cancellationToken).ConfigureAwait(false);
                 using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-                return await invocation(rental.Service, scope.SolutionChecksum, cancellationToken).ConfigureAwait(false);
+                return await invocation(rental.Service, scope.SolutionChecksum, projectId, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // project, callback
 
-        public override async ValueTask<bool> TryInvokeAsync(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<bool> TryInvokeAsync(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, ProjectId, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(_callbackDispatcher is not null);
 
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using var scope = await _solutionAssetStorage.StoreAssetsAsync(compilationState, projectId, cancellationToken).ConfigureAwait(false);
                 using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-                await invocation(rental.Service, scope.SolutionChecksum, _callbackHandle.Id, cancellationToken).ConfigureAwait(false);
+                await invocation(rental.Service, scope.SolutionChecksum, projectId, _callbackHandle.Id, cancellationToken).ConfigureAwait(false);
 
                 return true;
             }
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, ProjectId, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(_callbackDispatcher is not null);
 
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using var scope = await _solutionAssetStorage.StoreAssetsAsync(compilationState, projectId, cancellationToken).ConfigureAwait(false);
                 using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-                return await invocation(rental.Service, scope.SolutionChecksum, _callbackHandle.Id, cancellationToken).ConfigureAwait(false);
+                return await invocation(rental.Service, scope.SolutionChecksum, projectId, _callbackHandle.Id, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {

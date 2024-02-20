@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.TaskList
             {
                 var result = await client.TryInvokeAsync<IRemoteTaskListService, ImmutableArray<TaskListItem>>(
                     document.Project,
-                    (service, checksum, cancellationToken) => service.GetTaskListItemsAsync(checksum, document.Id, descriptors, cancellationToken),
+                    (service, checksum, projectId, cancellationToken) => service.GetTaskListItemsAsync(checksum, document.Id, descriptors, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)

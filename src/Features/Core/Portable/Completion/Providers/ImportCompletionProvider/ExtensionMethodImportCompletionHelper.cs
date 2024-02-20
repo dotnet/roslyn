@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var result = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService>(
                     project,
-                    (service, solutionInfo, cancellationToken) => service.WarmUpCacheAsync(
-                        solutionInfo, project.Id, cancellationToken),
+                    static (service, solutionInfo, projectId, cancellationToken) => service.WarmUpCacheAsync(
+                        solutionInfo, projectId, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
             else
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // project cone.
                 var remoteResult = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService, SerializableUnimportedExtensionMethods?>(
                      project,
-                     (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
+                     (service, solutionInfo, projectId, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
                          solutionInfo, document.Id, position, receiverTypeSymbolKeyData, namespaceInScope.ToImmutableArray(),
                          targetTypesSymbolKeyData, forceCacheCreation, hideAdvancedMembers, cancellationToken),
                      cancellationToken).ConfigureAwait(false);

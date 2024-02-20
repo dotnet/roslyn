@@ -45,7 +45,7 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
         {
             var result = await client.TryInvokeAsync<IRemoteFullyQualifyService, FullyQualifyFixData?>(
                 document.Project,
-                (service, solutionChecksum, cancellationToken) => service.GetFixDataAsync(solutionChecksum, document.Id, span, hideAdvancedMembers, cancellationToken),
+                (service, solutionChecksum, projectId, cancellationToken) => service.GetFixDataAsync(solutionChecksum, document.Id, span, hideAdvancedMembers, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!result.HasValue)

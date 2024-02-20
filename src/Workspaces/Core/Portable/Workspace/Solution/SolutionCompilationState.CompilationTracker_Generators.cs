@@ -122,7 +122,7 @@ internal partial class SolutionCompilationState
             var infosOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
-                (service, solutionChecksum, cancellationToken) => service.GetSourceGenerationInfoAsync(solutionChecksum, projectId, cancellationToken),
+                static (service, solutionChecksum, projectId, cancellationToken) => service.GetSourceGenerationInfoAsync(solutionChecksum, projectId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!infosOpt.HasValue)
@@ -168,7 +168,7 @@ internal partial class SolutionCompilationState
             var generatedSourcesOpt = await connection.TryInvokeAsync(
                 compilationState,
                 projectId,
-                (service, solutionChecksum, cancellationToken) => service.GetContentsAsync(
+                (service, solutionChecksum, projectId, cancellationToken) => service.GetContentsAsync(
                     solutionChecksum, projectId, documentsToAddOrUpdate.ToImmutable(), cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 

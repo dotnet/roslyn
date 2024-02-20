@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // Don't need to sync the full solution when searching a single document.  Just sync the project that doc is in.
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     document.Project,
-                    (service, solutionInfo, callbackId, cancellationToken) =>
+                    (service, solutionInfo, projectId, callbackId, cancellationToken) =>
                     service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
                     callback, cancellationToken).ConfigureAwait(false);
 

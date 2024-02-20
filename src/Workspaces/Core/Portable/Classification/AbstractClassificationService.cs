@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 // to classify properly.
                 var classifiedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationService, SerializableClassifiedSpans>(
                    project,
-                   (service, solutionInfo, cancellationToken) => service.GetClassificationsAsync(
+                   (service, solutionInfo, projectId, cancellationToken) => service.GetClassificationsAsync(
                        solutionInfo, document.Id, textSpans, type, options, isFullyLoaded, cancellationToken),
                    cancellationToken).ConfigureAwait(false);
 
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             var cachedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationService, SerializableClassifiedSpans?>(
                document.Project,
-               (service, solutionInfo, cancellationToken) => service.GetCachedClassificationsAsync(
+               (service, solutionInfo, projectId, cancellationToken) => service.GetCachedClassificationsAsync(
                    documentKey, textSpans, type, checksum, cancellationToken),
                cancellationToken).ConfigureAwait(false);
 

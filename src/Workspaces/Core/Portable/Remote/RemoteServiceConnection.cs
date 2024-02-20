@@ -66,24 +66,24 @@ internal abstract class RemoteServiceConnection<TService> : IDisposable
     public abstract ValueTask<bool> TryInvokeAsync(
         SolutionCompilationState compilationState,
         ProjectId projectId,
-        Func<TService, Checksum, CancellationToken, ValueTask> invocation,
+        Func<TService, Checksum, ProjectId, CancellationToken, ValueTask> invocation,
         CancellationToken cancellationToken);
 
     public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
         SolutionCompilationState compilationState,
         ProjectId projectId,
-        Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
+        Func<TService, Checksum, ProjectId, CancellationToken, ValueTask<TResult>> invocation,
         CancellationToken cancellationToken);
 
     public ValueTask<bool> TryInvokeAsync(
         Project project,
-        Func<TService, Checksum, CancellationToken, ValueTask> invocation,
+        Func<TService, Checksum, ProjectId, CancellationToken, ValueTask> invocation,
         CancellationToken cancellationToken)
         => TryInvokeAsync(project.Solution.CompilationState, project.Id, invocation, cancellationToken);
 
     public ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
         Project project,
-        Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
+        Func<TService, Checksum, ProjectId, CancellationToken, ValueTask<TResult>> invocation,
         CancellationToken cancellationToken)
         => TryInvokeAsync(project.Solution.CompilationState, project.Id, invocation, cancellationToken);
 
@@ -116,24 +116,24 @@ internal abstract class RemoteServiceConnection<TService> : IDisposable
     public abstract ValueTask<bool> TryInvokeAsync(
         SolutionCompilationState compilationState,
         ProjectId projectId,
-        Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation,
+        Func<TService, Checksum, ProjectId, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation,
         CancellationToken cancellationToken);
 
     public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
         SolutionCompilationState compilationState,
         ProjectId projectId,
-        Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
+        Func<TService, Checksum, ProjectId, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
         CancellationToken cancellationToken);
 
     public ValueTask<bool> TryInvokeAsync(
         Project project,
-        Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation,
+        Func<TService, Checksum, ProjectId, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation,
         CancellationToken cancellationToken)
         => TryInvokeAsync(project.Solution.CompilationState, project.Id, invocation, cancellationToken);
 
     public ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
         Project project,
-        Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
+        Func<TService, Checksum, ProjectId, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
         CancellationToken cancellationToken)
         => TryInvokeAsync(project.Solution.CompilationState, project.Id, invocation, cancellationToken);
 

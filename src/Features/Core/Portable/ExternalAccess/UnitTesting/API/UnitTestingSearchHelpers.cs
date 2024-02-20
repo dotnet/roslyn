@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             {
                 var location = await client.TryInvokeAsync<IRemoteUnitTestingSearchService, UnitTestingSourceLocation?>(
                     project,
-                    (service, solutionChecksum, cancellationToken) => service.GetSourceLocationAsync(solutionChecksum, project.Id, query, cancellationToken),
+                    (service, solutionChecksum, projectId, cancellationToken) => service.GetSourceLocationAsync(solutionChecksum, project.Id, query, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
                 if (!location.HasValue || location.Value is null)
                     return null;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             {
                 var locations = await client.TryInvokeAsync<IRemoteUnitTestingSearchService, ImmutableArray<UnitTestingSourceLocation>>(
                     project,
-                    (service, solutionChecksum, cancellationToken) => service.GetSourceLocationsAsync(solutionChecksum, project.Id, query, cancellationToken),
+                    (service, solutionChecksum, projectId, cancellationToken) => service.GetSourceLocationsAsync(solutionChecksum, project.Id, query, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
                 if (!locations.HasValue)
                     return [];

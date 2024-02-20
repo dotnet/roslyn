@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.NavigationBar
                 var documentId = document.Id;
                 var result = await client.TryInvokeAsync<IRemoteNavigationBarItemService, ImmutableArray<SerializableNavigationBarItem>>(
                     document.Project,
-                    (service, solutionInfo, cancellationToken) => service.GetItemsAsync(solutionInfo, documentId, supportsCodeGeneration, forceFrozenPartialSemanticsForCrossProcessOperations, cancellationToken),
+                    (service, solutionInfo, projectId, cancellationToken) => service.GetItemsAsync(solutionInfo, documentId, supportsCodeGeneration, forceFrozenPartialSemanticsForCrossProcessOperations, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 return result.HasValue

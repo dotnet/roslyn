@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public async ValueTask<bool> TryInvokeAsync<TService>(
             Project project,
-            Func<TService, Checksum, CancellationToken, ValueTask> invocation,
+            Func<TService, Checksum, ProjectId, CancellationToken, ValueTask> invocation,
             CancellationToken cancellationToken)
             where TService : class
         {
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
             Project project,
-            Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
+            Func<TService, Checksum, ProjectId, CancellationToken, ValueTask<TResult>> invocation,
             CancellationToken cancellationToken)
             where TService : class
         {
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public async ValueTask<bool> TryInvokeAsync<TService>(
             Project project,
-            Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation,
+            Func<TService, Checksum, ProjectId, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation,
             object callbackTarget,
             CancellationToken cancellationToken)
             where TService : class
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
             Project project,
-            Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
+            Func<TService, Checksum, ProjectId, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
             object callbackTarget,
             CancellationToken cancellationToken)
             where TService : class

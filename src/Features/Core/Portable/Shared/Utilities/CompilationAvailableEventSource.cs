@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 {
                     var result = await client.TryInvokeAsync<IRemoteCompilationAvailableService>(
                         project,
-                        (service, solutionInfo, cancellationToken) => service.ComputeCompilationAsync(solutionInfo, project.Id, cancellationToken),
+                        static (service, solutionInfo, projectId, cancellationToken) => service.ComputeCompilationAsync(solutionInfo, projectId, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
 
                     if (!result)

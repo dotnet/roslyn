@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 var priorityDocumentId = activeDocument.Id;
                 await connection.TryInvokeAsync(
                     activeDocument.Project,
-                    (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
+                    (service, checksum, projectId, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
                         callbackId, checksum, priorityDocumentId, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
