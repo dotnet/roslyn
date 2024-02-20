@@ -67,7 +67,6 @@ internal static class PRTaggerCommand
                 gitHubClient);
 
             return await PRTagger.PRTagger.TagPRs(
-                settings,
                 remoteConnections,
                 logger,
                 maxFetchingVSBuildNumber).ConfigureAwait(false);

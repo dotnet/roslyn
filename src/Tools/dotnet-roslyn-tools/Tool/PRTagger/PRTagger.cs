@@ -35,7 +35,6 @@ internal static class PRTagger
     /// <param name="logger"></param>
     /// <returns>Exit code indicating whether issue was successfully created.</returns>
     public static async Task<int> TagPRs(
-        RoslynToolsSettings settings,
         RemoteConnections remoteConnections,
         ILogger logger,
         int maxFetchingVSBuildNumber)
