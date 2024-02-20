@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             // Freeze the entire solution at this point.  We don't want to run generators (as they are very unlikely
             // to contribute any changes that would affect which types we think are designable), and we want to be 
             // very fast to update the ui as a user types.
-            var frozenSolution = solution.WithFrozenPartialCompilations(cancellationToken);
+            var frozenSolution = await solution.WithFrozenPartialCompilationsAsync(cancellationToken).ConfigureAwait(false);
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
