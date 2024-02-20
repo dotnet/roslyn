@@ -1637,6 +1637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var builder = s_symbolListPool.Allocate();
+            var addAction = builder.Add;
 
             if (name == null)
             {
@@ -1644,13 +1645,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and find all the corresponding symbols.
                 foreach (string foundName in info.Names)
                 {
-                    AppendSymbolsWithName(builder.Add, foundName, binder, container, options, info);
+                    AppendSymbolsWithName(addAction, foundName, binder, container, options, info);
                 }
             }
             else
             {
                 // They provided a name.  Find all the arities for that name, and then look all of those up.
-                AppendSymbolsWithName(builder.Add, name, binder, container, options, info);
+                AppendSymbolsWithName(addAction, name, binder, container, options, info);
             }
 
             info.Free();
