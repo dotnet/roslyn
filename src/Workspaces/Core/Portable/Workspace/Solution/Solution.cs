@@ -1486,18 +1486,22 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
-            AsyncLazy<Solution>? lazySolution;
-            lock (_documentIdToFrozenSolution)
+            return GetLazySolution().GetValue(cancellationToken);
+
+            AsyncLazy<Solution> GetLazySolution()
             {
-                if (!_documentIdToFrozenSolution.TryGetValue(documentId, out lazySolution))
+                lock (_documentIdToFrozenSolution)
                 {
-                    // in a local function to prevent lamdba allocations when not needed.
-                    lazySolution = CreateLazyFrozenSolution(this.CompilationState, documentId);
-                    _documentIdToFrozenSolution.Add(documentId, lazySolution);
+                    if (!_documentIdToFrozenSolution.TryGetValue(documentId, out var lazySolution))
+                    {
+                        // in a local function to prevent lambda allocations when not needed.
+                        lazySolution = CreateLazyFrozenSolution(this.CompilationState, documentId);
+                        _documentIdToFrozenSolution.Add(documentId, lazySolution);
+                    }
+
+                    return lazySolution;
                 }
             }
-
-            return lazySolution.GetValue(cancellationToken);
 
             static AsyncLazy<Solution> CreateLazyFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId)
             {
