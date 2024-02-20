@@ -127,6 +127,7 @@ jobs:
             displayName: 📢 Publish ${{ artifact_name }}-Linux
             targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-Linux
             artifactName: ${{ artifact_name }}-Linux
+            condition: succeededOrFailed()
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
@@ -157,6 +158,7 @@ jobs:
             displayName: 📢 Publish ${{ artifact_name }}-macOS
             targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-macOS
             artifactName: ${{ artifact_name }}-macOS
+            condition: succeededOrFailed()
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
