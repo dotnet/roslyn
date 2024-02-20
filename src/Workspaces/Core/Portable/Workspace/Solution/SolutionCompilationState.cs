@@ -1139,22 +1139,12 @@ internal sealed partial class SolutionCompilationState
             TextDocumentStates<TDocumentState> oldStates,
             TextDocumentStates<TDocumentState> newStates) where TDocumentState : TextDocumentState
         {
-            // Get the trivial sets of documents that are present in one set but not the other.  Don't need to do this
-            // if the Ids are all the same, as that means the sets are the same.
-            if (oldStates.Ids != newStates.Ids)
-            {
-                foreach (var (documentId, oldDocumentState) in oldStates.States)
-                {
-                    if (!newStates.States.ContainsKey(documentId))
-                        documentsToRemove.Add(oldDocumentState);
-                }
+            // Get the trivial sets of documents that are present in one set but not the other.
+            foreach (var documentId in newStates.GetAddedStateIds(oldStates))
+                documentsToAdd.Add(newStates.GetRequiredState(documentId));
 
-                foreach (var (documentId, newDocumentState) in newStates.States)
-                {
-                    if (!oldStates.States.ContainsKey(documentId))
-                        documentsToAdd.Add(newDocumentState);
-                }
-            }
+            foreach (var documentId in newStates.GetRemovedStateIds(oldStates))
+                documentsToRemove.Add(oldStates.GetRequiredState(documentId));
 
             // Now go through the states that are in both sets.  We have to check these all as it is possible for
             // document to change its file path without its id changing.
