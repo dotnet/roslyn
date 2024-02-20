@@ -19,7 +19,7 @@ using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Resolver;
 
-#if NET46 || NET472 || NETSTANDARD || NETCOREAPP3_1
+#if NUGET_SIGNING
 using NuGet.Packaging.Signing;
 #endif
 
@@ -274,13 +274,13 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 var globalPathResolver = new PackagePathResolver(SettingsUtility.GetGlobalPackagesFolder(settings));
                 var localPathResolver = new PackagePathResolver(temporaryPackagesFolder);
-#if NET452
+#if NET452 || NET46 || NETSTANDARD1_6
                 var packageExtractionContext = new PackageExtractionContext(logger)
                 {
                     PackageSaveMode = PackageSaveMode.Defaultv3,
                     XmlDocFileSaveMode = XmlDocFileSaveMode.None,
                 };
-#elif NET46 || NET472 || NETSTANDARD1_6 || NETSTANDARD2_0 || NETCOREAPP3_1
+#elif NUGET_SIGNING
                 var packageExtractionContext = new PackageExtractionContext(
                     PackageSaveMode.Defaultv3,
                     XmlDocFileSaveMode.None,
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         if (downloadResult.Status == DownloadResourceResultStatus.AvailableWithoutStream)
                         {
                             await PackageExtractor.ExtractPackageAsync(
-#if !NET452
+#if NUGET_SIGNING
 #pragma warning disable SA1114 // Parameter list should follow declaration
                                 downloadResult.PackageSource,
 #pragma warning restore SA1114 // Parameter list should follow declaration
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         {
                             Debug.Assert(downloadResult.PackageStream != null, "PackageStream should not be null if download result status != DownloadResourceResultStatus.AvailableWithoutStream");
                             await PackageExtractor.ExtractPackageAsync(
-#if !NET452
+#if NUGET_SIGNING
 #pragma warning disable SA1114 // Parameter list should follow declaration
                                 downloadResult.PackageSource,
 #pragma warning restore SA1114 // Parameter list should follow declaration
@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 var dependencyInfo = await dependencyInfoResource.ResolvePackage(
                     packageIdentity,
                     targetFramework,
-#if !NET452
+#if NUGET_SIGNING
                     cacheContext,
 #endif
                     logger,
