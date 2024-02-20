@@ -63,14 +63,14 @@ internal sealed partial class SolutionCompilationState
     /// </summary>
     private readonly Dictionary<DocumentId, SolutionCompilationState> _cachedFrozenDocumentState = [];
 
-    private SolutionCompilationState? _cachedFrozenSnapshot;
+    private readonly AsyncLazy<SolutionCompilationState> _cachedFrozenSnapshot;
 
     private SolutionCompilationState(
         SolutionState solution,
         bool partialSemanticsEnabled,
         ImmutableDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
         TextDocumentStates<SourceGeneratedDocumentState>? frozenSourceGeneratedDocumentStates,
-        SolutionCompilationState? cachedFrozenSnapshot)
+        AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot)
     {
         SolutionState = solution;
         PartialSemanticsEnabled = partialSemanticsEnabled;
@@ -79,7 +79,9 @@ internal sealed partial class SolutionCompilationState
 
         // when solution state is changed, we recalculate its checksum
         _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectId: null, c));
-        _cachedFrozenSnapshot = cachedFrozenSnapshot;
+        _cachedFrozenSnapshot = cachedFrozenSnapshot ?? new AsyncLazy<SolutionCompilationState>(
+            c => Task.FromResult(ComputeFrozenSnapshot(c)),
+            c => ComputeFrozenSnapshot(c));
 
         CheckInvariants();
     }
@@ -110,7 +112,7 @@ internal sealed partial class SolutionCompilationState
         SolutionState newSolutionState,
         ImmutableDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
         Optional<TextDocumentStates<SourceGeneratedDocumentState>?> frozenSourceGeneratedDocumentStates = default,
-        SolutionCompilationState? cachedFrozenSnapshot = null)
+        AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
     {
         projectIdToTrackerMap ??= _projectIdToTrackerMap;
         var newFrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates.HasValue ? frozenSourceGeneratedDocumentStates.Value : FrozenSourceGeneratedDocumentStates;
@@ -1062,13 +1064,7 @@ internal sealed partial class SolutionCompilationState
     }
 
     public SolutionCompilationState WithFrozenPartialCompilations(CancellationToken cancellationToken)
-    {
-        using (this.StateLock.DisposableWait(cancellationToken))
-        {
-            _cachedFrozenSnapshot ??= ComputeFrozenSnapshot(cancellationToken);
-            return _cachedFrozenSnapshot;
-        }
-    }
+        => _cachedFrozenSnapshot.GetValue(cancellationToken);
 
     private SolutionCompilationState ComputeFrozenSnapshot(CancellationToken cancellationToken)
     {
