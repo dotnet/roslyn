@@ -278,7 +278,8 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             this.SolutionState.WithProjectAssemblyName(projectId, assemblyName),
-            static (stateChange, assemblyName) => new TranslationAction.ProjectAssemblyNameAction(stateChange.OldProjectState, assemblyName),
+            static (stateChange, assemblyName) => new TranslationAction.ProjectAssemblyNameAction(
+                stateChange.OldProjectState, stateChange.NewProjectState, assemblyName),
             forkTracker: true,
             arg: assemblyName);
     }
@@ -484,7 +485,7 @@ internal sealed partial class SolutionCompilationState
         return ForkProject(
             stateChange,
             static (stateChange, analyzerReferences) => new TranslationAction.AddOrRemoveAnalyzerReferencesAction(
-                stateChange.OldProjectState, referencesToAdd: analyzerReferences),
+                stateChange.OldProjectState, stateChange.NewProjectState, referencesToAdd: analyzerReferences),
             forkTracker: true,
             arg: analyzerReferences);
     }
@@ -519,7 +520,7 @@ internal sealed partial class SolutionCompilationState
         return ForkProject(
             this.SolutionState.RemoveAnalyzerReference(projectId, analyzerReference),
             static (stateChange, analyzerReference) => new TranslationAction.AddOrRemoveAnalyzerReferencesAction(
-                stateChange.OldProjectState, referencesToRemove: [analyzerReference]),
+                stateChange.OldProjectState, stateChange.NewProjectState, referencesToRemove: [analyzerReference]),
             forkTracker: true,
             arg: analyzerReference);
     }
@@ -550,7 +551,7 @@ internal sealed partial class SolutionCompilationState
                 var removedReferences = stateChange.OldProjectState.AnalyzerReferences.Except<AnalyzerReference>(stateChange.NewProjectState.AnalyzerReferences, ReferenceEqualityComparer.Instance).ToImmutableArray();
 
                 return new TranslationAction.AddOrRemoveAnalyzerReferencesAction(
-                    stateChange.OldProjectState, referencesToAdd: addedReferences, referencesToRemove: removedReferences);
+                    stateChange.OldProjectState, stateChange.NewProjectState, referencesToAdd: addedReferences, referencesToRemove: removedReferences);
             },
             forkTracker: true);
     }
@@ -706,7 +707,7 @@ internal sealed partial class SolutionCompilationState
                 var oldDocument = stateChange.OldProjectState.DocumentStates.GetRequiredState(documentId);
                 var newDocument = stateChange.NewProjectState.DocumentStates.GetRequiredState(documentId);
 
-                return new TranslationAction.TouchDocumentAction(stateChange.OldProjectState, oldDocument, newDocument);
+                return new TranslationAction.TouchDocumentAction(stateChange.OldProjectState, stateChange.NewProjectState, oldDocument, newDocument);
             },
             forkTracker: true,
             arg: documentId);
@@ -724,7 +725,7 @@ internal sealed partial class SolutionCompilationState
                 var oldDocument = stateChange.OldProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
                 var newDocument = stateChange.NewProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
 
-                return new TranslationAction.TouchAdditionalDocumentAction(stateChange.OldProjectState, oldDocument, newDocument);
+                return new TranslationAction.TouchAdditionalDocumentAction(stateChange.OldProjectState, stateChange.NewProjectState, oldDocument, newDocument);
             },
             forkTracker: true,
             arg: documentId);

@@ -20,9 +20,12 @@ internal partial class SolutionCompilationState
         /// </summary>
         public readonly ProjectState OldProjectState;
 
-        protected TranslationAction(ProjectState oldProjectState)
+        public readonly ProjectState NewProjectState;
+
+        protected TranslationAction(ProjectState oldProjectState, ProjectState newProjectState)
         {
             OldProjectState = oldProjectState;
+            NewProjectState = newProjectState;
         }
 
         public abstract Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken);

@@ -247,28 +247,29 @@ namespace Microsoft.CodeAnalysis
 
                 GetPartialCompilationState(
                     state,
-                    out var inProgressProject,
+                    out var oldProjectState,
                     out var compilationWithoutGeneratedDocuments,
                     out var compilationWithGeneratedDocuments,
                     out var generatorInfo,
                     cancellationToken);
 
                 ImmutableList<TranslationAction> pendingActions;
-                if (inProgressProject.DocumentStates.TryGetState(docState.Id, out oldState))
+                ProjectState newProjectState;
+                if (oldProjectState.DocumentStates.TryGetState(docState.Id, out oldState))
                 {
                     // The document had been previously parsed and it's there, so we can update it with our current
                     // state. Note if no compilation existed GetPartialCompilationState would have produced an empty
                     // one, and removed any documents, so inProgressProject.DocumentStates would have been empty
                     // originally.
-                    pendingActions = [new TranslationAction.TouchDocumentAction(inProgressProject, oldState, docState)];
-                    inProgressProject = inProgressProject.UpdateDocument(docState, contentChanged: true);
+                    newProjectState = oldProjectState.UpdateDocument(docState, contentChanged: true);
+                    pendingActions = [new TranslationAction.TouchDocumentAction(oldProjectState, newProjectState, oldState, docState)];
                 }
                 else
                 {
                     // The document wasn't present in the original snapshot at all, and we just need to add the
                     // document.
-                    pendingActions = [new TranslationAction.AddDocumentsAction(inProgressProject, [docState])];
-                    inProgressProject = inProgressProject.AddDocuments([docState]);
+                    newProjectState = oldProjectState.AddDocuments([docState]);
+                    pendingActions = [new TranslationAction.AddDocumentsAction(oldProjectState, newProjectState, [docState])];
                 }
 
                 // Transition us to a frozen in progress state.  With the best compilations up to this point, and the
@@ -280,7 +281,7 @@ namespace Microsoft.CodeAnalysis
                     compilationWithGeneratedDocuments,
                     pendingActions);
 
-                return new CompilationTracker(inProgressProject, inProgressState, this.SkeletonReferenceCache.Clone());
+                return new CompilationTracker(newProjectState, inProgressState, this.SkeletonReferenceCache.Clone());
             }
 
             /// <summary>
