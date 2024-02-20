@@ -33,14 +33,16 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.
         /// </summary>
-        private AsyncLazy<Solution> CachedFrozenSolution { get; init; }
+        private readonly AsyncLazy<Solution> _cachedFrozenSolution;
 
-        private Solution(SolutionCompilationState compilationState)
+        private Solution(
+            SolutionCompilationState compilationState,
+            AsyncLazy<Solution>? cachedFrozenSolution = null)
         {
             _projectIdToProjectMap = [];
             _compilationState = compilationState;
 
-            CachedFrozenSolution = new AsyncLazy<Solution>(
+            _cachedFrozenSolution = cachedFrozenSolution ?? new AsyncLazy<Solution>(
                 c => Task.FromResult(ComputeFrozenSolution(c)),
                 c => ComputeFrozenSolution(c));
         }
@@ -1455,11 +1457,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="cancellationToken"></param>
         internal Solution WithFrozenPartialCompilations(CancellationToken cancellationToken)
-            => CachedFrozenSolution.GetValue(cancellationToken);
+            => _cachedFrozenSolution.GetValue(cancellationToken);
 
         /// <inheritdoc cref="WithFrozenPartialCompilations"/>
         internal Task<Solution> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
-            => CachedFrozenSolution.GetValueAsync(cancellationToken);
+            => _cachedFrozenSolution.GetValueAsync(cancellationToken);
 
         private Solution ComputeFrozenSolution(CancellationToken cancellationToken)
         {
@@ -1468,11 +1470,10 @@ namespace Microsoft.CodeAnalysis
                 return this;
 
             var newCompilationState = this.CompilationState.WithFrozenPartialCompilations(cancellationToken);
-            var frozenSolution = new Solution(newCompilationState)
-            {
-                // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.
-                CachedFrozenSolution = this.CachedFrozenSolution,
-            };
+
+            // Produce the new solution, but pass along ourselves as the cached frozen solution that asking for a frozen
+            // solution off a frozen solution gets you the same instance back.
+            var frozenSolution = new Solution(newCompilationState, _cachedFrozenSolution);
 
             return frozenSolution;
         }
