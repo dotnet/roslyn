@@ -199,6 +199,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 var compilationChecksums = await solution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                 await compilationChecksums.FindAsync(solution.CompilationState, assetHint: AssetHint.None, Flatten(compilationChecksums), map, cancellationToken).ConfigureAwait(false);
 
+                foreach (var frozenSourceGeneratedDocumentState in solution.CompilationState.FrozenSourceGeneratedDocumentStates?.States.Values ?? [])
+                {
+                    var documentChecksums = await frozenSourceGeneratedDocumentState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                    await compilationChecksums.FindAsync(solution.CompilationState, assetHint: AssetHint.None, Flatten(documentChecksums), map, cancellationToken).ConfigureAwait(false);
+                }
+
                 var solutionChecksums = await solution.CompilationState.SolutionState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                 await solutionChecksums.FindAsync(solution.CompilationState.SolutionState, assetHint: AssetHint.None, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
 
