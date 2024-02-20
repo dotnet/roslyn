@@ -17,7 +17,9 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
@@ -326,6 +328,39 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
                 return null;
             }
+        }
+
+        public static async Task DiscoverDesignerAttributesAsync(
+            Solution solution,
+            Document? activeDocument,
+            RemoteHostClient client,
+            IAsynchronousOperationListener listener,
+            IDesignerAttributeDiscoveryService.ICallback target,
+            CancellationToken cancellationToken)
+        {
+            using var connection = client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callbackTarget: target);
+
+            // If there is an active document, then process changes to it right away, so that the UI updates quickly
+            // when the user adds/removes a form from a particular document.
+            if (RemoteSupportedLanguages.IsSupported(activeDocument?.Project.Language))
+            {
+                // We only need to do a project sync to compute the up to date data for this particular file.
+                var priorityDocumentId = activeDocument.Id;
+                await connection.TryInvokeAsync(
+                    activeDocument.Project,
+                    (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
+                        callbackId, checksum, priorityDocumentId, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            // Wait a little after the priority document and process the rest of the solution at a lower priority.
+            await listener.Delay(DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
+
+            await connection.TryInvokeAsync(
+                solution,
+                (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
+                    callbackId, checksum, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             try
             {
-                await Task.Yield();
+                await Task.Yield().ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // We're doing a real search over the fully loaded solution now.  No need to hold onto the cached map
                 // of potentially stale indices.
@@ -81,6 +82,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             HashSet<Document> documents,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
             foreach (var document in documents)
@@ -103,7 +105,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Func<RoslynNavigateToItem, Task> onResultFound,
             CancellationToken cancellationToken)
         {
-            await Task.Yield();
+            cancellationToken.ThrowIfCancellationRequested();
+            await Task.Yield().ConfigureAwait(false);
             var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
 
             await ProcessIndexAsync(
@@ -120,6 +123,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             TopLevelSyntaxTreeIndex index,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var containerMatcher = patternContainer != null
                 ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer, includeMatchedSpans: true)
                 : null;
