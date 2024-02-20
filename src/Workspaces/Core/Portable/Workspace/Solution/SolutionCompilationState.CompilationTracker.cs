@@ -675,7 +675,12 @@ namespace Microsoft.CodeAnalysis
                         // that any future forks keep things frozen.
                         return finalState.WithIsFrozen();
                     }
-                    else if (state is null)
+
+                    // Non-final state currently.  Produce an in-progress-state containing the forked change. Note: we
+                    // transition to in-progress-state here (and not final-state) as we still want to leverage all the
+                    // final-state-transition logic contained in FinalizeCompilationAsync (for example, properly setting
+                    // up all references).
+                    if (state is null)
                     {
                         // We have no data at all. Create a frozen empty project/compilation to represent this state.
                         var compilationWithoutGeneratedDocuments = this.CreateEmptyCompilation();
