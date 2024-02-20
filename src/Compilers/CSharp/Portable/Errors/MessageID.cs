@@ -279,6 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_StringEscapeCharacter = MessageBase + 12839,
 
         IDS_ImplicitIndexerInitializer = MessageBase + 12840,
+        IDS_LockObject = MessageBase + 12841,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -461,6 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# preview features.
                 case MessageID.IDS_StringEscapeCharacter:
                 case MessageID.IDS_ImplicitIndexerInitializer:
+                case MessageID.IDS_LockObject:
                     return LanguageVersion.Preview;
 
                 // C# 12.0 features.
