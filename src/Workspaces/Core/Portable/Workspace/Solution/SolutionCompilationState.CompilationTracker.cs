@@ -661,11 +661,11 @@ namespace Microsoft.CodeAnalysis
                     _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
                 };
 
-                var frozenState = GetFrozenCompilationState(state);
+                var frozenState = GetFrozenCompilationState();
                 Contract.ThrowIfFalse(frozenState.IsFrozen);
                 return new CompilationTracker(projectState, frozenState, this.SkeletonReferenceCache.Clone());
 
-                CompilationTrackerState GetFrozenCompilationState(CompilationTrackerState? state)
+                CompilationTrackerState GetFrozenCompilationState()
                 {
                     if (state is FinalCompilationTrackerState finalState)
                     {
@@ -678,7 +678,6 @@ namespace Microsoft.CodeAnalysis
                     else if (state is null)
                     {
                         // We have no data at all. Create a frozen empty project/compilation to represent this state.
-                        var inProgressProject = this.ProjectState.RemoveAllDocuments();
                         var compilationWithoutGeneratedDocuments = this.CreateEmptyCompilation();
                         var compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments;
 
