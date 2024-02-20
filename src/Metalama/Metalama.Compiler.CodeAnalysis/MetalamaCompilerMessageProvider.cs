@@ -3,8 +3,6 @@ using System.Globalization;
 using Microsoft.CodeAnalysis;
 using static Metalama.Compiler.MetalamaErrorCode;
 
-#nullable enable
-
 namespace Metalama.Compiler
 {
     internal enum MetalamaErrorCode
@@ -24,7 +22,8 @@ namespace Metalama.Compiler
         WRN_AnalyzerAssembliesRedirected = 617,
         WRN_AnalyzerAssemblyCantRedirect = 618,
         ERR_InterceptorsNotSupported = 619,
-        WRN_LanguageVersionUpdated = 620 // Emitted by Microsoft.CSharp.Core.targets.
+        WRN_LanguageVersionUpdated = 620, // Emitted by Microsoft.CSharp.Core.targets.
+        WRN_GeneratorAssemblyCantRedirect = 621
     }
 
     internal sealed class MetalamaCompilerMessageProvider : CommonMessageProvider
@@ -222,7 +221,8 @@ namespace Metalama.Compiler
             WRN_NoTransformedOutputPathWhenDebuggingTransformed or
             WRN_TransformersNotOrdered or
             WRN_AnalyzerAssembliesRedirected or
-            WRN_AnalyzerAssemblyCantRedirect => DiagnosticSeverity.Warning,
+            WRN_AnalyzerAssemblyCantRedirect or
+            WRN_GeneratorAssemblyCantRedirect => DiagnosticSeverity.Warning,
 
             _ => throw new ArgumentOutOfRangeException(nameof(code))
         };
@@ -244,6 +244,7 @@ namespace Metalama.Compiler
                 WRN_AnalyzerAssembliesRedirected => "Some analyzer assemblies were downgraded because of Metalama/Roslyn version mismatch.",
                 WRN_AnalyzerAssemblyCantRedirect => "Analyzer assembly was disabled because of Metalama/Roslyn version mismatch.",
                 ERR_InterceptorsNotSupported => "Interceptors and Metalama can't currently be used together.",
+                WRN_GeneratorAssemblyCantRedirect => "Source generator assembly was disabled because of Metalama/Roslyn version mismatch.",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 
@@ -270,8 +271,9 @@ namespace Metalama.Compiler
                 ERR_ManyTransformersOfSameName => "The project contains several transformers named '{0}': {1}.",
                 ERR_TransformerNotUnique => "There are several transformers named '{0}': {1}.",
                 WRN_AnalyzerAssembliesRedirected => "Analyzer assemblies for this project reference Roslyn version {0}, which is newer than what is supported by the current version of Metalama ({1}). Some analyzer assemblies were downgraded to the latest supported version.",
-                WRN_AnalyzerAssemblyCantRedirect => "Analyzer assembly '{0}' was disabled, because it references Roslyn version {1}, which is newer than what is supported by the current version of Metalama ({2}).",
+                WRN_AnalyzerAssemblyCantRedirect => "Analyzer assembly '{0}' was disabled, because it references Roslyn version {1}, which is newer than what is supported by the current version of Metalama ({2}). Consider updating Metalama to a newer version, if one is available.",
                 ERR_InterceptorsNotSupported => "Interceptors and Metalama can't currently be used together.{0}",
+                WRN_GeneratorAssemblyCantRedirect => """Source generator assembly '{0}' was disabled, because it references Roslyn version {1}, which is newer than what is supported by the current version of Metalama ({2}). Consider updating Metalama to a newer version, if one is available. Otherwise, if you don't need this assembly, specify <NoWarn>LAMA0621</NoWarn> in your project file. If you do need it, set the version of the .NET SDK to {3} in global.json with patch-limited rollforward: {{ "sdk": {{ "version": "{3}", "rollForward": "latestPatch" }} }}""",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 
@@ -322,10 +324,11 @@ namespace Metalama.Compiler
             throw new NotImplementedException();
         }
 
-#if DEBUG
-        internal override bool ShouldAssertExpectedMessageArgumentsLength(int errorCode) => true;
-#endif
-
         #endregion
+
+#if DEBUG
+        internal override bool ShouldAssertExpectedMessageArgumentsLength(int errorCode)
+            => (MetalamaErrorCode)errorCode is not WRN_AnalyzerAssemblyCantRedirect;
+#endif
     }
 }

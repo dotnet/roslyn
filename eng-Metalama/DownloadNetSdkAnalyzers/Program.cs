@@ -1,17 +1,23 @@
 ﻿using DownloadNetSdkAnalyzers;
 using NuGet.Versioning;
 
-using var sdkDownloader = await NetSdkReleaseInfo.GetLatestSdkForRoslynVersionAsync(SemanticVersion.Parse(args[0]));
+var requestedRoslynVersion = SemanticVersion.Parse(args[0]);
+
+if (args is [_, "-sdk-version", ..])
+{
+    Console.WriteLine(await NetSdkReleaseInfo.GetLatestSdkVersionForRoslynVersionAsync(requestedRoslynVersion));
+    return;
+}
+
+using var sdkDownloader = await NetSdkReleaseInfo.GetLatestSdkDownloaderForRoslynVersionAsync(requestedRoslynVersion);
 
 var directory = Path.Combine(Path.GetTempPath(), "Metalama", "SdkAnalyzers", sdkDownloader.SdkVersion.ToString());
-
-Directory.CreateDirectory(directory);
 
 var completedFilePath = Path.Combine(directory, ".completed");
 
 bool shouldSave = true;
 
-if (File.Exists(directory))
+if (Directory.Exists(directory))
 {
     if (File.Exists(completedFilePath))
     {
@@ -26,6 +32,8 @@ if (File.Exists(directory))
 
 if (shouldSave)
 {
+    Directory.CreateDirectory(directory);
+
     foreach (var entry in sdkDownloader.GetAnalyzers())
     {
         var analyzerPath = Path.Combine(directory, entry.Name);
