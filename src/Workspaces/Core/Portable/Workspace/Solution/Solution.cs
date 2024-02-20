@@ -30,17 +30,19 @@ namespace Microsoft.CodeAnalysis
         // Values for all these are created on demand.
         private ImmutableHashMap<ProjectId, Project> _projectIdToProjectMap;
 
-        private readonly SemaphoreSlim _gate = new(initialCount: 1);
-
         /// <summary>
         /// Result of calling <see cref="WithFrozenPartialCompilations"/>.
         /// </summary>
-        private Solution? _cachedFrozenSolution;
+        private AsyncLazy<Solution> _cachedFrozenSolution { get; init; }
 
         private Solution(SolutionCompilationState compilationState)
         {
             _projectIdToProjectMap = [];
             _compilationState = compilationState;
+
+            _cachedFrozenSolution = new AsyncLazy<Solution>(
+                c => Task.FromResult(ComputeFrozenSolution(c)),
+                c => ComputeFrozenSolution(c));
         }
 
         internal Solution(
@@ -1453,13 +1455,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="cancellationToken"></param>
         internal Solution WithFrozenPartialCompilations(CancellationToken cancellationToken)
-        {
-            using (_gate.DisposableWait(cancellationToken))
-            {
-                _cachedFrozenSolution ??= ComputeFrozenSolution(cancellationToken);
-                return _cachedFrozenSolution;
-            }
-        }
+            => _cachedFrozenSolution.GetValue(cancellationToken);
+
+        /// <inheritdoc cref="WithFrozenPartialCompilations"/>
+        internal Task<Solution> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
+            => _cachedFrozenSolution.GetValueAsync(cancellationToken);
 
         private Solution ComputeFrozenSolution(CancellationToken cancellationToken)
         {
