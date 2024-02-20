@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Reflection.Emit;
 using System.Text;
 using System.Text.Json.Nodes;
+using LibGit2Sharp;
 using Microsoft.Azure.Pipelines.WebApi;
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Authentication;
@@ -35,9 +36,7 @@ internal static class PRTagger
     /// <returns>Exit code indicating whether issue was successfully created.</returns>
     public static async Task<int> TagPRs(
         RoslynToolsSettings settings,
-        AzDOConnection devdivConnection,
-        AzDOConnection dncengConnection,
-        HttpClient gitHubClient,
+        RemoteConnections remoteConnections,
         ILogger logger,
         int maxFetchingVSBuildNumber)
     {
@@ -57,11 +56,11 @@ internal static class PRTagger
             }
 
             var gitHubRepoName = product.RepoHttpBaseUrl.Split('/').Last();
-            var vsBuildsAndCommitSha = await GetVSBuildsAndCommitsAsync(gitHubRepoName, devdivConnection, gitHubClient, logger, maxFetchingVSBuildNumber, cancellationToken).ConfigureAwait(false);
+            var vsBuildsAndCommitSha = await GetVSBuildsAndCommitsAsync(gitHubRepoName, remoteConnections.DevDivConnection, remoteConnections.GitHubClient, logger, maxFetchingVSBuildNumber, cancellationToken).ConfigureAwait(false);
 
             foreach (var (vsBuild, vsCommitSha, previousVsCommitSha) in vsBuildsAndCommitSha)
             {
-                var result = await TagProductAsync(product, gitHubRepoName, logger, vsCommitSha, vsBuild, previousVsCommitSha, settings, devdivConnection, dncengConnection, gitHubClient).ConfigureAwait(false);
+                var result = await TagProductAsync(product, gitHubRepoName, logger, vsCommitSha, vsBuild, previousVsCommitSha, remoteConnections).ConfigureAwait(false);
                 if (result is TagResult.Failed or TagResult.IssueAlreadyCreated)
                 {
                     break;
@@ -73,14 +72,14 @@ internal static class PRTagger
     }
 
     private static async Task<TagResult> TagProductAsync(
-        IProduct product, string gitHubRepoName, ILogger logger, string vsCommitSha, string vsBuild, string previousVsCommitSha, RoslynToolsSettings settings, AzDOConnection devdivConnection, AzDOConnection dncengConnection, HttpClient gitHubClient)
+        IProduct product, string gitHubRepoName, ILogger logger, string vsCommitSha, string vsBuild, string previousVsCommitSha, RemoteConnections remoteConnections)
     {
-        var connections = new[] { devdivConnection, dncengConnection };
+        var connections = new[] { remoteConnections.DevDivConnection, remoteConnections.DncengConnection };
         logger.LogInformation($"GitHub repo: {gitHubRepoName}");
 
         // Get associated product build for current and previous VS commit SHAs
-        var currentBuild = await TryGetBuildNumberForReleaseAsync(product.ComponentJsonFileName, product.ComponentName, vsCommitSha, devdivConnection, logger).ConfigureAwait(false);
-        var previousBuild = await TryGetBuildNumberForReleaseAsync(product.ComponentJsonFileName, product.ComponentName, previousVsCommitSha, devdivConnection, logger).ConfigureAwait(false);
+        var currentBuild = await TryGetBuildNumberForReleaseAsync(product.ComponentJsonFileName, product.ComponentName, vsCommitSha, remoteConnections.DevDivConnection, logger).ConfigureAwait(false);
+        var previousBuild = await TryGetBuildNumberForReleaseAsync(product.ComponentJsonFileName, product.ComponentName, previousVsCommitSha, remoteConnections.DevDivConnection, logger).ConfigureAwait(false);
 
         if (currentBuild is null)
         {
@@ -144,7 +143,7 @@ internal static class PRTagger
         }
 
         var issueTitle = $"[Automated] PRs inserted in VS build {vsBuild}";
-        var hasIssueAlreadyCreated = await HasIssueAlreadyCreatedAsync(gitHubClient, gitHubRepoName, issueTitle, logger).ConfigureAwait(false);
+        var hasIssueAlreadyCreated = await HasIssueAlreadyCreatedAsync(remoteConnections.GitHubClient, gitHubRepoName, issueTitle, logger).ConfigureAwait(false);
         if (hasIssueAlreadyCreated)
         {
             logger.LogInformation($"Issue with name: {issueTitle} exists in repo: {gitHubRepoName}. Skip creation.");
@@ -154,7 +153,7 @@ internal static class PRTagger
         logger.LogInformation($"Creating issue...");
 
         // Create issue
-        return await TryCreateIssueAsync(gitHubClient, issueTitle, gitHubRepoName, prDescription.ToString(), logger).ConfigureAwait(false);
+        return await TryCreateIssueAsync(remoteConnections.GitHubClient, issueTitle, gitHubRepoName, prDescription.ToString(), logger).ConfigureAwait(false);
     }
 
     private static async Task<ImmutableArray<(string vsBuild, string vsCommit, string previousVsCommitSha)>> GetVSBuildsAndCommitsAsync(

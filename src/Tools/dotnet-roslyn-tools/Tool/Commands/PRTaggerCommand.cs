@@ -6,6 +6,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Logging;
+using Microsoft.RoslynTools.PRTagger;
 using Microsoft.RoslynTools.Utilities;
 
 namespace Microsoft.RoslynTools.Commands;
@@ -47,26 +48,27 @@ internal static class PRTaggerCommand
             var maxFetchingVSBuildNumber = context.ParseResult.GetValueForOption(maxVsBuildCheckNumber);
             logger.LogInformation($"Check {maxFetchingVSBuildNumber} VS Builds");
 
-            // Setup devdiv connection, dnceng connect, and GitHub Client.
-            using var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
-            using var dncengConnection = new AzDOConnection(settings.DncEngAzureDevOpsBaseUri, "internal", settings.DncEngAzureDevOpsToken);
-            var client = new HttpClient
+            var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
+            var dncengConnection = new AzDOConnection(settings.DncEngAzureDevOpsBaseUri, "internal", settings.DncEngAzureDevOpsToken);
+            var gitHubClient = new HttpClient
             {
                 BaseAddress = new("https://api.github.com/")
             };
-
-            client.DefaultRequestHeaders.Accept.Add(
+            gitHubClient.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
-            client.DefaultRequestHeaders.Add("User-Agent", "roslyn-tool-tagger");
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            gitHubClient.DefaultRequestHeaders.Add("User-Agent", "roslyn-tool-tagger");
+            gitHubClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
                 "Bearer",
                 settings.GitHubToken);
 
-            return await PRTagger.PRTagger.TagPRs(
-                settings,
+            using var remoteConnections = new RemoteConnections(
                 devdivConnection,
                 dncengConnection,
-                client,
+                gitHubClient);
+
+            return await PRTagger.PRTagger.TagPRs(
+                settings,
+                remoteConnections,
                 logger,
                 maxFetchingVSBuildNumber).ConfigureAwait(false);
         }
