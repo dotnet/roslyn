@@ -31,16 +31,16 @@ namespace Microsoft.CodeAnalysis
         private ImmutableHashMap<ProjectId, Project> _projectIdToProjectMap;
 
         /// <summary>
-        /// Result of calling <see cref="WithFrozenPartialCompilations"/>.
+        /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.
         /// </summary>
-        private AsyncLazy<Solution> _cachedFrozenSolution { get; init; }
+        private AsyncLazy<Solution> CachedFrozenSolution { get; init; }
 
         private Solution(SolutionCompilationState compilationState)
         {
             _projectIdToProjectMap = [];
             _compilationState = compilationState;
 
-            _cachedFrozenSolution = new AsyncLazy<Solution>(
+            CachedFrozenSolution = new AsyncLazy<Solution>(
                 c => Task.FromResult(ComputeFrozenSolution(c)),
                 c => ComputeFrozenSolution(c));
         }
@@ -1455,11 +1455,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="cancellationToken"></param>
         internal Solution WithFrozenPartialCompilations(CancellationToken cancellationToken)
-            => _cachedFrozenSolution.GetValue(cancellationToken);
+            => CachedFrozenSolution.GetValue(cancellationToken);
 
         /// <inheritdoc cref="WithFrozenPartialCompilations"/>
         internal Task<Solution> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
-            => _cachedFrozenSolution.GetValueAsync(cancellationToken);
+            => CachedFrozenSolution.GetValueAsync(cancellationToken);
 
         private Solution ComputeFrozenSolution(CancellationToken cancellationToken)
         {
@@ -1471,7 +1471,7 @@ namespace Microsoft.CodeAnalysis
             var frozenSolution = new Solution(newCompilationState)
             {
                 // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.
-                _cachedFrozenSolution = this._cachedFrozenSolution,
+                CachedFrozenSolution = this.CachedFrozenSolution,
             };
 
             return frozenSolution;
