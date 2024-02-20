@@ -124,6 +124,7 @@ jobs:
         EnableOptProf: ${{ parameters.EnableOptProf }}
         IsOptProf: ${{ parameters.IsOptProf }}
         ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
+        RealSign: ${{ parameters.RealSign }}
 
   - template: dotnet.yml
     parameters:

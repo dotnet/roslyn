@@ -11,15 +11,19 @@ parameters:
 - name: ShouldSkipOptimize
   type: boolean
   default: false
+- name: RealSign
+  type: boolean
 
 steps:
-- task: notice@0
-  displayName: 🛠️ Generate NOTICE file
-  inputs:
-    outputfile: $(System.DefaultWorkingDirectory)/obj/NOTICE
-    outputformat: text
-  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-  retryCountOnTaskFailure: 3 # fails when the cloud service is overloaded
+- ${{ if not(parameters.IsOptProf) }}:
+  - task: notice@0
+    displayName: 🛠️ Generate NOTICE file
+    inputs:
+      outputfile: $(System.DefaultWorkingDirectory)/obj/NOTICE
+      outputformat: text
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    retryCountOnTaskFailure: 5 # fails when the cloud service is overloaded
+    continueOnError: ${{ not(parameters.RealSign) }} # Tolerate failures when we're not building something that may ship.
 
 - ${{ if parameters.IsOptProf }}:
   # We have to install these plugins ourselves for Optprof runs because those pipelines haven't migrated to 1ES PT yet.
