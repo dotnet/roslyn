@@ -21,17 +21,18 @@
     </When>
     <When Condition="'$(TargetFramework)' == 'net46'">
       <PropertyGroup>
-        <NuGetApiVersion>4.9.6</NuGetApiVersion>
+        <NuGetApiVersion>4.5.3</NuGetApiVersion>
       </PropertyGroup>
     </When>
     <When Condition="'$(TargetFramework)' == 'netstandard1.6'">
       <PropertyGroup>
-        <NuGetApiVersion>4.9.6</NuGetApiVersion>
+        <NuGetApiVersion>4.5.3</NuGetApiVersion>
       </PropertyGroup>
     </When>
     <Otherwise>
       <PropertyGroup>
-        <NuGetApiVersion>6.3.3</NuGetApiVersion>
+        <NuGetApiVersion>6.3.4</NuGetApiVersion>
+        <DefineConstants>$(DefineConstants);NUGET_SIGNING</DefineConstants>
       </PropertyGroup>
     </Otherwise>
   </Choose>
