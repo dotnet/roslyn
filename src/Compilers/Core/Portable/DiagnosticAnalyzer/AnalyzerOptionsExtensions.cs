@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private const string DotnetAnalyzerDiagnosticSeverityKey = DotnetAnalyzerDiagnosticPrefix + "." + SeveritySuffix;
 
-        private static readonly ConcurrentDictionary<string, string> s_categoryToSeverityKeyMap = new();
+        private static readonly ConcurrentDictionary<string, string> s_categoryToSeverityKeyMap = new ConcurrentDictionary<string, string>();
 
         private static string GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(string category)
             => s_categoryToSeverityKeyMap.GetOrAdd(category, category => $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{category}.{SeveritySuffix}");
