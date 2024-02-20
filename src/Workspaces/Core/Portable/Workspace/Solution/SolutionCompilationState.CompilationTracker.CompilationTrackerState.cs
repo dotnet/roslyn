@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
                 /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
                 /// the state of the project prior to the mutation.
                 /// </summary>
-                public ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> PendingTranslationSteps { get; }
+                public ImmutableList<CompilationAndGeneratorDriverTranslationAction> PendingTranslationSteps { get; }
 
                 /// <summary>
                 /// The result of taking the original completed compilation that had generated documents and updating
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? staleCompilationWithGeneratedDocuments,
-                    ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
+                    ImmutableList<CompilationAndGeneratorDriverTranslationAction> pendingTranslationSteps)
                     : base(isFrozen,
                            compilationWithoutGeneratedDocuments,
                            generatorInfo)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? staleCompilationWithGeneratedDocuments,
-                    ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
+                    ImmutableList<CompilationAndGeneratorDriverTranslationAction> pendingTranslationSteps)
                 {
                     Contract.ThrowIfTrue(pendingTranslationSteps is null);
 

@@ -15,6 +15,13 @@ internal partial class SolutionCompilationState
     /// </summary>
     private abstract partial class CompilationAndGeneratorDriverTranslationAction
     {
+        public ProjectState OldProjectState { get; }
+
+        protected CompilationAndGeneratorDriverTranslationAction(ProjectState oldProjectState)
+        {
+            OldProjectState = oldProjectState;
+        }
+
         public abstract Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken);
 
         /// <summary>
