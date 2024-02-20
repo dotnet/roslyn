@@ -46,9 +46,7 @@ namespace Microsoft.CodeAnalysis
             _projectIdToProjectMap = [];
             _compilationState = compilationState;
 
-            this.CachedFrozenSolution = new AsyncLazy<Solution>(
-                cancellationToken => Task.FromResult(ComputeFrozenSolution(cancellationToken)),
-                cancellationToken => ComputeFrozenSolution(cancellationToken));
+            this.CachedFrozenSolution = AsyncLazy.Create(ComputeFrozenSolution);
         }
 
         internal Solution(
@@ -1506,11 +1504,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             static AsyncLazy<Solution> CreateLazyFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId)
-            {
-                return new AsyncLazy<Solution>(
-                    cancellationToken => Task.FromResult(ComputeFrozenSolution(compilationState, documentId, cancellationToken)),
-                    cancellationToken => ComputeFrozenSolution(compilationState, documentId, cancellationToken));
-            }
+                => AsyncLazy.Create(cancellationToken => ComputeFrozenSolution(compilationState, documentId, cancellationToken));
 
             static Solution ComputeFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId, CancellationToken cancellationToken)
             {

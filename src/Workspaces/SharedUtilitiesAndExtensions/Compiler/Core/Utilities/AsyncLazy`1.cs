@@ -17,6 +17,9 @@ namespace Roslyn.Utilities
         public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction)
             => new(asynchronousComputeFunction);
 
+        public static AsyncLazy<T> Create<T>(Func<CancellationToken, T> synchronousComputeFunction)
+            => new(cancellationToken => Task.FromResult(synchronousComputeFunction(cancellationToken)), synchronousComputeFunction);
+
         public static AsyncLazy<T> Create<T>(T value)
             => new(value);
     }
