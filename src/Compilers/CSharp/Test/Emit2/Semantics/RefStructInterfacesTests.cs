@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -12,8 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class RefStructInterfacesTests : CSharpTestBase
     {
-        [Fact]
-        public void UnscopedRefInInterface_Method_01()
+        [Theory]
+        [CombinatorialData]
+        public void UnscopedRefInInterface_Method_01(bool isVirtual)
         {
             var src = @"
 using System.Diagnostics.CodeAnalysis;
@@ -21,12 +23,12 @@ using System.Diagnostics.CodeAnalysis;
 public interface I
 {
     [UnscopedRef]
-    ref int M();
+    " + (isVirtual ? "virtual " : "") + @" ref int M()" + (isVirtual ? " => throw null" : "") + @";
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
 
-            CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify).VerifyDiagnostics();
+            CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify, verify: ExecutionConditionUtil.IsMonoOrCoreClr || !isVirtual ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -124,8 +126,9 @@ public interface I
             Assert.False(comp.GetMember<MethodSymbol>("I.M").HasUnscopedRefAttribute);
         }
 
-        [Fact]
-        public void UnscopedRefInInterface_Property_01()
+        [Theory]
+        [CombinatorialData]
+        public void UnscopedRefInInterface_Property_01(bool isVirtual)
         {
             var src = @"
 using System.Diagnostics.CodeAnalysis;
@@ -133,12 +136,12 @@ using System.Diagnostics.CodeAnalysis;
 public interface I
 {
     [UnscopedRef]
-    ref int P { get; }
+    " + (isVirtual ? "virtual " : "") + @" ref int P { get" + (isVirtual ? " => throw null" : "") + @"; }
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
 
-            CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify).VerifyDiagnostics();
+            CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify, verify: ExecutionConditionUtil.IsMonoOrCoreClr || !isVirtual ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
             void verify(ModuleSymbol m)
             {
@@ -368,6 +371,255 @@ public interface I
             PropertySymbol propertySymbol = comp.GetMember<PropertySymbol>("I.P");
             Assert.False(propertySymbol.HasUnscopedRefAttribute);
             Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnscopedRefInInterface_Indexer_01(bool isVirtual)
+        {
+            var src = @"
+using System.Diagnostics.CodeAnalysis;
+
+public interface I
+{
+    [UnscopedRef]
+    " + (isVirtual ? "virtual " : "") + @" ref int this[int i]  { get" + (isVirtual ? " => throw null" : "") + @"; }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+
+            CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify, verify: ExecutionConditionUtil.IsMonoOrCoreClr || !isVirtual ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                PropertySymbol propertySymbol = m.GlobalNamespace.GetMember<PropertySymbol>("I." + WellKnownMemberNames.Indexer);
+                Assert.True(propertySymbol.HasUnscopedRefAttribute);
+                Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
+            }
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     [UnscopedRef]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(6, 6)
+                );
+        }
+
+        [Fact]
+        public void UnscopedRefInInterface_Indexer_02()
+        {
+            var src = @"
+using System.Diagnostics.CodeAnalysis;
+
+public interface I
+{
+    [UnscopedRef]
+    ref int this[int i] => throw null;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+
+            CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                PropertySymbol propertySymbol = m.GlobalNamespace.GetMember<PropertySymbol>("I." + WellKnownMemberNames.Indexer);
+                Assert.True(propertySymbol.HasUnscopedRefAttribute);
+                Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
+            }
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     [UnscopedRef]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(6, 6)
+                );
+        }
+
+        [Fact]
+        public void UnscopedRefInInterface_Indexer_03()
+        {
+            var src = @"
+using System.Diagnostics.CodeAnalysis;
+
+public interface I
+{
+    [UnscopedRef]
+    sealed ref int this[int i] => throw null;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+
+            comp.VerifyDiagnostics(
+                // (6,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                //     [UnscopedRef]
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(6, 6)
+                );
+
+            PropertySymbol propertySymbol = comp.GetMember<PropertySymbol>("I." + WellKnownMemberNames.Indexer);
+            Assert.False(propertySymbol.HasUnscopedRefAttribute);
+            Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
+        }
+
+        [Fact]
+        public void UnscopedRefInInterface_Indexer_04()
+        {
+            var src = @"
+using System.Diagnostics.CodeAnalysis;
+
+public interface I
+{
+    [UnscopedRef]
+    abstract static ref int this[int i] { get; }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+
+            comp.VerifyDiagnostics(
+                // (7,29): error CS0106: The modifier 'static' is not valid for this item
+                //     abstract static ref int this[int i] { get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(7, 29)
+                );
+
+            PropertySymbol propertySymbol = comp.GetMember<PropertySymbol>("I." + WellKnownMemberNames.Indexer);
+            Assert.False(propertySymbol.IsStatic);
+            Assert.True(propertySymbol.HasUnscopedRefAttribute);
+            Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
+        }
+
+        [Fact]
+        public void UnscopedRefInInterface_Indexer_05()
+        {
+            var src = @"
+using System.Diagnostics.CodeAnalysis;
+
+public interface I
+{
+    ref int this[int i]
+    {
+        [UnscopedRef]
+        get;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+
+            CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                PropertySymbol propertySymbol = m.GlobalNamespace.GetMember<PropertySymbol>("I." + WellKnownMemberNames.Indexer);
+                Assert.False(propertySymbol.HasUnscopedRefAttribute);
+                Assert.True(propertySymbol.GetMethod.HasUnscopedRefAttribute);
+            }
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (8,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         [UnscopedRef]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(8, 10)
+                );
+        }
+
+        [Fact]
+        public void UnscopedRefInInterface_Indexer_06()
+        {
+            var src = @"
+using System.Diagnostics.CodeAnalysis;
+
+public interface I
+{
+    ref int this[int i]
+    {
+        [UnscopedRef]
+        get
+        {
+            throw null;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+
+            CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                PropertySymbol propertySymbol = m.GlobalNamespace.GetMember<PropertySymbol>("I." + WellKnownMemberNames.Indexer);
+                Assert.False(propertySymbol.HasUnscopedRefAttribute);
+                Assert.True(propertySymbol.GetMethod.HasUnscopedRefAttribute);
+            }
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (8,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         [UnscopedRef]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(8, 10)
+                );
+        }
+
+        [Fact]
+        public void UnscopedRefInInterface_Indexer_07()
+        {
+            var src = @"
+using System.Diagnostics.CodeAnalysis;
+
+public interface I
+{
+    sealed ref int this[int i]
+    {
+        [UnscopedRef]
+        get
+        {
+            throw null;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+
+            comp.VerifyDiagnostics(
+                // (8,10): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                //         [UnscopedRef]
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(8, 10)
+                );
+
+            PropertySymbol propertySymbol = comp.GetMember<PropertySymbol>("I." + WellKnownMemberNames.Indexer);
+            Assert.False(propertySymbol.HasUnscopedRefAttribute);
+            Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
+        }
+
+        [Fact]
+        public void UnscopedRefInInterface_Indexer_08()
+        {
+            var src = @"
+using System.Diagnostics.CodeAnalysis;
+
+public interface I
+{
+    abstract static ref int this[int i]
+    {
+        [UnscopedRef]
+        get;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+
+            comp.VerifyDiagnostics(
+                // (6,29): error CS0106: The modifier 'static' is not valid for this item
+                //     abstract static ref int this[int i]
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(6, 29)
+                );
+
+            PropertySymbol propertySymbol = comp.GetMember<PropertySymbol>("I." + WellKnownMemberNames.Indexer);
+            Assert.False(propertySymbol.IsStatic);
+            Assert.False(propertySymbol.HasUnscopedRefAttribute);
+            Assert.True(propertySymbol.GetMethod.HasUnscopedRefAttribute);
         }
 
         [Fact]
@@ -959,9 +1211,15 @@ class C4 : C3, I {}
 
                     void verify(ModuleSymbol m)
                     {
-                        Assert.False(m.GlobalNamespace.GetMember<PropertySymbol>("C1.P").HasUnscopedRefAttribute);
-                        Assert.False(m.GlobalNamespace.GetMember<PropertySymbol>("C2.I.P").HasUnscopedRefAttribute);
-                        Assert.False(m.GlobalNamespace.GetMember<PropertySymbol>("C3.P").HasUnscopedRefAttribute);
+                        PropertySymbol c1P = m.GlobalNamespace.GetMember<PropertySymbol>("C1.P");
+                        Assert.False(c1P.HasUnscopedRefAttribute);
+                        Assert.False(c1P.GetMethod.HasUnscopedRefAttribute);
+                        PropertySymbol c2P = m.GlobalNamespace.GetMember<PropertySymbol>("C2.I.P");
+                        Assert.False(c2P.HasUnscopedRefAttribute);
+                        Assert.False(c2P.GetMethod.HasUnscopedRefAttribute);
+                        PropertySymbol c3P = m.GlobalNamespace.GetMember<PropertySymbol>("C3.P");
+                        Assert.False(c3P.HasUnscopedRefAttribute);
+                        Assert.False(c3P.GetMethod.HasUnscopedRefAttribute);
                     }
                 }
             }
@@ -1041,7 +1299,9 @@ interface C : I
 
                     void verify(ModuleSymbol m)
                     {
-                        Assert.False(m.GlobalNamespace.GetMember<PropertySymbol>("C.I.P").HasUnscopedRefAttribute);
+                        PropertySymbol propertySymbol = m.GlobalNamespace.GetMember<PropertySymbol>("C.I.P");
+                        Assert.False(propertySymbol.HasUnscopedRefAttribute);
+                        Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
                     }
                 }
             }
@@ -1186,7 +1446,9 @@ public struct C : I
 
                     void verify(ModuleSymbol m)
                     {
-                        Assert.False(m.GlobalNamespace.GetMember<PropertySymbol>("C.P").HasUnscopedRefAttribute);
+                        PropertySymbol propertySymbol = m.GlobalNamespace.GetMember<PropertySymbol>("C.P");
+                        Assert.False(propertySymbol.HasUnscopedRefAttribute);
+                        Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
                     }
                 }
 
@@ -1204,7 +1466,9 @@ public struct C : I
 
                     void verify(ModuleSymbol m)
                     {
-                        Assert.False(m.GlobalNamespace.GetMember<PropertySymbol>("C.I.P").HasUnscopedRefAttribute);
+                        PropertySymbol propertySymbol = m.GlobalNamespace.GetMember<PropertySymbol>("C.I.P");
+                        Assert.False(propertySymbol.HasUnscopedRefAttribute);
+                        Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
                     }
                 }
 
@@ -1336,6 +1600,582 @@ public struct C : I
                     );
 
                 PropertySymbol propertySymbol = comp8.GetMember<PropertySymbol>("C.I.P");
+                Assert.Equal(onProperty, propertySymbol.HasUnscopedRefAttribute);
+                Assert.Equal(onGet, propertySymbol.GetMethod.HasUnscopedRefAttribute);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnscopedRefInImplementation_Indexer_01(bool onInterfaceProperty, bool onInterfaceGet, bool onImplementationProperty, bool onImplementationGet)
+        {
+            if (!onInterfaceProperty && !onInterfaceGet)
+            {
+                return;
+            }
+
+            var src1 = @"
+using System.Diagnostics.CodeAnalysis;
+
+public interface I
+{
+    " + (onInterfaceProperty ? "[UnscopedRef]" : "") + @"
+    ref int this[int i] { " + (onInterfaceGet ? "[UnscopedRef] " : "") + @"get; }
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net80);
+
+            var p = comp1.GetMember<PropertySymbol>("I." + WellKnownMemberNames.Indexer);
+            Assert.Equal(onInterfaceProperty, p.HasUnscopedRefAttribute);
+            Assert.Equal(onInterfaceGet, p.GetMethod.HasUnscopedRefAttribute);
+
+            MetadataReference[] comp1Refs = [comp1.EmitToImageReference(), comp1.ToMetadataReference()];
+
+            if (onImplementationProperty || onImplementationGet)
+            {
+                var src2 = @"
+using System.Diagnostics.CodeAnalysis;
+
+class C : I
+{
+#line 100
+    " + (onImplementationProperty ? "[UnscopedRef]" : "") + @"
+    public ref int this[int i]
+    {
+#line 200
+        " + (onImplementationGet ? "[UnscopedRef] " : "") + @"
+        get
+            => throw null;
+    }
+}
+";
+
+                foreach (var comp1Ref in comp1Refs)
+                {
+                    var comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80);
+
+                    if (onImplementationProperty)
+                    {
+                        if (onImplementationGet)
+                        {
+                            comp2.VerifyDiagnostics(
+                                // (100,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                                //     [UnscopedRef]
+                                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(100, 6),
+                                // (200,10): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                                //         [UnscopedRef] 
+                                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(200, 10)
+                                );
+                        }
+                        else
+                        {
+                            comp2.VerifyDiagnostics(
+                                // (100,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                                //     [UnscopedRef]
+                                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(100, 6)
+                                );
+                        }
+                    }
+                    else
+                    {
+                        comp2.VerifyDiagnostics(
+                            // (200,10): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                            //         [UnscopedRef] 
+                            Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(200, 10)
+                            );
+                    }
+
+                    PropertySymbol propertySymbol = comp2.GetMember<PropertySymbol>("C." + WellKnownMemberNames.Indexer);
+                    Assert.False(propertySymbol.HasUnscopedRefAttribute);
+                    Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
+                }
+
+                var src3 = @"
+using System.Diagnostics.CodeAnalysis;
+
+class C : I
+{
+#line 100
+    " + (onImplementationProperty ? "[UnscopedRef]" : "") + @"
+    ref int I. this[int i]
+    {
+#line 200
+        " + (onImplementationGet ? "[UnscopedRef] " : "") + @"
+        get
+            => throw null;
+    }
+}
+";
+
+                foreach (var comp1Ref in comp1Refs)
+                {
+                    var comp3 = CreateCompilation(src3, references: [comp1Ref], targetFramework: TargetFramework.Net80);
+                    if (onImplementationProperty)
+                    {
+                        if (onImplementationGet)
+                        {
+                            comp3.VerifyDiagnostics(
+                                // (100,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                                //     [UnscopedRef]
+                                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(100, 6),
+                                // (200,10): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                                //         [UnscopedRef] 
+                                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(200, 10)
+                                );
+                        }
+                        else
+                        {
+                            comp3.VerifyDiagnostics(
+                                // (100,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                                //     [UnscopedRef]
+                                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(100, 6)
+                                );
+                        }
+                    }
+                    else
+                    {
+                        comp3.VerifyDiagnostics(
+                            // (200,10): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                            //         [UnscopedRef] 
+                            Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(200, 10)
+                            );
+                    }
+
+                    PropertySymbol propertySymbol = comp3.GetMember<PropertySymbol>("C.I." + WellKnownMemberNames.Indexer);
+                    Assert.False(propertySymbol.HasUnscopedRefAttribute);
+                    Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
+                }
+            }
+
+            if (!onImplementationProperty && !onImplementationGet)
+            {
+                var src4 = @"
+class C1 : I
+{
+    int f = 0;
+    public ref int this[int i] 
+    { get{
+        return ref f;
+    }}
+}
+
+class C2 : I
+{
+    int f = 0;
+    ref int I.this[int i] 
+    { get{
+        return ref f;
+    }}
+}
+
+class C3
+{
+    int f = 0;
+    public ref int this[int i] 
+    { get{
+        return ref f;
+    }}
+}
+
+class C4 : C3, I {}
+";
+
+                foreach (var comp1Ref in comp1Refs)
+                {
+                    var comp4 = CreateCompilation(src4, references: [comp1Ref], targetFramework: TargetFramework.Net80);
+                    CompileAndVerify(comp4, sourceSymbolValidator: verify, symbolValidator: verify, verify: Verification.Skipped).VerifyDiagnostics();
+
+                    void verify(ModuleSymbol m)
+                    {
+                        PropertySymbol c1P = m.GlobalNamespace.GetMember<PropertySymbol>("C1." + WellKnownMemberNames.Indexer);
+                        Assert.False(c1P.HasUnscopedRefAttribute);
+                        Assert.False(c1P.GetMethod.HasUnscopedRefAttribute);
+                        PropertySymbol c2P = m.GlobalNamespace.GetMember<PropertySymbol>("C2.I." + (m is PEModuleSymbol ? "Item" : WellKnownMemberNames.Indexer));
+                        Assert.False(c2P.HasUnscopedRefAttribute);
+                        Assert.False(c2P.GetMethod.HasUnscopedRefAttribute);
+                        PropertySymbol c3P = m.GlobalNamespace.GetMember<PropertySymbol>("C3." + WellKnownMemberNames.Indexer);
+                        Assert.False(c3P.HasUnscopedRefAttribute);
+                        Assert.False(c3P.GetMethod.HasUnscopedRefAttribute);
+                    }
+                }
+            }
+
+            if (onImplementationProperty || onImplementationGet)
+            {
+                var src5 = @"
+using System.Diagnostics.CodeAnalysis;
+
+interface C : I
+{
+#line 100
+    " + (onImplementationProperty ? "[UnscopedRef]" : "") + @"
+    ref int I.this[int i]
+    {
+#line 200
+        " + (onImplementationGet ? "[UnscopedRef] " : "") + @"
+        get
+            => throw null;
+    }
+}
+";
+
+                foreach (var comp1Ref in comp1Refs)
+                {
+                    var comp5 = CreateCompilation(src5, references: [comp1Ref], targetFramework: TargetFramework.Net80);
+                    if (onImplementationProperty)
+                    {
+                        if (onImplementationGet)
+                        {
+                            comp5.VerifyDiagnostics(
+                                // (100,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                                //     [UnscopedRef]
+                                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(100, 6),
+                                // (200,10): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                                //         [UnscopedRef] 
+                                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(200, 10)
+                                );
+                        }
+                        else
+                        {
+                            comp5.VerifyDiagnostics(
+                                // (100,6): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                                //     [UnscopedRef]
+                                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(100, 6)
+                                );
+                        }
+                    }
+                    else
+                    {
+                        comp5.VerifyDiagnostics(
+                            // (200,10): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
+                            //         [UnscopedRef] 
+                            Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "UnscopedRef").WithLocation(200, 10)
+                            );
+                    }
+
+                    PropertySymbol propertySymbol = comp5.GetMember<PropertySymbol>("C.I." + WellKnownMemberNames.Indexer);
+                    Assert.False(propertySymbol.HasUnscopedRefAttribute);
+                    Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
+                }
+            }
+
+            if (!onImplementationProperty && !onImplementationGet)
+            {
+                var src6 = @"
+interface C : I
+{
+    ref int I.this[int i] => throw null;
+}
+";
+
+                foreach (var comp1Ref in comp1Refs)
+                {
+                    var comp6 = CreateCompilation(src6, references: [comp1Ref], targetFramework: TargetFramework.Net80);
+                    CompileAndVerify(comp6, sourceSymbolValidator: verify, symbolValidator: verify, verify: Verification.Skipped).VerifyDiagnostics();
+
+                    void verify(ModuleSymbol m)
+                    {
+                        PropertySymbol propertySymbol = m.GlobalNamespace.GetMember<PropertySymbol>("C.I." + (m is PEModuleSymbol ? "Item" : WellKnownMemberNames.Indexer));
+                        Assert.False(propertySymbol.HasUnscopedRefAttribute);
+                        Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
+                    }
+                }
+            }
+
+            if (onImplementationProperty || onImplementationGet)
+            {
+                var src7 = @"
+using System.Diagnostics.CodeAnalysis;
+
+public struct C : I
+{
+    public int f;
+
+#line 100
+    " + (onImplementationProperty ? "[UnscopedRef]" : "") + @"
+    public ref int this[int i] 
+    {
+#line 200
+        " + (onImplementationGet ? "[UnscopedRef] " : "") + @"
+        get
+        {
+            return ref f;
+        }
+    }
+}
+";
+
+                foreach (var comp1Ref in comp1Refs)
+                {
+                    var comp7 = CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80);
+                    CompileAndVerify(comp7, sourceSymbolValidator: verify, symbolValidator: verify, verify: Verification.Skipped).VerifyDiagnostics();
+
+                    void verify(ModuleSymbol m)
+                    {
+                        PropertySymbol propertySymbol = m.GlobalNamespace.GetMember<PropertySymbol>("C." + WellKnownMemberNames.Indexer);
+                        Assert.Equal(onImplementationProperty, propertySymbol.HasUnscopedRefAttribute);
+                        Assert.Equal(onImplementationGet, propertySymbol.GetMethod.HasUnscopedRefAttribute);
+                    }
+
+                    CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+
+                    comp7 = CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12);
+                    if (onImplementationGet)
+                    {
+                        comp7.VerifyDiagnostics(
+                            // (200,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                            //         [UnscopedRef] 
+                            Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(200, 10)
+                            );
+                    }
+                    else
+                    {
+                        comp7.VerifyDiagnostics(
+                            // (100,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                            //     [UnscopedRef]
+                            Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(100, 6)
+                            );
+                    }
+                }
+
+                var src8 = @"
+using System.Diagnostics.CodeAnalysis;
+
+public struct C : I
+{
+    public int f;
+#line 100
+    " + (onImplementationProperty ? "[UnscopedRef]" : "") + @"
+    ref int I.this[int i] 
+    {
+#line 200
+        " + (onImplementationGet ? "[UnscopedRef] " : "") + @"
+        get
+        {
+            return ref f;
+        }
+    }
+}
+";
+
+                foreach (var comp1Ref in comp1Refs)
+                {
+                    var comp8 = CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80);
+                    CompileAndVerify(comp8, sourceSymbolValidator: verify, symbolValidator: verify, verify: Verification.Skipped).VerifyDiagnostics();
+
+                    void verify(ModuleSymbol m)
+                    {
+                        PropertySymbol propertySymbol = m.GlobalNamespace.GetMember<PropertySymbol>("C.I." + (m is PEModuleSymbol ? "Item" : WellKnownMemberNames.Indexer));
+                        Assert.Equal(onImplementationProperty, propertySymbol.HasUnscopedRefAttribute);
+                        Assert.Equal(onImplementationGet, propertySymbol.GetMethod.HasUnscopedRefAttribute);
+                    }
+
+                    CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+
+                    comp8 = CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12);
+                    if (onImplementationProperty)
+                    {
+                        if (onImplementationGet)
+                        {
+                            comp8.VerifyDiagnostics(
+                                // (100,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                //     [UnscopedRef]
+                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(100, 6),
+                                // (200,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                //         [UnscopedRef] 
+                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(200, 10)
+                                );
+                        }
+                        else
+                        {
+                            comp8.VerifyDiagnostics(
+                                // (100,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                //     [UnscopedRef]
+                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(100, 6)
+                                );
+                        }
+                    }
+                    else
+                    {
+                        comp8.VerifyDiagnostics(
+                            // (200,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                            //         [UnscopedRef] 
+                            Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(200, 10)
+                            );
+                    }
+                }
+            }
+
+            if (!onImplementationProperty && !onImplementationGet)
+            {
+                var src9 = @"
+public struct C : I
+{
+    public ref int this[int i] => throw null;
+}
+";
+
+                foreach (var comp1Ref in comp1Refs)
+                {
+                    var comp9 = CreateCompilation(src9, references: [comp1Ref], targetFramework: TargetFramework.Net80);
+                    CompileAndVerify(comp9, sourceSymbolValidator: verify, symbolValidator: verify, verify: Verification.Skipped).VerifyDiagnostics();
+
+                    void verify(ModuleSymbol m)
+                    {
+                        PropertySymbol propertySymbol = m.GlobalNamespace.GetMember<PropertySymbol>("C." + WellKnownMemberNames.Indexer);
+                        Assert.False(propertySymbol.HasUnscopedRefAttribute);
+                        Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
+                    }
+                }
+
+                var src10 = @"
+public struct C : I
+{
+    ref int I.this[int i] => throw null;
+}
+";
+
+                foreach (var comp1Ref in comp1Refs)
+                {
+                    var comp10 = CreateCompilation(src10, references: [comp1Ref], targetFramework: TargetFramework.Net80);
+                    CompileAndVerify(comp10, sourceSymbolValidator: verify, symbolValidator: verify, verify: Verification.Skipped).VerifyDiagnostics();
+
+                    void verify(ModuleSymbol m)
+                    {
+                        PropertySymbol propertySymbol = m.GlobalNamespace.GetMember<PropertySymbol>("C.I." + (m is PEModuleSymbol ? "Item" : WellKnownMemberNames.Indexer));
+                        Assert.False(propertySymbol.HasUnscopedRefAttribute);
+                        Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
+                    }
+                }
+
+                var src11 = @"
+public struct C : I
+{
+    public int f;
+
+    public ref int this[int i] 
+    { get{
+        return ref f;
+    }}
+}
+";
+
+                foreach (var comp1Ref in comp1Refs)
+                {
+                    var comp11 = CreateCompilation(src11, references: [comp1Ref], targetFramework: TargetFramework.Net80);
+                    comp11.VerifyDiagnostics(
+                        // (8,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                        //         return ref f;
+                        Diagnostic(ErrorCode.ERR_RefReturnStructThis, "f").WithLocation(8, 20)
+                        );
+                }
+
+                var src12 = @"
+public struct C : I
+{
+    public int f;
+
+    ref int I.this[int i] 
+    { get{
+        return ref f;
+    }}
+}
+";
+
+                foreach (var comp1Ref in comp1Refs)
+                {
+                    var comp12 = CreateCompilation(src12, references: [comp1Ref], targetFramework: TargetFramework.Net80);
+                    comp12.VerifyDiagnostics(
+                        // (8,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                        //         return ref f;
+                        Diagnostic(ErrorCode.ERR_RefReturnStructThis, "f").WithLocation(8, 20)
+                        );
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnscopedRefInImplementation_Indexer_02(bool onProperty, bool onGet)
+        {
+            if (!onProperty && !onGet)
+            {
+                return;
+            }
+
+            var src1 = @"
+public interface I
+{
+    ref int this[int i] { get; }
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net80);
+            MetadataReference[] comp1Refs = [comp1.EmitToImageReference(), comp1.ToMetadataReference()];
+
+            var src7 = @"
+using System.Diagnostics.CodeAnalysis;
+
+public struct C : I
+{
+    public int f;
+
+    " + (onProperty ? "[UnscopedRef]" : "") + @"
+    public ref int this[int i] 
+    {
+#line 200
+        " + (onGet ? "[UnscopedRef] " : "") + @"
+        get
+        {
+            return ref f;
+        }
+    }
+}
+";
+
+            foreach (var comp1Ref in comp1Refs)
+            {
+                var comp7 = CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80);
+                comp7.VerifyDiagnostics(
+                    // (201,9): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation because implemented member 'I.P.get' doesn't have this attribute.
+                    //         get
+                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "get").WithArguments("I.this[int].get").WithLocation(201, 9)
+                    );
+
+                PropertySymbol propertySymbol = comp7.GetMember<PropertySymbol>("C." + WellKnownMemberNames.Indexer);
+                Assert.Equal(onProperty, propertySymbol.HasUnscopedRefAttribute);
+                Assert.Equal(onGet, propertySymbol.GetMethod.HasUnscopedRefAttribute);
+            }
+
+            var src8 = @"
+using System.Diagnostics.CodeAnalysis;
+
+public struct C : I
+{
+    public int f;
+
+    " + (onProperty ? "[UnscopedRef]" : "") + @"
+    ref int I.this[int i] 
+    {
+#line 200
+        " + (onGet ? "[UnscopedRef] " : "") + @"
+        get
+        {
+            return ref f;
+        }
+    }
+}
+";
+
+            foreach (var comp1Ref in comp1Refs)
+            {
+                var comp8 = CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80);
+                comp8.VerifyDiagnostics(
+                    // (201,9): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation because implemented member 'I.P.get' doesn't have this attribute.
+                    //         get
+                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation, "get").WithArguments("I.this[int].get").WithLocation(201, 9)
+                    );
+
+                PropertySymbol propertySymbol = comp8.GetMember<PropertySymbol>("C.I." + WellKnownMemberNames.Indexer);
                 Assert.Equal(onProperty, propertySymbol.HasUnscopedRefAttribute);
                 Assert.Equal(onGet, propertySymbol.GetMethod.HasUnscopedRefAttribute);
             }

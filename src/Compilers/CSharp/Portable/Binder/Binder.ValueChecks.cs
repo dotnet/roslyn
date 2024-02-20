@@ -2729,14 +2729,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
-#nullable disable
-
         private static ErrorCode GetStandardCallEscapeError(bool checkingReceiver)
         {
             return checkingReceiver ? ErrorCode.ERR_EscapeCall2 : ErrorCode.ERR_EscapeCall;
         }
 
-#nullable enable
         private sealed class TypeParameterThisParameterSymbol : ThisParameterSymbolBase
         {
             private readonly TypeParameterSymbol _type;

@@ -1970,9 +1970,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         attributeData.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
                     {
                         MessageID.IDS_RefStructInterfaces.CheckFeatureAvailability(diagnostics, implementingSymbol.DeclaringCompilation, applicationSyntaxReference.GetLocation());
-                        break;
+                        return;
                     }
                 }
+
+                Debug.Assert(false);
             }
         }
 

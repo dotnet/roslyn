@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        // TODO: structs
         public sealed override bool IsThis
         {
             get { return true; }
