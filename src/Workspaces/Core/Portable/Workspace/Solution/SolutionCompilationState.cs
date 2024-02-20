@@ -1071,8 +1071,8 @@ internal sealed partial class SolutionCompilationState
         var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
 
-        using var _1 = ArrayBuilder<DocumentState>.GetInstance(out var documentsToRemove);
-        using var _2 = ArrayBuilder<DocumentState>.GetInstance(out var documentsToAdd);
+        using var _1 = ArrayBuilder<TextDocumentState>.GetInstance(out var documentsToRemove);
+        using var _2 = ArrayBuilder<TextDocumentState>.GetInstance(out var documentsToAdd);
 
         foreach (var projectId in this.SolutionState.ProjectIds)
         {
@@ -1106,20 +1106,11 @@ internal sealed partial class SolutionCompilationState
             // might reset the project back to a prior state from when the last compilation was requested, losing
             // information about documents recently added or removed.
 
-            if (oldProjectState != newProjectState &&
-                oldProjectState.DocumentStates.Ids != newProjectState.DocumentStates.Ids)
+            if (oldProjectState != newProjectState )
             {
-                foreach (var (documentId, oldDocumentState) in oldProjectState.DocumentStates.States)
-                {
-                    if (!newProjectState.DocumentStates.States.ContainsKey(documentId))
-                        documentsToRemove.Add(oldDocumentState);
-                }
-
-                foreach (var (documentId, newDocumentState) in newProjectState.DocumentStates.States)
-                {
-                    if (!oldProjectState.DocumentStates.States.ContainsKey(documentId))
-                        documentsToAdd.Add(newDocumentState);
-                }
+                CheckDocumentStates(oldProjectState.DocumentStates, newProjectState.DocumentStates);
+                CheckDocumentStates(oldProjectState.AdditionalDocumentStates, newProjectState.AdditionalDocumentStates);
+                CheckDocumentStates(oldProjectState.AnalyzerConfigDocumentStates, newProjectState.AnalyzerConfigDocumentStates);
             }
         }
 
@@ -1143,6 +1134,26 @@ internal sealed partial class SolutionCompilationState
             cachedFrozenSnapshot: _cachedFrozenSnapshot);
 
         return newCompilationState;
+
+        void CheckDocumentStates<TDocumentState>(
+            TextDocumentStates<TDocumentState> oldStates,
+            TextDocumentStates<TDocumentState> newStates) where TDocumentState : TextDocumentState
+        {
+            if (oldStates.Ids != newStates.Ids)
+            {
+                foreach (var (documentId, oldDocumentState) in oldStates.States)
+                {
+                    if (!newStates.States.ContainsKey(documentId))
+                        documentsToRemove.Add(oldDocumentState);
+                }
+
+                foreach (var (documentId, newDocumentState) in newStates.States)
+                {
+                    if (!oldStates.States.ContainsKey(documentId))
+                        documentsToAdd.Add(newDocumentState);
+                }
+            }
+        }
     }
 
     /// <summary>

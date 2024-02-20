@@ -405,8 +405,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedAndRemovedDocuments(
-            ArrayBuilder<DocumentState> documentsToAdd,
-            ArrayBuilder<DocumentState> documentsToRemove)
+            ArrayBuilder<TextDocumentState> documentsToAdd,
+            ArrayBuilder<TextDocumentState> documentsToRemove)
         {
             if (documentsToRemove.Count == 0 && documentsToAdd.Count == 0)
                 return _filePathToDocumentIdsMap;
