@@ -46,7 +46,9 @@ namespace Microsoft.CodeAnalysis
             _projectIdToProjectMap = [];
             _compilationState = compilationState;
 
-            this.CachedFrozenSolution = AsyncLazy.Create(c => ComputeFrozenSolutionAsync(c));
+            this.CachedFrozenSolution = new AsyncLazy<Solution>(
+                cancellationToken => Task.FromResult(ComputeFrozenSolution(cancellationToken)),
+                cancellationToken => ComputeFrozenSolution(cancellationToken));
         }
 
         internal Solution(
@@ -1461,13 +1463,13 @@ namespace Microsoft.CodeAnalysis
         internal Task<Solution> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
             => this.CachedFrozenSolution.GetValueAsync(cancellationToken);
 
-        private async Task<Solution> ComputeFrozenSolutionAsync(CancellationToken cancellationToken)
+        private Solution ComputeFrozenSolution(CancellationToken cancellationToken)
         {
             // in progress solutions are disabled for some testing
             if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
                 return this;
 
-            var newCompilationState = await this.CompilationState.WithFrozenPartialCompilationsAsync(cancellationToken).ConfigureAwait(false);
+            var newCompilationState = this.CompilationState.WithFrozenPartialCompilations(cancellationToken);
             var frozenSolution = new Solution(newCompilationState)
             {
                 // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.

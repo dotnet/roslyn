@@ -53,14 +53,11 @@ internal sealed partial class SolutionCompilationState
     private ConditionalWeakTable<ISymbol, ProjectId?>? _unrootedSymbolToProjectId;
     private static readonly Func<ConditionalWeakTable<ISymbol, ProjectId?>> s_createTable = () => new ConditionalWeakTable<ISymbol, ProjectId?>();
 
-    private readonly AsyncLazy<SolutionCompilationState> _cachedFrozenSnapshot;
-
     private SolutionCompilationState(
         SolutionState solution,
         bool partialSemanticsEnabled,
         ImmutableDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
-        TextDocumentStates<SourceGeneratedDocumentState>? frozenSourceGeneratedDocumentStates,
-        AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot)
+        TextDocumentStates<SourceGeneratedDocumentState>? frozenSourceGeneratedDocumentStates)
     {
         SolutionState = solution;
         PartialSemanticsEnabled = partialSemanticsEnabled;
@@ -69,7 +66,6 @@ internal sealed partial class SolutionCompilationState
 
         // when solution state is changed, we recalculate its checksum
         _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectId: null, c));
-        _cachedFrozenSnapshot = cachedFrozenSnapshot ?? AsyncLazy.Create(c => Task.FromResult(ComputeFrozenSnapshot(c)));
 
         CheckInvariants();
     }
@@ -81,8 +77,7 @@ internal sealed partial class SolutionCompilationState
               solution,
               partialSemanticsEnabled,
               projectIdToTrackerMap: ImmutableDictionary<ProjectId, ICompilationTracker>.Empty,
-              frozenSourceGeneratedDocumentStates: null,
-              cachedFrozenSnapshot: null)
+              frozenSourceGeneratedDocumentStates: null)
     {
     }
 
@@ -99,8 +94,7 @@ internal sealed partial class SolutionCompilationState
     private SolutionCompilationState Branch(
         SolutionState newSolutionState,
         ImmutableDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
-        Optional<TextDocumentStates<SourceGeneratedDocumentState>?> frozenSourceGeneratedDocumentStates = default,
-        AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
+        Optional<TextDocumentStates<SourceGeneratedDocumentState>?> frozenSourceGeneratedDocumentStates = default)
     {
         projectIdToTrackerMap ??= _projectIdToTrackerMap;
         var newFrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates.HasValue ? frozenSourceGeneratedDocumentStates.Value : FrozenSourceGeneratedDocumentStates;
@@ -116,8 +110,7 @@ internal sealed partial class SolutionCompilationState
             newSolutionState,
             PartialSemanticsEnabled,
             projectIdToTrackerMap,
-            newFrozenSourceGeneratedDocumentStates,
-            cachedFrozenSnapshot);
+            newFrozenSourceGeneratedDocumentStates);
     }
 
     /// <inheritdoc cref="SolutionState.ForkProject"/>
@@ -1044,10 +1037,7 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
-    public Task<SolutionCompilationState> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
-        => _cachedFrozenSnapshot.GetValueAsync(cancellationToken);
-
-    private SolutionCompilationState ComputeFrozenSnapshot(CancellationToken cancellationToken)
+    public SolutionCompilationState WithFrozenPartialCompilations(CancellationToken cancellationToken)
     {
         var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
@@ -1071,9 +1061,7 @@ internal sealed partial class SolutionCompilationState
             dependencyGraph: SolutionState.CreateDependencyGraph(this.SolutionState.ProjectIds, newIdToProjectStateMap));
         var newCompilationState = this.Branch(
             newState,
-            newIdToTrackerMap,
-            // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.
-            cachedFrozenSnapshot: _cachedFrozenSnapshot);
+            newIdToTrackerMap);
 
         return newCompilationState;
     }
