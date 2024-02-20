@@ -1471,9 +1471,10 @@ namespace Microsoft.CodeAnalysis
 
             var newCompilationState = this.CompilationState.WithFrozenPartialCompilations(cancellationToken);
 
-            // Produce the new solution, but pass along ourselves as the cached frozen solution that asking for a frozen
-            // solution off a frozen solution gets you the same instance back.
-            var frozenSolution = new Solution(newCompilationState, _cachedFrozenSolution);
+            var frozenSolution = new Solution(
+                newCompilationState,
+                // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.
+                cachedFrozenSolution: _cachedFrozenSolution);
 
             return frozenSolution;
         }
