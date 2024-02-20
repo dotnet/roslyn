@@ -15,6 +15,9 @@ internal partial class SolutionCompilationState
     /// </summary>
     private abstract partial class TranslationAction
     {
+        /// <summary>
+        /// The original state of the project that this translation action corresponds to
+        /// </summary>
         public readonly ProjectState OldProjectState;
 
         protected TranslationAction(ProjectState oldProjectState)
