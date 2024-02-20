@@ -35,6 +35,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private AsyncLazy<Solution> CachedFrozenSolution { get; init; }
 
+        // Lock for the partial compilation state listed below.
+        private NonReentrantLock? _stateLockBackingField;
+        private NonReentrantLock StateLock => LazyInitializer.EnsureInitialized(ref _stateLockBackingField, NonReentrantLock.Factory);
+
+        /// <summary>
+        /// Mapping of DocumentId to the frozen solution we produced for it the last time we were queried.
+        /// </summary>
+        private readonly Dictionary<DocumentId, Solution> _cachedFrozenDocumentState = [];
+
         private Solution(SolutionCompilationState compilationState)
         {
             _projectIdToProjectMap = [];
@@ -1480,8 +1489,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
-            var newCompilationState = this.CompilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
-            return new Solution(newCompilationState);
+            using (this.StateLock.DisposableWait(cancellationToken))
+            {
+                if (!this._cachedFrozenDocumentState.TryGetValue(documentId, out var frozenSolution))
+                {
+                    var newCompilationState = this.CompilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
+                    frozenSolution = new Solution(newCompilationState);
+                    _cachedFrozenDocumentState.Add(documentId, frozenSolution);
+                }
+
+                return frozenSolution;
+            }
         }
 
         internal async Task<Solution> WithMergedLinkedFileChangesAsync(

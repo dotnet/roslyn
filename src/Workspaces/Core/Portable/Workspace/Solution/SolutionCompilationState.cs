@@ -53,15 +53,6 @@ internal sealed partial class SolutionCompilationState
     private ConditionalWeakTable<ISymbol, ProjectId?>? _unrootedSymbolToProjectId;
     private static readonly Func<ConditionalWeakTable<ISymbol, ProjectId?>> s_createTable = () => new ConditionalWeakTable<ISymbol, ProjectId?>();
 
-    // Lock for the partial compilation state listed below.
-    private NonReentrantLock? _stateLockBackingField;
-    private NonReentrantLock StateLock => LazyInitializer.EnsureInitialized(ref _stateLockBackingField, NonReentrantLock.Factory);
-
-    /// <summary>
-    /// Mapping of DocumentId to the frozen compilation state we produced for it the last time we were queried.
-    /// </summary>
-    private readonly Dictionary<DocumentId, SolutionCompilationState> _cachedFrozenDocumentState = [];
-
     private readonly AsyncLazy<SolutionCompilationState> _cachedFrozenSnapshot;
 
     private SolutionCompilationState(
@@ -1162,16 +1153,7 @@ internal sealed partial class SolutionCompilationState
                     documentStates.Add(documentState);
                 }
 
-                using (@this.StateLock.DisposableWait(cancellationToken))
-                {
-                    if (!@this._cachedFrozenDocumentState.TryGetValue(documentId, out var compilationState))
-                    {
-                        compilationState = ComputeFrozenPartialState(@this, documentStates, cancellationToken);
-                        @this._cachedFrozenDocumentState.Add(documentId, compilationState);
-                    }
-
-                    return compilationState;
-                }
+                return ComputeFrozenPartialState(@this, documentStates, cancellationToken);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
