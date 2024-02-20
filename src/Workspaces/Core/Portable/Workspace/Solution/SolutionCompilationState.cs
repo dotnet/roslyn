@@ -1218,14 +1218,14 @@ internal sealed partial class SolutionCompilationState
     {
         return AddDocumentsToMultipleProjects(documentInfos,
             static (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
-            static (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
+            static (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(oldProject, documents)));
     }
 
     public SolutionCompilationState AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
     {
         return AddDocumentsToMultipleProjects(documentInfos,
             static (documentInfo, project) => new AdditionalDocumentState(project.LanguageServices.SolutionServices, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-            static (oldProject, documents) => (oldProject.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
+            static (oldProject, documents) => (oldProject.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(oldProject, documents)));
     }
 
     public SolutionCompilationState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
@@ -1235,7 +1235,7 @@ internal sealed partial class SolutionCompilationState
             static (oldProject, documents) =>
             {
                 var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
-                return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
+                return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(oldProject, newProject, isAnalyzerConfigChange: true));
             });
     }
 
@@ -1243,14 +1243,14 @@ internal sealed partial class SolutionCompilationState
     {
         return RemoveDocumentsFromMultipleProjects(documentIds,
             static (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
-            static (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
+            static (oldProject, documentIds, documentStates) => (oldProject.RemoveDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(oldProject, documentStates)));
     }
 
     public SolutionCompilationState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
     {
         return RemoveDocumentsFromMultipleProjects(documentIds,
             static (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredState(documentId),
-            static (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(documentStates)));
+            static (oldProject, documentIds, documentStates) => (oldProject.RemoveAdditionalDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(oldProject, documentStates)));
     }
 
     public SolutionCompilationState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
@@ -1260,7 +1260,7 @@ internal sealed partial class SolutionCompilationState
             static (oldProject, documentIds, _) =>
             {
                 var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
-                return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
+                return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(oldProject, newProject, isAnalyzerConfigChange: true));
             });
     }
 
@@ -1398,6 +1398,7 @@ internal sealed partial class SolutionCompilationState
             new(this.SolutionState, projectToUpdateState, projectToUpdateState),
             translate: new CompilationAndGeneratorDriverTranslationAction.ReplaceGeneratorDriverAction(
                 tracker.GeneratorDriver,
+                oldProjectState: projectToUpdateState,
                 newProjectState: projectToUpdateState),
             forkTracker: true);
 
