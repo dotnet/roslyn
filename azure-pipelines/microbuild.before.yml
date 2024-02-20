@@ -15,14 +15,18 @@ parameters:
   type: boolean
 
 steps:
-- ${{ if not(parameters.IsOptProf) }}:
+- ${{ if and(not(parameters.IsOptProf), ne(variables['Build.Reason'], 'PullRequest')) }}:
+  # notice@0 requires CG detection to run first, and non-default branches don't inject it automatically.
+  - ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+    - task: ComponentGovernanceComponentDetection@0
+      displayName: 🔍 Component Detection
+
   - task: notice@0
     displayName: 🛠️ Generate NOTICE file
     inputs:
       outputfile: $(System.DefaultWorkingDirectory)/obj/NOTICE
       outputformat: text
-    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-    retryCountOnTaskFailure: 5 # fails when the cloud service is overloaded
+    retryCountOnTaskFailure: 3 # fails when the cloud service is overloaded
     continueOnError: ${{ not(parameters.RealSign) }} # Tolerate failures when we're not building something that may ship.
 
 - ${{ if parameters.IsOptProf }}:
