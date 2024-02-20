@@ -253,24 +253,15 @@ namespace Microsoft.CodeAnalysis
                     out var generatorInfo,
                     cancellationToken);
 
-                ImmutableList<TranslationAction> pendingActions;
-                ProjectState newProjectState;
-                if (oldProjectState.DocumentStates.TryGetState(docState.Id, out oldState))
-                {
+                TranslationAction pendingAction = oldProjectState.DocumentStates.TryGetState(docState.Id, out oldState)
                     // The document had been previously parsed and it's there, so we can update it with our current
                     // state. Note if no compilation existed GetPartialCompilationState would have produced an empty
                     // one, and removed any documents, so inProgressProject.DocumentStates would have been empty
                     // originally.
-                    newProjectState = oldProjectState.UpdateDocument(docState, contentChanged: true);
-                    pendingActions = [new TranslationAction.TouchDocumentAction(oldProjectState, newProjectState, oldState, docState)];
-                }
-                else
-                {
+                    ? new TranslationAction.TouchDocumentAction(oldProjectState, oldProjectState.UpdateDocument(docState, contentChanged: true), oldState, docState)
                     // The document wasn't present in the original snapshot at all, and we just need to add the
                     // document.
-                    newProjectState = oldProjectState.AddDocuments([docState]);
-                    pendingActions = [new TranslationAction.AddDocumentsAction(oldProjectState, newProjectState, [docState])];
-                }
+                    : new TranslationAction.AddDocumentsAction(oldProjectState, oldProjectState.AddDocuments([docState]), [docState]);
 
                 // Transition us to a frozen in progress state.  With the best compilations up to this point, and the
                 // pending actions we'll need to perform on it to get to the final state.
@@ -279,9 +270,9 @@ namespace Microsoft.CodeAnalysis
                     compilationWithoutGeneratedDocuments,
                     generatorInfo,
                     compilationWithGeneratedDocuments,
-                    pendingActions);
+                    [pendingAction]);
 
-                return new CompilationTracker(newProjectState, inProgressState, this.SkeletonReferenceCache.Clone());
+                return new CompilationTracker(pendingAction.NewProjectState, inProgressState, this.SkeletonReferenceCache.Clone());
             }
 
             /// <summary>
