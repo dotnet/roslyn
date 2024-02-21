@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis
                     Parallel.ForEach(
                         generatorInfo.Documents.States.Values,
                         new ParallelOptions { CancellationToken = cancellationToken },
-                        (state, x) => state.GetSyntaxTree(cancellationToken));
+                        state => state.GetSyntaxTree(cancellationToken));
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // Retrieving the syntax trees will be free now that we computed them above.
