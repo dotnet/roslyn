@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
         private readonly ITextBufferAssociatedViewService _associatedViewService;
         private readonly IThreadingContext _threadingContext;
 
-        private readonly Dictionary<ITextBuffer, VisibleTrackerData> _subjectBufferToCallbacks = new();
+        private readonly Dictionary<ITextBuffer, VisibleTrackerData> _subjectBufferToCallbacks = [];
 
         protected AbstractTextBufferVisibilityTracker(
             ITextBufferAssociatedViewService associatedViewService,
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Workspaces
 
         protected sealed class VisibleTrackerData : IDisposable
         {
-            public readonly HashSet<ITextView> TextViews = new();
+            public readonly HashSet<ITextView> TextViews = [];
 
             private readonly AbstractTextBufferVisibilityTracker<TTextView, TVisibilityChangedCallback> _tracker;
             private readonly ITextBuffer _subjectBuffer;

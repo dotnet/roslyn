@@ -34,7 +34,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
+using Microsoft.VisualStudio.LanguageServices.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
@@ -47,7 +47,7 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
-    internal abstract class AbstractSnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsExpansionClient
+    internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsExpansionClient
     {
         /// <summary>
         /// The name of a snippet field created for caret placement in Full Method Call snippet sessions when the
@@ -60,12 +60,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// </summary>
         private static readonly string s_fullMethodCallDescriptionSentinel = Guid.NewGuid().ToString("N");
 
+        private readonly ISnippetExpansionLanguageHelper _languageHelper;
         private readonly SignatureHelpControllerProvider _signatureHelpControllerProvider;
         private readonly IEditorCommandHandlerServiceFactory _editorCommandHandlerServiceFactory;
-        protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
-        protected readonly Guid LanguageServiceGuid;
-        protected readonly ITextView TextView;
-        protected readonly ITextBuffer SubjectBuffer;
+        private readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
+        private readonly ITextView TextView;
+        private readonly ITextBuffer SubjectBuffer;
         internal readonly EditorOptionsService EditorOptionsService;
 
         private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _allArgumentProviders;
@@ -87,9 +87,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         // Writes to this state only occur on the main thread.
         private readonly State _state = new();
 
-        public AbstractSnippetExpansionClient(
+        public SnippetExpansionClient(
             IThreadingContext threadingContext,
-            Guid languageServiceGuid,
+            ISnippetExpansionLanguageHelper languageHelper,
             ITextView textView,
             ITextBuffer subjectBuffer,
             SignatureHelpControllerProvider signatureHelpControllerProvider,
@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             EditorOptionsService editorOptionsService)
             : base(threadingContext)
         {
-            LanguageServiceGuid = languageServiceGuid;
+            _languageHelper = languageHelper;
             TextView = textView;
             SubjectBuffer = subjectBuffer;
             _signatureHelpControllerProvider = signatureHelpControllerProvider;
@@ -154,9 +154,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     return VSConstants.E_INVALIDARG;
             }
         }
-        protected abstract ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan();
-        internal abstract Document AddImports(Document document, AddImportPlacementOptions addImportOptions, SyntaxFormattingOptions formattingOptions, int position, XElement snippetNode, CancellationToken cancellationToken);
-        protected abstract string FallbackDefaultLiteral { get; }
 
         public int FormatSpan(IVsTextLines pBuffer, VsTextSpan[] tsInSurfaceBuffer)
         {
@@ -217,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 fullSnippetSpan[0].iStartIndex == tsInSurfaceBuffer[0].iStartIndex &&
                 fullSnippetSpan[0].iEndLine == tsInSurfaceBuffer[0].iEndLine &&
                 fullSnippetSpan[0].iEndIndex == tsInSurfaceBuffer[0].iEndIndex;
-            var endPositionTrackingSpan = isFullSnippetFormat ? InsertEmptyCommentAndGetEndPositionTrackingSpan() : null;
+            var endPositionTrackingSpan = isFullSnippetFormat ? _languageHelper.InsertEmptyCommentAndGetEndPositionTrackingSpan(ExpansionSession, TextView, SubjectBuffer) : null;
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(SubjectBuffer.CurrentSnapshot, snippetTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot));
 
@@ -340,7 +337,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return true;
         }
 
-        protected static bool TryGetSnippetNode(IVsExpansionSession pSession, [NotNullWhen(true)] out XElement? snippetNode)
+        private static bool TryGetSnippetNode(IVsExpansionSession pSession, [NotNullWhen(true)] out XElement? snippetNode)
         {
             IXMLDOMNode? xmlNode = null;
             snippetNode = null;
@@ -521,7 +518,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return true;
             }
 
-            if (expansion.InsertExpansion(textSpan, textSpan, this, LanguageServiceGuid, out _state._expansionSession) == VSConstants.S_OK)
+            if (expansion.InsertExpansion(textSpan, textSpan, this, _languageHelper.LanguageServiceGuid, out _state._expansionSession) == VSConstants.S_OK)
             {
                 // This expansion is not derived from a symbol, so make sure the state isn't tracking any symbol
                 // information
@@ -559,7 +556,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 var doc = (DOMDocument)new DOMDocumentClass();
                 if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
                 {
-                    if (expansion.InsertSpecificExpansion(doc, textSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
+                    if (expansion.InsertSpecificExpansion(doc, textSpan, this, _languageHelper.LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
                     {
                         Debug.Assert(_state._expansionSession != null);
                         _state._methodNameForInsertFullMethodCall = methodSymbols.First().Name;
@@ -585,7 +582,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return false;
 
             // Local function
-            static void EnsureRegisteredForModelUpdatedEvents(AbstractSnippetExpansionClient client, Controller controller)
+            static void EnsureRegisteredForModelUpdatedEvents(SnippetExpansionClient client, Controller controller)
             {
                 // Access to _registeredForSignatureHelpEvents is synchronized on the main thread
                 client.ThreadingContext.ThrowIfNotOnUIThread();
@@ -915,7 +912,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 }
 
                 // If we still have no value, fill in the default
-                value ??= FallbackDefaultLiteral;
+                value ??= _languageHelper.FallbackDefaultLiteral;
 
                 newArguments = newArguments.SetItem(parameter.Name, value);
             }
@@ -924,7 +921,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var doc = (DOMDocument)new DOMDocumentClass();
             if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
             {
-                if (expansion.InsertSpecificExpansion(doc, adjustedTextSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
+                if (expansion.InsertSpecificExpansion(doc, adjustedTextSpan, this, _languageHelper.LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
                 {
                     Debug.Assert(_state._expansionSession != null);
                     _state._methodNameForInsertFullMethodCall = method.Name;
@@ -1014,7 +1011,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                 _earlyEndExpansionHappened = false;
 
-                hr = expansion.InsertNamedExpansion(pszTitle, pszPath, textSpan, this, LanguageServiceGuid, fShowDisambiguationUI: 0, pSession: out _state._expansionSession);
+                hr = expansion.InsertNamedExpansion(pszTitle, pszPath, textSpan, this, _languageHelper.LanguageServiceGuid, fShowDisambiguationUI: 0, pSession: out _state._expansionSession);
 
                 if (_earlyEndExpansionHappened)
                 {
@@ -1068,7 +1065,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var addImportOptions = SubjectBuffer.GetAddImportPlacementOptions(EditorOptionsService, languageServices, documentWithImports.AllowImportsInHiddenRegions());
             var formattingOptions = SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, languageServices, explicitFormat: false);
 
-            documentWithImports = AddImports(documentWithImports, addImportOptions, formattingOptions, position, snippetNode, cancellationToken);
+            documentWithImports = _languageHelper.AddImports(documentWithImports, addImportOptions, formattingOptions, position, snippetNode, cancellationToken);
             AddReferences(documentWithImports.Project, snippetNode);
         }
 
@@ -1115,28 +1112,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     + string.Join(Environment.NewLine, failedReferenceAdditions),
                     severity: NotificationSeverity.Warning);
             }
-        }
-
-        protected static bool TryAddImportsToContainedDocument(Document document, IEnumerable<string> memberImportsNamespaces)
-        {
-            var containedDocument = ContainedDocument.TryGetContainedDocument(document.Id);
-            if (containedDocument == null)
-            {
-                return false;
-            }
-
-            if (containedDocument.ContainedLanguageHost is IVsContainedLanguageHostInternal containedLanguageHost)
-            {
-                foreach (var importClause in memberImportsNamespaces)
-                {
-                    if (containedLanguageHost.InsertImportsDirective(importClause) != VSConstants.S_OK)
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
         }
 
         internal bool TryGetSubjectBufferSpan(VsTextSpan surfaceBufferTextSpan, out SnapshotSpan subjectBufferSpan)
@@ -1209,6 +1184,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 _method = null;
                 _arguments = _arguments.Clear();
             }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor(SnippetExpansionClient instance)
+        {
+            internal ISnippetExpansionLanguageHelper LanguageHelper
+                => instance._languageHelper;
         }
     }
 }

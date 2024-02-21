@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
-        private static readonly SimplePool<MultiDictionary<string, INamespaceOrTypeSymbol>> s_symbolMapPool = new(() => new());
+        private static readonly SimplePool<MultiDictionary<string, INamespaceOrTypeSymbol>> s_symbolMapPool = new(() => []);
 
         private static MultiDictionary<string, INamespaceOrTypeSymbol> AllocateSymbolMap()
             => s_symbolMapPool.Allocate();
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return CreateSymbolTreeInfo(
                     checksum,
                     unsortedBuilderNodes.ToImmutable(),
-                    inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),
+                    inheritanceMap: [],
                     receiverTypeNameToExtensionMethodMap: null);
             }
             finally

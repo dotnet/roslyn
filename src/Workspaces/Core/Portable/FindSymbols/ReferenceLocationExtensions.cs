@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     if (!result.TryGetValue(containingSymbol, out var locations))
                     {
-                        locations = new List<Location>();
+                        locations = [];
                         result.Add(containingSymbol, locations);
                     }
 

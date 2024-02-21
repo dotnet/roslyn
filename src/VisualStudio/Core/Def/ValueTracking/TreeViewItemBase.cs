@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
     internal class TreeViewItemBase : ViewModelBase
     {
-        public ObservableCollection<TreeViewItemBase> ChildItems { get; } = new();
+        public ObservableCollection<TreeViewItemBase> ChildItems { get; } = [];
         public TreeViewItemBase? Parent { get; set; }
 
         public virtual string AutomationName { get; } = string.Empty;

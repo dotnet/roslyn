@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// rude edits or module diagnostics. At the end of the session we ask the diagnostic analyzer to reanalyze
         /// the documents to clean up the diagnostics.
         /// </summary>
-        private readonly HashSet<DocumentId> _documentsWithReportedDiagnostics = new();
+        private readonly HashSet<DocumentId> _documentsWithReportedDiagnostics = [];
         private readonly object _documentsWithReportedDiagnosticsGuard = new();
 
         internal EditSession(

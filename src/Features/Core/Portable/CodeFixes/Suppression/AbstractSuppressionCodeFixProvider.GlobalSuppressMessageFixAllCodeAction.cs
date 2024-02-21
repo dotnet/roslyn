@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                 if (!diagnosticsMapBuilder.TryGetValue(targetSymbol, out var diagnosticsForSymbol))
                 {
-                    diagnosticsForSymbol = new List<Diagnostic>();
+                    diagnosticsForSymbol = [];
                     diagnosticsMapBuilder.Add(targetSymbol, diagnosticsForSymbol);
                 }
 

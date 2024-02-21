@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
              IList<ITypeParameterSymbol> typeParameters,
             bool onlyMethodTypeParameters) : SymbolVisitor
         {
-            private readonly HashSet<ISymbol> _visited = new();
+            private readonly HashSet<ISymbol> _visited = [];
 
             public override void DefaultVisit(ISymbol node)
                 => throw new NotImplementedException();

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// Kept locally so we don't have to hit the DB for the common case of trying to determine the 
         /// DB id for a project.
         /// </summary>
-        private readonly ConcurrentDictionary<ProjectId, ProjectPrimaryKey> _projectIdToPrimaryKeyMap = new();
+        private readonly ConcurrentDictionary<ProjectId, ProjectPrimaryKey> _projectIdToPrimaryKeyMap = [];
 
         /// <summary>
         /// Given a project, and the name of a stream to read/write, gets the integral DB ID to 

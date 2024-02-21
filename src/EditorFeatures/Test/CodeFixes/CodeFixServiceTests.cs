@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         internal class TestErrorLogger : IErrorLoggerService
         {
-            public Dictionary<string, string> Messages = new Dictionary<string, string>();
+            public Dictionary<string, string> Messages = [];
 
             public void LogException(object source, Exception exception)
                 => Messages.Add(source.GetType().Name, ToLogFormat(exception));

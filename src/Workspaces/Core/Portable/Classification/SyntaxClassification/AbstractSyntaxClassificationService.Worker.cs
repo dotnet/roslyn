@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Classification
             private readonly Stack<SyntaxNodeOrToken> _pendingNodes;
             private readonly ClassificationOptions _options;
 
-            private static readonly ObjectPool<SegmentedList<ClassifiedSpan>> s_listPool = new(() => new());
+            private static readonly ObjectPool<SegmentedList<ClassifiedSpan>> s_listPool = new(() => []);
 
             private Worker(
                 SemanticModel semanticModel,

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
             if (!IsValidType(nameInfo.Type))
                 return default;
 
-            var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false, seenTypes: new HashSet<ITypeSymbol>());
+            var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false, seenTypes: []);
 
             var baseNames = NameGenerator.GetBaseNames(type, plural);
             return baseNames;

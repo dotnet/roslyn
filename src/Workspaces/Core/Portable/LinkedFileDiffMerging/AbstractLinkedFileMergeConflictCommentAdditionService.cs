@@ -34,9 +34,10 @@ namespace Microsoft.CodeAnalysis
         private static IEnumerable<IEnumerable<TextChange>> PartitionChangesForDocument(IEnumerable<TextChange> changes, SourceText originalSourceText)
         {
             var partitionedChanges = new List<IEnumerable<TextChange>>();
-            var currentPartition = new List<TextChange>();
-
-            currentPartition.Add(changes.First());
+            var currentPartition = new List<TextChange>
+            {
+                changes.First()
+            };
             var currentPartitionEndLine = originalSourceText.Lines.GetLineFromPosition(changes.First().Span.End);
 
             foreach (var change in changes.Skip(1))
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis
                 if (changeStartLine.LineNumber >= currentPartitionEndLine.LineNumber + 2)
                 {
                     partitionedChanges.Add(currentPartition);
-                    currentPartition = new List<TextChange>();
+                    currentPartition = [];
                 }
 
                 currentPartition.Add(change);

@@ -236,7 +236,7 @@ internal partial class SymbolTreeInfo
             }
             else
             {
-                receiverTypeNameToExtensionMethodMap = new();
+                receiverTypeNameToExtensionMethodMap = [];
 
                 for (var i = 0; i < keyCount; i++)
                 {

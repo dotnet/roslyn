@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private readonly ImmutableDictionary<string, string> _customColumnsData;
             private readonly IThreadingContext _threadingContext;
             private readonly string _rawProjectName;
-            private readonly List<string> _projectFlavors = new();
+            private readonly List<string> _projectFlavors = [];
 
             private string? _cachedProjectName;
 

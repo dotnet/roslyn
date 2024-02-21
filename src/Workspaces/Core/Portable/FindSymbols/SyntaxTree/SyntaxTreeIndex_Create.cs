@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (syntaxFacts.IsSimpleName(usingTarget))
             {
                 syntaxFacts.GetNameAndArityOfSimpleName(usingTarget, out var name, out var arity);
-                globalAliasInfo ??= new();
+                globalAliasInfo ??= [];
                 globalAliasInfo.Add((alias.ValueText, name, arity));
             }
         }

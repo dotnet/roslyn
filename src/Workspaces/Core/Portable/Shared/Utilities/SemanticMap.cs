@@ -12,11 +12,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal partial class SemanticMap
     {
-        private readonly Dictionary<SyntaxNode, SymbolInfo> _expressionToInfoMap =
-            new();
+        private readonly Dictionary<SyntaxNode, SymbolInfo> _expressionToInfoMap = [];
 
-        private readonly Dictionary<SyntaxToken, SymbolInfo> _tokenToInfoMap =
-            new();
+        private readonly Dictionary<SyntaxToken, SymbolInfo> _tokenToInfoMap = [];
 
         private SemanticMap()
         {

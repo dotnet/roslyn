@@ -1801,18 +1801,18 @@ class C
             public readonly ManualResetEventSlim BlockEvent;
             public readonly ManualResetEventSlim RunningEvent;
 
-            public readonly HashSet<DocumentId> SyntaxDocumentIds = new HashSet<DocumentId>();
-            public readonly HashSet<DocumentId> DocumentIds = new HashSet<DocumentId>();
-            public readonly HashSet<DocumentId> NonSourceDocumentIds = new HashSet<DocumentId>();
-            public readonly HashSet<ProjectId> ProjectIds = new HashSet<ProjectId>();
+            public readonly HashSet<DocumentId> SyntaxDocumentIds = [];
+            public readonly HashSet<DocumentId> DocumentIds = [];
+            public readonly HashSet<DocumentId> NonSourceDocumentIds = [];
+            public readonly HashSet<ProjectId> ProjectIds = [];
 
-            public readonly HashSet<DocumentId> InvalidateDocumentIds = new HashSet<DocumentId>();
-            public readonly HashSet<ProjectId> InvalidateProjectIds = new HashSet<ProjectId>();
+            public readonly HashSet<DocumentId> InvalidateDocumentIds = [];
+            public readonly HashSet<ProjectId> InvalidateProjectIds = [];
 
-            public readonly HashSet<DocumentId> OpenedDocumentIds = new HashSet<DocumentId>();
-            public readonly HashSet<DocumentId> OpenedNonSourceDocumentIds = new HashSet<DocumentId>();
-            public readonly HashSet<DocumentId> ClosedDocumentIds = new HashSet<DocumentId>();
-            public readonly HashSet<DocumentId> ClosedNonSourceDocumentIds = new HashSet<DocumentId>();
+            public readonly HashSet<DocumentId> OpenedDocumentIds = [];
+            public readonly HashSet<DocumentId> OpenedNonSourceDocumentIds = [];
+            public readonly HashSet<DocumentId> ClosedDocumentIds = [];
+            public readonly HashSet<DocumentId> ClosedNonSourceDocumentIds = [];
 
             private readonly IGlobalOptionService _globalOptions;
 
@@ -1994,7 +1994,7 @@ class C
 
         private class Analyzer2 : IIncrementalAnalyzer
         {
-            public readonly List<DocumentId> DocumentIds = new List<DocumentId>();
+            public readonly List<DocumentId> DocumentIds = [];
 
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {

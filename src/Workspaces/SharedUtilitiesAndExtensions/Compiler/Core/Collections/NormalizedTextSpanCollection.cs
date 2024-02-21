@@ -545,8 +545,10 @@ namespace Microsoft.CodeAnalysis.Shared
         #region Private Helpers
         private static IList<TextSpan> ListFromSpan(TextSpan span)
         {
-            IList<TextSpan> list = new List<TextSpan>(1);
-            list.Add(span);
+            IList<TextSpan> list = new List<TextSpan>(1)
+            {
+                span
+            };
             return list;
         }
 
