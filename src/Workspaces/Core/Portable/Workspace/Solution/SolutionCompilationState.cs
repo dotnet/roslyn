@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -43,7 +44,7 @@ internal sealed partial class SolutionCompilationState
     public TextDocumentStates<SourceGeneratedDocumentState>? FrozenSourceGeneratedDocumentStates { get; }
 
     // Values for all these are created on demand.
-    private ImmutableDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
+    private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
 
     /// <summary>
     /// Cache we use to map between unrooted symbols (i.e. assembly, module and dynamic symbols) and the project
@@ -56,7 +57,7 @@ internal sealed partial class SolutionCompilationState
     private SolutionCompilationState(
         SolutionState solution,
         bool partialSemanticsEnabled,
-        ImmutableDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
+        ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
         TextDocumentStates<SourceGeneratedDocumentState>? frozenSourceGeneratedDocumentStates)
     {
         SolutionState = solution;
@@ -76,7 +77,7 @@ internal sealed partial class SolutionCompilationState
         : this(
               solution,
               partialSemanticsEnabled,
-              projectIdToTrackerMap: ImmutableDictionary<ProjectId, ICompilationTracker>.Empty,
+              projectIdToTrackerMap: ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>.Empty,
               frozenSourceGeneratedDocumentStates: null)
     {
     }
@@ -93,7 +94,7 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState Branch(
         SolutionState newSolutionState,
-        ImmutableDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
+        ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
         Optional<TextDocumentStates<SourceGeneratedDocumentState>?> frozenSourceGeneratedDocumentStates = default)
     {
         projectIdToTrackerMap ??= _projectIdToTrackerMap;
@@ -109,7 +110,7 @@ internal sealed partial class SolutionCompilationState
         return new SolutionCompilationState(
             newSolutionState,
             PartialSemanticsEnabled,
-            projectIdToTrackerMap,
+            projectIdToTrackerMap.Value,
             newFrozenSourceGeneratedDocumentStates);
     }
 
@@ -173,7 +174,7 @@ internal sealed partial class SolutionCompilationState
             projectIdToTrackerMap: newTrackerMap);
     }
 
-    private ImmutableDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
+    private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
     {
         return CreateCompilationTrackerMap(CanReuse, (changedProjectId, dependencyGraph));
 
@@ -189,7 +190,7 @@ internal sealed partial class SolutionCompilationState
         }
     }
 
-    private ImmutableDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap(ImmutableArray<ProjectId> changedProjectIds, ProjectDependencyGraph dependencyGraph)
+    private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap(ImmutableArray<ProjectId> changedProjectIds, ProjectDependencyGraph dependencyGraph)
     {
         return CreateCompilationTrackerMap(CanReuse, (changedProjectIds, dependencyGraph));
 
@@ -209,7 +210,7 @@ internal sealed partial class SolutionCompilationState
         }
     }
 
-    private ImmutableDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArg>(Func<ProjectId, TArg, bool> canReuse, TArg arg)
+    private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArg>(Func<ProjectId, TArg, bool> canReuse, TArg arg)
     {
         if (_projectIdToTrackerMap.Count == 0)
             return _projectIdToTrackerMap;
@@ -231,7 +232,7 @@ internal sealed partial class SolutionCompilationState
         if (allReused)
             return _projectIdToTrackerMap;
 
-        return ImmutableDictionary.CreateRange(newTrackerInfo);
+        return ImmutableSegmentedDictionary.CreateRange(newTrackerInfo);
     }
 
     /// <inheritdoc cref="SolutionState.AddProject(ProjectInfo)"/>
@@ -754,7 +755,7 @@ internal sealed partial class SolutionCompilationState
     {
         if (!_projectIdToTrackerMap.TryGetValue(projectId, out var tracker))
         {
-            tracker = ImmutableInterlocked.GetOrAdd(ref _projectIdToTrackerMap, projectId, s_createCompilationTrackerFunction, this.SolutionState);
+            tracker = RoslynImmutableInterlocked.GetOrAdd(ref _projectIdToTrackerMap, projectId, s_createCompilationTrackerFunction, this.SolutionState);
         }
 
         return tracker;
