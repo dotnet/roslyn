@@ -60,7 +60,7 @@ internal static class PRTagger
         foreach (var product in VSBranchInfo.AllProducts)
         {
             // We currently only support creating issues for GitHub repos
-            if (!product.RepoHttpBaseUrl.Contains("github.com"))
+            if (!product.IsGitHubRepo())
             {
                 logger.LogWarning("Only GitHub repos are supported.");
                 return -1;
@@ -99,7 +99,7 @@ internal static class PRTagger
             logger.LogInformation($"Issue with name: {issueTitle} exists in repo: {gitHubRepoName}. Skip creation.");
             return TagResult.IssueAlreadyCreated;
         }
-        
+
         // Get associated product build for current and previous VS commit SHAs
         var currentBuild = await TryGetBuildNumberForReleaseAsync(product.ComponentJsonFileName, product.ComponentName, vsCommitSha, remoteConnections.DevDivConnection, logger).ConfigureAwait(false);
         var previousBuild = await TryGetBuildNumberForReleaseAsync(product.ComponentJsonFileName, product.ComponentName, previousVsCommitSha, remoteConnections.DevDivConnection, logger).ConfigureAwait(false);
