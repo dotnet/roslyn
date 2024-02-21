@@ -194,6 +194,8 @@ namespace RunTests
                 // figure out solutions for issues such as creating file paths in the correct format for the target machine.
                 var isUnix = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
                 var isMac = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+                Console.WriteLine($"Running on Unix: {isUnix}");
+                Console.WriteLine($"Running on Mac: {isMac}");
 
                 var setEnvironmentVariable = isUnix ? "export" : "set";
 
@@ -220,11 +222,25 @@ namespace RunTests
                 // OSX produces extremely large dump files that commonly exceed the limits of Helix 
                 // uploads. These settings limit the dump file size + produce a .json detailing crash 
                 // reasons that work better with Helix size limitations.
-                if (isMac)
+                if (isUnix)
                 {
+                    command.AppendLine("""
+                        echo HELIX_WORKITEM_PAYLOAD
+                        echo $HELIX_WORKITEM_PAYLOAD
+                        ls $HELIX_WORKITEM_PAYLOAD
+
+                        echo HELIX_WORKITEM_ROOT
+                        echo $HELIX_WORKITEM_ROOT
+                        ls $HELIX_WORKITEM_ROOT
+                        ls eng
+                        pwd
+                        ls $HELIX_CORRELATION_PAYLOAD
+                        """);
+
                     command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgEnableMiniDump=1");
                     command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgMiniDumpType=1");
                     command.AppendLine($"{setEnvironmentVariable} DOTNET_EnableCrashReport=1");
+                    // command.AppendLine($"{setEnvironmentVariable} DOTNET_GCName=../../../../../../../../../../../..$HELIX_CORRELATION_PAYLOAD/libclrgc.dylib");
                 }
 
                 // Set the dump folder so that dotnet writes all dump files to this location automatically. 
@@ -277,6 +293,9 @@ namespace RunTests
                     command.AppendLine("echo %vstestConsolePath%");
                     command.AppendLine($"dotnet exec \"%vstestConsolePath%\" @{rspFileName}");
                 }
+
+                Console.WriteLine("Command text");
+                Console.WriteLine(command.ToString());
 
                 // The command string contains characters like % which are not valid XML to pass into the helix csproj.
                 var escapedCommand = SecurityElement.Escape(command.ToString());
