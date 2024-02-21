@@ -29,15 +29,14 @@ internal static class PRTagger
     /// <summary>
     /// Creates GitHub issues containing the PRs inserted into a given VS build.
     /// </summary>
-    /// <param name="vsBuild">VS build number</param>
-    /// <param name="vsCommitSha">Commit SHA for VS build</param>
-    /// <param name="settings">Authentication tokens</param>
+    /// <param name="vsBuild">VS build number. Use if the tagger is invoked to check from a specify vs build.</param>
     /// <param name="logger"></param>
     /// <returns>Exit code indicating whether issue was successfully created.</returns>
     public static async Task<int> TagPRs(
         RemoteConnections remoteConnections,
         ILogger logger,
-        int maxFetchingVSBuildNumber)
+        int maxFetchingVSBuildNumber,
+        string? vsBuild)
     {
         var cancellationToken = CancellationToken.None;
         // vsBuildsAndCommitSha is ordered from new to old.
@@ -55,11 +54,19 @@ internal static class PRTagger
             }
 
             var gitHubRepoName = product.RepoHttpBaseUrl.Split('/').Last();
-            var vsBuildsAndCommitSha = await GetVSBuildsAndCommitsAsync(gitHubRepoName, remoteConnections.DevDivConnection, remoteConnections.GitHubClient, logger, maxFetchingVSBuildNumber, cancellationToken).ConfigureAwait(false);
 
-            foreach (var (vsBuild, vsCommitSha, previousVsCommitSha) in vsBuildsAndCommitSha)
+            var vsBuildsAndCommitSha = await GetVSBuildsAndCommitsAsync(
+                gitHubRepoName,
+                remoteConnections.DevDivConnection,
+                remoteConnections.GitHubClient,
+                logger,
+                maxFetchingVSBuildNumber,
+                vsBuild,
+                cancellationToken).ConfigureAwait(false);
+
+            foreach (var (buildNumber, vsCommitSha, previousVsCommitSha) in vsBuildsAndCommitSha)
             {
-                var result = await TagProductAsync(product, gitHubRepoName, logger, vsCommitSha, vsBuild, previousVsCommitSha, remoteConnections).ConfigureAwait(false);
+                var result = await TagProductAsync(product, gitHubRepoName, logger, vsCommitSha, buildNumber, previousVsCommitSha, remoteConnections).ConfigureAwait(false);
                 if (result is TagResult.Failed or TagResult.IssueAlreadyCreated)
                 {
                     break;
@@ -161,20 +168,26 @@ internal static class PRTagger
         HttpClient gitHubClient,
         ILogger logger,
         int maxFetchingVsBuildNumber,
+        string? vsbuild,
         CancellationToken cancellationToken)
     {
-        var lastVsBuildNumberReported = await FindTheLastReportedVSBuildAsync(gitHubClient, repoName, logger).ConfigureAwait(false);
-        if (lastVsBuildNumberReported is not null)
+        string? lastVsBuildNumberReported = null;
+        if (vsbuild == null)
         {
-            logger.LogInformation($"Last reported VS build number: {lastVsBuildNumberReported}.");
-        }
-        else
-        {
-            logger.LogInformation($"Can't find the last reported VS Build info in {repoName}.");
+            lastVsBuildNumberReported = await FindTheLastReportedVSBuildAsync(gitHubClient, repoName, logger).ConfigureAwait(false);
+            if (lastVsBuildNumberReported is not null)
+            {
+                logger.LogInformation($"Last reported VS build number: {lastVsBuildNumberReported}.");
+            }
+            else
+            {
+                logger.LogInformation($"Can't find the last reported VS Build info in {repoName}.");
+            }
         }
 
         var builds = await devdivConnection.TryGetBuildsAsync(
             "DD-CB-TestSignVS",
+            buildNumber: vsbuild,
             logger: logger,
             maxFetchingVsBuildNumber: maxFetchingVsBuildNumber,
             resultsFilter: BuildResult.Succeeded,
@@ -187,7 +200,7 @@ internal static class PRTagger
                 var lastReportedBuildIndex = builds.FindIndex(build => build.BuildNumber == lastVsBuildNumberReported);
                 if (lastReportedBuildIndex == -1)
                 {
-                    logger.LogWarning($"VS build: {lastVsBuildNumberReported} can't be found in the build list. It is likely the tagger hasn't been run for a long time for repo {repoName}.");
+                    logger.LogWarning($"VS build: {lastVsBuildNumberReported} can't be found in the build list.");
                 }
                 else
                 {
