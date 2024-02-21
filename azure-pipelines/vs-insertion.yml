@@ -54,7 +54,7 @@ extends:
             TeamEmail: $(TeamEmail)
             InsertionPayloadName: $(Build.Repository.Name) $(Build.BuildNumber)
             InsertionBuildPolicy: Request Perf DDRITs
-            InsertionReviewers: $(TeamEmail),$(Build.RequestedForEmail)
+            InsertionReviewers: $(Build.RequestedFor) # Append `,Your team name` (without quotes)
             AutoCompletePR: true
             AutoCompleteMergeStrategy: Squash
         - powershell: |
