@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
                 trees.AddRange(generatorState.PostInitTrees.Select(t => t.Tree));
                 trees.AddRange(generatorState.GeneratedTrees.Select(t => t.Tree));
             }
-            outputCompilation = compilation.AddSyntaxTrees(trees);
+            outputCompilation = compilation.AddSyntaxTrees(trees, isSourceGenerated: true);
             trees.Free();
 
             return FromState(state);

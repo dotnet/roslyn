@@ -26,12 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal SyntaxAndDeclarationManager(
             ImmutableArray<SyntaxTree> externalSyntaxTrees,
+            ImmutableArray<SyntaxTree> sourceGeneratedSyntaxTrees,
             string scriptClassName,
             SourceReferenceResolver resolver,
             CommonMessageProvider messageProvider,
             bool isSubmission,
             State state)
-            : base(externalSyntaxTrees, scriptClassName, resolver, messageProvider, isSubmission)
+            : base(externalSyntaxTrees, sourceGeneratedSyntaxTrees, scriptClassName, resolver, messageProvider, isSubmission)
         {
             _lazyState = state;
         }
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declTable);
         }
 
-        public SyntaxAndDeclarationManager AddSyntaxTrees(IEnumerable<SyntaxTree> trees)
+        public SyntaxAndDeclarationManager AddSyntaxTrees(IEnumerable<SyntaxTree> trees, bool isSourceGenerated)
         {
             var scriptClassName = this.ScriptClassName;
             var resolver = this.Resolver;
@@ -97,9 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var state = _lazyState;
             var newExternalSyntaxTrees = this.ExternalSyntaxTrees.AddRange(trees);
+            var newSourceGeneratedTrees = this.SourceGeneratedSyntaxTrees.AddRange(isSourceGenerated ? trees : SpecializedCollections.EmptyEnumerable<SyntaxTree>());
             if (state == null)
             {
-                return this.WithExternalSyntaxTrees(newExternalSyntaxTrees);
+                return this.WithExternalAndSourceGeneratedTrees(newExternalSyntaxTrees, newSourceGeneratedTrees);
             }
 
             var ordinalMapBuilder = state.OrdinalMap.ToBuilder();
@@ -140,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new SyntaxAndDeclarationManager(
                 newExternalSyntaxTrees,
+                newSourceGeneratedTrees,
                 scriptClassName,
                 resolver,
                 messageProvider,
@@ -305,9 +308,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var state = _lazyState;
             var newExternalSyntaxTrees = this.ExternalSyntaxTrees.RemoveAll(t => trees.Contains(t));
+            var newSourceGeneratedTrees = this.SourceGeneratedSyntaxTrees.RemoveAll(t => trees.Contains(t));
             if (state == null)
             {
-                return this.WithExternalSyntaxTrees(newExternalSyntaxTrees);
+                return this.WithExternalAndSourceGeneratedTrees(newExternalSyntaxTrees, newSourceGeneratedTrees);
             }
 
             var syntaxTrees = state.SyntaxTrees;
@@ -367,6 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new SyntaxAndDeclarationManager(
                 newExternalSyntaxTrees,
+                newSourceGeneratedTrees,
                 this.ScriptClassName,
                 this.Resolver,
                 this.MessageProvider,
@@ -467,9 +472,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var state = _lazyState;
             var newExternalSyntaxTrees = this.ExternalSyntaxTrees.Replace(oldTree, newTree);
+            var newSourceGeneratedTrees = this.SourceGeneratedSyntaxTrees.Replace(oldTree, newTree);
             if (state == null)
             {
-                return this.WithExternalSyntaxTrees(newExternalSyntaxTrees);
+                return this.WithExternalAndSourceGeneratedTrees(newExternalSyntaxTrees, newSourceGeneratedTrees);
             }
 
             var newLoadDirectivesSyntax = newTree.GetCompilationUnitRoot().GetLoadDirectives();
@@ -596,6 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new SyntaxAndDeclarationManager(
                 newExternalSyntaxTrees,
+                newSourceGeneratedTrees,
                 this.ScriptClassName,
                 this.Resolver,
                 this.MessageProvider,
@@ -660,9 +667,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal SyntaxAndDeclarationManager WithExternalSyntaxTrees(ImmutableArray<SyntaxTree> trees)
+        internal SyntaxAndDeclarationManager WithExternalAndSourceGeneratedTrees(ImmutableArray<SyntaxTree> externalTrees, ImmutableArray<SyntaxTree> sourceGeneratedTrees)
         {
-            return new SyntaxAndDeclarationManager(trees, this.ScriptClassName, this.Resolver, this.MessageProvider, this.IsSubmission, state: null);
+            return new SyntaxAndDeclarationManager(externalTrees, sourceGeneratedTrees, this.ScriptClassName, this.Resolver, this.MessageProvider, this.IsSubmission, state: null);
         }
 
         internal static bool IsLoadedSyntaxTree(SyntaxTree tree, ImmutableDictionary<string, SyntaxTree> loadedSyntaxTreeMap)

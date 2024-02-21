@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -8607,6 +8608,43 @@ class D
                 // (6,2): error CS0305: Using the generic type 'C<U>' requires 1 type arguments
                 // [C]
                 Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<U>", "type", "1").WithLocation(6, 2));
+        }
+
+        [Fact]
+        public void AmbiguousClassNamespaceLookup_SourceGeneratedAttribute()
+        {
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterPostInitializationOutput(static ctx =>
+                    ctx.AddSource("GeneratedAttribute.cs", """
+                        using System;
+                        using System.Runtime.CompilerServices;
+
+                        [assembly: InternalsVisibleTo("Assembly2")]
+
+                        namespace N;
+
+                        [AttributeUsage(AttributeTargets.All)]
+                        internal class GeneratedAttribute : Attribute
+                        {
+                        }
+                        """));
+            });
+
+            var comp1 = CreateCompilation("", parseOptions: TestOptions.Regular, assemblyName: "Assembly1");
+            var driver = CSharpGeneratorDriver.Create(generator);
+            _ = driver.RunGeneratorsAndUpdateCompilation(comp1, out var comp1WithGenerated, out var comp1Diagnostics);
+            comp1Diagnostics.Verify();
+
+            var comp2 = CreateCompilation("""
+                [N.Generated]
+                class G {}
+                """, parseOptions: TestOptions.Regular, references: new[] { comp1WithGenerated.EmitToImageReference() }, assemblyName: "Assembly2");
+
+            _ = driver.RunGeneratorsAndUpdateCompilation(comp2, out var comp2WithGenerated, out var comp2Diagnostics);
+            comp2Diagnostics.Verify();
+
+            comp2WithGenerated.VerifyEmitDiagnostics();
         }
 
         [WorkItem(546283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546283")]

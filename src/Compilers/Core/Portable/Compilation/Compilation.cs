@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A new compilation.</returns>
         public Compilation AddSyntaxTrees(params SyntaxTree[] trees)
         {
-            return CommonAddSyntaxTrees(trees);
+            return CommonAddSyntaxTrees(trees, isSourceGenerated: false);
         }
 
         /// <summary>
@@ -553,10 +553,15 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A new compilation.</returns>
         public Compilation AddSyntaxTrees(IEnumerable<SyntaxTree> trees)
         {
-            return CommonAddSyntaxTrees(trees);
+            return CommonAddSyntaxTrees(trees, isSourceGenerated: false);
         }
 
-        protected abstract Compilation CommonAddSyntaxTrees(IEnumerable<SyntaxTree> trees);
+        internal Compilation AddSyntaxTrees(IEnumerable<SyntaxTree> trees, bool isSourceGenerated)
+        {
+            return CommonAddSyntaxTrees(trees, isSourceGenerated);
+        }
+
+        protected abstract Compilation CommonAddSyntaxTrees(IEnumerable<SyntaxTree> trees, bool isSourceGenerated);
 
         /// <summary>
         /// Creates a new compilation without the specified syntax trees. Preserves metadata info for use with trees

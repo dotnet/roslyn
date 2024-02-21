@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestGenerators
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class AttributeTests
@@ -6319,6 +6320,50 @@ DiagModule: 'Public Shared Sub M()' is for evaluation purposes only and is subje
             For Each diag In comp.GetDiagnostics()
                 Assert.Equal("DiagModule", diag.Id)
             Next
+        End Sub
+
+        <Fact>
+        Public Sub AmbiguousClassNamespaceLookup_SourceGeneratedAttribute()
+            Dim generator = New CallbackGenerator(
+                onInit:=Sub(ctx)
+                            ctx.RegisterForPostInitialization(Sub(staticCtx)
+                                staticCtx.AddSource("GeneratedAttribute.vb", "
+                                    Imports System
+                                    Imports System.Runtime.CompilerServices
+
+                                    <Assembly: InternalsVisibleTo(""Assembly2"")>
+
+                                    Namespace N
+                                        <AttributeUsage(AttributeTargets.All)>
+                                        Friend Class GeneratedAttribute
+                                            Inherits Attribute
+                                        End Class
+                                    End Namespace
+                                ")
+                            End Sub)
+                        End Sub,
+                onExecute:=Sub(ctx)
+                           End Sub)
+
+            Dim comp1 = CreateCompilation("", parseOptions:=TestOptions.Regular, assemblyName:="Assembly1")
+            Dim driver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=TestOptions.Regular)
+            Dim comp1WithGenerated As Compilation = Nothing
+            Dim comp1Diagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(comp1, comp1WithGenerated, comp1Diagnostics)
+            comp1Diagnostics.Verify()
+
+            Dim comp2 = CreateCompilation("
+                <N.Generated>
+                Class G
+                End Class
+            ", parseOptions:=TestOptions.Regular, references:={comp1WithGenerated.EmitToImageReference()}, assemblyName:="Assembly2")
+
+            Dim comp2WithGenerated As Compilation = Nothing
+            Dim comp2Diagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(comp2, comp2WithGenerated, comp2Diagnostics)
+            comp2Diagnostics.Verify()
+
+            comp2WithGenerated.AssertTheseDiagnostics()
         End Sub
 
     End Class
