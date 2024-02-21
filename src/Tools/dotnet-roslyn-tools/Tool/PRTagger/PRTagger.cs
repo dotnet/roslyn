@@ -3,7 +3,6 @@
 // See the License.txt file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Text;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Logging;
@@ -407,7 +406,11 @@ internal static class PRTagger
         string? label = null)
     {
         // If title and label are both null, there is nothing to search.
-        Debug.Assert(title is null && label is null);
+        if (title is null && label is null)
+        {
+            throw new ArgumentException($"$title and label are both null.");
+        }
+
         var queryBuilder = new StringBuilder();
         queryBuilder.Append("search/issues?q=");
         if (title is not null)
