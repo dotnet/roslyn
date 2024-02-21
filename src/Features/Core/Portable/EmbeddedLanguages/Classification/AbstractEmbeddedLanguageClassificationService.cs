@@ -106,9 +106,12 @@ namespace Microsoft.CodeAnalysis.Classification
             private void ProcessToken(SyntaxToken token)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                ProcessTriviaList(token.LeadingTrivia);
+
+                // Directives need to be processes as they can contain strings, which then have escapes in them.
+                if (token.ContainsDirectives)
+                    ProcessTriviaList(token.LeadingTrivia);
+
                 ClassifyToken(token);
-                ProcessTriviaList(token.TrailingTrivia);
             }
 
             private void ClassifyToken(SyntaxToken token)
@@ -146,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             private void ProcessTrivia(SyntaxTrivia trivia)
             {
-                if (trivia.HasStructure && trivia.FullSpan.IntersectsWith(_textSpan))
+                if (trivia.IsDirective && trivia.FullSpan.IntersectsWith(_textSpan))
                     VisitTokens(trivia.GetStructure()!);
             }
         }
