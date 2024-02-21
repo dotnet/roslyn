@@ -36,6 +36,7 @@ internal class ExecuteWorkspaceCommandHandler : ILspServiceRequestHandler<Execut
 
         var result = await requestExecutionQueue.ExecuteAsync<ExecuteCommandParams, object?>(
             request,
+            LanguageServerConstants.DefaultLanguageName,
             requestMethod,
             lspServices,
             cancellationToken).ConfigureAwait(false);

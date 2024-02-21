@@ -28,7 +28,8 @@ internal sealed class LanguageServerHost
 
     public LanguageServerHost(Stream inputStream, Stream outputStream, ExportProvider exportProvider, ILogger logger)
     {
-        var handler = new HeaderDelimitedMessageHandler(outputStream, inputStream, new JsonMessageFormatter());
+        var messageFormatter = new JsonMessageFormatter();
+        var handler = new HeaderDelimitedMessageHandler(outputStream, inputStream, messageFormatter);
 
         // If there is a jsonrpc disconnect or server shutdown, that is handled by the AbstractLanguageServer.  No need to do anything here.
         _jsonRpc = new JsonRpc(handler)
@@ -43,7 +44,7 @@ internal sealed class LanguageServerHost
         var lspLogger = new LspServiceLogger(_logger);
 
         var hostServices = exportProvider.GetExportedValue<HostServicesProvider>().HostServices;
-        _roslynLanguageServer = roslynLspFactory.Create(_jsonRpc, capabilitiesProvider, WellKnownLspServerKinds.CSharpVisualBasicLspServer, lspLogger, hostServices);
+        _roslynLanguageServer = roslynLspFactory.Create(_jsonRpc, messageFormatter.JsonSerializer, capabilitiesProvider, WellKnownLspServerKinds.CSharpVisualBasicLspServer, lspLogger, hostServices);
     }
 
     public void Start()

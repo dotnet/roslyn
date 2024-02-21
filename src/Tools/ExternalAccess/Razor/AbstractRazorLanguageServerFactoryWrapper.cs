@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
 using Newtonsoft.Json;
@@ -12,11 +13,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     /// <summary>
     /// NOTE: For Razor test usage only
     /// </summary>
-    internal interface IRazorLanguageServerFactoryWrapper
+    internal abstract class AbstractRazorLanguageServerFactoryWrapper
     {
-        IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, IRazorTestCapabilitiesProvider capabilitiesProvider, HostServices hostServices);
+        internal abstract IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, JsonSerializer jsonSerializer, IRazorTestCapabilitiesProvider capabilitiesProvider, HostServices hostServices);
 
-        DocumentInfo CreateDocumentInfo(
+        internal abstract DocumentInfo CreateDocumentInfo(
             DocumentId id,
             string name,
             IReadOnlyList<string>? folders = null,
@@ -30,6 +31,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         /// <summary>
         /// Supports the creation of a Roslyn LSP server for functional tests
         /// </summary>
-        void AddJsonConverters(JsonSerializer jsonSerializer);
+        internal abstract void AddJsonConverters(JsonSerializer jsonSerializer);
     }
 }
