@@ -697,16 +697,16 @@ namespace Microsoft.CodeAnalysis.Text
             if (stream.CanSeek)
             {
                 stream.Seek(0, SeekOrigin.Begin);
-            }
 
 #if NETCOREAPP
-            if (stream.Length <= 1024)
-            {
-                Span<byte> buffer = stackalloc byte[(int)stream.Length];
-                stream.ReadExactly(buffer);
-                return CalculateChecksum(buffer, algorithmId);
-            }
+                if (stream.Length <= 1024)
+                {
+                    Span<byte> buffer = stackalloc byte[(int)stream.Length];
+                    stream.ReadExactly(buffer);
+                    return CalculateChecksum(buffer, algorithmId);
+                }
 #endif
+            }
 
             var bytes = algorithm.ComputeHash(stream);
             return ImmutableCollectionsMarshal.AsImmutableArray(bytes);
