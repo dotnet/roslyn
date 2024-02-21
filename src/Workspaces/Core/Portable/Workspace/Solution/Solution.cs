@@ -30,10 +30,23 @@ namespace Microsoft.CodeAnalysis
         // Values for all these are created on demand.
         private ImmutableHashMap<ProjectId, Project> _projectIdToProjectMap;
 
+        /// <summary>
+        /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.
+        /// </summary>
+        private AsyncLazy<Solution> CachedFrozenSolution { get; init; }
+
+        /// <summary>
+        /// Mapping of DocumentId to the frozen solution we produced for it the last time we were queried.  This
+        /// instance should be used as its own lock when reading or writing to it.
+        /// </summary>
+        private readonly Dictionary<DocumentId, AsyncLazy<Solution>> _documentIdToFrozenSolution = [];
+
         private Solution(SolutionCompilationState compilationState)
         {
             _projectIdToProjectMap = [];
             _compilationState = compilationState;
+
+            this.CachedFrozenSolution = AsyncLazy.Create(ComputeFrozenSolution);
         }
 
         internal Solution(
@@ -1442,6 +1455,29 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns a solution instance where every project is frozen at whatever current state it is in
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        internal Task<Solution> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
+            => this.CachedFrozenSolution.GetValueAsync(cancellationToken);
+
+        private Solution ComputeFrozenSolution(CancellationToken cancellationToken)
+        {
+            // in progress solutions are disabled for some testing
+            if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
+                return this;
+
+            var newCompilationState = this.CompilationState.WithFrozenPartialCompilations(cancellationToken);
+            var frozenSolution = new Solution(newCompilationState)
+            {
+                // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.
+                CachedFrozenSolution = this.CachedFrozenSolution,
+            };
+
+            return frozenSolution;
+        }
+
+        /// <summary>
         /// Creates a branch of the solution that has its compilations frozen in whatever state they are in at the time,
         /// assuming a background compiler is busy building this compilations.
         /// <para/> A compilation for the project containing the specified document id will be guaranteed to exist with
@@ -1450,8 +1486,31 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
-            var newCompilationState = this.CompilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
-            return new Solution(newCompilationState);
+            return GetLazySolution().GetValue(cancellationToken);
+
+            AsyncLazy<Solution> GetLazySolution()
+            {
+                lock (_documentIdToFrozenSolution)
+                {
+                    if (!_documentIdToFrozenSolution.TryGetValue(documentId, out var lazySolution))
+                    {
+                        // in a local function to prevent lambda allocations when not needed.
+                        lazySolution = CreateLazyFrozenSolution(this.CompilationState, documentId);
+                        _documentIdToFrozenSolution.Add(documentId, lazySolution);
+                    }
+
+                    return lazySolution;
+                }
+            }
+
+            static AsyncLazy<Solution> CreateLazyFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId)
+                => AsyncLazy.Create(cancellationToken => ComputeFrozenSolution(compilationState, documentId, cancellationToken));
+
+            static Solution ComputeFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId, CancellationToken cancellationToken)
+            {
+                var newCompilationState = compilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
+                return new Solution(newCompilationState);
+            }
         }
 
         internal async Task<Solution> WithMergedLinkedFileChangesAsync(
@@ -1519,7 +1578,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Document WithFrozenSourceGeneratedDocument(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)
         {
-            var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocument(documentIdentity, text);
+            var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, text)]);
             var newSolution = newCompilationState != _compilationState
                 ? new Solution(newCompilationState)
                 : this;
@@ -1529,6 +1588,14 @@ namespace Microsoft.CodeAnalysis
 
             var newProject = newSolution.GetRequiredProject(newDocumentState.Id.ProjectId);
             return newProject.GetOrCreateSourceGeneratedDocument(newDocumentState);
+        }
+
+        internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)> documents)
+        {
+            var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments(documents);
+            return newCompilationState != _compilationState
+                ? new Solution(newCompilationState)
+                : this;
         }
 
         /// <summary>

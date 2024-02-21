@@ -15864,6 +15864,7 @@ internal sealed partial class AttributeSyntax : CSharpSyntaxNode
     internal AttributeSyntax(SyntaxKind kind, NameSyntax name, AttributeArgumentListSyntax? argumentList, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
       : base(kind, diagnostics, annotations)
     {
+        SetFlags(NodeFlags.ContainsAttributes);
         this.SlotCount = 2;
         this.AdjustFlagsAndWidth(name);
         this.name = name;
@@ -15878,6 +15879,7 @@ internal sealed partial class AttributeSyntax : CSharpSyntaxNode
       : base(kind)
     {
         this.SetFactoryContext(context);
+        SetFlags(NodeFlags.ContainsAttributes);
         this.SlotCount = 2;
         this.AdjustFlagsAndWidth(name);
         this.name = name;
@@ -15891,6 +15893,7 @@ internal sealed partial class AttributeSyntax : CSharpSyntaxNode
     internal AttributeSyntax(SyntaxKind kind, NameSyntax name, AttributeArgumentListSyntax? argumentList)
       : base(kind)
     {
+        SetFlags(NodeFlags.ContainsAttributes);
         this.SlotCount = 2;
         this.AdjustFlagsAndWidth(name);
         this.name = name;
@@ -24097,13 +24100,13 @@ internal abstract partial class DirectiveTriviaSyntax : StructuredTriviaSyntax
     internal DirectiveTriviaSyntax(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
       : base(kind, diagnostics, annotations)
     {
-        this.flags |= NodeFlags.ContainsDirectives;
+        SetFlags(NodeFlags.ContainsDirectives);
     }
 
     internal DirectiveTriviaSyntax(SyntaxKind kind)
       : base(kind)
     {
-        this.flags |= NodeFlags.ContainsDirectives;
+        SetFlags(NodeFlags.ContainsDirectives);
     }
 
     public abstract SyntaxToken HashToken { get; }
@@ -30780,17 +30783,7 @@ internal partial class ContextAwareSyntax
         if (name == null) throw new ArgumentNullException(nameof(name));
 #endif
 
-        int hash;
-        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.Attribute, name, argumentList, this.context, out hash);
-        if (cached != null) return (AttributeSyntax)cached;
-
-        var result = new AttributeSyntax(SyntaxKind.Attribute, name, argumentList, this.context);
-        if (hash >= 0)
-        {
-            SyntaxNodeCache.AddNode(result, hash);
-        }
-
-        return result;
+        return new AttributeSyntax(SyntaxKind.Attribute, name, argumentList, this.context);
     }
 
     public AttributeArgumentListSyntax AttributeArgumentList(SyntaxToken openParenToken, CoreSyntax.SeparatedSyntaxList<AttributeArgumentSyntax> arguments, SyntaxToken closeParenToken)
@@ -35996,17 +35989,7 @@ internal static partial class SyntaxFactory
         if (name == null) throw new ArgumentNullException(nameof(name));
 #endif
 
-        int hash;
-        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Attribute, name, argumentList, out hash);
-        if (cached != null) return (AttributeSyntax)cached;
-
-        var result = new AttributeSyntax(SyntaxKind.Attribute, name, argumentList);
-        if (hash >= 0)
-        {
-            SyntaxNodeCache.AddNode(result, hash);
-        }
-
-        return result;
+        return new AttributeSyntax(SyntaxKind.Attribute, name, argumentList);
     }
 
     public static AttributeArgumentListSyntax AttributeArgumentList(SyntaxToken openParenToken, CoreSyntax.SeparatedSyntaxList<AttributeArgumentSyntax> arguments, SyntaxToken closeParenToken)

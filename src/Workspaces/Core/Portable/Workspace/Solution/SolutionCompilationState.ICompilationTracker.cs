@@ -34,9 +34,12 @@ namespace Microsoft.CodeAnalysis
             /// any of the references of the <see cref="Compilation.References"/>.
             /// </remarks>
             bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary);
-            ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate);
-            ICompilationTracker FreezePartialStateWithTree(SolutionCompilationState compilationState, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken);
+            ICompilationTracker Fork(ProjectState newProject, TranslationAction? translate);
+
             Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
+
+            ICompilationTracker FreezePartialState(CancellationToken cancellationToken);
+            ICompilationTracker FreezePartialStateWithDocument(DocumentState docState, CancellationToken cancellationToken);
 
             Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
             Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);

@@ -55,11 +55,6 @@ namespace Microsoft.CodeAnalysis
                     CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
                     GeneratorInfo = generatorInfo;
 
-                    // When in the frozen state, all documents must be final. We never want to run generators for frozen
-                    // states as the point is to be fast (while potentially incomplete).
-                    if (IsFrozen)
-                        Contract.ThrowIfFalse(generatorInfo.DocumentsAreFinal);
-
 #if DEBUG
                     // As a sanity check, we should never see the generated trees inside of the compilation that should
                     // not have generated trees.
@@ -81,11 +76,11 @@ namespace Microsoft.CodeAnalysis
                 /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
                 /// the state of the project prior to the mutation.
                 /// </summary>
-                public ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> PendingTranslationSteps { get; }
+                public ImmutableList<TranslationAction> PendingTranslationActions { get; }
 
                 /// <summary>
                 /// The result of taking the original completed compilation that had generated documents and updating
-                /// them by apply the <see cref="CompilationAndGeneratorDriverTranslationAction" />; this is not a
+                /// them by apply the <see cref="TranslationAction" />; this is not a
                 /// correct snapshot in that the generators have not been rerun, but may be reusable if the generators
                 /// are later found to give the same output.
                 /// </summary>
@@ -96,15 +91,15 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? staleCompilationWithGeneratedDocuments,
-                    ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
+                    ImmutableList<TranslationAction> pendingTranslationActions)
                     : base(isFrozen,
                            compilationWithoutGeneratedDocuments,
                            generatorInfo)
                 {
                     // Note: Intermediate projects can be empty.
-                    Contract.ThrowIfTrue(pendingTranslationSteps is null);
+                    Contract.ThrowIfTrue(pendingTranslationActions is null);
 
-                    PendingTranslationSteps = pendingTranslationSteps;
+                    PendingTranslationActions = pendingTranslationActions;
                     StaleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments;
                 }
 
@@ -113,19 +108,14 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedDocuments,
                     CompilationTrackerGeneratorInfo generatorInfo,
                     Compilation? staleCompilationWithGeneratedDocuments,
-                    ImmutableList<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
+                    ImmutableList<TranslationAction> pendingTranslationActions)
                 {
-                    Contract.ThrowIfTrue(pendingTranslationSteps is null);
-
-                    // If we're not frozen, transition back to the non-final state as we def want to rerun generators
-                    // for either of these non-final states.
-                    if (!isFrozen)
-                        generatorInfo = generatorInfo with { DocumentsAreFinal = false };
+                    Contract.ThrowIfTrue(pendingTranslationActions is null);
 
                     // If we don't have any intermediate projects to process, just initialize our
                     // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
                     // if our referenced projects are changing, so we'll have to rerun to consume changes.
-                    return new InProgressState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, staleCompilationWithGeneratedDocuments, pendingTranslationSteps);
+                    return new InProgressState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, staleCompilationWithGeneratedDocuments, pendingTranslationActions);
                 }
             }
 
@@ -175,9 +165,11 @@ namespace Microsoft.CodeAnalysis
                     UnrootedSymbolSet unrootedSymbolSet)
                     : base(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo)
                 {
-                    Contract.ThrowIfFalse(generatorInfo.DocumentsAreFinal);
                     Contract.ThrowIfNull(finalCompilationWithGeneratedDocuments);
-                    HasSuccessfullyLoaded = hasSuccessfullyLoaded;
+
+                    // As a policy, all partial-state projects are said to have incomplete references, since the
+                    // state has no guarantees.
+                    HasSuccessfullyLoaded = hasSuccessfullyLoaded && !isFrozen;
                     FinalCompilationWithGeneratedDocuments = finalCompilationWithGeneratedDocuments;
                     UnrootedSymbolSet = unrootedSymbolSet;
 
@@ -201,8 +193,6 @@ namespace Microsoft.CodeAnalysis
                     ProjectId projectId,
                     Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
                 {
-                    Contract.ThrowIfFalse(generatorInfo.DocumentsAreFinal);
-
                     // Keep track of information about symbols from this Compilation.  This will help support other APIs
                     // the solution exposes that allows the user to map back from symbols to project information.
 
@@ -217,6 +207,14 @@ namespace Microsoft.CodeAnalysis
                         generatorInfo,
                         unrootedSymbolSet);
                 }
+
+                public FinalCompilationTrackerState WithIsFrozen()
+                    => new(isFrozen: true,
+                        FinalCompilationWithGeneratedDocuments,
+                        CompilationWithoutGeneratedDocuments,
+                        HasSuccessfullyLoaded,
+                        GeneratorInfo,
+                        UnrootedSymbolSet);
 
                 private static void RecordAssemblySymbols(ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
                 {

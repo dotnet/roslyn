@@ -183,7 +183,7 @@ return … ;
 try  { … } catch (…) when (…) { … } finally { … } 
 checked { … } 
 unchecked { … } 
-lock(…) … 
+lock(…) … // including variant on an instance of the `System.Threading.Lock` type
 using (…) … // including `await` variant
 yield return …; 
 yield break; 

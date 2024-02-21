@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -147,10 +148,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using var connection = client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callback);
 
+            // Actually pass in the document to scan.  Otherwise the test takes several seconds waiting to do the slow
+            // sweep of the entire solution.
+            var priorityDocumentId = solution.Projects.Single().Documents.Single().Id;
             var invokeTask = connection.TryInvokeAsync(
                 solution,
                 (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
-                    callbackId, checksum, priorityDocument: null, useFrozenSnapshots: true, cancellationToken),
+                    callbackId, checksum, priorityDocumentId, cancellationToken),
                 cancellationTokenSource.Token);
 
             var infos = await callback.Infos;
@@ -160,9 +164,52 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal("Form", info.Category);
             Assert.Equal(solution.Projects.Single().Documents.Single().Id, info.DocumentId);
 
+            // Let the discovery know it can stop processing.
             cancellationTokenSource.Cancel();
 
-            Assert.True(await invokeTask);
+            try
+            {
+                await invokeTask;
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        [Fact]
+        public async Task TestDesignerAttributesUnsupportedLanguage()
+        {
+            var source = @"// TS code";
+
+            using var workspace = CreateWorkspace();
+            workspace.InitializeDocuments("TypeScript", files: [source], openDocuments: true);
+
+            using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+            var remoteWorkspace = client.GetRemoteWorkspace();
+
+            // Start solution crawler in the remote workspace:
+            await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
+                (service, cancellationToken) => service.StartSolutionCrawlerAsync(cancellationToken),
+                CancellationToken.None).ConfigureAwait(false);
+
+            var cancellationTokenSource = new CancellationTokenSource();
+            var solution = workspace.CurrentSolution;
+
+            // Ensure remote workspace is in sync with normal workspace.
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+            var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
+            await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
+
+            var callback = new DesignerAttributeComputerCallback();
+
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            await DesignerAttributeDiscoveryService.DiscoverDesignerAttributesAsync(
+                workspace.CurrentSolution,
+                workspace.CurrentSolution.Projects.Single().Documents.Single(),
+                client,
+                listenerProvider.GetListener(FeatureAttribute.DesignerAttributes),
+                callback,
+                CancellationToken.None);
         }
 
         private class DesignerAttributeComputerCallback : IDesignerAttributeDiscoveryService.ICallback

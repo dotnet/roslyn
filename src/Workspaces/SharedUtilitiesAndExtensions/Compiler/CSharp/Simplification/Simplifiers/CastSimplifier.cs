@@ -327,6 +327,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (isNullLiteralCast && !originalConvertedType.IsReferenceType && !originalConvertedType.IsNullable())
                 return false;
 
+            // SomeType s = (Action)(() => {});  // Where there's a user defined conversion from Action->SomeType.
+            //
+            // This cast is necessary.  The language does not allow lambdas to be directly converted to the destination
+            // type without explicitly stating the intermediary reified delegate type.
+            var isAnonymousFunctionCast = castedExpressionNode.WalkDownParentheses() is AnonymousFunctionExpressionSyntax;
+            if (isAnonymousFunctionCast && originalConversion.IsUserDefined)
+                return false;
+
             // So far, this looks potentially possible to remove.  Now, actually do the removal and get the
             // semantic model for the rewritten code so we can check it to make sure semantics were preserved.
             var (rewrittenSemanticModel, rewrittenExpression) = GetSemanticModelWithCastRemoved(

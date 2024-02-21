@@ -2,20 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal partial class SolutionCompilationState
     {
-        private abstract partial class CompilationAndGeneratorDriverTranslationAction
+        private abstract partial class TranslationAction
         {
-            internal sealed class TouchDocumentAction(DocumentState oldState, DocumentState newState) : CompilationAndGeneratorDriverTranslationAction
+            internal sealed class TouchDocumentAction(
+                ProjectState oldProjectState,
+                ProjectState newProjectState,
+                DocumentState oldState,
+                DocumentState newState)
+                : TranslationAction(oldProjectState, newProjectState)
             {
                 private readonly DocumentState _oldState = oldState;
                 private readonly DocumentState _newState = newState;
@@ -36,34 +41,46 @@ namespace Microsoft.CodeAnalysis
                 public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
                     => generatorDriver;
 
-                public override CompilationAndGeneratorDriverTranslationAction? TryMergeWithPrior(CompilationAndGeneratorDriverTranslationAction priorAction)
+                public override TranslationAction? TryMergeWithPrior(TranslationAction priorAction)
                 {
                     if (priorAction is TouchDocumentAction priorTouchAction &&
                         priorTouchAction._newState == _oldState)
                     {
-                        return new TouchDocumentAction(priorTouchAction._oldState, _newState);
+                        // As we're merging ourselves with the prior touch action, we want to keep the old project state
+                        // that we are translating from.
+                        return new TouchDocumentAction(priorAction.OldProjectState, this.NewProjectState, priorTouchAction._oldState, _newState);
                     }
 
                     return null;
                 }
             }
 
-            internal sealed class TouchAdditionalDocumentAction(AdditionalDocumentState oldState, AdditionalDocumentState newState) : CompilationAndGeneratorDriverTranslationAction
+            internal sealed class TouchAdditionalDocumentAction(
+                ProjectState oldProjectState,
+                ProjectState newProjectState,
+                AdditionalDocumentState oldState,
+                AdditionalDocumentState newState)
+                : TranslationAction(oldProjectState, newProjectState)
             {
                 private readonly AdditionalDocumentState _oldState = oldState;
                 private readonly AdditionalDocumentState _newState = newState;
 
                 // Changing an additional document doesn't change the compilation directly, so we can "apply" the
-                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping
-                // the compilation with stale trees around, answering true is still important.
+                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping the
+                // compilation with stale trees around, answering true is still important.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
 
-                public override CompilationAndGeneratorDriverTranslationAction? TryMergeWithPrior(CompilationAndGeneratorDriverTranslationAction priorAction)
+                public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                    => Task.FromResult(oldCompilation);
+
+                public override TranslationAction? TryMergeWithPrior(TranslationAction priorAction)
                 {
                     if (priorAction is TouchAdditionalDocumentAction priorTouchAction &&
                         priorTouchAction._newState == _oldState)
                     {
-                        return new TouchAdditionalDocumentAction(priorTouchAction._oldState, _newState);
+                        // As we're merging ourselves with the prior touch action, we want to keep the old project state
+                        // that we are translating from.
+                        return new TouchAdditionalDocumentAction(priorAction.OldProjectState, this.NewProjectState, priorTouchAction._oldState, _newState);
                     }
 
                     return null;
@@ -78,11 +95,15 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal sealed class RemoveDocumentsAction(ImmutableArray<DocumentState> documents) : CompilationAndGeneratorDriverTranslationAction
+            internal sealed class RemoveDocumentsAction(
+                ProjectState oldProjectState,
+                ProjectState newProjectState,
+                ImmutableArray<DocumentState> documents)
+                : TranslationAction(oldProjectState, newProjectState)
             {
                 public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    var syntaxTrees = new List<SyntaxTree>(documents.Length);
+                    using var _ = ArrayBuilder<SyntaxTree>.GetInstance(documents.Length, out var syntaxTrees);
                     foreach (var document in documents)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
@@ -99,18 +120,16 @@ namespace Microsoft.CodeAnalysis
                     => generatorDriver;
             }
 
-            internal sealed class AddDocumentsAction(ImmutableArray<DocumentState> documents) : CompilationAndGeneratorDriverTranslationAction
+            internal sealed class AddDocumentsAction(
+                ProjectState oldProjectState,
+                ProjectState newProjectState,
+                ImmutableArray<DocumentState> documents)
+                : TranslationAction(oldProjectState, newProjectState)
             {
                 public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    var syntaxTrees = new List<SyntaxTree>(capacity: documents.Length);
-                    foreach (var document in documents)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        syntaxTrees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-                    }
-
-                    return oldCompilation.AddSyntaxTrees(syntaxTrees);
+                    var trees = await GetAllSyntaxTreesAsync(documents, documents.Length, cancellationToken).ConfigureAwait(false);
+                    return oldCompilation.AddSyntaxTrees(trees);
                 }
 
                 // This action adds the specified trees, but leaves the generated trees untouched.
@@ -120,13 +139,16 @@ namespace Microsoft.CodeAnalysis
                     => generatorDriver;
             }
 
-            internal sealed class ReplaceAllSyntaxTreesAction(ProjectState state, bool isParseOptionChange) : CompilationAndGeneratorDriverTranslationAction
+            internal sealed class ReplaceAllSyntaxTreesAction(
+                ProjectState oldProjectState,
+                ProjectState newProjectState,
+                bool isParseOptionChange)
+                : TranslationAction(oldProjectState, newProjectState)
             {
                 public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    var syntaxTrees = new List<SyntaxTree>(capacity: state.DocumentStates.Count);
-
-                    foreach (var documentState in state.DocumentStates.GetStatesInCompilationOrder())
+                    using var _ = ArrayBuilder<SyntaxTree>.GetInstance(this.NewProjectState.DocumentStates.Count, out var syntaxTrees);
+                    foreach (var documentState in this.NewProjectState.DocumentStates.GetStatesInCompilationOrder())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         syntaxTrees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
@@ -142,8 +164,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (isParseOptionChange)
                     {
-                        RoslynDebug.AssertNotNull(state.ParseOptions);
-                        return generatorDriver.WithUpdatedParseOptions(state.ParseOptions);
+                        RoslynDebug.AssertNotNull(this.NewProjectState.ParseOptions);
+                        return generatorDriver.WithUpdatedParseOptions(this.NewProjectState.ParseOptions);
                     }
                     else
                     {
@@ -154,12 +176,16 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal sealed class ProjectCompilationOptionsAction(ProjectState state, bool isAnalyzerConfigChange) : CompilationAndGeneratorDriverTranslationAction
+            internal sealed class ProjectCompilationOptionsAction(
+                ProjectState oldProjectState,
+                ProjectState newProjectState,
+                bool isAnalyzerConfigChange)
+                : TranslationAction(oldProjectState, newProjectState)
             {
                 public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    RoslynDebug.AssertNotNull(state.CompilationOptions);
-                    return Task.FromResult(oldCompilation.WithOptions(state.CompilationOptions));
+                    RoslynDebug.AssertNotNull(this.NewProjectState.CompilationOptions);
+                    return Task.FromResult(oldCompilation.WithOptions(this.NewProjectState.CompilationOptions));
                 }
 
                 // Updating the options of a compilation doesn't require us to reparse trees, so we can use this to update
@@ -170,7 +196,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (isAnalyzerConfigChange)
                     {
-                        return generatorDriver.WithUpdatedAnalyzerConfigOptions(state.AnalyzerOptions.AnalyzerConfigOptionsProvider);
+                        return generatorDriver.WithUpdatedAnalyzerConfigOptions(this.NewProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider);
                     }
                     else
                     {
@@ -181,7 +207,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal sealed class ProjectAssemblyNameAction(string assemblyName) : CompilationAndGeneratorDriverTranslationAction
+            internal sealed class ProjectAssemblyNameAction(
+                ProjectState oldProjectState,
+                ProjectState newProjectState,
+                string assemblyName)
+                : TranslationAction(oldProjectState, newProjectState)
             {
                 public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
@@ -196,16 +226,24 @@ namespace Microsoft.CodeAnalysis
                     => generatorDriver;
             }
 
-            internal sealed class AddOrRemoveAnalyzerReferencesAction(string language, ImmutableArray<AnalyzerReference> referencesToAdd = default, ImmutableArray<AnalyzerReference> referencesToRemove = default) : CompilationAndGeneratorDriverTranslationAction
+            internal sealed class AddOrRemoveAnalyzerReferencesAction(
+                ProjectState oldProjectState,
+                ProjectState newProjectState,
+                ImmutableArray<AnalyzerReference> referencesToAdd = default,
+                ImmutableArray<AnalyzerReference> referencesToRemove = default)
+                : TranslationAction(oldProjectState, newProjectState)
             {
-
                 // Changing analyzer references doesn't change the compilation directly, so we can "apply" the
-                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping
-                // the compilation with stale trees around, answering true is still important.
+                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping the
+                // compilation with stale trees around, answering true is still important.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                    => Task.FromResult(oldCompilation);
 
                 public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
+                    var language = this.OldProjectState.Language;
                     if (!referencesToRemove.IsDefaultOrEmpty)
                     {
                         generatorDriver = generatorDriver.RemoveGenerators(referencesToRemove.SelectManyAsArray(r => r.GetGenerators(language)));
@@ -220,13 +258,19 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal sealed class AddAdditionalDocumentsAction(ImmutableArray<AdditionalDocumentState> additionalDocuments) : CompilationAndGeneratorDriverTranslationAction
+            internal sealed class AddAdditionalDocumentsAction(
+                ProjectState oldProjectState,
+                ProjectState newProjectState,
+                ImmutableArray<AdditionalDocumentState> additionalDocuments)
+                : TranslationAction(oldProjectState, newProjectState)
             {
-
                 // Changing an additional document doesn't change the compilation directly, so we can "apply" the
-                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping
-                // the compilation with stale trees around, answering true is still important.
+                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping the
+                // compilation with stale trees around, answering true is still important.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                    => Task.FromResult(oldCompilation);
 
                 public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
@@ -234,13 +278,19 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal sealed class RemoveAdditionalDocumentsAction(ImmutableArray<AdditionalDocumentState> additionalDocuments) : CompilationAndGeneratorDriverTranslationAction
+            internal sealed class RemoveAdditionalDocumentsAction(
+                ProjectState oldProjectState,
+                ProjectState newProjectState,
+                ImmutableArray<AdditionalDocumentState> additionalDocuments)
+                : TranslationAction(oldProjectState, newProjectState)
             {
-
                 // Changing an additional document doesn't change the compilation directly, so we can "apply" the
-                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping
-                // the compilation with stale trees around, answering true is still important.
+                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping the
+                // compilation with stale trees around, answering true is still important.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                    => Task.FromResult(oldCompilation);
 
                 public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
@@ -248,27 +298,40 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal sealed class ReplaceGeneratorDriverAction(GeneratorDriver oldGeneratorDriver, ProjectState newProjectState) : CompilationAndGeneratorDriverTranslationAction
+            internal sealed class ReplaceGeneratorDriverAction(
+                ProjectState oldProjectState,
+                ProjectState newProjectState,
+                GeneratorDriver oldGeneratorDriver)
+                : TranslationAction(oldProjectState, newProjectState)
             {
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                // Replacing the generator doesn't change the non-generator compilation.  So we can just return the old
+                // compilation as is.
+                public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                    => Task.FromResult(oldCompilation);
 
                 public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver _)
                 {
                     // The GeneratorDriver that we have here is from a prior version of the Project, it may be missing state changes due
                     // to changes to the project. We'll update everything here.
                     var generatorDriver = oldGeneratorDriver
-                        .ReplaceAdditionalTexts(newProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText))
-                        .WithUpdatedParseOptions(newProjectState.ParseOptions!)
-                        .WithUpdatedAnalyzerConfigOptions(newProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider)
-                        .ReplaceGenerators(newProjectState.SourceGenerators.ToImmutableArray());
+                        .ReplaceAdditionalTexts(this.NewProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText))
+                        .WithUpdatedParseOptions(this.NewProjectState.ParseOptions!)
+                        .WithUpdatedAnalyzerConfigOptions(this.NewProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider)
+                        .ReplaceGenerators(this.NewProjectState.SourceGenerators.ToImmutableArray());
 
                     return generatorDriver;
                 }
 
-                public override CompilationAndGeneratorDriverTranslationAction? TryMergeWithPrior(CompilationAndGeneratorDriverTranslationAction priorAction)
+                public override TranslationAction? TryMergeWithPrior(TranslationAction priorAction)
                 {
-                    // If the prior action is also a ReplaceGeneratorDriverAction, we'd entirely overwrite it's changes, so we can drop the prior one entirely.
-                    return priorAction is ReplaceGeneratorDriverAction ? this : null;
+                    // If the prior action is also a ReplaceGeneratorDriverAction, we'd entirely overwrite it's changes,
+                    // so we can drop the prior one's generator driver entirely.  Note: we still want to use it's
+                    // `OldProjectState` as that still represents the prior state we're translating from.
+                    return priorAction is ReplaceGeneratorDriverAction
+                        ? new ReplaceGeneratorDriverAction(priorAction.OldProjectState, this.NewProjectState, oldGeneratorDriver)
+                        : null;
                 }
             }
         }

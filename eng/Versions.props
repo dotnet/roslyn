@@ -20,13 +20,18 @@
     Versions managed by Arcade (see Versions.Details.xml)
   -->
   <PropertyGroup>
-    <SystemCommandLineVersion>2.0.0-beta4.24102.1</SystemCommandLineVersion>
+    <SystemCommandLineVersion>2.0.0-beta4.24112.1</SystemCommandLineVersion>
     <SystemCompositionVersion>7.0.0</SystemCompositionVersion>
+    <SystemConfigurationConfigurationManagerVersion>8.0.0</SystemConfigurationConfigurationManagerVersion>
+    <SystemDiagnosticsEventLogVersion>8.0.0</SystemDiagnosticsEventLogVersion>
     <SystemIOPipelinesVersion>7.0.0</SystemIOPipelinesVersion>
     <SystemCollectionsImmutableVersion>8.0.0</SystemCollectionsImmutableVersion>
     <SystemReflectionMetadataVersion>8.0.0</SystemReflectionMetadataVersion>
+    <SystemSecurityCryptographyProtectedDataVersion>8.0.0</SystemSecurityCryptographyProtectedDataVersion>
+    <SystemSecurityPermissionsVersion>8.0.0</SystemSecurityPermissionsVersion>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
     <SystemTextJsonVersion>7.0.3</SystemTextJsonVersion>
+    <SystemWindowsExtensionsVersion>8.0.0</SystemWindowsExtensionsVersion>
     <MicrosoftBclAsyncInterfacesVersion>7.0.0</MicrosoftBclAsyncInterfacesVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>3.3.4</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>3.3.0</MicrosoftCodeAnalysisAnalyzerUtilitiesVersion>

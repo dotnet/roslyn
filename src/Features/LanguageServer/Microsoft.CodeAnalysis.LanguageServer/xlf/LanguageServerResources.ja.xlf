@@ -47,9 +47,9 @@
         <target state="translated">テストを検出しています...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Exception_thrown_while_loading_0">
-        <source>Exception thrown while loading {0}</source>
-        <target state="translated">{0} の読み込み中に例外がスローされました</target>
+      <trans-unit id="Exception_thrown_0">
+        <source>Exception thrown: {0}</source>
+        <target state="new">Exception thrown: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed">

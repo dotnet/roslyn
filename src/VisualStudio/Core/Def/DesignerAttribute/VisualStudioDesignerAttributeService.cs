@@ -14,13 +14,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -39,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// Used to acquire the legacy project designer service.
         /// </summary>
         private readonly IServiceProvider _serviceProvider;
+        private readonly IAsynchronousOperationListener _listener;
 
         /// <summary>
         /// Cache from project to the CPS designer service for it.  Computed on demand (which
@@ -70,18 +69,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             _workspace = workspace;
             _serviceProvider = serviceProvider;
 
-            var listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
+            _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
 
             _workQueue = new AsyncBatchingWorkQueue(
                 DelayTimeSpan.Idle,
                 this.ProcessWorkspaceChangeAsync,
-                listener,
+                _listener,
                 ThreadingContext.DisposalToken);
 
             _projectSystemNotificationQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
                 DelayTimeSpan.Idle,
                 this.NotifyProjectSystemAsync,
-                listener,
+                _listener,
                 ThreadingContext.DisposalToken);
         }
 
@@ -122,15 +121,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             if (client == null)
                 return;
 
-            var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
-            var priorityDocument = trackingService.TryGetActiveDocument();
-
-            await client.TryInvokeAsync<IRemoteDesignerAttributeDiscoveryService>(
-                solution,
-                (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(
-                    callbackId, checksum, priorityDocument, useFrozenSnapshots: true, cancellationToken),
-                callbackTarget: this,
-                cancellationToken).ConfigureAwait(false);
+            var trackingService = solution.Services.GetRequiredService<IDocumentTrackingService>();
+            await DesignerAttributeDiscoveryService.DiscoverDesignerAttributesAsync(
+                solution, trackingService.GetActiveDocument(solution), client, _listener, this, cancellationToken).ConfigureAwait(false);
         }
 
         private async ValueTask NotifyProjectSystemAsync(

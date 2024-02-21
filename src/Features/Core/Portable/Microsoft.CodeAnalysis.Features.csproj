@@ -152,6 +152,8 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp.Extraction" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServerClient.Razor" Partner="Razor" Key="$(RazorKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServerClient.Razor.Test" Partner="Razor" Key="$(RazorKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Partner="Razor" Key="$(RazorKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.Test" Partner="Razor" Key="$(RazorKey)" />
     <!--
       Only allow C# DevKit to use types from Contracts namespace. The contracts should not introduce breaking changes between versions,
       because the versions of C# DevKit and C# Extension might not be aligned.
