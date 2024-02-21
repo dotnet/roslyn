@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal virtual IList<DirectiveTriviaSyntax> GetDirectives()
         {
-            if ((this.flags & NodeFlags.ContainsDirectives) != 0)
+            if (this.ContainsDirectives)
             {
                 var list = new List<DirectiveTriviaSyntax>(32);
                 GetDirectives(this, list);
@@ -223,12 +223,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (context.IsInAsync)
             {
-                this.flags |= NodeFlags.FactoryContextIsInAsync;
+                SetFlags(NodeFlags.FactoryContextIsInAsync);
             }
 
             if (context.IsInQuery)
             {
-                this.flags |= NodeFlags.FactoryContextIsInQuery;
+                SetFlags(NodeFlags.FactoryContextIsInQuery);
             }
         }
 
