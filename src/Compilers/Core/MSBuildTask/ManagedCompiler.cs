@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             try
             {
-                var requestId = GetRequestId();
+                var requestId = getRequestId();
                 logger.Log($"Compilation request {requestId}, PathToTool={pathToTool}");
 
                 string workingDirectory = CurrentDirectoryToUse();
@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             // Construct the friendly name for the compilation. This does not need to be unique. Instead
             // it's used by developers to understand what compilation is running on the server.
-            string GetRequestId()
+            string getRequestId()
             {
                 if (!string.IsNullOrEmpty(ProjectName))
                 {
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         : $"{ProjectName} ({TargetFramework})";
                 }
 
-                return $"Unnamed compilation";
+                return $"Unnamed compilation {Guid.NewGuid()}";
             }
         }
 
