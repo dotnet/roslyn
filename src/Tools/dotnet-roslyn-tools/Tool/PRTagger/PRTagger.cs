@@ -202,8 +202,7 @@ internal static class PRTagger
         int maxFetchingVsBuildNumber,
         CancellationToken cancellationToken)
     {
-        string? lastVsBuildNumberReported = null;
-        lastVsBuildNumberReported = await FindTheLastReportedVSBuildAsync(gitHubClient, repoName, logger).ConfigureAwait(false);
+        var lastVsBuildNumberReported = await FindTheLastReportedVSBuildAsync(gitHubClient, repoName, logger).ConfigureAwait(false);
         if (lastVsBuildNumberReported is not null)
         {
             logger.LogInformation($"Last reported VS build number: {lastVsBuildNumberReported}.");
@@ -347,16 +346,8 @@ internal static class PRTagger
         string title,
         ILogger logger)
     {
-        var response = await client.GetAsync($"search/issues?q={title}+repo:dotnet/{repoName}+is:issue+label:{InsertionLabel}").ConfigureAwait(false);
-        if (!response.IsSuccessStatusCode)
-        {
-            logger.LogError($"Failed to search on GitHub, status code: {response.StatusCode}.");
-            throw new Exception($"Error happens when try to search {title} in {repoName}.");
-        }
-
-        var content = await response.Content.ReadAsStringAsync();
-        var jsonResponseContent = JsonObject.Parse(content)!;
-        var issueNumber = int.Parse(jsonResponseContent["total_count"]!.ToString());
+        var response = await SearchIssuesOnGitHubAsync(client, repoName, logger, title: title, label: InsertionLabel).ConfigureAwait(false);
+        var issueNumber = int.Parse(response["total_count"]!.ToString());
         return issueNumber != 0;
     }
 
