@@ -4912,6 +4912,44 @@ partial struct CustomHandler
     }
 
     [Fact]
+    public void PathNormalization_05()
+    {
+        // paths in attribute as well as syntax tree have mixed slashes
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                public static void Main()
+                {
+                    C c = new C();
+                    c.M();
+                }
+
+                public void M() => throw null!;
+
+                [InterceptsLocation(@"C:\src/Program.cs", 9, 11)]
+                public void Interceptor() => Console.Write(1);
+            }
+            """;
+
+        if (PlatformInformation.IsWindows)
+        {
+            var verifier = CompileAndVerify(new[] { (source, @"C:/src\Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+        else
+        {
+            var comp = CreateCompilation(new[] { (source, @"/src/Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+            comp.VerifyEmitDiagnostics(
+                // /src/Program.cs(14,25): error CS9139: Cannot intercept: compilation does not contain a file with path '/src/C:\src/Program.cs'.
+                //     [InterceptsLocation("C:/src/Program.cs", 9, 11)]
+                Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""C:/src/Program.cs""").WithArguments(@"/src/C:\src/Program.cs").WithLocation(14, 25));
+        }
+    }
+
+    [Fact]
     public void RelativePaths_01()
     {
         var source = """

@@ -818,6 +818,8 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<AdditionalText> additionalTexts,
             DiagnosticBag generatorDiagnostics)
         {
+            Debug.Assert(baseDirectory is not null);
+
             GeneratorDriver? driver = null;
             string cacheKey = string.Empty;
             bool disableCache =

@@ -14319,6 +14319,65 @@ class C
             Directory.Delete(dir.Path, true);
         }
 
+        [Fact]
+        public void Interceptors_RelativePath_GeneratedFiles_EndToEnd_OutputDirectoryNested()
+        {
+            // Demonstrates the difference between defaulting the generated files base path to 'Arguments.OutputDirectory'
+            // versus 'Arguments.BaseDirectory' (which occurs implicitly for relative paths in command line arguments)
+
+            var dir = Temp.CreateDirectory();
+            var srcDir = dir.CreateDirectory("src");
+            var src = srcDir.CreateFile("Program.cs").WriteAllText("""
+                class Program
+                {
+                    static void Main()
+                    {
+                        M();
+                    }
+
+                    public static void M() => throw null!;
+                }
+                """);
+
+            // final path will look like:
+            // 'TempDir/obj/{assemblyName}/{generatorName}/Generated.cs'
+            // Note that generator will have access to the full path of the generated file, before adding it to the compilation
+            // additionally we plan to add public API to determine a "correct relative path" to use here without any additional tricks
+            var generatedSource = """
+                using System.Runtime.CompilerServices;
+                using System;
+
+                namespace Generated
+                {
+                    static class Interceptors
+                    {
+                        [InterceptsLocation("../../../src/Program.cs", 5, 9)]
+                        public static void M1() => Console.Write(1);
+                    }
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
+                    public sealed class InterceptsLocationAttribute : Attribute
+                    {
+                        public InterceptsLocationAttribute(string filePath, int line, int character)
+                        {
+                        }
+                    }
+                }
+                """;
+            var generator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
+            var objDir = dir.CreateDirectory("obj");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", $"/out:{objDir.Path}/embed.exe", "/features:InterceptorsPreviewNamespaces=Generated"], generators: [generator], analyzers: null);
+            ValidateWrittenSources([]);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
         [Theory]
         [InlineData("")]
         [InlineData($"/pathmap:DIRPATH=/_/")]
