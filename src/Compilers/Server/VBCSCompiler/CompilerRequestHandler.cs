@@ -146,7 +146,7 @@ Run Compilation for {request.RequestId}
             Logger.Log($"Begin {request.RequestId} {request.Language} compiler run");
             try
             {
-                CodeAnalysisEventSource.Log.StartCompilation(request.RequestId);
+                CodeAnalysisEventSource.Log.StartServerCompilation(request.RequestId);
                 bool utf8output = compiler.Arguments.Utf8Output;
                 TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
                 int returnCode = compiler.Run(output, cancellationToken);
@@ -164,7 +164,7 @@ Output:
             }
             finally
             {
-                CodeAnalysisEventSource.Log.StopCompilation(request.RequestId);
+                CodeAnalysisEventSource.Log.StopServerCompilation(request.RequestId);
             }
         }
     }
