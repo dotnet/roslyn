@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public UseExpressionBodyDiagnosticAnalyzer()
             : base(GetSupportedDescriptorsWithOptions())
         {
-            _syntaxKinds = _helpers.SelectMany(h => h.SyntaxKinds).ToImmutableArray();
+            _syntaxKinds = _helpers.SelectManyAsArray(h => h.SyntaxKinds);
         }
 
         private static ImmutableDictionary<DiagnosticDescriptor, IOption2> GetSupportedDescriptorsWithOptions()
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticDescriptor, IOption2>();
             foreach (var helper in _helpers)
             {
-                var descriptor = CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle);
+                var descriptor = CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, hasAnyCodeStyleOption: true, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle);
                 builder.Add(descriptor, helper.Option);
             }
 
@@ -59,13 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 var grandparent = context.Node.GetRequiredParent().GetRequiredParent();
 
                 if (grandparent.Kind() == SyntaxKind.PropertyDeclaration &&
-                    AnalyzeSyntax(options, grandparent, UseExpressionBodyForPropertiesHelper.Instance, cancellationToken) != null)
+                    AnalyzeSyntax(options, grandparent, context, UseExpressionBodyForPropertiesHelper.Instance, cancellationToken) != null)
                 {
                     return;
                 }
 
                 if (grandparent.Kind() == SyntaxKind.IndexerDeclaration &&
-                    AnalyzeSyntax(options, grandparent, UseExpressionBodyForIndexersHelper.Instance, cancellationToken) != null)
+                    AnalyzeSyntax(options, grandparent, context, UseExpressionBodyForIndexersHelper.Instance, cancellationToken) != null)
                 {
                     return;
                 }
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
                 if (helper.SyntaxKinds.Contains(nodeKind))
                 {
-                    var diagnostic = AnalyzeSyntax(options, context.Node, helper, cancellationToken);
+                    var diagnostic = AnalyzeSyntax(options, context.Node, context, helper, cancellationToken);
                     if (diagnostic != null)
                     {
                         context.ReportDiagnostic(diagnostic);
@@ -87,10 +87,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
         }
 
-        private static Diagnostic? AnalyzeSyntax(
-            CSharpCodeGenerationOptions options, SyntaxNode declaration, UseExpressionBodyHelper helper, CancellationToken cancellationToken)
+        private Diagnostic? AnalyzeSyntax(
+            CSharpCodeGenerationOptions options, SyntaxNode declaration, SyntaxNodeAnalysisContext context, UseExpressionBodyHelper helper, CancellationToken cancellationToken)
         {
             var preference = helper.GetExpressionBodyPreference(options);
+            if (ShouldSkipAnalysis(context, preference.Notification))
+                return null;
+
             var severity = preference.Notification.Severity;
 
             if (helper.CanOfferUseExpressionBody(preference, declaration, forAnalyzer: true, cancellationToken))
@@ -102,8 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 var properties = ImmutableDictionary<string, string?>.Empty.Add(nameof(UseExpressionBody), "");
                 return DiagnosticHelper.Create(
-                    CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle),
-                    location, severity, additionalLocations: additionalLocations, properties: properties);
+                    CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, hasAnyCodeStyleOption: true, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle),
+                    location, preference.Notification, additionalLocations: additionalLocations, properties: properties);
             }
 
             if (helper.CanOfferUseBlockBody(preference, declaration, forAnalyzer: true, out var fixesError, out var expressionBody))
@@ -120,8 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 return DiagnosticHelper.Create(
-                    CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, helper.UseBlockBodyTitle, helper.UseBlockBodyTitle),
-                    location, severity, additionalLocations: additionalLocations, properties: properties);
+                    CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, hasAnyCodeStyleOption: true, helper.UseBlockBodyTitle, helper.UseBlockBodyTitle),
+                    location, preference.Notification, additionalLocations: additionalLocations, properties: properties);
             }
 
             return null;

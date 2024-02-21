@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         where TCompilationUnitSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
     {
-        private class MoveFileCodeAction(State state, ImmutableArray<string> newFolders) : CodeAction
+        private sealed class MoveFileCodeAction(State state, ImmutableArray<string> newFolders) : CodeAction
         {
             private readonly State _state = state;
             private readonly ImmutableArray<string> _newfolders = newFolders;
@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 ? string.Format(FeaturesResources.Move_file_to_0, string.Join(PathUtilities.DirectorySeparatorStr, _newfolders))
                 : FeaturesResources.Move_file_to_project_root_folder;
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var document = _state.Document;
                 var solution = _state.Document.Project.Solution;
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // set `parts` to empty to indicate that.
                 var parts = state.RelativeDeclaredNamespace.Length == 0
                     ? ImmutableArray<string>.Empty
-                    : state.RelativeDeclaredNamespace.Split(new[] { '.' }).ToImmutableArray();
+                    : state.RelativeDeclaredNamespace.Split(['.']).ToImmutableArray();
 
                 // Invalid char can only appear in namespace name when there's error,
                 // which we have checked before creating any code actions.

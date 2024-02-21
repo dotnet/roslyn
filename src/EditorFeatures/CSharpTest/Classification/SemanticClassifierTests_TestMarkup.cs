@@ -49,9 +49,17 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
 
         var start = allCode.IndexOf(code, StringComparison.Ordinal);
         var length = code.Length;
-        var span = new TextSpan(start, length);
+        var spans = ImmutableArray.Create(new TextSpan(start, length));
+        await TestEmbeddedCSharpWithMultipleSpansAsync(allCode, testHost, spans, expected);
+    }
 
-        var actual = await GetClassificationSpansAsync(allCode, span, options: null, testHost);
+    protected async Task TestEmbeddedCSharpWithMultipleSpansAsync(
+       string allCode,
+       TestHost testHost,
+       ImmutableArray<TextSpan> spans,
+       FormattedClassification[] expected)
+    {
+        var actual = await GetClassificationSpansAsync(allCode, spans, options: null, testHost);
 
         // Massage the results a bit so that the TestCode segments don't overlap the non-test-code segments.
 
@@ -75,6 +83,54 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
         var actualOrdered = totalSpans.OrderBy(static (t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start).ToImmutableArray();
         var actualFormatted = actualOrdered.SelectAsArray(a => new FormattedClassification(allCode.Substring(a.TextSpan.Start, a.TextSpan.Length), a.ClassificationType));
         AssertEx.Equal(expected, actualFormatted);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestEmbeddedCSharpMarkup1WithMultipleSpansAsync(TestHost testHost)
+    {
+        var code1 = """
+            class D
+            {
+            }
+            """;
+        var code2 = """
+            class G
+            {
+            }
+            """;
+        var allCode = $$"""""
+            class C
+            {
+                void M1()
+                {
+                    Test.M(""""
+            {{code1}}
+            """");
+                }
+                void M2()
+                {
+                    Test.M(""""
+            {{code2}}
+            """");
+                }
+            }
+            """"" + s_testMarkup;
+
+        var spans = ImmutableArray.Create(
+            new TextSpan(allCode.IndexOf(code1, StringComparison.Ordinal), code1.Length),
+            new TextSpan(allCode.IndexOf(code2, StringComparison.Ordinal), code2.Length)
+            );
+        var expected = ImmutableArray.Create(Keyword("class"),
+            TestCode(" "),
+            Class("D"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly,
+            Keyword("class"),
+            TestCode(" "),
+            Class("G"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly).ToArray();
+        await TestEmbeddedCSharpWithMultipleSpansAsync(allCode, testHost, spans, expected);
     }
 
     [Theory, CombinatorialData]

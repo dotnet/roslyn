@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.Composition = composition;
             this.ExportProvider = composition.ExportProviderFactory.CreateExportProvider();
 
-            var partialSolutionsTestHook = Services.GetRequiredService<IWorkpacePartialSolutionsTestHook>();
+            var partialSolutionsTestHook = Services.GetRequiredService<IWorkspacePartialSolutionsTestHook>();
             partialSolutionsTestHook.IsPartialSolutionDisabled = disablePartialSolutions;
 
             // configure workspace before creating any solutions:

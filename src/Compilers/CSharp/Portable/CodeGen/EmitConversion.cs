@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                          this._module.Compilation.IsReadOnlySpanType(typeTo),
                          "only special kinds of conversions involving ReadOnlySpan may be handled in emit");
 
-            if (!TryEmitReadonlySpanAsBlobWrapper(typeTo, operand, used, inPlaceTarget: null, avoidInPlace: out _))
+            if (!TryEmitOptimizedReadonlySpanCreation(typeTo, operand, used, inPlaceTarget: null, avoidInPlace: out _))
             {
                 // there are several reasons that could prevent us from emitting a wrapper
                 // in such case we just emit the operand and then invoke the conversion method 

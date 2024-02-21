@@ -17,7 +17,21 @@ static class NetSdkReleaseInfo
         WriteIndented = true,
     };
 
-    public static async Task<NetSdkDownloader> GetLatestSdkForRoslynVersionAsync(SemanticVersion requestedRoslynVersion)
+    public static async Task<NetSdkDownloader> GetLatestSdkDownloaderForRoslynVersionAsync(SemanticVersion requestedRoslynVersion)
+    {
+        var (foundReleaseVersion, foundRelease) = await GetLatestSdkForRoslynVersionAsync(requestedRoslynVersion);
+
+        return await NetSdkDownloader.CreateAsync(foundRelease.SdkZipUrl, foundReleaseVersion);
+    }
+
+    public static async Task<SemanticVersion> GetLatestSdkVersionForRoslynVersionAsync(SemanticVersion requestedRoslynVersion)
+    {
+        var (foundReleaseVersion, _) = await GetLatestSdkForRoslynVersionAsync(requestedRoslynVersion);
+
+        return foundReleaseVersion;
+    }
+
+    private static async Task<KeyValuePair<SemanticVersion, NetSdkRelease>> GetLatestSdkForRoslynVersionAsync(SemanticVersion requestedRoslynVersion)
     {
         // TODO: make this more efficient by not dowloading releases-index.json and all the releases.json every time?
 
@@ -69,7 +83,7 @@ static class NetSdkReleaseInfo
                 {
                     var sdkZip = release.Sdk.Files.Single(file => file.Name == "dotnet-sdk-win-x64.zip");
 
-                    var downloader = await NetSdkDownloader.CreateAsync(sdkZip.Url, sdkVersion);
+                    using var downloader = await NetSdkDownloader.CreateAsync(sdkZip.Url, sdkVersion);
 
                     netSdkReleases.Releases.Add(
                         sdkVersion, new(sdkZip.Url, downloader.GetCodeAnalysisVersion()));
@@ -87,9 +101,7 @@ static class NetSdkReleaseInfo
         }
 
         // Only consider preview SDKs if the requested version is also preview.
-        var (foundReleaseVersion, foundRelease) = netSdkReleases.Releases.Last(kvp => (!kvp.Key.IsPrerelease || requestedRoslynVersion.IsPrerelease) && kvp.Value.RoslynVersion <= requestedRoslynVersion);
-
-        // TODO: this could reuse downloader from the previous step
-        return await NetSdkDownloader.CreateAsync(foundRelease.SdkZipUrl, foundReleaseVersion);
+        return netSdkReleases.Releases
+            .Last(kvp => (!kvp.Key.IsPrerelease || requestedRoslynVersion.IsPrerelease) && kvp.Value.RoslynVersion <= requestedRoslynVersion);
     }
 }

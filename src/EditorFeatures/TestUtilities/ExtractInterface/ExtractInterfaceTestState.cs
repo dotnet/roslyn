@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 options.FallbackOptions);
 
             var operations = await action.GetOperationsAsync(
-                this.OriginalSolution, changedOptions, CancellationToken.None);
+                this.OriginalSolution, changedOptions, CodeAnalysisProgress.None, CancellationToken.None);
             foreach (var operation in operations)
             {
                 operation.Apply(Workspace, CancellationToken.None);

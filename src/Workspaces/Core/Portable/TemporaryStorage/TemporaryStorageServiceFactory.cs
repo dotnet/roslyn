@@ -194,11 +194,11 @@ namespace Microsoft.CodeAnalysis.Host
             public SourceHashAlgorithm ChecksumAlgorithm => _checksumAlgorithm;
             public Encoding? Encoding => _encoding;
 
-            public ImmutableArray<byte> GetChecksum()
+            public ImmutableArray<byte> GetContentHash()
             {
                 if (_checksum.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref _checksum, ReadText(CancellationToken.None).GetChecksum());
+                    ImmutableInterlocked.InterlockedInitialize(ref _checksum, ReadText(CancellationToken.None).GetContentHash());
                 }
 
                 return _checksum;

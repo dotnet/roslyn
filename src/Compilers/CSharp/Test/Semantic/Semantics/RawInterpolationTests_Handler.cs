@@ -3217,13 +3217,14 @@ class Attr : Attribute
 
         var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) });
         comp.VerifyDiagnostics(
-            // (4,2): error CS0181: Attribute constructor parameter 'c' has type 'CustomHandler', which is not a valid attribute parameter type
-            // [Attr($"{1}{2}")]
-            Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Attr").WithArguments("c", "CustomHandler").WithLocation(4, 2));
-        VerifyInterpolatedStringExpression(comp);
+            // 0.cs(4,7): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+            // [Attr($"{1}" + $"{2}")]
+            Diagnostic(ErrorCode.ERR_BadAttributeArgument, expression).WithLocation(4, 7));
 
         var attr = comp.SourceAssembly.SourceModule.GlobalNamespace.GetTypeMember("Attr");
-        Assert.Equal("Attr..ctor(CustomHandler c)", attr.GetAttributes().Single().AttributeConstructor.ToTestDisplayString());
+        // Note that for usage in attributes, we don't use the custom handler. This is because it's an error scenario regardless, and we want to avoid
+        // potential binding cycles.
+        Assert.Equal("Attr..ctor(System.String s)", attr.GetAttributes().Single().AttributeConstructor.ToTestDisplayString());
     }
 
     [Theory]

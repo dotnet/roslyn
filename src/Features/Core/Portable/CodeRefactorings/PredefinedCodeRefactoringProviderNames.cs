@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string ConvertNamespace = "Convert Namespace";
         public const string ConvertNumericLiteral = nameof(ConvertNumericLiteral);
         public const string ConvertPlaceholderToInterpolatedString = nameof(ConvertPlaceholderToInterpolatedString);
+        public const string ConvertPrimaryToRegularConstructor = nameof(ConvertPrimaryToRegularConstructor);
         public const string ConvertToInterpolatedString = "Convert To Interpolated String Code Action Provider";
         public const string ConvertToProgramMain = "Convert To Program.Main";
         public const string ConvertToRawString = nameof(ConvertToRawString);

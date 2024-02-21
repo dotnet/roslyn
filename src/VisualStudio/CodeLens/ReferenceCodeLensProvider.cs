@@ -21,6 +21,8 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using IAsyncCodeLensDataPoint = Microsoft.VisualStudio.Language.CodeLens.Remoting.IAsyncCodeLensDataPoint;
+using IAsyncCodeLensDataPointProvider = Microsoft.VisualStudio.Language.CodeLens.Remoting.IAsyncCodeLensDataPointProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 {

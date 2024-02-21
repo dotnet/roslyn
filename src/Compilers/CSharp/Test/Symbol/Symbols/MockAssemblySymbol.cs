@@ -70,6 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { return false; }
         }
 
+        internal override bool HasImportedFromTypeLibAttribute => false;
+
+        internal override bool HasPrimaryInteropAssemblyAttribute => false;
+
         internal override void SetLinkedReferencedAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
             throw new NotImplementedException();
@@ -131,5 +135,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 #nullable enable
         internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
             => null;
+
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
+        }
     }
 }

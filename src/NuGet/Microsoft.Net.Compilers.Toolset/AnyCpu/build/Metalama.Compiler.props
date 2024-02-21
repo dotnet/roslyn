@@ -24,6 +24,10 @@
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.CopyRefAssembly" AssemblyFile="$(RoslynTasksAssembly)" />
 
   <!-- <Metalama> -->
+  <PropertyGroup>
+    <WarningsAsErrors>$(WarningsAsErrors);LAMA0621</WarningsAsErrors>
+  </PropertyGroup>
+  
   <ItemGroup>
     <CompilerVisibleProperty Include="MetalamaDebugTransformedCode" />
     <CompilerVisibleProperty Include="MetalamaCompilerTransformerOrder" />
@@ -37,7 +41,6 @@
     <MetalamaTransformedCodeAnalyzer Include="Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers" />
     <MetalamaTransformedCodeAnalyzer Include="Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues" />
     <MetalamaTransformedCodeAnalyzer Include="Microsoft.CodeQuality.Analyzers.Maintainability.AvoidUnusedPrivateFieldsAnalyzer" />
-    
   </ItemGroup>
   <!-- </Metalama> -->
   

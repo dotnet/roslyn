@@ -4635,7 +4635,7 @@ partial struct CustomHandler
         var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>(pathPrefix, @"\_/"));
 
         var comp = CreateCompilation(
-            new[] { (source, path), s_attributesSource },
+            [(source, path), s_attributesSource],
             parseOptions: RegularWithInterceptors,
             options: TestOptions.DebugExe.WithSourceReferenceResolver(
                 new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)));

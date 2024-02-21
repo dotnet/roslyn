@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -27,17 +28,13 @@ using static CSharpUseCollectionExpressionForFluentDiagnosticAnalyzer;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForFluent), Shared]
-internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider
-    : ForkingSyntaxEditorBasedCodeFixProvider<InvocationExpressionSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
+    : AbstractUseCollectionExpressionCodeFixProvider<InvocationExpressionSyntax>(
+        CSharpCodeFixesResources.Use_collection_expression,
+        IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId)
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpUseCollectionExpressionForFluentCodeFixProvider()
-        : base(CSharpCodeFixesResources.Use_collection_expression,
-               IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId)
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId);
 
     protected override async Task FixAsync(
@@ -54,7 +51,9 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider
         var state = new UpdateExpressionState<ExpressionSyntax, StatementSyntax>(
             semanticModel, syntaxFacts, invocationExpression, valuePattern: default, initializedSymbol: null);
 
-        if (AnalyzeInvocation(state, invocationExpression, addMatches: true, cancellationToken) is not { } analysisResult)
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var expressionType = semanticModel.Compilation.ExpressionOfTType();
+        if (AnalyzeInvocation(text, state, invocationExpression, expressionType, allowInterfaceConversion: true, addMatches: true, cancellationToken) is not { } analysisResult)
             return;
 
         // We want to replace `new[] { 1, 2, 3 }.Concat(x).Add(y).ToArray()` with the new collection expression.  To do

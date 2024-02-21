@@ -29,15 +29,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             SpecialType.System_Collections_IEnumerable,
             SpecialType.System_Collections_Generic_IEnumerable_T,
-            SpecialType.System_Collections_Generic_IReadOnlyCollection_T,
-            SpecialType.System_Collections_Generic_IReadOnlyList_T,
             SpecialType.System_Collections_Generic_ICollection_T,
             SpecialType.System_Collections_Generic_IList_T,
         };
 
+        private static readonly SpecialType[] s_readOnlyInterfacesSpecialTypes = new[]
+        {
+            SpecialType.System_Collections_Generic_IReadOnlyCollection_T,
+            SpecialType.System_Collections_Generic_IReadOnlyList_T,
+        };
+
         private static readonly WellKnownType[] s_requiredWellKnownTypes = new[]
         {
-            WellKnownType.System_Collections_Generic_List_T,
+            WellKnownType.System_Collections_ICollection,
+            WellKnownType.System_Collections_IList,
         };
 
         private static readonly SpecialMember[] s_requiredSpecialMembers = new[]
@@ -48,8 +53,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly WellKnownMember[] s_requiredWellKnownMembers = new[]
         {
-            WellKnownMember.System_Collections_Generic_IReadOnlyCollection_T__Count,
-            WellKnownMember.System_Collections_Generic_IReadOnlyList_T__get_Item,
+            WellKnownMember.System_Collections_ICollection__Count,
+            WellKnownMember.System_Collections_ICollection__IsSynchronized,
+            WellKnownMember.System_Collections_ICollection__SyncRoot,
+            WellKnownMember.System_Collections_ICollection__CopyTo,
+            WellKnownMember.System_Collections_IList__get_Item,
+            WellKnownMember.System_Collections_IList__IsFixedSize,
+            WellKnownMember.System_Collections_IList__IsReadOnly,
+            WellKnownMember.System_Collections_IList__Add,
+            WellKnownMember.System_Collections_IList__Clear,
+            WellKnownMember.System_Collections_IList__Contains,
+            WellKnownMember.System_Collections_IList__IndexOf,
+            WellKnownMember.System_Collections_IList__Insert,
+            WellKnownMember.System_Collections_IList__Remove,
+            WellKnownMember.System_Collections_IList__RemoveAt,
             WellKnownMember.System_Collections_Generic_ICollection_T__Count,
             WellKnownMember.System_Collections_Generic_ICollection_T__IsReadOnly,
             WellKnownMember.System_Collections_Generic_ICollection_T__Add,
@@ -62,6 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             WellKnownMember.System_Collections_Generic_IList_T__Insert,
             WellKnownMember.System_Collections_Generic_IList_T__RemoveAt,
             WellKnownMember.System_NotSupportedException__ctor,
+        };
+
+        private static readonly WellKnownMember[] s_readOnlyInterfacesWellKnownMembers = new[]
+        {
+            WellKnownMember.System_Collections_Generic_IReadOnlyCollection_T__Count,
+            WellKnownMember.System_Collections_Generic_IReadOnlyList_T__get_Item,
         };
 
         private static readonly WellKnownMember[] s_requiredWellKnownMembersUnknownLength = new[]
@@ -78,12 +101,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = containingModule.DeclaringCompilation;
             DiagnosticInfo? diagnosticInfo = null;
 
+            var hasReadOnlyInterfaces =
+                compilation.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyCollection_T) is not MissingMetadataTypeSymbol &&
+                compilation.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyList_T) is not MissingMetadataTypeSymbol;
+
             foreach (var type in s_requiredSpecialTypes)
             {
                 diagnosticInfo = compilation.GetSpecialType(type).GetUseSiteInfo().DiagnosticInfo;
                 if (diagnosticInfo is { })
                 {
                     break;
+                }
+            }
+
+            if (hasReadOnlyInterfaces && diagnosticInfo is null)
+            {
+                foreach (var type in s_readOnlyInterfacesSpecialTypes)
+                {
+                    diagnosticInfo = compilation.GetSpecialType(type).GetUseSiteInfo().DiagnosticInfo;
+                    if (diagnosticInfo is { })
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (diagnosticInfo is null)
+            {
+                foreach (var type in s_requiredWellKnownTypes)
+                {
+                    diagnosticInfo = compilation.GetWellKnownType(type).GetUseSiteInfo().DiagnosticInfo;
+                    if (diagnosticInfo is { })
+                    {
+                        break;
+                    }
                 }
             }
 
@@ -102,6 +153,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (diagnosticInfo is null)
             {
                 foreach (var member in s_requiredWellKnownMembers)
+                {
+                    diagnosticInfo = getWellKnownTypeMemberDiagnosticInfo(compilation, member);
+                    if (diagnosticInfo is { })
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (hasReadOnlyInterfaces && diagnosticInfo is null)
+            {
+                foreach (var member in s_readOnlyInterfacesWellKnownMembers)
                 {
                     diagnosticInfo = getWellKnownTypeMemberDiagnosticInfo(compilation, member);
                     if (diagnosticInfo is { })
@@ -136,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new ExtendedErrorTypeSymbol(compilation, name, arity: 1, diagnosticInfo, unreported: true);
             }
 
-            return new SynthesizedReadOnlyListTypeSymbol(containingModule, name, hasKnownLength);
+            return new SynthesizedReadOnlyListTypeSymbol(containingModule, name, hasKnownLength, hasReadOnlyInterfaces);
 
             static DiagnosticInfo? getSpecialTypeMemberDiagnosticInfo(CSharpCompilation compilation, SpecialMember member)
             {
@@ -167,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<Symbol> _members;
         private readonly FieldSymbol _field;
 
-        private SynthesizedReadOnlyListTypeSymbol(SourceModuleSymbol containingModule, string name, bool hasKnownLength)
+        private SynthesizedReadOnlyListTypeSymbol(SourceModuleSymbol containingModule, string name, bool hasKnownLength, bool hasReadOnlyInterfaces)
         {
             var compilation = containingModule.DeclaringCompilation;
 
@@ -183,19 +246,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _field = new SynthesizedFieldSymbol(this, fieldType, "_items", isReadOnly: true);
 
             var iEnumerable = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
+            var iCollection = compilation.GetWellKnownType(WellKnownType.System_Collections_ICollection);
+            var iList = compilation.GetWellKnownType(WellKnownType.System_Collections_IList);
             var iEnumerableT = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(typeArgs);
             var iReadOnlyCollectionT = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyCollection_T).Construct(typeArgs);
             var iReadOnlyListT = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyList_T).Construct(typeArgs);
             var iCollectionT = compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T).Construct(typeArgs);
             var iListT = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IList_T).Construct(typeArgs);
 
-            _interfaces = ImmutableArray.Create(
-                iEnumerable,
-                iEnumerableT,
-                iReadOnlyCollectionT,
-                iReadOnlyListT,
-                iCollectionT,
-                iListT);
+            _interfaces = hasReadOnlyInterfaces
+                ? ImmutableArray.Create(
+                    iEnumerable,
+                    iCollection,
+                    iList,
+                    iEnumerableT,
+                    iReadOnlyCollectionT,
+                    iReadOnlyListT,
+                    iCollectionT,
+                    iListT)
+                : ImmutableArray.Create(
+                    iEnumerable,
+                    iCollection,
+                    iList,
+                    iEnumerableT,
+                    iCollectionT,
+                    iListT);
 
             var membersBuilder = ArrayBuilder<Symbol>.GetInstance();
             membersBuilder.Add(
@@ -207,21 +282,95 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this,
                     (MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator),
                     generateGetEnumerator));
+            addProperty(membersBuilder,
+                new SynthesizedReadOnlyListProperty(
+                    this,
+                    (PropertySymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_ICollection__Count)!,
+                    generateCount));
+            addProperty(membersBuilder,
+                new SynthesizedReadOnlyListProperty(
+                    this,
+                    (PropertySymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_ICollection__IsSynchronized)!,
+                    generateIsSynchronized));
+            addProperty(membersBuilder,
+                new SynthesizedReadOnlyListProperty(
+                    this,
+                    (PropertySymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_ICollection__SyncRoot)!,
+                    generateSyncRoot));
+            membersBuilder.Add(
+                new SynthesizedReadOnlyListMethod(
+                    this,
+                    (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_ICollection__CopyTo)!,
+                    generateCopyTo));
+            addProperty(membersBuilder,
+                new SynthesizedReadOnlyListProperty(
+                    this,
+                    (PropertySymbol)((MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_IList__get_Item)!).AssociatedSymbol,
+                    generateIndexer,
+                    generateNotSupportedException));
+            addProperty(membersBuilder,
+                new SynthesizedReadOnlyListProperty(
+                    this,
+                    (PropertySymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_IList__IsFixedSize)!,
+                    generateIsFixedSize));
+            addProperty(membersBuilder,
+                new SynthesizedReadOnlyListProperty(
+                    this,
+                    (PropertySymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_IList__IsReadOnly)!,
+                    generateIsReadOnly));
+            membersBuilder.Add(
+                new SynthesizedReadOnlyListMethod(
+                    this,
+                    (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_IList__Add)!,
+                    generateNotSupportedException));
+            membersBuilder.Add(
+                new SynthesizedReadOnlyListMethod(
+                    this,
+                    (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_IList__Clear)!,
+                    generateNotSupportedException));
+            membersBuilder.Add(
+                new SynthesizedReadOnlyListMethod(
+                    this,
+                    (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_IList__Contains)!,
+                    generateContains));
+            membersBuilder.Add(
+                new SynthesizedReadOnlyListMethod(
+                    this,
+                    (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_IList__IndexOf)!,
+                    generateIndexOf));
+            membersBuilder.Add(
+                new SynthesizedReadOnlyListMethod(
+                    this,
+                    (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_IList__Insert)!,
+                    generateNotSupportedException));
+            membersBuilder.Add(
+                new SynthesizedReadOnlyListMethod(
+                    this,
+                    (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_IList__Remove)!,
+                    generateNotSupportedException));
+            membersBuilder.Add(
+                new SynthesizedReadOnlyListMethod(
+                    this,
+                    (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_IList__RemoveAt)!,
+                    generateNotSupportedException));
             membersBuilder.Add(
                 new SynthesizedReadOnlyListMethod(
                     this,
                     ((MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator)!).AsMember(iEnumerableT),
                     generateGetEnumeratorT));
-            addProperty(membersBuilder,
-                new SynthesizedReadOnlyListProperty(
-                    this,
-                    ((PropertySymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IReadOnlyCollection_T__Count)!).AsMember(iReadOnlyCollectionT),
-                    generateCount));
-            addProperty(membersBuilder,
-                new SynthesizedReadOnlyListProperty(
-                    this,
-                    ((PropertySymbol)((MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IReadOnlyList_T__get_Item)!).AssociatedSymbol).AsMember(iReadOnlyListT),
-                    generateIndexer));
+            if (hasReadOnlyInterfaces)
+            {
+                addProperty(membersBuilder,
+                    new SynthesizedReadOnlyListProperty(
+                        this,
+                        ((PropertySymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IReadOnlyCollection_T__Count)!).AsMember(iReadOnlyCollectionT),
+                        generateCount));
+                addProperty(membersBuilder,
+                    new SynthesizedReadOnlyListProperty(
+                        this,
+                        ((PropertySymbol)((MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IReadOnlyList_T__get_Item)!).AssociatedSymbol).AsMember(iReadOnlyListT),
+                        generateIndexer));
+            }
             addProperty(membersBuilder,
                 new SynthesizedReadOnlyListProperty(
                     this,
@@ -310,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         interfaceMethod));
             }
 
-            // IReadOnlyCollection<T>.Count, ICollection<T>.Count
+            // ICollection.Count, IReadOnlyCollection<T>.Count, ICollection<T>.Count
             static BoundStatement generateCount(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
                 var containingType = (SynthesizedReadOnlyListTypeSymbol)method.ContainingType;
@@ -331,21 +480,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // ICollection<T>.IsReadOnly
+            // ICollection.IsSynchronized
+            static BoundStatement generateIsSynchronized(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
+            {
+                // return false;
+                return f.Return(f.Literal(false));
+            }
+
+            // ICollection.SyncRoot
+            static BoundStatement generateSyncRoot(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
+            {
+                // return (object)this;
+                return f.Return(
+                    f.Convert(
+                        interfaceMethod.ReturnType,
+                        f.This()));
+            }
+
+            // IList.IsFixedSize
+            static BoundStatement generateIsFixedSize(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
+            {
+                // return true;
+                return f.Return(f.Literal(true));
+            }
+
+            // IList.IsReadOnly, ICollection<T>.IsReadOnly
             static BoundStatement generateIsReadOnly(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
                 // return true;
                 return f.Return(f.Literal(true));
             }
 
-            // ICollection<T>.Contains(T)
+            // IList.Contains(object), ICollection<T>.Contains(T)
             static BoundStatement generateContains(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
                 var containingType = (SynthesizedReadOnlyListTypeSymbol)method.ContainingType;
                 var field = containingType._field;
                 var fieldReference = f.Field(f.This(), field);
                 var parameterReference = f.Parameter(method.Parameters[0]);
-                if (field.Type.IsArray())
+                if (!interfaceMethod.ContainingType.IsGenericType || field.Type.IsArray())
                 {
                     // return ((ICollection<T>)_items).Contains(param0);
                     return f.Return(
@@ -368,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // ICollection<T>.CopyTo(T[], int)
+            // ICollection.CopyTo(Array, int), ICollection<T>.CopyTo(T[], int)
             static BoundStatement generateCopyTo(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
                 var containingType = (SynthesizedReadOnlyListTypeSymbol)method.ContainingType;
@@ -377,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var parameterReference0 = f.Parameter(method.Parameters[0]);
                 var parameterReference1 = f.Parameter(method.Parameters[1]);
                 BoundStatement statement;
-                if (field.Type.IsArray())
+                if (!interfaceMethod.ContainingType.IsGenericType || field.Type.IsArray())
                 {
                     // ((ICollection<T>)_items).CopyTo(param0, param1);
                     statement = f.ExpressionStatement(
@@ -403,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return f.Block(statement, f.Return());
             }
 
-            // IReadOnlyList<T>.this[int], IList<T>.this[int]
+            // IList.this[int], IReadOnlyList<T>.this[int], IList<T>.this[int]
             static BoundStatement generateIndexer(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
                 var containingType = (SynthesizedReadOnlyListTypeSymbol)method.ContainingType;
@@ -425,14 +598,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // IList<T>.IndexOf(T)
+            // IList.IndexOf(object), IList<T>.IndexOf(T)
             static BoundStatement generateIndexOf(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
                 var containingType = (SynthesizedReadOnlyListTypeSymbol)method.ContainingType;
                 var field = containingType._field;
                 var fieldReference = f.Field(f.This(), field);
                 var parameterReference = f.Parameter(method.Parameters[0]);
-                if (field.Type.IsArray())
+                if (!interfaceMethod.ContainingType.IsGenericType || field.Type.IsArray())
                 {
                     // return ((IList<T>)_items).IndexOf(param0);
                     return f.Return(
@@ -592,6 +765,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation() => SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
 
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
+        }
+
         internal override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
         {
             builderType = null;
@@ -602,6 +781,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasInlineArrayAttribute(out int length)
         {
             length = 0;
+            return false;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
             return false;
         }
 

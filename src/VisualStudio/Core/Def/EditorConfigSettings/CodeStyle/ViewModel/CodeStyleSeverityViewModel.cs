@@ -15,13 +15,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
         //       Theoretically, we can support the 'Disabled' severity, which translates to 'none' value in
         //       editorconfig. However, adding this support would require us to update all our IDE code style
         //       analyzers to turn themselves off when 'option.Notification.Severity is ReportDiagnostic.Suppress'
-        private static readonly string[] s_severities = new[]
-        {
+        private static readonly string[] s_severities =
+        [
             ServicesVSResources.Refactoring_Only,
             ServicesVSResources.Suggestion,
             ServicesVSResources.Warning,
             ServicesVSResources.Error
-        };
+        ];
 
         private readonly int _selectedSeverityIndex;
 

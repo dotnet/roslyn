@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
@@ -42,34 +41,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 for (int i = 0; i < children.Length; i++)
                 {
                     this.AdjustFlagsAndWidth(children[i]);
-                }
-            }
-
-            internal WithManyChildrenBase(ObjectReader reader)
-                : base(reader)
-            {
-                var length = reader.ReadInt32();
-
-                this.children = new ArrayElement<GreenNode>[length];
-                for (var i = 0; i < length; i++)
-                {
-                    this.children[i].Value = (GreenNode)reader.ReadValue();
-                }
-
-                this.InitializeChildren();
-            }
-
-            internal override void WriteTo(ObjectWriter writer)
-            {
-                base.WriteTo(writer);
-
-                // PERF: Write the array out manually.Profiling shows that this is cheaper than converting to 
-                // an array in order to use writer.WriteValue.
-                writer.WriteInt32(this.children.Length);
-
-                for (var i = 0; i < this.children.Length; i++)
-                {
-                    writer.WriteValue(this.children[i].Value);
                 }
             }
 
@@ -122,11 +93,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal sealed class WithManyChildren : WithManyChildrenBase
         {
-            static WithManyChildren()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(WithManyChildren), r => new WithManyChildren(r));
-            }
-
             internal WithManyChildren(ArrayElement<GreenNode>[] children)
                 : base(children)
             {
@@ -134,11 +100,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             internal WithManyChildren(DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations, ArrayElement<GreenNode>[] children)
                 : base(diagnostics, annotations, children)
-            {
-            }
-
-            internal WithManyChildren(ObjectReader reader)
-                : base(reader)
             {
             }
 

@@ -305,6 +305,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal abstract bool HasImportedFromTypeLibAttribute { get; }
+
+        internal abstract bool HasPrimaryInteropAssemblyAttribute { get; }
+
 #nullable enable
         /// <summary>
         /// Lookup a top level type referenced from metadata, names should be
@@ -546,10 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// the string might be null or an invalid guid representation. False, 
         /// if there is no GuidAttribute with string argument.
         /// </summary>
-        internal virtual bool GetGuidString(out string guidString)
-        {
-            return GetGuidStringDefaultImplementation(out guidString);
-        }
+        internal abstract bool GetGuidString(out string guidString);
 
         /// <summary>
         /// Gets the set of type identifiers from this assembly.

@@ -1526,7 +1526,7 @@ class C
                 language,
                 compilationOptions: null,
                 parseOptions: null,
-                new[] { code },
+                [code],
                 composition: EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(IIncrementalAnalyzerProvider)).AddParts(typeof(AnalyzerProviderNoWaitNoBlock)),
                 workspaceKind: SolutionCrawlerWorkspaceKind);
 

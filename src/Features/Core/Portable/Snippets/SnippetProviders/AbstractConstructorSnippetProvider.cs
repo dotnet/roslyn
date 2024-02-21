@@ -34,9 +34,12 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
             var nodeAtPosition = root.FindNode(TextSpan.FromBounds(position, position));
             var containingType = nodeAtPosition.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
             Contract.ThrowIfNull(containingType);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var containingTypeSymbol = semanticModel.GetDeclaredSymbol(containingType, cancellationToken);
+            Contract.ThrowIfNull(containingTypeSymbol);
             var constructorDeclaration = generator.ConstructorDeclaration(
                 containingTypeName: syntaxFacts.GetIdentifierOfTypeDeclaration(containingType).ToString(),
-                accessibility: Accessibility.Public);
+                accessibility: containingTypeSymbol.IsAbstract ? Accessibility.Protected : Accessibility.Public);
             return new TextChange(TextSpan.FromBounds(position, position), constructorDeclaration.NormalizeWhitespace().ToFullString());
         }
     }

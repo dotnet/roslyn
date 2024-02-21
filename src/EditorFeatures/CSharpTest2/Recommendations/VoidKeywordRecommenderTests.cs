@@ -931,5 +931,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                     public readonly $$
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67986")]
+        public async Task TestInUsingUnsafeDirective()
+        {
+            await VerifyKeywordAsync("using unsafe T = $$");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67986")]
+        public async Task TestNotInRegularUsingDirective()
+        {
+            await VerifyAbsenceAsync("using T = $$");
+        }
     }
 }

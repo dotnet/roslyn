@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
         internal abstract TestWorkspace GetWorkspace(string markup, TestComposition composition);
 
         protected void ToggleComment(string markup, string expected)
-            => ToggleCommentMultiple(markup, new string[] { expected });
+            => ToggleCommentMultiple(markup, [expected]);
 
         protected void ToggleCommentMultiple(string markup, string[] expectedText)
         {

@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -13,41 +12,33 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
 {
     internal abstract partial class AbstractSymbolDisplayVisitor : SymbolVisitor
     {
-        protected readonly ArrayBuilder<SymbolDisplayPart> builder;
-        protected readonly SymbolDisplayFormat format;
-        protected readonly bool isFirstSymbolVisited;
-        protected readonly bool inNamespaceOrType;
+        // These values will be set to non-null by 'Allocate' when an instance is obtained from the pool
+        private ArrayBuilder<SymbolDisplayPart> _builder = null!;
+        private SymbolDisplayFormat _format = null!;
+        private bool _isFirstSymbolVisited;
+        private bool _inNamespaceOrType;
 
-        protected readonly SemanticModel semanticModelOpt;
-        protected readonly int positionOpt;
+        private SemanticModel? _semanticModelOpt;
+        private int _positionOpt;
 
-        private AbstractSymbolDisplayVisitor _lazyNotFirstVisitor;
-        private AbstractSymbolDisplayVisitor _lazyNotFirstVisitorNamespaceOrType;
+        private AbstractSymbolDisplayVisitor? _lazyNotFirstVisitor;
+        private AbstractSymbolDisplayVisitor? _lazyNotFirstVisitorNamespaceOrType;
 
-        protected AbstractSymbolDisplayVisitor(
-            ArrayBuilder<SymbolDisplayPart> builder,
-            SymbolDisplayFormat format,
-            bool isFirstSymbolVisited,
-            SemanticModel semanticModelOpt,
-            int positionOpt,
-            bool inNamespaceOrType = false)
+        protected AbstractSymbolDisplayVisitor()
         {
-            Debug.Assert(format != null);
-
-            this.builder = builder;
-            this.format = format;
-            this.isFirstSymbolVisited = isFirstSymbolVisited;
-
-            this.semanticModelOpt = semanticModelOpt;
-            this.positionOpt = positionOpt;
-            this.inNamespaceOrType = inNamespaceOrType;
-
-            // If we're not the first symbol visitor, then we will just recurse into ourselves.
-            if (!isFirstSymbolVisited)
-            {
-                _lazyNotFirstVisitor = this;
-            }
         }
+
+        protected ArrayBuilder<SymbolDisplayPart> Builder => _builder;
+
+        protected SymbolDisplayFormat Format => _format;
+
+        protected bool IsFirstSymbolVisited => _isFirstSymbolVisited;
+
+        protected bool InNamespaceOrType => _inNamespaceOrType;
+
+        protected SemanticModel? SemanticModelOpt => _semanticModelOpt;
+
+        protected int PositionOpt => _positionOpt;
 
         protected AbstractSymbolDisplayVisitor NotFirstVisitor
         {
@@ -75,7 +66,60 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             }
         }
 
+        protected void Initialize(
+            ArrayBuilder<SymbolDisplayPart> builder,
+            SymbolDisplayFormat format,
+            bool isFirstSymbolVisited,
+            SemanticModel? semanticModelOpt,
+            int positionOpt,
+            bool inNamespaceOrType)
+        {
+            Debug.Assert(format != null);
+
+            if (_format is not null)
+            {
+                // Should not be re-initializing a visitor which is already in use.
+                throw new InvalidOperationException();
+            }
+
+            _builder = builder;
+            _format = format;
+            _isFirstSymbolVisited = isFirstSymbolVisited;
+
+            _semanticModelOpt = semanticModelOpt;
+            _positionOpt = positionOpt;
+            _inNamespaceOrType = inNamespaceOrType;
+
+            // If we're not the first symbol visitor, then we will just recurse into ourselves.
+            if (!isFirstSymbolVisited)
+            {
+                _lazyNotFirstVisitor = this;
+            }
+        }
+
+        public virtual void Free()
+        {
+            if (_lazyNotFirstVisitor != this && _lazyNotFirstVisitor is not null)
+                FreeNotFirstVisitor(_lazyNotFirstVisitor);
+
+            if (_lazyNotFirstVisitorNamespaceOrType != this && _lazyNotFirstVisitorNamespaceOrType is not null)
+                FreeNotFirstVisitor(_lazyNotFirstVisitorNamespaceOrType);
+
+            _builder = null!;
+            _isFirstSymbolVisited = false;
+            _inNamespaceOrType = false;
+
+            _semanticModelOpt = null;
+            _positionOpt = 0;
+            _lazyNotFirstVisitor = null;
+            _lazyNotFirstVisitorNamespaceOrType = null;
+
+            _format = null!;
+        }
+
         protected abstract AbstractSymbolDisplayVisitor MakeNotFirstVisitor(bool inNamespaceOrType = false);
+
+        protected abstract void FreeNotFirstVisitor(AbstractSymbolDisplayVisitor visitor);
 
         protected abstract void AddLiteralValue(SpecialType type, object value);
         protected abstract void AddExplicitlyCastedLiteralValue(INamedTypeSymbol namedType, SpecialType type, object value);
@@ -107,6 +151,8 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
 
         private void AddEnumConstantValue(INamedTypeSymbol enumType, object constantValue, bool preferNumericValueOrExpandedFlags)
         {
+            Debug.Assert(enumType.EnumUnderlyingType is not null);
+
             // Code copied from System.Enum            
             var isFlagsEnum = IsFlagsEnum(enumType);
             if (isFlagsEnum)
@@ -187,6 +233,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             ArrayBuilder<EnumField> usedFieldsAndValues,
             bool preferNumericValueOrExpandedFlags)
         {
+            Debug.Assert(enumType.EnumUnderlyingType is not null);
             var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
             var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
 
@@ -231,7 +278,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                         AddSpace();
                     }
 
-                    ((IFieldSymbol)usedFieldsAndValues[i].IdentityOpt).Accept(this.NotFirstVisitor);
+                    ((IFieldSymbol)usedFieldsAndValues[i].IdentityOpt!).Accept(this.NotFirstVisitor);
                 }
             }
             else
@@ -250,6 +297,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                     : default(EnumField);
                 if (!zeroField.IsDefault)
                 {
+                    Debug.Assert(zeroField.IdentityOpt is not null);
                     ((IFieldSymbol)zeroField.IdentityOpt).Accept(this.NotFirstVisitor);
                 }
                 else
@@ -264,6 +312,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             INamedTypeSymbol enumType,
             ArrayBuilder<EnumField> enumFields)
         {
+            Debug.Assert(enumType.EnumUnderlyingType is not null);
             var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
             foreach (var member in enumType.GetMembers())
             {
@@ -283,6 +332,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
 
         private void AddNonFlagsEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
         {
+            Debug.Assert(enumType.EnumUnderlyingType is not null);
             var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
             var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
 
@@ -293,6 +343,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             var match = EnumField.FindValue(enumFields, constantValueULong);
             if (!match.IsDefault)
             {
+                Debug.Assert(match.IdentityOpt is not null);
                 ((IFieldSymbol)match.IdentityOpt).Accept(this.NotFirstVisitor);
             }
             else

@@ -729,7 +729,13 @@ struct S
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "_x").WithLocation(10, 20),
                 // (7,17): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //         var s = this;
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(7, 17)
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(7, 17),
+                // (12,9): error CS9015: Use of possibly unassigned field '_x'. Consider updating to language version '11.0' to auto-default the field.
+                //         Local();
+                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "Local()").WithArguments("_x", "11.0").WithLocation(12, 9),
+                // (5,12): error CS0171: Field 'S._x' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
+                //     public S(int x)
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S._x", "11.0").WithLocation(5, 12)
                 );
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
@@ -1497,7 +1503,10 @@ struct S
             comp.VerifyDiagnostics(
                 // (12,20): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             S s2 = this;
-                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(12, 20)
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(12, 20),
+                // (14,9): error CS9015: Use of possibly unassigned field '_x'. Consider updating to language version '11.0' to auto-default the field.
+                //         Local();
+                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "Local()").WithArguments("_x", "11.0").WithLocation(14, 9)
                 );
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);

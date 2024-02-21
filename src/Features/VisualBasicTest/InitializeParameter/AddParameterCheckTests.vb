@@ -193,7 +193,7 @@ class C
 end class")
         End Function
 
-        <Fact>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004")>
         Public Async Function TestInsertAfterExistingNullCheck1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -536,7 +536,7 @@ end class", index:=1)
             End Try
         End Function
 
-        <Fact>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004")>
         Public Async Function TestMultiNullableParameters() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -566,7 +566,7 @@ class C
 end class", index:=3)
         End Function
 
-        <Fact>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70004")>
         Public Async Function TestMultiNullableWithCursorOnNonNullable() As Task
             Await TestInRegularAndScript1Async(
 "

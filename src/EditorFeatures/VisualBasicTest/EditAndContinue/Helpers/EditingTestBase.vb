@@ -127,9 +127,14 @@ End Namespace
             Return New RudeEditDiagnosticDescription(rudeEditKind, squiggle, arguments, firstLine:=Nothing)
         End Function
 
+        Friend Shared Function RuntimeRudeEdit(marker As Integer, rudeEditKind As RudeEditKind, position As (displayLine As Integer, displayColumn As Integer), ParamArray arguments As String()) As RuntimeRudeEditDescription
+            Return New RuntimeRudeEditDescription(marker, rudeEditKind, New LinePosition(position.displayLine - 1, position.displayColumn - 1), arguments)
+        End Function
+
         Friend Shared Function SemanticEdit(kind As SemanticEditKind,
                                             symbolProvider As Func(Of Compilation, ISymbol),
-                                            syntaxMap As IEnumerable(Of KeyValuePair(Of TextSpan, TextSpan)),
+                                            syntaxMap As IEnumerable(Of (TextSpan, TextSpan)),
+                                            Optional rudeEdits As IEnumerable(Of RuntimeRudeEditDescription) = Nothing,
                                             Optional partialType As String = Nothing,
                                             Optional deletedSymbolContainerProvider As Func(Of Compilation, ISymbol) = Nothing) As SemanticEditDescription
             Return New SemanticEditDescription(
@@ -137,6 +142,7 @@ End Namespace
                 symbolProvider,
                 If(partialType Is Nothing, Nothing, Function(c As Compilation) CType(c.GetMember(partialType), ITypeSymbol)),
                 syntaxMap,
+                rudeEdits,
                 hasSyntaxMap:=syntaxMap IsNot Nothing,
                 deletedSymbolContainerProvider)
         End Function
@@ -151,6 +157,7 @@ End Namespace
                 symbolProvider,
                 If(partialType Is Nothing, Nothing, Function(c As Compilation) CType(c.GetMember(partialType), ITypeSymbol)),
                 syntaxMap:=Nothing,
+                rudeEdits:=Nothing,
                 hasSyntaxMap:=preserveLocalVariables,
                 deletedSymbolContainerProvider)
         End Function

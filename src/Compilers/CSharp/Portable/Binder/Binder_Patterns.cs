@@ -1630,7 +1630,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression value = BindExpressionForPattern(inputType, node.Expression, ref hasErrors, diagnostics, out var constantValueOpt, out _, out Conversion patternConversion);
             ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(node.Expression, diagnostics, ref hasErrors);
-            RoslynDebug.Assert(value.Type is { });
+            var type = value.Type ?? inputType;
+            Debug.Assert(type is { });
             BinaryOperatorKind operation = tokenKindToBinaryOperatorKind(node.OperatorToken.Kind());
             if (operation == BinaryOperatorKind.Equal)
             {
@@ -1638,7 +1639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            BinaryOperatorKind opType = RelationalOperatorType(value.Type.EnumUnderlyingTypeOrSelf());
+            BinaryOperatorKind opType = RelationalOperatorType(type.EnumUnderlyingTypeOrSelf());
             switch (opType)
             {
                 case BinaryOperatorKind.Float:
@@ -1654,7 +1655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.Error:
                     if (!hasErrors)
                     {
-                        diagnostics.Add(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, node.Location, value.Type.ToDisplayString());
+                        diagnostics.Add(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, node.Location, type.ToDisplayString());
                         hasErrors = true;
                     }
                     break;
@@ -1673,7 +1674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return new BoundRelationalPattern(node, operation | opType, value, constantValueOpt, inputType, value.Type, hasErrors);
+            return new BoundRelationalPattern(node, operation | opType, value, constantValueOpt, inputType, type, hasErrors);
 
             static BinaryOperatorKind tokenKindToBinaryOperatorKind(SyntaxKind kind) => kind switch
             {

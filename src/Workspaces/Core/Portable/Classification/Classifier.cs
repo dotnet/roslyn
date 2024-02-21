@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
@@ -21,27 +22,7 @@ namespace Microsoft.CodeAnalysis.Classification
     public static class Classifier
     {
         internal static PooledObject<SegmentedList<ClassifiedSpan>> GetPooledList(out SegmentedList<ClassifiedSpan> classifiedSpans)
-        {
-            var pooledObject = new PooledObject<SegmentedList<ClassifiedSpan>>(
-                SharedPools.Default<SegmentedList<ClassifiedSpan>>(),
-                static p =>
-                {
-                    var result = p.Allocate();
-                    result.Clear();
-                    return result;
-                },
-                static (p, list) =>
-                {
-                    // Deliberately do not call ClearAndFree for the set as we can easily have a set that goes past the
-                    // threshold simply with a single classified screen.  This allows reuse of those sets without causing
-                    // lots of **garbage.**
-                    list.Clear();
-                    p.Free(list);
-                });
-
-            classifiedSpans = pooledObject.Object;
-            return pooledObject;
-        }
+            => SegmentedListPool.GetPooledList<ClassifiedSpan>(out classifiedSpans);
 
         public static async Task<IEnumerable<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document,

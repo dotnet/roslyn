@@ -137,12 +137,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
         private static SyntaxTrivia[] CreateNullableTrivia(bool enable)
         {
             var keyword = enable ? SyntaxKind.EnableKeyword : SyntaxKind.DisableKeyword;
-            return new[]
-            {
+            return
+            [
                 SyntaxFactory.Trivia(SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(keyword), isActive: enable)),
                 SyntaxFactory.ElasticCarriageReturnLineFeed,
                 SyntaxFactory.ElasticCarriageReturnLineFeed,
-            };
+            ];
         }
 
         private TSyntax AddNullableRegions<TSyntax>(TSyntax node, CancellationToken cancellationToken)

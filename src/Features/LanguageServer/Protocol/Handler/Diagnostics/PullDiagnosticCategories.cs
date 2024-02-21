@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
@@ -22,7 +22,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         // Fine-grained document pull categories to allow diagnostics to more quickly reach the user.
 
-        public const string DocumentCompilerSyntax = nameof(DocumentCompilerSyntax);
+        // VSLanguageServerClient's RemoteDocumentDiagnosticBroker uses this exact string to determine
+        // when syntax errors are being provided via pull diagnostics. Alternatively when 17.9 preview 1 packages
+        // are consumable by Roslyn, this could be updated to reference VSInternalDiagnosticKind.Syntax.Value directly.
+        public const string DocumentCompilerSyntax = "syntax";
+
         public const string DocumentCompilerSemantic = nameof(DocumentCompilerSemantic);
         public const string DocumentAnalyzerSyntax = nameof(DocumentAnalyzerSyntax);
         public const string DocumentAnalyzerSemantic = nameof(DocumentAnalyzerSemantic);

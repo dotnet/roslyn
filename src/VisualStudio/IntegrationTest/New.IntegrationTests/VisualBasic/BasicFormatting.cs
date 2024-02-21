@@ -68,7 +68,7 @@ Module Program
     End Function
 End Module", HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(new InputKey[] { "(o", (VirtualKeyCode.RETURN, VirtualKeyCode.SHIFT), "'comment" }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendAsync(["(o", (VirtualKeyCode.RETURN, VirtualKeyCode.SHIFT), "'comment"], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"
 Module Program
     Function Main(ooo As Object) As Object

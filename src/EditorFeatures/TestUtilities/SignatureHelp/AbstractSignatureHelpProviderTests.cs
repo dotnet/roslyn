@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             }
             else
             {
-                Assert.Equal(expectedTestItem.Signature, signature.Content);
+                AssertEx.Equal(expectedTestItem.Signature, signature.Content);
             }
 
             if (expectedTestItem.PrettyPrintedSignature != null)

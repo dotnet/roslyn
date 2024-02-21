@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
     internal sealed class CompilerServerHost : ICompilerServerHost
     {
-        public IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; }
+        public IAnalyzerAssemblyLoaderInternal AnalyzerAssemblyLoader { get; }
 
         public static Func<string, MetadataReferenceProperties, PortableExecutableReference> SharedAssemblyReferenceProvider { get; } = (path, properties) => new CachingMetadataReference(path, properties);
 
@@ -137,13 +137,11 @@ Run Compilation for {request.RequestId}
                 return new RejectedBuildResponse(message);
             }
 
-#if NETFRAMEWORK
-            if (!AnalyzerConsistencyChecker.Check(request.WorkingDirectory, compiler.Arguments.AnalyzerReferences, AnalyzerAssemblyLoader, Logger, out List<string?> errorMessages))
+            if (!AnalyzerConsistencyChecker.Check(request.WorkingDirectory, compiler.Arguments.AnalyzerReferences, AnalyzerAssemblyLoader, Logger, out List<string>? errorMessages))
             {
                 Logger.Log($"Rejected: {request.RequestId}: for analyzer load issues {string.Join(";", errorMessages)}");
                 return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(errorMessages));
             }
-#endif
 
             Logger.Log($"Begin {request.RequestId} {request.Language} compiler run");
             try

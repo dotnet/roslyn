@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.NamingStyles
 {
     [DataContract]
-    internal readonly partial record struct NamingStyle : IObjectWritable
+    internal readonly partial record struct NamingStyle
     {
         [DataMember(Order = 0)]
         public Guid ID { get; init; }
@@ -468,8 +468,6 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 suffix: namingStyleElement.Attribute(nameof(Suffix)).Value,
                 wordSeparator: namingStyleElement.Attribute(nameof(WordSeparator)).Value,
                 capitalizationScheme: (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value));
-
-        public bool ShouldReuseInSerialization => false;
 
         public void WriteTo(ObjectWriter writer)
         {

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
         {
             return actions.SelectMany(a => a is AbstractConfigurationActionWithNestedActions
-                ? a.NestedCodeActions
+                ? a.NestedActions
                 : ImmutableArray.Create(a)).ToImmutableArray();
         }
 

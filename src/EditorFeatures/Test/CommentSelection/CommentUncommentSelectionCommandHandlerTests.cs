@@ -180,13 +180,13 @@ class Goo
                 supportBlockComments: false,
                 expectedSelectedSpans: new[] { new Span(0, 39) });
 
-            expectedChanges = new[]
-            {
+            expectedChanges =
+            [
                 new TextChange(new TextSpan(0, 0), "//"),
                 new TextChange(new TextSpan(11, 0), "//"),
                 new TextChange(new TextSpan(16, 0), "//"),
                 new TextChange(new TextSpan(36, 0), "//"),
-            };
+            ];
             CommentSelection(
                 exportProvider,
                 disposableView.TextView,

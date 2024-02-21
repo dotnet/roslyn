@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedPrimaryConstructor : SourceConstructorSymbolBase
     {
         private IReadOnlyDictionary<ParameterSymbol, FieldSymbol>? _capturedParameters = null;
-        private Roslyn.Utilities.IReadOnlySet<ParameterSymbol>? _parametersPassedToTheBase = null;
+        private IReadOnlySet<ParameterSymbol>? _parametersPassedToTheBase = null;
 
         public SynthesizedPrimaryConstructor(
              SourceMemberContainerTypeSymbol containingType,
@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     isExtensionMethod: false,
                                     isVarArg: syntax.ParameterList.IsVarArg(),
                                     isNullableAnalysisEnabled: false, // IsNullableAnalysisEnabled uses containing type instead.
-                                    isExplicitInterfaceImplementation: false);
+                                    isExplicitInterfaceImplementation: false,
+                                    hasThisInitializer: false);
 
             return (declarationModifiers, flags);
         }
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        public Roslyn.Utilities.IReadOnlySet<ParameterSymbol> GetParametersPassedToTheBase()
+        public IReadOnlySet<ParameterSymbol> GetParametersPassedToTheBase()
         {
             if (_parametersPassedToTheBase != null)
             {
@@ -203,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _parametersPassedToTheBase;
         }
 
-        internal void SetParametersPassedToTheBase(Roslyn.Utilities.IReadOnlySet<ParameterSymbol> value)
+        internal void SetParametersPassedToTheBase(IReadOnlySet<ParameterSymbol> value)
         {
 #if DEBUG
             var oldSet = _parametersPassedToTheBase;

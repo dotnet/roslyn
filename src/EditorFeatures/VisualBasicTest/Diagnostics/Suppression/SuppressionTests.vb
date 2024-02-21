@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
         End Function
 
         Protected Overrides Function MassageActions(ByVal actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
-            Return actions(0).NestedCodeActions
+            Return actions(0).NestedActions
         End Function
 
         Protected Overrides Function SetParameterDefaults(parameters As TestParameters) As TestParameters

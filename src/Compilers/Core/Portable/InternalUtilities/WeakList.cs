@@ -11,7 +11,7 @@ namespace Roslyn.Utilities
     /// <summary>
     /// Represents an ordered sequence of weak references.
     /// </summary>
-    internal sealed class WeakList<T> : IEnumerable<T>
+    internal sealed class WeakList<T>
         where T : class
     {
         private WeakReference<T>[] _items;
@@ -158,47 +158,69 @@ namespace Roslyn.Utilities
             _items[_size++] = new WeakReference<T>(item);
         }
 
-        public IEnumerator<T> GetEnumerator()
+        public struct Enumerator
         {
-            int count = _size;
-            int alive = _size;
-            int firstDead = -1;
+            private readonly WeakList<T> _weakList;
+            private readonly int _count;
+            private int _nextIndex;
+            private int _alive;
+            private int _firstDead;
+            private T? _current;
 
-            for (int i = 0; i < count; i++)
+            public Enumerator(WeakList<T> weakList)
             {
-                T? item;
-                if (_items[i].TryGetTarget(out item))
-                {
-                    yield return item;
-                }
-                else
-                {
-                    // object has been collected 
+                _weakList = weakList;
+                _nextIndex = 0;
+                _count = weakList._size;
+                _alive = weakList._size;
+                _firstDead = -1;
+                _current = null;
+            }
 
-                    if (firstDead < 0)
+            public T Current => _current!;
+
+            public bool MoveNext()
+            {
+                while (_nextIndex < _count)
+                {
+                    int currentIndex = _nextIndex;
+                    _nextIndex += 1;
+                    if (_weakList._items[currentIndex].TryGetTarget(out var item))
                     {
-                        firstDead = i;
+                        _current = item;
+                        return true;
                     }
+                    else
+                    {
+                        // object has been collected 
 
-                    alive--;
+                        if (_firstDead < 0)
+                        {
+                            _firstDead = currentIndex;
+                        }
+
+                        _alive--;
+                    }
                 }
-            }
 
-            if (alive == 0)
-            {
-                _items = Array.Empty<WeakReference<T>>();
-                _size = 0;
-            }
-            else if (alive < _items.Length / 4)
-            {
-                // If we have just a few items left we shrink the array.
-                Shrink(firstDead, alive);
+                if (_alive == 0)
+                {
+                    _weakList._items = Array.Empty<WeakReference<T>>();
+                    _weakList._size = 0;
+                }
+                else if (_alive < _weakList._items.Length / 4)
+                {
+                    // If we have just a few items left we shrink the array.
+                    _weakList.Shrink(_firstDead, _alive);
+                }
+
+                return false;
             }
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        public Enumerator GetEnumerator()
         {
-            return GetEnumerator();
+            return new Enumerator(this);
         }
 
         internal WeakReference<T>[] TestOnly_UnderlyingArray { get { return _items; } }

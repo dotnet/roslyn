@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Tags;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion
             string? sortText = null,
             string? filterText = null,
             bool showsWarningIcon = false,
-            ImmutableDictionary<string, string>? properties = null,
+            ImmutableArray<KeyValuePair<string, string>> properties = default,
             ImmutableArray<string> tags = default,
             string? inlineDescription = null,
             string? displayTextPrefix = null,
@@ -41,13 +42,12 @@ namespace Microsoft.CodeAnalysis.Completion
                 tags = tags.Add(WellKnownTags.Warning);
             }
 
-            properties ??= ImmutableDictionary<string, string>.Empty;
             if (!description.IsDefault && description.Length > 0)
             {
-                properties = properties.Add(DescriptionProperty, EncodeDescription(description.ToTaggedText()));
+                properties = properties.NullToEmpty().Add(new KeyValuePair<string, string>(DescriptionProperty, EncodeDescription(description.ToTaggedText())));
             }
 
-            return CompletionItem.Create(
+            return CompletionItem.CreateInternal(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
                 displayTextPrefix: displayTextPrefix,
@@ -61,11 +61,11 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public static bool HasDescription(CompletionItem item)
-            => item.Properties.ContainsKey(DescriptionProperty);
+            => item.TryGetProperty(DescriptionProperty, out var _);
 
         public static CompletionDescription GetDescription(CompletionItem item)
         {
-            if (item.Properties.TryGetValue(DescriptionProperty, out var encodedDescription))
+            if (item.TryGetProperty(DescriptionProperty, out var encodedDescription))
             {
                 return DecodeDescription(encodedDescription);
             }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        private static readonly char[] s_descriptionSeparators = new char[] { '|' };
+        private static readonly char[] s_descriptionSeparators = ['|'];
 
         private static string EncodeDescription(ImmutableArray<TaggedText> description)
             => string.Join("|", description.SelectMany(d => new[] { d.Tag, d.Text }).Select(t => t.Escape('\\', s_descriptionSeparators)));

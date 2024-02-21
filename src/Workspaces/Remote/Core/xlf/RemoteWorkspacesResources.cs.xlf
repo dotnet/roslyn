@@ -132,6 +132,11 @@
         <target state="translated">Poskytovatel prostředků</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">Generování zdroje</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">
         <source>Stack Trace Explorer</source>
         <target state="translated">Průzkumník trasování zásobníku</target>

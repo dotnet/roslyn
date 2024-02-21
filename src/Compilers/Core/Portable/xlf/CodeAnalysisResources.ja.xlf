@@ -57,6 +57,26 @@
         <target state="translated">対応する yield return ステートメントが削除されているため、エディット コンティニュは中断された反復子を再開できません</target>
         <note />
       </trans-unit>
+      <trans-unit id="EncDeletedLambdaInvoked">
+        <source>Attempted to invoke a deleted lambda or local function implementation. This can happen when lambda or local function is deleted while the application is running.</source>
+        <target state="translated">削除済みの Lambda 関数またはローカル関数の実装を呼び出そうとしました。これは、アプリケーションの実行中に Lambda 関数またはローカル関数が削除された場合に発生する可能性があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncDeletedMethodInvoked">
+        <source>Attempted to invoke a deleted method implementation. This can happen when a method is deleted or its name or signature is changed while the application is running.</source>
+        <target state="translated">削除済みのメソッドの実装を呼び出そうとしました。これは、アプリケーションの実行中にメソッドが削除されたり、メソッドの名前やシグネチャが変更されたりした場合に発生する可能性があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncLambdaRudeEdit">
+        <source>Attempted to invoke lambda or local function with an unsupported change made while the application is running: {0}</source>
+        <target state="translated">アプリケーションの実行中にサポートされていない変更が加えられた Lambda 関数またはローカル関数を呼び出そうとしました: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncLambdaRudeEdit_CapturedVariables">
+        <source>Attempted to invoke lambda or local function that has an unsupported change to captured variables made while the application is running</source>
+        <target state="translated">アプリケーションの実行中にキャプチャされた変数に対してサポートされていない変更が加えられた Lambda 関数またはローカル関数を呼び出そうとしました</target>
+        <note />
+      </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
         <target state="translated">'end' は 'start' より小さくすることはできません。start='{0}' end='{1}'。</target>
@@ -205,7 +225,7 @@
       </trans-unit>
       <trans-unit id="SigningTempPathUnavailable">
         <source>The temporary path for legacy file signing is unavailable.</source>
-        <target state="translated">レガシ ファイル署名の一時パスは使用できません。</target>
+        <target state="translated">レガシ ファイル署名用の一時パスは使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">

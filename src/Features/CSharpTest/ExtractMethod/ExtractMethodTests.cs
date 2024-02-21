@@ -596,9 +596,9 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
-        public async Task TestMissingOnGoto()
+        public async Task TestOnGoto()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
                 """
                 delegate int del(int i);
 
@@ -612,6 +612,28 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                         };
                     label2:
                         return;
+                    }
+                }
+                """,
+                """
+                delegate int del(int i);
+
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        del q = x =>
+                        {
+                            return {|Rename:NewMethod|}(x);
+                        };
+                    label2:
+                        return;
+                    }
+
+                    private static int NewMethod(int x)
+                    {
+                        goto label2;
+                        return x * x;
                     }
                 }
                 """);
@@ -5158,82 +5180,109 @@ $@"
 
         [Fact]
         public Task ExtractMethod_InsideBaseInitializer()
-        => TestInRegularAndScript1Async(
-            """
-            class Base
-            {
-                private readonly int _x;
-                public Base(int x)
+            => TestInRegularAndScript1Async(
+                """
+                class Base
                 {
-                    _x = x;
-                }
-            }
-
-            class C : Base
-            {
-                public C(int y)
-                    : base([|y + 1|])
-                {
-                }
-            }
-            """,
-            """
-            class Base
-            {
-                private readonly int _x;
-                public Base(int x)
-                {
-                    _x = x;
-                }
-            }
-
-            class C : Base
-            {
-                public C(int y)
-                    : base({|Rename:NewMethod|}(y))
-                {
+                    private readonly int _x;
+                    public Base(int x)
+                    {
+                        _x = x;
+                    }
                 }
 
-                private static int NewMethod(int y)
+                class C : Base
                 {
-                    return y + 1;
+                    public C(int y)
+                        : base([|y + 1|])
+                    {
+                    }
                 }
-            }
-            """);
+                """,
+                """
+                class Base
+                {
+                    private readonly int _x;
+                    public Base(int x)
+                    {
+                        _x = x;
+                    }
+                }
+
+                class C : Base
+                {
+                    public C(int y)
+                        : base({|Rename:NewMethod|}(y))
+                    {
+                    }
+
+                    private static int NewMethod(int y)
+                    {
+                        return y + 1;
+                    }
+                }
+                """);
 
         [Fact]
         public Task ExtractMethod_InsideThisInitializer()
-        => TestInRegularAndScript1Async(
-            """
-            class C
-            {
-                public C(int y)
-                    : this(y, [|y + 1|])
+            => TestInRegularAndScript1Async(
+                """
+                class C
                 {
-                }
+                    public C(int y)
+                        : this(y, [|y + 1|])
+                    {
+                    }
 
-                public C(int x, int y)
-                {
+                    public C(int x, int y)
+                    {
+                    }
                 }
-            }
-            """,
-            """
-            class C
-            {
-                public C(int y)
-                    : this(y, {|Rename:NewMethod|}(y))
+                """,
+                """
+                class C
                 {
-                }
+                    public C(int y)
+                        : this(y, {|Rename:NewMethod|}(y))
+                    {
+                    }
 
-                private static int NewMethod(int y)
-                {
-                    return y + 1;
-                }
+                    private static int NewMethod(int y)
+                    {
+                        return y + 1;
+                    }
             
-                public C(int x, int y)
-                {
+                    public C(int x, int y)
+                    {
+                    }
                 }
-            }
-            """);
+                """);
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8439")]
+        public Task TestRefReturn1()
+            => TestInRegularAndScript1Async(
+                """
+                class Program
+                {
+                    public ref int M()
+                    {
+                        return [|ref M()|];
+                    }
+                }
+                """,
+                """
+                class Program
+                {
+                    public ref int M()
+                    {
+                        return ref {|Rename:NewMethod|}();
+                    }
+
+                    private ref int NewMethod()
+                    {
+                        return ref M();
+                    }
+                }
+                """);
     }
 }

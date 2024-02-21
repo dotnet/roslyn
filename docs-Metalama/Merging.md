@@ -6,6 +6,8 @@ Check the versions of Microsoft.Net.Compilers.Toolset NuGet package. In the desc
 
 Alternatively, you can find the branch at https://github.com/dotnet/roslyn/releases. Several releases may share the same branch and version there.
 
+When merging before the package has been published, you can find the commit in the product version of e.g. C:\Program Files\dotnet\sdk\\\<version>\Roslyn\bincore\Microsoft.CodeAnalysis.dll.
+
 Examples:
 version 3.8.0, commit https://github.com/dotnet/roslyn/commit/8de9e4b2beba5b7c0edd6f1e6a4f192a51fdc872, branch release/dev16.8-vs-deps
 version 3.11.0, commit https://github.com/dotnet/roslyn/commit/ae1fff344d46976624e68ae17164e0607ab68b10, branch release/dev16.11-vs-deps

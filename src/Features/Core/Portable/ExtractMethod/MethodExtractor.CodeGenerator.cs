@@ -12,18 +12,28 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class MethodExtractor
+    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
     {
-        protected abstract partial class CodeGenerator<TStatement, TExpression, TNodeUnderContainer, TCodeGenerationOptions>
-            where TStatement : SyntaxNode
-            where TExpression : SyntaxNode
+        protected abstract class CodeGenerator
+        {
+            /// <summary>
+            /// Used to produced the set of statements that will go into the generated method.
+            /// </summary>
+            public abstract OperationStatus<ImmutableArray<SyntaxNode>> GetNewMethodStatements(
+                SyntaxNode insertionPointNode, CancellationToken cancellationToken);
+        }
+
+#pragma warning disable CS0693 // Intentionally hiding the outer TStatementSyntax
+        protected abstract partial class CodeGenerator<TStatementSyntax, TNodeUnderContainer, TCodeGenerationOptions> : CodeGenerator
+#pragma warning restore CS0693
+            where TStatementSyntax : SyntaxNode
             where TNodeUnderContainer : SyntaxNode
             where TCodeGenerationOptions : CodeGenerationOptions
         {
@@ -31,21 +41,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected readonly SyntaxAnnotation MethodDefinitionAnnotation;
             protected readonly SyntaxAnnotation CallSiteAnnotation;
 
-            protected readonly InsertionPoint InsertionPoint;
-            protected readonly SemanticDocument SemanticDocument;
-            protected readonly SelectionResult SelectionResult;
+            protected readonly TSelectionResult SelectionResult;
             protected readonly AnalyzerResult AnalyzerResult;
 
             protected readonly TCodeGenerationOptions Options;
             protected readonly bool LocalFunction;
 
-            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, bool localFunction)
+            protected CodeGenerator(TSelectionResult selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, bool localFunction)
             {
-                Contract.ThrowIfFalse(insertionPoint.SemanticDocument == analyzerResult.SemanticDocument);
-
-                InsertionPoint = insertionPoint;
-                SemanticDocument = insertionPoint.SemanticDocument;
-
                 SelectionResult = selectionResult;
                 AnalyzerResult = analyzerResult;
 
@@ -57,12 +60,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 MethodDefinitionAnnotation = new SyntaxAnnotation();
             }
 
+            protected SemanticDocument SemanticDocument => SelectionResult.SemanticDocument;
+
             #region method to be implemented in sub classes
 
-            protected abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
-            protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken);
-            protected abstract SyntaxNode GetPreviousMember(SemanticDocument document);
-            protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken);
+            protected abstract SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable(CancellationToken cancellationToken);
+
+            protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(SyntaxNode insertionPointNode, SyntaxNode outermostCallSiteContainer, CancellationToken cancellationToken);
+            protected abstract IMethodSymbol GenerateMethodDefinition(SyntaxNode insertionPointNode, CancellationToken cancellationToken);
             protected abstract bool ShouldLocalFunctionCaptureParameter(SyntaxNode node);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
@@ -73,112 +78,120 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract TNodeUnderContainer GetLastStatementOrInitializerSelectedAtCallSite();
             protected abstract Task<TNodeUnderContainer> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken);
 
-            protected abstract TExpression CreateCallSignature();
-            protected abstract TStatement CreateDeclarationStatement(VariableInfo variable, TExpression initialValue, CancellationToken cancellationToken);
-            protected abstract TStatement CreateAssignmentExpressionStatement(SyntaxToken identifier, TExpression rvalue);
-            protected abstract TStatement CreateReturnStatement(string identifierName = null);
+            protected abstract TExpressionSyntax CreateCallSignature();
+            protected abstract TStatementSyntax CreateDeclarationStatement(VariableInfo variable, TExpressionSyntax initialValue, CancellationToken cancellationToken);
+            protected abstract TStatementSyntax CreateAssignmentExpressionStatement(SyntaxToken identifier, TExpressionSyntax rvalue);
+            protected abstract TStatementSyntax CreateReturnStatement(string identifierName = null);
 
-            protected abstract ImmutableArray<TStatement> GetInitialStatementsForMethodDefinitions();
+            protected abstract ImmutableArray<TStatementSyntax> GetInitialStatementsForMethodDefinitions();
+
+            protected abstract Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
+                SemanticDocument originalDocument, IMethodSymbol methodSymbolResult, CancellationToken cancellationToken);
+
             #endregion
 
-            public async Task<GeneratedCode> GenerateAsync(CancellationToken cancellationToken)
+            public async Task<GeneratedCode> GenerateAsync(InsertionPoint insertionPoint, CancellationToken cancellationToken)
             {
-                var root = SemanticDocument.Root;
-                // should I check venus hidden position check here as well?
-                root = root.ReplaceNode(GetOutermostCallSiteContainerToProcess(cancellationToken), await GenerateBodyForCallSiteContainerAsync(cancellationToken).ConfigureAwait(false));
-                var callSiteDocument = await SemanticDocument.WithSyntaxRootAsync(root, cancellationToken).ConfigureAwait(false);
+                var newMethodDefinition = GenerateMethodDefinition(insertionPoint.GetContext(), cancellationToken);
+                var callSiteDocument = await InsertMethodAndUpdateCallSiteAsync(insertionPoint, newMethodDefinition, cancellationToken).ConfigureAwait(false);
 
-                var newCallSiteRoot = callSiteDocument.Root;
+                // For nullable reference types, we can provide a better experience by reducing use of nullable
+                // reference types after a method is done being generated. If we can determine that the method never
+                // returns null, for example, then we can make the signature into a non-null reference type even though
+                // the original type was nullable. This allows our code generation to follow our recommendation of only
+                // using nullable when necessary. This is done after method generation instead of at analyzer time
+                // because it's purely based on the resulting code, which the generator can modify as needed. If return
+                // statements are added, the flow analysis could change to indicate something different. It's cleaner to
+                // rely on flow analysis of the final resulting code than to try and predict from the analyzer what will
+                // happen in the generator. 
+                var finalDocument = await UpdateMethodAfterGenerationAsync(callSiteDocument, newMethodDefinition, cancellationToken).ConfigureAwait(false);
 
-                var codeGenerationService = SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
-                var result = GenerateMethodDefinition(LocalFunction, cancellationToken);
+                return await CreateGeneratedCodeAsync(finalDocument, cancellationToken).ConfigureAwait(false);
+            }
 
-                SyntaxNode destination, newContainer;
-                if (LocalFunction)
+            private async Task<SemanticDocument> InsertMethodAndUpdateCallSiteAsync(
+                InsertionPoint insertionPoint, IMethodSymbol newMethodDefinition, CancellationToken cancellationToken)
+            {
+                var document = this.SemanticDocument.Document;
+                var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
+
+                // First, update the callsite with the call to the new method.
+                var outermostCallSiteContainer = GetOutermostCallSiteContainerToProcess(cancellationToken);
+
+                var rootWithUpdatedCallSite = this.SemanticDocument.Root.ReplaceNode(
+                    outermostCallSiteContainer,
+                    await GenerateBodyForCallSiteContainerAsync(
+                        insertionPoint.GetContext(), outermostCallSiteContainer, cancellationToken).ConfigureAwait(false));
+
+                // Then insert the local-function/method into the updated document that contains the updated callsite.
+                var documentWithUpdatedCallSite = await this.SemanticDocument.WithSyntaxRootAsync(rootWithUpdatedCallSite, cancellationToken).ConfigureAwait(false);
+                var finalRoot = LocalFunction
+                    ? InsertLocalFunction()
+                    : InsertNormalMethod();
+
+                return await documentWithUpdatedCallSite.WithSyntaxRootAsync(finalRoot, cancellationToken).ConfigureAwait(false);
+
+                SyntaxNode InsertLocalFunction()
                 {
-                    destination = InsertionPoint.With(callSiteDocument).GetContext();
-
-                    // No valid location to insert the new method call.
-                    if (destination == null)
-                    {
-                        return await CreateGeneratedCodeAsync(
-                            OperationStatus.NoValidLocationToInsertMethodCall, callSiteDocument, cancellationToken).ConfigureAwait(false);
-                    }
-
+                    // Now, insert the local function.
                     var info = codeGenerationService.GetInfo(
-                        new CodeGenerationContext(
-                            generateDefaultAccessibility: false,
-                            generateMethodBodies: true),
+                        new CodeGenerationContext(generateDefaultAccessibility: false),
                         Options,
-                        callSiteDocument.Project.ParseOptions);
+                        document.Project.ParseOptions);
 
-                    var localMethod = codeGenerationService.CreateMethodDeclaration(result.Data, CodeGenerationDestination.Unspecified, info, cancellationToken);
-                    newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, info, cancellationToken);
+                    var localMethod = codeGenerationService.CreateMethodDeclaration(newMethodDefinition, CodeGenerationDestination.Unspecified, info, cancellationToken);
+
+                    // Find the destination for the local function after the callsite has been fixed up.
+                    var destination = insertionPoint.With(documentWithUpdatedCallSite).GetContext();
+                    var updatedDestination = codeGenerationService.AddStatements(destination, new[] { localMethod }, info, cancellationToken);
+
+                    var finalRoot = documentWithUpdatedCallSite.Root.ReplaceNode(destination, updatedDestination);
+                    return finalRoot;
                 }
-                else
+
+                SyntaxNode InsertNormalMethod()
                 {
-                    var previousMemberNode = GetPreviousMember(callSiteDocument);
+                    var syntaxKinds = document.GetLanguageService<ISyntaxKindsService>();
+
+                    // Find the destination for the new method after the callsite has been fixed up.
+                    var mappedMember = insertionPoint.With(documentWithUpdatedCallSite).GetContext();
+                    mappedMember = mappedMember.Parent?.RawKind == syntaxKinds.GlobalStatement
+                        ? mappedMember.Parent
+                        : mappedMember;
 
                     // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
-                    destination = previousMemberNode.Parent ?? previousMemberNode;
+                    var destination = mappedMember.Parent ?? mappedMember;
 
                     var info = codeGenerationService.GetInfo(
                         new CodeGenerationContext(
-                            afterThisLocation: previousMemberNode.GetLocation(),
+                            afterThisLocation: mappedMember.GetLocation(),
                             generateDefaultAccessibility: true,
                             generateMethodBodies: true),
                         Options,
-                        callSiteDocument.Project.ParseOptions);
+                        documentWithUpdatedCallSite.Project.ParseOptions);
 
-                    newContainer = codeGenerationService.AddMethod(destination, result.Data, info, cancellationToken);
+                    var newContainer = codeGenerationService.AddMethod(destination, newMethodDefinition, info, cancellationToken);
+                    var finalRoot = documentWithUpdatedCallSite.Root.ReplaceNode(destination, newContainer);
+                    return finalRoot;
                 }
-
-                var newSyntaxRoot = newCallSiteRoot.ReplaceNode(destination, newContainer);
-                var newDocument = callSiteDocument.Document.WithSyntaxRoot(newSyntaxRoot);
-
-                var generatedDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
-
-                // For nullable reference types, we can provide a better experience by reducing use 
-                // of nullable reference types after a method is done being generated. If we can
-                // determine that the method never returns null, for example, then we can
-                // make the signature into a non-null reference type even though
-                // the original type was nullable. This allows our code generation to
-                // follow our recommendation of only using nullable when necessary.
-                // This is done after method generation instead of at analyzer time because it's purely
-                // based on the resulting code, which the generator can modify as needed. If return statements
-                // are added, the flow analysis could change to indicate something different. It's cleaner to rely
-                // on flow analysis of the final resulting code than to try and predict from the analyzer what 
-                // will happen in the generator. 
-                var finalDocument = await UpdateMethodAfterGenerationAsync(generatedDocument, result, cancellationToken).ConfigureAwait(false);
-                var finalRoot = finalDocument.Root;
-
-                var methodDefinition = finalRoot.GetAnnotatedNodesAndTokens(MethodDefinitionAnnotation).FirstOrDefault();
-                if (!methodDefinition.IsNode || methodDefinition.AsNode() == null)
-                {
-                    return await CreateGeneratedCodeAsync(
-                        result.Status.With(OperationStatus.FailedWithUnknownReason), finalDocument, cancellationToken).ConfigureAwait(false);
-                }
-
-                if (methodDefinition.SyntaxTree.IsHiddenPosition(methodDefinition.AsNode().SpanStart, cancellationToken) ||
-                    methodDefinition.SyntaxTree.IsHiddenPosition(methodDefinition.AsNode().Span.End, cancellationToken))
-                {
-                    return await CreateGeneratedCodeAsync(
-                        result.Status.With(OperationStatus.OverlapsHiddenPosition), finalDocument, cancellationToken).ConfigureAwait(false);
-                }
-
-                return await CreateGeneratedCodeAsync(result.Status, finalDocument, cancellationToken).ConfigureAwait(false);
             }
 
-            protected virtual Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
-                SemanticDocument originalDocument,
-                OperationStatus<IMethodSymbol> methodSymbolResult,
-                CancellationToken cancellationToken)
-                => Task.FromResult(originalDocument);
+            private SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
+            {
+                var callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken);
+                if (callSiteContainer != null)
+                {
+                    return callSiteContainer;
+                }
+                else
+                {
+                    return this.SelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
+                }
+            }
 
-            protected virtual Task<GeneratedCode> CreateGeneratedCodeAsync(OperationStatus status, SemanticDocument newDocument, CancellationToken cancellationToken)
+            protected virtual Task<GeneratedCode> CreateGeneratedCodeAsync(SemanticDocument newDocument, CancellationToken cancellationToken)
             {
                 return Task.FromResult(new GeneratedCode(
-                    status,
                     newDocument,
                     MethodNameAnnotation,
                     CallSiteAnnotation,
@@ -187,16 +200,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected VariableInfo GetOutermostVariableToMoveIntoMethodDefinition(CancellationToken cancellationToken)
             {
-                using var _ = ArrayBuilder<VariableInfo>.GetInstance(out var variables);
-                variables.AddRange(AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken));
-                if (variables.Count <= 0)
-                    return null;
-
-                VariableInfo.SortVariables(SemanticDocument.SemanticModel.Compilation, variables);
-                return variables[0];
+                return this.AnalyzerResult.GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken);
             }
 
-            protected ImmutableArray<TStatement> AddReturnIfUnreachable(ImmutableArray<TStatement> statements)
+            protected ImmutableArray<TStatementSyntax> AddReturnIfUnreachable(ImmutableArray<TStatementSyntax> statements)
             {
                 if (AnalyzerResult.EndOfSelectionReachable)
                 {
@@ -218,8 +225,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return statements.Concat(CreateReturnStatement());
             }
 
-            protected async Task<ImmutableArray<TStatement>> AddInvocationAtCallSiteAsync(
-                ImmutableArray<TStatement> statements, CancellationToken cancellationToken)
+            protected async Task<ImmutableArray<TStatementSyntax>> AddInvocationAtCallSiteAsync(
+                ImmutableArray<TStatementSyntax> statements, CancellationToken cancellationToken)
             {
                 if (AnalyzerResult.HasVariableToUseAsReturnValue)
                 {
@@ -230,11 +237,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 // add invocation expression
                 return statements.Concat(
-                    (TStatement)(SyntaxNode)await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken).ConfigureAwait(false));
+                    (TStatementSyntax)(SyntaxNode)await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken).ConfigureAwait(false));
             }
 
-            protected ImmutableArray<TStatement> AddAssignmentStatementToCallSite(
-                ImmutableArray<TStatement> statements,
+            protected ImmutableArray<TStatementSyntax> AddAssignmentStatementToCallSite(
+                ImmutableArray<TStatementSyntax> statements,
                 CancellationToken cancellationToken)
             {
                 if (!AnalyzerResult.HasVariableToUseAsReturnValue)
@@ -260,16 +267,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     CreateAssignmentExpressionStatement(CreateIdentifier(variable.Name), CreateCallSignature()).WithAdditionalAnnotations(CallSiteAnnotation));
             }
 
-            protected ImmutableArray<TStatement> CreateDeclarationStatements(
+            protected ImmutableArray<TStatementSyntax> CreateDeclarationStatements(
                 ImmutableArray<VariableInfo> variables, CancellationToken cancellationToken)
             {
                 return variables.SelectAsArray(v => CreateDeclarationStatement(v, initialValue: null, cancellationToken));
             }
 
-            protected ImmutableArray<TStatement> AddSplitOrMoveDeclarationOutStatementsToCallSite(
+            protected ImmutableArray<TStatementSyntax> AddSplitOrMoveDeclarationOutStatementsToCallSite(
                 CancellationToken cancellationToken)
             {
-                using var _ = ArrayBuilder<TStatement>.GetInstance(out var list);
+                using var _ = ArrayBuilder<TStatementSyntax>.GetInstance(out var list);
 
                 foreach (var variable in AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken))
                 {
@@ -284,7 +291,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return list.ToImmutable();
             }
 
-            protected ImmutableArray<TStatement> AppendReturnStatementIfNeeded(ImmutableArray<TStatement> statements)
+            protected ImmutableArray<TStatementSyntax> AppendReturnStatementIfNeeded(ImmutableArray<TStatementSyntax> statements)
             {
                 if (!AnalyzerResult.HasVariableToUseAsReturnValue)
                 {
@@ -302,7 +309,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
                 IEnumerable<VariableInfo> variables, CancellationToken cancellationToken)
             {
-                var annotations = new List<Tuple<SyntaxToken, SyntaxAnnotation>>();
+                var annotations = new List<(SyntaxToken, SyntaxAnnotation)>();
 
                 foreach (var variable in variables)
                 {

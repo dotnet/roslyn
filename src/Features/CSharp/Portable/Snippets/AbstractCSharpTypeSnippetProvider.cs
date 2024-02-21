@@ -7,12 +7,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.OrderModifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
@@ -49,9 +53,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                 return null;
 
             var targetToken = tree.FindTokenOnLeftOfPosition(position, cancellationToken).GetPreviousTokenIfTouchingWord(position);
+            var targetPosition = position;
+
+            var analyzerOptionsProvider = await document.GetAnalyzerOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
+            var preferredModifierOrderString = analyzerOptionsProvider.GetAnalyzerConfigOptions().GetOption(CSharpCodeStyleOptions.PreferredModifierOrder).Value;
+
+            if (CSharpOrderModifiersHelper.Instance.TryGetOrComputePreferredOrder(preferredModifierOrderString, out var preferredOrder) &&
+                preferredOrder.TryGetValue((int)SyntaxKind.PublicKeyword, out var publicModifierOrder))
+            {
+                while (targetToken.IsPotentialModifier(out var modifierKind))
+                {
+                    if (preferredOrder.TryGetValue((int)modifierKind, out var targetTokenOrder) &&
+                        targetTokenOrder > publicModifierOrder)
+                    {
+                        targetPosition = targetToken.SpanStart;
+                    }
+
+                    targetToken = targetToken.GetPreviousToken();
+                }
+            }
 
             // If we are right after 'partial' token we need to insert modifier before it
-            var targetPosition = targetToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword) ? targetToken.SpanStart : position;
+            targetPosition = targetToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword) ? targetToken.SpanStart : targetPosition;
+
             return new TextChange(TextSpan.FromBounds(targetPosition, targetPosition), SyntaxFacts.GetText(SyntaxKind.PublicKeyword) + " ");
         }
 
