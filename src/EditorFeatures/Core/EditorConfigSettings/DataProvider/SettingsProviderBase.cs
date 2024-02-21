@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
     internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TValue> : ISettingsProvider<TData>
         where TOptionsUpdater : ISettingUpdater<TOption, TValue>
     {
-        private readonly List<TData> _snapshot = new();
+        private readonly List<TData> _snapshot = [];
         private static readonly object s_gate = new();
         private ISettingsEditorViewModel? _viewModel;
         protected readonly string FileName;

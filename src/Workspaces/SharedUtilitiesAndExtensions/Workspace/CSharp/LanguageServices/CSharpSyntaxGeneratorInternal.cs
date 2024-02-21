@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static SyntaxTokenList GetParameterModifiers(RefKind refKind, bool forFunctionPointerReturnParameter = false)
             => refKind switch
             {
-                RefKind.None => new SyntaxTokenList(),
+                RefKind.None => [],
                 RefKind.Out => [SyntaxFactory.Token(SyntaxKind.OutKeyword)],
                 RefKind.Ref => [SyntaxFactory.Token(SyntaxKind.RefKeyword)],
                 // Note: RefKind.RefReadonly == RefKind.In. Function Pointers must use the correct

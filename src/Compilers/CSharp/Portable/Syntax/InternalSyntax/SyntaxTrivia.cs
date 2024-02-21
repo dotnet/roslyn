@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.Text = text;
             if (kind == SyntaxKind.PreprocessingMessageTrivia)
             {
-                this.flags |= NodeFlags.ContainsSkippedText;
+                SetFlags(NodeFlags.ContainsSkippedText);
             }
         }
 

@@ -85,8 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             /// A mapping containing the simple names and arity of all imported types, mapped to the import that they're
             /// brought in by.
             /// </summary>
-            private readonly MultiDictionary<(string name, int arity), INamespaceSymbol> _importedTypes
-                = new();
+            private readonly MultiDictionary<(string name, int arity), INamespaceSymbol> _importedTypes = [];
 
             /// <summary>
             /// A mapping containing the simple names of all imported extension methods, mapped to the import that
@@ -98,8 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             /// called with).  That could then be used to check if there could be a conflict. However, that's likely
             /// more complexity than we need currently.  But it is always something we can do in the future.
             /// </remarks>
-            private readonly MultiDictionary<string, INamespaceSymbol> _importedExtensionMethods
-                = new();
+            private readonly MultiDictionary<string, INamespaceSymbol> _importedExtensionMethods = [];
 
             private readonly HashSet<INamespaceSymbol> _conflictNamespaces;
 

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// full solution becoming available.  Once the full solution is available, this will be dropped
         /// (set to <see langword="null"/>) to release all cached data.
         /// </summary>
-        private static CachedIndexMap? s_cachedIndexMap = new();
+        private static CachedIndexMap? s_cachedIndexMap = [];
 
         /// <summary>
         /// String table we use to dedupe common values while deserializing <see cref="SyntaxTreeIndex"/>s.  Once the 
@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             Contract.ThrowIfTrue(projects.IsEmpty);
             Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
 
@@ -104,6 +105,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             // Quick abort if OOP is now fully loaded.
             if (!ShouldSearchCachedDocuments(out _, out _))
                 return;
@@ -130,6 +132,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             async Task ProcessProjectGroupsAsync(HashSet<IGrouping<ProjectKey, DocumentKey>> groups)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
                 foreach (var group in groups)
@@ -140,7 +143,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             async Task ProcessProjectGroupAsync(IGrouping<ProjectKey, DocumentKey> group)
             {
-                await Task.Yield();
+                cancellationToken.ThrowIfCancellationRequested();
+                await Task.Yield().ConfigureAwait(false);
                 var project = group.Key;
 
                 // Break the project into high-pri docs and low pri docs.
@@ -169,6 +173,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             HashSet<DocumentKey> documentKeys,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
             foreach (var documentKey in documentKeys)
@@ -192,6 +197,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             DocumentKey documentKey,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             // Retrieve the string table we use to dedupe strings.  If we can't get it, that means the solution has 
             // fully loaded and we've switched over to normal navto lookup.
             if (!ShouldSearchCachedDocuments(out var cachedIndexMap, out var stringTable))

@@ -30,10 +30,17 @@ namespace Microsoft.CodeAnalysis
         // Values for all these are created on demand.
         private ImmutableHashMap<ProjectId, Project> _projectIdToProjectMap;
 
+        /// <summary>
+        /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.
+        /// </summary>
+        private AsyncLazy<Solution> CachedFrozenSolution { get; init; }
+
         private Solution(SolutionCompilationState compilationState)
         {
             _projectIdToProjectMap = [];
             _compilationState = compilationState;
+
+            this.CachedFrozenSolution = AsyncLazy.Create(c => ComputeFrozenSolutionAsync(c));
         }
 
         internal Solution(
@@ -1442,6 +1449,29 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns a solution instance where every project is frozen at whatever current state it is in
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        internal Task<Solution> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
+            => this.CachedFrozenSolution.GetValueAsync(cancellationToken);
+
+        private async Task<Solution> ComputeFrozenSolutionAsync(CancellationToken cancellationToken)
+        {
+            // in progress solutions are disabled for some testing
+            if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
+                return this;
+
+            var newCompilationState = await this.CompilationState.WithFrozenPartialCompilationsAsync(cancellationToken).ConfigureAwait(false);
+            var frozenSolution = new Solution(newCompilationState)
+            {
+                // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.
+                CachedFrozenSolution = this.CachedFrozenSolution,
+            };
+
+            return frozenSolution;
+        }
+
+        /// <summary>
         /// Creates a branch of the solution that has its compilations frozen in whatever state they are in at the time,
         /// assuming a background compiler is busy building this compilations.
         /// <para/> A compilation for the project containing the specified document id will be guaranteed to exist with
@@ -1519,7 +1549,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Document WithFrozenSourceGeneratedDocument(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)
         {
-            var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocument(documentIdentity, text);
+            var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, text)]);
             var newSolution = newCompilationState != _compilationState
                 ? new Solution(newCompilationState)
                 : this;
@@ -1529,6 +1559,14 @@ namespace Microsoft.CodeAnalysis
 
             var newProject = newSolution.GetRequiredProject(newDocumentState.Id.ProjectId);
             return newProject.GetOrCreateSourceGeneratedDocument(newDocumentState);
+        }
+
+        internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)> documents)
+        {
+            var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments(documents);
+            return newCompilationState != _compilationState
+                ? new Solution(newCompilationState)
+                : this;
         }
 
         /// <summary>

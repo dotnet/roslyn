@@ -4480,6 +4480,68 @@ public class ConvertToRecordCodeRefactoringTests
         await TestRefactoringAsync(initialMarkup, fixedMarkup);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72067")]
+    public async Task TestMovePropertiesAndRefactorInitializer_SourceGeneratedDocuments()
+    {
+        await new RefactoringTestWithGenerator
+        {
+            TestCode = """
+                namespace N
+                {
+                    public class [|C|]
+                    {
+                        public int P { get; init; }
+                        public bool B { get; init; }
+                    }
+                }
+                """,
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    namespace N
+                    {
+                        public record C(int P, bool B);
+                    }
+                    """
+                },
+                ExpectedDiagnostics =
+                {
+                    // Microsoft.CodeAnalysis.CSharp.Features.UnitTests\Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRecord.ConvertToRecordCodeRefactoringTests+ConvertToRecordTestGenerator\file.cs(7,24): error CS7036: There is no argument given that corresponds to the required parameter 'P' of 'C.C(int, bool)'
+                    DiagnosticResult.CompilerError("CS7036").WithSpan(@"Microsoft.CodeAnalysis.CSharp.Features.UnitTests\Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRecord.ConvertToRecordCodeRefactoringTests+ConvertToRecordTestGenerator\file.cs", 7, 24, 7, 25).WithArguments("P", "N.C.C(int, bool)"),
+                }
+            }
+        }.RunAsync();
+    }
+
+    private sealed class ConvertToRecordTestGenerator : ISourceGenerator
+    {
+        public void Initialize(GeneratorInitializationContext context) { }
+
+        public void Execute(GeneratorExecutionContext context)
+        {
+            context.AddSource(
+                "file.cs",
+                """
+                namespace N
+                {
+                    public static class D
+                    {
+                        public static C GetC()
+                        {
+                            return new C
+                            {
+                                P = 0,
+                                B = false
+                            };
+                        }
+                    }
+                }
+                """);
+        }
+    }
+
     #region selection
 
     [Fact]
@@ -4651,6 +4713,14 @@ public class ConvertToRecordCodeRefactoringTests
             var workspace = new AdhocWorkspace();
 
             return workspace;
+        }
+    }
+
+    private class RefactoringTestWithGenerator : RefactoringTest
+    {
+        protected override IEnumerable<Type> GetSourceGenerators()
+        {
+            yield return typeof(ConvertToRecordTestGenerator);
         }
     }
 

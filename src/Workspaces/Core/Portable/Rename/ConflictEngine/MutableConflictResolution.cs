@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     {
 
         // List of All the Locations that were renamed and conflict-complexified
-        public readonly List<RelatedLocation> RelatedLocations = new List<RelatedLocation>();
+        public readonly List<RelatedLocation> RelatedLocations = [];
 
         /// <summary>
         /// The base workspace snapshot

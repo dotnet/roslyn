@@ -942,7 +942,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             countdown.Wait();
 
-            Assert.Equal(new List<Exception>(), exceptions);
+            Assert.Equal([], exceptions);
         }
 
         private static void DoSimultaneousWrites(Func<string, Task> write)

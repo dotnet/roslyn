@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// <summary>
         /// Mapping from operator name to info about it.
         /// </summary>
-        private static readonly Dictionary<string, (int sortOrder, OperatorPosition position)> s_operatorNameToInfo = new();
+        private static readonly Dictionary<string, (int sortOrder, OperatorPosition position)> s_operatorNameToInfo = [];
 
         private static readonly CompletionItemRules s_operatorRules;
 

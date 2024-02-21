@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         ICommandHandler<ToggleLineCommentCommandArgs>
     {
         private static readonly CommentSelectionResult s_emptyCommentSelectionResult =
-            new(new List<TextChange>(), new List<CommentTrackingSpan>(), Operation.Uncomment);
+            new([], [], Operation.Uncomment);
 
         public CommandState GetCommandState(ToggleLineCommentCommandArgs args)
             => GetCommandState(args.SubjectBuffer);

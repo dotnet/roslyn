@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
         private readonly ITableManager _tableManager;
         private ITableEntriesSnapshot? _lastPublishedSnapshot;
 
-        private List<ITableDataSink> TableSinks { get; } = new List<ITableDataSink>();
+        private List<ITableDataSink> TableSinks { get; } = [];
 
         protected SettingsViewModelBase(ISettingsProvider<T> data,
                                         IWpfTableControlProvider controlProvider,
