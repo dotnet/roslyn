@@ -35,7 +35,7 @@ extends:
           Is1ESPT: true
           RealSign: true
           windowsPool: VSEngSS-MicroBuild2022-1ES
-          includeMacOS: false
+          EnableMacOSBuild: false
           RunTests: false
 
     - template: /azure-pipelines/prepare-insertion-stages.yml@self

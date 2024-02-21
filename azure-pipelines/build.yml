@@ -16,8 +16,12 @@ parameters:
   type: object
   default:
     vmImage: macOS-12
-- name: includeMacOS
+- name: EnableLinuxBuild
   type: boolean
+  default: true
+- name: EnableMacOSBuild
+  type: boolean
+  default: true
 - name: EnableOptProf
   type: boolean
   default: false
@@ -39,6 +43,9 @@ parameters:
 - name: EnableAPIScan
   type: boolean
   default: false
+- name: EnableDotNetFormatCheck
+  type: boolean
+  default: true
 - name: artifact_names
   type: object
   default:
@@ -132,6 +139,10 @@ jobs:
       RunTests: ${{ parameters.RunTests }}
       IsOptProf: ${{ parameters.IsOptProf }}
 
+  - ${{ if and(parameters.EnableDotNetFormatCheck, not(parameters.EnableLinuxBuild)) }}:
+    - script: dotnet format --verify-no-changes --no-restore
+      displayName: 💅 Verify formatted code
+
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     - template: microbuild.after.yml
       parameters:
@@ -143,72 +154,76 @@ jobs:
   - template: expand-template.yml
 
 - ${{ if not(parameters.IsOptProf) }}:
-  - job: Linux
-    pool: ${{ parameters.linuxPool }}
-    ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
-      templateContext:
-        mb:
-          ${{ if parameters.RealSign }}:
-            signing:
-              enabled: false # enable when building unique artifacts on this agent that must be signed
-              signType: real
-        outputParentDirectory: $(Build.ArtifactStagingDirectory)
-        outputs:
-        - ${{ each artifact_name in parameters.artifact_names }}:
-          - ${{ if or(ne(artifact_name, 'testResults'), parameters.RunTests) }}:
-            - output: pipelineArtifact
-              displayName: 📢 Publish ${{ artifact_name }}-Linux
-              targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-Linux
-              artifactName: ${{ artifact_name }}-Linux
-              condition: succeededOrFailed()
-    steps:
-    - checkout: self
-      fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
-      clean: true
-    - template: install-dependencies.yml
-    - template: dotnet.yml
-      parameters:
-        Is1ESPT: ${{ parameters.Is1ESPT }}
-        RunTests: ${{ parameters.RunTests }}
-    - script: dotnet format --verify-no-changes --no-restore
-      displayName: 💅 Verify formatted code
-    - template: expand-template.yml
+  - ${{ if parameters.EnableLinuxBuild }}:
+    - job: Linux
+      pool: ${{ parameters.linuxPool }}
+      ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+        templateContext:
+          mb:
+            ${{ if parameters.RealSign }}:
+              signing:
+                enabled: false # enable when building unique artifacts on this agent that must be signed
+                signType: real
+          outputParentDirectory: $(Build.ArtifactStagingDirectory)
+          outputs:
+          - ${{ each artifact_name in parameters.artifact_names }}:
+            - ${{ if or(ne(artifact_name, 'testResults'), parameters.RunTests) }}:
+              - output: pipelineArtifact
+                displayName: 📢 Publish ${{ artifact_name }}-Linux
+                targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-Linux
+                artifactName: ${{ artifact_name }}-Linux
+                condition: succeededOrFailed()
+      steps:
+      - checkout: self
+        fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
+        clean: true
+      - template: install-dependencies.yml
+      - template: dotnet.yml
+        parameters:
+          Is1ESPT: ${{ parameters.Is1ESPT }}
+          RunTests: ${{ parameters.RunTests }}
+      - ${{ if parameters.EnableDotNetFormatCheck }}:
+        - script: dotnet format --verify-no-changes --no-restore
+          displayName: 💅 Verify formatted code
+      - template: expand-template.yml
 
-  - job: macOS
-    condition: ${{ parameters.includeMacOS }}
-    pool: ${{ parameters.macOSPool }}
-    ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
-      templateContext:
-        mb:
-          ${{ if parameters.RealSign }}:
-            signing:
-              enabled: false # enable when building unique artifacts on this agent that must be signed
-              signType: real
-        outputParentDirectory: $(Build.ArtifactStagingDirectory)
-        outputs:
-        - ${{ each artifact_name in parameters.artifact_names }}:
-          - ${{ if or(ne(artifact_name, 'testResults'), parameters.RunTests) }}:
-            - output: pipelineArtifact
-              displayName: 📢 Publish ${{ artifact_name }}-macOS
-              targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-macOS
-              artifactName: ${{ artifact_name }}-macOS
-              condition: succeededOrFailed()
-    steps:
-    - checkout: self
-      fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
-      clean: true
-    - template: install-dependencies.yml
-    - template: dotnet.yml
-      parameters:
-        Is1ESPT: ${{ parameters.Is1ESPT }}
-        RunTests: ${{ parameters.RunTests }}
-    - template: expand-template.yml
+  - ${{ if parameters.EnableMacOSBuild }}:
+    - job: macOS
+      pool: ${{ parameters.macOSPool }}
+      ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+        templateContext:
+          mb:
+            ${{ if parameters.RealSign }}:
+              signing:
+                enabled: false # enable when building unique artifacts on this agent that must be signed
+                signType: real
+          outputParentDirectory: $(Build.ArtifactStagingDirectory)
+          outputs:
+          - ${{ each artifact_name in parameters.artifact_names }}:
+            - ${{ if or(ne(artifact_name, 'testResults'), parameters.RunTests) }}:
+              - output: pipelineArtifact
+                displayName: 📢 Publish ${{ artifact_name }}-macOS
+                targetPath: $(Build.ArtifactStagingDirectory)/${{ artifact_name }}-macOS
+                artifactName: ${{ artifact_name }}-macOS
+                condition: succeededOrFailed()
+      steps:
+      - checkout: self
+        fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
+        clean: true
+      - template: install-dependencies.yml
+      - template: dotnet.yml
+        parameters:
+          Is1ESPT: ${{ parameters.Is1ESPT }}
+          RunTests: ${{ parameters.RunTests }}
+      - template: expand-template.yml
 
   - job: WrapUp
     dependsOn:
     - Windows
-    - Linux
-    - macOS
+    - ${{ if parameters.EnableLinuxBuild }}:
+      - Linux
+    - ${{ if parameters.EnableMacOSBuild }}:
+      - macOS
     pool: ${{ parameters.windowsPool }} # Use Windows agent because PublishSymbols task requires it (https://github.com/microsoft/azure-pipelines-tasks/issues/13821).
     condition: succeededOrFailed()
     steps:
@@ -220,8 +235,10 @@ jobs:
         initArgs: -NoRestore
     - template: publish-symbols.yml
       parameters:
-        includeMacOS: ${{ parameters.includeMacOS }}
+        EnableLinuxBuild: ${{ parameters.EnableLinuxBuild }}
+        EnableMacOSBuild: ${{ parameters.EnableMacOSBuild }}
     - ${{ if parameters.RunTests }}:
       - template: publish-codecoverage.yml
         parameters:
-          includeMacOS: ${{ parameters.includeMacOS }}
+          EnableLinuxBuild: ${{ parameters.EnableLinuxBuild }}
+          EnableMacOSBuild: ${{ parameters.EnableMacOSBuild }}

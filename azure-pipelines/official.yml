@@ -28,7 +28,7 @@ parameters:
 #   displayName: Skip OptProf optimization
 #   type: boolean
 #   default: false
-- name: includeMacOS
+- name: EnableMacOSBuild
   displayName: Build on macOS
   type: boolean
   default: false # macOS is often bogged down in Azure Pipelines
@@ -88,7 +88,7 @@ extends:
               name: Azure Pipelines
               vmImage: macOS-12
               os: macOS
-            includeMacOS: ${{ parameters.includeMacOS }}
+            EnableMacOSBuild: ${{ parameters.EnableMacOSBuild }}
             RunTests: ${{ parameters.RunTests }}
       - template: /azure-pipelines/prepare-insertion-stages.yml@self
         parameters:
@@ -122,7 +122,7 @@ extends:
               name: Azure Pipelines
               vmImage: macOS-12
               os: macOS
-            includeMacOS: ${{ parameters.includeMacOS }}
+            EnableMacOSBuild: ${{ parameters.EnableMacOSBuild }}
             RunTests: ${{ parameters.RunTests }}
       - template: /azure-pipelines/prepare-insertion-stages.yml@self
         parameters:

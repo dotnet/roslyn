@@ -37,7 +37,7 @@ stages:
       RealSign: true
       EnableCompliance: false
       windowsPool: VSEngSS-MicroBuild2022-1ES
-      includeMacOS: false
+      EnableMacOSBuild: false
       ShouldSkipOptimize: true
       IsOptProf: true
       RunTests: false
