@@ -62,6 +62,7 @@ internal static class PRTagger
             // We currently only support creating issues for GitHub repos
             if (!product.RepoHttpBaseUrl.Contains("github.com"))
             {
+                logger.LogWarning("Only GitHub repos are supported.");
                 return -1;
             }
 
@@ -91,6 +92,14 @@ internal static class PRTagger
         var connections = new[] { remoteConnections.DevDivConnection, remoteConnections.DncengConnection };
         logger.LogInformation($"GitHub repo: {gitHubRepoName}");
 
+        var issueTitle = $"[Automated] PRs inserted in VS build {vsBuild}";
+        var hasIssueAlreadyCreated = await HasIssueAlreadyCreatedAsync(remoteConnections.GitHubClient, gitHubRepoName, issueTitle, logger).ConfigureAwait(false);
+        if (hasIssueAlreadyCreated)
+        {
+            logger.LogInformation($"Issue with name: {issueTitle} exists in repo: {gitHubRepoName}. Skip creation.");
+            return TagResult.IssueAlreadyCreated;
+        }
+        
         // Get associated product build for current and previous VS commit SHAs
         var currentBuild = await TryGetBuildNumberForReleaseAsync(product.ComponentJsonFileName, product.ComponentName, vsCommitSha, remoteConnections.DevDivConnection, logger).ConfigureAwait(false);
         var previousBuild = await TryGetBuildNumberForReleaseAsync(product.ComponentJsonFileName, product.ComponentName, previousVsCommitSha, remoteConnections.DevDivConnection, logger).ConfigureAwait(false);
@@ -156,13 +165,6 @@ internal static class PRTagger
             return TagResult.Failed;
         }
 
-        var issueTitle = $"[Automated] PRs inserted in VS build {vsBuild}";
-        var hasIssueAlreadyCreated = await HasIssueAlreadyCreatedAsync(remoteConnections.GitHubClient, gitHubRepoName, issueTitle, logger).ConfigureAwait(false);
-        if (hasIssueAlreadyCreated)
-        {
-            logger.LogInformation($"Issue with name: {issueTitle} exists in repo: {gitHubRepoName}. Skip creation.");
-            return TagResult.IssueAlreadyCreated;
-        }
 
         logger.LogInformation($"Creating issue...");
 
