@@ -268,6 +268,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         _state.SpinWaitComplete(CompletionPart.FinishValidatingReferencedAssemblies, cancellationToken);
                         break;
 
+                    case CompletionPart.StartInterceptorsChecks:
+                        if (_state.NotePartComplete(CompletionPart.StartInterceptorsChecks))
+                        {
+                            DiscoverInterceptors();
+                            _state.NotePartComplete(CompletionPart.FinishInterceptorsChecks);
+                        }
+
+                        break;
+
+                    case CompletionPart.FinishInterceptorsChecks:
+                        Debug.Assert(_state.HasComplete(CompletionPart.StartInterceptorsChecks));
+                        _state.SpinWaitComplete(CompletionPart.FinishInterceptorsChecks, cancellationToken);
+                        break;
+
                     case CompletionPart.MembersCompleted:
                         this.GlobalNamespace.ForceComplete(locationOpt, filter, cancellationToken);
 
@@ -318,6 +332,79 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                    AttributeDescription.ImportedFromTypeLibAttribute.FullName,
                                                    AttributeDescription.PrimaryInteropAssemblyAttribute.FullName);
                     }
+                }
+            }
+        }
+
+        internal void DiscoverInterceptorsIfNeeded()
+        {
+            if (_state.NotePartComplete(CompletionPart.StartInterceptorsChecks))
+            {
+                DiscoverInterceptors();
+                _state.NotePartComplete(CompletionPart.FinishInterceptorsChecks);
+            }
+        }
+
+        private void DiscoverInterceptors()
+        {
+            var toVisit = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
+
+            var location = this.GlobalNamespace.GetFirstLocationOrNone();
+            if (!location.IsInSource)
+            {
+                return;
+            }
+
+            // Search the namespaces which were indicated to contain interceptors.
+            var interceptorsNamespaces = ((CSharpParseOptions)location.SourceTree.Options).InterceptorsPreviewNamespaces;
+            foreach (var namespaceParts in interceptorsNamespaces)
+            {
+                if (namespaceParts is ["global"])
+                {
+                    toVisit.Add(GlobalNamespace);
+                    // No point in continuing, we already are going to search the entire module in this case.
+                    break;
+                }
+
+                var cursor = GlobalNamespace;
+
+                foreach (var namespacePart in namespaceParts)
+                {
+                    cursor = (NamespaceSymbol?)cursor.GetMembers(namespacePart).FirstOrDefault(member => member.Kind == SymbolKind.Namespace);
+                    if (cursor is null)
+                    {
+                        break;
+                    }
+                }
+
+                if (cursor is not null)
+                {
+                    toVisit.Add(cursor);
+                }
+            }
+
+            while (toVisit.Count > 0)
+            {
+                var item = toVisit.Pop();
+                if (item is SourceMemberContainerTypeSymbol type)
+                {
+                    type.DiscoverInterceptors(toVisit);
+                }
+                else if (item is SourceNamespaceSymbol @namespace)
+                {
+                    foreach (var member in @namespace.GetMembers())
+                    {
+                        if (member is not NamespaceOrTypeSymbol namespaceOrType)
+                        {
+                            throw ExceptionUtilities.UnexpectedValue(member);
+                        }
+
+                        toVisit.Add(namespaceOrType);
+                    }
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(item);
                 }
             }
         }

@@ -2372,25 +2372,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(Location? callLocation)
         {
-            if (_interceptions is null || callLocation is null)
+            if (callLocation is null || !callLocation.IsInSource)
+            {
+                return null;
+            }
+
+            // TODO2: when is SourceModule not an instance of SourceModuleSymbol?
+            ((SourceModuleSymbol)SourceModule).DiscoverInterceptorsIfNeeded();
+            if (_interceptions is null)
             {
                 return null;
             }
 
             var callLineColumn = callLocation.GetLineSpan().Span.Start;
-            Debug.Assert(callLocation.SourceTree is not null);
             var key = (callLocation.SourceTree.FilePath, callLineColumn.Line, callLineColumn.Character);
 
-            if (_interceptions.TryGetValue(key, out var interceptionsAtAGivenLocation))
+            if (_interceptions.TryGetValue(key, out var interceptionsAtAGivenLocation) && interceptionsAtAGivenLocation is [var oneInterception])
             {
-                if (interceptionsAtAGivenLocation is [var oneInterception])
-                {
-                    return oneInterception;
-                }
-
-                // Duplicate interceptors is an error in the declaration phase.
-                // This method is only expected to be called if no such errors are present.
-                throw ExceptionUtilities.Unreachable();
+                return oneInterception;
             }
 
             return null;

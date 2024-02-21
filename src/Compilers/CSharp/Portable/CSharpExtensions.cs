@@ -1631,5 +1631,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return csmodel?.GetDeclaredSymbol(node, cancellationToken);
         }
         #endregion
+
+        // TODO2: ExperimentalAttribute
+#pragma warning disable RS0016 // TODO2
+        /// <summary>If the call represented by 'node' is referenced in an InterceptsLocationAttribute, returns the original definition symbol which is decorated with that attribute. Otherwise, returns null.</summary>
+        public static IMethodSymbol? GetInterceptorMethod(this SemanticModel? semanticModel, InvocationExpressionSyntax node, CancellationToken cancellationToken = default)
+#pragma warning restore RS0016 // TODO2
+        {
+            var csModel = semanticModel as CSharpSemanticModel;
+            return csModel?.GetInterceptorMethod(node, cancellationToken);
+        }
     }
 }

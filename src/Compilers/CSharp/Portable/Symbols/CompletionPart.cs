@@ -115,5 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // For module symbol
         StartValidatingReferencedAssemblies = 1 << 4,
         FinishValidatingReferencedAssemblies = 1 << 5,
+        StartInterceptorsChecks = 1 << 6,
+        FinishInterceptorsChecks = 1 << 7,
     }
 }
