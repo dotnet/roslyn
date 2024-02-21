@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -126,10 +127,22 @@ namespace Microsoft.CodeAnalysis
                 ImmutableArray<DocumentState> documents)
                 : TranslationAction(oldProjectState, newProjectState)
             {
+                public readonly ImmutableArray<DocumentState> Documents = documents;
+
                 public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    var trees = await GetAllSyntaxTreesAsync(documents, documents.Length, cancellationToken).ConfigureAwait(false);
+                    var trees = await GetAllSyntaxTreesAsync(cancellationToken).ConfigureAwait(false);
                     return oldCompilation.AddSyntaxTrees(trees);
+                }
+
+                private async Task<SyntaxTree[]> GetAllSyntaxTreesAsync(CancellationToken cancellationToken)
+                {
+                    // Parse all the documents in parallel.
+                    using var _ = ArrayBuilder<Task<SyntaxTree>>.GetInstance(this.Documents.Length, out var tasks);
+                    foreach (var document in this.Documents)
+                        tasks.Add(Task.Run(async () => await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken));
+
+                    return await Task.WhenAll(tasks).ConfigureAwait(false);
                 }
 
                 // This action adds the specified trees, but leaves the generated trees untouched.

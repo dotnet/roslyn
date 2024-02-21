@@ -276,13 +276,14 @@ namespace Microsoft.CodeAnalysis
                     if (state is FinalCompilationTrackerState finalState)
                         return finalState;
 
-                    // Transition from wherever we're currently at to the 'all trees parsed' state.
+                    // Transition from wherever we're currently an in-progress-state.
                     var expandedInProgressState = state switch
                     {
+                        // We're already there, so no transition needed.
                         InProgressState inProgressState => inProgressState,
 
                         // We've got nothing.  Build it from scratch :(
-                        null => await BuildInProgressStateFromNoCompilationStateAsync().ConfigureAwait(false),
+                        null => BuildInProgressStateFromNoCompilationState(),
 
                         _ => throw ExceptionUtilities.UnexpectedValue(state.GetType())
                     };
@@ -296,26 +297,43 @@ namespace Microsoft.CodeAnalysis
                     "https://github.com/dotnet/roslyn/issues/23582",
                     Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
 
-                async Task<InProgressState> BuildInProgressStateFromNoCompilationStateAsync()
+                InProgressState BuildInProgressStateFromNoCompilationState()
                 {
                     try
                     {
-                        var compilation = CreateEmptyCompilation();
+                        // Create a chain of translation steps where we add each document one at a time to an initially
+                        // empty compilation.  This allows us to then process that chain of actions like we would do any
+                        // other.  It also means that if we're in the process of parsing documents in that chain, that
+                        // we'll see the results of how far we've gotten if someone asks for a frozen snapshot midway
+                        // through.
+                        var initialProjectState = this.ProjectState.RemoveAllDocuments();
+                        var initialCompilation = this.CreateEmptyCompilation();
 
-                        var trees = await GetAllSyntaxTreesAsync(
-                            this.ProjectState.DocumentStates.GetStatesInCompilationOrder(),
-                            this.ProjectState.DocumentStates.Count,
-                            cancellationToken).ConfigureAwait(false);
+                        var translationActionsBuilder = ImmutableList.CreateBuilder<TranslationAction>();
 
-                        compilation = compilation.AddSyntaxTrees(trees);
+                        var oldProjectState = initialProjectState;
+                        foreach (var documentState in this.ProjectState.DocumentStates.GetStatesInCompilationOrder())
+                        {
+                            var documentStates = ImmutableArray.Create(documentState);
+                            var newProjectState = oldProjectState.AddDocuments(documentStates);
+                            translationActionsBuilder.Add(new TranslationAction.AddDocumentsAction(
+                                oldProjectState, newProjectState, documentStates));
+
+                            oldProjectState = newProjectState;
+                        }
+
+                        var compilationWithoutGeneratedDocuments = CreateEmptyCompilation();
 
                         // We only got here when we had no compilation state at all.  So we couldn't have gotten
                         // here from a frozen state (as a frozen state always ensures we have a
                         // WithCompilationTrackerState).  As such, we can safely still preserve that we're not
                         // frozen here.
                         var allSyntaxTreesParsedState = InProgressState.Create(
-                            isFrozen: false, compilation, CompilationTrackerGeneratorInfo.Empty, staleCompilationWithGeneratedDocuments: null,
-                            pendingTranslationActions: []);
+                            isFrozen: false,
+                            compilationWithoutGeneratedDocuments,
+                            CompilationTrackerGeneratorInfo.Empty,
+                            staleCompilationWithGeneratedDocuments: null,
+                            pendingTranslationActions: translationActionsBuilder.ToImmutable());
 
                         WriteState(allSyntaxTreesParsedState);
                         return allSyntaxTreesParsedState;
@@ -331,6 +349,21 @@ namespace Microsoft.CodeAnalysis
                     try
                     {
                         var currentState = initialState;
+
+                        // To speed things up, we look for all the added documents in the chain and we preemptively kick
+                        // off work to parse the documents for it in parallel.
+                        using var _ = ArrayBuilder<Task>.GetInstance(out var parsingTasks);
+
+                        foreach (var action in currentState.PendingTranslationActions)
+                        {
+                            if (action is TranslationAction.AddDocumentsAction { Documents: var documents })
+                            {
+                                foreach (var document in documents)
+                                    parsingTasks.Add(Task.Run(async () => await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken));
+                            }
+                        }
+
+                        // Then, we serially process the chain while that parsing is happening concurrently.
                         while (currentState.PendingTranslationActions.Count > 0)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
