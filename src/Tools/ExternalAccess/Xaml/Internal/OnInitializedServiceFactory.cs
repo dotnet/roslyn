@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 [ExportCSharpVisualBasicLspServiceFactory(typeof(OnInitializedService)), Shared]
 internal sealed class OnInitializedServiceFactory : ILspServiceFactory
 {
-    private readonly IInitializationService _initializationService;
+    private readonly IInitializationService? _initializationService;
 
     [ImportingConstructor]
     [Obsolete(StringConstants.ImportingConstructorMessage, error: true)]
-    public OnInitializedServiceFactory(IInitializationService initializationService)
+    public OnInitializedServiceFactory([Import(AllowDefault = true)] IInitializationService? initializationService)
     {
         _initializationService = initializationService;
     }
@@ -33,10 +33,10 @@ internal sealed class OnInitializedServiceFactory : ILspServiceFactory
 
     private class OnInitializedService : ILspService, IOnInitialized
     {
-        private readonly IInitializationService _initializationService;
+        private readonly IInitializationService? _initializationService;
         private readonly IClientLanguageServerManager _clientLanguageServerManager;
 
-        public OnInitializedService(IInitializationService initializationService, IClientLanguageServerManager clientLanguageServerManager)
+        public OnInitializedService(IInitializationService? initializationService, IClientLanguageServerManager clientLanguageServerManager)
         {
             _initializationService = initializationService;
             _clientLanguageServerManager = clientLanguageServerManager;
@@ -44,6 +44,11 @@ internal sealed class OnInitializedServiceFactory : ILspServiceFactory
 
         public async Task OnInitializedAsync(LSP.ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
+            if (_initializationService is null)
+            {
+                return;
+            }
+
             await _initializationService.OnInitializedAsync(new ClientRequestManager(_clientLanguageServerManager), new ClientCapabilityProvider(clientCapabilities), cancellationToken).ConfigureAwait(false);
         }
 
