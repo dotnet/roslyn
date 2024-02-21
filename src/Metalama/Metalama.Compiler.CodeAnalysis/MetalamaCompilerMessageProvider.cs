@@ -271,9 +271,9 @@ namespace Metalama.Compiler
                 ERR_ManyTransformersOfSameName => "The project contains several transformers named '{0}': {1}.",
                 ERR_TransformerNotUnique => "There are several transformers named '{0}': {1}.",
                 WRN_AnalyzerAssembliesRedirected => "Analyzer assemblies for this project reference Roslyn version {0}, which is newer than what is supported by the current version of Metalama ({1}). Some analyzer assemblies were downgraded to the latest supported version.",
-                WRN_AnalyzerAssemblyCantRedirect => "Analyzer assembly '{0}' was disabled, because it references Roslyn version {1}, which is newer than what is supported by the current version of Metalama ({2}). Consider updating Metalama to a newer version, if one is available.",
+                WRN_AnalyzerAssemblyCantRedirect => """The analyzer assembly '{0}' was disabled because it references Roslyn version {1}, which is newer than the version supported by the current version of Metalama ({2}). Consider one of the following remedies: (1) Update Metalama to a newer version if one is available. (2) Set the version of the .NET SDK to {3} in global.json and limit roll-forwarding the SDK to the latest patch: {{ "sdk": {{ "version": "{3}", "rollForward": "latestPatch" }} }}. (3) If this analyzer assembly is not essential, disable the LAMA0618 warning in your project file.""",
                 ERR_InterceptorsNotSupported => "Interceptors and Metalama can't currently be used together.{0}",
-                WRN_GeneratorAssemblyCantRedirect => """Source generator assembly '{0}' was disabled, because it references Roslyn version {1}, which is newer than what is supported by the current version of Metalama ({2}). Consider updating Metalama to a newer version, if one is available. Otherwise, if you don't need this assembly, specify <NoWarn>LAMA0621</NoWarn> in your project file. If you do need it, set the version of the .NET SDK to {3} in global.json with patch-limited rollforward: {{ "sdk": {{ "version": "{3}", "rollForward": "latestPatch" }} }}""",
+                WRN_GeneratorAssemblyCantRedirect => """The source generator assembly '{0}' was disabled because it references Roslyn version {1}, which is newer than the version supported by the current version of Metalama ({2}). Consider one of the following remedies: (1) Update Metalama to a newer version if one is available. (2) Set the version of the .NET SDK to {3} in global.json and limit roll-forwarding the SDK to the latest patch: {{ "sdk": {{ "version": "{3}", "rollForward": "latestPatch" }} }}. (3) If your project compiles anyway because it does not rely on this source generator, ignore the LAMA0621 warning in your project file.""",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 
@@ -327,8 +327,7 @@ namespace Metalama.Compiler
         #endregion
 
 #if DEBUG
-        internal override bool ShouldAssertExpectedMessageArgumentsLength(int errorCode)
-            => (MetalamaErrorCode)errorCode is not WRN_AnalyzerAssemblyCantRedirect;
+        internal override bool ShouldAssertExpectedMessageArgumentsLength(int errorCode) => true;
 #endif
     }
 }
