@@ -29,5 +29,6 @@ variables:
 jobs:
 - template: azure-pipelines/build.yml
   parameters:
+    Is1ESPT: false
     includeMacOS: ${{ parameters.includeMacOS }}
     RunTests: ${{ parameters.RunTests }}
