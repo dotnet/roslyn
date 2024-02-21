@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 if (token.Span.IntersectsWith(_textSpan) && _owner.SyntaxTokenKinds.Contains(token.RawKind))
                 {
                     var context = new EmbeddedLanguageClassificationContext(
-                        _solutionServices, _project, _semanticModel, token, _options, _owner.Info.VirtualCharService, _result, _cancellationToken);
+                        _solutionServices, _project, _semanticModel, token, _textSpan, _options, _owner.Info.VirtualCharService, _result, _cancellationToken);
 
                     var classifiers = _owner.GetServices(_semanticModel, token, _cancellationToken);
                     foreach (var classifier in classifiers)
