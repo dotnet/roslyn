@@ -1475,7 +1475,7 @@ namespace Microsoft.CodeAnalysis
             if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
                 return this;
 
-            var newCompilationState = this.CompilationState.WithFrozenPartialCompilations(cancellationToken);
+            var newCompilationState = this.CompilationState.ComputeFrozenSnapshot(cancellationToken);
 
             var frozenSolution = new Solution(
                 newCompilationState,
