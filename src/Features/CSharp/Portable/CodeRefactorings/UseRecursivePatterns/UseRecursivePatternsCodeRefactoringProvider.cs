@@ -439,8 +439,13 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
             commonReceiver = GetInnermostReceiver(left, lastName, static (identifierName, lastName) => identifierName != lastName);
         }
 
-            var iSymbol = model.GetSymbolInfo(leftNames[^1]).Symbol;
-            if (iSymbol != null && iSymbol.Equals(model.GetSymbolInfo(rightNames[^1]).Symbol))
+            // If the common receiver is null, there might still be one in cases like these:
+            // `MyClassField != null && MyClassField.prop != 0`. In this case, the left expression doesn't say
+            // anything new to the second one so it should be discarded, but MyClassField should still act as the
+            // receiver instead of the implicit this so we get
+            // `MyClassField is { prop: not 0 }` instead of `this is { MyClassField: not null, MyClassField.prop: not 0 }`
+            // We need to cover this case for either side of the expression by detecting a null check on either side
+            if (AreEquivalent(leftNames[^1], rightNames[^1]))
             {
                 var leftIsNullCheck = IsNullCheck(leftTarget.Parent);
                 var rightIsNullCheck = IsNullCheck(rightTarget.Parent);
@@ -462,7 +467,8 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
                 }
             }
 
-            // If the common receiver is null, it's an implicit `this` reference in source.
+            // If the common receiver is null and we can't find a redundant pattern in the case above,
+            // it's an implicit `this` reference in source.
             // For instance, `prop == 1 && field == 2` would be converted to `this is { prop: 1, field: 2 }`
             return (commonReceiver ?? ThisExpression(), leftNames.ToImmutable(), rightNames.ToImmutable());
 
@@ -493,8 +499,8 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
 
             static bool IsNullCheck(SyntaxNode? exp)
             {
-                if (exp is BinaryExpressionSyntax bin && bin.OperatorToken.Kind() == ExclamationEqualsToken
-                    && (bin.Left.Kind() == NullLiteralExpression || bin.Right.Kind() == NullLiteralExpression))
+                if (exp is BinaryExpressionSyntax binaryExpression && binaryExpression.Kind() == NotEqualsExpression
+                    && (binaryExpression.Left.Kind() == NullLiteralExpression || binaryExpression.Right.Kind() == NullLiteralExpression))
                 {
                     return true;
                 }
