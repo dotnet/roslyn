@@ -10,6 +10,16 @@ namespace Roslyn.Utilities
 {
     internal static class StreamExtensions
     {
+#if !NETCOREAPP
+        public static void ReadExactly(this Stream stream, byte[] buffer, int offset, int length)
+        {
+            var read = TryReadAll(stream, buffer, offset, length);
+            if (read != length)
+            {
+                throw new EndOfStreamException();
+            }
+        }
+#endif
         /// <summary>
         /// Attempts to read all of the requested bytes from the stream into the buffer
         /// </summary>

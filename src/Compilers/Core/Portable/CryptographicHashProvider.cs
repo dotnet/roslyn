@@ -77,6 +77,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal static HashAlgorithm GetAlgorithm(SourceHashAlgorithm algorithmId) =>
+            TryGetAlgorithm(algorithmId) ?? throw ExceptionUtilities.UnexpectedValue(algorithmId);
+
         internal static HashAlgorithm? TryGetAlgorithm(SourceHashAlgorithm algorithmId)
         {
             switch (algorithmId)

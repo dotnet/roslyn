@@ -449,6 +449,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return builder;
         }
 
+        public static ImmutableArray<T> ToImmutable(ReadOnlySpan<T> items)
+        {
+            var builder = GetInstance(items.Length);
+            builder.AddRange(items);
+            return builder.ToImmutableAndFree();
+        }
+
         public static ObjectPool<ArrayBuilder<T>> CreatePool()
         {
             return CreatePool(128); // we rarely need more than 10
@@ -597,6 +604,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         public void AddRange(T[] items, int length)
         {
             _builder.AddRange(items, length);
+        }
+
+        public void AddRange(ReadOnlySpan<T> items)
+        {
+            _builder.AddRange(items);
         }
 
         public void Clip(int limit)
