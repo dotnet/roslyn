@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string SeveritySuffix = "severity";
 
         private const string DotnetAnalyzerDiagnosticSeverityKey = DotnetAnalyzerDiagnosticPrefix + "." + SeveritySuffix;
-        
         private static readonly ConcurrentLruCache<string, string> s_categoryToSeverityKeyMap = new ConcurrentLruCache<string, string>(50);
 
         private static string GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(string category)
