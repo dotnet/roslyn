@@ -106,8 +106,7 @@ internal sealed partial class SolutionCompilationState
 
         if (newSolutionState == this.SolutionState &&
             projectIdToTrackerMap == _projectIdToTrackerMap &&
-            newFrozenSourceGeneratedDocumentStates.Equals(FrozenSourceGeneratedDocumentStates) &&
-            _cachedFrozenSnapshot == cachedFrozenSnapshot)
+            newFrozenSourceGeneratedDocumentStates.Equals(FrozenSourceGeneratedDocumentStates))
         {
             return this;
         }
