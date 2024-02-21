@@ -53,10 +53,10 @@ The checking build list is created:
             var maxFetchingVSBuildNumber = context.ParseResult.GetValueForOption(maxVsBuildCheckNumber);
             logger.LogInformation($"Check {maxFetchingVSBuildNumber} VS Builds");
 
-            var vsBulid = context.ParseResult.GetValueForOption(VSBuild);
-            if (!string.IsNullOrEmpty(vsBulid))
+            var vsBuild = context.ParseResult.GetValueForOption(VSBuild);
+            if (!string.IsNullOrEmpty(vsBuild))
             {
-                logger.LogInformation($"Check VS Build: {vsBulid}");
+                logger.LogInformation($"Check VS Build: {vsBuild}");
             }
 
             using var remoteConnections = new RemoteConnections(settings);
@@ -64,7 +64,7 @@ The checking build list is created:
                 remoteConnections,
                 logger,
                 maxFetchingVSBuildNumber,
-                vsBulid).ConfigureAwait(false);
+                vsBuild).ConfigureAwait(false);
         }
     }
 }

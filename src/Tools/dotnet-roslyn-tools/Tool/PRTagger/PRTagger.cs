@@ -62,7 +62,7 @@ internal static class PRTagger
             // We currently only support creating issues for GitHub repos
             if (!product.IsGitHubRepo())
             {
-                logger.LogWarning("Only GitHub repos are supported.");
+                logger.LogWarning($"Only GitHub repos are supported. Skipped repo: {product.Name}");
                 return -1;
             }
 
@@ -316,7 +316,6 @@ internal static class PRTagger
         string issueBody,
         ILogger logger)
     {
-
         // https://docs.github.com/en/rest/issues/issues#create-an-issue
         var response = await client.PostAsyncAsJson($"repos/dotnet/{gitHubRepoName}/issues", JsonConvert.SerializeObject(
             new
@@ -345,8 +344,10 @@ internal static class PRTagger
         string title,
         ILogger logger)
     {
+        // This method would be called frequently. GitHub suggests to wait at least one sec to avoid the rate limit issue.
+        await Task.Delay(3000);
         var response = await SearchIssuesOnGitHubAsync(client, repoName, logger, title: title, label: InsertionLabel).ConfigureAwait(false);
-        var issueNumber = int.Parse(response["total_count"]!.ToString());
+        var issueNumber = TotalCountNumber(response);
         return issueNumber != 0;
     }
 
