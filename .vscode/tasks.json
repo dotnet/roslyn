@@ -88,20 +88,8 @@
           "pwsh",
           "${workspaceFolder}/scripts/vscode-build.ps1",
           "-filePath",
-          "${file}",
-          "-msbuildEngine",
-          "dotnet"
+          "${file}"
         ],
-        "windows": {
-          "command": "powershell",
-          "args": [
-            "${workspaceFolder}/scripts/vscode-build.ps1",
-            "-filePath",
-            "${file}",
-            "-msbuildEngine",
-            "dotnet"
-          ],
-        },
         "problemMatcher": "$msCompile",
         "group": "build"
     },

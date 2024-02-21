@@ -17,6 +17,7 @@
       "src\\Compilers\\CSharp\\csc\\CscCommandLine.shproj",
       "src\\Compilers\\CSharp\\csc\\arm64\\csc-arm64.csproj",
       "src\\Compilers\\Core\\AnalyzerDriver\\AnalyzerDriver.shproj",
+      "src\\Compilers\\Core\\Benchmarks\\Microsoft.CodeAnalysis.Benchmarks.csproj",
       "src\\Compilers\\Core\\CodeAnalysisTest\\Microsoft.CodeAnalysis.UnitTests.csproj",
       "src\\Compilers\\Core\\MSBuildTaskTests\\Microsoft.Build.Tasks.CodeAnalysis.UnitTests.csproj",
       "src\\Compilers\\Core\\MSBuildTask\\Microsoft.Build.Tasks.CodeAnalysis.csproj",
