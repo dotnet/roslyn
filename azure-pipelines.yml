@@ -6,6 +6,7 @@ trigger:
 - features/*
 - demos/*
 
+
 # Branches that trigger builds on PR
 pr:
   branches:
@@ -337,19 +338,17 @@ stages:
         testArguments: --testCoreClr
         poolParameters: ${{ parameters.ubuntuPool }}
 
-  # https://github.com/dotnet/runtime/issues/97186
-  # Disabled until runtime can track down the crash
   # - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-  #   - template: eng/pipelines/test-unix-job.yml
-  #     parameters:
-  #       testRunName: 'Test macOS Debug'
-  #       jobName: Test_macOS_Debug
-  #       testArtifactName: Transport_Artifacts_Unix_Debug
-  #       configuration: Debug
-  #       testArguments: --testCoreClr 
-  #       helixQueueName: $(HelixMacOsQueueName)
-  #       helixApiAccessToken: $(HelixApiAccessToken)
-  #       poolParameters: ${{ parameters.ubuntuPool }}
+  - template: eng/pipelines/test-unix-job.yml
+    parameters:
+      testRunName: 'Test macOS Debug'
+      jobName: Test_macOS_Debug
+      testArtifactName: Transport_Artifacts_Unix_Debug
+      configuration: Debug
+      testArguments: --testCoreClr 
+      helixQueueName: $(HelixMacOsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
+      poolParameters: ${{ parameters.ubuntuPool }}
 
 - stage: Correctness
   dependsOn: []
@@ -398,13 +397,14 @@ stages:
       - script: eng/validate-rules-missing-documentation.cmd -ci
         displayName: Validate rules missing documentation
 
-      - pwsh: |
-          ./eng/generate-compiler-code.ps1 -test -configuration Release
+      - task: PowerShell@2
         displayName: Generate Syntax Files
+        inputs:
+          filePath: eng/generate-compiler-code.ps1
+          arguments: -test -configuration Release
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
 
-      - pwsh: |
-          ./eng/validate-code-formatting.ps1 -rootDirectory $(Build.SourcesDirectory)\src -includeDirectories Compilers\CSharp\Portable\Generated\, Compilers\VisualBasic\Portable\Generated\, ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\
+      - script: $(Build.SourcesDirectory)\.dotnet\dotnet.exe tool run dotnet-format whitespace  $(Build.SourcesDirectory)\src --folder --include-generated --include $(Build.SourcesDirectory)\src\Compilers\CSharp\Portable\Generated\ $(Build.SourcesDirectory)\src\Compilers\VisualBasic\Portable\Generated\ $(Build.SourcesDirectory)\src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ --verify-no-changes
         displayName: Validate Generated Syntax Files
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
 
