@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
 using System.Threading;
+using Microsoft.CodeAnalysis.InternalUtilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string SeveritySuffix = "severity";
 
         private const string DotnetAnalyzerDiagnosticSeverityKey = DotnetAnalyzerDiagnosticPrefix + "." + SeveritySuffix;
-
-        private static readonly ConcurrentDictionary<string, string> s_categoryToSeverityKeyMap = new ConcurrentDictionary<string, string>();
+        
+        private static readonly ConcurrentLruCache<string, string> s_categoryToSeverityKeyMap = new ConcurrentLruCache<string, string>(50);
 
         private static string GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(string category)
             => s_categoryToSeverityKeyMap.GetOrAdd(category, category => $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{category}.{SeveritySuffix}");
