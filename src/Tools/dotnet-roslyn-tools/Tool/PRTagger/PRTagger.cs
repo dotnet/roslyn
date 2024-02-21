@@ -34,14 +34,22 @@ internal static class PRTagger
         string? vsBuild)
     {
         var cancellationToken = CancellationToken.None;
-        var vsBuildsAndCommitSha = ImmutableArray<(string vsBuild, string vsCommitSha, string previousVsCommitSha)>.Empty;
-        // If vsbuild is not null, only check this build.
-        if (vsBuild is not null)
+        var builds = await remoteConnections.DevDivConnection.TryGetBuildsAsync(
+            "DD-CB-TestSignVS",
+            logger: logger,
+            buildNumber: vsBuild,
+            maxFetchingVsBuildNumber: maxFetchingVSBuildNumber,
+            resultsFilter: BuildResult.Succeeded,
+            buildQueryOrder: BuildQueryOrder.FinishTimeDescending).ConfigureAwait(false);
+
+        if (builds is null)
         {
-            var singleBuildAndShaToCheck =
-                await GetVsBuildAndCommitAsync(remoteConnections.DevDivConnection, logger, vsBuild, cancellationToken).ConfigureAwait(false);
-            vsBuildsAndCommitSha = ImmutableArray.Create(singleBuildAndShaToCheck);
+            logger.LogError("Failed to fetch builds from DevDiv.");
+            return -1;
         }
+
+        var vsBuildsAndCommitSha =
+            await GetVsBuildCommitShaAsync(remoteConnections.DevDivConnection, builds.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
 
         // vsBuildsAndCommitSha is ordered from new to old.
         // For each of the product, check if the product is changed from the newest build, keep creating issues if the product has change.
@@ -58,18 +66,13 @@ internal static class PRTagger
             }
 
             var gitHubRepoName = product.RepoHttpBaseUrl.Split('/').Last();
-            if (vsBuild == null)
-            {
-                vsBuildsAndCommitSha = await GetVSBuildsAndCommitsAsync(
-                    gitHubRepoName,
-                    remoteConnections.DevDivConnection,
-                    remoteConnections.GitHubClient,
-                    logger,
-                    maxFetchingVSBuildNumber,
-                    cancellationToken).ConfigureAwait(false);
-            }
+            var buildsAndCommitsToTag = await GetVSBuildsAndCommitsAsync(
+                gitHubRepoName,
+                vsBuildsAndCommitSha,
+                remoteConnections.GitHubClient,
+                logger).ConfigureAwait(false);
 
-            foreach (var (buildNumber, vsCommitSha, previousVsCommitSha) in vsBuildsAndCommitSha)
+            foreach (var (buildNumber, vsCommitSha, previousVsCommitSha) in buildsAndCommitsToTag)
             {
                 var result = await TagProductAsync(product, gitHubRepoName, logger, vsCommitSha, buildNumber, previousVsCommitSha, remoteConnections).ConfigureAwait(false);
                 if (result is TagResult.Failed or TagResult.IssueAlreadyCreated)
@@ -194,13 +197,30 @@ internal static class PRTagger
         }
     }
 
+    private static async Task<ImmutableArray<(string vsBuild, string vsCommit, string previousVsCommitSha)>> GetVsBuildCommitShaAsync(
+        AzDOConnection devdivConnection,
+        ImmutableArray<Build> builds,
+        CancellationToken cancellationToken)
+    {
+        var vsRepository = await GetVSRepositoryAsync(devdivConnection.GitClient);
+        // Find previous VS commit SHA
+        var buildInfoTask = builds.Select(async build =>
+        {
+            var vsCommit = await devdivConnection.GitClient.GetCommitAsync(
+                build.SourceVersion, vsRepository.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var previousVsCommitSha = vsCommit.Parents.First();
+            return (build.BuildNumber, build.SourceVersion, previousVsCommitSha);
+        });
+
+        var vsBuildAndCommitSha = await Task.WhenAll(buildInfoTask).ConfigureAwait(false);
+        return vsBuildAndCommitSha.ToImmutableArray();
+    }
+
     private static async Task<ImmutableArray<(string vsBuild, string vsCommit, string previousVsCommitSha)>> GetVSBuildsAndCommitsAsync(
         string repoName,
-        AzDOConnection devdivConnection,
+        ImmutableArray<(string vsBuild, string vsCommit, string previousVsCommitSha)> buildsAndCommitSha,
         HttpClient gitHubClient,
-        ILogger logger,
-        int maxFetchingVsBuildNumber,
-        CancellationToken cancellationToken)
+        ILogger logger)
     {
         var lastVsBuildNumberReported = await FindTheLastReportedVSBuildAsync(gitHubClient, repoName, logger).ConfigureAwait(false);
         if (lastVsBuildNumberReported is not null)
@@ -212,45 +232,22 @@ internal static class PRTagger
             logger.LogInformation($"Can't find the last reported VS Build info in {repoName}.");
         }
 
-        var builds = await devdivConnection.TryGetBuildsAsync(
-            "DD-CB-TestSignVS",
-            logger: logger,
-            maxFetchingVsBuildNumber: maxFetchingVsBuildNumber,
-            resultsFilter: BuildResult.Succeeded,
-            buildQueryOrder: BuildQueryOrder.FinishTimeDescending).ConfigureAwait(false);
-
-        if (builds is not null)
+        var buildAndCommitShaList = buildsAndCommitSha.ToList();
+        var builds = buildsAndCommitSha;
+        if (lastVsBuildNumberReported is not null)
         {
-            if (lastVsBuildNumberReported is not null)
+            var lastReportedBuildIndex = buildAndCommitShaList.FindIndex(buildAndCommitSha => buildAndCommitSha.vsBuild == lastVsBuildNumberReported);
+            if (lastReportedBuildIndex == -1)
             {
-                var lastReportedBuildIndex = builds.FindIndex(build => build.BuildNumber == lastVsBuildNumberReported);
-                if (lastReportedBuildIndex == -1)
-                {
-                    logger.LogWarning($"VS build: {lastVsBuildNumberReported} can't be found in the build list.");
-                }
-                else
-                {
-                    builds = builds.Take(lastReportedBuildIndex).ToList();
-                }
+                logger.LogWarning($"VS build: {lastVsBuildNumberReported} can't be found in the build list.");
             }
-
-            var vsRepository = await GetVSRepositoryAsync(devdivConnection.GitClient);
-            // Find previous VS commit SHA
-            var buildInfoTask = builds.Select(async build =>
+            else
             {
-                var vsCommit = await devdivConnection.GitClient.GetCommitAsync(
-                    build.SourceVersion, vsRepository.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var previousVsCommitSha = vsCommit.Parents.First();
-                return (build.BuildNumber, build.SourceVersion, previousVsCommitSha);
-            });
+                builds = buildAndCommitShaList.Take(lastReportedBuildIndex).ToImmutableArray();
+            }
+        }
 
-            var vsBuildAndCommitSha = await Task.WhenAll(buildInfoTask).ConfigureAwait(false);
-            return vsBuildAndCommitSha.ToImmutableArray();
-        }
-        else
-        {
-            return ImmutableArray<(string vsBuild, string vsCommit, string previousVsCommitSha)>.Empty;
-        }
+        return builds;
     }
 
     private static async Task<GitRepository> GetVSRepositoryAsync(GitHttpClient gitClient)

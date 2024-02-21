@@ -38,11 +38,4 @@ internal record RemoteConnections : IDisposable
     public AzDOConnection DevDivConnection { get; }
     public AzDOConnection DncengConnection { get; }
     public HttpClient GitHubClient { get; }
-
-    public void Deconstruct(out AzDOConnection DevDivConnection, out AzDOConnection DncengConnection, out HttpClient GitHubClient)
-    {
-        DevDivConnection = this.DevDivConnection;
-        DncengConnection = this.DncengConnection;
-        GitHubClient = this.GitHubClient;
-    }
 }
