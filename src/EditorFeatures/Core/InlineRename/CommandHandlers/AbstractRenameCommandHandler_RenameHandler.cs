@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var backgroundWorkIndicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
             using var context = backgroundWorkIndicatorFactory.Create(
-                    args.TextView,
-                    args.TextView.GetTextElementSpan(caretPoint.Value),
-                    EditorFeaturesResources.Finding_token_to_rename);
+                args.TextView,
+                args.TextView.GetTextElementSpan(caretPoint.Value),
+                EditorFeaturesResources.Finding_token_to_rename);
 
             // If there is already an active session, commit it first
             if (_renameService.ActiveSession != null)

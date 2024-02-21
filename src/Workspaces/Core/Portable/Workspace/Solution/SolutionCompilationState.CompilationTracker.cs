@@ -302,13 +302,10 @@ namespace Microsoft.CodeAnalysis
                     {
                         var compilation = CreateEmptyCompilation();
 
-                        using var _ = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentStates.Count, out var trees);
-                        foreach (var documentState in ProjectState.DocumentStates.GetStatesInCompilationOrder())
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-                            // Include the tree even if the content of the document failed to load.
-                            trees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-                        }
+                        var trees = await GetAllSyntaxTreesAsync(
+                            this.ProjectState.DocumentStates.GetStatesInCompilationOrder(),
+                            this.ProjectState.DocumentStates.Count,
+                            cancellationToken).ConfigureAwait(false);
 
                         compilation = compilation.AddSyntaxTrees(trees);
 

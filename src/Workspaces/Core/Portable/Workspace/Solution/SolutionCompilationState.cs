@@ -98,7 +98,8 @@ internal sealed partial class SolutionCompilationState
     private SolutionCompilationState Branch(
         SolutionState newSolutionState,
         ImmutableDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
-        Optional<TextDocumentStates<SourceGeneratedDocumentState>?> frozenSourceGeneratedDocumentStates = default)
+        Optional<TextDocumentStates<SourceGeneratedDocumentState>?> frozenSourceGeneratedDocumentStates = default,
+        AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
     {
         projectIdToTrackerMap ??= _projectIdToTrackerMap;
         var newFrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates.HasValue ? frozenSourceGeneratedDocumentStates.Value : FrozenSourceGeneratedDocumentStates;
@@ -114,7 +115,8 @@ internal sealed partial class SolutionCompilationState
             newSolutionState,
             PartialSemanticsEnabled,
             projectIdToTrackerMap,
-            newFrozenSourceGeneratedDocumentStates);
+            newFrozenSourceGeneratedDocumentStates,
+            cachedFrozenSnapshot);
     }
 
     /// <inheritdoc cref="SolutionState.ForkProject"/>
@@ -1120,7 +1122,9 @@ internal sealed partial class SolutionCompilationState
 
         var newCompilationState = this.Branch(
             newState,
-            newIdToTrackerMap);
+            newIdToTrackerMap,
+            // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.
+            cachedFrozenSnapshot: _cachedFrozenSnapshot);
 
         return newCompilationState;
 
@@ -1473,6 +1477,16 @@ internal sealed partial class SolutionCompilationState
         }
 
         return result;
+    }
+
+    private static async Task<SyntaxTree[]> GetAllSyntaxTreesAsync(IEnumerable<DocumentState> documents, int documentCount, CancellationToken cancellationToken)
+    {
+        // Parse all the documents in parallel.
+        using var _ = ArrayBuilder<Task<SyntaxTree>>.GetInstance(documentCount, out var tasks);
+        foreach (var document in documents)
+            tasks.Add(Task.Run(async () => await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken));
+
+        return await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
     internal TestAccessor GetTestAccessor()

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Create a build request for processing on the server. 
         /// </summary>
         internal static BuildRequest CreateBuildRequest(
-            Guid requestId,
+            string requestId,
             RequestLanguage language,
             List<string> arguments,
             string workingDirectory,
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         internal static async Task MonitorDisconnectAsync(
             PipeStream pipeStream,
-            Guid requestId,
+            string requestId,
             ICompilerServerLogger logger,
             CancellationToken cancellationToken = default)
         {
