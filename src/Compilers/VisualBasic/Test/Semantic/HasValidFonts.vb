@@ -12,7 +12,12 @@ Friend Class HasValidFonts
     Public Overrides ReadOnly Property ShouldSkip As Boolean
         Get
             Try
+#If NET472 Then
                 If RuntimeInformation.IsOSPlatform(OSPlatform.Windows) Then
+#Else
+                ' CA1416: SystemFonts.DefaultFont is only supported on Windows 6.1 or later
+                If OperatingSystem.IsWindowsVersionAtLeast(6, 1) Then
+#End If
                     Dim result = SystemFonts.DefaultFont
                     Return result Is Nothing
                 Else

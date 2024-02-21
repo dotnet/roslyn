@@ -13,8 +13,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class CSharpCompilation

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -29,19 +30,25 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         protected abstract ImmutableArray<AbstractFormattingRule> GetFormatRules(SourceText text);
 
         /// <inheritdoc/>
-        public async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, AddMissingImportsOptions options, CancellationToken cancellationToken)
+        public async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, AddMissingImportsOptions options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             var analysisResult = await AnalyzeAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
-            return await AddMissingImportsAsync(document, analysisResult, options.CleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+            return await AddMissingImportsAsync(
+                document, analysisResult, options.CleanupOptions.FormattingOptions, progressTracker, cancellationToken).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<Document> AddMissingImportsAsync(Document document, AddMissingImportsAnalysisResult analysisResult, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
+        public async Task<Document> AddMissingImportsAsync(
+            Document document,
+            AddMissingImportsAnalysisResult analysisResult,
+            SyntaxFormattingOptions formattingOptions,
+            IProgress<CodeAnalysisProgress> progressTracker,
+            CancellationToken cancellationToken)
         {
             if (analysisResult.CanAddMissingImports)
             {
                 // Apply those fixes to the document.
-                var newDocument = await ApplyFixesAsync(document, analysisResult.AddImportFixData, formattingOptions, cancellationToken).ConfigureAwait(false);
+                var newDocument = await ApplyFixesAsync(document, analysisResult.AddImportFixData, formattingOptions, progressTracker, cancellationToken).ConfigureAwait(false);
                 return newDocument;
             }
 
@@ -82,7 +89,12 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 && string.IsNullOrEmpty(fixData.AssemblyReferenceAssemblyName);
         }
 
-        private async Task<Document> ApplyFixesAsync(Document document, ImmutableArray<AddImportFixData> fixes, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
+        private async Task<Document> ApplyFixesAsync(
+            Document document,
+            ImmutableArray<AddImportFixData> fixes,
+            SyntaxFormattingOptions formattingOptions,
+            IProgress<CodeAnalysisProgress> progressTracker,
+            CancellationToken cancellationToken)
         {
             if (fixes.IsEmpty)
             {
@@ -90,7 +102,6 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             }
 
             var solution = document.Project.Solution;
-            var progressTracker = new ProgressTracker();
             var textDiffingService = solution.Services.GetRequiredService<IDocumentTextDifferencingService>();
             var packageInstallerService = solution.Services.GetService<IPackageInstallerService>();
             var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
@@ -98,7 +109,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // Do not limit the results since we plan to fix all the reported issues.
             var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, packageInstallerService, maxResults: int.MaxValue);
             var getChangesTasks = codeActions.Select(
-                action => GetChangesForCodeActionAsync(document, action, progressTracker, textDiffingService, cancellationToken));
+                action => GetChangesForCodeActionAsync(document, action, textDiffingService, progressTracker, cancellationToken));
 
             // Using Sets allows us to accumulate only the distinct changes.
             var allTextChanges = new HashSet<TextChange>();
@@ -195,8 +206,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         private static async Task<(ProjectChanges, IEnumerable<TextChange>)> GetChangesForCodeActionAsync(
             Document document,
             CodeAction codeAction,
-            ProgressTracker progressTracker,
             IDocumentTextDifferencingService textDiffingService,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             // CodeAction.GetChangedSolutionAsync is only implemented for code actions that can fully compute the new	            

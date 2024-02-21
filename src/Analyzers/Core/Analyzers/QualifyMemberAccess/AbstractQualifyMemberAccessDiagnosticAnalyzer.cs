@@ -124,8 +124,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
 
             var shouldOptionBePresent = optionValue.Value;
-            var severity = optionValue.Notification.Severity;
-            if (!shouldOptionBePresent || severity == ReportDiagnostic.Suppress)
+            if (!shouldOptionBePresent || ShouldSkipAnalysis(context, optionValue.Notification))
             {
                 return;
             }
@@ -135,7 +134,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     GetLocation(operation),
-                    severity,
+                    optionValue.Notification,
                     additionalLocations: null,
                     properties: null));
             }

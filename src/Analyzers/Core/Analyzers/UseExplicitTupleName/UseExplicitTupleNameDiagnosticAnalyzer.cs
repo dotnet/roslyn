@@ -34,13 +34,12 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
         {
             // We only create a diagnostic if the option's value is set to true.
             var option = context.GetAnalyzerOptions().PreferExplicitTupleNames;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 return;
             }
 
-            var severity = option.Notification.Severity;
-            if (severity == ReportDiagnostic.Suppress)
+            if (option.Notification.Severity == ReportDiagnostic.Suppress)
             {
                 return;
             }
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                             context.ReportDiagnostic(DiagnosticHelper.Create(
                                 Descriptor,
                                 nameNode.GetLocation(),
-                                severity,
+                                option.Notification,
                                 additionalLocations: null,
                                 properties));
                         }

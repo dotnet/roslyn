@@ -134,20 +134,50 @@ internal class HandlerProvider : IHandlerProvider
 
             static LanguageServerEndpointAttribute? GetMethodAttributeFromHandlerMethod(Type handlerType, Type? requestType, Type contextType, Type? responseType)
             {
-                var methodInfo = (requestType != null, responseType != null) switch
-                {
-                    (true, true) => handlerType.GetMethod(nameof(IRequestHandler<object, object, object>.HandleRequestAsync), new Type[] { requestType!, contextType, typeof(CancellationToken) }),
-                    (false, true) => handlerType.GetMethod(nameof(IRequestHandler<object, object>.HandleRequestAsync), new Type[] { contextType, typeof(CancellationToken) }),
-                    (true, false) => handlerType.GetMethod(nameof(INotificationHandler<object, object>.HandleNotificationAsync), new Type[] { requestType!, contextType, typeof(CancellationToken) }),
-                    (false, false) => handlerType.GetMethod(nameof(INotificationHandler<object>.HandleNotificationAsync), new Type[] { contextType, typeof(CancellationToken) })
-                };
+                const string handleRequestName = nameof(IRequestHandler<object, object, object>.HandleRequestAsync);
+                const string handleNotificationName = nameof(INotificationHandler<object, object>.HandleNotificationAsync);
 
-                if (methodInfo is null)
+                foreach (var methodInfo in handlerType.GetRuntimeMethods())
                 {
-                    throw new InvalidOperationException("Somehow we are missing the method for our registered handler");
+                    if (MethodInfoMatches(methodInfo))
+                        return methodInfo.GetCustomAttribute<LanguageServerEndpointAttribute>();
                 }
 
-                return methodInfo.GetCustomAttribute<LanguageServerEndpointAttribute>();
+                throw new InvalidOperationException("Somehow we are missing the method for our registered handler");
+
+                bool MethodInfoMatches(MethodInfo methodInfo)
+                {
+                    switch (requestType != null, responseType != null)
+                    {
+                        case (true, true):
+                            return (methodInfo.Name == handleRequestName || methodInfo.Name.EndsWith("." + handleRequestName)) &&
+                                TypesMatch(methodInfo, [requestType!, contextType, typeof(CancellationToken)]);
+                        case (false, true):
+                            return (methodInfo.Name == handleRequestName || methodInfo.Name.EndsWith("." + handleRequestName)) &&
+                                TypesMatch(methodInfo, [contextType, typeof(CancellationToken)]);
+                        case (true, false):
+                            return (methodInfo.Name == handleNotificationName || methodInfo.Name.EndsWith("." + handleNotificationName)) &&
+                                TypesMatch(methodInfo, [requestType!, contextType, typeof(CancellationToken)]);
+                        case (false, false):
+                            return (methodInfo.Name == handleNotificationName || methodInfo.Name.EndsWith("." + handleNotificationName)) &&
+                                TypesMatch(methodInfo, [contextType, typeof(CancellationToken)]);
+                    }
+                }
+
+                bool TypesMatch(MethodInfo methodInfo, Type[] types)
+                {
+                    var parameters = methodInfo.GetParameters();
+                    if (parameters.Length != types.Length)
+                        return false;
+
+                    for (int i = 0, n = parameters.Length; i < n; i++)
+                    {
+                        if (!Equals(types[i], parameters[i].ParameterType))
+                            return false;
+                    }
+
+                    return true;
+                }
             }
 
             static LanguageServerEndpointAttribute? GetMethodAttributeFromClassOrInterface(Type type)

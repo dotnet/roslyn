@@ -10,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Text;
 using Metalama.Compiler;
 using Microsoft.CodeAnalysis.CommandLine;
@@ -600,12 +601,61 @@ namespace Microsoft.CodeAnalysis
         }
 
         // <Metalama>
-        private static readonly Version? s_metalamaRoslynVersion = GetMetalamaRoslynVersion();
+        private readonly HashSet<string> _additionalRedirectedReferences = [];
 
-        private static Version? GetMetalamaRoslynVersion()
+        private static bool ContainsSourceGenerators(AssemblyMetadata assembly)
+        {
+            var metadataReader = assembly.GetModules().First().MetadataReader;
+
+            foreach (var typeDefinitionHandle in metadataReader.TypeDefinitions)
+            {
+                var typeDefinition = metadataReader.GetTypeDefinition(typeDefinitionHandle);
+
+                if (!typeDefinition.Attributes.HasFlag(TypeAttributes.Public))
+                {
+                    continue;
+                }
+
+                foreach (var attributeHandle in typeDefinition.GetCustomAttributes())
+                {
+                    var attributeConstructorHandle = metadataReader.GetCustomAttribute(attributeHandle).Constructor;
+
+                    if (attributeConstructorHandle.Kind != HandleKind.MemberReference)
+                    {
+                        continue;
+                    }
+
+                    var attributeConstructor = metadataReader.GetMemberReference((MemberReferenceHandle)attributeConstructorHandle);
+
+                    var parentHandle = attributeConstructor.Parent;
+
+                    if (parentHandle.Kind != HandleKind.TypeReference)
+                    {
+                        continue;
+                    }
+
+                    var parent = metadataReader.GetTypeReference((TypeReferenceHandle)parentHandle);
+
+                    if (metadataReader.GetString(parent.Name) != "GeneratorAttribute" || metadataReader.GetString(parent.Namespace) != "Microsoft.CodeAnalysis")
+                    {
+                        continue;
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static readonly Version? s_metalamaRoslynVersion = GetAssemblyMetadataVersion("RoslynVersion", normalizeVersion: true);
+
+        private static readonly Version? s_dotnetSdkVersion = GetAssemblyMetadataVersion("DotnetSdkVersion", normalizeVersion: false);
+
+        private static Version? GetAssemblyMetadataVersion(string key, bool normalizeVersion)
         {
             var versionString = typeof(CommandLineArguments).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
-                .SingleOrDefault(a => a.Key == "RoslynVersion")
+                .SingleOrDefault(a => a.Key == key)
                 ?.Value;
 
             if (!Version.TryParse(versionString, out var version))
@@ -613,20 +663,21 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            // Replace empty version components with zeroes. Version says that e.g. 4.6.0.0 > 4.6.0, but we want those two to be considered equal.
-            if (version.Build == -1)
+            if (normalizeVersion)
             {
-                version = new Version(version.Major, version.Minor, 0, 0);
-            }
-            else if (version.Revision == -1)
-            {
-                version = new Version(version.Major, version.Minor, version.Build, 0);
+                // Replace empty version components with zeroes. Version says that e.g. 4.6.0.0 > 4.6.0, but we want those two to be considered equal.
+                if (version.Build == -1)
+                {
+                    version = new Version(version.Major, version.Minor, 0, 0);
+                }
+                else if (version.Revision == -1)
+                {
+                    version = new Version(version.Major, version.Minor, version.Build, 0);
+                }
             }
 
             return version;
         }
-
-        private readonly HashSet<string> _additionalRedirectedReferences = [];
         // </Metalama>
 
         // <Metalama> modified
@@ -687,8 +738,18 @@ namespace Microsoft.CodeAnalysis
                         else
                         {
                             // We were unable to redirect, so we're disabling this assembly and informing the user.
+                            var errorCode = ContainsSourceGenerators(assembly)
+                                ? MetalamaErrorCode.WRN_GeneratorAssemblyCantRedirect
+                                : MetalamaErrorCode.WRN_AnalyzerAssemblyCantRedirect;
+
                             diagnostics?.Add(
-                                new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.WRN_AnalyzerAssemblyCantRedirect, reference.FilePath, referencedRoslynVersion.ToString(), metalamaRoslynVersion.ToString()));
+                                new DiagnosticInfo(
+                                    MetalamaCompilerMessageProvider.Instance,
+                                    (int)errorCode,
+                                    reference.FilePath,
+                                    referencedRoslynVersion.ToString(),
+                                    metalamaRoslynVersion.ToString(),
+                                    s_dotnetSdkVersion?.ToString() ?? string.Empty));
 
                             return null;
                         }

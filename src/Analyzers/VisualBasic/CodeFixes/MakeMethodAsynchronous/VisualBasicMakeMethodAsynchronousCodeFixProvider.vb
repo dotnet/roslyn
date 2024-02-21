@@ -53,15 +53,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             Return node.IsAsyncSupportedFunctionSyntax()
         End Function
 
-        Protected Overrides Function IsAsyncReturnType(type As ITypeSymbol, knownTypes As KnownTypes) As Boolean
-            Return IsTaskLike(type, knownTypes)
+        Protected Overrides Function IsAsyncReturnType(type As ITypeSymbol, knownTypes As KnownTaskTypes) As Boolean
+            Return knownTypes.IsTaskLike(type)
         End Function
 
         Protected Overrides Function AddAsyncTokenAndFixReturnType(
                 keepVoid As Boolean,
                 methodSymbolOpt As IMethodSymbol,
                 node As SyntaxNode,
-                knownTypes As KnownTypes,
+                knownTypes As KnownTaskTypes,
                 cancellationToken As CancellationToken) As SyntaxNode
 
             If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression) OrElse
@@ -80,11 +80,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             End If
         End Function
 
-        Private Shared Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, knownTypes As KnownTypes) As SyntaxNode
+        Private Shared Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, knownTypes As KnownTaskTypes) As SyntaxNode
             Dim functionStatement = node.SubOrFunctionStatement
             Dim newFunctionStatement = AddAsyncKeyword(functionStatement)
 
-            If Not IsTaskLike(methodSymbol.ReturnType, knownTypes) Then
+            If Not knownTypes.IsTaskLike(methodSymbol.ReturnType) Then
                 ' if the current return type is not already task-list, then wrap it in Task(of ...)
                 Dim returnType = knownTypes.TaskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax().WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)
                 newFunctionStatement = newFunctionStatement.WithAsClause(

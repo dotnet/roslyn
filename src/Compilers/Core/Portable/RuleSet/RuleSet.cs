@@ -275,7 +275,6 @@ namespace Microsoft.CodeAnalysis
             return ImmutableArray<string>.Empty;
         }
 
-#nullable enable
         /// <summary>
         /// Parses the ruleset file at the given <paramref name="rulesetFileFullPath"/> and returns the following diagnostic options from the parsed file:
         /// 1) A map of <paramref name="specificDiagnosticOptions"/> from rule ID to <see cref="ReportDiagnostic"/> option.

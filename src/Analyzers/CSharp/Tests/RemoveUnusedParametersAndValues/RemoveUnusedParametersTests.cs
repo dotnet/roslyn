@@ -1895,5 +1895,19 @@ class C(int [|a100|]) : Object()
     int M1() => a100;
 }");
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70276")]
+        public async Task TestMethodWithNameOf()
+        {
+            await TestDiagnosticsAsync("""
+                class C
+                {
+                    void M(int [|x|])
+                    {
+                        const string y = nameof(C);
+                    }
+                }
+                """, Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
     }
 }

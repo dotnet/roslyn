@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
     WorkspaceKind.MiscellaneousFiles,
     WorkspaceKind.MetadataAsSource,
     WorkspaceKind.Interactive), Shared]
-internal class LspWorkspaceRegistrationEventListener : IEventListener<object>, IEventListenerStoppable
+internal sealed class LspWorkspaceRegistrationEventListener : IEventListener<object>, IEventListenerStoppable
 {
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 

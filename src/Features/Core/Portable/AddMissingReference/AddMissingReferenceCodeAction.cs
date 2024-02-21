@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddMissingReference
 {
-    internal class AddMissingReferenceCodeAction(Project project, string title, ProjectReference? projectReferenceToAdd, AssemblyIdentity missingAssemblyIdentity) : CodeAction
+    internal sealed class AddMissingReferenceCodeAction(Project project, string title, ProjectReference? projectReferenceToAdd, AssemblyIdentity missingAssemblyIdentity) : CodeAction
     {
         private readonly Project _project = project;
         private readonly ProjectReference? _projectReferenceToAdd = projectReferenceToAdd;
@@ -72,13 +72,14 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             return new AddMissingReferenceCodeAction(project, description, null, missingAssemblyIdentity);
         }
 
-        protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+            IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             // If we have a project reference to add, then add it
             if (_projectReferenceToAdd != null)
             {
                 // note: no need to post process since we are just adding a project reference and not making any code changes.
-                return Task.FromResult(SpecializedCollections.SingletonEnumerable<CodeActionOperation>(
+                return Task.FromResult(ImmutableArray.Create<CodeActionOperation>(
                     new ApplyChangesOperation(_project.AddProjectReference(_projectReferenceToAdd).Solution)));
             }
             else
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
                 // We didn't have any project, so we need to try adding a metadata reference
                 var factoryService = _project.Solution.Services.GetRequiredService<IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService>();
                 var operation = factoryService.CreateAddMetadataReferenceOperation(_project.Id, _missingAssemblyIdentity);
-                return Task.FromResult(SpecializedCollections.SingletonEnumerable(operation));
+                return Task.FromResult(ImmutableArray.Create(operation));
             }
         }
     }

@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 foreach (var node in typeChain)
                 {
-                    var symbol = (ITypeSymbol?)State.SemanticDocument.SemanticModel.GetDeclaredSymbol(node, CancellationToken);
+                    var symbol = (INamedTypeSymbol?)State.SemanticDocument.SemanticModel.GetDeclaredSymbol(node, CancellationToken);
                     Contract.ThrowIfNull(symbol);
                     if (!semanticFacts.IsPartial(symbol, CancellationToken))
                     {

@@ -126,26 +126,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Deserialize a syntax node from a byte stream.
         ''' </summary>
-        <Obsolete(SerializationDeprecationException.Text, False)>
+        <Obsolete(SerializationDeprecationException.Text, True)>
         Public Shared Function DeserializeFrom(stream As IO.Stream, Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode
-            If stream Is Nothing Then
-                Throw New ArgumentNullException(NameOf(stream))
-            End If
-
-            If Not stream.CanRead Then
-                Throw New InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom)
-            End If
-
-            ' Report NFW to see if this Is being used in the wild.
-            FatalError.ReportNonFatalError(New SerializationDeprecationException())
-
-            Using reader = ObjectReader.TryGetReader(stream, leaveOpen:=True, cancellationToken:=cancellationToken)
-                If reader Is Nothing Then
-                    Throw New ArgumentException(CodeAnalysisResources.Stream_contains_invalid_data, NameOf(stream))
-                End If
-
-                Return DirectCast(reader.ReadValue(), InternalSyntax.VisualBasicSyntaxNode).CreateRed(Nothing, 0)
-            End Using
+            Throw New SerializationDeprecationException()
         End Function
 
 #End Region

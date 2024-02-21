@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -11,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
@@ -41,16 +39,16 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal override bool ApplyDuringTests => true;
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
-            => workspace.TryApplyChanges(ChangedSolution, new ProgressTracker());
+            => workspace.TryApplyChanges(ChangedSolution, CodeAnalysisProgress.None);
 
-        internal sealed override Task<bool> TryApplyAsync(Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        internal sealed override Task<bool> TryApplyAsync(Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             => Task.FromResult(ApplyOrMergeChanges(workspace, originalSolution, ChangedSolution, progressTracker, cancellationToken));
 
         internal static bool ApplyOrMergeChanges(
             Workspace workspace,
             Solution originalSolution,
             Solution changedSolution,
-            IProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             var currentSolution = workspace.CurrentSolution;

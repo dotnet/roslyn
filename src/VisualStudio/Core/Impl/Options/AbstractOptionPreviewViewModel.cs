@@ -120,11 +120,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             // use the mscorlib, system, and system.core that are loaded in the current process.
             string[] references =
-                {
+                [
                     "mscorlib",
                     "System",
                     "System.Core"
-                };
+                ];
 
             var metadataService = workspace.Services.GetService<IMetadataService>();
 

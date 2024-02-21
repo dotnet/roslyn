@@ -73,8 +73,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             var handlerSetter = type.GetDeclaredMethod("set_Handler");
             var nonFatalHandlerSetter = type.GetDeclaredMethod("set_NonFatalHandler");
 
-            handlerSetter.Invoke(null, new object[] { fatalHandler });
-            nonFatalHandlerSetter.Invoke(null, new object[] { nonFatalHandler });
+            handlerSetter.Invoke(null, [fatalHandler]);
+            nonFatalHandlerSetter.Invoke(null, [nonFatalHandler]);
         }
 
         protected TVsInteractiveWindowProvider InteractiveWindowProvider

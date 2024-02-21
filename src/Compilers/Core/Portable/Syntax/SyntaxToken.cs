@@ -14,12 +14,9 @@ using Metalama.Compiler;
 
 namespace Microsoft.CodeAnalysis
 {
-#pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
-    /// Represents a token in the syntax tree. This is the language agnostic equivalent of <see
-    /// cref="T:Microsoft.CodeAnalysis.CSharp.SyntaxToken"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxToken"/>.
+    /// Represents a token in the syntax tree.
     /// </summary>
-#pragma warning restore CA1200 // Avoid using cref tags with a prefix
     [StructLayout(LayoutKind.Auto)]
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public readonly struct SyntaxToken : IEquatable<SyntaxToken>

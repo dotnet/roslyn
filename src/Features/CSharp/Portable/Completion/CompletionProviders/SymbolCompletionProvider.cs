@@ -86,20 +86,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             CompletionOptions options,
             CancellationToken cancellationToken)
         {
-            if (context != null && options.TriggerInArgumentLists)
+            if (context is null)
+                return true;
+
+            // Avoid preselection & hard selection when triggered via insertion in an argument list.
+            // If an item is hard selected, then a user trying to type MethodCall() will get
+            // MethodCall(someVariable) instead. We need only soft selected items to prevent this.
+            return !await IsTriggeredInArgumentListAsync(context, position, options, cancellationToken).ConfigureAwait(false);
+        }
+
+        protected override async Task<bool> ShouldProvideAvailableSymbolsInCurrentContextAsync(
+            CompletionContext? completionContext,
+            CSharpSyntaxContext context,
+            int position,
+            CompletionOptions options,
+            CancellationToken cancellationToken)
+        {
+            if (completionContext is null)
+                return true;
+
+            // If we are triggered in argument list, provide symbols only when the invoked method accept any arguments.
+            if (await IsTriggeredInArgumentListAsync(completionContext, position, options, cancellationToken).ConfigureAwait(false) is false)
+                return true;
+
+            return !context.InferredTypes.IsEmpty || IsTopNodeInPrimaryConstructorArgumentList();
+
+            // Special case for argument of base record primary constructor as a workaround
+            // for bug https://github.com/dotnet/roslyn/issues/70803
+            bool IsTopNodeInPrimaryConstructorArgumentList()
+                => context.TargetToken.Parent?.Parent?.IsKind(SyntaxKind.PrimaryConstructorBaseType) is true;
+        }
+
+        private static async Task<bool> IsTriggeredInArgumentListAsync(
+            CompletionContext completionContext,
+            int position,
+            CompletionOptions options,
+            CancellationToken cancellationToken)
+        {
+            if (options.TriggerInArgumentLists)
             {
-                // Avoid preselection & hard selection when triggered via insertion in an argument list.
-                // If an item is hard selected, then a user trying to type MethodCall() will get
-                // MethodCall(someVariable) instead. We need only soft selected items to prevent this.
-                if (context.Trigger.Kind == CompletionTriggerKind.Insertion &&
+                if (completionContext.Trigger.Kind == CompletionTriggerKind.Insertion &&
                     position > 0 &&
-                    await IsTriggerInArgumentListAsync(context.Document, position - 1, cancellationToken).ConfigureAwait(false) == true)
+                    await IsTriggerInArgumentListAsync(completionContext.Document, position - 1, cancellationToken).ConfigureAwait(false) == true)
                 {
-                    return false;
+                    return true;
                 }
             }
 
-            return true;
+            return false;
         }
 
         protected override bool IsInstrinsic(ISymbol s)

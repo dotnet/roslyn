@@ -12,7 +12,7 @@ Particularly for developers who aren't experienced with .NET Core development on
 1. Install [VS Code](https://code.visualstudio.com/Download)
     - After you install VS Code, install the [C# extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)
     - Important tip: You can look up editor commands by name by hitting *Ctrl+Shift+P*, or by hitting *Ctrl+P* and typing a `>` character. This will help you get familiar with editor commands mentioned below. On a Mac, use *⌘* instead of *Ctrl*.
-2. Install the latest [.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
+1. Install the [.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) which matches the `sdk.version` property in [global.json](../../global.json#L3)
 3. You can build from VS Code by running the *Run Build Task* command, then selecting an appropriate task such as *build* or *build current project* (the latter builds the containing project for the current file you're viewing in the editor).
 4. You can run tests from VS Code by opening a test class in the editor, then using the *Run Tests in Context* and *Debug Tests in Context* editor commands. You may want to bind these commands to keyboard shortcuts that match their Visual Studio equivalents (**Ctrl+R, T** for *Run Tests in Context* and **Ctrl+R, Ctrl+T** for *Debug Tests in Context*).
 

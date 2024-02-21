@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddPackage
 {
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
     /// version, or a the latest version of a nuget package.  Is not responsible
     /// for adding an import to user code.
     /// </summary>
-    internal class InstallPackageDirectlyCodeActionOperation : CodeActionOperation
+    internal sealed class InstallPackageDirectlyCodeActionOperation : CodeActionOperation
     {
         private readonly Document _document;
         private readonly IPackageInstallerService _installerService;
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
         internal override bool ApplyDuringTests => true;
 
         internal override Task<bool> TryApplyAsync(
-            Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+            Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             return _installerService.TryInstallPackageAsync(
                 workspace, _document.Id, _source, _packageName,

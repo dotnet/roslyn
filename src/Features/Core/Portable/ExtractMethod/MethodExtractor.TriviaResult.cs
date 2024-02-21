@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class MethodExtractor
+    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
     {
         protected abstract class TriviaResult(SemanticDocument document, ITriviaSavedResult result, int endOfLineKind, int whitespaceKind)
         {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public SemanticDocument SemanticDocument { get; } = document;
 
-            public async Task<OperationStatus<SemanticDocument>> ApplyAsync(GeneratedCode generatedCode, CancellationToken cancellationToken)
+            public async Task<SemanticDocument> ApplyAsync(GeneratedCode generatedCode, CancellationToken cancellationToken)
             {
                 var document = generatedCode.SemanticDocument;
                 var root = document.Root;
@@ -40,16 +40,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var annotationResolver = GetAnnotationResolver(callsite, method);
                 var triviaResolver = GetTriviaResolver(method);
-                if (annotationResolver == null || triviaResolver == null)
-                {
-                    // bug # 6644
-                    // this could happen in malformed code. return as it was.
-                    var status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.can_t_not_construct_final_tree);
-                    return status.With(document);
-                }
 
-                return OperationStatus.Succeeded.With(
-                    await document.WithSyntaxRootAsync(_result.RestoreTrivia(root, annotationResolver, triviaResolver), cancellationToken).ConfigureAwait(false));
+                // Failed to restore the trivia.  Just return whatever best effort result is that we have so far.
+                if (annotationResolver == null || triviaResolver == null)
+                    return document;
+
+                return await document.WithSyntaxRootAsync(
+                    _result.RestoreTrivia(root, annotationResolver, triviaResolver), cancellationToken).ConfigureAwait(false);
             }
 
             protected IEnumerable<SyntaxTrivia> FilterTriviaList(IEnumerable<SyntaxTrivia> list)

@@ -10,6 +10,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Roslyn.Utilities;
 
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private void RaiseDiagnosticsCreatedForProject(ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
+        private void AddDiagnosticsCreatedArgsForProject(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
         {
             var args = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                 CreateId(projectId, key),
@@ -53,10 +54,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 documentId: null,
                 diagnostics: items.AsImmutableOrEmpty());
 
-            RaiseDiagnosticsUpdated(args);
+            builder.Add(args);
         }
 
-        private void RaiseDiagnosticsRemovedForProject(ProjectId projectId, object key)
+        private void AddDiagnosticsRemovedArgsForProject(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId, object key)
         {
             var args = DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                 CreateId(projectId, key),
@@ -65,12 +66,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 projectId: projectId,
                 documentId: null);
 
-            RaiseDiagnosticsUpdated(args);
+            builder.Add(args);
         }
 
         private object CreateId(ProjectId projectId, object key) => Tuple.Create(this, projectId, key);
 
-        public void UpdateDiagnosticsForProject(ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
+        public void UpdateAndAddDiagnosticsArgsForProject(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
         {
             Contract.ThrowIfNull(projectId);
             Contract.ThrowIfNull(key);
@@ -81,10 +82,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 _diagnosticMap.GetOrAdd(projectId, id => new HashSet<object>()).Add(key);
             }
 
-            RaiseDiagnosticsCreatedForProject(projectId, key, items);
+            AddDiagnosticsCreatedArgsForProject(ref builder, projectId, key, items);
         }
 
-        public void ClearAllDiagnosticsForProject(ProjectId projectId)
+        void IProjectSystemDiagnosticSource.UpdateDiagnosticsForProject(ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
+        {
+            using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
+            UpdateAndAddDiagnosticsArgsForProject(ref argsBuilder.AsRef(), projectId, key, items);
+            RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
+        }
+
+        void IProjectSystemDiagnosticSource.ClearAllDiagnosticsForProject(ProjectId projectId)
         {
             Contract.ThrowIfNull(projectId);
 
@@ -97,18 +105,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 }
             }
 
+            using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
             if (projectDiagnosticKeys != null)
             {
                 foreach (var key in projectDiagnosticKeys)
                 {
-                    RaiseDiagnosticsRemovedForProject(projectId, key);
+                    AddDiagnosticsRemovedArgsForProject(ref argsBuilder.AsRef(), projectId, key);
                 }
             }
 
-            ClearAnalyzerDiagnostics(projectId);
+            AddArgsToClearAnalyzerDiagnostics(ref argsBuilder.AsRef(), projectId);
+            RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
         }
 
-        public void ClearDiagnosticsForProject(ProjectId projectId, object key)
+        internal void ClearAndAddDiagnosticsArgsForProject(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId, object key)
         {
             Contract.ThrowIfNull(projectId);
             Contract.ThrowIfNull(key);
@@ -124,8 +134,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             if (raiseEvent)
             {
-                RaiseDiagnosticsRemovedForProject(projectId, key);
+                AddDiagnosticsRemovedArgsForProject(ref builder, projectId, key);
             }
+        }
+
+        void IProjectSystemDiagnosticSource.ClearDiagnosticsForProject(ProjectId projectId, object key)
+        {
+            using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
+            ClearAndAddDiagnosticsArgsForProject(ref argsBuilder.AsRef(), projectId, key);
+            RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
         }
 
         public DiagnosticData CreateAnalyzerLoadFailureDiagnostic(AnalyzerLoadFailureEventArgs e, string fullPath, ProjectId projectId, string language)

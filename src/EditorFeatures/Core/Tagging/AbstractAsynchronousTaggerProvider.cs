@@ -95,6 +95,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         protected virtual bool CancelOnNewWork { get; }
 
+        protected virtual void BeforeTagsChanged(ITextSnapshot snapshot)
+        {
+        }
+
         /// <summary>
         /// Comparer used to check if two tags are the same.  Used so that when new tags are produced, they can be
         /// appropriately 'diffed' to determine what changes to actually report in <see cref="ITagger{T}.TagsChanged"/>.
@@ -130,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 #endif
         }
 
-        protected ITagger<T>? CreateTaggerWorker<T>(ITextView? textView, ITextBuffer subjectBuffer) where T : ITag
+        protected EfficientTagger<TTag>? CreateEfficientTagger(ITextView? textView, ITextBuffer subjectBuffer)
         {
             if (!GlobalOptions.GetOption(EditorComponentOnOffOptions.Tagger))
                 return null;
@@ -138,16 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             var tagSource = GetOrCreateTagSource(textView, subjectBuffer);
             var tagger = new Tagger(tagSource);
 
-            // If we're not able to convert the tagger we instantiated to the type the caller wants, then make sure we
-            // dispose of it now.  The tagger will have added a ref to the underlying tagsource, and we have to make
-            // sure we return that to the property starting value.
-            if (tagger is not ITagger<T> result)
-            {
-                tagger.Dispose();
-                return null;
-            }
-
-            return result;
+            return tagger;
         }
 
         private TagSource GetOrCreateTagSource(ITextView? textView, ITextBuffer subjectBuffer)

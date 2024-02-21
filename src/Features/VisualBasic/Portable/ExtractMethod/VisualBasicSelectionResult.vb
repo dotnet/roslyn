@@ -15,10 +15,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Friend Class VisualBasicSelectionResult
-        Inherits SelectionResult
+        Inherits SelectionResult(Of ExecutableStatementSyntax)
 
         Public Shared Async Function CreateResultAsync(
-            status As OperationStatus,
             originalSpan As TextSpan,
             finalSpan As TextSpan,
             options As ExtractMethodOptions,
@@ -26,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             document As SemanticDocument,
             firstToken As SyntaxToken,
             lastToken As SyntaxToken,
+            selectionChanged As Boolean,
             cancellationToken As CancellationToken) As Task(Of VisualBasicSelectionResult)
 
             Contract.ThrowIfNull(document)
@@ -34,41 +34,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Dim lastAnnotation = New SyntaxAnnotation()
 
             Dim root = document.Root
-            Dim newDocument = Await SemanticDocument.CreateAsync(document.Document.WithSyntaxRoot(root.AddAnnotations(
-                        {Tuple.Create(Of SyntaxToken, SyntaxAnnotation)(firstToken, firstAnnotation),
-                         Tuple.Create(Of SyntaxToken, SyntaxAnnotation)(lastToken, lastAnnotation)})), cancellationToken).ConfigureAwait(False)
+            Dim newDocument = Await SemanticDocument.CreateAsync(document.Document.WithSyntaxRoot(AddAnnotations(
+                root, {(firstToken, firstAnnotation), (lastToken, lastAnnotation)})), cancellationToken).ConfigureAwait(False)
 
             Return New VisualBasicSelectionResult(
-                status,
                 originalSpan,
                 finalSpan,
                 options,
                 selectionInExpression,
                 newDocument,
                 firstAnnotation,
-                lastAnnotation)
+                lastAnnotation,
+                selectionChanged)
         End Function
 
         Private Sub New(
-            status As OperationStatus,
             originalSpan As TextSpan,
             finalSpan As TextSpan,
             options As ExtractMethodOptions,
             selectionInExpression As Boolean,
             document As SemanticDocument,
             firstTokenAnnotation As SyntaxAnnotation,
-            lastTokenAnnotation As SyntaxAnnotation)
+            lastTokenAnnotation As SyntaxAnnotation,
+            selectionChanged As Boolean)
 
             MyBase.New(
-                status,
                 originalSpan,
                 finalSpan,
                 options,
                 selectionInExpression,
                 document,
                 firstTokenAnnotation,
-                lastTokenAnnotation)
+                lastTokenAnnotation,
+                selectionChanged)
         End Sub
+
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
         Protected Overrides Function UnderAnonymousOrLocalMethod(token As SyntaxToken, firstToken As SyntaxToken, lastToken As SyntaxToken) As Boolean
             Dim current = token.Parent
@@ -89,6 +90,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             ' make sure selection contains the lambda
             Return firstToken.SpanStart <= current.GetFirstToken().SpanStart AndAlso
                    current.GetLastToken().Span.End <= lastToken.Span.End
+        End Function
+
+        Public Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
+            If Me.SelectionInExpression Then
+                Dim container = Me.InnermostStatementContainer()
+
+                Contract.ThrowIfNull(container)
+                Contract.ThrowIfFalse(container.IsStatementContainerNode() OrElse
+                                      TypeOf container Is TypeBlockSyntax OrElse
+                                      TypeOf container Is CompilationUnitSyntax)
+
+                Return container
+            ElseIf Me.IsExtractMethodOnSingleStatement() Then
+                Dim first = Me.GetFirstStatement()
+                Return first.Parent
+            ElseIf Me.IsExtractMethodOnMultipleStatements() Then
+                Return Me.GetFirstStatementUnderContainer().Parent
+            Else
+                Throw ExceptionUtilities.Unreachable()
+            End If
         End Function
 
         Public Overrides Function ContainingScopeHasAsyncKeyword() As Boolean
@@ -132,7 +153,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End If
         End Function
 
-        Public Overrides Function GetContainingScopeType() As ITypeSymbol
+        Public Overrides Function GetReturnType() As (returnType As ITypeSymbol, returnsByRef As Boolean)
+            ' Todo: consider supporting byref return types in VB
+            Dim returnType = GetReturnTypeWorker()
+            Return (returnType, returnsByRef:=False)
+        End Function
+
+        Private Function GetReturnTypeWorker() As ITypeSymbol
             Dim node = Me.GetContainingScope()
             Dim semanticModel = Me.SemanticDocument.SemanticModel
 
@@ -216,15 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return info.ConvertedType.GetAttributes().Any(Function(c) c.AttributeClass.Equals(coclassSymbol))
         End Function
 
-        Public Overloads Function GetFirstStatement() As ExecutableStatementSyntax
-            Return GetFirstStatement(Of ExecutableStatementSyntax)()
-        End Function
-
-        Public Overloads Function GetLastStatement() As ExecutableStatementSyntax
-            Return GetLastStatement(Of ExecutableStatementSyntax)()
-        End Function
-
-        Public Function GetFirstStatementUnderContainer() As ExecutableStatementSyntax
+        Public Overrides Function GetFirstStatementUnderContainer() As ExecutableStatementSyntax
             Contract.ThrowIfTrue(SelectionInExpression)
 
             Dim firstToken = GetFirstTokenInSelection()
@@ -248,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return statement
         End Function
 
-        Public Function GetLastStatementUnderContainer() As ExecutableStatementSyntax
+        Public Overrides Function GetLastStatementUnderContainer() As ExecutableStatementSyntax
             Contract.ThrowIfTrue(SelectionInExpression)
 
             Dim firstStatement = GetFirstStatementUnderContainer()

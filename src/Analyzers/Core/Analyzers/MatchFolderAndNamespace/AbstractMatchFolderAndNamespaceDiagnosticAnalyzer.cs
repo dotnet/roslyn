@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace
         private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
             var option = context.GetAnalyzerOptions().PreferNamespaceAndFolderMatchStructure;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 return;
             }

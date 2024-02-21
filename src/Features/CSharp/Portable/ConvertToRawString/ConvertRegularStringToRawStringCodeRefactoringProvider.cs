@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
 
         private static bool CanConvertStringLiteral(SyntaxToken token, out CanConvertParams convertParams)
         {
-            Debug.Assert(token.Kind() == SyntaxKind.StringLiteralToken);
-
             convertParams = default;
+            if (token.Kind() != SyntaxKind.StringLiteralToken)
+                return false;
 
             // Can't convert a string literal in a directive to a raw string.
             if (IsInDirective(token.Parent))

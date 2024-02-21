@@ -65,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private const string AppCodeFolderName = "App_Code";
 
         private readonly IThreadingContext _threadingContext;
+        private readonly IAsyncServiceProvider _asyncServiceProvider;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
         private readonly IGlobalOptionService _globalOptions;
@@ -107,7 +108,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal ProjectSystemProjectFactory ProjectSystemProjectFactory { get; }
 
         private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;
-
         private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
         private readonly IAsynchronousOperationListener _workspaceListener;
         private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
@@ -116,6 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
             _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
+            _asyncServiceProvider = asyncServiceProvider;
             _globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
             _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
@@ -177,6 +178,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
+                        // A real build just finished.  Clear out any results from the last "run code analysis" command.
+                        this.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>().Clear();
                         ExternalErrorDiagnosticUpdateSource.OnSolutionBuildCompleted();
                     }
                 };
@@ -213,9 +216,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _memoryListener = memoryListener;
             }
 
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
+
             // This must be called after the _openFileTracker was assigned; this way we know that a file added from the project system either got checked
             // in CheckForAddedFileBeingOpenMaybeAsync, or we catch it here.
-            await openFileTracker.CheckForOpenFilesThatWeMissedAsync(_threadingContext.DisposalToken).ConfigureAwait(false);
+            openFileTracker.CheckForOpenFilesThatWeMissed();
 
             // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
             await TaskScheduler.Default;
@@ -317,7 +322,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal override bool TryApplyChanges(
             Microsoft.CodeAnalysis.Solution newSolution,
-            IProgressTracker progressTracker)
+            IProgress<CodeAnalysisProgress> progressTracker)
         {
             if (!_foregroundObject.IsForeground())
             {
@@ -643,7 +648,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Instead, we invoke this in JTF run which will mitigate deadlocks when the ConfigureAwait(true)
             // tries to switch back to the main thread in the LSP client.
             // Link to LSP client bug for ConfigureAwait(true) - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1216657
-            var mappedChanges = _threadingContext.JoinableTaskFactory.Run(() => GetMappedTextChanges(solutionChanges));
+            var mappedChanges = _threadingContext.JoinableTaskFactory.Run(() => GetMappedTextChangesAsync(solutionChanges));
 
             // Group the mapped text changes by file, then apply all mapped text changes for the file.
             foreach (var changesForFile in mappedChanges)
@@ -658,7 +663,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             return;
 
-            async Task<MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>> GetMappedTextChanges(SolutionChanges solutionChanges)
+            async Task<MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>> GetMappedTextChangesAsync(SolutionChanges solutionChanges)
             {
                 var filePathToMappedTextChanges = new MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>();
                 foreach (var projectChanges in solutionChanges.GetProjectChanges())
@@ -768,7 +773,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             => AddDocumentCore(info, text, TextDocumentKind.AdditionalDocument);
 
         protected override void ApplyAnalyzerConfigDocumentAdded(DocumentInfo info, SourceText text)
-            => AddDocumentCore(info, text, TextDocumentKind.AnalyzerConfigDocument);
+        {
+            if (!TryAddEditorConfigToSolutionItems(info, text))
+                AddDocumentCore(info, text, TextDocumentKind.AnalyzerConfigDocument);
+        }
 
         private void AddDocumentCore(DocumentInfo info, SourceText initialText, TextDocumentKind documentKind)
         {
@@ -873,7 +881,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 #endif
 
-        private ProjectItem AddDocumentToProject(
+        private void AddDocumentToProject(
             EnvDTE.Project project,
             DocumentId documentId,
             string documentName,
@@ -888,10 +896,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
-            return AddDocumentToProjectItems(project.ProjectItems, documentId, folderPath, documentName, initialText, filePath, documentKind);
+            AddDocumentToProjectItems(project.ProjectItems, documentId, folderPath, documentName, initialText, filePath, documentKind);
         }
 
-        private ProjectItem AddDocumentToFolder(
+        private void AddDocumentToFolder(
             EnvDTE.Project project,
             DocumentId documentId,
             IEnumerable<string> folders,
@@ -909,10 +917,72 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
-            return AddDocumentToProjectItems(folder.ProjectItems, documentId, folderPath, documentName, initialText, filePath, documentKind);
+            AddDocumentToProjectItems(folder.ProjectItems, documentId, folderPath, documentName, initialText, filePath, documentKind);
         }
 
-        private ProjectItem AddDocumentToProjectItems(
+        private bool TryAddEditorConfigToSolutionItems(
+            DocumentInfo documentInfo,
+            SourceText text)
+        {
+            // We're going to see if this is an .editorconfig being added at the solution level, and if so process it specially; so verify first that it is one
+            if (CurrentSolution.FilePath is null || documentInfo.FilePath is null)
+                return false;
+
+            if (PathUtilities.GetFileName(documentInfo.FilePath) != ".editorconfig")
+                return false;
+
+            if (IOUtilities.PerformIO(() => File.Exists(documentInfo.FilePath)))
+                return false;
+
+            var solutionDirectory = PathUtilities.GetDirectoryName(this.CurrentSolution.FilePath);
+            if (solutionDirectory != PathUtilities.GetDirectoryName(documentInfo.FilePath))
+                return false;
+
+            // Double check too that this isn't a case of the .csproj being in the same folder of the .sln, at which point it's reasonable
+            // just to add this to the project file.
+            if (PathUtilities.GetDirectoryName(CurrentSolution.GetProject(documentInfo.Id.ProjectId)?.FilePath) == solutionDirectory)
+                return false;
+
+            // All checks pass, so let's treat this special.
+            var dte = _threadingContext.JoinableTaskFactory.Run(() => _asyncServiceProvider.GetServiceAsync<SDTE, EnvDTE.DTE>(_threadingContext.JoinableTaskFactory));
+
+            const string SolutionItemsFolderName = "Solution Items";
+
+            var projects = dte.Solution.Projects.OfType<EnvDTE.Project>();
+            var solutionItemsFolder = projects.FirstOrDefault(static p => p.Kind == EnvDTE.Constants.vsProjectKindSolutionItems && p.Name == SolutionItemsFolderName);
+
+            if (solutionItemsFolder != null)
+            {
+                foreach (ProjectItem projectItem in solutionItemsFolder.ProjectItems)
+                {
+                    if (projectItem.Name == documentInfo.Name)
+                    {
+                        // It's already added to the solution folder, we just need to write the text and be done
+                        using var writer = new StreamWriter(documentInfo.FilePath, append: false, encoding: text.Encoding ?? Encoding.UTF8);
+                        text.Write(writer);
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                solutionItemsFolder = ((EnvDTE80.Solution2)dte.Solution).AddSolutionFolder(SolutionItemsFolderName);
+            }
+
+            AddDocumentToProjectItems(
+                solutionItemsFolder.ProjectItems,
+                documentInfo.Id,
+                folderPath: null,
+                documentInfo.Name,
+                text,
+                documentInfo.FilePath,
+                TextDocumentKind.AnalyzerConfigDocument);
+            dte.Solution.SaveAs(dte.Solution.FileName);
+
+            return true;
+        }
+
+        private void AddDocumentToProjectItems(
             ProjectItems projectItems,
             DocumentId documentId,
             string? folderPath,
@@ -938,7 +1008,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // TODO: restore document ID hinting -- we previously ensured that the AddFromFile will introduce the document ID being used here.
             // (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/677956)
-            return projectItems.AddFromFile(filePath);
+            projectItems.AddFromFile(filePath);
         }
 
         private void RemoveDocumentCore(DocumentId documentId, TextDocumentKind documentKind)

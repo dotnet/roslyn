@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             else
             {
                 using var bytes = s_byteArrayPool.GetPooledObject();
-                checksum.WriteTo(bytes.Object);
+                checksum.Value.WriteTo(bytes.Object);
 
                 return await ReadStreamAsync(new CacheItemKey(containerKey.Value, name) { Version = bytes.Object }, cancellationToken).ConfigureAwait(false);
             }
@@ -178,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             else
             {
                 using var bytes = s_byteArrayPool.GetPooledObject();
-                checksum.WriteTo(bytes.Object);
+                checksum.Value.WriteTo(bytes.Object);
 
                 return await WriteStreamAsync(new CacheItemKey(containerKey.Value, name) { Version = bytes.Object }, stream, cancellationToken).ConfigureAwait(false);
             }

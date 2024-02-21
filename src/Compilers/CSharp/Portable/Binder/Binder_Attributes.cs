@@ -221,11 +221,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    attributeArgumentBinder.BindDefaultArguments(
+                    attributeArgumentBinder.BindDefaultArgumentsAndParamsArray(
                         node,
                         attributeConstructor.Parameters,
                         analyzedArguments.ConstructorArguments.Arguments,
                         argumentRefKindsBuilder: null,
+                        analyzedArguments.ConstructorArguments.Names,
                         ref argsToParamsOpt,
                         out defaultArguments,
                         expanded,
@@ -283,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // prevent cascading diagnostics
                 Debug.Assert(hasErrors);
-                return new SourceAttributeData(boundAttribute.Syntax.GetReference(), attributeType, attributeConstructor, hasErrors);
+                return new SourceAttributeData(Compilation, (AttributeSyntax)boundAttribute.Syntax, attributeType, attributeConstructor, hasErrors);
             }
 
             // Validate attribute constructor parameters have valid attribute parameter type
@@ -308,11 +309,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenArguments = GetRewrittenAttributeConstructorArguments(
                     attributeConstructor,
                     constructorArgsArray,
-                    boundAttribute.ConstructorArgumentNamesOpt,
                     (AttributeSyntax)boundAttribute.Syntax,
                     argsToParamsOpt,
                     diagnostics,
-                    boundAttribute.ConstructorExpanded,
                     ref hasErrors);
                 // Arguments and parameters length are only required to match when the attribute doesn't have errors.
                 Debug.Assert(rewrittenArguments.Length == attributeConstructor.ParameterCount);
@@ -323,7 +322,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(boundAttribute.Syntax, useSiteInfo);
 
             return new SourceAttributeData(
-                boundAttribute.Syntax.GetReference(),
+                Compilation,
+                (AttributeSyntax)boundAttribute.Syntax,
                 attributeType,
                 attributeConstructor,
                 rewrittenArguments,
@@ -339,6 +339,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return default;
                 }
+
+                Debug.Assert(arguments.Count(a => a.IsParamsArray) == (boundAttribute.ConstructorExpanded ? 1 : 0));
 
                 // make source indices if we have anything that doesn't map 1:1 from arguments to parameters:
                 // 1. implicit default arguments
@@ -363,19 +365,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                // After we do https://github.com/dotnet/roslyn/issues/49602, this assert can be
-                // simplified to `argsToParamsOpt.IsDefault || argsToParamsOpt == lengthAfterRewriting`.
                 Debug.Assert(argsToParamsOpt.IsDefault
-                    || argsToParamsOpt.Length == lengthAfterRewriting
-                    // in expanded scenarios, lengthAfterRewriting can only be larger than argsToParamsOpt by 1--otherwise it will be the same size or smaller
-                    || (boundAttribute.ConstructorExpanded && lengthAfterRewriting - argsToParamsOpt.Length <= 1));
+                    || argsToParamsOpt.Length == lengthAfterRewriting);
 
                 var constructorArgumentSourceIndices = ArrayBuilder<int>.GetInstance(lengthAfterRewriting);
                 constructorArgumentSourceIndices.Count = lengthAfterRewriting;
                 for (int argIndex = 0; argIndex < lengthAfterRewriting; argIndex++)
                 {
-                    int paramIndex = argsToParamsOpt.IsDefault || argIndex >= argsToParamsOpt.Length ? argIndex : argsToParamsOpt[argIndex];
-                    constructorArgumentSourceIndices[paramIndex] = defaultArguments[argIndex] ? -1 : argIndex;
+                    int paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
+                    constructorArgumentSourceIndices[paramIndex] =
+                        defaultArguments[argIndex] ||
+                            (arguments[argIndex].IsParamsArray && arguments[argIndex] is BoundArrayCreation { Bounds: [BoundLiteral { ConstantValueOpt.Value: 0 }] }) ?
+                        -1 : argIndex;
                 }
                 return constructorArgumentSourceIndices.ToImmutableAndFree();
             }
@@ -681,17 +682,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///     Arguments returned: 0, 1, 2, 3
         /// </summary>
         /// <returns>Rewritten attribute constructor arguments</returns>
-        /// <remarks>
-        /// CONSIDER: Can we share some code will call rewriting in the local rewriter?
-        /// </remarks>
         private ImmutableArray<TypedConstant> GetRewrittenAttributeConstructorArguments(
             MethodSymbol attributeConstructor,
             ImmutableArray<TypedConstant> constructorArgsArray,
-            ImmutableArray<string?> constructorArgumentNamesOpt,
             AttributeSyntax syntax,
             ImmutableArray<int> argumentsToParams,
             BindingDiagnosticBag diagnostics,
-            bool expanded,
             ref bool hasErrors)
         {
             RoslynDebug.Assert((object)attributeConstructor != null);
@@ -709,22 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var paramIndex = argumentsToParams.IsDefault ? i : argumentsToParams[i];
                 ParameterSymbol parameter = parameters[paramIndex];
 
-                TypedConstant reorderedArgument;
-                if (parameter.IsParams && parameter.Type.IsSZArray())
-                {
-                    reorderedArgument = GetParamArrayArgument(
-                        parameter,
-                        constructorArgsArray,
-                        constructorArgumentNamesOpt,
-                        argumentsCount,
-                        currentArgumentIndex: i,
-                        this.Conversions,
-                        endOfParamsArrayIndex: out i);
-                }
-                else
-                {
-                    reorderedArgument = constructorArgsArray[i];
-                }
+                TypedConstant reorderedArgument = constructorArgsArray[i];
 
                 if (!hasErrors)
                 {
@@ -746,101 +727,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reorderedArguments[paramIndex] = reorderedArgument;
             }
 
-            // If we are in expanded form and no explicit argument was provided for the params array, then create the empty params array now.
-            if (expanded && reorderedArguments[^1].Kind == TypedConstantKind.Error)
-            {
-                var paramArray = parameters[^1];
-                Debug.Assert(paramArray.IsParams);
-                reorderedArguments[^1] = new TypedConstant(paramArray.Type, ImmutableArray<TypedConstant>.Empty);
-            }
-
             Debug.Assert(hasErrors || reorderedArguments.All(arg => arg.Kind != TypedConstantKind.Error));
             return reorderedArguments.AsImmutable();
-        }
-
-        // This should eventually be moved to initial binding.
-        // https://github.com/dotnet/roslyn/issues/49602
-        private static TypedConstant GetParamArrayArgument(
-            ParameterSymbol parameter,
-            ImmutableArray<TypedConstant> constructorArgsArray,
-            ImmutableArray<string?> constructorArgumentNamesOpt,
-            int argumentsCount,
-            int currentArgumentIndex,
-            Conversions conversions,
-            out int endOfParamsArrayIndex)
-        {
-            Debug.Assert(currentArgumentIndex <= argumentsCount);
-
-            // If there's a named argument, we'll use that
-            if (!constructorArgumentNamesOpt.IsDefault && constructorArgumentNamesOpt.Contains(parameter.Name))
-            {
-                Debug.Assert(constructorArgumentNamesOpt.IndexOf(parameter.Name) == currentArgumentIndex);
-                endOfParamsArrayIndex = currentArgumentIndex;
-                if (TryGetNormalParamValue(parameter, constructorArgsArray, currentArgumentIndex, conversions, out var namedValue))
-                {
-                    return namedValue;
-                }
-
-                // A named argument for a params parameter is necessarily the only one for that parameter
-                return new TypedConstant(parameter.Type, ImmutableArray.Create(constructorArgsArray[currentArgumentIndex]));
-            }
-
-            int paramArrayArgCount = argumentsCount - currentArgumentIndex;
-
-            // If there are zero arguments left
-            if (paramArrayArgCount == 0)
-            {
-                endOfParamsArrayIndex = argumentsCount - 1;
-                return new TypedConstant(parameter.Type, ImmutableArray<TypedConstant>.Empty);
-            }
-
-            // If there's exactly one argument left, we'll try to use it in normal form
-            if (paramArrayArgCount == 1 &&
-                TryGetNormalParamValue(parameter, constructorArgsArray, currentArgumentIndex, conversions, out var lastValue))
-            {
-                endOfParamsArrayIndex = argumentsCount - 1;
-                return lastValue;
-            }
-
-            Debug.Assert(!constructorArgsArray.IsDefault);
-            Debug.Assert(currentArgumentIndex <= constructorArgsArray.Length);
-
-            // Take the trailing arguments as an array for expanded form
-            var values = new TypedConstant[paramArrayArgCount];
-
-            for (int i = 0; i < paramArrayArgCount; i++)
-            {
-                values[i] = constructorArgsArray[currentArgumentIndex++];
-            }
-
-            endOfParamsArrayIndex = currentArgumentIndex + paramArrayArgCount - 1;
-            return new TypedConstant(parameter.Type, values.AsImmutableOrNull());
-        }
-
-        private static bool TryGetNormalParamValue(ParameterSymbol parameter, ImmutableArray<TypedConstant> constructorArgsArray,
-            int argIndex, Conversions conversions, out TypedConstant result)
-        {
-            TypedConstant argument = constructorArgsArray[argIndex];
-            if (argument.Kind != TypedConstantKind.Array)
-            {
-                result = default;
-                return false;
-            }
-
-            Debug.Assert(argument.TypeInternal is object);
-            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded; // ignoring, since already bound argument and parameter
-            Conversion conversion = conversions.ClassifyBuiltInConversion((TypeSymbol)argument.TypeInternal, parameter.Type, isChecked: false, ref discardedUseSiteInfo);
-
-            // NOTE: Won't always succeed, even though we've performed overload resolution.
-            // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].
-            if (conversion.IsValid && (conversion.Kind == ConversionKind.ImplicitReference || conversion.Kind == ConversionKind.Identity))
-            {
-                result = argument;
-                return true;
-            }
-
-            result = default;
-            return false;
         }
 
         #endregion
@@ -985,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateTypedConstant(collection, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors, arrayValue: builder.ToImmutableAndFree());
             }
 
-            private TypedConstant VisitCollectionExpressionElement(BoundExpression node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
+            private TypedConstant VisitCollectionExpressionElement(BoundNode node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
             {
                 if (node is BoundCollectionExpressionSpreadElement spread)
                 {
@@ -993,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     attrHasErrors = true;
                     return new TypedConstant(spread.Expression.Type, TypedConstantKind.Error, value: null);
                 }
-                return VisitExpression(node, diagnostics, ref attrHasErrors, curArgumentHasErrors);
+                return VisitExpression((BoundExpression)node, diagnostics, ref attrHasErrors, curArgumentHasErrors);
             }
 
             private TypedConstant VisitConversion(BoundConversion node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)

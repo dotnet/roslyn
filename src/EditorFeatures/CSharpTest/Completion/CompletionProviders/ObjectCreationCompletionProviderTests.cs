@@ -130,8 +130,8 @@ class Program
 }";
 
             await VerifyCommitCharactersAsync(markup, textTypedSoFar: "",
-                validChars: new[] { ' ', '(', '{', '[' },
-                invalidChars: new[] { 'x', ',', '#' });
+                validChars: [' ', '(', '{', '['],
+                invalidChars: ['x', ',', '#']);
         }
 
         [Fact]

@@ -19,6 +19,9 @@
   <!-- <Metalama> -->
   <PropertyGroup>
     <RepoKind>GitHub</RepoKind>
+
+    <!-- If this is not set, build fails with: "<SymbolPackageFormat>snupkg</SymbolPackageFormat> is not supported by the Arcade SDK." -->
+    <SuppressSymbolPackageFormatValidation>true</SuppressSymbolPackageFormatValidation>
   </PropertyGroup>
   
   <Import Sdk="PostSharp.Engineering.Sdk" Project="SourceLink.props"/>

@@ -10,7 +10,6 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-
         private sealed class NamedTypeSymbolKey : AbstractSymbolKey<INamedTypeSymbol>
         {
             public static readonly NamedTypeSymbolKey Instance = new();
@@ -24,6 +23,8 @@ namespace Microsoft.CodeAnalysis
                     ? symbol.DeclaringSyntaxReferences[0].SyntaxTree.FilePath
                     : null);
                 visitor.WriteBoolean(symbol.IsUnboundGenericType);
+                visitor.WriteBoolean(symbol.IsNativeIntegerType);
+                visitor.WriteBoolean(symbol.SpecialType == SpecialType.System_IntPtr);
 
                 if (!symbol.Equals(symbol.ConstructedFrom) && !symbol.IsUnboundGenericType)
                 {
@@ -43,11 +44,20 @@ namespace Microsoft.CodeAnalysis
                 var arity = reader.ReadInteger();
                 var filePath = reader.ReadString();
                 var isUnboundGenericType = reader.ReadBoolean();
+                var isNativeIntegerType = reader.ReadBoolean();
+                var signed = reader.ReadBoolean();
 
                 using var typeArguments = reader.ReadSymbolKeyArray<INamedTypeSymbol, ITypeSymbol>(
                     contextualSymbol,
                     getContextualSymbol: static (contextualType, i) => SafeGet(contextualType.TypeArguments, i),
                     out var typeArgumentsFailureReason);
+
+                // If we started with nint/nuint go back to that specific type if the language allows for it.
+                if (isNativeIntegerType && reader.Compilation.Language == LanguageNames.CSharp)
+                {
+                    failureReason = null;
+                    return new SymbolKeyResolution(reader.Compilation.CreateNativeIntegerTypeSymbol(signed));
+                }
 
                 if (typeArgumentsFailureReason != null)
                 {
@@ -59,9 +69,7 @@ namespace Microsoft.CodeAnalysis
 
                 Contract.ThrowIfTrue(typeArguments.IsDefault);
 
-                var typeArgumentsArray = typeArguments.Count == 0
-                    ? Array.Empty<ITypeSymbol>()
-                    : typeArguments.Builder.ToArray();
+                var typeArgumentsArray = typeArguments.Count == 0 ? [] : typeArguments.Builder.ToArray();
 
                 var normalResolution = ResolveNormalNamedType(
                     containingSymbolResolution, containingSymbolFailureReason,

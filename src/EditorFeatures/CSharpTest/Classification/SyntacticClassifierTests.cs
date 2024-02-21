@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions? options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, ImmutableArray<TextSpan> spans, ParseOptions? options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-            return await GetSyntacticClassificationsAsync(document, span);
+            return await GetSyntacticClassificationsAsync(document, spans);
         }
 
         [Theory, CombinatorialData]
@@ -188,6 +188,35 @@ class yield
         }
 
         [Theory, CombinatorialData]
+        public async Task YieldYieldAsSpans(TestHost testHost)
+        {
+            await TestAsync(
+@"using System.Collections.Generic;
+
+class yield
+{
+    IEnumerable<yield> M()
+    {
+        [|yield yield = new yield();|]
+        [|yield return yield;|]
+    }
+}",
+                testHost,
+                Identifier("yield"),
+                Local("yield"),
+                Operators.Equals,
+                Keyword("new"),
+                Identifier("yield"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                ControlKeyword("yield"),
+                ControlKeyword("return"),
+                Identifier("yield"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
         public async Task YieldReturn(TestHost testHost)
         {
             await TestInMethodAsync("yield return 42",
@@ -307,7 +336,7 @@ partial interface T3
                 Punctuation.CloseCurly);
         }
 
-        private static readonly string[] s_contextualKeywordsOnlyValidInMethods = new string[] { "where", "from", "group", "join", "select", "into", "let", "by", "orderby", "on", "equals", "ascending", "descending" };
+        private static readonly string[] s_contextualKeywordsOnlyValidInMethods = ["where", "from", "group", "join", "select", "into", "let", "by", "orderby", "on", "equals", "ascending", "descending"];
 
         /// <summary>
         /// Check for items only valid within a method declaration
@@ -5644,7 +5673,7 @@ class C
             using var workspace = CreateWorkspace(source, options: null, TestHost.InProcess);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-            var classifications = await GetSyntacticClassificationsAsync(document, new TextSpan(0, source.Length));
+            var classifications = await GetSyntacticClassificationsAsync(document, ImmutableArray.Create(new TextSpan(0, source.Length)));
             Assert.Equal(new[]
             {
                 new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(0, 3)),
@@ -5672,7 +5701,7 @@ class C
             using var workspace = CreateWorkspace(source, options: null, TestHost.InProcess);
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-            var classifications = await GetSyntacticClassificationsAsync(document, new TextSpan(0, source.Length));
+            var classifications = await GetSyntacticClassificationsAsync(document, ImmutableArray.Create(new TextSpan(0, source.Length)));
             Assert.Equal(new[]
             {
                 new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(2, 3)),

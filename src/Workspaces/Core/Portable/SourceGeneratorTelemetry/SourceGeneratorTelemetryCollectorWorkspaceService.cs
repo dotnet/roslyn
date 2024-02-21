@@ -20,7 +20,7 @@ internal sealed class SourceGeneratorTelemetryCollectorWorkspaceService : ISourc
         [SetsRequiredMembers]
         public GeneratorTelemetryKey(ISourceGenerator generator, AnalyzerReference analyzerReference)
         {
-            Identity = new SourceGeneratorIdentity(generator, analyzerReference);
+            Identity = SourceGeneratorIdentity.Create(generator, analyzerReference);
             FileVersion = "(null)";
 
             if (Identity.AssemblyPath != null)

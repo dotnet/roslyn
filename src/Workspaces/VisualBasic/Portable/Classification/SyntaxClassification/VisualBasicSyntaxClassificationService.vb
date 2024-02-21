@@ -37,8 +37,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken)
         End Sub
 
-        Public Overrides Sub AddSyntacticClassifications(root As SyntaxNode, textSpan As TextSpan, result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)
-            Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken)
+        Public Overrides Sub AddSyntacticClassifications(root As SyntaxNode, textSpans As ImmutableArray(Of TextSpan), result As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)
+            For Each textSpan In textSpans
+                Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken)
+            Next
         End Sub
 
         Public Overrides Function FixClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan

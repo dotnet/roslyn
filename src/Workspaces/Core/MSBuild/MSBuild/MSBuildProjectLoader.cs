@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly PathResolver _pathResolver;
-        private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
+        private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
 
         // used to protect access to the following mutable state
         private readonly NonReentrantLock _dataGuard = new();
@@ -33,13 +33,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
         internal MSBuildProjectLoader(
             SolutionServices solutionServices,
             DiagnosticReporter diagnosticReporter,
-            ProjectFileLoaderRegistry? projectFileLoaderRegistry,
+            ProjectFileExtensionRegistry? projectFileExtensionRegistry,
             ImmutableDictionary<string, string>? properties)
         {
             _solutionServices = solutionServices;
             _diagnosticReporter = diagnosticReporter;
             _pathResolver = new PathResolver(_diagnosticReporter);
-            _projectFileLoaderRegistry = projectFileLoaderRegistry ?? new ProjectFileLoaderRegistry(solutionServices, _diagnosticReporter);
+            _projectFileExtensionRegistry = projectFileExtensionRegistry ?? new ProjectFileExtensionRegistry(solutionServices, _diagnosticReporter);
 
             Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="properties">An optional dictionary of additional MSBuild properties and values to use when loading projects.
         /// These are the same properties that are passed to MSBuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
         public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string>? properties = null)
-            : this(workspace.Services.SolutionServices, new DiagnosticReporter(workspace), projectFileLoaderRegistry: null, properties)
+            : this(workspace.Services.SolutionServices, new DiagnosticReporter(workspace), projectFileExtensionRegistry: null, properties)
         {
         }
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 throw new ArgumentNullException(nameof(language));
             }
 
-            _projectFileLoaderRegistry.AssociateFileExtensionWithLanguage(projectFileExtension, language);
+            _projectFileExtensionRegistry.AssociateFileExtensionWithLanguage(projectFileExtension, language);
         }
 
         private void SetSolutionProperties(string? solutionFilePath)
@@ -144,7 +144,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public async Task<SolutionInfo> LoadSolutionInfoAsync(
             string solutionFilePath,
             IProgress<ProjectLoadProgress>? progress = null,
+#pragma warning disable IDE0060 // TODO: decide what to do with this unusued ILogger, since we can't reliabily use it if we're sending builds out of proc
             ILogger? msbuildLogger = null,
+#pragma warning restore IDE0060
             CancellationToken cancellationToken = default)
         {
             if (solutionFilePath == null)
@@ -197,14 +199,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
             }
 
-            var buildManager = new ProjectBuildManager(Properties, msbuildLogger);
+            var buildHostProcessManager = new BuildHostProcessManager(Properties);
+            await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
             var worker = new Worker(
                 _solutionServices,
                 _diagnosticReporter,
                 _pathResolver,
-                _projectFileLoaderRegistry,
-                buildManager,
+                _projectFileExtensionRegistry,
+                buildHostProcessManager,
                 projectPaths.ToImmutable(),
                 // TryGetAbsoluteSolutionPath should not return an invalid path
                 baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
@@ -240,7 +243,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string projectFilePath,
             ProjectMap? projectMap = null,
             IProgress<ProjectLoadProgress>? progress = null,
+#pragma warning disable IDE0060 // TODO: decide what to do with this unusued ILogger, since we can't reliabily use it if we're sending builds out of proc
             ILogger? msbuildLogger = null,
+#pragma warning restore IDE0060
             CancellationToken cancellationToken = default)
         {
             if (projectFilePath == null)
@@ -256,14 +261,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 onPathFailure: reportingMode,
                 onLoaderFailure: reportingMode);
 
-            var buildManager = new ProjectBuildManager(Properties, msbuildLogger);
+            var buildHostProcessManager = new BuildHostProcessManager(Properties);
+            await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
             var worker = new Worker(
                 _solutionServices,
                 _diagnosticReporter,
                 _pathResolver,
-                _projectFileLoaderRegistry,
-                buildManager,
+                _projectFileExtensionRegistry,
+                buildHostProcessManager,
                 requestedProjectPaths: ImmutableArray.Create(projectFilePath),
                 baseDirectory: Directory.GetCurrentDirectory(),
                 globalProperties: Properties,
