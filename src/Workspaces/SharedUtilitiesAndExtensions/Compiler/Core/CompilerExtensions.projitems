@@ -516,7 +516,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.SequenceMatcher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.SingleMatcher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\NonReentrantLock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PooledBuilderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PredefinedOperator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PredefinedType.cs" />

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         private readonly SemaphoreSlim _serializationLock = new(initialCount: 1);
 
         // this lock guards all the mutable fields (do not share lock with derived classes)
-        private readonly NonReentrantLock _stateLock = new(useThisInstanceForSynchronization: true);
+        private readonly SemaphoreSlim _stateLock = new(initialCount: 1);
 
         /// <summary>
         /// Current solution.  Must be locked with <see cref="_serializationLock"/> when writing to it.

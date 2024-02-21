@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly Registration _registration;
                 private readonly ProjectProcessor _processor;
 
-                private readonly NonReentrantLock _workGate = new();
+                private readonly SemaphoreSlim _workGate = new(initialCount: 1);
                 private readonly Dictionary<DocumentId, Data> _pendingWork = [];
 
                 public SemanticChangeProcessor(
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     Logger.Log(FunctionId.WorkCoordinator_SemanticChange_Enqueue, s_enqueueLogger, Environment.TickCount, documentId, changedMember != null);
                 }
 
-                private static TValue DequeueWorker<TKey, TValue>(NonReentrantLock gate, Dictionary<TKey, TValue> map, CancellationToken cancellationToken)
+                private static TValue DequeueWorker<TKey, TValue>(SemaphoreSlim gate, Dictionary<TKey, TValue> map, CancellationToken cancellationToken)
                     where TKey : notnull
                 {
                     using (gate.DisposableWait(cancellationToken))
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                private static void ClearQueueWorker<TKey, TValue>(NonReentrantLock gate, Dictionary<TKey, TValue> map, Func<TValue, IDisposable> disposerSelector)
+                private static void ClearQueueWorker<TKey, TValue>(SemaphoreSlim gate, Dictionary<TKey, TValue> map, Func<TValue, IDisposable> disposerSelector)
                     where TKey : notnull
                 {
                     using (gate.DisposableWait(CancellationToken.None))
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private readonly Registration _registration;
                     private readonly IncrementalAnalyzerProcessor _processor;
 
-                    private readonly NonReentrantLock _workGate = new();
+                    private readonly SemaphoreSlim _workGate = new(initialCount: 1);
                     private readonly Dictionary<ProjectId, Data> _pendingWork = [];
 
                     public ProjectProcessor(

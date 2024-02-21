@@ -24,7 +24,7 @@ internal sealed partial class RecoverableTextAndVersion
     {
         // enforce saving in a queue so save's don't overload the thread pool.
         private static Task s_latestTask = Task.CompletedTask;
-        private static readonly NonReentrantLock s_taskGuard = new();
+        private static readonly SemaphoreSlim s_taskGuard = new(initialCount: 1);
 
         /// <summary>
         /// Lazily created. Access via the <see cref="Gate"/> property.

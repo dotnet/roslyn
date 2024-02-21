@@ -54,8 +54,8 @@ internal sealed partial class SolutionCompilationState
     private static readonly Func<ConditionalWeakTable<ISymbol, ProjectId?>> s_createTable = () => new ConditionalWeakTable<ISymbol, ProjectId?>();
 
     // Lock for the partial compilation state listed below.
-    private NonReentrantLock? _stateLockBackingField;
-    private NonReentrantLock StateLock => LazyInitializer.EnsureInitialized(ref _stateLockBackingField, NonReentrantLock.Factory);
+    private SemaphoreSlim? _stateLockBackingField;
+    private SemaphoreSlim StateLock => LazyInitializer.EnsureInitialized(ref _stateLockBackingField, static () => new(initialCount: 1));
 
     /// <summary>
     /// Mapping of DocumentId to the frozen compilation state we produced for it the last time we were queried.
