@@ -24100,13 +24100,13 @@ internal abstract partial class DirectiveTriviaSyntax : StructuredTriviaSyntax
     internal DirectiveTriviaSyntax(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
       : base(kind, diagnostics, annotations)
     {
-        this.flags |= NodeFlags.ContainsDirectives;
+        SetFlags(NodeFlags.ContainsDirectives);
     }
 
     internal DirectiveTriviaSyntax(SyntaxKind kind)
       : base(kind)
     {
-        this.flags |= NodeFlags.ContainsDirectives;
+        SetFlags(NodeFlags.ContainsDirectives);
     }
 
     public abstract SyntaxToken HashToken { get; }

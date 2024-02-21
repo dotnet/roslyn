@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 first = false;
                 members.AddRange(property.Type.ToMinimalDisplayParts(semanticModel, position, s_minimalWithoutExpandedTuples).Select(p => p.MassageErrorTypeNames("?")));
                 members.AddRange(Space());
-                members.Add(new SymbolDisplayPart(SymbolDisplayPartKind.PropertyName, property, property.Name));
+                members.Add(new SymbolDisplayPart(SymbolDisplayPartKind.PropertyName, property, CSharpSyntaxFacts.Instance.EscapeIdentifier(property.Name)));
             }
 
             members.AddRange(Space());

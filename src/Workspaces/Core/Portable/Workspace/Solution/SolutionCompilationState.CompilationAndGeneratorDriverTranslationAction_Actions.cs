@@ -55,9 +55,12 @@ namespace Microsoft.CodeAnalysis
                 private readonly AdditionalDocumentState _newState = newState;
 
                 // Changing an additional document doesn't change the compilation directly, so we can "apply" the
-                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping
-                // the compilation with stale trees around, answering true is still important.
+                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping the
+                // compilation with stale trees around, answering true is still important.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                    => Task.FromResult(oldCompilation);
 
                 public override CompilationAndGeneratorDriverTranslationAction? TryMergeWithPrior(CompilationAndGeneratorDriverTranslationAction priorAction)
                 {
@@ -198,11 +201,13 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class AddOrRemoveAnalyzerReferencesAction(string language, ImmutableArray<AnalyzerReference> referencesToAdd = default, ImmutableArray<AnalyzerReference> referencesToRemove = default) : CompilationAndGeneratorDriverTranslationAction
             {
-
                 // Changing analyzer references doesn't change the compilation directly, so we can "apply" the
-                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping
-                // the compilation with stale trees around, answering true is still important.
+                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping the
+                // compilation with stale trees around, answering true is still important.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                    => Task.FromResult(oldCompilation);
 
                 public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
@@ -222,11 +227,13 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class AddAdditionalDocumentsAction(ImmutableArray<AdditionalDocumentState> additionalDocuments) : CompilationAndGeneratorDriverTranslationAction
             {
-
                 // Changing an additional document doesn't change the compilation directly, so we can "apply" the
-                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping
-                // the compilation with stale trees around, answering true is still important.
+                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping the
+                // compilation with stale trees around, answering true is still important.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                    => Task.FromResult(oldCompilation);
 
                 public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
@@ -236,11 +243,13 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class RemoveAdditionalDocumentsAction(ImmutableArray<AdditionalDocumentState> additionalDocuments) : CompilationAndGeneratorDriverTranslationAction
             {
-
                 // Changing an additional document doesn't change the compilation directly, so we can "apply" the
-                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping
-                // the compilation with stale trees around, answering true is still important.
+                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping the
+                // compilation with stale trees around, answering true is still important.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                    => Task.FromResult(oldCompilation);
 
                 public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
@@ -251,6 +260,11 @@ namespace Microsoft.CodeAnalysis
             internal sealed class ReplaceGeneratorDriverAction(GeneratorDriver oldGeneratorDriver, ProjectState newProjectState) : CompilationAndGeneratorDriverTranslationAction
             {
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                // Replacing the generator doesn't change the non-generator compilation.  So we can just return the old
+                // compilation as is.
+                public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                    => Task.FromResult(oldCompilation);
 
                 public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver _)
                 {
