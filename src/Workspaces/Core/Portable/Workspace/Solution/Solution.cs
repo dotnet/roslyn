@@ -1503,7 +1503,7 @@ namespace Microsoft.CodeAnalysis
                     if (!_documentIdToFrozenSolution.TryGetValue(documentId, out var lazySolution))
                     {
                         // in a local function to prevent lambda allocations when not needed.
-                        lazySolution = CreateLazyFrozenSolution(documentId);
+                        lazySolution = CreateLazyFrozenSolution(this.CompilationState, documentId);
                         _documentIdToFrozenSolution.Add(documentId, lazySolution);
                     }
 
@@ -1511,12 +1511,12 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            AsyncLazy<Solution> CreateLazyFrozenSolution(DocumentId documentId)
-                => AsyncLazy.Create(cancellationToken => ComputeFrozenSolution(documentId));
+            AsyncLazy<Solution> CreateLazyFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId)
+                => AsyncLazy.Create(cancellationToken => ComputeFrozenSolution(compilationState, documentId, cancellationToken));
 
-            Solution ComputeFrozenSolution(DocumentId documentId)
+            static Solution ComputeFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId, CancellationToken cancellationToken)
             {
-                var newCompilationState = this.CompilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
+                var newCompilationState = compilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
                 return new Solution(newCompilationState);
             }
         }
