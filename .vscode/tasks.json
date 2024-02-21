@@ -55,6 +55,19 @@
         "group": "build"
     },
     {
+        "label": "build Roslyn.sln",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "build",
+          "-p:RunAnalyzersDuringBuild=false",
+          "-p:GenerateFullPaths=true",
+          "Roslyn.sln"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
         "label": "build csc",
         "command": "dotnet",
         "type": "shell",
@@ -63,19 +76,6 @@
           "-p:RunAnalyzersDuringBuild=false",
           "-p:GenerateFullPaths=true",
           "src/Compilers/CSharp/csc/AnyCpu/csc.csproj"
-        ],
-        "problemMatcher": "$msCompile",
-        "group": "build"
-    },
-    {
-        "label": "build Compilers.slnf",
-        "command": "dotnet",
-        "type": "shell",
-        "args": [
-          "build",
-          "-p:RunAnalyzersDuringBuild=false",
-          "-p:GenerateFullPaths=true",
-          "Compilers.slnf"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"

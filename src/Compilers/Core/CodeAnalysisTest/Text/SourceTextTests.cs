@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         private static void TestTryReadByteOrderMark(Encoding expectedEncoding, int expectedPreambleLength, byte[] data, int validLength)
         {
             int actualPreambleLength;
-            Encoding actualEncoding = SourceText.TryReadByteOrderMark(data, validLength, out actualPreambleLength);
+            Encoding actualEncoding = SourceText.TryReadByteOrderMark(new ReadOnlySpan<byte>(data, 0, validLength), out actualPreambleLength);
             if (expectedEncoding == null)
             {
                 Assert.Null(actualEncoding);

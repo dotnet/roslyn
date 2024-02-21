@@ -2598,7 +2598,7 @@ End Class
             Dim c = str(i)
             If (c = vbLf(0)) AndAlso
                 ((i = str.Length - 1) OrElse (str(i + 1) <> vbCr(0))) Then
-                builder.AddRange(vbCrLf)
+                builder.AddRange(vbCrLf.AsSpan())
             Else
                 builder.Add(c)
             End If
