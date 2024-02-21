@@ -218,6 +218,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
         }
 
         [Fact]
+        public async Task TestRedundantDirectiveBetweenUsingAndNamespace2()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                using System;
+                [|#nullable enable|]
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestRedundantDirectiveBetweenUsingAndNamespace3()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                using System;
+
+                [|#nullable enable|]
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """,
+                """
+                using System;
+
+                namespace MyNamespace
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact]
         public async Task TestRedundantDirectiveWithNamespaceAndDerivedType()
         {
             await VerifyCodeFixAsync(
