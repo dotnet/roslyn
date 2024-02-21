@@ -4979,14 +4979,15 @@ class Attr : Attribute
 
             var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) });
             comp.VerifyDiagnostics(
-                // (4,2): error CS0181: Attribute constructor parameter 'c' has type 'CustomHandler', which is not a valid attribute parameter type
+                // (4,7): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [Attr($"{1}{2}")]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Attr").WithArguments("c", "CustomHandler").WithLocation(4, 2)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, expression).WithLocation(4, 7)
             );
-            VerifyInterpolatedStringExpression(comp);
 
             var attr = comp.SourceAssembly.SourceModule.GlobalNamespace.GetTypeMember("Attr");
-            Assert.Equal("Attr..ctor(CustomHandler c)", attr.GetAttributes().Single().AttributeConstructor.ToTestDisplayString());
+            // Note that for usage in attributes, we don't use the custom handler. This is because it's an error scenario regardless, and we want to avoid
+            // potential binding cycles.
+            Assert.Equal("Attr..ctor(System.String s)", attr.GetAttributes().Single().AttributeConstructor.ToTestDisplayString());
         }
 
         [Theory]
@@ -18171,6 +18172,76 @@ class C
                 // (7,14): error CS1503: Argument 1: cannot convert from 'string' to 'System.Runtime.CompilerServices.DefaultInterpolatedStringHandler'
                 //         ByIn(s);
                 Diagnostic(ErrorCode.ERR_BadArgType, "s").WithArguments("1", "string", "in System.Runtime.CompilerServices.DefaultInterpolatedStringHandler").WithLocation(7, 14));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68110")]
+        public void DefaultSyntaxValueReentrancy_01()
+        {
+            var source =
+                """
+                #nullable enable
+
+                [A(3, X = 6)]
+                public struct A
+                {
+                    public int X;
+
+                    public A(int x, A a = $"{1}") { }
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            var a = compilation.GlobalNamespace.GetTypeMember("A").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
+
+            Assert.Null(a.Parameters[1].ExplicitDefaultValue);
+            Assert.True(a.Parameters[1].HasExplicitDefaultValue);
+
+            compilation.VerifyDiagnostics(
+                // (3,2): error CS0616: 'A' is not an attribute class
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(3, 2),
+                // (3,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A(3, X = 6)").WithLocation(3, 2),
+                // (8,27): error CS1736: Default parameter value for 'a' must be a compile-time constant
+                //     public A(int x, A a = $"{1}") { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""{1}""").WithArguments("a").WithLocation(8, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68110")]
+        public void DefaultSyntaxValueReentrancy_02()
+        {
+            var source =
+                """
+                #nullable enable
+
+                [A(3, X = 6)]
+                public struct A
+                {
+                    public int X;
+
+                    public A(int x, A a = M($"{1}")) { }
+
+                    public static void M(ref A a) {}
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            var a = compilation.GlobalNamespace.GetTypeMember("A").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
+
+            Assert.Null(a.Parameters[1].ExplicitDefaultValue);
+            Assert.True(a.Parameters[1].HasExplicitDefaultValue);
+
+            compilation.VerifyDiagnostics(
+                // (3,2): error CS0616: 'A' is not an attribute class
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(3, 2),
+                // (3,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A(3, X = 6)").WithLocation(3, 2),
+                // (8,29): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //     public A(int x, A a = M($"{1}")) { }
+                Diagnostic(ErrorCode.ERR_BadArgRef, @"$""{1}""").WithArguments("1", "ref").WithLocation(8, 29));
         }
     }
 }

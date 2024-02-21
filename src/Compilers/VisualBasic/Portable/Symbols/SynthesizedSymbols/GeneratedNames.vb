@@ -2,17 +2,15 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Globalization
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
     ''' Helper class to generate synthesized names.
     ''' </summary>
     Friend NotInheritable Class GeneratedNames
-        Private Const s_idSeparator As Char = "-"c
-        Private Const s_generationSeparator As Char = "#"c
+        Private Const GenerationSeparator As Char = CommonGeneratedNames.GenerationSeparator
 
         ''' <summary>
         ''' Generates the name of a state machine's type.
@@ -112,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 builder.Append(methodOrdinal)
 
                 If methodGeneration > 0 Then
-                    builder.Append(s_generationSeparator)
+                    builder.Append(GenerationSeparator)
                     builder.Append(methodGeneration)
                 End If
             End If
@@ -120,13 +118,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If entityOrdinal >= 0 Then
                 If methodOrdinal >= 0 Then
                     ' Can't use underscore since name parser uses it to find the method name.
-                    builder.Append(s_idSeparator)
+                    builder.Append(GeneratedNameConstants.IdSeparator)
                 End If
 
                 builder.Append(entityOrdinal)
 
                 If entityGeneration > 0 Then
-                    builder.Append(s_generationSeparator)
+                    builder.Append(GenerationSeparator)
                     builder.Append(entityGeneration)
                 End If
             End If

@@ -14,7 +14,7 @@ internal sealed class RazorWorkspaceListenerInitializer
 {
     // This should be moved to the Razor side once things are announced, so defaults are all in one
     // place, in case things ever need to change
-    private const string _projectRazorJsonFileName = "project.razor.vscode.json";
+    private const string _projectRazorJsonFileName = "project.razor.vscode.bin";
 
     private readonly ILogger _logger;
     private readonly Workspace _workspace;

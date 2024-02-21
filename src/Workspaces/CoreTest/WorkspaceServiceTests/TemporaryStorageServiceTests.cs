@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // write a normal stream
             var stream = new MemoryStream();
-            stream.Write(new byte[] { 42 }, 0, 1);
+            stream.Write([42], 0, 1);
             stream.Position = 0;
             storage.WriteStreamAsync(stream).Wait();
 

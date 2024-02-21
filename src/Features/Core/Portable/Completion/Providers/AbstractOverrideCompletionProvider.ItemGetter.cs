@@ -80,8 +80,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return default;
                 }
 
-                return _provider.FilterOverrides(overridableMembers, returnType).
-                       SelectAsArray(m => CreateItem(m, semanticModel, startToken, modifiers));
+                return _provider
+                    .FilterOverrides(overridableMembers, returnType)
+                    .SelectAsArray(m => CreateItem(m, semanticModel, startToken, modifiers));
             }
 
             private CompletionItem CreateItem(

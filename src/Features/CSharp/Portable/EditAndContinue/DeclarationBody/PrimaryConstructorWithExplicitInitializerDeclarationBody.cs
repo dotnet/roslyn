@@ -39,5 +39,5 @@ internal sealed class PrimaryConstructorWithExplicitInitializerDeclarationBody(T
         => Initializer;
 
     public override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model)
-        => model.AnalyzeDataFlow(Initializer)!.Captured;
+        => model.AnalyzeDataFlow(Initializer)!.CapturedInside;
 }

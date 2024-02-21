@@ -2113,10 +2113,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                 }
                 """;
 
-            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host, actions: new[]
-                {
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host, actions:
+                [
                     FeaturesResources.updating_usages_in_containing_member
-                });
+                ]);
         }
 
         [Theory, CombinatorialData]
@@ -2188,10 +2188,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                 }
                 """;
 
-            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host, actions: new[]
-                {
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host, actions:
+                [
                     FeaturesResources.updating_usages_in_containing_member
-                });
+                ]);
         }
 
         [Theory, CombinatorialData]
@@ -2799,11 +2799,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                 }
                 """;
 
-            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host, actions: new[]
-                {
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host, actions:
+                [
                     FeaturesResources.updating_usages_in_containing_member,
                     FeaturesResources.updating_usages_in_containing_type,
-                });
+                ]);
         }
 
         [Theory, CombinatorialData]
@@ -2879,11 +2879,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                 }
                 """;
 
-            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host, actions: new[]
-                {
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host, actions:
+                [
                     FeaturesResources.updating_usages_in_containing_member,
                     FeaturesResources.updating_usages_in_containing_type,
-                });
+                ]);
         }
 
         #endregion
@@ -2984,11 +2984,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
 
             await TestAsync(
                 text, expected, index: 1, equivalenceKey: Scope.ContainingType.ToString(),
-                options: PreferImplicitTypeWithInfo(), testHost: host, actions: new[]
-                {
+                options: PreferImplicitTypeWithInfo(), testHost: host, actions:
+                [
                     FeaturesResources.updating_usages_in_containing_member,
                     FeaturesResources.updating_usages_in_containing_type
-                });
+                ]);
         }
 
         [Theory, CombinatorialData]
@@ -3082,11 +3082,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
 
             await TestAsync(
                 text, expected, index: 1, equivalenceKey: Scope.ContainingType.ToString(),
-                options: PreferImplicitTypeWithInfo(), testHost: host, actions: new[]
-                {
+                options: PreferImplicitTypeWithInfo(), testHost: host, actions:
+                [
                     FeaturesResources.updating_usages_in_containing_member,
                     FeaturesResources.updating_usages_in_containing_type
-                });
+                ]);
         }
 
         [Theory, CombinatorialData]

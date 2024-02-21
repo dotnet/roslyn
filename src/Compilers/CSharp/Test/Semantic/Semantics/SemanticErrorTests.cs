@@ -24833,5 +24833,36 @@ unsafe class C<T, U, V, X, Y, Z> where T : byte*
                 //             return (1, 2);
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "(1, 2)").WithArguments("lambda expression").WithLocation(12, 20));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68110")]
+        public void DefaultSyntaxValueReentrancy_01()
+        {
+            var source =
+                """
+                #nullable enable
+
+                [A(3, X = 6)]
+                public interface A
+                {
+                    public int X { get; set; }
+
+                    public void M(int x, A a = new A()) { }
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            var a = compilation.GlobalNamespace.GetTypeMember("A").GetMember<MethodSymbol>("M");
+
+            Assert.Null(a.Parameters[1].ExplicitDefaultValue);
+            Assert.True(a.Parameters[1].HasExplicitDefaultValue);
+
+            compilation.VerifyDiagnostics(
+                // (3,2): error CS0653: Cannot apply attribute class 'A' because it is abstract
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_AbstractAttributeClass, "A").WithArguments("A").WithLocation(3, 2),
+                // (8,32): error CS0144: Cannot create an instance of the abstract type or interface 'A'
+                //     public void M(int x, A a = new A()) { }
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new A()").WithArguments("A").WithLocation(8, 32));
+        }
     }
 }

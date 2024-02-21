@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -29,9 +30,9 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         /// this work, that happens after the move has happened.  As such, this does not require non document changes
         /// and can run in all our hosts.
         /// </summary>
-        public override ImmutableArray<string> Tags => ImmutableArray<string>.Empty;
+        public sealed override ImmutableArray<string> Tags => ImmutableArray<string>.Empty;
 
-        public override object GetOptions(CancellationToken cancellationToken)
+        public sealed override object GetOptions(CancellationToken cancellationToken)
         {
             return _moveToNamespaceService.GetChangeNamespaceOptions(
                 _moveToNamespaceAnalysisResult.Document,
@@ -39,7 +40,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 _moveToNamespaceAnalysisResult.Namespaces);
         }
 
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+        protected sealed override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+            object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             // We won't get an empty target namespace from VS, but still should handle it w/o crashing.
             if (options is MoveToNamespaceOptionsResult moveToNamespaceOptions &&

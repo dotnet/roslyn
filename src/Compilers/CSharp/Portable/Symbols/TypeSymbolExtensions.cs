@@ -1834,7 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// no more, no less. Validation of builder type B is left for elsewhere. This method returns B
         /// without validation of any kind.
         /// </remarks>
-        internal static bool IsCustomTaskType(this NamedTypeSymbol type, [NotNullWhen(true)] out object? builderArgument)
+        internal static bool IsCustomTaskType(this NamedTypeSymbol type, [NotNullWhen(true)] out TypeSymbol? builderArgument)
         {
             RoslynDebug.Assert((object)type != null);
 

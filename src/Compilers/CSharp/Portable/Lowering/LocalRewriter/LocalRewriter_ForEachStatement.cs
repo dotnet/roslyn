@@ -168,7 +168,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var builder = ArrayBuilder<BoundExpression>.GetInstance(getEnumeratorInfo.Arguments.Length);
                 builder.Add(receiver);
                 builder.AddRange(getEnumeratorInfo.Arguments, 1, getEnumeratorInfo.Arguments.Length - 1);
-                getEnumeratorInfo = getEnumeratorInfo with { Arguments = builder.ToImmutableAndFree() };
+                getEnumeratorInfo = new MethodArgumentInfo(
+                                            getEnumeratorInfo.Method,
+                                            builder.ToImmutableAndFree(),
+                                            defaultArguments: default,
+                                            getEnumeratorInfo.Expanded);
 
                 receiver = null;
             }

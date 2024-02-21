@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetEnclosingMemberModel(declarationSyntax).GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
-        public override ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        public override IMethodSymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             return GetEnclosingMemberModel(declarationSyntax).GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }

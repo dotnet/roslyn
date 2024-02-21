@@ -454,7 +454,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "public" : "protected", node.Name);
-                        IEnumerable<string> fields = isPublic ? new[] { "SyntaxNode syntax" } : new[] { "BoundKind kind", "SyntaxNode syntax" };
+                        IEnumerable<string> fields = isPublic ? ["SyntaxNode syntax"] : ["BoundKind kind", "SyntaxNode syntax"];
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                let mostSpecific = GetField(node, field.Name)
                                                select mostSpecific.Type + " " + ToCamelCase(field.Name));
@@ -523,7 +523,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "Public" : "Protected", "Sub New");
-                        IEnumerable<string> fields = isPublic ? new[] { "syntax As SyntaxNode" } : new[] { "kind As BoundKind", "syntax as SyntaxNode" };
+                        IEnumerable<string> fields = isPublic ? ["syntax As SyntaxNode"] : ["kind As BoundKind", "syntax as SyntaxNode"];
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                select ToCamelCase(field.Name) + " As " + field.Type);
 
@@ -600,7 +600,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "public" : "protected", node.Name);
-                        IEnumerable<string> fields = isPublic ? new[] { "SyntaxNode syntax" } : new[] { "BoundKind kind", "SyntaxNode syntax" };
+                        IEnumerable<string> fields = isPublic ? ["SyntaxNode syntax"] : ["BoundKind kind", "SyntaxNode syntax"];
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                let mostSpecific = GetField(node, field.Name)
                                                select mostSpecific.Type + " " + ToCamelCase(field.Name));
@@ -643,7 +643,7 @@ namespace BoundTreeGenerator
                     {
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "Public" : "Protected", "Sub New");
-                        IEnumerable<string> fields = isPublic ? new[] { "syntax As SyntaxNode" } : new[] { "kind As BoundKind", "syntax as SyntaxNode" };
+                        IEnumerable<string> fields = isPublic ? ["syntax As SyntaxNode"] : ["kind As BoundKind", "syntax as SyntaxNode"];
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                select ToCamelCase(field.Name) + " As " + field.Type);
                         ParenList(fields, x => x);

@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             }
 
             var preference = ParenthesesDiagnosticAnalyzersHelper.GetLanguageOption(options, childPrecedenceKind);
-            if (preference.Value != ParenthesesPreference.AlwaysForClarity)
+            if (preference.Value != ParenthesesPreference.AlwaysForClarity
+                || ShouldSkipAnalysis(context, preference.Notification))
             {
                 return;
             }
@@ -126,13 +127,13 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             // To make this user experience more pleasant, we will place the diagnostic on
             // both *'s.
             AddDiagnostics(
-                context, binaryLike, precedence, preference.Notification.Severity,
+                context, binaryLike, precedence, preference.Notification,
                 additionalLocations, childEquivalenceKey, includeInFixAll: true);
         }
 
         private void AddDiagnostics(
             SyntaxNodeAnalysisContext context, TBinaryLikeExpressionSyntax? binaryLikeOpt, int precedence,
-            ReportDiagnostic severity, ImmutableArray<Location> additionalLocations,
+            NotificationOption2 notificationOption, ImmutableArray<Location> additionalLocations,
             string equivalenceKey, bool includeInFixAll)
         {
             if (binaryLikeOpt != null &&
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     operatorToken.GetLocation(),
-                    severity,
+                    notificationOption,
                     additionalLocations,
                     properties));
 
@@ -154,8 +155,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 // lightbulb on any of the operator tokens.  However, we don't actually want to
                 // 'fix' all of these if the user does a fix-all.  if we did, we'd end up adding far
                 // too many parens to the same expr.
-                AddDiagnostics(context, left as TBinaryLikeExpressionSyntax, precedence, severity, additionalLocations, equivalenceKey, includeInFixAll: false);
-                AddDiagnostics(context, right as TBinaryLikeExpressionSyntax, precedence, severity, additionalLocations, equivalenceKey, includeInFixAll: false);
+                AddDiagnostics(context, left as TBinaryLikeExpressionSyntax, precedence, notificationOption, additionalLocations, equivalenceKey, includeInFixAll: false);
+                AddDiagnostics(context, right as TBinaryLikeExpressionSyntax, precedence, notificationOption, additionalLocations, equivalenceKey, includeInFixAll: false);
             }
         }
     }

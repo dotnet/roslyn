@@ -556,12 +556,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim attrData = arguments.Attribute
             Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.TupleElementNamesAttribute) Then
                 diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
             If arguments.SymbolPart = AttributeLocation.Return Then
-                Dim isMarshalAs = attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute)
+                Dim isMarshalAs = attrData.IsTargetAttribute(AttributeDescription.MarshalAsAttribute)
 
                 ' write-only property doesn't accept any return type attributes other than MarshalAs
                 ' MarshalAs is applied on the "Value" parameter of the setter if the property has no parameters and the containing type is an interface .
@@ -579,13 +579,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return
                 End If
             Else
-                If attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
+                If attrData.IsTargetAttribute(AttributeDescription.SpecialNameAttribute) Then
                     arguments.GetOrCreateData(Of CommonPropertyWellKnownAttributeData).HasSpecialNameAttribute = True
                     Return
-                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
                     arguments.GetOrCreateData(Of CommonPropertyWellKnownAttributeData).HasExcludeFromCodeCoverageAttribute = True
                     Return
-                ElseIf Not IsWithEvents AndAlso attrData.IsTargetAttribute(Me, AttributeDescription.DebuggerHiddenAttribute) Then
+                ElseIf Not IsWithEvents AndAlso attrData.IsTargetAttribute(AttributeDescription.DebuggerHiddenAttribute) Then
                     ' if neither getter or setter is marked by DebuggerHidden Dev11 reports a warning
                     If Not (_getMethod IsNot Nothing AndAlso DirectCast(_getMethod, SourcePropertyAccessorSymbol).HasDebuggerHiddenAttribute OrElse
                             _setMethod IsNot Nothing AndAlso DirectCast(_setMethod, SourcePropertyAccessorSymbol).HasDebuggerHiddenAttribute) Then

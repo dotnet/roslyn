@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             var syntaxTree = semanticModel.SyntaxTree;
 
             var preference = context.GetCSharpAnalyzerOptions().PreferMethodGroupConversion;
-            if (preference.Notification.Severity == ReportDiagnostic.Suppress)
+            if (ShouldSkipAnalysis(context, preference.Notification))
             {
                 // User doesn't care about this rule.
                 return;
@@ -183,8 +183,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             {
                 // Limit the search space to the outermost code block that could contain references to this expr (or
                 // fall back to compilation unit for top level statements).
-                var outermostBody = invokedExpression.AncestorsAndSelf().Last(
-                    n => n is BlockSyntax or ArrowExpressionClauseSyntax or AnonymousFunctionExpressionSyntax or CompilationUnitSyntax);
+                var outermostBody = invokedExpression.AncestorsAndSelf().LastOrDefault(
+                    n => n is BlockSyntax or ArrowExpressionClauseSyntax or AnonymousFunctionExpressionSyntax or GlobalStatementSyntax);
+                if (outermostBody is null or GlobalStatementSyntax)
+                    outermostBody = syntaxTree.GetRoot(cancellationToken);
+
                 foreach (var candidate in outermostBody.DescendantNodes().OfType<ExpressionSyntax>())
                 {
                     if (candidate != accessedExpression &&
@@ -228,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 Descriptor,
                 syntaxTree.GetLocation(startReportSpan),
-                preference.Notification.Severity,
+                preference.Notification,
                 additionalLocations: ImmutableArray.Create(anonymousFunction.GetLocation()),
                 additionalUnnecessaryLocations: ImmutableArray.Create(
                     syntaxTree.GetLocation(startReportSpan),

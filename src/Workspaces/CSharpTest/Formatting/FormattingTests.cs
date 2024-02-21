@@ -10086,6 +10086,44 @@ class A
 }", changedOptionSet: changingOptions);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(57854, "https://github.com/dotnet/roslyn/issues/57854")]
+        public async Task NewLinesForBraces_PropertyPatternClauses_NonDefaultInSwitchExpression()
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) },
+            };
+            await AssertFormatAsync(
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a switch {
+            { Name: ""foo"" } => true,
+            _ => false,
+        };
+    }
+}",
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a switch
+        {
+            { Name: ""foo"" } => true,
+            _ => false,
+        };
+    }
+}", changedOptionSet: changingOptions);
+        }
+
         [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/52413")]
         public async Task NewLinesForBraces_PropertyPatternClauses_SingleLine(bool option)

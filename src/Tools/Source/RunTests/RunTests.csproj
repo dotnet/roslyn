@@ -18,4 +18,16 @@
     <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="$(MicrosoftTeamFoundationServerClientVersion)" />
     <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
   </ItemGroup>
+
+  
+  <!-- Include the VSIX installer so we have it in the build payload for integration tests -->
+  <ItemGroup>
+    <PackageReference Include="RoslynTools.VSIXExpInstaller" Version="$(RoslynToolsVSIXExpInstallerVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <_CopyItems Include="$(NuGetPackageRoot)roslyntools.vsixexpinstaller\$(RoslynToolsVSIXExpInstallerVersion)\tools\*.*" />
+  </ItemGroup>
+  <Target Name="CopyCustomContent" AfterTargets="AfterBuild" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <Copy SourceFiles="@(_CopyItems)" DestinationFolder="$(OutDir)/VSIXExpInstaller" />
+  </Target>
 </Project>

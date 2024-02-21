@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         bool SupportsIsNotTypeExpression(ParseOptions options);
         bool SupportsConstantInterpolatedStrings(ParseOptions options);
         bool SupportsTupleDeconstruction(ParseOptions options);
+        bool SupportsCollectionExpressionNaturalType(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
         SyntaxTriviaList ParseLeadingTrivia(string text);

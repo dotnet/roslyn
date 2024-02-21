@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             => node switch
             {
                 BinaryExpressionSyntax(LogicalAndExpression) => true,
-                CasePatternSwitchLabelSyntax { WhenClause: { } whenClause } => true,
-                SwitchExpressionArmSyntax { WhenClause: { } whenClause } => true,
+                CasePatternSwitchLabelSyntax { WhenClause: { } } => true,
+                SwitchExpressionArmSyntax { WhenClause: { } } => true,
                 WhenClauseSyntax { Parent: CasePatternSwitchLabelSyntax } => true,
                 WhenClauseSyntax { Parent: SwitchExpressionArmSyntax } => true,
                 _ => false

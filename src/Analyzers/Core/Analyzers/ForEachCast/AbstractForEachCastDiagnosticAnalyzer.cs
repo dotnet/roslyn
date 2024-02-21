@@ -66,6 +66,9 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             var option = context.GetAnalyzerOptions().ForEachExplicitCastInSource;
             Contract.ThrowIfFalse(option.Value is ForEachExplicitCastInSourcePreference.Always or ForEachExplicitCastInSourcePreference.WhenStronglyTyped);
 
+            if (ShouldSkipAnalysis(context, option.Notification))
+                return;
+
             if (semanticModel.GetOperation(node, cancellationToken) is not IForEachLoopOperation loopOperation)
                 return;
 
@@ -129,7 +132,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 node.GetFirstToken().GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: null,
                 properties: isFixable ? s_isFixableProperties : null,
                 node.GetFirstToken().ToString(),

@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // solution, no callback
 
-        public override async ValueTask<bool> TryInvokeAsync(SolutionState solution, Func<TService, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<bool> TryInvokeAsync(SolutionCompilationState solution, Func<TService, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
             try
             {
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionState solution, Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState solution, Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
         {
             try
             {
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // project, no callback
 
-        public override async ValueTask<bool> TryInvokeAsync(SolutionState solution, ProjectId projectId, Func<TService, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<bool> TryInvokeAsync(SolutionCompilationState solution, ProjectId projectId, Func<TService, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
             try
             {
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionState solution, ProjectId projectId, Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState solution, ProjectId projectId, Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
         {
             try
             {
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // solution, callback
 
-        public override async ValueTask<bool> TryInvokeAsync(SolutionState solution, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<bool> TryInvokeAsync(SolutionCompilationState solution, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(_callbackDispatcher is not null);
 
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionState solution, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState solution, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(_callbackDispatcher is not null);
 
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // project, callback
 
-        public override async ValueTask<bool> TryInvokeAsync(SolutionState solution, ProjectId projectId, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<bool> TryInvokeAsync(SolutionCompilationState solution, ProjectId projectId, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(_callbackDispatcher is not null);
 
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionState solution, ProjectId projectId, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState solution, ProjectId projectId, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(_callbackDispatcher is not null);
 
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // multi-solution, no callback
 
-        public override async ValueTask<bool> TryInvokeAsync(SolutionState solution1, SolutionState solution2, Func<TService, Checksum, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+        public override async ValueTask<bool> TryInvokeAsync(SolutionCompilationState solution1, SolutionCompilationState solution2, Func<TService, Checksum, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
             try
             {

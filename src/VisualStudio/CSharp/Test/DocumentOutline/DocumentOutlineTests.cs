@@ -59,7 +59,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             InitializeMocksAndDataModelAndUIItems(string testCode)
         {
             await using var mocks = await CreateMocksAsync(testCode);
-            var response = await DocumentOutlineViewModel.DocumentSymbolsRequestAsync(mocks.TextBuffer, mocks.LanguageServiceBroker, mocks.FilePath, CancellationToken.None);
+            var response = await DocumentOutlineViewModel.DocumentSymbolsRequestAsync(
+                mocks.TextBuffer, mocks.LanguageServiceBrokerCallback, mocks.FilePath, CancellationToken.None);
             AssertEx.NotNull(response.Value);
 
             var model = DocumentOutlineViewModel.CreateDocumentSymbolData(response.Value.response, response.Value.snapshot);
@@ -91,7 +92,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             }
 
             static ImmutableArray<DocumentSymbolDataViewModel> Sort(ImmutableArray<DocumentSymbolDataViewModel> items, SortOption sortOption)
-                => (ImmutableArray<DocumentSymbolDataViewModel>)DocumentSymbolDataViewModelSorter.Instance.Convert(new object[] { items, sortOption }, typeof(ImmutableArray<DocumentSymbolDataViewModel>), parameter: null, CultureInfo.CurrentCulture);
+                => (ImmutableArray<DocumentSymbolDataViewModel>)DocumentSymbolDataViewModelSorter.Instance.Convert([items, sortOption], typeof(ImmutableArray<DocumentSymbolDataViewModel>), parameter: null, CultureInfo.CurrentCulture);
 
             static DocumentSymbolDataViewModel ReplaceChildren(DocumentSymbolDataViewModel symbolToUpdate, ImmutableArray<DocumentSymbolDataViewModel> newChildren)
             {

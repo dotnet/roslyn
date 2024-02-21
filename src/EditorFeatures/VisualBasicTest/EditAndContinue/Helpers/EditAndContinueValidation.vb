@@ -112,5 +112,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 validator.VerifySemantics(editScripts, framework, expected, capabilities)
             Next
         End Sub
+
+        <Extension>
+        Friend Sub VerifySemantics(
+            editScript As EditScript(Of SyntaxNode),
+            semanticEdits As SemanticEditDescription(),
+            capabilities As EditAndContinueCapabilities)
+
+            VerifySemantics(editScript, ActiveStatementsDescription.Empty, semanticEdits, capabilities:=capabilities)
+        End Sub
+
+        <Extension>
+        Friend Sub VerifySemantics(
+            editScript As EditScript(Of SyntaxNode),
+            ParamArray semanticEdits As SemanticEditDescription())
+
+            VerifySemantics(editScript, ActiveStatementsDescription.Empty, semanticEdits)
+        End Sub
     End Module
 End Namespace

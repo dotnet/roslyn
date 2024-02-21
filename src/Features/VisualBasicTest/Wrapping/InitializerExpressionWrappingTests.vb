@@ -109,6 +109,12 @@ End Class")
 }", "Class C
     Public Sub Bar()
         Dim test() As String = New String() {
+            ""the"", ""quick"", ""brown"", ""fox"", ""jumps"", ""over"", ""the"", ""lazy"", ""dog"", ""the"", ""quick"", ""brown"", ""fox"", ""jumps"", ""over"", ""the"", ""lazy"", ""dog""
+        }
+    End Sub
+}", "Class C
+    Public Sub Bar()
+        Dim test() As String = New String() {
             ""the"", ""quick"", ""brown"", ""fox"", ""jumps"", ""over"", ""the"", ""lazy"", ""dog"", ""the"", ""quick"", ""brown"", ""fox"",
             ""jumps"", ""over"", ""the"", ""lazy"", ""dog""
         }

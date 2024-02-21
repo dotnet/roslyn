@@ -110,9 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private class ExpressionAndDiagnostics
         {
             public readonly BoundExpression Expression;
-            public readonly ImmutableBindingDiagnostic<AssemblySymbol> Diagnostics;
+            public readonly ReadOnlyBindingDiagnostic<AssemblySymbol> Diagnostics;
 
-            public ExpressionAndDiagnostics(BoundExpression expression, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
+            public ExpressionAndDiagnostics(BoundExpression expression, ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics)
             {
                 this.Expression = expression;
                 this.Diagnostics = diagnostics;

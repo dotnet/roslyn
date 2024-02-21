@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <remarks>This is used to cache an array created with the data passed to <see cref="GetFieldForData"/>.</remarks>
         Cci.IFieldReference GetArrayCachingFieldForData(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics);
 
+        Cci.IFieldReference GetArrayCachingFieldForConstants(ImmutableArray<ConstantValue> constants, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics);
+
         Cci.IMethodReference GetInitArrayHelper();
 
         string GetStringFromToken(uint token);

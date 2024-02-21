@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddAccessibilityModifiersFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAnonymousTypeMemberName\AddAnonymousTypeMemberNameTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AddExplicitCastTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AddExplicitCastTests_FixAllTests.cs" />

@@ -76,10 +76,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.IntegrationTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
@@ -110,6 +108,7 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServerClient.Razor.Test" Partner="Razor" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="IdeCoreBenchmarks" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Copilot" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />

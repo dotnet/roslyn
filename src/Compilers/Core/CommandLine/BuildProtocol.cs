@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
     }
 
-    internal sealed class MismatchedVersionBuildResponse : BuildResponse
+    file sealed class MismatchedVersionBuildResponse : BuildResponse
     {
         public override ResponseType Type => ResponseType.MismatchedVersion;
 

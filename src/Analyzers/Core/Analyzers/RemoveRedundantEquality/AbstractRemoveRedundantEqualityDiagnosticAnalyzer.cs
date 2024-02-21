@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 
         private void AnalyzeBinaryOperator(OperationAnalysisContext context)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             var operation = (IBinaryOperation)context.Operation;
             if (operation.OperatorMethod is not null)
             {

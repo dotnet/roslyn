@@ -169,10 +169,10 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         }
 
         protected static TNode AddComment<TNode>(SyntaxGenerator g, string comment, TNode node) where TNode : SyntaxNode
-            => AddComments(g, new[] { comment }, node);
+            => AddComments(g, [comment], node);
 
         protected static TNode AddComments<TNode>(SyntaxGenerator g, string comment1, string comment2, TNode node) where TNode : SyntaxNode
-            => AddComments(g, new[] { comment1, comment2, }, node);
+            => AddComments(g, [comment1, comment2,], node);
 
         protected static TNode AddComments<TNode>(SyntaxGenerator g, string[] comments, TNode node) where TNode : SyntaxNode
             => node.WithPrependedLeadingTrivia(CreateCommentTrivia(g, comments));

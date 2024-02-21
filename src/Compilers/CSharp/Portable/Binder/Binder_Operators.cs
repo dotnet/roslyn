@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(left.Kind != BoundKind.EventAccess || hasError);
 
             var leftPlaceholder = new BoundValuePlaceholder(left.Syntax, leftType).MakeCompilerGenerated();
-            var leftConversion = CreateConversion(node, leftPlaceholder, best.LeftConversion, isCast: false, conversionGroupOpt: null, best.Signature.LeftType, diagnostics);
+            var leftConversion = CreateConversion(node.Left, leftPlaceholder, best.LeftConversion, isCast: false, conversionGroupOpt: null, best.Signature.LeftType, diagnostics);
 
             return new BoundCompoundAssignmentOperator(node, bestSignature, left, rightConverted,
                 leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperators, leftType, hasError);

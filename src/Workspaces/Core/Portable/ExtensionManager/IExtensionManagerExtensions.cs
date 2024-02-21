@@ -25,13 +25,8 @@ namespace Microsoft.CodeAnalysis.Extensions
                     action();
                 }
             }
-            catch (OperationCanceledException)
+            catch (Exception e) when (extensionManager.HandleException(extension, e))
             {
-                throw;
-            }
-            catch (Exception e) when (extensionManager.CanHandleException(extension, e))
-            {
-                extensionManager.HandleException(extension, e);
             }
         }
 
@@ -44,17 +39,10 @@ namespace Microsoft.CodeAnalysis.Extensions
             try
             {
                 if (!extensionManager.IsDisabled(extension))
-                {
                     return function();
-                }
             }
-            catch (OperationCanceledException)
+            catch (Exception e) when (extensionManager.HandleException(extension, e))
             {
-                throw;
-            }
-            catch (Exception e) when (extensionManager.CanHandleException(extension, e))
-            {
-                extensionManager.HandleException(extension, e);
             }
 
             return defaultValue;
@@ -73,13 +61,8 @@ namespace Microsoft.CodeAnalysis.Extensions
                     await task.ConfigureAwait(false);
                 }
             }
-            catch (OperationCanceledException)
+            catch (Exception e) when (extensionManager.HandleException(extension, e))
             {
-                throw;
-            }
-            catch (Exception e) when (extensionManager.CanHandleException(extension, e))
-            {
-                extensionManager.HandleException(extension, e);
             }
         }
 
@@ -90,21 +73,16 @@ namespace Microsoft.CodeAnalysis.Extensions
             T defaultValue)
         {
             if (extensionManager.IsDisabled(extension))
-            {
                 return defaultValue;
-            }
 
             try
             {
                 var task = function();
                 if (task != null)
-                {
                     return await task.ConfigureAwait(false);
-                }
             }
-            catch (Exception e) when (!(e is OperationCanceledException) && extensionManager.CanHandleException(extension, e))
+            catch (Exception e) when (extensionManager.HandleException(extension, e))
             {
-                extensionManager.HandleException(extension, e);
             }
 
             return defaultValue;

@@ -101,7 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                        firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
                                     isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                                     isVararg: syntax.IsVarArg(),
-                                    isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation);
+                                    isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation,
+                                    hasThisInitializer: false);
 
             return (declarationModifiers, flags);
         }

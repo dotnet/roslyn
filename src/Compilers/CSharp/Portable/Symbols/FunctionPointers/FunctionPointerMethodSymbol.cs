@@ -859,5 +859,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
         protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
         internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
     }
 }

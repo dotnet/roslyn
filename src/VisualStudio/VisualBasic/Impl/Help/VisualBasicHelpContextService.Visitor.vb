@@ -417,6 +417,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                 End If
             End Sub
 
+            Public Overrides Sub VisitNameOfExpression(node As NameOfExpressionSyntax)
+                result = Keyword(SyntaxKind.NameOfKeyword)
+            End Sub
+
             Public Overrides Sub VisitIdentifierName(node As IdentifierNameSyntax)
                 Select Case node.Identifier.Kind()
                     Case SyntaxKind.MyBaseKeyword

@@ -34,6 +34,20 @@
       <_Parameter2>$(RoslynVersion)</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>
+
+  <Target Name="AddDotnetSdkAssemblyAttribute" BeforeTargets="CoreGenerateAssemblyInfo">
+    <Exec Command="dotnet run $(RoslynVersion) -sdk-version" WorkingDirectory="..\..\..\..\eng-Metalama\DownloadNetSdkAnalyzers" ConsoleToMsBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="DotnetSdkVersion" />
+    </Exec>
+    
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>DotnetSdkVersion</_Parameter1>
+        <_Parameter2>$(DotnetSdkVersion)</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+  
   <!-- </Metalama> -->
   <ItemGroup>
     <None Include="Operations\OperationInterfaces.xml" />

@@ -16,474 +16,455 @@ using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json;
+
+using JsonSeparatedList = EmbeddedSeparatedSyntaxNodeList<JsonKind, JsonNode, JsonValueNode>;
+using JsonToken = EmbeddedSyntaxToken<JsonKind>;
+using JsonTrivia = EmbeddedSyntaxTrivia<JsonKind>;
+
+public partial class CSharpJsonParserTests
 {
-    using JsonSeparatedList = EmbeddedSeparatedSyntaxNodeList<JsonKind, JsonNode, JsonValueNode>;
-    using JsonToken = EmbeddedSyntaxToken<JsonKind>;
-    using JsonTrivia = EmbeddedSyntaxTrivia<JsonKind>;
+    private const string SupportedLanguage = "en-US";
 
-    public partial class CSharpJsonParserTests
+    private readonly IVirtualCharService _service = CSharpVirtualCharService.Instance;
+    private const string StatementPrefix = "var v = ";
+
+    private static SyntaxToken GetStringToken(string text)
     {
-        private const string SupportedLanguage = "en-US";
+        var statement = StatementPrefix + text;
+        var parsedStatement = SyntaxFactory.ParseStatement(statement);
+        var token = parsedStatement.DescendantTokens().ToArray()[3];
+        Assert.True(token.Kind() == SyntaxKind.StringLiteralToken);
 
-        private readonly IVirtualCharService _service = CSharpVirtualCharService.Instance;
-        private const string StatementPrefix = "var v = ";
+        return token;
+    }
 
-        private static SyntaxToken GetStringToken(string text)
+    protected void Test(
+        string stringText,
+        string? expected,
+        string looseDiagnostics,
+        string strictDiagnostics,
+        bool runLooseSubTreeCheck = true)
+    {
+        Test(stringText, JsonOptions.Loose, expected, looseDiagnostics, runLooseSubTreeCheck);
+        Test(stringText, JsonOptions.Strict, expected, strictDiagnostics, runSubTreeChecks: true);
+    }
+
+    private void Test(
+        string stringText, JsonOptions options,
+        string? expectedTree, string expectedDiagnostics,
+        bool runSubTreeChecks)
+    {
+        var tree = TryParseTree(stringText, options, conversionFailureOk: false);
+        if (tree == null)
         {
-            var statement = StatementPrefix + text;
-            var parsedStatement = SyntaxFactory.ParseStatement(statement);
-            var token = parsedStatement.DescendantTokens().ToArray()[3];
-            Assert.True(token.Kind() == SyntaxKind.StringLiteralToken);
-
-            return token;
+            Assert.Null(expectedTree);
+            return;
         }
 
-        protected void Test(
-            string stringText,
-            string? expected,
-            string looseDiagnostics,
-            string strictDiagnostics,
-            bool runLooseSubTreeCheck = true)
+        Assert.NotNull(expectedTree);
+
+        // Tests are allowed to not run the subtree tests.  This is because some
+        // subtrees can cause the native regex parser to exhibit very bad behavior
+        // (like not ever actually finishing compiling).
+        if (runSubTreeChecks)
+            TryParseSubTrees(stringText, options);
+
+        var actualTree = TreeToText(tree).Replace("\"", "\"\"");
+        AssertEx.Equal(expectedTree!.Replace("\"", "\"\""), actualTree);
+
+        ValidateDiagnostics(expectedDiagnostics, tree);
+    }
+
+    private protected static void ValidateDiagnostics(string expectedDiagnostics, JsonTree tree)
+    {
+        var actualDiagnostics = DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\"");
+        AssertEx.Equal(RemoveMessagesInNonSupportedLanguage(expectedDiagnostics).Replace("\"", "\"\""), actualDiagnostics);
+    }
+
+    private static string RemoveMessagesInNonSupportedLanguage(string value)
+    {
+        if (value == "")
+            return value;
+
+        if (Thread.CurrentThread.CurrentCulture.Name == SupportedLanguage)
+            return value;
+
+        var diagnosticsElement = XElement.Parse(value);
+        foreach (var diagnosticElement in diagnosticsElement.Elements("Diagnostic"))
+            diagnosticElement.Attribute("Message").Remove();
+
+        return diagnosticsElement.ToString();
+    }
+
+    private void TryParseSubTrees(string stringText, JsonOptions options)
+    {
+        // Trim the input from the right and make sure tree invariants hold
+        var current = stringText;
+        while (current != "@\"\"" && current != "\"\"")
         {
-            Test(stringText, JsonOptions.Loose, expected, looseDiagnostics, runLooseSubTreeCheck);
-            Test(stringText, JsonOptions.Strict, expected, strictDiagnostics, runSubTreeChecks: true);
+            current = current[0..^2] + "\"";
+            TryParseTree(current, options, conversionFailureOk: true);
         }
 
-        private void Test(
-            string stringText, JsonOptions options,
-            string? expectedTree, string expectedDiagnostics,
-            bool runSubTreeChecks)
+        // Trim the input from the left and make sure tree invariants hold
+        current = stringText;
+        while (current != "@\"\"" && current != "\"\"")
         {
-            var tree = TryParseTree(stringText, options, conversionFailureOk: false);
-            if (tree == null)
+            current = current[0] == '@'
+                ? "@\"" + current[3..]
+                : "\"" + current[2..];
+
+            TryParseTree(current, options, conversionFailureOk: true);
+        }
+
+        for (var start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
+        {
+            TryParseTree(
+                stringText[..start] + stringText[(start + 1)..],
+                options, conversionFailureOk: true);
+        }
+    }
+
+    private protected (SyntaxToken, JsonTree?, VirtualCharSequence) JustParseTree(
+        string stringText, JsonOptions options, bool conversionFailureOk)
+    {
+        var token = GetStringToken(stringText);
+        if (token.ValueText == "")
+            return default;
+
+        var allChars = _service.TryConvertToVirtualChars(token);
+        if (allChars.IsDefault)
+        {
+            Assert.True(conversionFailureOk, "Failed to convert text to token.");
+            return (token, null, allChars);
+        }
+
+        var tree = JsonParser.TryParse(allChars, options);
+        return (token, tree, allChars);
+    }
+
+    private JsonTree? TryParseTree(
+        string stringText, JsonOptions options, bool conversionFailureOk)
+    {
+        var (token, tree, allChars) = JustParseTree(stringText, options, conversionFailureOk);
+        if (tree == null)
+        {
+            Assert.True(allChars.IsDefault);
+            return null;
+        }
+
+        CheckInvariants(tree, allChars);
+
+        if (options == JsonOptions.Loose)
+        {
+            try
             {
-                Assert.Null(expectedTree);
-                return;
+                JToken.Parse(token.ValueText);
             }
-
-            Assert.NotNull(expectedTree);
-
-            // Tests are allowed to not run the subtree tests.  This is because some
-            // subtrees can cause the native regex parser to exhibit very bad behavior
-            // (like not ever actually finishing compiling).
-            if (runSubTreeChecks)
-                TryParseSubTrees(stringText, options);
-
-            var actualTree = TreeToText(tree).Replace("\"", "\"\"");
-            Assert.Equal(expectedTree!.Replace("\"", "\"\""), actualTree);
-
-            ValidateDiagnostics(expectedDiagnostics, tree);
-        }
-
-        private protected static void ValidateDiagnostics(string expectedDiagnostics, JsonTree tree)
-        {
-            var actualDiagnostics = DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\"");
-            Assert.Equal(RemoveMessagesInNonSupportedLanguage(expectedDiagnostics).Replace("\"", "\"\""), actualDiagnostics);
-        }
-
-        private static string RemoveMessagesInNonSupportedLanguage(string value)
-        {
-            if (value == "")
-                return value;
-
-            if (Thread.CurrentThread.CurrentCulture.Name == SupportedLanguage)
-                return value;
-
-            var diagnosticsElement = XElement.Parse(value);
-            foreach (var diagnosticElement in diagnosticsElement.Elements("Diagnostic"))
-                diagnosticElement.Attribute("Message").Remove();
-
-            return diagnosticsElement.ToString();
-        }
-
-        private void TryParseSubTrees(string stringText, JsonOptions options)
-        {
-            // Trim the input from the right and make sure tree invariants hold
-            var current = stringText;
-            while (current != "@\"\"" && current != "\"\"")
+            catch (Exception)
             {
-                current = current[0..^2] + "\"";
-                TryParseTree(current, options, conversionFailureOk: true);
+                Assert.NotEmpty(tree.Diagnostics);
+                return tree;
             }
-
-            // Trim the input from the left and make sure tree invariants hold
-            current = stringText;
-            while (current != "@\"\"" && current != "\"\"")
+        }
+        else
+        {
+            try
             {
-                current = current[0] == '@'
-                    ? "@\"" + current[3..]
-                    : "\"" + current[2..];
-
-                TryParseTree(current, options, conversionFailureOk: true);
+                JsonDocument.Parse(token.ValueText, new JsonDocumentOptions { AllowTrailingCommas = false, CommentHandling = JsonCommentHandling.Disallow });
             }
-
-            for (var start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
+            catch (Exception)
             {
-                TryParseTree(
-                    stringText[..start] + stringText[(start + 1)..],
-                    options, conversionFailureOk: true);
+                Assert.NotEmpty(tree.Diagnostics);
+                return tree;
             }
         }
 
-        private protected (SyntaxToken, JsonTree?, VirtualCharSequence) JustParseTree(
-            string stringText, JsonOptions options, bool conversionFailureOk)
+        Assert.Empty(tree.Diagnostics);
+        return tree;
+    }
+
+    private protected static string TreeToText(JsonTree tree)
+        => new XElement("Tree",
+            NodeToElement(tree.Root)).ToString();
+
+    private protected static string DiagnosticsToText(ImmutableArray<EmbeddedDiagnostic> diagnostics)
+    {
+        if (diagnostics.IsEmpty)
+            return "";
+
+        return new XElement("Diagnostics",
+            diagnostics.Select(d =>
+            {
+                var element = new XElement("Diagnostic");
+                // Ensure the diagnostic we emit is the same as the .NET one. Note: we can only
+                // do this in en-US as that's the only culture where we control the text exactly
+                // and can ensure it exactly matches Regex.  We depend on localization to do a 
+                // good enough job here for other languages.
+                if (Thread.CurrentThread.CurrentCulture.Name == SupportedLanguage)
+                    element.Add(new XAttribute("Message", d.Message));
+
+                element.Add(new XAttribute("Start", d.Span.Start));
+                element.Add(new XAttribute("Length", d.Span.Length));
+
+                return element;
+            })).ToString();
+    }
+
+    private static XElement NodeToElement(JsonNode node)
+        => node switch
         {
-            var token = GetStringToken(stringText);
-            if (token.ValueText == "")
-                return default;
+            JsonArrayNode arrayNode => ArrayNodeToElement(arrayNode),
+            JsonCompilationUnit compilationUnit => CompilationUnitToElement(compilationUnit),
+            JsonObjectNode objectNode => ObjectNodeToElement(objectNode),
+            JsonConstructorNode constructorNode => ConstructorNodeToElement(constructorNode),
+            _ => NodeToElementWorker(node),
+        };
 
-            var allChars = _service.TryConvertToVirtualChars(token);
-            if (allChars.IsDefault)
-            {
-                Assert.True(conversionFailureOk, "Failed to convert text to token.");
-                return (token, null, allChars);
-            }
+    private static XElement NodeToElementWorker(JsonNode node)
+    {
+        var element = new XElement(node.Kind.ToString());
+        foreach (var child in node)
+            element.Add(NodeOrTokenToElement(child));
 
-            var tree = JsonParser.TryParse(allChars, options);
-            return (token, tree, allChars);
-        }
+        return element;
+    }
 
-        private JsonTree? TryParseTree(
-            string stringText, JsonOptions options, bool conversionFailureOk)
+    private static XElement NodeOrTokenToElement(EmbeddedSyntaxNodeOrToken<JsonKind, JsonNode> child)
+        => child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token);
+
+    private static XElement ConstructorNodeToElement(JsonConstructorNode node)
+        => new(
+            node.Kind.ToString(),
+            TokenToElement(node.NewKeyword),
+            TokenToElement(node.NameToken),
+            TokenToElement(node.OpenParenToken),
+            CreateSequenceNode(node.Sequence),
+            TokenToElement(node.CloseParenToken));
+
+    private static XElement ObjectNodeToElement(JsonObjectNode node)
+        => new(
+            node.Kind.ToString(),
+            TokenToElement(node.OpenBraceToken),
+            CreateSequenceNode(node.Sequence),
+            TokenToElement(node.CloseBraceToken));
+
+    private static XElement CompilationUnitToElement(JsonCompilationUnit node)
+        => new(
+            node.Kind.ToString(),
+            CreateSequenceNode(node.Sequence),
+            TokenToElement(node.EndOfFileToken));
+
+    private static XElement ArrayNodeToElement(JsonArrayNode node)
+        => new(
+            node.Kind.ToString(),
+            TokenToElement(node.OpenBracketToken),
+            CreateSequenceNode(node.Sequence),
+            TokenToElement(node.CloseBracketToken));
+
+    private static XElement CreateSequenceNode(ImmutableArray<JsonValueNode> sequence)
+        => new("Sequence", sequence.Select(NodeToElement));
+
+    private static XElement CreateSequenceNode(JsonSeparatedList sequence)
+        => new("Sequence", sequence.NodesAndTokens.Select(NodeOrTokenToElement));
+
+    private static XElement TokenToElement(JsonToken token)
+    {
+        var element = new XElement(token.Kind.ToString());
+
+        if (token.Value != null)
+            element.Add(new XAttribute("value", token.Value));
+
+        if (token.LeadingTrivia.Length > 0)
+            element.Add(new XElement("Trivia", token.LeadingTrivia.Select(t => TriviaToElement(t))));
+
+        if (token.VirtualChars.Length > 0)
+            element.Add(token.VirtualChars.CreateString());
+
+        if (token.TrailingTrivia.Length > 0)
+            element.Add(new XElement("Trivia", token.TrailingTrivia.Select(t => TriviaToElement(t))));
+
+        return element;
+    }
+
+    private static XElement TriviaToElement(JsonTrivia trivia)
+        => new(
+            trivia.Kind.ToString(),
+            trivia.VirtualChars.CreateString().Replace("\f", "\\f"));
+
+    private protected static void CheckInvariants(JsonTree tree, VirtualCharSequence allChars)
+    {
+        var root = tree.Root;
+        var position = 0;
+        CheckInvariants(root, ref position, allChars);
+        Assert.Equal(allChars.Length, position);
+    }
+
+    private static void CheckInvariants(JsonNode node, ref int position, VirtualCharSequence allChars)
+    {
+        foreach (var child in node)
         {
-            var (token, tree, allChars) = JustParseTree(stringText, options, conversionFailureOk);
-            if (tree == null)
+            if (child.IsNode)
             {
-                Assert.True(allChars.IsDefault);
-                return null;
-            }
-
-            CheckInvariants(tree, allChars);
-
-            if (options == JsonOptions.Loose)
-            {
-                try
-                {
-                    JToken.Parse(token.ValueText);
-                }
-                catch (Exception)
-                {
-                    Assert.NotEmpty(tree.Diagnostics);
-                    return tree;
-                }
+                CheckInvariants(child.Node, ref position, allChars);
             }
             else
             {
-                try
-                {
-                    JsonDocument.Parse(token.ValueText, new JsonDocumentOptions { AllowTrailingCommas = false, CommentHandling = JsonCommentHandling.Disallow });
-                }
-                catch (Exception)
-                {
-                    Assert.NotEmpty(tree.Diagnostics);
-                    return tree;
-                }
-            }
-
-            Assert.Empty(tree.Diagnostics);
-            return tree;
-        }
-
-        private protected static string TreeToText(JsonTree tree)
-            => new XElement("Tree",
-                NodeToElement(tree.Root)).ToString();
-
-        private protected static string DiagnosticsToText(ImmutableArray<EmbeddedDiagnostic> diagnostics)
-        {
-            if (diagnostics.IsEmpty)
-                return "";
-
-            return new XElement("Diagnostics",
-                diagnostics.Select(d =>
-                {
-                    var element = new XElement("Diagnostic");
-                    // Ensure the diagnostic we emit is the same as the .NET one. Note: we can only
-                    // do this in en-US as that's the only culture where we control the text exactly
-                    // and can ensure it exactly matches Regex.  We depend on localization to do a 
-                    // good enough job here for other languages.
-                    if (Thread.CurrentThread.CurrentCulture.Name == SupportedLanguage)
-                        element.Add(new XAttribute("Message", d.Message));
-
-                    element.Add(new XAttribute("Start", d.Span.Start));
-                    element.Add(new XAttribute("Length", d.Span.Length));
-
-                    return element;
-                })).ToString();
-        }
-
-        private static XElement NodeToElement(JsonNode node)
-        {
-            if (node is JsonArrayNode arrayNode)
-                return ArrayNodeToElement(arrayNode);
-
-            if (node is JsonCompilationUnit compilationUnit)
-                return CompilationUnitToElement(compilationUnit);
-
-            if (node is JsonObjectNode objectNode)
-                return ObjectNodeToElement(objectNode);
-
-            if (node is JsonConstructorNode constructorNode)
-                return ConstructorNodeToElement(constructorNode);
-
-            var element = new XElement(node.Kind.ToString());
-            foreach (var child in node)
-                element.Add(NodeOrTokenToElement(child));
-
-            return element;
-        }
-
-        private static XElement NodeOrTokenToElement(EmbeddedSyntaxNodeOrToken<JsonKind, JsonNode> child)
-        {
-            return child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token);
-        }
-
-        private static XElement ConstructorNodeToElement(JsonConstructorNode node)
-        {
-            var element = new XElement(node.Kind.ToString());
-            element.Add(TokenToElement(node.NewKeyword));
-            element.Add(TokenToElement(node.NameToken));
-            element.Add(TokenToElement(node.OpenParenToken));
-            element.Add(CreateSequenceNode(node.Sequence));
-            element.Add(TokenToElement(node.CloseParenToken));
-            return element;
-        }
-
-        private static XElement ObjectNodeToElement(JsonObjectNode node)
-        {
-            var element = new XElement(node.Kind.ToString());
-            element.Add(TokenToElement(node.OpenBraceToken));
-            element.Add(CreateSequenceNode(node.Sequence));
-            element.Add(TokenToElement(node.CloseBraceToken));
-            return element;
-        }
-
-        private static XElement CompilationUnitToElement(JsonCompilationUnit node)
-        {
-            var element = new XElement(node.Kind.ToString());
-            element.Add(CreateSequenceNode(node.Sequence));
-            element.Add(TokenToElement(node.EndOfFileToken));
-            return element;
-        }
-
-        private static XElement ArrayNodeToElement(JsonArrayNode node)
-        {
-            var element = new XElement(node.Kind.ToString());
-            element.Add(TokenToElement(node.OpenBracketToken));
-            element.Add(CreateSequenceNode(node.Sequence));
-            element.Add(TokenToElement(node.CloseBracketToken));
-            return element;
-        }
-
-        private static XElement CreateSequenceNode(ImmutableArray<JsonValueNode> sequence)
-        {
-            var element = new XElement("Sequence");
-            foreach (var child in sequence)
-                element.Add(NodeToElement(child));
-            return element;
-        }
-
-        private static XElement CreateSequenceNode(JsonSeparatedList sequence)
-        {
-            var element = new XElement("Sequence");
-            foreach (var child in sequence.NodesAndTokens)
-                element.Add(NodeOrTokenToElement(child));
-            return element;
-        }
-
-        private static XElement TokenToElement(JsonToken token)
-        {
-            var element = new XElement(token.Kind.ToString());
-
-            if (token.Value != null)
-                element.Add(new XAttribute("value", token.Value));
-
-            if (token.LeadingTrivia.Length > 0)
-                element.Add(new XElement("Trivia", token.LeadingTrivia.Select(t => TriviaToElement(t))));
-
-            if (token.VirtualChars.Length > 0)
-                element.Add(token.VirtualChars.CreateString());
-
-            if (token.TrailingTrivia.Length > 0)
-                element.Add(new XElement("Trivia", token.TrailingTrivia.Select(t => TriviaToElement(t))));
-
-            return element;
-        }
-
-        private static XElement TriviaToElement(JsonTrivia trivia)
-            => new(
-                trivia.Kind.ToString(),
-                trivia.VirtualChars.CreateString().Replace("\f", "\\f"));
-
-        private protected static void CheckInvariants(JsonTree tree, VirtualCharSequence allChars)
-        {
-            var root = tree.Root;
-            var position = 0;
-            CheckInvariants(root, ref position, allChars);
-            Assert.Equal(allChars.Length, position);
-        }
-
-        private static void CheckInvariants(JsonNode node, ref int position, VirtualCharSequence allChars)
-        {
-            foreach (var child in node)
-            {
-                if (child.IsNode)
-                {
-                    CheckInvariants(child.Node, ref position, allChars);
-                }
-                else
-                {
-                    CheckInvariants(child.Token, ref position, allChars);
-                }
+                CheckInvariants(child.Token, ref position, allChars);
             }
         }
+    }
 
-        private static void CheckInvariants(JsonToken token, ref int position, VirtualCharSequence allChars)
+    private static void CheckInvariants(JsonToken token, ref int position, VirtualCharSequence allChars)
+    {
+        CheckInvariants(token.LeadingTrivia, ref position, allChars);
+        CheckCharacters(token.VirtualChars, ref position, allChars);
+        CheckInvariants(token.TrailingTrivia, ref position, allChars);
+    }
+
+    private static void CheckInvariants(ImmutableArray<JsonTrivia> leadingTrivia, ref int position, VirtualCharSequence allChars)
+    {
+        foreach (var trivia in leadingTrivia)
+            CheckInvariants(trivia, ref position, allChars);
+    }
+
+    private static void CheckInvariants(JsonTrivia trivia, ref int position, VirtualCharSequence allChars)
+    {
+        switch (trivia.Kind)
         {
-            CheckInvariants(token.LeadingTrivia, ref position, allChars);
-            CheckCharacters(token.VirtualChars, ref position, allChars);
-            CheckInvariants(token.TrailingTrivia, ref position, allChars);
+            case JsonKind.SingleLineCommentTrivia:
+            case JsonKind.MultiLineCommentTrivia:
+            case JsonKind.WhitespaceTrivia:
+            case JsonKind.EndOfLineTrivia:
+                break;
+            default:
+                Assert.False(true, "Incorrect trivia kind");
+                return;
         }
 
-        private static void CheckInvariants(ImmutableArray<JsonTrivia> leadingTrivia, ref int position, VirtualCharSequence allChars)
-        {
-            foreach (var trivia in leadingTrivia)
-                CheckInvariants(trivia, ref position, allChars);
-        }
+        CheckCharacters(trivia.VirtualChars, ref position, allChars);
+    }
 
-        private static void CheckInvariants(JsonTrivia trivia, ref int position, VirtualCharSequence allChars)
-        {
-            switch (trivia.Kind)
-            {
-                case JsonKind.SingleLineCommentTrivia:
-                case JsonKind.MultiLineCommentTrivia:
-                case JsonKind.WhitespaceTrivia:
-                case JsonKind.EndOfLineTrivia:
-                    break;
-                default:
-                    Assert.False(true, "Incorrect trivia kind");
-                    return;
-            }
+    private static void CheckCharacters(VirtualCharSequence virtualChars, ref int position, VirtualCharSequence allChars)
+    {
+        for (var i = 0; i < virtualChars.Length; i++)
+            Assert.Equal(allChars[position + i], virtualChars[i]);
 
-            CheckCharacters(trivia.VirtualChars, ref position, allChars);
-        }
+        position += virtualChars.Length;
+    }
 
-        private static void CheckCharacters(VirtualCharSequence virtualChars, ref int position, VirtualCharSequence allChars)
-        {
-            for (var i = 0; i < virtualChars.Length; i++)
-                Assert.Equal(allChars[position + i], virtualChars[i]);
+    private object RemoveSequenceNode(XNode node)
+    {
+        if (node is not XElement element)
+            return node;
 
-            position += virtualChars.Length;
-        }
+        var children = element.Nodes().Select(RemoveSequenceNode);
 
-        private object RemoveSequenceNode(XNode node)
-        {
-            if (node is not XElement element)
-                return node;
+        if (element.Name == "Sequence")
+            return children;
+        return new XElement(element.Name, children);
+    }
 
-            var children = element.Nodes().Select(RemoveSequenceNode);
+    [Fact]
+    public void TestDeepRecursion1()
+    {
+        var (token, tree, chars) =
+            JustParseTree(
+                """
+                @"[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+                [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[["
+                """,
+                JsonOptions.Loose, conversionFailureOk: false);
+        Assert.False(token.IsMissing);
+        Assert.False(chars.IsDefaultOrEmpty);
+        Assert.Null(tree);
+    }
 
-            if (element.Name == "Sequence")
-                return children;
-            return new XElement(element.Name, children);
-        }
-
-        [Fact]
-        public void TestDeepRecursion1()
-        {
-            var (token, tree, chars) =
-                JustParseTree(
-@"@""[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
-[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[""",
-JsonOptions.Loose, conversionFailureOk: false);
-            Assert.False(token.IsMissing);
-            Assert.False(chars.IsDefaultOrEmpty);
-            Assert.Null(tree);
-        }
-
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1691963")]
-        public void TestDeepRecursion2()
-        {
-            var (token, tree, chars) =
-                JustParseTree(
-@"@""::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::""",
-JsonOptions.Loose, conversionFailureOk: false);
-            Assert.False(token.IsMissing);
-            Assert.False(chars.IsDefaultOrEmpty);
-            Assert.Null(tree);
-        }
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1691963")]
+    public void TestDeepRecursion2()
+    {
+        var (token, tree, chars) =
+            JustParseTree(
+                """
+                @"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"
+                """,
+                JsonOptions.Loose, conversionFailureOk: false);
+        Assert.False(token.IsMissing);
+        Assert.False(chars.IsDefaultOrEmpty);
+        Assert.Null(tree);
     }
 }

@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +15,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
@@ -89,20 +86,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             // get the candidate methods
             var methods = type.InstanceConstructors
-                             .WhereAsArray(c => c.IsAccessibleWithin(within))
-                             .WhereAsArray(s => s.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
-                             .Sort(semanticModel, objectCreationExpression.SpanStart);
+                .WhereAsArray(c => c.IsAccessibleWithin(within))
+                .WhereAsArray(s => s.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
+                .Sort(semanticModel, objectCreationExpression.SpanStart);
 
             if (!methods.Any())
                 return null;
 
             // guess the best candidate if needed and determine parameter index
-            var arguments = objectCreationExpression.ArgumentList.Arguments;
-            var candidates = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol is IMethodSymbol exactMatch
-                ? ImmutableArray.Create(exactMatch)
-                : methods;
-            LightweightOverloadResolution.RefineOverloadAndPickParameter(
-                document, position, semanticModel, methods, arguments, out var currentSymbol, out var parameterIndexOverride);
+            var (currentSymbol, parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, objectCreationExpression.ArgumentList.Arguments)
+                .RefineOverloadAndPickParameter(semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken), methods);
 
             // present items and select
             var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();
@@ -131,10 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
 
             // determine parameter index
-            var arguments = objectCreationExpression.ArgumentList.Arguments;
-            var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
-            LightweightOverloadResolution.FindParameterIndexIfCompatibleMethod(
-                arguments, invokeMethod, position, semanticModel, semanticFactsService, out var parameterIndexOverride);
+            var parameterIndexOverride = new LightweightOverloadResolution(semanticModel, position, objectCreationExpression.ArgumentList.Arguments)
+                .FindParameterIndexIfCompatibleMethod(invokeMethod);
 
             // present item and select
             var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();

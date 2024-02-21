@@ -799,7 +799,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Me.Items = items
             End Sub
 
-            Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticService.DiagnosticsUpdated
+            Public Event DiagnosticsUpdated As EventHandler(Of ImmutableArray(Of DiagnosticsUpdatedArgs)) Implements IDiagnosticService.DiagnosticsUpdated
 
             Public Function GetDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetDiagnosticsAsync
                 Return New ValueTask(Of ImmutableArray(Of DiagnosticData))(GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics))
@@ -873,29 +873,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim item = items(0)
 
                 Dim id = If(CObj(item.DocumentId), item.ProjectId)
-                RaiseEvent DiagnosticsUpdated(Me, DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                        New ErrorId(Me, id), workspace, workspace.CurrentSolution, item.ProjectId, item.DocumentId, items.ToImmutableArray()))
+                RaiseEvent DiagnosticsUpdated(Me, ImmutableArray.Create(DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                        New ErrorId(Me, id), workspace, workspace.CurrentSolution, item.ProjectId, item.DocumentId, items.ToImmutableArray())))
             End Sub
 
             Public Sub RaiseDiagnosticsUpdated(workspace As Workspace)
                 Dim documentMap = Items.Where(Function(t) t.DocumentId IsNot Nothing).ToLookup(Function(t) t.DocumentId)
 
                 For Each group In documentMap
-                    RaiseEvent DiagnosticsUpdated(Me, DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                        New ErrorId(Me, group.Key), workspace, workspace.CurrentSolution, group.Key.ProjectId, group.Key, group.ToImmutableArrayOrEmpty()))
+                    RaiseEvent DiagnosticsUpdated(Me, ImmutableArray.Create(DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                        New ErrorId(Me, group.Key), workspace, workspace.CurrentSolution, group.Key.ProjectId, group.Key, group.ToImmutableArrayOrEmpty())))
                 Next
 
                 Dim projectMap = Items.Where(Function(t) t.DocumentId Is Nothing).ToLookup(Function(t) t.ProjectId)
 
                 For Each group In projectMap
-                    RaiseEvent DiagnosticsUpdated(Me, DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                        New ErrorId(Me, group.Key), workspace, workspace.CurrentSolution, group.Key, Nothing, group.ToImmutableArrayOrEmpty()))
+                    RaiseEvent DiagnosticsUpdated(Me, ImmutableArray.Create(DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                        New ErrorId(Me, group.Key), workspace, workspace.CurrentSolution, group.Key, Nothing, group.ToImmutableArrayOrEmpty())))
                 Next
             End Sub
 
             Public Sub RaiseClearDiagnosticsUpdated(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId)
-                RaiseEvent DiagnosticsUpdated(Me, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                    New ErrorId(Me, documentId), workspace, workspace.CurrentSolution, projectId, documentId))
+                RaiseEvent DiagnosticsUpdated(Me, ImmutableArray.Create(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+                    New ErrorId(Me, documentId), workspace, workspace.CurrentSolution, projectId, documentId)))
             End Sub
 
             Private Class ErrorId

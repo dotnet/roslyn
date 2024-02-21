@@ -1191,9 +1191,7 @@ lUnsplitAndFinish:
 
             VisitArguments(node.Arguments, method.Parameters)
 
-            If receiverOpt IsNot Nothing AndAlso receiverOpt.IsLValue Then
-                WriteLValueCallReceiver(receiverOpt, method)
-            End If
+            VisitCallAfterVisitArguments(node)
 
             If callsAreOmitted Then
                 Me.SetState(savedState)
@@ -1201,6 +1199,15 @@ lUnsplitAndFinish:
 
             Return Nothing
         End Function
+
+        Protected Overridable Sub VisitCallAfterVisitArguments(node As BoundCall)
+            Dim receiverOpt As BoundExpression = node.ReceiverOpt
+            Dim method As MethodSymbol = node.Method
+
+            If receiverOpt IsNot Nothing AndAlso receiverOpt.IsLValue Then
+                WriteLValueCallReceiver(receiverOpt, method)
+            End If
+        End Sub
 
         Private Sub VisitCallReceiver(receiver As BoundExpression, method As MethodSymbol)
             Debug.Assert(receiver IsNot Nothing)

@@ -63,6 +63,9 @@ namespace Microsoft.Cci
 
         #region ITypeDefinition Members
 
+        public bool IsEncDeleted
+            => false;
+
         public ushort Alignment
         {
             get { return 0; }

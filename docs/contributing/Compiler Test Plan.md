@@ -111,6 +111,7 @@ This document provides guidance for thinking about language interactions and tes
 - Definite assignment analysis and auto-default struct fields
 - If you add a place an expression can appear in code, make sure `SpillSequenceSpiller` handles it. Test with a `switch` expression or `stackalloc` in that place.
 - If you add a new expression form that requires spilling, test it in the catch filter.
+- If you add a new expression that can be nested inside itself, test deeply nesting it. Potentially cut off direct nesting.
 - extension based Dispose, DisposeAsync, GetEnumerator, GetAsyncEnumerator, Deconstruct, GetAwaiter etc.
 - UTF8 String Literals (string literals with 'u8' or 'U8' type suffix).
 - Inline array element access and slicing.

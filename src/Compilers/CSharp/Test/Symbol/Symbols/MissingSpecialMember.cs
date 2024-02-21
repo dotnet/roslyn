@@ -1064,6 +1064,11 @@ namespace System
                     case WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T:
                     case WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T:
                     case WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T:
+                    case WellKnownMember.System_Span_T__ToArray:
+                    case WellKnownMember.System_ReadOnlySpan_T__ToArray:
+                    case WellKnownMember.System_Span_T__CopyTo_Span_T:
+                    case WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T:
+                    case WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan:
                         // Not always available.
                         continue;
                 }
@@ -1588,11 +1593,9 @@ namespace Test
 
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
-            compilation.VerifyEmitDiagnostics(
-                // (23,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
-                //             S.v = s ?? -1;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "s").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(23, 19)
-                );
+
+            // We use more optimal `GetValueOrDefault(defaultValue)` member for this case, so no error about missing `GetValueOrDefault()` is reported
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]

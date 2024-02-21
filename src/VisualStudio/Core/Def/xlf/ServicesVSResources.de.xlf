@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
-        <target state="new">Collapse local functions when collapsing to definitions</target>
+        <target state="translated">Lokale Funktionen beim Reduzieren auf Definitionen reduzieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_metadata_signature_files_on_open">
@@ -1499,7 +1499,7 @@
       </trans-unit>
       <trans-unit id="SystemVoid_is_not_a_valid_type_for_a_parameter">
         <source>'System.Void' is not a valid type for a parameter</source>
-        <target state="translated">'System.Void' ist kein gültiger Typ für einen Parameter.</target>
+        <target state="translated">"System.Void" ist kein gültiger Typ für einen Parameter.</target>
         <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
@@ -1680,6 +1680,16 @@
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">Das Aktualisieren von Visual Basic-Kompilierungsoptionen wird von diesem Arbeitsbereich nicht unterstützt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_types_exactly_match">
+        <source>When types exactly match</source>
+        <target state="translated">Wenn Typen exakt übereinstimmen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_types_loosely_match">
+        <source>When types loosely match</source>
+        <target state="translated">Wenn Typen lose übereinstimmen</target>
         <note />
       </trans-unit>
       <trans-unit id="Where_should_the_rename_UI_be_shown">

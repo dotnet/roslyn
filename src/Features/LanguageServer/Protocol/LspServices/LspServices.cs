@@ -13,7 +13,7 @@ using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal class LspServices : ILspServices
+internal sealed class LspServices : ILspServices
 {
     private readonly ImmutableDictionary<Type, Lazy<ILspService, LspServiceMetadataView>> _lazyMefLspServices;
 

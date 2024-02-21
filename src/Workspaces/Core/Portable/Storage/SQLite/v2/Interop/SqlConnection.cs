@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-        public Optional<Checksum.HashData> ReadChecksum_MustRunInTransaction(Database database, Table table, long rowId)
+        public Optional<Checksum> ReadChecksum_MustRunInTransaction(Database database, Table table, long rowId)
         {
             return ReadBlob_MustRunInTransaction(
                 database, table, Column.Checksum, rowId,
@@ -308,13 +308,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                     // If the length of the blob isn't correct, then we can't read a checksum out of this.
                     var length = NativeMethods.sqlite3_blob_bytes(blobHandle);
                     if (length != Checksum.HashSize)
-                        return new Optional<Checksum.HashData>();
+                        return new Optional<Checksum>();
 
                     Span<byte> bytes = stackalloc byte[Checksum.HashSize];
                     self.ThrowIfNotOk(NativeMethods.sqlite3_blob_read(blobHandle, bytes, offset: 0));
 
-                    Contract.ThrowIfFalse(MemoryMarshal.TryRead(bytes, out Checksum.HashData result));
-                    return new Optional<Checksum.HashData>(result);
+                    Contract.ThrowIfFalse(MemoryMarshal.TryRead(bytes, out Checksum result));
+                    return new Optional<Checksum>(result);
                 });
         }
 

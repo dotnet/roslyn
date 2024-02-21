@@ -13,10 +13,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     {
         IUnitTestingWorkCoordinator Register(Solution solution);
 
-#if false // Not used in unit testing crawling
-        void Unregister(Workspace workspace, bool blockingShutdown = false);
-#endif
-
         void AddAnalyzerProvider(IUnitTestingIncrementalAnalyzerProvider provider, UnitTestingIncrementalAnalyzerProviderMetadata metadata);
 
         bool HasRegisteredAnalyzerProviders { get; }
