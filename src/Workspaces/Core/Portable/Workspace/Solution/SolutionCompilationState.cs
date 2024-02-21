@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -31,6 +32,11 @@ internal sealed partial class SolutionCompilationState
     private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap = new();
 
     /// <summary>
+    /// Reusable empty dictionary
+    /// </summary>
+    private static readonly ReadOnlyDictionary<ProjectId, ICompilationTracker> s_emptyReadOnlyDictionary = new(new Dictionary<ProjectId, ICompilationTracker>());
+
+    /// <summary>
     /// Green version of the information about this Solution instance.  Responsible for non-semantic information
     /// about the solution structure.  Specifically, the set of green <see cref="ProjectState"/>s, with all their
     /// green <see cref="DocumentState"/>s.  Contains the attributes, options and relationships between projects.
@@ -43,7 +49,10 @@ internal sealed partial class SolutionCompilationState
     public TextDocumentStates<SourceGeneratedDocumentState>? FrozenSourceGeneratedDocumentStates { get; }
 
     // Values for all these are created on demand.
-    private ImmutableDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
+    private ReadOnlyDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
+
+    // Protect around recreation of _projectIdToTrackerMap
+    private readonly object _lock = new();
 
     /// <summary>
     /// Cache we use to map between unrooted symbols (i.e. assembly, module and dynamic symbols) and the project
@@ -56,7 +65,7 @@ internal sealed partial class SolutionCompilationState
     private SolutionCompilationState(
         SolutionState solution,
         bool partialSemanticsEnabled,
-        ImmutableDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
+        ReadOnlyDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
         TextDocumentStates<SourceGeneratedDocumentState>? frozenSourceGeneratedDocumentStates)
     {
         SolutionState = solution;
@@ -76,7 +85,7 @@ internal sealed partial class SolutionCompilationState
         : this(
               solution,
               partialSemanticsEnabled,
-              projectIdToTrackerMap: ImmutableDictionary<ProjectId, ICompilationTracker>.Empty,
+              projectIdToTrackerMap: s_emptyReadOnlyDictionary,
               frozenSourceGeneratedDocumentStates: null)
     {
     }
@@ -93,7 +102,7 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState Branch(
         SolutionState newSolutionState,
-        ImmutableDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
+        ReadOnlyDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
         Optional<TextDocumentStates<SourceGeneratedDocumentState>?> frozenSourceGeneratedDocumentStates = default)
     {
         projectIdToTrackerMap ??= _projectIdToTrackerMap;
@@ -154,28 +163,41 @@ internal sealed partial class SolutionCompilationState
         var projectId = newProjectState.Id;
 
         var newDependencyGraph = newSolutionState.GetProjectDependencyGraph();
-        var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
-
-        // If we have a tracker for this project, then fork it as well (along with the
-        // translation action and store it in the tracker map.
-        if (newTrackerMap.TryGetValue(projectId, out var tracker))
-        {
-            newTrackerMap = newTrackerMap.Remove(projectId);
-
-            if (forkTracker)
-            {
-                newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(newProjectState, translate));
-            }
-        }
+        var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph, modifyTrackerMapInfo, (translate, forkTracker, projectId, newProjectState));
 
         return this.Branch(
             newSolutionState,
             projectIdToTrackerMap: newTrackerMap);
+
+        static bool modifyTrackerMapInfo(
+            Dictionary<ProjectId, ICompilationTracker> trackerMap,
+            (TranslationAction? translate, bool forkTracker, ProjectId projectId, ProjectState newProjectState) arg)
+        {
+            // If we have a tracker for this project, then fork it as well (along with the
+            // translation action and store it in the tracker map.
+            if (trackerMap.TryGetValue(arg.projectId, out var tracker))
+            {
+                trackerMap.Remove(arg.projectId);
+
+                if (arg.forkTracker)
+                {
+                    trackerMap.Add(arg.projectId, tracker.Fork(arg.newProjectState, arg.translate));
+                }
+
+                return true;
+            }
+
+            return false;
+        }
     }
 
-    private ImmutableDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
+    private ReadOnlyDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArg>(
+        ProjectId changedProjectId,
+        ProjectDependencyGraph dependencyGraph,
+        Func<Dictionary<ProjectId, ICompilationTracker>, TArg, bool> modifyNewTrackerInfo,
+        TArg arg)
     {
-        return CreateCompilationTrackerMap(CanReuse, (changedProjectId, dependencyGraph));
+        return CreateCompilationTrackerMap(CanReuse, (changedProjectId, dependencyGraph), modifyNewTrackerInfo, arg);
 
         // Returns true if 'tracker' can be reused for project 'id'
         static bool CanReuse(ProjectId id, (ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph) arg)
@@ -189,9 +211,13 @@ internal sealed partial class SolutionCompilationState
         }
     }
 
-    private ImmutableDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap(ImmutableArray<ProjectId> changedProjectIds, ProjectDependencyGraph dependencyGraph)
+    private ReadOnlyDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArg>(
+        ImmutableArray<ProjectId> changedProjectIds,
+        ProjectDependencyGraph dependencyGraph,
+        Func<Dictionary<ProjectId, ICompilationTracker>, TArg, bool> modifyNewTrackerInfo,
+        TArg arg)
     {
-        return CreateCompilationTrackerMap(CanReuse, (changedProjectIds, dependencyGraph));
+        return CreateCompilationTrackerMap(CanReuse, (changedProjectIds, dependencyGraph), modifyNewTrackerInfo, arg);
 
         // Returns true if 'tracker' can be reused for project 'id'
         static bool CanReuse(ProjectId id, (ImmutableArray<ProjectId> changedProjectIds, ProjectDependencyGraph dependencyGraph) arg)
@@ -209,36 +235,47 @@ internal sealed partial class SolutionCompilationState
         }
     }
 
-    private ImmutableDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArg>(Func<ProjectId, TArg, bool> canReuse, TArg arg)
+    private ReadOnlyDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArgCanReuse, TArgModifyNewTrackerInfo>(
+        Func<ProjectId, TArgCanReuse, bool> canReuse,
+        TArgCanReuse argCanReuse,
+        Func<Dictionary<ProjectId, ICompilationTracker>, TArgModifyNewTrackerInfo, bool> modifyNewTrackerInfo,
+        TArgModifyNewTrackerInfo argModifyNewTrackerInfo)
     {
-        if (_projectIdToTrackerMap.Count == 0)
-            return _projectIdToTrackerMap;
+        PooledDictionary<ProjectId, ICompilationTracker>.GetInstance(out var newTrackerInfo);
 
-        using var _ = ArrayBuilder<KeyValuePair<ProjectId, ICompilationTracker>>.GetInstance(_projectIdToTrackerMap.Count, out var newTrackerInfo);
+#if NETCOREAPP
+        newTrackerInfo.EnsureCapacity(_projectIdToTrackerMap.Count);
+#endif
+
         var allReused = true;
         foreach (var (id, tracker) in _projectIdToTrackerMap)
         {
             var localTracker = tracker;
-            if (!canReuse(id, arg))
+            if (!canReuse(id, argCanReuse))
             {
                 localTracker = tracker.Fork(tracker.ProjectState, translate: null);
                 allReused = false;
             }
 
-            newTrackerInfo.Add(new KeyValuePair<ProjectId, ICompilationTracker>(id, localTracker));
+            newTrackerInfo[id] = localTracker;
         }
 
-        if (allReused)
-            return _projectIdToTrackerMap;
+        var isModified = modifyNewTrackerInfo(newTrackerInfo, argModifyNewTrackerInfo);
 
-        return ImmutableDictionary.CreateRange(newTrackerInfo);
+        if (allReused && !isModified)
+        {
+            newTrackerInfo.Free();
+            return _projectIdToTrackerMap;
+        }
+
+        return new ReadOnlyDictionary<ProjectId, ICompilationTracker>(newTrackerInfo);
     }
 
     /// <inheritdoc cref="SolutionState.AddProject(ProjectInfo)"/>
     public SolutionCompilationState AddProject(ProjectInfo projectInfo)
     {
         var newSolutionState = this.SolutionState.AddProject(projectInfo);
-        var newTrackerMap = CreateCompilationTrackerMap(projectInfo.Id, newSolutionState.GetProjectDependencyGraph());
+        var newTrackerMap = CreateCompilationTrackerMap(projectInfo.Id, newSolutionState.GetProjectDependencyGraph(), static (_, _) => false, 0);
 
         return Branch(
             newSolutionState,
@@ -249,11 +286,20 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState RemoveProject(ProjectId projectId)
     {
         var newSolutionState = this.SolutionState.RemoveProject(projectId);
-        var newTrackerMap = CreateCompilationTrackerMap(projectId, newSolutionState.GetProjectDependencyGraph());
+        var newTrackerMap = CreateCompilationTrackerMap(projectId, newSolutionState.GetProjectDependencyGraph(), modifyTrackerMapInfo, projectId);
 
         return this.Branch(
             newSolutionState,
-            projectIdToTrackerMap: newTrackerMap.Remove(projectId));
+            projectIdToTrackerMap: newTrackerMap);
+
+        static bool modifyTrackerMapInfo(
+            Dictionary<ProjectId, ICompilationTracker> trackerMap,
+            ProjectId projectId)
+        {
+            trackerMap.Remove(projectId);
+
+            return true;
+        }
     }
 
     /// <inheritdoc cref="SolutionState.WithProjectAssemblyName"/>
@@ -752,9 +798,20 @@ internal sealed partial class SolutionCompilationState
 
     private ICompilationTracker GetCompilationTracker(ProjectId projectId)
     {
-        if (!_projectIdToTrackerMap.TryGetValue(projectId, out var tracker))
+        if (_projectIdToTrackerMap.TryGetValue(projectId, out var oldValue))
+            return oldValue;
+
+        var tracker = s_createCompilationTrackerFunction(projectId, this.SolutionState);
+
+        lock (_lock)
         {
-            tracker = ImmutableInterlocked.GetOrAdd(ref _projectIdToTrackerMap, projectId, s_createCompilationTrackerFunction, this.SolutionState);
+            if (_projectIdToTrackerMap.TryGetValue(projectId, out oldValue))
+                return oldValue;
+
+            var newProjectIdToTrackerMap = new Dictionary<ProjectId, ICompilationTracker>(_projectIdToTrackerMap);
+            newProjectIdToTrackerMap[projectId] = tracker;
+
+            _projectIdToTrackerMap = new ReadOnlyDictionary<ProjectId, ICompilationTracker>(newProjectIdToTrackerMap);
         }
 
         return tracker;
@@ -936,14 +993,11 @@ internal sealed partial class SolutionCompilationState
 
         // Since we previously froze documents in these projects, we should have a CompilationTracker entry for it, and it should be a
         // GeneratedFileReplacingCompilationTracker. To undo the operation, we'll just restore the original CompilationTracker.
-        var newTrackerMap = CreateCompilationTrackerMap(projectIdsToUnfreeze.ToImmutableArray(), this.SolutionState.GetProjectDependencyGraph());
-
-        foreach (var projectId in projectIdsToUnfreeze)
-        {
-            Contract.ThrowIfFalse(newTrackerMap.TryGetValue(projectId, out var existingTracker));
-            var replacingItemTracker = (GeneratedFileReplacingCompilationTracker)existingTracker;
-            newTrackerMap = newTrackerMap.SetItem(projectId, replacingItemTracker.UnderlyingTracker);
-        }
+        var newTrackerMap = CreateCompilationTrackerMap(
+            projectIdsToUnfreeze.ToImmutableArray(),
+            this.SolutionState.GetProjectDependencyGraph(),
+            modifyTrackerMapInfo,
+            projectIdsToUnfreeze);
 
         // We pass the same solution state, since this change is only a change of the generated documents -- none of the core
         // documents or project structure changes in any way.
@@ -951,6 +1005,20 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState,
             projectIdToTrackerMap: newTrackerMap,
             frozenSourceGeneratedDocumentStates: null);
+
+        static bool modifyTrackerMapInfo(
+            Dictionary<ProjectId, ICompilationTracker> trackerMap,
+            IEnumerable<ProjectId> projectIdsToUnfreeze)
+        {
+            foreach (var projectId in projectIdsToUnfreeze)
+            {
+                Contract.ThrowIfFalse(trackerMap.TryGetValue(projectId, out var existingTracker));
+                var replacingItemTracker = (GeneratedFileReplacingCompilationTracker)existingTracker;
+                trackerMap[projectId] = replacingItemTracker.UnderlyingTracker;
+            }
+
+            return true;
+        }
     }
 
     /// <summary>
@@ -959,7 +1027,7 @@ internal sealed partial class SolutionCompilationState
     /// generated file open, we need to make sure everything lines up.
     /// </summary>
     public SolutionCompilationState WithFrozenSourceGeneratedDocuments(
-        ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceText sourceText)> documents)
+    ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceText sourceText)> documents)
     {
         // We won't support freezing multiple source generated documents more than once in a chain, simply because we have no need
         // to support that; these solutions are created on demand when we need to operate on an open source generated document,
@@ -1006,21 +1074,30 @@ internal sealed partial class SolutionCompilationState
             return this;
 
         var documentStatesByProjectId = documentStates.ToDictionary(static state => state.Id.ProjectId);
-        var newTrackerMap = CreateCompilationTrackerMap(documentStatesByProjectId.Keys.ToImmutableArray(), this.SolutionState.GetProjectDependencyGraph());
+        var newTrackerMap = CreateCompilationTrackerMap(
+            documentStatesByProjectId.Keys.ToImmutableArray(),
+            this.SolutionState.GetProjectDependencyGraph(),
+            modifyTrackerMapInfo,
+            (documentStatesByProjectId, this.SolutionState));
 
-        foreach (var (projectId, documentStatesForProject) in documentStatesByProjectId)
+        static bool modifyTrackerMapInfo(
+            Dictionary<ProjectId, ICompilationTracker> trackerMap,
+            (Dictionary<ProjectId, ImmutableArray<SourceGeneratedDocumentState>> documentStatesByProjectId, SolutionState solutionState) arg)
         {
-            // We want to create a new snapshot with a new compilation tracker that will do this replacement.
-            // If we already have an existing tracker we'll just wrap that (so we also are reusing any underlying
-            // computations). If we don't have one, we'll create one and then wrap it.
-            if (!newTrackerMap.TryGetValue(projectId, out var existingTracker))
+            foreach (var (projectId, documentStatesForProject) in arg.documentStatesByProjectId)
             {
-                existingTracker = CreateCompilationTracker(projectId, this.SolutionState);
+                // We want to create a new snapshot with a new compilation tracker that will do this replacement.
+                // If we already have an existing tracker we'll just wrap that (so we also are reusing any underlying
+                // computations). If we don't have one, we'll create one and then wrap it.
+                if (!trackerMap.TryGetValue(projectId, out var existingTracker))
+                {
+                    existingTracker = CreateCompilationTracker(projectId, arg.solutionState);
+                }
+
+                trackerMap[projectId] = new GeneratedFileReplacingCompilationTracker(existingTracker, new(documentStatesForProject));
             }
 
-            newTrackerMap = newTrackerMap.SetItem(
-                projectId,
-                new GeneratedFileReplacingCompilationTracker(existingTracker, new(documentStatesForProject)));
+            return true;
         }
 
         // We pass the same solution state, since this change is only a change of the generated documents -- none of the core
@@ -1046,7 +1123,7 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState WithFrozenPartialCompilations(CancellationToken cancellationToken)
     {
         var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
-        var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
+        var newIdToTrackerMapBuilder = new Dictionary<ProjectId, ICompilationTracker>(this.SolutionState.ProjectIds.Count);
 
         foreach (var projectId in this.SolutionState.ProjectIds)
         {
@@ -1060,7 +1137,7 @@ internal sealed partial class SolutionCompilationState
         }
 
         var newIdToProjectStateMap = newIdToProjectStateMapBuilder.ToImmutable();
-        var newIdToTrackerMap = newIdToTrackerMapBuilder.ToImmutable();
+        var newIdToTrackerMap = new ReadOnlyDictionary<ProjectId, ICompilationTracker>(newIdToTrackerMapBuilder);
 
         var newState = this.SolutionState.Branch(
             idToProjectStateMap: newIdToProjectStateMap,
@@ -1161,7 +1238,7 @@ internal sealed partial class SolutionCompilationState
             CancellationToken cancellationToken)
         {
             var newIdToProjectStateMap = @this.SolutionState.ProjectStates;
-            var newIdToTrackerMap = @this._projectIdToTrackerMap;
+            var newIdToTrackerMap = new Dictionary<ProjectId, ICompilationTracker>(@this._projectIdToTrackerMap);
 
             foreach (var docState in documentStates)
             {
@@ -1171,7 +1248,7 @@ internal sealed partial class SolutionCompilationState
 
                 Contract.ThrowIfFalse(newIdToProjectStateMap.ContainsKey(docState.Id.ProjectId));
                 newIdToProjectStateMap = newIdToProjectStateMap.SetItem(docState.Id.ProjectId, newTracker.ProjectState);
-                newIdToTrackerMap = newIdToTrackerMap.SetItem(docState.Id.ProjectId, newTracker);
+                newIdToTrackerMap[docState.Id.ProjectId] = newTracker;
             }
 
             var newState = @this.SolutionState.Branch(
@@ -1179,7 +1256,7 @@ internal sealed partial class SolutionCompilationState
                 dependencyGraph: SolutionState.CreateDependencyGraph(@this.SolutionState.ProjectIds, newIdToProjectStateMap));
             var newCompilationState = @this.Branch(
                 newState,
-                newIdToTrackerMap);
+                new ReadOnlyDictionary<ProjectId, ICompilationTracker>(newIdToTrackerMap));
 
             return newCompilationState;
         }
