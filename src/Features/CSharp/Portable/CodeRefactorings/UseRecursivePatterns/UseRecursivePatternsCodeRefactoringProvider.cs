@@ -121,6 +121,8 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
             {
                 return root =>
                 {
+                    // It's possible we decided to discard a pattern due to it being redundant (such as a null check
+                    // combined with a property check belonging to the same field we confirmed not being null)
                     if (leftNames.Length == 0)
                     {
                         var rightSubpattern = CreateSubpattern(rightNames, CreatePattern(rightReceiver, rightTarget, rightFlipped));
