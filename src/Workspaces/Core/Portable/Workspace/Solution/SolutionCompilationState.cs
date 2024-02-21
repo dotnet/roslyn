@@ -1422,6 +1422,16 @@ internal sealed partial class SolutionCompilationState
         return result;
     }
 
+    private static async Task<SyntaxTree[]> GetAllSyntaxTreesAsync(IEnumerable<DocumentState> documents, int documentCount, CancellationToken cancellationToken)
+    {
+        // Parse all the documents in parallel.
+        using var _ = ArrayBuilder<Task<SyntaxTree>>.GetInstance(documentCount, out var tasks);
+        foreach (var document in documents)
+            tasks.Add(Task.Run(async () => await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken));
+
+        return await Task.WhenAll(tasks).ConfigureAwait(false);
+    }
+
     internal TestAccessor GetTestAccessor()
         => new(this);
 
