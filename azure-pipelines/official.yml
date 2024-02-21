@@ -24,7 +24,7 @@ parameters:
   displayName: Real sign?
   type: boolean
   default: false
-# - name: ShouldSkipOptimize # Enable this when setting EnableOptProf to true in build.yml.
+# - name: ShouldSkipOptimize # Enable this and references to it below when setting EnableOptProf to true in build.yml.
 #   displayName: Skip OptProf optimization
 #   type: boolean
 #   default: false
@@ -75,7 +75,7 @@ extends:
           parameters:
             Is1ESPT: true
             RealSign: ${{ or(parameters.RealSign, eq(variables['Build.Reason'],'Schedule')) }}
-            ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
+            # ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
             EnableCompliance: ${{ parameters.EnableCompliance }}
             EnableAPIScan: ${{ parameters.EnableAPIScan }}
             windowsPool: VSEngSS-MicroBuild2022-1ES
@@ -109,7 +109,7 @@ extends:
           parameters:
             Is1ESPT: true
             RealSign: ${{ or(parameters.RealSign, eq(variables['Build.Reason'],'Schedule')) }}
-            ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
+            # ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
             EnableCompliance: ${{ parameters.EnableCompliance }}
             EnableAPIScan: ${{ parameters.EnableAPIScan }}
             windowsPool: VSEngSS-MicroBuild2022-1ES
