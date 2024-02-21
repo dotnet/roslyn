@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
@@ -54,11 +53,14 @@ internal sealed partial class SolutionCompilationState
     private ConditionalWeakTable<ISymbol, ProjectId?>? _unrootedSymbolToProjectId;
     private static readonly Func<ConditionalWeakTable<ISymbol, ProjectId?>> s_createTable = () => new ConditionalWeakTable<ISymbol, ProjectId?>();
 
+    private readonly AsyncLazy<SolutionCompilationState> _cachedFrozenSnapshot;
+
     private SolutionCompilationState(
         SolutionState solution,
         bool partialSemanticsEnabled,
         ImmutableDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
-        TextDocumentStates<SourceGeneratedDocumentState>? frozenSourceGeneratedDocumentStates)
+        TextDocumentStates<SourceGeneratedDocumentState>? frozenSourceGeneratedDocumentStates,
+        AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
     {
         SolutionState = solution;
         PartialSemanticsEnabled = partialSemanticsEnabled;
@@ -67,6 +69,7 @@ internal sealed partial class SolutionCompilationState
 
         // when solution state is changed, we recalculate its checksum
         _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectId: null, c));
+        _cachedFrozenSnapshot = cachedFrozenSnapshot ?? AsyncLazy.Create(ComputeFrozenSnapshot);
 
         CheckInvariants();
     }
@@ -1051,7 +1054,10 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
-    public SolutionCompilationState ComputeFrozenSnapshot(CancellationToken cancellationToken)
+    public SolutionCompilationState WithFrozenPartialCompilations(CancellationToken cancellationToken)
+        => _cachedFrozenSnapshot.GetValue(cancellationToken);
+
+    private SolutionCompilationState ComputeFrozenSnapshot(CancellationToken cancellationToken)
     {
         var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
@@ -1219,7 +1225,10 @@ internal sealed partial class SolutionCompilationState
                     documentStates.Add(documentState);
                 }
 
-                return ComputeFrozenPartialState(@this, documentStates, cancellationToken);
+                // now freeze the solution state, capturing whatever compilations are in progress.
+                var frozenCompilationState = @this.WithFrozenPartialCompilations(cancellationToken);
+
+                return ComputeFrozenPartialState(frozenCompilationState, documentStates, cancellationToken);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
@@ -1244,8 +1253,8 @@ internal sealed partial class SolutionCompilationState
                     // Project doesn't have this document, attempt to fork it with the document added.
                     currentState = currentState.AddDocumentsToMultipleProjects(
                         [(oldProjectState, [newDocumentState])],
-                        static (oldProjectState, newDocumentStates) => new TranslationAction.AddDocumentsAction(
-                            oldProjectState, oldProjectState.AddDocuments(newDocumentStates), newDocumentStates));
+                        static (oldProjectState, newDocumentStates) =>
+                            new TranslationAction.AddDocumentsAction(oldProjectState, oldProjectState.AddDocuments(newDocumentStates), newDocumentStates));
                 }
                 else
                 {

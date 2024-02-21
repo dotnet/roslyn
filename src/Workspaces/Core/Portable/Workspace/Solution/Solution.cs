@@ -1475,7 +1475,7 @@ namespace Microsoft.CodeAnalysis
             if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
                 return this;
 
-            var newCompilationState = this.CompilationState.ComputeFrozenSnapshot(cancellationToken);
+            var newCompilationState = this.CompilationState.WithFrozenPartialCompilations(cancellationToken);
 
             var frozenSolution = new Solution(
                 newCompilationState,
@@ -1503,7 +1503,7 @@ namespace Microsoft.CodeAnalysis
                     if (!_documentIdToFrozenSolution.TryGetValue(documentId, out var lazySolution))
                     {
                         // in a local function to prevent lambda allocations when not needed.
-                        lazySolution = CreateLazyFrozenSolution(this.CompilationState, documentId);
+                        lazySolution = CreateLazyFrozenSolution(documentId);
                         _documentIdToFrozenSolution.Add(documentId, lazySolution);
                     }
 
@@ -1511,12 +1511,12 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            static AsyncLazy<Solution> CreateLazyFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId)
-                => AsyncLazy.Create(cancellationToken => ComputeFrozenSolution(compilationState, documentId, cancellationToken));
+            AsyncLazy<Solution> CreateLazyFrozenSolution(DocumentId documentId)
+                => AsyncLazy.Create(cancellationToken => ComputeFrozenSolution(documentId));
 
-            static Solution ComputeFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId, CancellationToken cancellationToken)
+            Solution ComputeFrozenSolution(DocumentId documentId)
             {
-                var newCompilationState = compilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
+                var newCompilationState = this.CompilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
                 return new Solution(newCompilationState);
             }
         }
