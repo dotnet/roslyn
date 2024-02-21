@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static readonly ConcurrentLruCache<string, string> s_categoryToSeverityKeyMap = new ConcurrentLruCache<string, string>(50);
 
         private static string GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(string category)
-            => s_categoryToSeverityKeyMap.GetOrAdd(category, category => $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{category}.{SeveritySuffix}");
+            => s_categoryToSeverityKeyMap.GetOrAdd(category, category, category => $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{category}.{SeveritySuffix}");
 
         /// <summary>
         /// Tries to get configured severity for the given <paramref name="descriptor"/>
