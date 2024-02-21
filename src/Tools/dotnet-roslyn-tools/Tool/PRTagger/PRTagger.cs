@@ -4,13 +4,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Reflection.Emit;
 using System.Text;
 using System.Text.Json.Nodes;
-using LibGit2Sharp;
-using Microsoft.Azure.Pipelines.WebApi;
 using Microsoft.Extensions.Logging;
-using Microsoft.RoslynTools.Authentication;
 using Microsoft.RoslynTools.Extensions;
 using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
@@ -380,7 +376,7 @@ internal static class PRTagger
 
         // 'Items' is required in response schema.
         // https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28
-        var lastReportedIssue = jsonResponse["Items"]!.AsArray().First();
+        var lastReportedIssue = jsonResponse["items"]!.AsArray().First();
         var lastReportedIssueTitle = lastReportedIssue!["title"]!.ToString();
         return lastReportedIssueTitle["[Automated] PRs inserted in VS build".Length..];
 
