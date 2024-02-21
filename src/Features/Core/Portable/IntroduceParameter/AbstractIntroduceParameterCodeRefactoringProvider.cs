@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
 
             if (methodSymbol.MethodKind is not MethodKind.Constructor)
             {
-                var containsObjectCreationReferences = methodCallSites.Values.Flatten().Any(invocation => syntaxFacts.IsObjectCreationExpression(invocation));
+                var containsObjectCreationReferences = methodCallSites.Values.Flatten().OfType<TObjectCreationExpressionSyntax>().Any();
                 if (!containsObjectCreationReferences)
                 {
                     actionsBuilder.Add(CreateNewCodeAction(
