@@ -66,6 +66,8 @@ extends:
           exclusionsFile: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
         suppression:
           suppressionFile: $(System.DefaultWorkingDirectory)\azure-pipelines\falsepositives.gdnsuppress
+        sbom:
+          enabled: ${{ or(parameters.RealSign, eq(variables['Build.Reason'],'Schedule')) }} # Disable the generation for SBOMs for artifacts in unsigned builds since it's slow
       stages:
       - stage: Build
         variables:
