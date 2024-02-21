@@ -1511,7 +1511,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            AsyncLazy<Solution> CreateLazyFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId)
+            static AsyncLazy<Solution> CreateLazyFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId)
                 => AsyncLazy.Create(cancellationToken => ComputeFrozenSolution(compilationState, documentId, cancellationToken));
 
             static Solution ComputeFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId, CancellationToken cancellationToken)
