@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
             private CompilationTrackerState? _stateDoNotAccessDirectly;
 
             // guarantees only one thread is building at a time
-            private readonly SemaphoreSlim _buildLock = new(initialCount: 1);
+            private SemaphoreSlim? _buildLock = null;
 
             public SkeletonReferenceCache SkeletonReferenceCache { get; }
 
@@ -394,6 +394,12 @@ namespace Microsoft.CodeAnalysis
                         // Try to get the built compilation.  If it exists, then we can just return that.
                         if (state is FinalCompilationTrackerState finalState)
                             return finalState;
+
+                        if (_buildLock is null)
+                        {
+                            var buildLock = new SemaphoreSlim(initialCount: 1);
+                            Interlocked.CompareExchange(ref _buildLock, buildLock, null);
+                        }
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
                         // build this compilation at a time.
