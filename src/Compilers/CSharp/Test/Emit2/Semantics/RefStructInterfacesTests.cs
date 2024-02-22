@@ -2762,7 +2762,7 @@ interface S2
         // This is a clone of UnscopedRef_ArgumentsMustMatch_01 from RefFieldTests.cs
         [Theory]
         [CombinatorialData]
-        public void UnscopedRef_ArgumentsMustMatch_0_ConstrainedTypeParameter(bool addStructConstraint)
+        public void UnscopedRef_ArgumentsMustMatch_01_ConstrainedTypeParameter(bool addStructConstraint)
         {
             var source = $$"""
                 using System.Diagnostics.CodeAnalysis;
@@ -2849,7 +2849,7 @@ interface S2
 
         // This is a clone of UnscopedRef_ArgumentsMustMatch_01 from RefFieldTests.cs
         [Fact]
-        public void UnscopedRef_ArgumentsMustMatch_0_ClassConstrainedTypeParameter()
+        public void UnscopedRef_ArgumentsMustMatch_01_ClassConstrainedTypeParameter()
         {
             var source = """
                 using System.Diagnostics.CodeAnalysis;
@@ -2921,7 +2921,7 @@ interface S2
             comp.VerifyDiagnostics();
         }
 
-        // PROTOTYPE(RefStructInterfaces): Add flavor of UnscopedRef_ArgumentsMustMatch_0 tests with RefByteContainer as an interface 
+        // PROTOTYPE(RefStructInterfaces): Add flavor of UnscopedRef_ArgumentsMustMatch_01 tests with RefByteContainer as an interface 
 
         // This is a clone of PatternIndex_01 from RefFieldTests.cs
         [Fact]
@@ -3379,7 +3379,7 @@ public interface Vec4<TVec4> where TVec4 : Vec4<TVec4>
 
         // This is a clone of DefensiveCopy_02 from RefEscapingTests.cs
         [Fact]
-        public void DefensiveCopy_02()
+        public void DefensiveCopy_02_DirectInterface()
         {
             var source =
 @"using System.Diagnostics.CodeAnalysis;
@@ -3413,15 +3413,63 @@ class Program
     }
 }
 
-struct Wrap
+interface Wrap
 {
-    public float X;
+    [UnscopedRef]
+    public ref Wrap Self {get;}
 
     [UnscopedRef]
-    public ref Wrap Self => ref this;
+    public ref Wrap Self2();
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        // This is a clone of DefensiveCopy_02 from RefEscapingTests.cs
+        [Theory]
+        [CombinatorialData]
+        public void DefensiveCopy_02_ConstrainedTypeParameter(bool addStructConstraint)
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+
+class Program<TWrap> where TWrap : " + (addStructConstraint ? "struct, " : "") + @"Wrap<TWrap>
+{
+    static ref TWrap m1(in TWrap i)
+    {
+        ref TWrap r1 = ref i.Self; // defensive copy
+        return ref r1; // ref to the local copy
+    }
+
+    static ref TWrap m2(in TWrap i)
+    {
+        var copy = i;
+        ref TWrap r2 = ref copy.Self;
+        return ref r2; // ref to the local copy
+    }
+
+    static ref TWrap m3(in TWrap i)
+    {
+        ref TWrap r3 = ref i.Self2();
+        return ref r3;
+    }
+
+    static ref TWrap m4(in TWrap i)
+    {
+        var copy = i;
+        ref TWrap r4 = ref copy.Self2();
+        return ref r4; // ref to the local copy
+    }
+}
+
+interface Wrap<T> where T : Wrap<T>
+{
+    [UnscopedRef]
+    public ref T Self {get;}
 
     [UnscopedRef]
-    public ref Wrap Self2() => ref this;
+    public ref T Self2();
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
@@ -3439,6 +3487,55 @@ struct Wrap
                 //         return ref r4; // ref to the local copy
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r4").WithArguments("r4").WithLocation(28, 20)
                 );
+        }
+
+        // This is a clone of DefensiveCopy_02 from RefEscapingTests.cs
+        [Fact]
+        public void DefensiveCopy_02_ClassConstrainedTypeParameter()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+
+class Program<TWrap> where TWrap : class, Wrap<TWrap>
+{
+    static ref TWrap m1(in TWrap i)
+    {
+        ref TWrap r1 = ref i.Self; // defensive copy
+        return ref r1; // ref to the local copy
+    }
+
+    static ref TWrap m2(in TWrap i)
+    {
+        var copy = i;
+        ref TWrap r2 = ref copy.Self;
+        return ref r2; // ref to the local copy
+    }
+
+    static ref TWrap m3(in TWrap i)
+    {
+        ref TWrap r3 = ref i.Self2();
+        return ref r3;
+    }
+
+    static ref TWrap m4(in TWrap i)
+    {
+        var copy = i;
+        ref TWrap r4 = ref copy.Self2();
+        return ref r4; // ref to the local copy
+    }
+}
+
+interface Wrap<T> where T : Wrap<T>
+{
+    [UnscopedRef]
+    public ref T Self {get;}
+
+    [UnscopedRef]
+    public ref T Self2();
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
         }
 
         // This is a clone of DefensiveCopy_05 from RefEscapingTests.cs
@@ -3535,7 +3632,7 @@ public interface Vec4
 
         // This is a clone of DefensiveCopy_05 from RefEscapingTests.cs
         [Fact]
-        public void DefensiveCopy_05_ClassdConstrainedTypeParameter()
+        public void DefensiveCopy_05_ClassConstrainedTypeParameter()
         {
             var source =
 @"
