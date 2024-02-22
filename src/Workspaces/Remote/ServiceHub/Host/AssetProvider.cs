@@ -143,7 +143,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     private async Task<ImmutableArray<object>> RequestAssetsAsync(
         AssetHint assetHint, SegmentedList<Checksum> checksums, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfTrue((checksums as ICollection<Checksum>).Contains(Checksum.Null));
+        Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
         if (checksums.Count == 0)
             return [];
 
