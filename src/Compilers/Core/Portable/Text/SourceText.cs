@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             ValidateChecksumAlgorithm(checksumAlgorithm);
 
-            string text = Decode(new ReadOnlySpan<byte>(buffer, 0, length), encoding ?? s_utf8EncodingWithNoBOM, out encoding);
+            string text = Decode(buffer.AsSpan(0, length), encoding ?? s_utf8EncodingWithNoBOM, out encoding);
             if (throwIfBinaryDetected && IsBinary(text))
             {
                 throw new InvalidDataException();
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Text
             RoslynDebug.Assert(encoding != null);
             int preambleLength;
             actualEncoding = TryReadByteOrderMark(buffer, out preambleLength) ?? encoding;
-            return actualEncoding.GetString(buffer.Slice(preambleLength));
+            return actualEncoding.GetString(buffer[preambleLength..]);
         }
 
         /// <summary>
