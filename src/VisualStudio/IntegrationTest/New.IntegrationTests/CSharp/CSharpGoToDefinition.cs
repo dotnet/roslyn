@@ -47,7 +47,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.Editor.PlaceCaretAsync("SomeClass", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
             Assert.Equal($"FileDef.cs", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
-            await TestServices.EditorVerifier.TextContainsAsync(@"class SomeClass$$", assertCaretPosition: true, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextContainsAsync(@"class $$SomeClass", assertCaretPosition: true, HangMitigatingCancellationToken);
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
