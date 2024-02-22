@@ -450,8 +450,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var typeMap1 = GetTypeMap(member1);
-            var typeMap2 = GetTypeMap(member2);
+            TypeMap? typeMap1 = GetTypeMap(member1);
+            TypeMap? typeMap2 = GetTypeMap(member2);
 
             if (_considerReturnType && !HaveSameReturnTypes(member1, typeMap1, member2, typeMap2, _typeComparison))
             {
@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var type in types)
             {
-                result.Add((typeMap?.SubstituteType(type) ?? type).Type);
+                result.Add(SubstituteType(typeMap, type).Type);
             }
         }
 

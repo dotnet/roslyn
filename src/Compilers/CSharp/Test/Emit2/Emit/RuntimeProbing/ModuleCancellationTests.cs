@@ -1901,6 +1901,115 @@ public sealed class ModuleCancellationTests : CSharpTestBase
     }
 
     [Fact]
+    public void ArgumentReplacement_Overload_ReturnType()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G(1);
+                }
+
+                int G(int a) => throw null;
+                ref int G(int a, CancellationToken token) => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void ArgumentReplacement_Overload_InstanceToStatic()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G(1);
+                }
+
+                void G(int a)
+                {
+                }
+            
+                static void G(int a, CancellationToken token) => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void ArgumentReplacement_Overload_StaticToInstance()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G(1);
+                }
+
+                static void G(int a)
+                {
+                }
+            
+                void G(int a, CancellationToken token) => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Theory]
+    [InlineData("private")]
+    [InlineData("protected")]
+    [InlineData("internal")]
+    [InlineData("private protected")]
+    [InlineData("internal protected")]
+    public void ArgumentReplacement_Overload_NonMatchingVisibility(string modifier)
+    {
+        var source = $$"""
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class B
+            {
+                public static void G(int a) => throw null;
+                {{modifier}} static void G(int a, CancellationToken token) => throw null;
+            }
+
+            class C : B
+            {
+                void F(CancellationToken token)
+                {
+                    G(1);
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
     public void ArgumentReplacement_IndirectCall_Positional()
     {
         var source = """

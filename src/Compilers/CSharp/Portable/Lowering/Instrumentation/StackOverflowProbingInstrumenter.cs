@@ -18,10 +18,13 @@ internal sealed class StackOverflowProbingInstrumenter(
         Instrumenter previous)
         : CompoundInstrumenter(previous)
 {
+    private readonly MethodSymbol _ensureStackMethod = ensureStackMethod;
+    private readonly SyntheticBoundNodeFactory _factory = factory;
+
     protected override CompoundInstrumenter WithPreviousImpl(Instrumenter previous)
         => new StackOverflowProbingInstrumenter(
-            ensureStackMethod,
-            factory,
+            _ensureStackMethod,
+            _factory,
             previous);
 
     public static bool TryCreate(
@@ -64,17 +67,17 @@ internal sealed class StackOverflowProbingInstrumenter(
             return;
         }
 
-        Debug.Assert(factory.TopLevelMethod is not null);
-        Debug.Assert(factory.CurrentFunction is not null);
+        Debug.Assert(_factory.TopLevelMethod is not null);
+        Debug.Assert(_factory.CurrentFunction is not null);
 
         // static constructors can only be invoked once, so there is no need to probe:
-        if (isMethodBody && factory.TopLevelMethod.MethodKind == MethodKind.StaticConstructor)
+        if (isMethodBody && _factory.TopLevelMethod.MethodKind == MethodKind.StaticConstructor)
         {
             return;
         }
 
-        instrumentation = factory.Instrumentation(
+        instrumentation = _factory.Instrumentation(
             instrumentation,
-            prologue: factory.ExpressionStatement(factory.Call(receiver: null, ensureStackMethod)));
+            prologue: _factory.ExpressionStatement(_factory.Call(receiver: null, _ensureStackMethod)));
     }
 }

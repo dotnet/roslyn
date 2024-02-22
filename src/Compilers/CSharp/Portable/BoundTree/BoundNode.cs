@@ -534,10 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(added);
                     }
 
-                    if (instrumentation.Prologue != null)
-                    {
-                        _ = Visit(instrumentation.Prologue);
-                    }
+                    _ = Visit(instrumentation.Prologue);
                 }
 
                 AddAll(node.Locals);
@@ -546,10 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (instrumentation != null)
                 {
-                    if (instrumentation.Epilogue != null)
-                    {
-                        _ = Visit(instrumentation.Epilogue);
-                    }
+                    _ = Visit(instrumentation.Epilogue);
 
                     foreach (var local in instrumentation.Locals)
                     {

@@ -3598,6 +3598,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _diagnostics.DiagnosticBag);
 
             var throwMethod = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_CancellationToken__ThrowIfCancellationRequested);
+
+            // BoundThrowIfModuleCancellationRequested should not be created if the method doesn't exist.
             Debug.Assert(throwMethod != null);
 
             _builder.EmitOpCode(ILOpCode.Call, -1);

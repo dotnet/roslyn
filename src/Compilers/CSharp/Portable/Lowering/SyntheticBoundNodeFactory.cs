@@ -515,7 +515,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             => (first == null) ? second : (second == null) ? first : StatementList(first, second);
 
         public BoundBlockInstrumentation Instrumentation(BoundBlockInstrumentation? innerInstrumentation = null, LocalSymbol? local = null, BoundStatement? prologue = null, BoundStatement? epilogue = null)
-            => (innerInstrumentation != null)
+        {
+            return (innerInstrumentation != null)
                 ? new BoundBlockInstrumentation(
                     innerInstrumentation.Syntax,
                     (local != null) ? innerInstrumentation.Locals.Add(local) : innerInstrumentation.Locals,
@@ -526,6 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     OneOrMany.OneOrNone(local),
                     prologue,
                     epilogue);
+        }
 
         public BoundStatement Instrument(BoundStatement statement, BoundBlockInstrumentation? instrumentation)
         {

@@ -16,16 +16,25 @@ namespace Microsoft.CodeAnalysis.CSharp;
 /// <summary>
 /// Implements instrumentation for <see cref="CodeAnalysis.Emit.InstrumentationKind.ModuleCancellation"/>.
 /// </summary>
+/// <remarks>
+/// - Adds a static writable field of type <see cref="CancellationToken"/> to PrivateImplementationDetails. The host can set this token via Reflection before executing the compiled code.
+/// - Inserts calls to <see cref="CancellationToken.ThrowIfCancellationRequested"/> on the host token into each method, loop or goto. 
+/// - Replaces any tokens passed as arguments with the host token.
+/// - Replaces calls to methods that do not take <see cref="CancellationToken"/> as the last parameter with matching overloads that do and passes it the host token.
+/// </remarks>
 internal sealed class ModuleCancellationInstrumenter(
         MethodSymbol throwMethod,
         SyntheticBoundNodeFactory factory,
         Instrumenter previous)
         : CompoundInstrumenter(previous)
 {
+    private readonly MethodSymbol _throwMethod = throwMethod;
+    private readonly SyntheticBoundNodeFactory _factory = factory;
+
     protected override CompoundInstrumenter WithPreviousImpl(Instrumenter previous)
         => new ModuleCancellationInstrumenter(
-            throwMethod,
-            factory,
+            _throwMethod,
+            _factory,
             previous);
 
     public static bool TryCreate(
@@ -37,7 +46,7 @@ internal sealed class ModuleCancellationInstrumenter(
         instrumenter = null;
 
         // Do not instrument implicitly-declared methods or methods without bodies, except for constructors.
-        // Instrument implicit constructors in order to prevent stack overflow caused by member initializers.
+        // Instrument implicit constructors in order to cancel execution of member initializers.
         if (method.MethodKind is not (MethodKind.Constructor or MethodKind.StaticConstructor) &&
             (method is { IsImplicitlyDeclared: true } ||
              method is SourceMemberMethodSymbol { Bodies: { arrowBody: null, blockBody: null } } and not SynthesizedSimpleProgramEntryPointSymbol))
@@ -68,25 +77,25 @@ internal sealed class ModuleCancellationInstrumenter(
             return;
         }
 
-        Debug.Assert(factory.TopLevelMethod is not null);
-        Debug.Assert(factory.CurrentFunction is not null);
+        Debug.Assert(_factory.TopLevelMethod is not null);
+        Debug.Assert(_factory.CurrentFunction is not null);
 
         // static constructors can only be invoked once, so there is no need to probe:
-        if (isMethodBody && factory.TopLevelMethod.MethodKind == MethodKind.StaticConstructor)
+        if (isMethodBody && _factory.TopLevelMethod.MethodKind == MethodKind.StaticConstructor)
         {
             return;
         }
 
-        instrumentation = factory.Instrumentation(
+        instrumentation = _factory.Instrumentation(
             instrumentation,
-            prologue: factory.ExpressionStatement(factory.ThrowIfModuleCancellationRequested()));
+            prologue: _factory.ExpressionStatement(_factory.ThrowIfModuleCancellationRequested()));
     }
 
     private BoundExpression InstrumentExpression(BoundExpression expression)
-        => factory.Sequence([], [factory.ThrowIfModuleCancellationRequested()], expression);
+        => _factory.Sequence([], [_factory.ThrowIfModuleCancellationRequested()], expression);
 
     private BoundStatement InstrumentStatement(BoundStatement statement)
-        => factory.StatementList(factory.ExpressionStatement(factory.ThrowIfModuleCancellationRequested()), statement);
+        => _factory.StatementList(_factory.ExpressionStatement(_factory.ThrowIfModuleCancellationRequested()), statement);
 
     public override BoundExpression InstrumentWhileStatementCondition(BoundWhileStatement original, BoundExpression rewrittenCondition, SyntheticBoundNodeFactory factory)
         => InstrumentExpression(base.InstrumentWhileStatementCondition(original, rewrittenCondition, factory));
@@ -118,18 +127,18 @@ internal sealed class ModuleCancellationInstrumenter(
 
         if (arguments is [.., { Type: { } lastArgumentType } lastArgument] &&
             (argumentRefKindsOpt.IsDefault || argumentRefKindsOpt is [.., RefKind.None]) &&
-            lastArgumentType.Equals(throwMethod.ContainingType, TypeCompareKind.ConsiderEverything))
+            lastArgumentType.Equals(_throwMethod.ContainingType, TypeCompareKind.ConsiderEverything))
         {
             // The last argument is a CancellationToken. Replace it with the module-level token.
             // Keep the previous expression so that side-effects are preserved.
-            arguments = [.. arguments[0..^1], factory.Sequence([lastArgument], factory.ModuleCancellationToken())];
+            arguments = [.. arguments[0..^1], _factory.Sequence([lastArgument], _factory.ModuleCancellationToken())];
         }
         else if (FindOverloadWithCancellationToken(method) is { } cancellableOverload)
         {
             // The method being invoked does not have a CancellationToken as the last parameter, but there is an overload that does.
             // Invoke the other overload instead and pass in module-level token. 
             method = cancellableOverload;
-            arguments = [.. arguments, factory.ModuleCancellationToken()];
+            arguments = [.. arguments, _factory.ModuleCancellationToken()];
             argumentRefKindsOpt = argumentRefKindsOpt.IsDefault ? default : [.. argumentRefKindsOpt, RefKind.None];
         }
     }
@@ -142,27 +151,34 @@ internal sealed class ModuleCancellationInstrumenter(
     {
         // It's unlikely that real-world APIs have overloads that differ in dynamic,
         // but if they do avoid selecting them since their intended use might differ.
-        var typeComparisonKind = TypeCompareKind.CLRSignatureCompareOptions & ~TypeCompareKind.IgnoreDynamic;
+        //
+        // Similarly, we also only consider overloads with the same visibility.
+        // We could potentially allow the visibility to differ,
+        // but we'd need to check if the overload is accessible at the call site.
+
+        const TypeCompareKind TypeComparisonKind = TypeCompareKind.CLRSignatureCompareOptions & ~TypeCompareKind.IgnoreDynamic;
 
         foreach (var member in method.ContainingType.GetMembers(method.Name))
         {
-            if (member is MethodSymbol { Parameters: [.., { RefKind: RefKind.None, Type: { } lastParamType }] parametersWithCancellationToken } overload &&
+            if (member.IsStatic == method.IsStatic &&
+                member.MetadataVisibility == method.MetadataVisibility &&
+                member is MethodSymbol { Parameters: [.., { RefKind: RefKind.None, Type: { } lastParamType }] parametersWithCancellationToken } overload &&
                 overload.Arity == method.Arity &&
                 method.Parameters.Length == parametersWithCancellationToken.Length - 1 &&
-                lastParamType.Equals(throwMethod.ContainingType, TypeCompareKind.ConsiderEverything) &&
+                lastParamType.Equals(_throwMethod.ContainingType, TypeCompareKind.ConsiderEverything) &&
                 MemberSignatureComparer.HaveSameParameterTypes(
                     method.Parameters.AsSpan(),
                     typeMap1: null,
                     parametersWithCancellationToken.AsSpan(0, method.Parameters.Length),
                     method.TypeSubstitution,
                     MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
-                    typeComparisonKind) &&
+                    TypeComparisonKind) &&
                 MemberSignatureComparer.HaveSameReturnTypes(
                     method,
                     typeMap1: null,
                     overload,
                     method.TypeSubstitution,
-                    typeComparisonKind) &&
+                    TypeComparisonKind) &&
                 MemberSignatureComparer.HaveSameConstraints(
                     method.TypeParameters,
                     typeMap1: null,
