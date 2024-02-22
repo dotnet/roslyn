@@ -10,11 +10,27 @@ namespace Microsoft.CodeAnalysis;
 internal partial class SolutionCompilationState
 {
     /// <summary>
-    /// Represents a change that needs to be made to a <see cref="Compilation"/>, <see cref="GeneratorDriver"/>, or both in response to
-    /// some user edit.
+    /// Represents a change that needs to be made to a <see cref="Compilation"/>, <see cref="GeneratorDriver"/>, or both
+    /// in response to some user edit.
     /// </summary>
-    private abstract partial class CompilationAndGeneratorDriverTranslationAction
+    private abstract partial class TranslationAction
     {
+        /// <summary>
+        /// The original state of the project prior to the user edit.
+        /// </summary>
+        public readonly ProjectState OldProjectState;
+
+        /// <summary>
+        /// The state of the project after the user edit was made.
+        /// </summary>
+        public readonly ProjectState NewProjectState;
+
+        protected TranslationAction(ProjectState oldProjectState, ProjectState newProjectState)
+        {
+            OldProjectState = oldProjectState;
+            NewProjectState = newProjectState;
+        }
+
         public abstract Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken);
 
         /// <summary>
@@ -36,8 +52,8 @@ internal partial class SolutionCompilationState
         /// succession, we may be able to merge them without holding onto intermediate state.
         /// </summary>
         /// <param name="priorAction">The action prior to this one. May be a different type.</param>
-        /// <returns>A non-null <see cref="CompilationAndGeneratorDriverTranslationAction" /> if we could create a merged one, null otherwise.</returns>
-        public virtual CompilationAndGeneratorDriverTranslationAction? TryMergeWithPrior(CompilationAndGeneratorDriverTranslationAction priorAction)
+        /// <returns>A non-null <see cref="TranslationAction" /> if we could create a merged one, null otherwise.</returns>
+        public virtual TranslationAction? TryMergeWithPrior(TranslationAction priorAction)
             => null;
     }
 }

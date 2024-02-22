@@ -93,10 +93,8 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public IEnumerable<TState> GetStatesInCompilationOrder()
         {
-            foreach (var id in Ids)
-            {
-                yield return _map[id];
-            }
+            var map = _map;
+            return Ids.Select(id => map[id]);
         }
 
         public ImmutableArray<TValue> SelectAsArray<TValue>(Func<TState, TValue> selector)

@@ -123,16 +123,28 @@ namespace Microsoft.CodeAnalysis.Classification
                 return false;
             }
 
-            var subTextSpan = service.GetMemberBodySpanForSpeculativeBinding(member);
-            if (subTextSpan.IsEmpty)
+            var memberBodySpan = service.GetMemberBodySpanForSpeculativeBinding(member);
+            if (memberBodySpan.IsEmpty)
             {
                 // Wasn't a member we could reclassify independently.
                 return false;
             }
 
-            var subSpanToTag = new SnapshotSpan(
-                snapshotSpan.Snapshot,
-                subTextSpan.Contains(changedSpan) ? subTextSpan.ToSpan() : member.FullSpan.ToSpan());
+            // TODO(cyrusn): Unclear what this logic is for.  It looks like it's just trying to narrow the span down
+            // slightly from the full member, just to its body.  Unclear if this provides any substantive benefits. But
+            // keeping for now to preserve long standing logic.
+            var memberSpanToClassify = memberBodySpan.Contains(changedSpan)
+                ? memberBodySpan.ToSpan()
+                : member.FullSpan.ToSpan();
+
+            // Take the subspan we know we want to classify, and intersect that with the actual span being asked for.
+            // That way if we're only asking for a portion of a method, we still only classify that, and not the whole
+            // method.
+            var finalSpanToClassify = memberSpanToClassify.Intersection(snapshotSpan.Span);
+            if (finalSpanToClassify is null)
+                return false;
+
+            var subSpanToTag = new SnapshotSpan(snapshotSpan.Snapshot, finalSpanToClassify.Value);
 
             // re-classify only the member we're inside.
             await ClassifySpansAsync(
