@@ -73,8 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
                 }
                 """;
             using var session = CreateSessionDoubleQuote(code);
-            Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            Assert.Null(session);
         }
 
         [WpfFact]
@@ -90,8 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
                 }
                 """;
             using var session = CreateSessionDoubleQuote(code);
-            Assert.NotNull(session);
-            CheckStart(session.Session);
+            Assert.Null(session);
         }
 
         [WpfFact]
@@ -462,8 +460,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
                 }
                 """;
             using var session = CreateSessionDoubleQuote(code);
-            Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            Assert.Null(session);
         }
 
         [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59178")]

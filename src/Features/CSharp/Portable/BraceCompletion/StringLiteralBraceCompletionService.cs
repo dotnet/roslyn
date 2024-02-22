@@ -4,9 +4,11 @@
 
 using System;
 using System.Composition;
+using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -25,15 +27,28 @@ internal class StringLiteralBraceCompletionService() : AbstractCSharpBraceComple
     public override bool AllowOverType(BraceCompletionContext context, CancellationToken cancellationToken)
         => AllowOverTypeWithValidClosingToken(context);
 
-    public override bool CanProvideBraceCompletion(char brace, int openingPosition, ParsedDocument document, CancellationToken cancellationToken)
+    public override bool CanProvideBraceCompletion(char brace, int position, ParsedDocument document, CancellationToken cancellationToken)
     {
-        // Only potentially valid for string literal completion if not in an interpolated string brace completion context.
-        if (OpeningBrace == brace && InterpolatedStringBraceCompletionService.IsPositionInInterpolatedStringContext(document, openingPosition, cancellationToken))
-        {
-            return false;
-        }
+        var text = document.Text;
 
-        return base.CanProvideBraceCompletion(brace, openingPosition, document, cancellationToken);
+        // Only potentially valid for string literal completion if not in an interpolated string brace completion context.
+        if (OpeningBrace == brace && InterpolatedStringBraceCompletionService.IsPositionInInterpolatedStringContext(document, position, cancellationToken))
+            return false;
+
+        if (!base.CanProvideBraceCompletion(brace, position, document, cancellationToken))
+            return false;
+
+        // Find the start of the string literal token (including if it is a verbatim string).
+        var start = position;
+        if (start > 0 && text[start - 1] == '@')
+            start--;
+
+        var leftToken = document.SyntaxTree.FindTokenOnLeftOfPosition(start, cancellationToken);
+
+        return document.SyntaxTree.IsExpressionContext(start, leftToken, attributes: true, cancellationToken)
+            || document.SyntaxTree.IsStatementContext(start, leftToken, cancellationToken)
+            || document.SyntaxTree.IsGlobalStatementContext(start, cancellationToken)
+            || document.SyntaxTree.IsPreProcessorDirectiveContext(start, cancellationToken);
     }
 
     protected override bool IsValidOpeningBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.StringLiteralToken);
@@ -66,15 +81,17 @@ internal class StringLiteralBraceCompletionService() : AbstractCSharpBraceComple
             return false;
         }
 
-        if (token.SpanStart == position)
-        {
-            return true;
-        }
+        var isStartOfString = token.SpanStart == position;
 
-        // The character at the position is a double quote but the token's span start we found at the position
-        // doesn't match the position.  Check if we're in a verbatim string token @" where the token span start
-        // is the @ character and the " is one past the token start.
-        return token.SpanStart + 1 == position && token.IsVerbatimStringLiteral();
+        // If the character at the position is a double quote but the token's span start we found at the position
+        // doesn't match the position.  Check if we're in a verbatim string token @" where the token span start is the @
+        // character and the " is one past the token start.
+        var isStartOfVerbatimString = token.SpanStart + 1 == position && token.IsVerbatimStringLiteral();
+
+        if (!isStartOfString && !isStartOfVerbatimString)
+            return false;
+
+        return true;
     }
 
     private static bool RestOfLineContainsDiagnostics(SyntaxToken token)
