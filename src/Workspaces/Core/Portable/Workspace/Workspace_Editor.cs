@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var (@this, documentId, textContainer, _, requireDocumentPresentAndClosed) = data;
 
-                    var oldDocument = oldSolution.GetRequiredDocument(documentId);
+                    var oldDocument = oldSolution.GetDocument(documentId);
                     if (oldDocument is null)
                     {
                         // Didn't have a document.  Throw if required.  Bail out gracefully if not.

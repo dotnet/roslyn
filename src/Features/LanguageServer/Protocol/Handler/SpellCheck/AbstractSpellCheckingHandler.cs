@@ -72,14 +72,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             var previousResults = GetPreviousResults(requestParams) ?? [];
             context.TraceInformation($"previousResults.Length={previousResults.Length}");
 
-            // First, let the client know if any workspace documents have gone away.  That way it can remove those for
-            // the user from squiggles or error-list.
-            HandleRemovedDocuments(context, previousResults, progress);
-
-            // Create a mapping from documents to the previous results the client says it has for them.  That way as we
+            // We will go through our prior documents and let the client know about ones that have gone away. For the rest,
+            // create a mapping from documents to the previous results the client says it has for them.  That way as we
             // process documents we know if we should tell the client it should stay the same, or we can tell it what
             // the updated spans are.
-            var documentToPreviousParams = GetDocumentToPreviousParams(context, previousResults);
+            var documentToPreviousParams = await HandleRemovedDocumentsAndGetDocumentToPreviousParamsAsync(context, previousResults, progress, cancellationToken).ConfigureAwait(false);
 
             // Next process each file in priority order. Determine if spans are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
@@ -129,8 +126,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             return progress.GetFlattenedValues();
         }
 
-        private static Dictionary<Document, PreviousPullResult> GetDocumentToPreviousParams(
-            RequestContext context, ImmutableArray<PreviousPullResult> previousResults)
+        /// <summary>
+        /// Loops through the list of previous results as given from the request params; for the documents we don't have any more in the workspace,
+        /// tells the client the document is gone. For the rest, returns them in the map.
+        /// </summary>
+        private async ValueTask<Dictionary<Document, PreviousPullResult>> HandleRemovedDocumentsAndGetDocumentToPreviousParamsAsync(
+            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, BufferedProgress<TReport[]> progress, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -139,9 +140,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             {
                 if (requestParams.TextDocument != null)
                 {
-                    var document = context.Solution.GetDocument(requestParams.TextDocument);
+                    var document = await context.Solution.GetDocumentAsync(requestParams.TextDocument, cancellationToken).ConfigureAwait(false);
+
                     if (document != null)
+                    {
                         result[document] = requestParams;
+                    }
+                    else
+                    {
+                        context.TraceInformation($"Clearing spans for removed document: {requestParams.TextDocument.Uri}");
+
+                        // Client is asking server about a document that no longer exists (i.e. was removed/deleted from
+                        // the workspace). Report a (null-spans, null-result-id) response to the client as that means
+                        // they should just consider the file deleted and should remove all spans information they've
+                        // cached for it.
+                        progress.Report(CreateReport(requestParams.TextDocument, ranges: null, resultId: null));
+                    }
                 }
             }
 
@@ -203,31 +217,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 
                 Contract.ThrowIfTrue(triplesIndex != triples.Length);
                 yield return CreateReport(textDocumentIdentifier, triples, resultId);
-            }
-        }
-
-        private void HandleRemovedDocuments(
-            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, BufferedProgress<TReport[]> progress)
-        {
-            Contract.ThrowIfNull(context.Solution);
-
-            foreach (var previousResult in previousResults)
-            {
-                var textDocument = previousResult.TextDocument;
-                if (textDocument != null)
-                {
-                    var document = context.Solution.GetDocument(textDocument);
-                    if (document == null)
-                    {
-                        context.TraceInformation($"Clearing spans for removed document: {textDocument.Uri}");
-
-                        // Client is asking server about a document that no longer exists (i.e. was removed/deleted from
-                        // the workspace). Report a (null-spans, null-result-id) response to the client as that means
-                        // they should just consider the file deleted and should remove all spans information they've
-                        // cached for it.
-                        progress.Report(CreateReport(textDocument, ranges: null, resultId: null));
-                    }
-                }
             }
         }
 

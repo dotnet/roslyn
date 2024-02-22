@@ -10,8 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -26,8 +24,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static Uri GetURI(this TextDocument document)
         {
             Contract.ThrowIfNull(document.FilePath);
-            return document is SourceGeneratedDocument
-                ? ProtocolConversions.CreateUriFromSourceGeneratedFilePath(document.FilePath)
+            return document is SourceGeneratedDocument sourceGeneratedDocument
+                ? SourceGeneratedDocumentUris.Create(sourceGeneratedDocument.Identity)
                 : ProtocolConversions.CreateAbsoluteUri(document.FilePath);
         }
 
@@ -78,22 +76,63 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var documentIds = GetDocumentIds(solution, documentUri);
 
             var documents = documentIds
-                .Select(solution.GetDocument)
-                .Concat(documentIds.Select(solution.GetAdditionalDocument))
+                .Select(solution.GetTextDocument)
                 .WhereNotNull()
                 .ToImmutableArray();
             return documents;
         }
 
         public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
-            => solution.GetDocumentIdsWithFilePath(ProtocolConversions.GetDocumentFilePathFromUri(documentUri));
+        {
+            // If this is not our special scheme for generated documents, then we can just look for documents with that file path.
+            if (documentUri.Scheme != SourceGeneratedDocumentUris.Scheme)
+                return solution.GetDocumentIdsWithFilePath(ProtocolConversions.GetDocumentFilePathFromUri(documentUri));
 
+            var documentId = SourceGeneratedDocumentUris.DeserializeIdentity(solution, documentUri)?.DocumentId;
+            return documentId is not null ? [documentId] : [];
+        }
+
+        /// <summary>
+        /// Finds a regular document for a TextDocumentIdentifier; if you need to also return source generated files, call <see cref="GetDocumentAsync"/>.
+        /// </summary>
         public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
         {
             var documents = solution.GetDocuments(documentIdentifier.Uri);
             return documents.Length == 0
                 ? null
                 : documents.FindDocumentInProjectContext(documentIdentifier, (sln, id) => sln.GetRequiredDocument(id));
+        }
+
+        /// <summary>
+        /// Finds the document for a TextDocumentIdentifier, potentially returning a source-generated file.
+        /// </summary>
+        public static async ValueTask<Document?> GetDocumentAsync(this Solution solution, TextDocumentIdentifier documentIdentifier, CancellationToken cancellationToken)
+        {
+            if (documentIdentifier.Uri.Scheme == SourceGeneratedDocumentUris.Scheme)
+            {
+                // In the case of a URI scheme for source generated files, we generate a different URI for each project, thus this URI cannot be linked into multiple projects;
+                // this means we can safely call .SingleOrDefault() and not worry about calling FindDocumentInProjectContext.
+                var documentId = solution.GetDocumentIds(documentIdentifier.Uri).SingleOrDefault();
+                return await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                return solution.GetDocument(documentIdentifier);
+            }
+        }
+
+        public static async ValueTask<TextDocument?> GetTextDocumentAsync(this Solution solution, TextDocumentIdentifier documentIdentifier, CancellationToken cancellationToken)
+        {
+            // If it's the URI scheme for source generated files, delegate to our other helper, otherwise we can handle anything else here.
+            if (documentIdentifier.Uri.Scheme == SourceGeneratedDocumentUris.Scheme)
+            {
+                return await solution.GetDocumentAsync(documentIdentifier, cancellationToken).ConfigureAwait(false);
+            }
+
+            var documents = solution.GetTextDocuments(documentIdentifier.Uri);
+            return documents.Length == 0
+                ? null
+                : documents.FindDocumentInProjectContext(documentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
         }
 
         private static T FindItemInProjectContext<T>(

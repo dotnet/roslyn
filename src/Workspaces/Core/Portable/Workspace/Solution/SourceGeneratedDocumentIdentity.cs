@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis;
 
 /// <summary>
 /// A small struct that holds the values that define the identity of a source generated document, and don't change
-/// as new generations happen. This is mostly for convenience as we are reguarly working with this combination of values.
+/// as new generations happen. This is mostly for convenience as we are regularly working with this combination of values.
 /// </summary>
 [DataContract]
 internal readonly record struct SourceGeneratedDocumentIdentity : IEquatable<SourceGeneratedDocumentIdentity>

@@ -225,11 +225,9 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Find the matching document from the LSP solutions.
         foreach (var (workspace, lspSolution, isForked) in lspSolutions)
         {
-            var documents = lspSolution.GetTextDocuments(textDocumentIdentifier.Uri);
-            if (documents.Any())
+            var document = await lspSolution.GetTextDocumentAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
+            if (document != null)
             {
-                var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
-
                 // Record metadata on how we got this document.
                 var workspaceKind = document.Project.Solution.WorkspaceKind;
                 _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
@@ -331,7 +329,14 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
             // Step 3: Check to see if the LSP text matches the workspace text.
             var documentsInWorkspace = GetDocumentsForUris(_trackedDocuments.Keys.ToImmutableArray(), workspaceCurrentSolution);
-            if (await DoesAllTextMatchWorkspaceSolutionAsync(documentsInWorkspace, cancellationToken).ConfigureAwait(false))
+            var sourceGeneratedDocuments =
+                _trackedDocuments.Keys.Where(static uri => uri.Scheme == SourceGeneratedDocumentUris.Scheme)
+                    .Select(uri => (identity: SourceGeneratedDocumentUris.DeserializeIdentity(workspaceCurrentSolution, uri), _trackedDocuments[uri].Text))
+                    .Where(tuple => tuple.identity.HasValue)
+                    .SelectAsArray(tuple => (tuple.identity!.Value, tuple.Text));
+
+            var doesAllTextMatch = await DoesAllTextMatchWorkspaceSolutionAsync(documentsInWorkspace, cancellationToken).ConfigureAwait(false);
+            if (doesAllTextMatch && !sourceGeneratedDocuments.Any())
             {
                 // Remember that the current LSP text matches the text in this workspace solution.
                 _cachedLspSolutions[workspace] = (forkedFromVersion: null, workspaceCurrentSolution);
@@ -344,12 +349,28 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
             // Step 5: Fork a new solution from the workspace with the LSP text applied.
             var lspSolution = workspaceCurrentSolution;
-            foreach (var (uri, workspaceDocuments) in documentsInWorkspace)
-                lspSolution = lspSolution.WithDocumentText(workspaceDocuments.Select(d => d.Id), _trackedDocuments[uri].Text);
+            if (!doesAllTextMatch)
+            {
+                foreach (var (uri, workspaceDocuments) in documentsInWorkspace)
+                    lspSolution = lspSolution.WithDocumentText(workspaceDocuments.Select(d => d.Id), _trackedDocuments[uri].Text);
+            }
 
-            // Remember this forked solution and the workspace version it was forked from.
-            _cachedLspSolutions[workspace] = (workspaceCurrentSolution.WorkspaceVersion, lspSolution);
-            return (lspSolution, IsForked: true);
+            lspSolution = lspSolution.WithFrozenSourceGeneratedDocuments(sourceGeneratedDocuments);
+
+            // Did we actually have to fork anything? WithFrozenSourceGeneratedDocuments will return the same instance if we were able to
+            // immediately determine we already had the same generated contents
+            if (lspSolution == workspaceCurrentSolution)
+            {
+                // Remember that the current LSP text matches the text in this workspace solution.
+                _cachedLspSolutions[workspace] = (forkedFromVersion: null, workspaceCurrentSolution);
+                return (workspaceCurrentSolution, IsForked: false);
+            }
+            else
+            {
+                // Remember this forked solution and the workspace version it was forked from.
+                _cachedLspSolutions[workspace] = (workspaceCurrentSolution.WorkspaceVersion, lspSolution);
+                return (lspSolution, IsForked: true);
+            }
         }
 
         async ValueTask TryOpenAndEditDocumentsInMutatingWorkspaceAsync(Workspace workspace)
@@ -421,7 +442,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             languageId = trackedDocument.LanguageId;
         }
 
-        var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
+        var documentFilePath = uri.Scheme == SourceGeneratedDocumentUris.Scheme ? uri.LocalPath : ProtocolConversions.GetDocumentFilePathFromUri(uri);
         return _languageInfoProvider.GetLanguageInformation(documentFilePath, languageId).LanguageName;
     }
 

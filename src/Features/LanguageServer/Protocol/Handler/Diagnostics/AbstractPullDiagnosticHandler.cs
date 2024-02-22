@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // Create a mapping from documents to the previous results the client says it has for them.  That way as we
             // process documents we know if we should tell the client it should stay the same, or we can tell it what
             // the updated diagnostics are.
-            var documentToPreviousDiagnosticParams = GetIdToPreviousDiagnosticParams(context, previousResults, out var removedResults);
+            var (documentToPreviousDiagnosticParams, removedResults) = await GetIdToPreviousDiagnosticParamsAsync(context, previousResults, cancellationToken).ConfigureAwait(false);
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
             // the user from squiggles or error-list.
@@ -212,8 +212,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return CreateReturn(progress);
         }
 
-        private static Dictionary<ProjectOrDocumentId, PreviousPullResult> GetIdToPreviousDiagnosticParams(
-            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, out ImmutableArray<PreviousPullResult> removedDocuments)
+        private static async ValueTask<(Dictionary<ProjectOrDocumentId, PreviousPullResult>, ImmutableArray<PreviousPullResult> removedDocuments)> GetIdToPreviousDiagnosticParamsAsync(
+            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 if (diagnosticParams.TextDocument != null)
                 {
-                    var id = GetIdForPreviousResult(diagnosticParams.TextDocument, context.Solution);
+                    var id = await GetIdForPreviousResultAsync(diagnosticParams.TextDocument, context.Solution, cancellationToken).ConfigureAwait(false);
                     if (id != null)
                     {
                         result[id.Value] = diagnosticParams;
@@ -237,12 +237,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
             }
 
-            removedDocuments = removedDocumentsBuilder.ToImmutable();
-            return result;
+            var removedDocuments = removedDocumentsBuilder.ToImmutable();
+            return (result, removedDocuments);
 
-            static ProjectOrDocumentId? GetIdForPreviousResult(TextDocumentIdentifier textDocumentIdentifier, Solution solution)
+            static async ValueTask<ProjectOrDocumentId?> GetIdForPreviousResultAsync(TextDocumentIdentifier textDocumentIdentifier, Solution solution, CancellationToken cancellationToken)
             {
-                var document = solution.GetDocument(textDocumentIdentifier);
+                var document = await solution.GetTextDocumentAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
                 if (document != null)
                 {
                     return new ProjectOrDocumentId(document.Id);
@@ -252,12 +252,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 if (project != null)
                 {
                     return new ProjectOrDocumentId(project.Id);
-                }
-
-                var additionalDocument = solution.GetAdditionalDocument(textDocumentIdentifier);
-                if (additionalDocument != null)
-                {
-                    return new ProjectOrDocumentId(additionalDocument.Id);
                 }
 
                 return null;
