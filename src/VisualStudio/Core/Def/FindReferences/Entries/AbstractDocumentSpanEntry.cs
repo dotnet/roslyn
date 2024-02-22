@@ -21,6 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// Base type of all <see cref="Entry"/>s that represent some source location in 
         /// a <see cref="Document"/>.  Navigation to that location is provided by this type.
         /// Subclasses can be used to provide customized line text to display in the entry.
+        /// 
+        /// Implements navigation since the target document doesn't necessarily exist on disk,
+        /// and only Roslyn knows how to navigate to it.
         /// </summary>
         private abstract class AbstractDocumentSpanEntry(
             AbstractTableDataSourceFindUsagesContext context,
