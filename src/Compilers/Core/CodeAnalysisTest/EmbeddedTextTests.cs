@@ -296,6 +296,15 @@ class Program
 
         private sealed class ReadFailsStream : MemoryStream
         {
+            public override long Length => 1;
+
+#if NETCOREAPP
+            public override int Read(Span<byte> buffer)
+            {
+                throw new IOException();
+            }
+#endif
+
             public override int Read(byte[] buffer, int offset, int count)
             {
                 throw new IOException();

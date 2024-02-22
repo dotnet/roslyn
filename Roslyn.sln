@@ -550,7 +550,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compilers", "Compilers", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{7EEFAEC8-9EB3-401B-8E39-AD57139FCBF7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.Benchmarks", "src\Compilers\Core\Benchmarks\Microsoft.CodeAnalysis.Benchmarks.csproj", "{BE801508-A788-4186-A609-8D85ED4E67EB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Benchmarks", "src\Compilers\Core\Benchmarks\Microsoft.CodeAnalysis.Benchmarks.csproj", "{BE801508-A788-4186-A609-8D85ED4E67EB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1609,7 +1609,7 @@ Global
 		{5762E483-75CE-4328-A410-511F30737712} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{01E1AAF6-F742-481B-9217-CDA26E59DD1B} = {272B50AE-1D89-4CCE-9433-7AF7E57E60B3}
 		{7EEFAEC8-9EB3-401B-8E39-AD57139FCBF7} = {01E1AAF6-F742-481B-9217-CDA26E59DD1B}
-		{BE801508-A788-4186-A609-8D85ED4E67EB} = {7EEFAEC8-9EB3-401B-8E39-AD57139FCBF7}
+		{BE801508-A788-4186-A609-8D85ED4E67EB} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
