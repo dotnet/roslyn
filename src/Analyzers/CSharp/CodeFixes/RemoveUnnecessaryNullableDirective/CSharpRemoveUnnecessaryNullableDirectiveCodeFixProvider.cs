@@ -22,15 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryNullableDirec
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryNullableDirective)]
     [Shared]
-    internal sealed class CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider()
         : SyntaxEditorBasedCodeFixProvider
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider()
-        {
-        }
-
         public override ImmutableArray<string> FixableDiagnosticIds
             => [
                 IDEDiagnosticIds.RemoveRedundantNullableDirectiveDiagnosticId,
@@ -57,80 +53,63 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryNullableDirec
             CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            // We first group the nullable directives by the syntax node they are attached
-            // This allows to replace each node separately even if they have multiple nullable directives
-            var nullableDirectivesByNodes = diagnostics
-                .GroupBy(
-                    x => x.Location.FindNode(findInsideTrivia: false, getInnermostNodeForTie: false, cancellationToken),
-                    x => x.Location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken))
-                .ToDictionary(x => x.Key, x => x.ToList());
+            // We first group the nullable directives by the token they are attached This allows to replace each token
+            // separately even if they have multiple nullable directives.
+            var nullableDirectives = diagnostics
+                .Select(d => d.Location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken))
+                .OfType<NullableDirectiveTriviaSyntax>();
 
-            foreach (var (node, nullableDirectives) in nullableDirectivesByNodes)
+            foreach (var (token, directives) in nullableDirectives.GroupBy(d => d.ParentTrivia.Token))
             {
-                // Cases where the nullable directive is at the end of the file where the unit is its syntax node.
-                // In these cases, we only need to remove the directive itself
-                if (node is CompilationUnitSyntax)
+                var leadingTrivia = token.LeadingTrivia;
+                var nullableDirectiveIndices = nullableDirectives
+                    .Select(x => leadingTrivia.IndexOf(x.ParentTrivia));
+
+                // Walk backwards through the nullable directives on the token.  That way our indices stay correct as we
+                // are removing later directives.
+                foreach (var index in nullableDirectiveIndices.OrderByDescending(x => x))
                 {
-                    foreach (var nullableDirective in nullableDirectives)
-                        editor.RemoveNode(nullableDirective, SyntaxRemoveOptions.KeepNoTrivia);
-                    continue;
-                }
+                    // Remove the directive itself.
+                    leadingTrivia = leadingTrivia.RemoveAt(index);
 
-                // We obtain the indexes of each nullable directives relative to their node's leading trivia.
-                // This is done so we can remove them on top of their preceding whitespaces / end of lines if any
-                var leadingTrivia = node.GetLeadingTrivia();
-                var indexes = nullableDirectives.Select(x => leadingTrivia.IndexOf(x.ParentTrivia))
-                                                .OrderByDescending(x => x).ToArray();
-
-                // If we don't have an end of line after the nullable directive, then we don't need to remove the
-                // preceding line and simply remove the directives.
-                if (leadingTrivia.Count <= indexes[^1] + 1 || !leadingTrivia[indexes[^1] + 1].IsEndOfLine())
-                {
-                    foreach (var nullableDirective in nullableDirectives)
-                        editor.RemoveNode(nullableDirective, SyntaxRemoveOptions.KeepNoTrivia);
-                    continue;
-                }
-
-                foreach (var index in indexes)
-                {
-                    var i = index;
-                    leadingTrivia = leadingTrivia.RemoveAt(i);
-
-                    // All whitespaces before the directives are removed up to at most one end of line
-                    // so no blank lines remains. A typical case is:
-                    // using System;
-                    // 
-                    // #nullable enable
-                    // 
-                    // namespace N
-                    // ...
-                    // If we were only to remove the directive and its trivias, a preceding blank line would remain.
-                    // To avoid this, we remove at most 1 by checking all the leading trivias of its node and scan
-                    // backwards.
-                    i--;
-                    while (i >= 0)
+                    // If we have a blank line both before and after the directive, then remove the one that follows to
+                    // keep the code clean.
+                    if (HasPrecedingBlankLine(leadingTrivia, index) &&
+                        HasFollowingBlankLine(leadingTrivia, index))
                     {
-                        if (leadingTrivia[i].IsEndOfLine())
-                        {
-                            leadingTrivia = leadingTrivia.RemoveAt(i);
-                            break;
-                        }
-                        if (leadingTrivia[i].IsWhitespace())
-                        {
-                            leadingTrivia = leadingTrivia.RemoveAt(i);
-                        }
-                        i--;
+                        // Delete following whitespace.
+                        while (leadingTrivia[index].IsWhitespace())
+                            leadingTrivia = leadingTrivia.RemoveAt(index);
+
+                        // Then the following blank line.
+                        leadingTrivia = leadingTrivia.RemoveAt(index);
                     }
                 }
 
                 // We replace the leading trivias of the token the nullable directive was attached,
                 // then replace the token on the node and finally, replace the node with its new token.
-                var newToken = nullableDirectives[0].ParentTrivia.Token.WithLeadingTrivia(leadingTrivia);
-                var newNode = node.ReplaceToken(nullableDirectives[0].ParentTrivia.Token, newToken);
-                editor.ReplaceNode(node, newNode);
+                var newToken = token.WithLeadingTrivia(leadingTrivia);
+                var node = token.GetRequiredParent();
+                editor.ReplaceNode(node, node.ReplaceToken(token, newToken));
             }
 
             return Task.CompletedTask;
+        }
+
+        private static bool HasPrecedingBlankLine(SyntaxTriviaList leadingTrivia, int index)
+        {
+            while (index > 0 && leadingTrivia[index - 1].IsWhitespace())
+                index--;
+
+            return index > 0 && leadingTrivia[index - 1].IsEndOfLine();
+        }
+
+        private static bool HasFollowingBlankLine(SyntaxTriviaList leadingTrivia, int index)
+        {
+            while (index < leadingTrivia.Count && leadingTrivia[index].IsWhitespace())
+                index++;
+
+            return index < leadingTrivia.Count && leadingTrivia[index].IsEndOfLine();
         }
     }
 }
