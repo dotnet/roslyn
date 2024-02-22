@@ -4,9 +4,19 @@
 
 // This was copied from https://github.com/dotnet/runtime/blob/815953a12c822847095a843d69c610a9f895ae3f/src/libraries/System.Private.CoreLib/src/System/Diagnostics/CodeAnalysis/ExperimentalAttribute.cs
 // and updated to have the scope of the attributes be internal.
+
+#if NET8_0_OR_GREATER
+
+using System.Diagnostics.CodeAnalysis;
+
+#pragma warning disable RS0016 // Add public types and members to the declared API (this is a supporting forwarder for an internal polyfill API)
+[assembly: TypeForwardedTo(typeof(ExperimentalAttribute))]
+#pragma warning restore RS0016 // Add public types and members to the declared API
+
+#else
+
 namespace System.Diagnostics.CodeAnalysis
 {
-#if !NET8_0_OR_GREATER
     /// <summary>
     ///  Indicates that an API is experimental and it may change in the future.
     /// </summary>
@@ -56,5 +66,6 @@ namespace System.Diagnostics.CodeAnalysis
         /// <remarks>An example format string is <c>https://contoso.com/obsoletion-warnings/{0}</c>.</remarks>
         public string? UrlFormat { get; set; }
     }
-#endif
 }
+
+#endif
