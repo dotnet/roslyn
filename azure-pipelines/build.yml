@@ -111,7 +111,7 @@ jobs:
           displayName: 📢 Publish LocBin-Windows
           targetPath: $(Build.ArtifactStagingDirectory)/LocBin-Windows
           artifactName: LocBin-Windows
-      - ${{ if and(parameters.EnableCompliance, parameters.EnableAPIScan) }}:
+      - ${{ if and(parameters.EnableCompliance, parameters.EnableAPIScan, ne(variables['Build.Reason'], 'pullRequest')) }}:
         - output: pipelineArtifact
           displayName: 📢 Publish APIScanInputs
           targetPath: $(Build.ArtifactStagingDirectory)/APIScanInputs-Windows
@@ -251,7 +251,7 @@ jobs:
           EnableLinuxBuild: ${{ parameters.EnableLinuxBuild }}
           EnableMacOSBuild: ${{ parameters.EnableMacOSBuild }}
 
-  - ${{ if and(parameters.EnableCompliance, parameters.EnableAPIScan) }}:
+  - ${{ if and(parameters.EnableCompliance, parameters.EnableAPIScan, ne(variables['Build.Reason'], 'pullRequest')) }}:
     - template: apiscan.yml
       parameters:
         windowsPool: ${{ parameters.windowsPool }}
