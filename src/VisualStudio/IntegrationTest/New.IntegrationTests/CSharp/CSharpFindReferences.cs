@@ -77,7 +77,7 @@ class SomeOtherClass
 
             // Assert we are in the right file now
             Assert.Equal($"Class1.cs", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
-            Assert.Equal("class Program", await TestServices.Editor.GetLineTextBeforeCaretAsync(HangMitigatingCancellationToken));
+            Assert.Equal("Program", await TestServices.Editor.GetLineTextAfterCaretAsync(HangMitigatingCancellationToken));
         }
 
         [IdeFact]

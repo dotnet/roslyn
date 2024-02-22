@@ -64,7 +64,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             }
 
             Assert.Equal($"FileImplementation.cs", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
-            await TestServices.EditorVerifier.TextContainsAsync("class Implementation$$", assertCaretPosition: true, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextContainsAsync("class $$Implementation", assertCaretPosition: true, HangMitigatingCancellationToken);
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
@@ -106,7 +106,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             }
 
             Assert.Equal("FileImplementation.cs", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
-            await TestServices.EditorVerifier.TextContainsAsync("class Implementation$$", assertCaretPosition: true, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextContainsAsync("class $$Implementation", assertCaretPosition: true, HangMitigatingCancellationToken);
             Assert.True(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
@@ -152,7 +152,7 @@ class Implementation : IDisposable
             }
 
             Assert.Equal($"FileImplementation.cs", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
-            await TestServices.EditorVerifier.TextContainsAsync("class Implementation$$ : IDisposable", assertCaretPosition: true, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextContainsAsync("class $$Implementation : IDisposable", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
         [IdeTheory]

@@ -60,7 +60,7 @@ End Interface", HangMitigatingCancellationToken);
             }
 
             Assert.Equal($"FileImplementation.vb", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
-            await TestServices.EditorVerifier.TextContainsAsync("Class Implementation$$", assertCaretPosition: true);
+            await TestServices.EditorVerifier.TextContainsAsync("Class $$Implementation", assertCaretPosition: true);
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
     }
