@@ -1123,7 +1123,7 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState WithFrozenPartialCompilations(CancellationToken cancellationToken)
     {
         var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
-        var newIdToTrackerMapBuilder = new Dictionary<ProjectId, ICompilationTracker>(this.SolutionState.ProjectIds.Count);
+        var newIdToTrackerMapBuilder = new Dictionary<ProjectId, ICompilationTracker>(_projectIdToTrackerMap);
 
         foreach (var projectId in this.SolutionState.ProjectIds)
         {
