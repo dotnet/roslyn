@@ -2033,13 +2033,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
-        <source>UnscopedRefAttribute cannot be applied to an interface implementation.</source>
-        <target state="translated">UnscopedRefAttribute não pode ser aplicado a uma implementação de interface.</target>
+        <source>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</source>
+        <target state="new">UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
-        <source>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</source>
-        <target state="translated">UnscopedRefAttribute só pode ser aplicado a métodos e propriedades de instância struct e não pode ser aplicado a construtores ou membros somente init.</target>
+        <source>UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.</source>
+        <target state="needs-review-translation">UnscopedRefAttribute só pode ser aplicado a métodos e propriedades de instância struct e não pode ser aplicado a construtores ou membros somente init.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
@@ -2340,6 +2340,11 @@
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">acesso ao elemento de ponteiro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_RefStructInterfaces">
+        <source>ref struct interfaces</source>
+        <target state="new">ref struct interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_SK_ARRAY">

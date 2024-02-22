@@ -2157,7 +2157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(receiverIsSubjectToCloning != ThreeState.Unknown);
                 if (receiverIsSubjectToCloning == ThreeState.True)
                 {
-                    Debug.Assert(receiver is not BoundValuePlaceholderBase && method is not null && receiver.Type?.IsValueType == true);
+                    Debug.Assert(receiver is not BoundValuePlaceholderBase && method is not null && receiver.Type?.IsReferenceType == false);
 #if DEBUG
                     AssertVisited(receiver);
 #endif
@@ -2251,6 +2251,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method.TryGetThisParameter(out thisParameter) &&
                     thisParameter is not null)
                 {
+                    if (receiver.Type is TypeParameterSymbol typeParameter)
+                    {
+                        // Pretend that the type of the parameter is the type parameter
+                        thisParameter = new TypeParameterThisParameterSymbol(thisParameter, typeParameter);
+                    }
+
                     refKind = thisParameter.RefKind;
                 }
 
@@ -2723,12 +2729,87 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
-#nullable disable
-
         private static ErrorCode GetStandardCallEscapeError(bool checkingReceiver)
         {
             return checkingReceiver ? ErrorCode.ERR_EscapeCall2 : ErrorCode.ERR_EscapeCall;
         }
+
+        private sealed class TypeParameterThisParameterSymbol : ThisParameterSymbolBase
+        {
+            private readonly TypeParameterSymbol _type;
+            private readonly ParameterSymbol _underlyingParameter;
+
+            internal TypeParameterThisParameterSymbol(ParameterSymbol underlyingParameter, TypeParameterSymbol type)
+            {
+                Debug.Assert(underlyingParameter.IsThis);
+                Debug.Assert(underlyingParameter.RefKind != RefKind.Out); // Shouldn't get here for a constructor
+                Debug.Assert(underlyingParameter.ContainingSymbol is MethodSymbol);
+
+                _underlyingParameter = underlyingParameter;
+                _type = type;
+            }
+
+            public override TypeWithAnnotations TypeWithAnnotations
+                => TypeWithAnnotations.Create(_type, NullableAnnotation.NotAnnotated);
+
+            public override RefKind RefKind
+            {
+                get
+                {
+                    if (_underlyingParameter.RefKind is not RefKind.None and var underlyingRefKind)
+                    {
+                        return underlyingRefKind;
+                    }
+
+                    if (!_underlyingParameter.ContainingType.IsInterface || _type.IsReferenceType)
+                    {
+                        return RefKind.None;
+                    }
+
+                    // Receiver of an interface method could possibly be a structure.
+                    // Let's treat it as by ref parameter for the purpose of ref safety analysis.
+                    return RefKind.Ref;
+                }
+            }
+
+            public override ImmutableArray<Location> Locations
+            {
+                get { return _underlyingParameter.Locations; }
+            }
+
+            public override Symbol ContainingSymbol
+            {
+                get { return _underlyingParameter.ContainingSymbol; }
+            }
+
+            internal override ScopedKind EffectiveScope
+            {
+                get
+                {
+                    if (HasUnscopedRefAttribute)
+                    {
+                        return ScopedKind.None;
+                    }
+
+                    if (!_underlyingParameter.ContainingType.IsInterface || _type.IsReferenceType)
+                    {
+                        return ScopedKind.None;
+                    }
+
+                    // Receiver of an interface method could possibly be a structure.
+                    // Let's treat it as scoped ref by ref parameter for the purpose of ref safety analysis.
+                    return ScopedKind.ScopedRef;
+                }
+            }
+
+            internal override bool HasUnscopedRefAttribute
+                => _underlyingParameter.HasUnscopedRefAttribute;
+
+            internal sealed override bool UseUpdatedEscapeRules
+                => _underlyingParameter.UseUpdatedEscapeRules;
+        }
+
+#nullable disable
     }
 
     internal partial class Binder
