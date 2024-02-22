@@ -1505,7 +1505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int paramsIndex = parameters.Length - 1;
             var paramsArgsBuilder = expanded ? ArrayBuilder<BoundExpression>.GetInstance() : null;
 
-            Debug.Assert(!argumentsBuilder.Any(a => a.IsParamsCollection));
+            Debug.Assert(!argumentsBuilder.Any(a => a.IsParamsArrayOrCollection));
 
             var visitedParameters = BitVector.Create(parameters.Length);
             for (var i = 0; i < argumentsBuilder.Count; i++)
@@ -1583,7 +1583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ImmutableArray.Create(arraySize),
                                 new BoundArrayInitialization(node, isInferred: false, collectionArgs) { WasCompilerGenerated = true },
                                 collectionType)
-                    { WasCompilerGenerated = true, IsParamsCollection = true };
+                    { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
                 }
                 else
                 {
@@ -1592,7 +1592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MessageID.IDS_ParamsCollections.CheckFeatureAvailability(diagnostics, node);
                     }
 
-                    var unconvertedCollection = new BoundUnconvertedCollectionExpression(node, ImmutableArray<BoundNode>.CastUp(collectionArgs)) { WasCompilerGenerated = true, IsParamsCollection = true };
+                    var unconvertedCollection = new BoundUnconvertedCollectionExpression(node, ImmutableArray<BoundNode>.CastUp(collectionArgs)) { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     Conversion conversion = Conversions.ClassifyImplicitConversionFromExpression(unconvertedCollection, collectionType, ref useSiteInfo);
                     diagnostics.Add(node, useSiteInfo);
@@ -1626,7 +1626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (!paramsType.IsSZArray())
                                 {
                                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                                    emptyCollection ??= new BoundUnconvertedCollectionExpression(node, ImmutableArray<BoundNode>.CastUp(ImmutableArray<BoundExpression>.Empty)) { WasCompilerGenerated = true, IsParamsCollection = true };
+                                    emptyCollection ??= new BoundUnconvertedCollectionExpression(node, ImmutableArray<BoundNode>.CastUp(ImmutableArray<BoundExpression>.Empty)) { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
                                     Conversion nextConversion = Conversions.ClassifyImplicitConversionFromExpression(emptyCollection, paramsType, ref discardedUseSiteInfo);
 
                                     if (nextConversion.Exists &&
@@ -1671,10 +1671,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                      conversionGroupOpt: null,
                                      constantValueOpt: null,
                                      type: collectionType)
-                    { WasCompilerGenerated = true, IsParamsCollection = true };
+                    { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
                 }
 
-                Debug.Assert(collection.IsParamsCollection);
+                Debug.Assert(collection.IsParamsArrayOrCollection);
 
                 if (collectionArgsLength != 0)
                 {

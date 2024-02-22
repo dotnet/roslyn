@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKinds,
                 storesToTemps);
 
-            if (expanded && actualArguments[actualArguments.Length - 1] is { IsParamsCollection: true } array)
+            if (expanded && actualArguments[actualArguments.Length - 1] is { IsParamsArrayOrCollection: true } array)
             {
                 Debug.Assert(array is BoundArrayCreation);
 

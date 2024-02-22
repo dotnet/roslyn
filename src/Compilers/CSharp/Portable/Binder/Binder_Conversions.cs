@@ -708,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node,
                 builder.ToImmutableAndFree(),
                 targetType)
-            { WasCompilerGenerated = node.IsParamsCollection, IsParamsCollection = node.IsParamsCollection };
+            { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
 
             BoundNode bindSpreadElement(BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion, BindingDiagnosticBag diagnostics)
             {
@@ -1327,7 +1327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elements: builder.ToImmutableAndFree(),
                 targetType,
                 hasErrors: true)
-            { WasCompilerGenerated = node.IsParamsCollection, IsParamsCollection = node.IsParamsCollection };
+            { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
         }
 
         private void GenerateImplicitConversionErrorForCollectionExpression(
