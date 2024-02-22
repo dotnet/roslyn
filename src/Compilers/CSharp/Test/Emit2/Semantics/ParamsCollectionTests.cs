@@ -124,7 +124,7 @@ IInvocationOperation (void Program.Test(params System.Span<System.Int64> a)) (Op
 Instance Receiver:
   null
 Arguments(1):
-    IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Test()')
+    IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Test()')
         ICollectionExpressionOperation (0 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Span<System.Int64>, IsImplicit) (Syntax: 'Test()')
           Elements(0)
       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -137,7 +137,7 @@ IInvocationOperation (void Program.Test(params System.Span<System.Int64> a)) (Op
 Instance Receiver:
   null
 Arguments(1):
-    IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Test(1)')
+    IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Test(1)')
         ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Span<System.Int64>, IsImplicit) (Syntax: 'Test(1)')
           Elements(1):
               IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 1, IsImplicit) (Syntax: '1')
@@ -153,7 +153,7 @@ IInvocationOperation (void Program.Test(params System.Span<System.Int64> a)) (Op
 Instance Receiver:
   null
 Arguments(1):
-    IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Test(2, 3)')
+    IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Test(2, 3)')
         ICollectionExpressionOperation (2 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Span<System.Int64>, IsImplicit) (Syntax: 'Test(2, 3)')
           Elements(2):
               IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 2, IsImplicit) (Syntax: '2')
@@ -3337,6 +3337,107 @@ GetF2
 }
 ");
 
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test1").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new Program ... GetF2() } }')
+              Value:
+                IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program ... GetF2() } }')
+                  Arguments(0)
+                  Initializer:
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2}
+    .locals {R2}
+    {
+        CaptureIds: [1] [2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (4)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetA()')
+                  Value:
+                    IInvocationOperation (System.Int32 Program.GetA()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetA()')
+                      Instance Receiver:
+                        null
+                      Arguments(0)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[GetA()]')
+                  Value:
+                    ICollectionExpressionOperation (0 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection, IsImplicit) (Syntax: '[GetA()]')
+                      Elements(0)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'F1 = GetF1()')
+                  Left:
+                    IFieldReferenceOperation: System.Int32 C1.F1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'F1')
+                      Instance Receiver:
+                        IPropertyReferenceOperation: C1 Program.this[System.Int32 a, params MyCollection c] { get; set; } (OperationKind.PropertyReference, Type: C1) (Syntax: '[GetA()]')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Program, IsImplicit) (Syntax: 'new Program ... GetF2() } }')
+                          Arguments(2):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'GetA()')
+                                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetA()')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: c) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[GetA()]')
+                                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: MyCollection, IsImplicit) (Syntax: '[GetA()]')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Right:
+                    IInvocationOperation (System.Int32 Program.GetF1()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetF1()')
+                      Instance Receiver:
+                        null
+                      Arguments(0)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'F2 = GetF2()')
+                  Left:
+                    IFieldReferenceOperation: System.Int32 C1.F2 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'F2')
+                      Instance Receiver:
+                        IPropertyReferenceOperation: C1 Program.this[System.Int32 a, params MyCollection c] { get; set; } (OperationKind.PropertyReference, Type: C1) (Syntax: '[GetA()]')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Program, IsImplicit) (Syntax: 'new Program ... GetF2() } }')
+                          Arguments(2):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'GetA()')
+                                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetA()')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: c) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[GetA()]')
+                                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: MyCollection, IsImplicit) (Syntax: '[GetA()]')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Right:
+                    IInvocationOperation (System.Int32 Program.GetF2()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetF2()')
+                      Instance Receiver:
+                        null
+                      Arguments(0)
+            Next (Regular) Block[B3]
+                Leaving: {R2}
+    }
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = new Pro ... etF2() } };')
+              Expression:
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: Program) (Syntax: '_ = new Pro ... GetF2() } }')
+                  Left:
+                    IDiscardOperation (Symbol: Program _) (OperationKind.Discard, Type: Program) (Syntax: '_')
+                  Right:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Program, IsImplicit) (Syntax: 'new Program ... GetF2() } }')
+        Next (Regular) Block[B4]
+            Leaving: {R1}
+}
+Block[B4] - Exit
+    Predecessors: [B3]
+    Statements (0)
+""");
+
             verifier.VerifyIL("Program.Test2", @"
 {
   // Code size       64 (0x40)
@@ -3395,6 +3496,208 @@ GetF2
   IL_0040:  call       ""int Program.GetF2()""
   IL_0045:  stfld      ""int C1.F2""
   IL_004a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void OrderOfEvaluation_04_ObjectInitializer()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable<int>
+{
+    public MyCollection()
+    {
+        System.Console.WriteLine("Create");
+    }
+
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(int l)
+    {
+        System.Console.WriteLine("Add");
+    }
+}
+
+class C1
+{
+}
+
+class Program
+{
+    private MyCollection _c;
+
+    static void Main()
+    {
+        System.Console.WriteLine("---Test1");
+        Test1();
+        System.Console.WriteLine("---Test2");
+        Test2();
+        System.Console.WriteLine("---Test3");
+        Test3();
+    }
+
+    static void Test1()
+    {
+        _ = new Program() { [GetA()] = { } };
+    }
+
+    static void Test2()
+    {
+        _ = new Program() { [GetA(), GetC()] = { } };
+    }
+
+    static void Test3()
+    {
+        _ = new Program() { [GetA(), GetB(), GetC()] = { } };
+    }
+
+    C1 this[int a, params MyCollection c]
+    {
+        get
+        {
+            System.Console.WriteLine("Get_this {0}", c is not null && (_c is null || (object)_c == c));
+            _c = c;
+            return new C1();
+        }
+        set
+        {
+            System.Console.WriteLine("Set_this {0}", (object)_c == c);
+        }
+    }
+
+
+    static int GetA()
+    {
+        System.Console.WriteLine("GetA");
+        return 0;
+    }
+
+    static int GetB()
+    {
+        System.Console.WriteLine("GetB");
+        return 0;
+    }
+
+    static int GetC()
+    {
+        System.Console.WriteLine("GetC");
+        return 0;
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+---Test1
+GetA
+Create
+---Test2
+GetA
+Create
+GetC
+Add
+---Test3
+GetA
+Create
+GetB
+Add
+GetC
+Add
+").VerifyDiagnostics();
+
+            // Note, the collection is created even though the getter is never invoked
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  pop
+  IL_0006:  call       ""int Program.GetA()""
+  IL_000b:  pop
+  IL_000c:  newobj     ""MyCollection..ctor()""
+  IL_0011:  pop
+  IL_0012:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test1").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (4)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new Program ... ()] = { } }')
+              Value:
+                IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program ... ()] = { } }')
+                  Arguments(0)
+                  Initializer:
+                    null
+            IInvocationOperation (System.Int32 Program.GetA()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetA()')
+              Instance Receiver:
+                null
+              Arguments(0)
+            ICollectionExpressionOperation (0 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection, IsImplicit) (Syntax: '[GetA()]')
+              Elements(0)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = new Pro ... )] = { } };')
+              Expression:
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: Program) (Syntax: '_ = new Pro ... ()] = { } }')
+                  Left:
+                    IDiscardOperation (Symbol: Program _) (OperationKind.Discard, Type: Program) (Syntax: '_')
+                  Right:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Program, IsImplicit) (Syntax: 'new Program ... ()] = { } }')
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+""");
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  pop
+  IL_0006:  call       ""int Program.GetA()""
+  IL_000b:  pop
+  IL_000c:  newobj     ""MyCollection..ctor()""
+  IL_0011:  call       ""int Program.GetC()""
+  IL_0016:  callvirt   ""void MyCollection.Add(int)""
+  IL_001b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  3
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  pop
+  IL_0006:  call       ""int Program.GetA()""
+  IL_000b:  pop
+  IL_000c:  newobj     ""MyCollection..ctor()""
+  IL_0011:  dup
+  IL_0012:  call       ""int Program.GetB()""
+  IL_0017:  callvirt   ""void MyCollection.Add(int)""
+  IL_001c:  call       ""int Program.GetC()""
+  IL_0021:  callvirt   ""void MyCollection.Add(int)""
+  IL_0026:  ret
 }
 ");
         }
@@ -11238,7 +11541,7 @@ Block[B0] - Entry
                     Instance Receiver:
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1, IsImplicit) (Syntax: 'new C2()')
                     Arguments(1):
-                        IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: args) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'foreach (va ... }')
+                        IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: args) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'foreach (va ... }')
                         ICollectionExpressionOperation (0 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit) (Syntax: 'foreach (va ... }')
                             Elements(0)
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

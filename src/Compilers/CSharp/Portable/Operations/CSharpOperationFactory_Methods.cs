@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             else if (argument.IsParamsCollection)
             {
-                argumentKind = ArgumentKind.ParamArray;
+                argumentKind = argument.Type?.IsSZArray() == true ? ArgumentKind.ParamArray : ArgumentKind.ParamCollection;
             }
             else
             {
