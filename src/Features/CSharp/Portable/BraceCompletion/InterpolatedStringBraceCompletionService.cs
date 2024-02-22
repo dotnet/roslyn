@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -61,44 +62,26 @@ internal sealed class InterpolatedStringBraceCompletionService() : AbstractCShar
         // If the preceding character(s) are not '$' or '$@' then we can't be starting an interpolated string.
         if (text[start] == '@')
         {
-            if (--start < 0)
+            // must have $@.  otherwise this is some other @ construct.
+            if (start == 0 || text[start - 1] != '$')
                 return false;
+
+            start--;
         }
-
-        if (text[start] != '$')
-            return false;
-
-        // Verify that we are actually in an location allowed for an interpolated string.
-        var token = document.Root.FindToken(start);
-        SyntaxToken previousToken;
-        if (token.FullSpan.End == start &&
-            token.TrailingTrivia is [(kind: SyntaxKind.SkippedTokensTrivia) skippedTrivia, ..])
+        else if (text[start] == '$')
         {
-            var skippedTokens = (SkippedTokensTriviaSyntax)skippedTrivia.GetStructure()!;
-            if (skippedTokens.Tokens is not [(kind: SyntaxKind.BadToken) badToken, ..] ||
-                badToken.SpanStart != start)
-            {
-                return false;
-            }
-
-            // we have something like `($` and the `$` skipped trivia after the normal token.
-            previousToken = token;
-            token = badToken;
-        }
-        else if (token.Kind() is
-            SyntaxKind.InterpolatedStringStartToken or
-            SyntaxKind.InterpolatedVerbatimStringStartToken or
-            SyntaxKind.StringLiteralToken or
-            SyntaxKind.IdentifierToken)
-        {
-            previousToken = token.GetPreviousToken();
+            // could be @$
+            if (start > 0 && text[start - 1] == '@')
+                start--;
         }
         else
         {
             return false;
         }
 
-        return document.SyntaxTree.IsExpressionContext(token.SpanStart, previousToken, attributes: true, cancellationToken)
-            || document.SyntaxTree.IsStatementContext(token.SpanStart, previousToken, cancellationToken);
+        var leftToken = document.SyntaxTree.FindTokenOnLeftOfPosition(start, cancellationToken);
+
+        return document.SyntaxTree.IsExpressionContext(start, leftToken, attributes: true, cancellationToken)
+            || document.SyntaxTree.IsStatementContext(start, leftToken, cancellationToken);
     }
 }
