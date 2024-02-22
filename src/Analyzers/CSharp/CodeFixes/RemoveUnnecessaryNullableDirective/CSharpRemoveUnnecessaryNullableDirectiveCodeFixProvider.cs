@@ -86,11 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryNullableDirec
                     }
                 }
 
-                // We replace the leading trivias of the token the nullable directive was attached,
-                // then replace the token on the node and finally, replace the node with its new token.
-                var newToken = token.WithLeadingTrivia(leadingTrivia);
+                // Update the token and replace it within its parent.
                 var node = token.GetRequiredParent();
-                editor.ReplaceNode(node, node.ReplaceToken(token, newToken));
+                editor.ReplaceNode(
+                    node,
+                    node.ReplaceToken(token, token.WithLeadingTrivia(leadingTrivia)));
             }
 
             return Task.CompletedTask;
