@@ -643,10 +643,9 @@ namespace Microsoft.CodeAnalysis.Text
                         hash.Append(MemoryMarshal.AsBytes(charBuffer.AsSpan(0, charsToCopy)));
                     }
 
-                    // Switch this to ImmutableCollectionsMarshal.AsImmutableArray(hash.GetHashAndReset()) when we move to S.C.I v8.
-                    Span<byte> destination = stackalloc byte[128 / 8];
-                    hash.GetHashAndReset(destination);
-                    return ArrayBuilder<byte>.ToImmutable(destination);
+                    // GetHashAndReset returns a freshly allocated array so it is safe to convert
+                    // to ImmutableArray inline.
+                    return ImmutableCollectionsMarshal.AsImmutableArray(hash.GetHashAndReset());
                 }
                 finally
                 {
@@ -676,7 +675,7 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new InvalidOperationException();
             }
 
-            return ArrayBuilder<byte>.ToImmutable(hashBuffer.Slice(0, bytesWritten));
+            return ImmutableArray.Create(hashBuffer.Slice(0, bytesWritten));
         }
 #endif
 
