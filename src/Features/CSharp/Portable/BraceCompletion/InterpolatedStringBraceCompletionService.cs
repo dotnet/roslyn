@@ -6,13 +6,8 @@ using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.BraceCompletion;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
 
@@ -79,10 +74,6 @@ internal sealed class InterpolatedStringBraceCompletionService() : AbstractCShar
             return false;
         }
 
-        var leftToken = document.SyntaxTree.FindTokenOnLeftOfPosition(start, cancellationToken);
-
-        return document.SyntaxTree.IsExpressionContext(start, leftToken, attributes: true, cancellationToken)
-            || document.SyntaxTree.IsStatementContext(start, leftToken, cancellationToken)
-            || document.SyntaxTree.IsGlobalStatementContext(start, cancellationToken);
+        return IsLegalExpressionLocation(document.SyntaxTree, start, cancellationToken);
     }
 }
