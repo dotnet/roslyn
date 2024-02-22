@@ -674,27 +674,33 @@ namespace Microsoft.CodeAnalysis
                 if (state is FinalCompilationTrackerState { IsFrozen: true } finalState)
                     return this;
 
-                var projectState = state switch
-                {
-                    // If we don't have an existing state, then transition to a project state without any data.
-                    null => this.ProjectState,
+                var initialProjectState = GetInitialProjectState(state);
+                var (frozenProjectState, frozenState) = GetFrozenCompilationState(initialProjectState, state);
 
-                    FinalCompilationTrackerState => this.ProjectState,
-
-                    // If we have an in progress state with no steps, then we're just at the current project state.
-                    InProgressState { PendingTranslationActions: [] } => this.ProjectState,
-
-                    // Otherwise, reset us to whatever state the InProgressState had currently transitioned to.
-                    InProgressState inProgressState => inProgressState.PendingTranslationActions.First().OldProjectState,
-
-                    _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
-                };
-
-                var (frozenProjectState, frozenState) = GetFrozenCompilationState(projectState);
                 Contract.ThrowIfFalse(frozenState.IsFrozen);
                 return new CompilationTracker(frozenProjectState, frozenState, this.SkeletonReferenceCache.Clone());
 
-                (ProjectState frozenProjectState, CompilationTrackerState frozenState) GetFrozenCompilationState(ProjectState projectState)
+                ProjectState GetInitialProjectState(CompilationTrackerState? state)
+                {
+                    return state switch
+                    {
+                        // If we don't have an existing state, then transition to a project state without any data.
+                        null => this.ProjectState,
+
+                        FinalCompilationTrackerState => this.ProjectState,
+
+                        // If we have an in progress state with no steps, then we're just at the current project state.
+                        InProgressState { PendingTranslationActions: [] } => this.ProjectState,
+
+                        // Otherwise, reset us to whatever state the InProgressState had currently transitioned to.
+                        InProgressState inProgressState => inProgressState.PendingTranslationActions.First().OldProjectState,
+
+                        _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
+                    };
+                }
+
+                (ProjectState frozenProjectState, CompilationTrackerState frozenState) GetFrozenCompilationState(
+                    ProjectState projectState, CompilationTrackerState? state)
                 {
                     if (state is FinalCompilationTrackerState finalState)
                     {
