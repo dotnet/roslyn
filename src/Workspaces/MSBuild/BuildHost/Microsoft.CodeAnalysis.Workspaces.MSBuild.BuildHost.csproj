@@ -47,6 +47,7 @@
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+	  <PackageReference Include="System.Text.Json" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
   <ItemGroup>
@@ -83,18 +84,18 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Include="Rpc\Readme.md" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <EmbeddedResource Update="WorkspaceMSBuildBuildHostResources.resx" GenerateSource="true" />
   </ItemGroup>
