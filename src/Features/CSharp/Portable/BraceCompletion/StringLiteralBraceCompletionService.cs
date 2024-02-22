@@ -42,7 +42,6 @@ internal sealed class StringLiteralBraceCompletionService() : AbstractCSharpBrac
         if (start > 0 && text[start - 1] == '@')
             start--;
 
-
         // Has to be the start of an expression, or within a directive (string literals are legal there).
         return IsLegalExpressionLocation(document.SyntaxTree, start, cancellationToken)
             || document.SyntaxTree.IsPreProcessorDirectiveContext(start, cancellationToken);
