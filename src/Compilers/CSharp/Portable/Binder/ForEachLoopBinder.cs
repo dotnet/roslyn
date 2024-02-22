@@ -1110,11 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         extensionReceiverOpt: null,
                         expanded: false,
                         collectionExpr.Syntax,
-                        diagnostics,
-                        // C# 8 shipped allowing the CancellationToken of `IAsyncEnumerable.GetAsyncEnumerator` to be non-optional,
-                        // filling in a default value in that case. https://github.com/dotnet/roslyn/issues/50182 tracks making
-                        // this an error and breaking the scenario.
-                        assertMissingParametersAreOptional: false);
+                        diagnostics);
 
                     MethodSymbol currentPropertyGetter;
                     if (isAsync)

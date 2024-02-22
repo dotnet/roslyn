@@ -117,9 +117,8 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public ICompilationTracker Fork(
                 ProjectState newProjectState,
-                CompilationAndGeneratorDriverTranslationAction? translate)
+                TranslationAction? translate)
             {
-                var oldProjectState = this.ProjectState;
                 var forkedTrackerState = ForkTrackerState();
 
                 // We should never fork into a FinalCompilationTrackerState.  We must always be at some state prior to
@@ -144,10 +143,10 @@ namespace Microsoft.CodeAnalysis
                         _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
                     };
 
-                    var finalSteps = UpdatePendingTranslationSteps(
+                    var finalSteps = UpdatePendingTranslationActions(
                         state switch
                         {
-                            InProgressState { PendingTranslationSteps: var pendingTranslationSteps } => pendingTranslationSteps,
+                            InProgressState inProgressState => inProgressState.PendingTranslationActions,
                             FinalCompilationTrackerState => [],
                             _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
                         });
@@ -162,28 +161,28 @@ namespace Microsoft.CodeAnalysis
                     return newState;
                 }
 
-                ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> UpdatePendingTranslationSteps(
-                    ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> pendingTranslationSteps)
+                ImmutableList<TranslationAction> UpdatePendingTranslationActions(
+                    ImmutableList<TranslationAction> pendingTranslationActions)
                 {
                     if (translate is null)
-                        return pendingTranslationSteps;
+                        return pendingTranslationActions;
 
                     // We have a translation action; are we able to merge it with the prior one?
-                    if (!pendingTranslationSteps.IsEmpty)
+                    if (!pendingTranslationActions.IsEmpty)
                     {
-                        var (priorState, priorAction) = pendingTranslationSteps.Last();
+                        var priorAction = pendingTranslationActions.Last();
                         var mergedTranslation = translate.TryMergeWithPrior(priorAction);
                         if (mergedTranslation != null)
                         {
                             // We can replace the prior action with this new one
-                            return pendingTranslationSteps.SetItem(
-                                pendingTranslationSteps.Count - 1,
-                                (oldState: priorState, mergedTranslation));
+                            return pendingTranslationActions.SetItem(
+                                pendingTranslationActions.Count - 1,
+                                mergedTranslation);
                         }
                     }
 
                     // Just add it to the end
-                    return pendingTranslationSteps.Add((oldProjectState, translate));
+                    return pendingTranslationActions.Add(translate);
                 }
             }
 
@@ -219,7 +218,7 @@ namespace Microsoft.CodeAnalysis
                     compilationWithoutGeneratedDocuments,
                     generatorInfo,
                     compilationWithGeneratedDocuments,
-                    ImmutableList<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>.Empty);
+                    pendingTranslationActions: []);
 
                 return new CompilationTracker(inProgressProject, inProgressState, this.SkeletonReferenceCache.Clone());
             }
@@ -248,29 +247,21 @@ namespace Microsoft.CodeAnalysis
 
                 GetPartialCompilationState(
                     state,
-                    out var inProgressProject,
+                    out var oldProjectState,
                     out var compilationWithoutGeneratedDocuments,
                     out var compilationWithGeneratedDocuments,
                     out var generatorInfo,
                     cancellationToken);
 
-                ImmutableList<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> pendingActions;
-                if (inProgressProject.DocumentStates.TryGetState(docState.Id, out oldState))
-                {
+                TranslationAction pendingAction = oldProjectState.DocumentStates.TryGetState(docState.Id, out oldState)
                     // The document had been previously parsed and it's there, so we can update it with our current
                     // state. Note if no compilation existed GetPartialCompilationState would have produced an empty
                     // one, and removed any documents, so inProgressProject.DocumentStates would have been empty
                     // originally.
-                    pendingActions = [(oldState: inProgressProject, new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldState, docState))];
-                    inProgressProject = inProgressProject.UpdateDocument(docState, contentChanged: true);
-                }
-                else
-                {
+                    ? new TranslationAction.TouchDocumentAction(oldProjectState, oldProjectState.UpdateDocument(docState, contentChanged: true), oldState, docState)
                     // The document wasn't present in the original snapshot at all, and we just need to add the
                     // document.
-                    pendingActions = [(oldState: inProgressProject, new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction([docState]))];
-                    inProgressProject = inProgressProject.AddDocuments([docState]);
-                }
+                    : new TranslationAction.AddDocumentsAction(oldProjectState, oldProjectState.AddDocuments([docState]), [docState]);
 
                 // Transition us to a frozen in progress state.  With the best compilations up to this point, and the
                 // pending actions we'll need to perform on it to get to the final state.
@@ -279,9 +270,9 @@ namespace Microsoft.CodeAnalysis
                     compilationWithoutGeneratedDocuments,
                     generatorInfo,
                     compilationWithGeneratedDocuments,
-                    pendingActions);
+                    [pendingAction]);
 
-                return new CompilationTracker(inProgressProject, inProgressState, this.SkeletonReferenceCache.Clone());
+                return new CompilationTracker(pendingAction.NewProjectState, inProgressState, this.SkeletonReferenceCache.Clone());
             }
 
             /// <summary>
@@ -319,11 +310,20 @@ namespace Microsoft.CodeAnalysis
                 else if (state is InProgressState inProgressState)
                 {
                     generatorInfo = inProgressState.GeneratorInfo;
-                    inProgressProject = inProgressState is { PendingTranslationSteps: [(var oldState, _), ..] }
-                        ? oldState
+                    inProgressProject = inProgressState is { PendingTranslationActions: [var translationAction, ..] }
+                        ? translationAction.OldProjectState
                         : this.ProjectState;
 
                     compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
+
+                    // Parse the generated documents in parallel.
+                    Parallel.ForEach(
+                        generatorInfo.Documents.States.Values,
+                        new ParallelOptions { CancellationToken = cancellationToken },
+                        state => state.GetSyntaxTree(cancellationToken));
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // Retrieving the syntax trees will be free now that we computed them above.
                     compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments.AddSyntaxTrees(
                         generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken)));
                 }
@@ -449,13 +449,10 @@ namespace Microsoft.CodeAnalysis
                     {
                         var compilation = CreateEmptyCompilation();
 
-                        using var _ = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentStates.Count, out var trees);
-                        foreach (var documentState in ProjectState.DocumentStates.GetStatesInCompilationOrder())
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-                            // Include the tree even if the content of the document failed to load.
-                            trees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-                        }
+                        var trees = await GetAllSyntaxTreesAsync(
+                            this.ProjectState.DocumentStates.GetStatesInCompilationOrder(),
+                            this.ProjectState.DocumentStates.Count,
+                            cancellationToken).ConfigureAwait(false);
 
                         compilation = compilation.AddSyntaxTrees(trees);
 
@@ -465,7 +462,7 @@ namespace Microsoft.CodeAnalysis
                         // frozen here.
                         var allSyntaxTreesParsedState = InProgressState.Create(
                             isFrozen: false, compilation, CompilationTrackerGeneratorInfo.Empty, staleCompilationWithGeneratedDocuments: null,
-                            pendingTranslationSteps: []);
+                            pendingTranslationActions: []);
 
                         WriteState(allSyntaxTreesParsedState);
                         return allSyntaxTreesParsedState;
@@ -481,7 +478,7 @@ namespace Microsoft.CodeAnalysis
                     try
                     {
                         var currentState = initialState;
-                        while (currentState.PendingTranslationSteps.Count > 0)
+                        while (currentState.PendingTranslationActions.Count > 0)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
@@ -504,7 +501,7 @@ namespace Microsoft.CodeAnalysis
                                 compilationWithoutGeneratedDocuments,
                                 generatorInfo,
                                 staleCompilationWithGeneratedDocuments,
-                                currentState.PendingTranslationSteps.RemoveAt(0));
+                                currentState.PendingTranslationActions.RemoveAt(0));
                             this.WriteState(currentState);
                         }
 
@@ -518,8 +515,8 @@ namespace Microsoft.CodeAnalysis
                     async Task<(Compilation compilationWithoutGeneratedDocuments, Compilation? staleCompilationWithGeneratedDocuments, CompilationTrackerGeneratorInfo generatorInfo)>
                         ApplyFirstTransformationAsync(InProgressState inProgressState)
                     {
-                        Contract.ThrowIfTrue(inProgressState.PendingTranslationSteps.IsEmpty);
-                        var (oldState, action) = inProgressState.PendingTranslationSteps[0];
+                        Contract.ThrowIfTrue(inProgressState.PendingTranslationActions.IsEmpty);
+                        var translationAction = inProgressState.PendingTranslationActions[0];
 
                         var compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
                         var staleCompilationWithGeneratedDocuments = inProgressState.StaleCompilationWithGeneratedDocuments;
@@ -534,16 +531,16 @@ namespace Microsoft.CodeAnalysis
                         if (staleCompilationWithGeneratedDocuments == compilationWithoutGeneratedDocuments)
                             staleCompilationWithGeneratedDocuments = null;
 
-                        compilationWithoutGeneratedDocuments = await action.TransformCompilationAsync(compilationWithoutGeneratedDocuments, cancellationToken).ConfigureAwait(false);
+                        compilationWithoutGeneratedDocuments = await translationAction.TransformCompilationAsync(compilationWithoutGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
                         if (staleCompilationWithGeneratedDocuments != null)
                         {
                             // Also transform the compilation that has generated files; we won't do that though if the transformation either would cause problems with
                             // the generated documents, or if don't have any source generators in the first place.
-                            if (action.CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput &&
-                                oldState.SourceGenerators.Any())
+                            if (translationAction.CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput &&
+                                translationAction.OldProjectState.SourceGenerators.Any())
                             {
-                                staleCompilationWithGeneratedDocuments = await action.TransformCompilationAsync(staleCompilationWithGeneratedDocuments, cancellationToken).ConfigureAwait(false);
+                                staleCompilationWithGeneratedDocuments = await translationAction.TransformCompilationAsync(staleCompilationWithGeneratedDocuments, cancellationToken).ConfigureAwait(false);
                             }
                             else
                             {
@@ -553,7 +550,7 @@ namespace Microsoft.CodeAnalysis
 
                         var generatorInfo = inProgressState.GeneratorInfo;
                         if (generatorInfo.Driver != null)
-                            generatorInfo = generatorInfo with { Driver = action.TransformGeneratorDriver(generatorInfo.Driver) };
+                            generatorInfo = generatorInfo with { Driver = translationAction.TransformGeneratorDriver(generatorInfo.Driver) };
 
                         return (compilationWithoutGeneratedDocuments, staleCompilationWithGeneratedDocuments, generatorInfo);
                     }
@@ -589,7 +586,7 @@ namespace Microsoft.CodeAnalysis
                 async Task<FinalCompilationTrackerState> FinalizeCompilationWorkerAsync(InProgressState inProgressState)
                 {
                     // Caller should collapse the in progress state first.
-                    Contract.ThrowIfTrue(inProgressState.PendingTranslationSteps.Count > 0);
+                    Contract.ThrowIfTrue(inProgressState.PendingTranslationActions.Count > 0);
 
                     // The final state we produce will be frozen or not depending on if a frozen state was passed into it.
                     var isFrozen = inProgressState.IsFrozen;
@@ -884,8 +881,8 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (state is InProgressState inProgressState)
                 {
-                    var projectState = inProgressState.PendingTranslationSteps is [(var oldState, _), ..]
-                        ? oldState
+                    var projectState = inProgressState.PendingTranslationActions is [var translationAction, ..]
+                        ? translationAction.OldProjectState
                         : this.ProjectState;
 
                     ValidateCompilationTreesMatchesProjectState(inProgressState.CompilationWithoutGeneratedDocuments, projectState, generatorInfo: null);
