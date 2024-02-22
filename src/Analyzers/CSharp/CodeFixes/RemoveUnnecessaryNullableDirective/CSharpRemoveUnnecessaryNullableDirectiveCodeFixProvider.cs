@@ -59,9 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryNullableDirec
         {
             // We first group the nullable directives by the syntax node they are attached
             // This allows to replace each node separately even if they have multiple nullable directives
-            var nullableDirectivesByNodes = diagnostics.GroupBy(x =>
-                x.Location.FindNode(findInsideTrivia: false, getInnermostNodeForTie: false, cancellationToken), x =>
-                x.Location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken))
+            var nullableDirectivesByNodes = diagnostics
+                .GroupBy(
+                    x => x.Location.FindNode(findInsideTrivia: false, getInnermostNodeForTie: false, cancellationToken),
+                    x => x.Location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken))
                 .ToDictionary(x => x.Key, x => x.ToList());
 
             foreach (var (node, nullableDirectives) in nullableDirectivesByNodes)
