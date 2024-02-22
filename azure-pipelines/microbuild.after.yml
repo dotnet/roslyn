@@ -1,10 +1,4 @@
 parameters:
-- name: EnableCompliance
-  type: boolean
-  default: false
-- name: EnableAPIScan
-  type: boolean
-  default: false
 - name: EnableOptProf
   type: boolean
   default: false
@@ -39,8 +33,3 @@ steps:
         ArtifactName: InsertionOutputs
         ArtifactType: Container
       displayName: 📢 Publish InsertionOutputs as Azure DevOps artifacts
-
-- ${{ if parameters.EnableCompliance }}:
-  - template: secure-development-tools.yml
-    parameters:
-      EnableAPIScan: ${{ parameters.EnableAPIScan }}

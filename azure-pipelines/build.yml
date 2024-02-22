@@ -62,10 +62,6 @@ jobs:
 - job: Windows
   pool: ${{ parameters.windowsPool }}
   timeoutInMinutes: 180 # Give plenty of time due to real signing
-  variables:
-  - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
-    # https://dev.azure.com/devdiv/DevDiv/_wiki/wikis/DevDiv.wiki/25351/APIScan-step-by-step-guide-to-setting-up-a-Pipeline
-    - group: VSCloudServices-APIScan # Expected to provide ApiScanClientId, ApiScanSecret, ApiScanTenant
   ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     templateContext:
       mb:
@@ -115,6 +111,11 @@ jobs:
           displayName: 📢 Publish LocBin-Windows
           targetPath: $(Build.ArtifactStagingDirectory)/LocBin-Windows
           artifactName: LocBin-Windows
+      - ${{ if and(parameters.EnableCompliance, parameters.EnableAPIScan) }}:
+        - output: pipelineArtifact
+          displayName: 📢 Publish APIScanInputs
+          targetPath: $(Build.ArtifactStagingDirectory)/APIScanInputs-Windows
+          artifactName: APIScanInputs
   steps:
   - ${{ if not(parameters.Is1ESPT) }}:
     - checkout: self
@@ -131,6 +132,7 @@ jobs:
 
   - script: dotnet nbgv cloud -ca
     displayName: ⚙ Set build number
+    name: nbgv
 
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     - template: microbuild.before.yml
@@ -154,8 +156,6 @@ jobs:
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     - template: microbuild.after.yml
       parameters:
-        EnableCompliance: ${{ parameters.EnableCompliance }}
-        EnableAPIScan: ${{ parameters.EnableAPIScan }}
         EnableOptProf: ${{ parameters.EnableOptProf }}
         IsOptProf: ${{ parameters.IsOptProf }}
 
@@ -250,3 +250,8 @@ jobs:
         parameters:
           EnableLinuxBuild: ${{ parameters.EnableLinuxBuild }}
           EnableMacOSBuild: ${{ parameters.EnableMacOSBuild }}
+
+  - ${{ if and(parameters.EnableCompliance, parameters.EnableAPIScan) }}:
+    - template: apiscan.yml
+      parameters:
+        windowsPool: ${{ parameters.windowsPool }}

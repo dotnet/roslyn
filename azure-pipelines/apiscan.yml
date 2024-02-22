@@ -1,0 +1,43 @@
+parameters:
+- name: windowsPool
+  type: object
+
+jobs:
+- job: apiscan
+  displayName: APIScan
+  dependsOn: Windows
+  pool: ${{ parameters.windowsPool }}
+  variables:
+  - name: SymbolsFeatureName
+    value: $[ dependencies.Windows.outputs['SetPipelineVariables.SymbolsFeatureName'] ]
+  - name: NBGV_MajorMinorVersion
+    value: $[ dependencies.Windows.outputs['nbgv.NBGV_MajorMinorVersion'] ]
+  - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+    # https://dev.azure.com/devdiv/DevDiv/_wiki/wikis/DevDiv.wiki/25351/APIScan-step-by-step-guide-to-setting-up-a-Pipeline
+    - group: VSCloudServices-APIScan # Expected to provide ApiScanClientId, ApiScanSecret, ApiScanTenant
+  steps:
+    # We need TSAOptions.json
+  - checkout: self
+    fetchDepth: 1
+
+  - download: current
+    artifact: APIScanInputs
+    displayName: 🔻 Download APIScanInputs artifact
+
+  - task: APIScan@2
+    displayName: 🔍 Run APIScan
+    inputs:
+      softwareFolder: $(Pipeline.Workspace)/APIScanInputs
+      softwareName: $(SymbolsFeatureName)
+      softwareVersionNum: $(NBGV_MajorMinorVersion)
+      isLargeApp: false
+      toolVersion: Latest
+    env:
+      AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
+
+  # File bugs when APIScan finds issues
+  - task: TSAUpload@2
+    displayName: 🪳 TSA upload
+    inputs:
+      GdnPublishTsaOnboard: True
+      GdnPublishTsaConfigFile: $(Build.SourcesDirectory)\azure-pipelines\TSAOptions.json
