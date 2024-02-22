@@ -5,8 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal static class Creator
     {
-        public static PooledObject<HashSet<Checksum>> CreateChecksumSet(ImmutableArray<Checksum> checksums)
+        public static PooledObject<HashSet<Checksum>> CreateChecksumSet(SegmentedList<Checksum> checksums)
         {
             var items = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
 

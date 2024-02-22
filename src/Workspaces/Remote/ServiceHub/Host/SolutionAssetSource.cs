@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Threading;
@@ -18,7 +19,7 @@ internal sealed class SolutionAssetSource(ServiceBrokerClient client) : IAssetSo
     public async ValueTask<ImmutableArray<object>> GetAssetsAsync(
         Checksum solutionChecksum,
         AssetHint assetHint,
-        ImmutableArray<Checksum> checksums,
+        SegmentedList<Checksum> checksums,
         ISerializerService serializerService,
         CancellationToken cancellationToken)
     {
@@ -30,7 +31,7 @@ internal sealed class SolutionAssetSource(ServiceBrokerClient client) : IAssetSo
             SolutionAssetProvider.ServiceDescriptor,
             (callback, cancellationToken) => callback.InvokeAsync(
                 (proxy, pipeWriter, cancellationToken) => proxy.WriteAssetsAsync(pipeWriter, solutionChecksum, assetHint, checksums, cancellationToken),
-                (pipeReader, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(pipeReader, solutionChecksum, checksums.Length, serializerService, cancellationToken),
+                (pipeReader, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(pipeReader, solutionChecksum, checksums.Count, serializerService, cancellationToken),
                 cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }

@@ -9,6 +9,7 @@ using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Nerdbank.Streams;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ISerializerService serializer,
             SolutionReplicationContext context,
             Checksum solutionChecksum,
-            ImmutableArray<Checksum> checksums,
+            SegmentedList<Checksum> checksums,
             CancellationToken cancellationToken)
         {
             using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
             solutionChecksum.WriteTo(writer);
 
             // special case
-            if (checksums.Length == 0)
+            if (checksums.Count == 0)
                 return;
 
             Debug.Assert(assetMap != null);

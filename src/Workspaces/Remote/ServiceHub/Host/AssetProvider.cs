@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
@@ -25,6 +26,8 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     private readonly ISerializerService _serializerService = serializerService;
     private readonly SolutionAssetCache _assetCache = assetCache;
     private readonly IAssetSource _assetSource = assetSource;
+
+    private static readonly ObjectPool<SegmentedList<Checksum>> s_checksumListPool = new ObjectPool<SegmentedList<Checksum>>(() => new SegmentedList<Checksum>());
 
     private T GetRequiredAsset<T>(Checksum checksum)
     {
@@ -118,28 +121,32 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
         using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
         {
-            using var _1 = ArrayBuilder<Checksum>.GetInstance(checksums.Count, out var missingChecksums);
+            var missingChecksums = s_checksumListPool.Allocate();
+
             foreach (var checksum in checksums)
             {
                 if (!_assetCache.TryGetAsset<object>(checksum, out _))
                     missingChecksums.Add(checksum);
             }
 
-            var checksumsArray = missingChecksums.ToImmutableAndClear();
-            var assets = await RequestAssetsAsync(assetHint, checksumsArray, cancellationToken).ConfigureAwait(false);
+            var assets = await RequestAssetsAsync(assetHint, missingChecksums, cancellationToken).ConfigureAwait(false);
 
-            Contract.ThrowIfTrue(checksumsArray.Length != assets.Length);
+            Contract.ThrowIfTrue(missingChecksums.Count != assets.Length);
 
             for (int i = 0, n = assets.Length; i < n; i++)
-                _assetCache.GetOrAdd(checksumsArray[i], assets[i]);
+                _assetCache.GetOrAdd(missingChecksums[i], assets[i]);
+
+            // Don't use ClearAndFree as this SegmentedList can easily exceed the stored threshold size
+            missingChecksums.Clear();
+            s_checksumListPool.Free(missingChecksums);
         }
     }
 
     private async Task<ImmutableArray<object>> RequestAssetsAsync(
-        AssetHint assetHint, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
+        AssetHint assetHint, SegmentedList<Checksum> checksums, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
-        if (checksums.Length == 0)
+        Contract.ThrowIfTrue((checksums as ICollection<Checksum>).Contains(Checksum.Null));
+        if (checksums.Count == 0)
             return [];
 
         return await _assetSource.GetAssetsAsync(_solutionChecksum, assetHint, checksums, _serializerService, cancellationToken).ConfigureAwait(false);

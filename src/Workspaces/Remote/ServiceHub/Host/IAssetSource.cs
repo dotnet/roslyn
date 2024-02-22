@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Serialization;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -15,5 +16,5 @@ namespace Microsoft.CodeAnalysis.Remote;
 internal interface IAssetSource
 {
     ValueTask<ImmutableArray<object>> GetAssetsAsync(
-        Checksum solutionChecksum, AssetHint assetHint, ImmutableArray<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken);
+        Checksum solutionChecksum, AssetHint assetHint, SegmentedList<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken);
 }
