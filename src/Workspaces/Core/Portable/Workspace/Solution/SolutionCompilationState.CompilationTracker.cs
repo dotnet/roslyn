@@ -315,6 +315,15 @@ namespace Microsoft.CodeAnalysis
                         : this.ProjectState;
 
                     compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
+
+                    // Parse the generated documents in parallel.
+                    Parallel.ForEach(
+                        generatorInfo.Documents.States.Values,
+                        new ParallelOptions { CancellationToken = cancellationToken },
+                        state => state.GetSyntaxTree(cancellationToken));
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // Retrieving the syntax trees will be free now that we computed them above.
                     compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments.AddSyntaxTrees(
                         generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken)));
                 }
@@ -440,13 +449,10 @@ namespace Microsoft.CodeAnalysis
                     {
                         var compilation = CreateEmptyCompilation();
 
-                        using var _ = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentStates.Count, out var trees);
-                        foreach (var documentState in ProjectState.DocumentStates.GetStatesInCompilationOrder())
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-                            // Include the tree even if the content of the document failed to load.
-                            trees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-                        }
+                        var trees = await GetAllSyntaxTreesAsync(
+                            this.ProjectState.DocumentStates.GetStatesInCompilationOrder(),
+                            this.ProjectState.DocumentStates.Count,
+                            cancellationToken).ConfigureAwait(false);
 
                         compilation = compilation.AddSyntaxTrees(trees);
 
