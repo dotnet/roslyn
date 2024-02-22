@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Operations
         DefaultValue = 0x3,
 
         /// <summary>
-        /// Argument is a param collection created by compilers for the matching C# params y parameter. 
+        /// Argument is a param collection created by compilers for the matching C# params parameter. 
         /// Note, the value is a collection expression that encapsulates all the elements, if any.
         /// </summary>
         ParamCollection = 0x4,
