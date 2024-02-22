@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryNullableDirec
 
                     // If we have a blank line both before and after the directive, then remove the one that follows to
                     // keep the code clean.
-                    if (HasPrecedingBlankLine(leadingTrivia, index) &&
+                    if (HasPrecedingBlankLine(leadingTrivia, index - 1) &&
                         HasFollowingBlankLine(leadingTrivia, index))
                     {
                         // Delete optional following whitespace.
@@ -98,10 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryNullableDirec
 
         private static bool HasPrecedingBlankLine(SyntaxTriviaList leadingTrivia, int index)
         {
-            if (index > 0 && leadingTrivia[index - 1].IsWhitespace())
+            if (index >= 0 && leadingTrivia[index].IsWhitespace())
                 index--;
 
-            return index > 0 && leadingTrivia[index - 1].IsEndOfLine();
+            return index >= 0 && leadingTrivia[index].IsEndOfLine();
         }
 
         private static bool HasFollowingBlankLine(SyntaxTriviaList leadingTrivia, int index)
