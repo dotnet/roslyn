@@ -27,7 +27,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     private readonly SolutionAssetCache _assetCache = assetCache;
     private readonly IAssetSource _assetSource = assetSource;
 
-    private static readonly ObjectPool<SegmentedList<Checksum>> s_checksumListPool = new ObjectPool<SegmentedList<Checksum>>(() => new SegmentedList<Checksum>());
+    private static readonly ObjectPool<SegmentedList<Checksum>> s_checksumListPool = new(() => new());
 
     private T GetRequiredAsset<T>(Checksum checksum)
     {
