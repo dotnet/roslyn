@@ -77,8 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryNullableDirec
                     if (HasPrecedingBlankLine(leadingTrivia, index) &&
                         HasFollowingBlankLine(leadingTrivia, index))
                     {
-                        // Delete following whitespace.
-                        while (leadingTrivia[index].IsWhitespace())
+                        // Delete optional following whitespace.
+                        if (leadingTrivia[index].IsWhitespace())
                             leadingTrivia = leadingTrivia.RemoveAt(index);
 
                         // Then the following blank line.
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryNullableDirec
 
         private static bool HasPrecedingBlankLine(SyntaxTriviaList leadingTrivia, int index)
         {
-            while (index > 0 && leadingTrivia[index - 1].IsWhitespace())
+            if (index > 0 && leadingTrivia[index - 1].IsWhitespace())
                 index--;
 
             return index > 0 && leadingTrivia[index - 1].IsEndOfLine();
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryNullableDirec
 
         private static bool HasFollowingBlankLine(SyntaxTriviaList leadingTrivia, int index)
         {
-            while (index < leadingTrivia.Count && leadingTrivia[index].IsWhitespace())
+            if (index < leadingTrivia.Count && leadingTrivia[index].IsWhitespace())
                 index++;
 
             return index < leadingTrivia.Count && leadingTrivia[index].IsEndOfLine();
