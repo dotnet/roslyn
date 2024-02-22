@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public static readonly NumericValueSet<T, TTC> NoValues = new NumericValueSet<T, TTC>(ImmutableArray<(T first, T last)>.Empty);
 
-            public static readonly NumericValueSet<T, TTC> NonNegativeValues = new NumericValueSet<T, TTC>(default(TTC).Zero, default(TTC).MaxValue);
-
             internal NumericValueSet(T first, T last) : this(ImmutableArray.Create((first, last)))
             {
                 Debug.Assert(default(TTC).Related(LessThanOrEqual, first, last));
@@ -168,9 +166,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // We use non-negative integers for Count/Length on types that list-patterns can be used on (ie.countable and indexable ones).
                 // But we need to upgrade them to regular integers to perform operations against full integer sets.
-                if (this is NumericValueSet<int, NonNegativeIntTC> && o is NumericValueSet<int, IntTC> intRangeOther)
+                if (this is NumericValueSet<int, NonNegativeIntTC> nonNegativeThis && o is NumericValueSet<int, IntTC>)
                 {
-                    return ((IValueSet<T>)ShrinkToNonIntegerRange(intRangeOther)).Intersect(this);
+                    return ((IValueSet<T>)ExpandToIntegerRange(nonNegativeThis)).Intersect(o);
                 }
 
                 var other = (NumericValueSet<T, TTC>)o;
@@ -213,12 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree());
 
-            }
-
-            private static IValueSet<int> ShrinkToNonIntegerRange(NumericValueSet<int, IntTC> range)
-            {
-                var nonNegativeRange = (NumericValueSet<int, IntTC>)range.Intersect(NumericValueSet<int, IntTC>.NonNegativeValues);
-                return new NumericValueSet<int, NonNegativeIntTC>(nonNegativeRange._intervals);
             }
 
             private static IValueSet<int> ExpandToIntegerRange(NumericValueSet<int, NonNegativeIntTC> nonNegativeThis)
