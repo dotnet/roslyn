@@ -182,7 +182,7 @@ internal sealed partial class SolutionCompilationState
     }
 
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArg>(
-        ProjectId changedProjectId, 
+        ProjectId changedProjectId,
         ProjectDependencyGraph dependencyGraph,
         Func<Dictionary<ProjectId, ICompilationTracker>, TArg, bool> modifyNewTrackerInfo,
         TArg arg)
@@ -202,7 +202,7 @@ internal sealed partial class SolutionCompilationState
     }
 
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArg>(
-        ImmutableArray<ProjectId> changedProjectIds, 
+        ImmutableArray<ProjectId> changedProjectIds,
         ProjectDependencyGraph dependencyGraph,
         Func<Dictionary<ProjectId, ICompilationTracker>, TArg, bool> modifyNewTrackerInfo,
         TArg arg)
