@@ -62,7 +62,7 @@ internal sealed class InterpolatedStringBraceCompletionService() : AbstractCShar
         // If the preceding character(s) are not '$' or '$@' then we can't be starting an interpolated string.
         if (text[start] == '@')
         {
-            // must have $@.  otherwise this is some other @ construct.
+            // must have $@ for an interpolated string.  otherwise this is some other @ construct.
             if (start == 0 || text[start - 1] != '$')
                 return false;
 
