@@ -116,6 +116,14 @@ jobs:
           targetPath: $(Build.ArtifactStagingDirectory)/LocBin-Windows
           artifactName: LocBin-Windows
   steps:
+  - ${{ if not(parameters.Is1ESPT) }}:
+    - checkout: self
+      fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
+      clean: true
+    - ${{ if parameters.EnableOptProf }}:
+      - powershell: Write-Host "##vso[task.setvariable variable=PROFILINGINPUTSDROPNAME]$(azure-pipelines/variables/ProfilingInputsDropName.ps1)"
+        displayName: ⚙ Set ProfilingInputsDropName for optprof
+
   - ${{ if eq(variables['Build.Reason'], 'Schedule') }}:
     - template: schedule-only-steps.yml
 
