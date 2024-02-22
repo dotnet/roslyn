@@ -351,7 +351,11 @@ namespace Microsoft.CodeAnalysis
                         var currentState = initialState;
 
                         // To speed things up, we look for all the added documents in the chain and we preemptively kick
-                        // off work to parse the documents for it in parallel.
+                        // off work to parse the documents for it in parallel.  This has the added benefit that if
+                        // someone asks for a frozen partial snapshot while we're in the middle of doing this, they can
+                        // use however many document states have successfully parsed their syntax trees.  For example,
+                        // if you had one extremely large file that took a long time to parse, and dozens of tiny ones,
+                        // it's more likely that the frozen tree would have many more documents in it.
                         using var _ = ArrayBuilder<Task>.GetInstance(out var parsingTasks);
 
                         foreach (var action in currentState.PendingTranslationActions)
