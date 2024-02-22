@@ -27,7 +27,8 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     private readonly SolutionAssetCache _assetCache = assetCache;
     private readonly IAssetSource _assetSource = assetSource;
 
-    private static readonly ObjectPool<SegmentedList<Checksum>> s_checksumListPool = new(() => new());
+    // Don't trim on free as these can commonly exceed the threshold size
+    private static readonly ObjectPool<SegmentedList<Checksum>> s_checksumListPool = new(() => new(), trimOnFree: false);
 
     private T GetRequiredAsset<T>(Checksum checksum)
     {
@@ -121,7 +122,8 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
         using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
         {
-            var missingChecksums = s_checksumListPool.Allocate();
+            using var missingChecksumsObject = s_checksumListPool.GetPooledObject();
+            var missingChecksums = missingChecksumsObject.Object;
 
             foreach (var checksum in checksums)
             {
@@ -135,10 +137,6 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
             for (int i = 0, n = assets.Length; i < n; i++)
                 _assetCache.GetOrAdd(missingChecksums[i], assets[i]);
-
-            // Don't use ClearAndFree as this SegmentedList can easily exceed the stored threshold size
-            missingChecksums.Clear();
-            s_checksumListPool.Free(missingChecksums);
         }
     }
 
