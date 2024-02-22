@@ -273,16 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Checks whether the extended type is or is derived from <paramref name="type"/>.
-        /// </summary>
-        internal bool ExtendedTypeIsOrDerivedFrom(TypeSymbol type, TypeCompareKind comparison, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            Debug.Assert(this.IsExtension);
-            return this.ExtendedTypeNoUseSiteDiagnostics is { } extendedType
-                && extendedType.IsEqualToOrDerivedFrom(type, comparison, ref useSiteInfo);
-        }
-
-        /// <summary>
         /// Returns true if this type is equal or derives from a given type.
         /// </summary>
         internal bool IsEqualToOrDerivedFrom(TypeSymbol type, TypeCompareKind comparison, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

@@ -8936,12 +8936,12 @@ public explicit extension E for object : Base1, Base2 { }
         var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
         Assert.Equal("E.M()", invocation.ToString());
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
-        Assert.Equal(new[] { "void Base1.M()", "void Base2.M()" }, model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void Base1.M()", "void Base2.M()"], model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
 
         var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(1).First();
         Assert.Equal("E.Property", property.ToString());
         Assert.Null(model.GetSymbolInfo(property).Symbol);
-        Assert.Equal(new[] { "System.Int32 Base1.Property { get; }", "System.Int32 Base2.Property { get; }" },
+        Assert.Equal(["System.Int32 Base1.Property { get; }", "System.Int32 Base2.Property { get; }"],
             model.GetSymbolInfo(property).CandidateSymbols.ToTestDisplayStrings());
     }
 
@@ -9674,7 +9674,7 @@ public explicit extension A for object { }
         Assert.Empty(model.GetMemberGroup(typeInvocation));
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable once we can lower/emit for non-static scenarios
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
     public void MemberLookup_MethodsFromObject_Instance()
     {
         var src = """
@@ -14916,7 +14916,7 @@ Pattern:
             expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable once we can lower/emit for non-static scenarios
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
     public void ExtensionMemberLookup_ObjectInitializer()
     {
         var src = """
@@ -14949,7 +14949,7 @@ implicit extension E for C
         //CompileAndVerify(comp, expectedOutput: "property");
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable once we can lower/emit for non-static scenarios
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
     public void ExtensionMemberLookup_With()
     {
         var src = """
@@ -15780,7 +15780,7 @@ implicit extension E for C
         comp.VerifyDiagnostics();
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable once we can lower/emit for non-static scenarios
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
     public void ExtensionInvocation_InstanceReceiver_ComImportReceiver()
     {
         string source = """
@@ -16391,6 +16391,10 @@ implicit extension E2 for C
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C().M(42)");
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Equal(["System.Int32 E1.M(System.Int32 i)", "System.Int32 E2.M(System.Int32 i)"],
+            model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
+
+        Assert.Equal(CandidateReason.OverloadResolutionFailure, model.GetSymbolInfo(invocation).CandidateReason);
         Assert.Empty(model.GetMemberGroup(invocation));
 
         source = """
@@ -16446,6 +16450,10 @@ implicit extension E2 for C
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "C.M(42)");
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Equal(["System.Int32 E1.M(System.Int32 i)", "System.Int32 E2.M(System.Int32 i)"],
+            model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
+
+        Assert.Equal(CandidateReason.OverloadResolutionFailure, model.GetSymbolInfo(invocation).CandidateReason);
         Assert.Empty(model.GetMemberGroup(invocation));
     }
 
@@ -21311,7 +21319,7 @@ implicit extension E for C
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable once we can lower/emit for non-static scenarios
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
     public void ExtensionIndexerAccess_DictionaryInitializer()
     {
         var source = """
@@ -21645,23 +21653,24 @@ static class C
 
 static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 {
-    public static void Method() => throw null;
+    public static void Method() { System.Console.Write("ran "); }
     public static void M() { Method(); }
 }
 """;
         // PROTOTYPE should warn about hiding
-        // PROTOTYPE update overload resolution so that extension members can hide members of the underlying type
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "Method()");
         Assert.Equal("void E.Method()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(invocation)); // PROTOTYPE need to fix the semantic model
 
         var typeInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E.Method()");
         Assert.Equal("void E.Method()", model.GetSymbolInfo(typeInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(typeInvocation).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(typeInvocation)); // PROTOTYPE need to fix the semantic model
     }
 
@@ -21691,18 +21700,22 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
         var model = comp.GetSemanticModel(tree);
         var simpleIntInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2(42)");
         Assert.Equal("void C.M2(System.Int32 i)", model.GetSymbolInfo(simpleIntInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(simpleIntInvocation).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(simpleIntInvocation)); // PROTOTYPE need to fix the semantic model
 
         var qualifiedIntInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E.M2(42)");
         Assert.Equal("void C.M2(System.Int32 i)", model.GetSymbolInfo(qualifiedIntInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(qualifiedIntInvocation).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(qualifiedIntInvocation)); // PROTOTYPE need to fix the semantic model
 
         var simpleStringInvocation = GetSyntax<InvocationExpressionSyntax>(tree, """M2("")""");
         Assert.Equal("void E.M2(System.String s)", model.GetSymbolInfo(simpleStringInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(simpleStringInvocation).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(simpleStringInvocation)); // PROTOTYPE need to fix the semantic model
 
         var qualifiedStringInvocation = GetSyntax<InvocationExpressionSyntax>(tree, """E.M2("")""");
         Assert.Equal("void E.M2(System.String s)", model.GetSymbolInfo(qualifiedStringInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(qualifiedStringInvocation).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(qualifiedStringInvocation)); // PROTOTYPE need to fix the semantic model
     }
 
@@ -21825,6 +21838,89 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
     }
 
     [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_MethodGroup_AfterMemberFromExtension(bool isExplicit)
+    {
+        var source = $$"""
+E.M();
+
+System.Action a = E.Method;
+a();
+
+static class C
+{
+    public static void Method() => throw null;
+}
+
+static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
+{
+    public static void Method() { System.Console.Write("ran "); }
+
+    public static void M()
+    {
+        System.Action a = Method;
+        a();
+    }
+}
+""";
+        // PROTOTYPE should warn about hiding
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var eAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "E.Method");
+        Assert.Equal("void E.Method()", model.GetSymbolInfo(eAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(eAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void E.Method()", "void C.Method()"], model.GetMemberGroup(eAccess).ToTestDisplayStrings());
+
+        var identifier = GetSyntaxes<IdentifierNameSyntax>(tree, "Method").Last();
+        Assert.Equal("void E.Method()", model.GetSymbolInfo(identifier).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(identifier).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void E.Method()", "void C.Method()"], model.GetMemberGroup(identifier).ToTestDisplayStrings());
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_MethodGroup_PickOverloadFromUnderlyingType(bool isExplicit)
+    {
+        var source = $$"""
+E.M();
+
+System.Action a = E.Method;
+a();
+
+static class C
+{
+    public static void Method() { System.Console.Write("ran "); }
+}
+
+static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
+{
+    public static void Method(int i) => throw null;
+
+    public static void M()
+    {
+        System.Action a = Method;
+        a();
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var eAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "E.Method");
+        Assert.Equal("void C.Method()", model.GetSymbolInfo(eAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(eAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void E.Method(System.Int32 i)", "void C.Method()"], model.GetMemberGroup(eAccess).ToTestDisplayStrings());
+
+        var identifier = GetSyntaxes<IdentifierNameSyntax>(tree, "Method").Last();
+        Assert.Equal("void C.Method()", model.GetSymbolInfo(identifier).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(identifier).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void E.Method(System.Int32 i)", "void C.Method()"], model.GetMemberGroup(identifier).ToTestDisplayStrings());
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
     public void UnderlyingTypeMemberLookup_Static_Invocation_InaccessibleMember(bool isExplicit)
     {
         var source = $$"""
@@ -21870,6 +21966,7 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
         {
             var invocation = GetSyntax<InvocationExpressionSyntax>(tree, invocationString);
             Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+            Assert.Equal(CandidateReason.Inaccessible, model.GetSymbolInfo(invocation).CandidateReason);
             Assert.Empty(model.GetMemberGroup(invocation));
         }
     }
@@ -22098,7 +22195,7 @@ static {{(isExplicit ? "explicit" : "implicit")}} extension EOuter for C
     }
 
     [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
-    public void UnderlyingTypeMemberLookup_Static_Invocation_Interface(bool isExplicit)
+    public void UnderlyingTypeMemberLookup_Static_Invocation_Interface_Nested(bool isExplicit)
     {
         var source = $$"""
 EOuter.EInner.M();
@@ -22815,7 +22912,7 @@ public static {{(isExplicit ? "explicit" : "implicit")}} extension E for C
         Assert.Equal("System.Int32 C.nameof(System.Delegate d)", model.GetSymbolInfo(identifier).Symbol.ToTestDisplayString());
     }
 
-    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable once we can lower/emit for non-static scenarios
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
     public void UnderlyingTypeMemberLookup_Instance_Field(bool isExplicit)
     {
         var source = $$"""
@@ -22839,7 +22936,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
-        // PROTOTYPE enable once we can lower/emit for non-static scenarios
+        // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
         //var verifier = CompileAndVerify(comp, expectedOutput: "11").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -22877,7 +22974,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
             //         System.Console.Write(field);
             Diagnostic(ErrorCode.ERR_ObjectRequired, "field").WithArguments("C.field").WithLocation(13, 30)
             );
-        // PROTOTYPE enable once we can lower/emit for non-static scenarios
+        // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
         //var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -22886,7 +22983,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
         Assert.Null(model.GetSymbolInfo(field).Symbol); // PROTOTYPE need to fix the semantic model
     }
 
-    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable once we can lower/emit for non-static scenarios
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
     public void UnderlyingTypeMemberLookup_Instance_Property(bool isExplicit)
     {
         var source = $$"""
@@ -22910,7 +23007,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
-        // PROTOTYPE enable once we can lower/emit for non-static scenarios
+        // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
         //var verifier = CompileAndVerify(comp, expectedOutput: "11").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -22948,7 +23045,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
             //         System.Console.Write(Property);
             Diagnostic(ErrorCode.ERR_ObjectRequired, "Property").WithArguments("C.Property").WithLocation(13, 30)
             );
-        // PROTOTYPE enable once we can lower/emit for non-static scenarios
+        // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
         //var verifier = CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -22957,7 +23054,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
         Assert.Null(model.GetSymbolInfo(property).Symbol); // PROTOTYPE need to fix the semantic model
     }
 
-    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable once we can lower/emit for non-static scenarios
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
     public void UnderlyingTypeMemberLookup_Instance_Property_AfterMemberFromExtension(bool isExplicit)
     {
         var source = $$"""
@@ -22984,7 +23081,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should warn about hiding
         comp.VerifyDiagnostics();
-        // PROTOTYPE enable once we can lower/emit for non-static scenarios
+        // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
         //var verifier = CompileAndVerify(comp, expectedOutput: "111").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -22999,38 +23096,36 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
         Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
     }
 
-    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable once we can lower/emit for non-static scenarios
-    public void UnderlyingTypeMemberLookup_Instance_Invocation(bool isExplicit)
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation(bool isExplicit,
+        [CombinatorialValues("class", "struct", "interface")] string underlyingKind)
     {
-        // Lookup for member accesses on a value of extension type falls back to extended type when no matches were found within extension type hierarchy
         var source = $$"""
-//E e = new C();
-//e.M(e);
-
-public class C
+public {{underlyingKind}} Underlying
 {
-    public void M2() { System.Console.Write("M2"); }
+    public void M2() => throw null;
 }
 
-public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
 {
     public void M(E e) { this.M2(); e.M2(); }
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
-        // PROTOTYPE enable once we can lower/emit for non-static scenarios
-        //CompileAndVerify(comp, expectedOutput: "M2 M2").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
         var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
-        Assert.Equal("void C.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(thisInvocation)); // PROTOTYPE need to fix the semantic model
+        Assert.Equal("void Underlying.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(thisInvocation).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
 
         var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
-        Assert.Equal("void C.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(instanceInvocation)); // PROTOTYPE need to fix the semantic model
+        Assert.Equal("void Underlying.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(instanceInvocation).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
     }
 
     [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
@@ -23057,32 +23152,431 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
             //     public void M() { M2(); }
             Diagnostic(ErrorCode.ERR_ObjectRequired, "M2").WithArguments("C.M2()").WithLocation(11, 23)
             );
-        // PROTOTYPE enable once we can lower/emit for non-static scenarios
+        // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
         //CompileAndVerify(comp, expectedOutput: "M2").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
         Assert.Equal("void C.M2()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(invocation)); // PROTOTYPE need to fix the semantic model
     }
 
-    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable once we can lower/emit for non-static scenarios
-    public void UnderlyingTypeMemberLookup_Instance_Invocation_AfterMemberFromExtension(bool isExplicit)
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_AfterMemberFromExtension(bool isExplicit,
+        [CombinatorialValues("class", "struct", "interface")] string underlyingKind)
     {
         var source = $$"""
-//E e = new C();
-//e.M(e);
+public {{underlyingKind}} Underlying
+{
+    public void M2() => throw null;
+}
 
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M2() { System.Console.Write("M2 "); }
+    public void M(E e) { this.M2(); e.M2(); M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should warn about hiding
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(thisInvocation).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(instanceInvocation).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(simpleInvocation).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Enum(bool isExplicit)
+    {
+        var source = $$"""
+public enum Underlying { Zero = 0 }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M(E e) { this.HasFlag(Underlying.Zero); e.HasFlag(Underlying.Zero); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.HasFlag(Underlying.Zero)");
+        Assert.Equal("System.Boolean System.Enum.HasFlag(System.Enum flag)", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.HasFlag(Underlying.Zero)");
+        Assert.Equal("System.Boolean System.Enum.HasFlag(System.Enum flag)", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Enum_SimpleName(bool isExplicit)
+    {
+        var source = $$"""
+public enum Underlying { Zero = 0 }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M(E e) { HasFlag(Underlying.Zero); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE we should synthesize a receiver (in Binder.SynthesizeReceiver)
+        comp.VerifyDiagnostics(
+            // (5,26): error CS0120: An object reference is required for the non-static field, method, or property 'Enum.HasFlag(Enum)'
+            //     public void M(E e) { HasFlag(Underlying.Zero); }
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "HasFlag").WithArguments("System.Enum.HasFlag(System.Enum)").WithLocation(5, 26)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "HasFlag(Underlying.Zero)");
+        Assert.Equal("System.Boolean System.Enum.HasFlag(System.Enum flag)", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Enum_AfterMemberFromExtension(bool isExplicit)
+    {
+        var source = $$"""
+public enum Underlying { Zero = 0 }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public bool HasFlag(System.Enum flag) { System.Console.Write("E.HasFlag "); return true; }
+    public void M(E e) { this.HasFlag(Underlying.Zero); e.HasFlag(Underlying.Zero); HasFlag(Underlying.Zero); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should warn about hiding
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.HasFlag(Underlying.Zero)");
+        Assert.Equal("System.Boolean E.HasFlag(System.Enum flag)", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.HasFlag(Underlying.Zero)");
+        Assert.Equal("System.Boolean E.HasFlag(System.Enum flag)", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "HasFlag(Underlying.Zero)");
+        Assert.Equal("System.Boolean E.HasFlag(System.Enum flag)", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Enum_AfterMemberFromExtension_FromObject(bool isExplicit)
+    {
+        var source = $$"""
+public enum Underlying { }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public string ToString() { System.Console.Write("E.ToString "); return ""; }
+    public void M(E e) { this.ToString(); e.ToString(); ToString(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should warn about hiding
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.ToString()");
+        Assert.Equal("System.String E.ToString()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.ToString()");
+        Assert.Equal("System.String E.ToString()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "ToString()");
+        Assert.Equal("System.String E.ToString()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Enum_FromEnumType(bool isExplicit)
+    {
+        var source = $$"""
+namespace System
+{
+    public class Enum
+    {
+        public void M2() { }
+    }
+    public struct Int32 { }
+    public class ValueType { }
+    public class Object { }
+    public struct Void { }
+    public class Attribute { }
+    public class String { }
+    public struct Boolean { }
+    public class ObsoleteAttribute : Attribute
+    {
+        public ObsoleteAttribute() { }
+        public ObsoleteAttribute(string message) { }
+        public ObsoleteAttribute(string message, bool error) { }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class CompilerFeatureRequiredAttribute : Attribute
+    {
+        public CompilerFeatureRequiredAttribute(string featureName) { }
+    }
+}
+
+public enum Underlying { }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M(E e) { this.M2(); e.M2(); }
+}
+""";
+        var comp = CreateEmptyCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
+        Assert.Equal("void System.Enum.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
+        Assert.Equal("void System.Enum.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Invocation_Enum_AfterMemberFromExtension_FromEnumType(bool isExplicit)
+    {
+        var source = $$"""
+E.M2();
+
+namespace System
+{
+    public class Enum
+    {
+        public static void M2() { }
+    }
+    public struct Int32 { }
+    public class ValueType { }
+    public class Object { }
+    public struct Void { }
+    public class Attribute { }
+    public class String { }
+    public struct Boolean { }
+    public class ObsoleteAttribute : Attribute
+    {
+        public ObsoleteAttribute() { }
+        public ObsoleteAttribute(string message) { }
+        public ObsoleteAttribute(string message, bool error) { }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class CompilerFeatureRequiredAttribute : Attribute
+    {
+        public CompilerFeatureRequiredAttribute(string featureName) { }
+    }
+}
+
+public enum Underlying { }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public static void M2() { }
+    public static void M(E e) { M2(); }
+}
+""";
+        var comp = CreateEmptyCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var eInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E.M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(eInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(eInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [Theory, CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Invocation_Enum_FromInt32(bool isExplicit)
+    {
+        var source = $$"""
+E.IsNegative(42);
+
+public enum Underlying { }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public static void M() { IsNegative(42); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,3): error CS0117: 'E' does not contain a definition for 'IsNegative'
+            // E.IsNegative(42);
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "IsNegative").WithArguments("E", "IsNegative").WithLocation(1, 3),
+            // (7,30): error CS0103: The name 'IsNegative' does not exist in the current context
+            //     public static void M() { IsNegative(42); }
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "IsNegative").WithArguments("IsNegative").WithLocation(7, 30));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E.IsNegative(42)");
+        Assert.Null(model.GetSymbolInfo(thisInvocation).Symbol);
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "IsNegative(42)");
+        Assert.Null(model.GetSymbolInfo(instanceInvocation).Symbol);
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_TypeParameter_ReferenceTypeConstraint(bool isExplicit)
+    {
+        var source = $$"""
+public class C
+{
+    public void M2() { System.Console.Write("C.M2 "); }
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T : C
+{
+    public void M(E<T> e) { this.M2(); e.M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
+        Assert.Equal("void C.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
+        Assert.Equal("void C.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_TypeParameter_ReferenceTypeConstraint_SimpleName(bool isExplicit)
+    {
+        var source = $$"""
+public class C
+{
+    public void M2() { System.Console.Write("C.M2 "); }
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T : C
+{
+    public void M(E<T> e) { M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE we should synthesize a receiver (in Binder.SynthesizeReceiver)
+        comp.VerifyDiagnostics(
+            // (8,29): error CS0120: An object reference is required for the non-static field, method, or property 'C.M2()'
+            //     public void M(E<T> e) { M2(); }
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "M2").WithArguments("C.M2()").WithLocation(8, 29)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void C.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Invocation_TypeParameter_ReferenceTypeConstraint(bool isExplicit)
+    {
+        var source = $$"""
+E<C>.M();
+E<C>.M2();
+E<Derived>.M2();
+
+public class C
+{
+    public static void M2() { System.Console.Write("ran "); }
+}
+
+public class Derived : C { }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T : C
+{
+    public static void M() { M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran ran ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var ecInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E<C>.M2()");
+        Assert.Equal("void C.M2()", model.GetSymbolInfo(ecInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(ecInvocation));
+
+        var eDerivedInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E<Derived>.M2()");
+        Assert.Equal("void C.M2()", model.GetSymbolInfo(eDerivedInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(eDerivedInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void C.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_TypeParameter_AfterMemberFromExtension_ReferenceTypeConstraint(bool isExplicit)
+    {
+        var source = $$"""
 public class C
 {
     public void M2() => throw null;
 }
 
-public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T : C
 {
-    public void M2() { System.Console.Write("M2 "); }
-    public void M(E e) { this.M2(); e.M2(); M2(); }
+    public void M2() { System.Console.Write("E.M2 "); }
+    public void M(E<T> e) { this.M2(); e.M2(); M2(); }
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
@@ -23093,33 +23587,1188 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
         var model = comp.GetSemanticModel(tree);
         // PROTOTYPE need to fix the semantic model
         var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
-        Assert.Equal("void E.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal("void E<T>.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(thisInvocation));
 
         var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
-        Assert.Equal("void E.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal("void E<T>.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(instanceInvocation));
 
         var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
-        Assert.Equal("void E.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Equal("void E<T>.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(simpleInvocation));
     }
 
-    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable once we can lower/emit for non-static scenarios
-    public void UnderlyingTypeMemberLookup_Instance_Invocation_AfterMemberFromExtension_FromUnderlyingTypeBase(bool isExplicit)
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Invocation_TypeParameter_AfterMemberFromExtension_ReferenceTypeConstraint(bool isExplicit)
     {
         var source = $$"""
-//E e = new C();
-//e.M(e);
+E<C>.M();
+E<C>.M2();
+E<Derived>.M2();
 
-public class Base
+public class C
+{
+    public static void M2() => throw null;
+}
+
+public class Derived : C { }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T : C
+{
+    public static void M2() { System.Console.Write("ran "); }
+    public static void M() { M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran ran ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var ecInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E<C>.M2()");
+        Assert.Equal("void E<C>.M2()", model.GetSymbolInfo(ecInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(ecInvocation));
+
+        var eDerivedInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E<Derived>.M2()");
+        Assert.Equal("void E<Derived>.M2()", model.GetSymbolInfo(eDerivedInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(eDerivedInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void E<T>.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Invocation_TypeParameter_IndirectReferenceTypeConstraint(bool isExplicit)
+    {
+        var source = $$"""
+E<C, C>.M();
+E<C, C>.M2();
+E<Derived, Derived>.M2();
+
+public class C
+{
+    public static void M2() { System.Console.Write("ran "); }
+}
+
+public class Derived : C { }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T, T2> for T where T : T2 where T2 : C
+{
+    public static void M() { M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        if (isExplicit)
+        {
+            CompileAndVerify(comp, expectedOutput: "ran ran ran").VerifyDiagnostics();
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (12,27): error CS9328: The underlying type 'T' of implicit extension 'E<T, T2>' must reference all the type parameters declared by the extension, but type parameter 'T2' is missing.
+                // public implicit extension E<T, T2> for T where T : T2 where T2 : C
+                Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("T", "E<T, T2>", "T2").WithLocation(12, 27)
+                );
+        }
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var ecInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E<C, C>.M2()");
+        Assert.Equal("void C.M2()", model.GetSymbolInfo(ecInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(ecInvocation));
+
+        var eDerivedInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E<Derived, Derived>.M2()");
+        Assert.Equal("void C.M2()", model.GetSymbolInfo(eDerivedInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(eDerivedInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void C.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Invocation_TypeParameter_AfterMemberFromExtension_IndirectReferenceTypeConstraint(bool isExplicit)
+    {
+        var source = $$"""
+E<C, C>.M();
+E<C, C>.M2();
+E<Derived, Derived>.M2();
+
+public class C
+{
+    public static void M2() => throw null;
+}
+
+public class Derived : C { }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T, T2> for T where T : T2 where T2 : C
+{
+    public static void M2() { System.Console.Write("ran "); }
+    public static void M() { M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        if (isExplicit)
+        {
+            CompileAndVerify(comp, expectedOutput: "ran ran ran").VerifyDiagnostics();
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (12,27): error CS9328: The underlying type 'T' of implicit extension 'E<T, T2>' must reference all the type parameters declared by the extension, but type parameter 'T2' is missing.
+                // public implicit extension E<T, T2> for T where T : T2 where T2 : C
+                Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("T", "E<T, T2>", "T2").WithLocation(12, 27)
+                );
+        }
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var ecInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E<C, C>.M2()");
+        Assert.Equal("void E<C, C>.M2()", model.GetSymbolInfo(ecInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(ecInvocation));
+
+        var eDerivedInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E<Derived, Derived>.M2()");
+        Assert.Equal("void E<Derived, Derived>.M2()", model.GetSymbolInfo(eDerivedInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(eDerivedInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void E<T, T2>.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Invocation_TypeParameter_IndirectIndirectReferenceTypeConstraint(bool isExplicit)
+    {
+        var source = $$"""
+E<C, C, C>.M();
+E<C, C, C>.M2();
+E<Derived, Derived, Derived>.M2();
+
+public class C
+{
+    public static void M2() { System.Console.Write("ran "); }
+}
+
+public class Derived : C { }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T, T2, T3> for T where T : T2 where T2 : T3 where T3 : C
+{
+    public static void M() { M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        if (isExplicit)
+        {
+            CompileAndVerify(comp, expectedOutput: "ran ran ran").VerifyDiagnostics();
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (12,27): error CS9328: The underlying type 'T' of implicit extension 'E<T, T2, T3>' must reference all the type parameters declared by the extension, but type parameter 'T2' is missing.
+                // public implicit extension E<T, T2, T3> for T where T : T2 where T2 : T3 where T3 : C
+                Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("T", "E<T, T2, T3>", "T2").WithLocation(12, 27),
+                // (12,27): error CS9328: The underlying type 'T' of implicit extension 'E<T, T2, T3>' must reference all the type parameters declared by the extension, but type parameter 'T3' is missing.
+                // public implicit extension E<T, T2, T3> for T where T : T2 where T2 : T3 where T3 : C
+                Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("T", "E<T, T2, T3>", "T3").WithLocation(12, 27)
+                );
+        }
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var ecInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E<C, C, C>.M2()");
+        Assert.Equal("void C.M2()", model.GetSymbolInfo(ecInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(ecInvocation));
+
+        var eDerivedInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E<Derived, Derived, Derived>.M2()");
+        Assert.Equal("void C.M2()", model.GetSymbolInfo(eDerivedInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(eDerivedInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void C.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Invocation_TypeParameter_AfterMemberFromExtension_IndirectIndirectReferenceTypeConstraint(bool isExplicit)
+    {
+        var source = $$"""
+E<C, C, C>.M();
+E<C, C, C>.M2();
+E<Derived, Derived, Derived>.M2();
+
+public class C
+{
+    public static void M2() => throw null;
+}
+
+public class Derived : C { }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T, T2, T3> for T where T : T2 where T2 : T3 where T3 : C
+{
+    public static void M2() { System.Console.Write("ran "); }
+    public static void M() { M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        if (isExplicit)
+        {
+            CompileAndVerify(comp, expectedOutput: "ran ran ran").VerifyDiagnostics();
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (12,27): error CS9328: The underlying type 'T' of implicit extension 'E<T, T2, T3>' must reference all the type parameters declared by the extension, but type parameter 'T2' is missing.
+                // public implicit extension E<T, T2, T3> for T where T : T2 where T2 : T3 where T3 : C
+                Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("T", "E<T, T2, T3>", "T2").WithLocation(12, 27),
+                // (12,27): error CS9328: The underlying type 'T' of implicit extension 'E<T, T2, T3>' must reference all the type parameters declared by the extension, but type parameter 'T3' is missing.
+                // public implicit extension E<T, T2, T3> for T where T : T2 where T2 : T3 where T3 : C
+                Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("T", "E<T, T2, T3>", "T3").WithLocation(12, 27)
+                );
+        }
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var ecInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E<C, C, C>.M2()");
+        Assert.Equal("void E<C, C, C>.M2()", model.GetSymbolInfo(ecInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(ecInvocation));
+
+        var eDerivedInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E<Derived, Derived, Derived>.M2()");
+        Assert.Equal("void E<Derived, Derived, Derived>.M2()", model.GetSymbolInfo(eDerivedInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(eDerivedInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void E<T, T2, T3>.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_TypeParameter_AfterMemberFromExtension_SystemEnumConstraint(bool isExplicit)
+    {
+        var source = $$"""
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T : struct, System.Enum
+{
+    public bool HasFlag(System.Enum flag) { System.Console.Write("E.HasFlag "); return true; }
+    public void M(E<T> e) { this.HasFlag(default(System.Enum)); e.HasFlag(default(System.Enum)); HasFlag(default(System.Enum)); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should warn about hiding
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.HasFlag(default(System.Enum))");
+        Assert.Equal("System.Boolean E<T>.HasFlag(System.Enum flag)", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.HasFlag(default(System.Enum))");
+        Assert.Equal("System.Boolean E<T>.HasFlag(System.Enum flag)", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "HasFlag(default(System.Enum))");
+        Assert.Equal("System.Boolean E<T>.HasFlag(System.Enum flag)", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_TypeParameter_AfterMemberFromExtension_SystemEnumConstraint_FromObject(bool isExplicit)
+    {
+        var source = $$"""
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T : struct, System.Enum
+{
+    public string ToString() { System.Console.Write("E.ToString "); return ""; }
+    public void M(E<T> e) { this.ToString(); e.ToString(); ToString(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should warn about hiding
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.ToString()");
+        Assert.Equal("System.String E<T>.ToString()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.ToString()");
+        Assert.Equal("System.String E<T>.ToString()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "ToString()");
+        Assert.Equal("System.String E<T>.ToString()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_TypeParameter_StructConstraint(bool isExplicit)
+    {
+        var source = $$"""
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T : struct
+{
+    public void M(E<T> e) { this.ToString(); e.ToString(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.ToString()");
+        Assert.Equal("System.String? System.ValueType.ToString()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.ToString()");
+        Assert.Equal("System.String? System.ValueType.ToString()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_TypeParameter_StructConstraint_FromValueType(bool isExplicit)
+    {
+        var source = $$"""
+namespace System
+{
+    public class ValueType
+    {
+        public void M2() { }
+    }
+    public class Object { }
+    public struct Void { }
+    public class Attribute { }
+    public class String { }
+    public struct Boolean { }
+    public class ObsoleteAttribute : Attribute
+    {
+        public ObsoleteAttribute() { }
+        public ObsoleteAttribute(string message) { }
+        public ObsoleteAttribute(string message, bool error) { }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class CompilerFeatureRequiredAttribute : Attribute
+    {
+        public CompilerFeatureRequiredAttribute(string featureName) { }
+    }
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T : struct
+{
+    public void M(E<T> e) { this.M2(); e.M2(); }
+}
+""";
+        var comp = CreateEmptyCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
+        Assert.Equal("void System.ValueType.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
+        Assert.Equal("void System.ValueType.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+    }
+
+    [Theory, CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_TypeParameter_IndirectStructConstraint_FromValueType(bool isExplicit)
+    {
+        var source = $$"""
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T, T2> for T where T : T2 where T2 : struct
+{
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        if (isExplicit)
+        {
+            comp.VerifyDiagnostics(
+                // (1,29): error CS0456: Type parameter 'T2' has the 'struct' constraint so 'T2' cannot be used as a constraint for 'T'
+                // public explicit extension E<T, T2> for T where T : T2 where T2 : struct
+                Diagnostic(ErrorCode.ERR_ConWithValCon, "T").WithArguments("T", "T2").WithLocation(1, 29));
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (1,27): error CS9328: The underlying type 'T' of implicit extension 'E<T, T2>' must reference all the type parameters declared by the extension, but type parameter 'T2' is missing.
+                // public implicit extension E<T, T2> for T where T : T2 where T2 : struct
+                Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("T", "E<T, T2>", "T2").WithLocation(1, 27),
+                // (1,29): error CS0456: Type parameter 'T2' has the 'struct' constraint so 'T2' cannot be used as a constraint for 'T'
+                // public implicit extension E<T, T2> for T where T : T2 where T2 : struct
+                Diagnostic(ErrorCode.ERR_ConWithValCon, "T").WithArguments("T", "T2").WithLocation(1, 29));
+        }
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_TypeParameter_AfterMemberFromExtension_StructConstraint(bool isExplicit)
+    {
+        var source = $$"""
+namespace System
+{
+    public class ValueType
+    {
+        public void M2() { }
+    }
+    public class Object { }
+    public struct Void { }
+    public class Attribute { }
+    public class String { }
+    public struct Boolean { }
+    public class ObsoleteAttribute : Attribute
+    {
+        public ObsoleteAttribute() { }
+        public ObsoleteAttribute(string message) { }
+        public ObsoleteAttribute(string message, bool error) { }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class CompilerFeatureRequiredAttribute : Attribute
+    {
+        public CompilerFeatureRequiredAttribute(string featureName) { }
+    }
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T : struct
+{
+    public void M2() { }
+    public void M(E<T> e) { this.M2(); e.M2(); }
+}
+""";
+        var comp = CreateEmptyCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
+        Assert.Equal("void E<T>.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
+        Assert.Equal("void E<T>.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_TypeParameter_StructConstraint_SimpleName(bool isExplicit)
+    {
+        var source = $$"""
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T : struct
+{
+    public void M(E<T> e) { ToString(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE we should synthesize a receiver (in Binder.SynthesizeReceiver)
+        comp.VerifyDiagnostics(
+            // (3,29): error CS0120: An object reference is required for the non-static field, method, or property 'ValueType.ToString()'
+            //     public void M(E<T> e) { ToString(); }
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "ToString").WithArguments("System.ValueType.ToString()").WithLocation(3, 29)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "ToString()");
+        Assert.Equal("System.String? System.ValueType.ToString()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_TypeParameter_AfterMemberFromExtension_StructConstraint_FromObject(bool isExplicit)
+    {
+        var source = $$"""
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T : struct
+{
+    public string ToString() { System.Console.Write("E.ToString "); return ""; }
+    public void M(E<T> e) { this.ToString(); e.ToString(); ToString(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should warn about hiding
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.ToString()");
+        Assert.Equal("System.String E<T>.ToString()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.ToString()");
+        Assert.Equal("System.String E<T>.ToString()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "ToString()");
+        Assert.Equal("System.String E<T>.ToString()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Struct(bool isExplicit)
+    {
+        var source = $$"""
+public struct Underlying
+{
+    public string ToString() { System.Console.Write("Underlying.ToString "); return ""; }
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M(E e) { this.ToString(); e.ToString(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (3,19): warning CS0114: 'Underlying.ToString()' hides inherited member 'ValueType.ToString()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+            //     public string ToString() { System.Console.Write("Underlying.ToString "); return ""; }
+            Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "ToString").WithArguments("Underlying.ToString()", "System.ValueType.ToString()").WithLocation(3, 19)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.ToString()");
+        Assert.Equal("System.String Underlying.ToString()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.ToString()");
+        Assert.Equal("System.String Underlying.ToString()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Struct_SimpleName(bool isExplicit)
+    {
+        var source = $$"""
+public struct Underlying
+{
+    public string ToString() { System.Console.Write("Underlying.ToString "); return ""; }
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M(E e) { ToString(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE we should synthesize a receiver (in Binder.SynthesizeReceiver)
+        comp.VerifyDiagnostics(
+            // (3,19): warning CS0114: 'Underlying.ToString()' hides inherited member 'ValueType.ToString()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+            //     public string ToString() { System.Console.Write("Underlying.ToString "); return ""; }
+            Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "ToString").WithArguments("Underlying.ToString()", "System.ValueType.ToString()").WithLocation(3, 19),
+            // (8,26): error CS0120: An object reference is required for the non-static field, method, or property 'Underlying.ToString()'
+            //     public void M(E e) { ToString(); }
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "ToString").WithArguments("Underlying.ToString()").WithLocation(8, 26)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "ToString()");
+        Assert.Equal("System.String Underlying.ToString()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Struct_AfterMemberFromExtension(bool isExplicit)
+    {
+        var source = $$"""
+public struct Underlying
+{
+    public string ToString() => throw null;
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public string ToString() { System.Console.Write("E.ToString "); return ""; }
+    public void M(E e) { this.ToString(); e.ToString(); ToString(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should warn about hiding
+        comp.VerifyDiagnostics(
+            // (3,19): warning CS0114: 'Underlying.ToString()' hides inherited member 'ValueType.ToString()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+            //     public string ToString() => throw null;
+            Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "ToString").WithArguments("Underlying.ToString()", "System.ValueType.ToString()").WithLocation(3, 19)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.ToString()");
+        Assert.Equal("System.String E.ToString()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.ToString()");
+        Assert.Equal("System.String E.ToString()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "ToString()");
+        Assert.Equal("System.String E.ToString()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Struct_FromValueType(bool isExplicit)
+    {
+        var source = $$"""
+namespace System
+{
+    public class ValueType
+    {
+        public void M2() { }
+    }
+    public class Object { }
+    public struct Void { }
+    public class Attribute { }
+    public class String { }
+    public struct Boolean { }
+    public class ObsoleteAttribute : Attribute
+    {
+        public ObsoleteAttribute() { }
+        public ObsoleteAttribute(string message) { }
+        public ObsoleteAttribute(string message, bool error) { }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class CompilerFeatureRequiredAttribute : Attribute
+    {
+        public CompilerFeatureRequiredAttribute(string featureName) { }
+    }
+}
+
+public struct Underlying { }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M(E e) { this.M2(); e.M2(); }
+}
+""";
+        var comp = CreateEmptyCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
+        Assert.Equal("void System.ValueType.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
+        Assert.Equal("void System.ValueType.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Delegate(bool isExplicit)
+    {
+        var source = $$"""
+public delegate void Underlying();
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M(E e) { this.Clone(); e.Clone(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.Clone()");
+        Assert.Equal("System.Object System.Delegate.Clone()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.Clone()");
+        Assert.Equal("System.Object System.Delegate.Clone()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Delegate_AfterMemberFromExtension(bool isExplicit)
+    {
+        var source = $$"""
+public delegate void Underlying();
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void Clone() { }
+    public void M(E e) { this.Clone(); e.Clone(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should warn about hiding
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.Clone()");
+        Assert.Equal("void E.Clone()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.Clone()");
+        Assert.Equal("void E.Clone()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+    }
+
+    [Theory, CombinatorialData]
+    public void DelegateInvocation(bool isExplicit)
+    {
+        var source = $$"""
+public delegate void Underlying();
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M(E e) { this(); e(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE delegate invocation is not supported yet
+        comp.VerifyDiagnostics(
+            // (5,26): error CS0149: Method name expected
+            //     public void M(E e) { this(); e(); }
+            Diagnostic(ErrorCode.ERR_MethodNameExpected, "this").WithLocation(5, 26),
+            // (5,34): error CS0149: Method name expected
+            //     public void M(E e) { this(); e(); }
+            Diagnostic(ErrorCode.ERR_MethodNameExpected, "e").WithLocation(5, 34)
+            );
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void Deconstruction(bool isExplicit)
+    {
+        var source = $$"""
+public class Underlying
+{
+    public void Deconstruct(out int i, out int j) { (i, j) = (42, 43); }
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M(E e)
+    {
+        var (i, j) = this;
+        System.Console.Write($"ran {i} {j} ");
+
+        (i, j) = e;
+        System.Console.Write($"ran {i} {j} ");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var thisAssignment = GetSyntax<AssignmentExpressionSyntax>(tree, "var (i, j) = this");
+        Assert.Equal("void Underlying.Deconstruct(out System.Int32 i, out System.Int32 j)",
+            model.GetDeconstructionInfo(thisAssignment).Method.ToTestDisplayString());
+
+        var eAssignment = GetSyntax<AssignmentExpressionSyntax>(tree, "(i, j) = e");
+        Assert.Equal("void Underlying.Deconstruct(out System.Int32 i, out System.Int32 j)",
+            model.GetDeconstructionInfo(eAssignment).Method.ToTestDisplayString());
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void Deconstruction_AfterMemberFromExtension(bool isExplicit)
+    {
+        var source = $$"""
+public class Underlying
+{
+    public void Deconstruct(out int i, out int j) => throw null;
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void Deconstruct(out int i, out int j) { (i, j) = (42, 43); }
+
+    public void M(E e)
+    {
+        var (i, j) = this;
+        System.Console.Write($"ran {i} {j} ");
+
+        (i, j) = e;
+        System.Console.Write($"ran {i} {j} ");
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should warn about hiding
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var thisAssignment = GetSyntax<AssignmentExpressionSyntax>(tree, "var (i, j) = this");
+        Assert.Equal("void E.Deconstruct(out System.Int32 i, out System.Int32 j)",
+            model.GetDeconstructionInfo(thisAssignment).Method.ToTestDisplayString());
+
+        var eAssignment = GetSyntax<AssignmentExpressionSyntax>(tree, "(i, j) = e");
+        Assert.Equal("void E.Deconstruct(out System.Int32 i, out System.Int32 j)",
+            model.GetDeconstructionInfo(eAssignment).Method.ToTestDisplayString());
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void Foreach_GetEnumerator(bool isExplicit)
+    {
+        var source = $$"""
+public class Underlying
+{
+    public System.Collections.Generic.IEnumerator<int> GetEnumerator() { yield return 42; }
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M(E e)
+    {
+        foreach (var i in this)
+        {
+            System.Console.Write($"ran {i} ");
+        }
+
+        foreach (var i in e)
+        {
+            System.Console.Write($"ran {e} ");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var thisForeach = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+        Assert.Equal("System.Collections.Generic.IEnumerator<System.Int32> Underlying.GetEnumerator()",
+            model.GetForEachStatementInfo(thisForeach).GetEnumeratorMethod.ToTestDisplayString());
+
+        var eForeach = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+        Assert.Equal("System.Collections.Generic.IEnumerator<System.Int32> Underlying.GetEnumerator()",
+            model.GetForEachStatementInfo(eForeach).GetEnumeratorMethod.ToTestDisplayString());
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void Foreach_GetEnumerator_AfterMemberFromExtension(bool isExplicit)
+    {
+        var source = $$"""
+public class Underlying
+{
+    public System.Collections.Generic.IEnumerator<int> GetEnumerator() => throw null;
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public System.Collections.Generic.IEnumerator<int> GetEnumerator() { yield return 42; }
+
+    public void M(E e)
+    {
+        foreach (var i in this)
+        {
+            System.Console.Write($"ran {i} ");
+        }
+
+        foreach (var i in e)
+        {
+            System.Console.Write($"ran {e} ");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var thisForeach = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+        Assert.Equal("System.Collections.Generic.IEnumerator<System.Int32> E.GetEnumerator()",
+            model.GetForEachStatementInfo(thisForeach).GetEnumeratorMethod.ToTestDisplayString());
+
+        var eForeach = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+        Assert.Equal("System.Collections.Generic.IEnumerator<System.Int32> E.GetEnumerator()",
+            model.GetForEachStatementInfo(eForeach).GetEnumeratorMethod.ToTestDisplayString());
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void Foreach_MoveNext(bool isExplicit)
+    {
+        var source = $$"""
+public class Underlying
+{
+    public bool MoveNext() { System.Console.Write("ran "); return true; }
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public E GetEnumerator() => this;
+    public int Current => 42;
+
+    public void M(E e)
+    {
+        foreach (var i in this)
+        {
+            System.Console.Write($"{i} ");
+            break;
+        }
+
+        foreach (var i in e)
+        {
+            System.Console.Write($"{i} ");
+            break;
+        }
+    }
+}
+""";
+        // PROTOTYPE fix pattern-based foreach to recognize MoveNext() method from the underlying type
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (13,27): error CS0202: foreach requires that the return type 'E' of 'E.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            //         foreach (var i in this)
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "this").WithArguments("E", "E.GetEnumerator()").WithLocation(13, 27),
+            // (19,27): error CS0202: foreach requires that the return type 'E' of 'E.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            //         foreach (var i in e)
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "e").WithArguments("E", "E.GetEnumerator()").WithLocation(19, 27));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var thisForeach = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+        Assert.Null(model.GetForEachStatementInfo(thisForeach).CurrentProperty);
+
+        var eForeach = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+        Assert.Null(model.GetForEachStatementInfo(eForeach).CurrentProperty);
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void Foreach_Current(bool isExplicit)
+    {
+        var source = $$"""
+public class Underlying
+{
+    public int Current { get { System.Console.Write("ran "); return 42; } }
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public E GetEnumerator() => this;
+    public bool MoveNext() { return true; }
+
+    public void M(E e)
+    {
+        foreach (var i in this)
+        {
+            System.Console.Write($"{i} ");
+            break;
+        }
+
+        foreach (var i in e)
+        {
+            System.Console.Write($"{i} ");
+            break;
+        }
+    }
+}
+""";
+        // PROTOTYPE fix pattern-based foreach to recognize Current property from the underlying type
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (13,27): error CS0202: foreach requires that the return type 'E' of 'E.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            //         foreach (var i in this)
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "this").WithArguments("E", "E.GetEnumerator()").WithLocation(13, 27),
+            // (19,27): error CS0202: foreach requires that the return type 'E' of 'E.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            //         foreach (var i in e)
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "e").WithArguments("E", "E.GetEnumerator()").WithLocation(19, 27));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var thisForeach = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+        Assert.Null(model.GetForEachStatementInfo(thisForeach).CurrentProperty);
+
+        var eForeach = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+        Assert.Null(model.GetForEachStatementInfo(eForeach).CurrentProperty);
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void Using(bool isExplicit)
+    {
+        var source = $$"""
+public class Underlying
+{
+    public void Dispose() { System.Console.Write("ran "); }
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M(E e)
+    {
+        using (this) { }
+        using (e) { }
+    }
+}
+""";
+        // PROTOTYPE fix pattern-based using to recognize Dispose method from the underlying type
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (10,16): error CS1674: 'E': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+            //         using (this) { }
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "this").WithArguments("E").WithLocation(10, 16),
+            // (11,16): error CS1674: 'E': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+            //         using (e) { }
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "e").WithArguments("E").WithLocation(11, 16));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void Await(bool isExplicit)
+    {
+        var source = $$"""
+public class Underlying
+{
+    public System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter GetAwaiter()
+    {
+        System.Console.Write("ran ");
+        return System.Threading.Tasks.Task.Yield().GetAwaiter();
+    }
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public async System.Threading.Tasks.Task<int> M(E e)
+    {
+        await this;
+        await e;
+        return 0;
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var thisAwait = GetSyntax<AwaitExpressionSyntax>(tree, "await this");
+        Assert.Equal("System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Underlying.GetAwaiter()",
+            model.GetAwaitExpressionInfo(thisAwait).GetAwaiterMethod.ToTestDisplayString());
+
+        var eAwait = GetSyntax<AwaitExpressionSyntax>(tree, "await e");
+        Assert.Equal("System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Underlying.GetAwaiter()",
+            model.GetAwaitExpressionInfo(eAwait).GetAwaiterMethod.ToTestDisplayString());
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void Await_AfterMemberFromExtension(bool isExplicit)
+    {
+        var source = $$"""
+public class Underlying
+{
+    public System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter GetAwaiter() => throw null;
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter GetAwaiter()
+    {
+        System.Console.Write("ran ");
+        return System.Threading.Tasks.Task.Yield().GetAwaiter();
+    }
+
+    public async System.Threading.Tasks.Task<int> M(E e)
+    {
+        await this;
+        await e;
+        return 0;
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var thisAwait = GetSyntax<AwaitExpressionSyntax>(tree, "await this");
+        Assert.Equal("System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter E.GetAwaiter()",
+            model.GetAwaitExpressionInfo(thisAwait).GetAwaiterMethod.ToTestDisplayString());
+
+        var eAwait = GetSyntax<AwaitExpressionSyntax>(tree, "await e");
+        Assert.Equal("System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter E.GetAwaiter()",
+            model.GetAwaitExpressionInfo(eAwait).GetAwaiterMethod.ToTestDisplayString());
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void Fixed(bool isExplicit)
+    {
+        var source = $$"""
+public class Underlying
+{
+    public ref int GetPinnableReference() => throw null;
+}
+
+public unsafe {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M(E e)
+    {
+        fixed (int* p1 = this) { }
+        fixed (int* p2 = e) { }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE execute and verify the symbols using semantic model and/or IOperation
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void Fixed_AfterMemberFromExtension(bool isExplicit)
+    {
+        var source = $$"""
+public class Underlying
+{
+    public ref int GetPinnableReference() => throw null;
+}
+
+public unsafe {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public ref int GetPinnableReference() => throw null;
+
+    public void M(E e)
+    {
+        fixed (int* p1 = this) { }
+        fixed (int* p2 = e) { }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE execute and verify the symbols using semantic model and/or IOperation
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_AfterMemberFromExtension_FromUnderlyingTypeBase(bool isExplicit,
+        [CombinatorialValues("class", "interface")] string underlyingKind)
+    {
+        var source = $$"""
+public {{underlyingKind}} Base
 {
     public void M2() => throw null;
 }
 
-public class C : Base { }
+public {{underlyingKind}} Underlying : Base { }
 
-public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
 {
     public void M2() { System.Console.Write("M2 "); }
     public void M(E e) { this.M2(); e.M2(); M2(); }
@@ -23145,7 +24794,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
         Assert.Empty(model.GetMemberGroup(simpleInvocation));
     }
 
-    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable once we can lower/emit for non-static scenarios
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
     public void UnderlyingTypeMemberLookup_Instance_Invocation_ZeroArityMatchesAny(bool isExplicit)
     {
         var source = $$"""
@@ -23165,7 +24814,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
-        // PROTOTYPE enable once we can lower/emit for non-static scenarios
+        // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
         //CompileAndVerify(comp, expectedOutput: "Method Method Method Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -23207,7 +24856,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
             //     public void M() { Method(""); Method<string>(""); }
             Diagnostic(ErrorCode.ERR_ObjectRequired, "Method<string>").WithArguments("C.Method<string>(string)").WithLocation(12, 35)
             );
-        // PROTOTYPE enable once we can lower/emit for non-static scenarios
+        // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
         //CompileAndVerify(comp, expectedOutput: "Method Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -23217,34 +24866,346 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
         Assert.Empty(model.GetMemberGroup(invocation)); // PROTOTYPE need to fix the semantic model
     }
 
-    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable once we can lower/emit for non-static scenarios
-    public void UnderlyingTypeMemberLookup_Instance_Invocation_ExtendingInterface(bool isExplicit)
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Interface(bool isExplicit)
     {
         var source = $$"""
-public interface I
+public interface Underlying
 {
-    public void M2() { System.Console.Write("M2"); }
+    public void M2() { System.Console.Write("Underlying.M2 "); }
 }
 
-public {{(isExplicit ? "explicit" : "implicit")}} extension E for I
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
 {
     public void M(E e) { this.M2(); e.M2(); }
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
-        // PROTOTYPE enable once we can lower/emit for non-static scenarios
-        //CompileAndVerify(comp, expectedOutput: "M2 M2 M2").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
         var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
-        Assert.Equal("void I.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(thisInvocation)); // PROTOTYPE need to fix the semantic model
+        Assert.Equal("void Underlying.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
 
         var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
-        Assert.Equal("void I.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(instanceInvocation)); // PROTOTYPE need to fix the semantic model
+        Assert.Equal("void Underlying.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Interface_SimpleName(bool isExplicit)
+    {
+        var source = $$"""
+public interface Underlying
+{
+    public void M2() { System.Console.Write("Underlying.M2 "); }
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M() { M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE we should synthesize a receiver (in Binder.SynthesizeReceiver)
+        comp.VerifyDiagnostics(
+            // (8,23): error CS0120: An object reference is required for the non-static field, method, or property 'Underlying.M2()'
+            //     public void M() { M2(); }
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "M2").WithArguments("Underlying.M2()").WithLocation(8, 23)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void Underlying.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Invocation_Interface_AfterMemberFromExtension(bool isExplicit)
+    {
+        var source = $$"""
+E.M2();
+
+public interface Underlying
+{
+    public static void M2() => throw null;
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public static void M2() { System.Console.Write("ran "); }
+    public static void M() { M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var eInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E.M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(eInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(eInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Interface_AfterMemberFromExtension(bool isExplicit)
+    {
+        var source = $$"""
+public interface Underlying
+{
+    public void M2() => throw null;
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M2() { System.Console.Write("E.M2 "); }
+    public void M(E e) { this.M2(); e.M2(); M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should warn about hiding
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Interface_AmbiguousBetweenTwoInterfaces(bool isExplicit)
+    {
+        var source = $$"""
+public interface I1
+{
+    public void M2() => throw null;
+}
+public interface I2
+{
+    public void M2() => throw null;
+}
+public interface Underlying : I1, I2 { }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M(E e) { this.M2(); e.M2(); M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (13,31): error CS0121: The call is ambiguous between the following methods or properties: 'I1.M2()' and 'I2.M2()'
+            //     public void M(E e) { this.M2(); e.M2(); M2(); }
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("I1.M2()", "I2.M2()").WithLocation(13, 31),
+            // (13,39): error CS0121: The call is ambiguous between the following methods or properties: 'I1.M2()' and 'I2.M2()'
+            //     public void M(E e) { this.M2(); e.M2(); M2(); }
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("I1.M2()", "I2.M2()").WithLocation(13, 39),
+            // (13,45): error CS0121: The call is ambiguous between the following methods or properties: 'I1.M2()' and 'I2.M2()'
+            //     public void M(E e) { this.M2(); e.M2(); M2(); }
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("I1.M2()", "I2.M2()").WithLocation(13, 45)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
+        Assert.Null(model.GetSymbolInfo(thisInvocation).Symbol);
+        Assert.Equal(["void I1.M2()", "void I2.M2()"], model.GetSymbolInfo(thisInvocation).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
+        Assert.Null(model.GetSymbolInfo(instanceInvocation).Symbol);
+        Assert.Equal(["void I1.M2()", "void I2.M2()"], model.GetSymbolInfo(instanceInvocation).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Null(model.GetSymbolInfo(simpleInvocation).Symbol);
+        Assert.Equal(["void I1.M2()", "void I2.M2()"], model.GetSymbolInfo(simpleInvocation).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Interface_TwoAfterMemberFromExtension(bool isExplicit)
+    {
+        var source = $$"""
+public interface I1
+{
+    public void M2() => throw null;
+}
+public interface I2
+{
+    public void M2() => throw null;
+}
+public interface Underlying : I1, I2 { }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M2() { System.Console.Write("E.M2 "); }
+    public void M(E e) { this.M2(); e.M2(); M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Interface_Generic(bool isExplicit)
+    {
+        var source = $$"""
+public interface Underlying<T>
+{
+    public void M2() => throw null;
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying<int>
+{
+    public void M(E e) { this.M2(); e.M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
+        Assert.Equal("void Underlying<System.Int32>.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
+        Assert.Equal("void Underlying<System.Int32>.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Interface_Generic_SimpleName(bool isExplicit)
+    {
+        var source = $$"""
+public interface Underlying<T>
+{
+    public void M2() => throw null;
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying<int>
+{
+    public void M(E e) { M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (8,26): error CS0120: An object reference is required for the non-static field, method, or property 'Underlying<int>.M2()'
+            //     public void M(E e) { M2(); }
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "M2").WithArguments("Underlying<int>.M2()").WithLocation(8, 26)
+            );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void Underlying<System.Int32>.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Interface_Generic_AfterMemberFromExtension(bool isExplicit)
+    {
+        var source = $$"""
+public interface Underlying<T>
+{
+    public void M2() => throw null;
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying<int>
+{
+    public void M2() { System.Console.Write("E.M2 "); }
+    public void M(E e) { this.M2(); e.M2(); M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should warn about hiding
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Invocation_Interface(bool isExplicit)
+    {
+        var source = $$"""
+E.M();
+E.M2();
+
+public interface Underlying
+{
+    public static void M2() { System.Console.Write("ran "); }
+}
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public static void M() { M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var eInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E.M2()");
+        Assert.Equal("void Underlying.M2()", model.GetSymbolInfo(eInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(eInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void Underlying.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
     }
 
     [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
@@ -23398,7 +25359,6 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         // PROTOTYPE implement indexer access on receiver of extension type
-        // PROTOTYPE should we also look in the extended type when the receiver has an extension type?
         // PROTOTYPE move e[43] and e["two"] outside of E (to top-level statement)
         comp.VerifyEmitDiagnostics(
             // (13,13): error CS0021: Cannot apply indexing with [] to an expression of type 'E'
@@ -23440,8 +25400,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should warn about hiding
-        // PROTOTYPE update overload resolution so that extension members can hide members of the underlying type
-        // PROTOTYPE implement indexer access on receiver of extension type
+        // PROTOTYPE implement indexer access on receiver of extension type (overload resolution should already pick the extension member)
         comp.VerifyEmitDiagnostics(
             // (14,13): error CS0021: Cannot apply indexing with [] to an expression of type 'E'
             //         _ = this[42];
@@ -23478,8 +25437,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         // PROTOTYPE should warn about hiding
-        // PROTOTYPE update overload resolution so that extension members can hide members of the underlying type
-        // PROTOTYPE implement indexer access on receiver of extension type
+        // PROTOTYPE implement indexer access on receiver of extension type (overload resolution should already pick the extension member)
         comp.VerifyEmitDiagnostics(
             // (16,13): error CS0021: Cannot apply indexing with [] to an expression of type 'E'
             //         _ = this[42];
@@ -23598,7 +25556,7 @@ public implicit extension E for C
         Assert.Empty(model.GetMemberGroup(instanceInvocation)); // PROTOTYPE need to fix the semantic model
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable once we can lower/emit for non-static scenarios
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
     public void UnderlyingTypeMemberLookup_Instance_Invocation_Overloads()
     {
         var source = """
@@ -23627,7 +25585,7 @@ public implicit extension E for C
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics();
-        // PROTOTYPE enable once we can lower/emit for non-static scenarios
+        // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
         //CompileAndVerify(comp, expectedOutput: "C.M C.M C.M E.M E.M E.M").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
@@ -23766,7 +25724,7 @@ public implicit extension E for C
             Assert.True(new NoBaseExtensions().ShouldSkip);
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
-            // PROTOTYPE enable once we can lower/emit for non-static scenarios
+            // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);

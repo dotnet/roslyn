@@ -915,7 +915,7 @@ outerDefault:
                                 return;
                             }
 
-                            // PROTOTYPE could we encounter an extension type in metadata with a `hidebyname` method?
+                            // PROTOTYPE We should handle an extension type in metadata with a `hidebyname` method
                             if (MemberGroupHidesByName(others, member, ref useSiteInfo))
                             {
                                 return;
@@ -1305,7 +1305,7 @@ outerDefault:
             }
         }
 
-        // Is this type a base type (or base type of an extended type) of any valid method on the list?
+        // Is this type a base type (or base type of an extended type) of the containing type of any valid method on the list?
         private static bool IsLessDerivedThanAny<TMember>(int index, TypeSymbol type, ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
         {
@@ -1325,6 +1325,16 @@ outerDefault:
 
                 var currentType = result.LeastOverriddenMember.ContainingType;
 
+                if (isLessDerived(type, currentType, ref useSiteInfo))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+
+            static bool isLessDerived(TypeSymbol type, NamedTypeSymbol currentType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
                 // For purposes of removing less-derived methods, object is considered to be a base
                 // type of any type other than itself.
 
@@ -1340,17 +1350,85 @@ outerDefault:
                 {
                     return true;
                 }
-                else if (currentType.IsExtension && currentType.ExtendedTypeIsOrDerivedFrom(type, TypeCompareKind.ConsiderEverything, useSiteInfo: ref useSiteInfo))
-                {
-                    return true;
-                }
                 else if (currentType.IsClassType() && type.IsClassType() && currentType.IsDerivedFrom(type, TypeCompareKind.ConsiderEverything, useSiteInfo: ref useSiteInfo))
                 {
                     return true;
                 }
+                else if (currentType.IsExtension)
+                {
+                    if (currentType.ExtendedTypeNoUseSiteDiagnostics is { } extendedType)
+                    {
+                        if (extendedType.Equals(type, TypeCompareKind.ConsiderEverything))
+                        {
+                            return true;
+                        }
+
+                        if (extendedType.IsClassType()
+                            && extendedType.IsDerivedFrom(type, TypeCompareKind.ConsiderEverything, ref useSiteInfo))
+                        {
+                            return true;
+                        }
+
+                        if (extendedType.IsInterfaceType()
+                            && extendedType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo).Contains((NamedTypeSymbol)type))
+                        {
+                            return true;
+                        }
+
+                        if (extendedType.IsTypeParameter())
+                        {
+                            return isLessDerivedThanTypeParameter(type, (TypeParameterSymbol)extendedType, ref useSiteInfo);
+                        }
+
+                        if (extendedType.IsEnumType() && type.SpecialType == SpecialType.System_Enum)
+                        {
+                            return true;
+                        }
+
+                        if (extendedType.IsStructType() && type.SpecialType == SpecialType.System_ValueType)
+                        {
+                            return true;
+                        }
+
+                        if (extendedType.IsDelegateType() && type.SpecialType is SpecialType.System_Delegate or SpecialType.System_MulticastDelegate)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
             }
 
-            return false;
+            static bool isLessDerivedThanTypeParameter(TypeSymbol type, TypeParameterSymbol currentTypeParameter, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                if (currentTypeParameter.HasValueTypeConstraint && type.SpecialType == SpecialType.System_ValueType)
+                {
+                    return true;
+                }
+
+                foreach (var constraintType in currentTypeParameter.ConstraintTypesNoUseSiteDiagnostics)
+                {
+                    if (type.Equals(constraintType.Type, TypeCompareKind.ConsiderEverything))
+                    {
+                        return true;
+                    }
+
+                    if (constraintType.Type is NamedTypeSymbol namedConstrainedType
+                        && isLessDerived(type, currentType: namedConstrainedType, ref useSiteInfo))
+                    {
+                        return true;
+                    }
+
+                    if (constraintType.Type is TypeParameterSymbol typeParameter2
+                        && isLessDerivedThanTypeParameter(type, typeParameter2, ref useSiteInfo))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         private static void RemoveAllInterfaceMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results)
