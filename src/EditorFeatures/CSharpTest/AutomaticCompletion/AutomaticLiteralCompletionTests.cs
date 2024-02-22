@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59178")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/62571")]
         public void String_InArgumentList1()
         {
             var code = """
@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59178")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/62571")]
         public void String_InArgumentList2()
         {
             var code = """
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59178")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/62571")]
         public void String_InArgumentList3()
         {
             var code = """
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59178")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/62571")]
         public void String_InArgumentList4()
         {
             var code = """
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59178")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/62571")]
         public void String_InArgumentList5()
         {
             var code = """
