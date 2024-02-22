@@ -82,6 +82,7 @@ internal sealed class InterpolatedStringBraceCompletionService() : AbstractCShar
         var leftToken = document.SyntaxTree.FindTokenOnLeftOfPosition(start, cancellationToken);
 
         return document.SyntaxTree.IsExpressionContext(start, leftToken, attributes: true, cancellationToken)
-            || document.SyntaxTree.IsStatementContext(start, leftToken, cancellationToken);
+            || document.SyntaxTree.IsStatementContext(start, leftToken, cancellationToken)
+            || document.SyntaxTree.IsGlobalStatementContext(start, cancellationToken);
     }
 }
