@@ -3,43 +3,6 @@
   "tasks": [
     {
       "taskType": "trigger",
-      "capabilityId": "AutoMerge",
-      "subCapability": "AutoMerge",
-      "version": "1.0",
-      "config": {
-        "taskName": "Automatically merge PR once CI passes",
-        "label": "auto-merge",
-        "minMinutesOpen": "12",
-        "mergeType": "merge",
-        "deleteBranches": true,
-        "requireAllStatuses": false,
-        "minimumNumberOfCheckRuns": 0,
-        "removeLabelOnPush": true,
-        "silentMode": true,
-        "conditionalMergeTypes": [
-          {
-            "condition": {
-              "placeholder": ""
-            }
-          }
-        ],
-        "requireAllStatuses_exemptList": [
-          "codecov",
-          "msftbot",
-          "dependabot",
-          "DotNet Maestro",
-          "DotNet Maestro - Int",
-          ".NET Helix (Int)"
-        ],
-        "requireSpecificCheckRuns": true,
-        "requireSpecificCheckRunsList": [
-          "roslyn-CI"
-        ]
-      },
-      "disabled": false
-    },
-    {
-      "taskType": "trigger",
       "capabilityId": "IssueResponder",
       "subCapability": "PullRequestResponder",
       "version": "1.0",
@@ -47,6 +10,10 @@
         "conditions": {
           "operator": "and",
           "operands": [
+            {
+              "name": "isPr",
+              "parameters": {}
+            },
             {
               "name": "labelAdded",
               "parameters": {
@@ -76,8 +43,7 @@
         "eventType": "pull_request",
         "eventNames": [
           "pull_request",
-          "issues",
-          "project_card"
+          "issues"
         ],
         "taskName": "Auto-approve auto-merge PRs",
         "actions": [
@@ -99,6 +65,10 @@
         "conditions": {
           "operator": "and",
           "operands": [
+            {
+              "name": "isPr",
+              "parameters": {}
+            },
             {
               "name": "isActivitySender",
               "parameters": {
@@ -127,8 +97,7 @@
         "eventType": "pull_request",
         "eventNames": [
           "pull_request",
-          "issues",
-          "project_card"
+          "issues"
         ],
         "taskName": "Auto-approve maestro PRs",
         "actions": [
@@ -150,6 +119,10 @@
         "conditions": {
           "operator": "and",
           "operands": [
+            {
+              "name": "isPr",
+              "parameters": {}
+            },
             {
               "operator": "or",
               "operands": [
@@ -178,8 +151,7 @@
         "eventType": "pull_request",
         "eventNames": [
           "pull_request",
-          "issues",
-          "project_card"
+          "issues"
         ],
         "taskName": "Milestone tracking",
         "actions": [
@@ -206,51 +178,9 @@
           "operator": "and",
           "operands": [
             {
-              "name": "isActivitySender",
-              "parameters": {
-                "user": "dotnet-maestro[bot]"
-              }
+              "name": "isPr",
+              "parameters": {}
             },
-            {
-              "name": "isAction",
-              "parameters": {
-                "action": "opened"
-              }
-            },
-            {
-              "name": "bodyContains",
-              "parameters": {
-                "bodyPattern": "Updates sdk.version"
-              }
-            }
-          ]
-        },
-        "eventType": "pull_request",
-        "eventNames": [
-          "pull_request",
-          "issues",
-          "project_card"
-        ],
-        "actions": [
-          {
-            "name": "requestChangesPullRequest",
-            "parameters": {
-              "comment": "This PR changes the .NET SDK version. Review required from @dotnet/roslyn-infrastructure-current-swat before merging.\nTasks:\n- [ ] Getting Started Documentation has been updated\n- [ ] NuGet dependency version updated to match version shipping in SDK"
-            }
-          }
-        ],
-        "taskName": "Require PR approval before merging SDK change"
-      }
-    },
-    {
-      "taskType": "trigger",
-      "capabilityId": "IssueResponder",
-      "subCapability": "IssuesOnlyResponder",
-      "version": "1.0",
-      "config": {
-        "conditions": {
-          "operator": "and",
-          "operands": [
             {
               "name": "isActivitySender",
               "parameters": {
@@ -271,10 +201,9 @@
             }
           ]
         },
-        "eventType": "issue",
+        "eventType": "pull_request",
         "eventNames": [
-          "issues",
-          "project_card"
+          "issues"
         ],
         "actions": [
           {
@@ -440,6 +369,10 @@
           "operator": "and",
           "operands": [
             {
+              "name": "isIssue",
+              "parameters": {}
+            },
+            {
               "name": "isOpen",
               "parameters": {}
             },
@@ -481,6 +414,10 @@
         "conditions": {
           "operator": "and",
           "operands": [
+            {
+              "name": "isPr",
+              "parameters": {}
+            },
             {
               "name": "isAction",
               "parameters": {
@@ -585,8 +522,7 @@
         "eventType": "pull_request",
         "eventNames": [
           "pull_request",
-          "issues",
-          "project_card"
+          "issues"
         ],
         "taskName": "Label Community Pull Requests",
         "actions": [
@@ -608,6 +544,10 @@
         "conditions": {
           "operator": "and",
           "operands": [
+            {
+              "name": "isPr",
+              "parameters": {}
+            },
             {
               "name": "prMatchesPattern",
               "parameters": {
@@ -730,8 +670,7 @@
         "eventType": "pull_request",
         "eventNames": [
           "pull_request",
-          "issues",
-          "project_card"
+          "issues"
         ],
         "actions": [
           {
@@ -743,247 +682,6 @@
         ],
         "taskName": "Add \"Needs UX Triage\" on PRs"
       }
-    },
-    {
-      "taskType": "trigger",
-      "capabilityId": "IssueResponder",
-      "subCapability": "PullRequestResponder",
-      "version": "1.0",
-      "config": {
-        "conditions": {
-          "operator": "and",
-          "operands": [
-            {
-              "operator": "or",
-              "operands": [
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/16.11-vs-deps"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.0-vs-deps"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.1"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.1-vs-deps"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.2"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.3"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.4"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.5"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.6"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.7"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.8"
-                  }
-                }
-              ]
-            },
-            {
-              "operator": "and",
-              "operands": [
-                {
-                  "operator": "not",
-                  "operands": [
-                    {
-                      "name": "isActivitySender",
-                      "parameters": {
-                        "user": "dotnet-bot"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "operator": "not",
-                  "operands": [
-                    {
-                      "name": "hasLabel",
-                      "parameters": {
-                        "label": "infraswat-approved"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        "eventType": "pull_request",
-        "eventNames": [
-          "pull_request",
-          "issues",
-          "project_card"
-        ],
-        "taskName": "Require InfraSwat approval on PRs to release branches",
-        "actions": [
-          {
-            "name": "requestReviewer",
-            "parameters": {
-              "comment": "InfraSwat needs to sign off on PRs to release branches.",
-              "reRequest": true,
-              "reviewer": "@dotnet/roslyn-infrastructure-current-swat"
-            }
-          },
-          {
-            "name": "requestChangesPullRequest",
-            "parameters": {
-              "comment": "InfraSwat needs to sign off on PRs to release branches."
-            }
-          }
-        ]
-      },
-      "disabled": true
-    },
-    {
-      "taskType": "trigger",
-      "capabilityId": "IssueResponder",
-      "subCapability": "PullRequestResponder",
-      "version": "1.0",
-      "config": {
-        "conditions": {
-          "operator": "and",
-          "operands": [
-            {
-              "name": "labelAdded",
-              "parameters": {
-                "label": "infraswat-approved"
-              }
-            },
-            {
-              "operator": "or",
-              "operands": [
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/16.11-vs-deps"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.0-vs-deps"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.1"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.1-vs-deps"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.2"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.3"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.4"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.5"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.6"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.7"
-                  }
-                },
-                {
-                  "name": "prTargetsBranch",
-                  "parameters": {
-                    "branchName": "release/17.8"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "eventType": "pull_request",
-        "eventNames": [
-          "pull_request",
-          "issues",
-          "project_card"
-        ],
-        "actions": [
-          {
-            "name": "approvePullRequest",
-            "parameters": {
-              "comment": "InfraSwat approved the PR."
-            }
-          }
-        ],
-        "taskName": "Approve PRs to release branches that are approved by InfraSwat"
-      },
-      "disabled": true
     },
     {
       "taskType": "trigger",
@@ -1060,8 +758,7 @@
         "eventType": "pull_request",
         "eventNames": [
           "pull_request",
-          "issues",
-          "project_card"
+          "issues"
         ],
         "taskName": "Adds \"Needs API Review\" on PRs that touch public APIs",
         "actions": [
@@ -1090,6 +787,10 @@
           "operator": "and",
           "operands": [
             {
+              "name": "isIssue",
+              "parameters": {}
+            },
+            {
               "name": "hasLabel",
               "parameters": {
                 "label": "vs-insertion"
@@ -1105,8 +806,7 @@
         },
         "eventType": "issue",
         "eventNames": [
-          "issues",
-          "project_card"
+          "issues"
         ],
         "taskName": "Close automatically generated PR tagger issues",
         "actions": [
