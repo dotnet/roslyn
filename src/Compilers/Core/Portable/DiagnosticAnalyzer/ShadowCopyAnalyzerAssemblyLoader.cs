@@ -142,9 +142,17 @@ namespace Microsoft.CodeAnalysis
             if (object.ReferenceEquals(task, tcs.Task))
             {
                 // This thread won and we need to do the copy.
-                var shadowAnalyzerPath = copyAnalyzerContents();
-                tcs.SetResult(shadowAnalyzerPath);
-                return shadowAnalyzerPath;
+                try
+                {
+                    var shadowAnalyzerPath = copyAnalyzerContents();
+                    tcs.SetResult(shadowAnalyzerPath);
+                    return shadowAnalyzerPath;
+                }
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                    throw;
+                }
             }
             else
             {
