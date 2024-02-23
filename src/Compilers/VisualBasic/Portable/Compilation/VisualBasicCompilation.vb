@@ -2743,7 +2743,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        <Experimental("TODO1")>
+        <Experimental(RoslynExperiments.RSEXPERIMENTAL001, UrlFormat:=RoslynExperiments.RSEXPERIMENTAL001_Url)>
         Protected Overrides Function CommonGetSemanticModel(syntaxTree As SyntaxTree, options As SemanticModelOptions) As SemanticModel
             Return Me.GetSemanticModel(syntaxTree, ignoreAccessibility:=(options And SemanticModelOptions.IgnoreAccessibility) <> 0)
         End Function

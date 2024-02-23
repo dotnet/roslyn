@@ -47,8 +47,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary> 
         Friend MustOverride Shadows ReadOnly Property Root As SyntaxNode
 
-        <Experimental("RSEXPERIMENTAL001")>
-        Public NotOverridable Overrides ReadOnly Property DisableNullableAnalysis As Boolean = False
+        <Experimental(RoslynExperiments.RSEXPERIMENTAL001, UrlFormat:=RoslynExperiments.RSEXPERIMENTAL001_Url)>
+        Public NotOverridable Overrides ReadOnly Property NullableAnalysisIsDisabled As Boolean = False
 
         ''' <summary>
         ''' Gets symbol information about an expression syntax node. This is the worker

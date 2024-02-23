@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         [Experimental(RoslynExperiments.RSEXPERIMENTAL001, UrlFormat = RoslynExperiments.RSEXPERIMENTAL001_Url)]
-        public abstract bool DisableNullableAnalysis { get; }
+        public abstract bool NullableAnalysisIsDisabled { get; }
 
         /// <summary>
         /// Gets symbol information about a syntax node.

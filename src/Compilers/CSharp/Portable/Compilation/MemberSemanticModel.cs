@@ -106,11 +106,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [Experimental(RoslynExperiments.RSEXPERIMENTAL001, UrlFormat = RoslynExperiments.RSEXPERIMENTAL001_Url)]
-        public sealed override bool DisableNullableAnalysis
+        public sealed override bool NullableAnalysisIsDisabled
         {
             get
             {
-                return _containingPublicSemanticModel.DisableNullableAnalysis;
+                return _containingPublicSemanticModel.NullableAnalysisIsDisabled;
             }
         }
 
@@ -2056,7 +2056,7 @@ done:
 
         protected bool IsNullableAnalysisEnabled()
 #pragma warning disable RSEXPERIMENTAL001 // internal use of experimental API
-            => !DisableNullableAnalysis && IsNullableAnalysisEnabledCore();
+            => !NullableAnalysisIsDisabled && IsNullableAnalysisEnabledCore();
 #pragma warning restore RSEXPERIMENTAL001
 #nullable disable
 

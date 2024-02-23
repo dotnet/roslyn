@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return (_options & SemanticModelOptions.IgnoreAccessibility) != 0; }
         }
 
-        public override bool DisableNullableAnalysis => (_options & SemanticModelOptions.DisableNullableAnalysis) != 0;
+        public override bool NullableAnalysisIsDisabled => (_options & SemanticModelOptions.DisableNullableAnalysis) != 0;
 
         private void VerifySpanForGetDiagnostics(TextSpan? span)
         {
