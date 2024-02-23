@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     internal sealed class ProjectFileReference
     {
         /// <summary>
-        /// The path on disk to the other project file. 
+        /// The path on disk to the other project file.
         /// This path may be relative to the referencing project's file or an absolute path.
         /// </summary>
         [DataMember(Order = 0)]

@@ -409,12 +409,9 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
             _process.ErrorDataReceived += Process_ErrorDataReceived;
 
-            var pipeClient = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+            // Inlined NamedPipeUtil.CreateClient because it does not support netstandard tfm due to using runtime specific functionality.
+            var pipeClient = new NamedPipeClientStream(".", GetPipeNameOrPath(pipeName), PipeDirection.InOut, PipeOptions.Asynchronous);
             pipeClient.Connect(TimeOutMsNewProcess);
-            if (!NamedPipeUtil.CheckPipeConnectionOwnership(pipeClient))
-            {
-                throw new Exception("Ownership of BuildHost pipe is incorrect.");
-            }
 
             _rpcClient = new RpcClient(sendingStream: pipeClient, receivingStream: pipeClient);
             _rpcClient.Start();
@@ -423,6 +420,10 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
             // Call this last so our type is fully constructed before we start firing events
             _process.BeginErrorReadLine();
+
+            static string GetPipeNameOrPath(string pipeName) => PlatformInformation.IsUnix
+                ? Path.Combine("/tmp", pipeName)
+                : pipeName;
         }
 
         private void Process_Exited(object? sender, EventArgs e)
