@@ -1,9 +1,83 @@
 parameters:
+##### The following parameters are not set by other YAML files that import this one,
+##### but we use parameters because they support rich types and defaults.
+##### Feel free to adjust their default value as needed.
+
+# Whether this repo uses OptProf to optimize the built binaries.
+- name: EnableOptProf
+  type: boolean
+  default: false
+# Whether this repo is localized.
+- name: EnableLocalization
+  type: boolean
+  default: false
+# Whether to run `dotnet format` as part of the build to ensure code style consistency.
+# This is just one of a a few mechanisms to enforce code style consistency.
+- name: EnableDotNetFormatCheck
+  type: boolean
+  default: true
+# This lists the names of the artifacts that will be published *from every OS build agent*.
+# Any new azure-pipelines/artifacts/*.ps1 script needs to be added to this list.
+# If an artifact is only generated or collected on one OS, it should NOT be listed here,
+# but should be manually added to the `outputs:` field in the appropriate OS job.
+- name: artifact_names
+  type: object
+  default:
+    - build_logs
+    - coverageResults
+    - deployables
+    - projectAssetsJson
+    - symbols
+    - testResults
+    - test_symbols
+    - Variables
+# The Enable*Build parameters turn non-Windows agents on or off.
+# Their default value should be based on whether the build and tests are expected/required to pass on that platform.
+# Callers (e.g. Official.yml) *may* expose these parameters at queue-time in order to turn OFF optional agents.
+- name: EnableLinuxBuild
+  type: boolean
+  default: true
+- name: EnableMacOSBuild
+  type: boolean
+  default: true
+
+##### 👆🏼 You MAY change the defaults above.
+##### 👇🏼 You should NOT change the defaults below.
+
+##### The following parameters are expected to be set by other YAML files that import this one.
+##### Those without defaults require explicit values to be provided by our importers.
+
+# Indicates whether the entrypoint file is 1ESPT compliant. Use this parameter to switch between publish tasks to fit 1ES or non-1ES needs.
 - name: Is1ESPT
   type: boolean
+
 - name: RealSign
   type: boolean
   default: false
+
+# Whether this particular run is an OptProf profiling run.
+# This is used to skip unit tests and other non-essential work to improve reliability of the OptProf pipeline.
+- name: IsOptProf
+  type: boolean
+  default: false
+
+- name: RunTests
+  type: boolean
+  default: true
+
+- name: EnableAPIScan
+  type: boolean
+  default: false
+
+# This parameter exists to provide a workaround to get a build out even when no OptProf profiling outputs can be found.
+# Entrypoint yaml files like official.yml should expose this as a queue-time setting when EnableOptProf is true in this file.
+# The OptProf.yml entrypoint sets this parameter to true so that collecting profile data isn't blocked by a prior lack of profile data.
+- name: ShouldSkipOptimize
+  type: boolean
+  default: false
+
+# The pool parameters are set to defaults that work in the azure-public AzDO account.
+# They are overridden by callers for the devdiv AzDO account to use 1ES compliant pools.
 - name: windowsPool
   type: object
   default:
@@ -16,47 +90,6 @@ parameters:
   type: object
   default:
     vmImage: macOS-12
-- name: EnableLinuxBuild
-  type: boolean
-  default: true
-- name: EnableMacOSBuild
-  type: boolean
-  default: true
-- name: EnableOptProf
-  type: boolean
-  default: false
-- name: IsOptProf
-  type: boolean
-  default: false
-- name: ShouldSkipOptimize
-  type: boolean
-  default: false
-- name: RunTests
-  type: boolean
-  default: true
-- name: EnableLocalization
-  type: boolean
-  default: false
-- name: EnableCompliance
-  type: boolean
-  default: false
-- name: EnableAPIScan
-  type: boolean
-  default: false
-- name: EnableDotNetFormatCheck
-  type: boolean
-  default: true
-- name: artifact_names
-  type: object
-  default:
-  - build_logs
-  - coverageResults
-  - deployables
-  - projectAssetsJson
-  - symbols
-  - testResults
-  - test_symbols
-  - Variables
 
 jobs:
 - job: Windows
@@ -111,7 +144,7 @@ jobs:
           displayName: 📢 Publish LocBin-Windows
           targetPath: $(Build.ArtifactStagingDirectory)/LocBin-Windows
           artifactName: LocBin-Windows
-      - ${{ if and(parameters.EnableCompliance, parameters.EnableAPIScan, ne(variables['Build.Reason'], 'pullRequest')) }}:
+      - ${{ if parameters.EnableAPIScan }}:
         - output: pipelineArtifact
           displayName: 📢 Publish APIScanInputs
           targetPath: $(Build.ArtifactStagingDirectory)/APIScanInputs-Windows
@@ -251,7 +284,7 @@ jobs:
           EnableLinuxBuild: ${{ parameters.EnableLinuxBuild }}
           EnableMacOSBuild: ${{ parameters.EnableMacOSBuild }}
 
-  - ${{ if and(parameters.EnableCompliance, parameters.EnableAPIScan, ne(variables['Build.Reason'], 'pullRequest')) }}:
+  - ${{ if parameters.EnableAPIScan }}:
     - template: apiscan.yml
       parameters:
         windowsPool: ${{ parameters.windowsPool }}
