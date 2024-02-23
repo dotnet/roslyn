@@ -1678,13 +1678,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lookupResult.Free();
             }
 
-            var result = name == null
-                ? FilterNotReferenceable(results)
-                : results.ToImmutable();
+            if (name == null)
+                FilterNotReferenceable(results);
 
-            results.Free();
-
-            return result;
+            return results.ToImmutableAndFree();
         }
 
         private void AppendSymbolsWithName(ArrayBuilder<ISymbol> results, string name, Binder binder, NamespaceOrTypeSymbol container, LookupOptions options, LookupSymbolsInfo info)
@@ -1798,26 +1795,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal abstract Symbol RemapSymbolIfNecessaryCore(Symbol symbol);
 
-        private static ImmutableArray<ISymbol> FilterNotReferenceable(ArrayBuilder<ISymbol> sealedResults)
+        private static void FilterNotReferenceable(ArrayBuilder<ISymbol> sealedResults)
         {
-            var cannotBeReferencedByNameCount = sealedResults.Count(static s => !s.CanBeReferencedByName);
-
-            if (cannotBeReferencedByNameCount == 0)
+            var writeIndex = 0;
+            for (var i = 0; i < sealedResults.Count; i++)
             {
-                return sealedResults.AsImmutable();
-            }
-
-            // Use ImmutableArray.CreateBuilder directly as we know the exact size up front.
-            var builder = ImmutableArray.CreateBuilder<ISymbol>(sealedResults.Count - cannotBeReferencedByNameCount);
-            foreach (var symbol in sealedResults)
-            {
+                var symbol = sealedResults[i];
                 if (symbol.CanBeReferencedByName)
                 {
-                    builder.Add(symbol);
+                    if (writeIndex != i)
+                        sealedResults[writeIndex] = symbol;
+
+                    writeIndex++;
                 }
             }
 
-            return builder.MoveToImmutable();
+            sealedResults.Count = writeIndex;
         }
 
         /// <summary>
