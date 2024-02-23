@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -118,7 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (this == o)
                     return this;
                 var other = (EnumeratedValueSet<T>)o;
-                // TODO2
+                Debug.Assert(object.ReferenceEquals(this._tc, other._tc));
+
                 var (larger, smaller) = (this._membersIncludedOrExcluded.Count > other._membersIncludedOrExcluded.Count) ? (this, other) : (other, this);
                 switch (larger._included, smaller._included)
                 {
@@ -140,7 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (this == o)
                     return this;
                 var other = (EnumeratedValueSet<T>)o;
-                // TODO2
+                Debug.Assert(object.ReferenceEquals(this._tc, other._tc));
+
                 var (larger, smaller) = (this._membersIncludedOrExcluded.Count > other._membersIncludedOrExcluded.Count) ? (this, other) : (other, this);
                 switch (larger._included, smaller._included)
                 {
@@ -159,9 +162,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override bool Equals(object? obj)
             {
-                if (obj is not EnumeratedValueSet<T> other) // TODO2
+                if (obj is not EnumeratedValueSet<T> other)
                     return false;
 
+                Debug.Assert(object.ReferenceEquals(this._tc, other._tc));
                 return this._included == other._included
                     && this._membersIncludedOrExcluded.SetEqualsWithoutIntermediateHashSet(other._membersIncludedOrExcluded);
             }

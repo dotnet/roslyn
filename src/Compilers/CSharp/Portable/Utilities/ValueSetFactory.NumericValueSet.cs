@@ -164,7 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             public IValueSet<T> Intersect(IValueSet<T> o)
             {
                 var other = (NumericValueSet<T>)o;
-                // TODO2 assert we're using the same TC
+                Debug.Assert(this._tc.GetType() == other._tc.GetType());
+
                 var builder = ArrayBuilder<(T first, T last)>.GetInstance();
                 var left = this._intervals;
                 var right = other._intervals;
@@ -241,7 +242,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             public IValueSet<T> Union(IValueSet<T> o)
             {
                 var other = (NumericValueSet<T>)o;
-                // TODO2 assert we're using the same TC
+                Debug.Assert(this._tc.GetType() == other._tc.GetType());
+
                 var builder = ArrayBuilder<(T first, T last)>.GetInstance();
                 var left = this._intervals;
                 var right = other._intervals;

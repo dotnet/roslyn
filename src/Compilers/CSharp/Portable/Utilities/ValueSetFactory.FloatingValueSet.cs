@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A value set implementation for <see cref="System.Single"/> and <see cref="System.Double"/>.
         /// </summary>
         /// <typeparam name="TFloating">A floating-point type.</typeparam>
-        /// <typeparam name="TFloatingTC">A typeclass supporting that floating-point type.</typeparam>
         private sealed class FloatingValueSet<TFloating> : IValueSet<TFloating>
         {
             private readonly IValueSet<TFloating> _numbers;
@@ -101,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (this == o)
                     return this;
                 var other = (FloatingValueSet<TFloating>)o;
-                // TODO2
+                Debug.Assert(object.ReferenceEquals(this._tc, other._tc));
 
                 return new FloatingValueSet<TFloating>(
                     numbers: this._numbers.Intersect(other._numbers),
@@ -116,7 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (this == o)
                     return this;
                 var other = (FloatingValueSet<TFloating>)o;
-                // TODO2
+                Debug.Assert(object.ReferenceEquals(this._tc, other._tc));
+
                 return new FloatingValueSet<TFloating>(
                     numbers: this._numbers.Union(other._numbers),
                     hasNaN: this._hasNaN | other._hasNaN,
