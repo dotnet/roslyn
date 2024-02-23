@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
                 this.Descriptor,
                 secondBrace.GetLocation(),
                 notificationOption,
+                context.Options,
                 additionalLocations: null,
                 properties: null));
         }

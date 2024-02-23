@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 Descriptor,
                 ifStatement.GetFirstToken().GetLocation(),
                 option.Notification,
+                context.Options,
                 additionalLocations: ImmutableArray.Create(ifStatement.GetLocation()),
                 properties: canSimplify ? UseConditionalExpressionHelpers.CanSimplifyProperties : null));
         }

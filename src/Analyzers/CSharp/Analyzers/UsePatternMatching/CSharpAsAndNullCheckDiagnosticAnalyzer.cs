@@ -270,6 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 Descriptor,
                 localStatement.GetLocation(),
                 styleOption.Notification,
+                syntaxContext.Options,
                 additionalLocations,
                 properties: null));
         }

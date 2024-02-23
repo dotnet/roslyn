@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
                     Descriptor,
                     conditionalExpression.GetLocation(),
                     styleOption.Notification,
+                    context.Options,
                     additionalLocations: null,
                     properties));
 

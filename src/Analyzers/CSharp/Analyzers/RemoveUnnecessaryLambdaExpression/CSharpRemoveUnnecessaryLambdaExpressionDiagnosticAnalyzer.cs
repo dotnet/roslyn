@@ -232,6 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
                 Descriptor,
                 syntaxTree.GetLocation(startReportSpan),
                 preference.Notification,
+                context.Options,
                 additionalLocations: [anonymousFunction.GetLocation()],
                 additionalUnnecessaryLocations: [syntaxTree.GetLocation(startReportSpan), syntaxTree.GetLocation(endReportSpan)]));
         }

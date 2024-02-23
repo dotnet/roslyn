@@ -207,6 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     Descriptor,
                     binaryExpression.GetLocation(),
                     option.Notification,
+                    context.Options,
                     [],
                     ImmutableDictionary<string, string?>.Empty));
         }

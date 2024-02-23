@@ -184,6 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 Descriptor,
                 fadeLocation,
                 NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
+                syntaxContext.Options,
                 additionalLocations,
                 additionalUnnecessaryLocations: [fadeLocation],
                 properties));
@@ -193,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 Descriptor,
                 expressionStatement.GetLocation(),
                 notificationOption,
+                syntaxContext.Options,
                 additionalLocations, properties));
 
             // If the if-statement extends past the expression statement, then fade out the rest.
@@ -203,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                     Descriptor,
                     fadeLocation,
                     NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
+                    syntaxContext.Options,
                     additionalLocations,
                     additionalUnnecessaryLocations: [fadeLocation],
                     properties));

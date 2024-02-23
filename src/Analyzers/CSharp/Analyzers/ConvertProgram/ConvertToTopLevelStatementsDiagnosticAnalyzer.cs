@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
                             GetUseTopLevelStatementsDiagnosticLocation(
                                 methodDeclaration, isHidden: option.Notification.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden),
                             option.Notification,
+                            context.Options,
                             ImmutableArray.Create(methodDeclaration.GetLocation()),
                             ImmutableDictionary<string, string?>.Empty));
                     }

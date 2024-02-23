@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ArrowExpressionClausePlacement
                 this.Descriptor,
                 arrowExpressionClause.ArrowToken.GetLocation(),
                 notificationOption,
+                context.Options,
                 additionalLocations: null,
                 properties: null));
 
