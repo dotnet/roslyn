@@ -5,7 +5,7 @@
     <RootNamespace>CSharpSyntaxGenerator</RootNamespace>
     <!-- We build this against $(NetRoslyn) to build the console app version, and against netstandard2.0 for
          the Source Generator version. -->
-    <TargetFrameworks>$(NetRoslyn);netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynSourceBuild);netstandard2.0</TargetFrameworks>
     <OutputType Condition="'$(TargetFramework)' != 'netstandard2.0'">Exe</OutputType>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <IsShipping>false</IsShipping>
