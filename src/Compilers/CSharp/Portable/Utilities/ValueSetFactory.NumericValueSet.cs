@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw new ArgumentException();
 
                     // Prefer a value near zero.
-                    var gz = new NumericValueSetFactory<T, TTC>(_tc).Related(BinaryOperatorKind.GreaterThanOrEqual, _tc.Zero);
+                    var gz = _numericValueSetFactory.Related(BinaryOperatorKind.GreaterThanOrEqual, _tc.Zero);
                     var t = (NumericValueSet<T, TTC>)this.Intersect(gz);
                     if (!t.IsEmpty)
                         return _tc.ToConstantValue(t._intervals[0].first);
