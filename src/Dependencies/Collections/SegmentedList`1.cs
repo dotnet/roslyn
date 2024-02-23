@@ -1162,17 +1162,6 @@ namespace Microsoft.CodeAnalysis.Collections
             return true;
         }
 
-        public ImmutableArray<T> ToImmutable()
-        {
-            var builder = ImmutableArray.CreateBuilder<T>(Count);
-            foreach (var item in this)
-            {
-                builder.Add(item);
-            }
-
-            return builder.MoveToImmutable();
-        }
-
         public struct Enumerator : IEnumerator<T>, IEnumerator
         {
             private readonly SegmentedList<T> _list;
