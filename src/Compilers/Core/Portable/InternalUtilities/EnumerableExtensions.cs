@@ -265,9 +265,24 @@ namespace Roslyn.Utilities
 
         public static bool IsEmpty<T>(this IEnumerable<T> source)
         {
-            if (source.TryGetCount(out var count))
+            if (source is IReadOnlyCollection<T> readOnlyCollection)
             {
-                return count == 0;
+                return readOnlyCollection.Count == 0;
+            }
+
+            if (source is ICollection<T> genericCollection)
+            {
+                return genericCollection.Count == 0;
+            }
+
+            if (source is ICollection collection)
+            {
+                return collection.Count == 0;
+            }
+
+            if (source is string str)
+            {
+                return str.Length == 0;
             }
 
             foreach (var _ in source)
@@ -277,37 +292,6 @@ namespace Roslyn.Utilities
 
             return true;
         }
-
-        public static bool TryGetCount<T>(this IEnumerable<T> source, out int count)
-        {
-            if (source is IReadOnlyCollection<T> readOnlyCollection)
-            {
-                count = readOnlyCollection.Count;
-                return true;
-            }
-
-            if (source is ICollection<T> genericCollection)
-            {
-                count = genericCollection.Count;
-                return true;
-            }
-
-            if (source is ICollection collection)
-            {
-                count = collection.Count;
-                return true;
-            }
-
-            if (source is string str)
-            {
-                count = str.Length;
-                return true;
-            }
-
-            count = 0;
-            return false;
-        }
-
         public static bool IsEmpty<T>(this IReadOnlyCollection<T> source)
         {
             return source.Count == 0;
