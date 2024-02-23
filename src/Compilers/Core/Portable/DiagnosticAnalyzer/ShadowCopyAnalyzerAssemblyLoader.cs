@@ -14,9 +14,6 @@ using Roslyn.Utilities;
 using System.Reflection.PortableExecutable;
 using System.Reflection.Metadata;
 
-
-
-
 #if NETCOREAPP
 using System.Runtime.Loader;
 #endif
