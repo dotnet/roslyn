@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis
             => GetSemanticModel(syntaxTree, ignoreAccessibility ? SemanticModelOptions.IgnoreAccessibility : SemanticModelOptions.None);
 #pragma warning restore RSEXPERIMENTAL001
 
-        [Experimental("RSEXPERIMENTAL001")]
+        [Experimental(RoslynExperiments.RSEXPERIMENTAL001, UrlFormat = RoslynExperiments.RSEXPERIMENTAL001_Url)]
         public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options)
             => CommonGetSemanticModel(syntaxTree, options);
 
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis
         /// If <see cref="SemanticModelProvider"/> is non-null, it attempts to use <see cref="SemanticModelProvider.GetSemanticModel(SyntaxTree, Compilation, SemanticModelOptions)"/>
         /// to get a semantic model. Otherwise, it creates a new semantic model using <see cref="CreateSemanticModel(SyntaxTree, SemanticModelOptions)"/>.
         /// </summary>
-        [Experimental("RSEXPERIMENTAL001")]
+        [Experimental(RoslynExperiments.RSEXPERIMENTAL001, UrlFormat = RoslynExperiments.RSEXPERIMENTAL001_Url)]
         protected abstract SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options);
 
         /// <summary>

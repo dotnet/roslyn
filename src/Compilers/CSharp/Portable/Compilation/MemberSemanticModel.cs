@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        [Experimental("RSEXPERIMENTAL001")]
+        [Experimental(RoslynExperiments.RSEXPERIMENTAL001, UrlFormat = RoslynExperiments.RSEXPERIMENTAL001_Url)]
         public sealed override bool DisableNullableAnalysis
         {
             get
