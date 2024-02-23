@@ -5068,6 +5068,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Parameter:
                     return IsAnyReadOnly(addressKind) ||
+                        ((BoundParameter)expression).Type.TypeKind == TypeKind.Enum ||
                         ((BoundParameter)expression).ParameterSymbol.RefKind is not (RefKind.In or RefKind.RefReadOnlyParameter);
 
                 case BoundKind.Local:

@@ -1460,6 +1460,41 @@ class Program
         }
 
         [Fact]
+        public void InParamEnum()
+        {
+            var text = @"
+class Program
+{
+    static void Main()
+    {
+        Enum1 v = Enum1.Value1;
+        System.Console.WriteLine(M(v));
+    }
+
+    static string M(in Enum1 x) => x.ToString();
+
+    public enum Enum1
+    {
+        Value1
+    }
+}
+
+";
+
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: "Value1");
+
+            comp.VerifyIL("Program.M", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. ""Program.Enum1""
+  IL_0007:  callvirt   ""string object.ToString()""
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
         public void InParamConv()
         {
             var text = @"
