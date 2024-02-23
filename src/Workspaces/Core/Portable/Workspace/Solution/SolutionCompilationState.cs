@@ -50,8 +50,8 @@ internal sealed partial class SolutionCompilationState
     /// they came from.  That way if we are asked about many symbols from the same assembly/module we can answer the
     /// question quickly after computing for the first one.  Created on demand.
     /// </summary>
-    private ConditionalWeakTable<ISymbol, ProjectId?>? _unrootedSymbolToProjectId;
-    private static readonly Func<ConditionalWeakTable<ISymbol, ProjectId?>> s_createTable = () => new ConditionalWeakTable<ISymbol, ProjectId?>();
+    private ConditionalWeakTable<ISymbol, OriginatingProjectInfo?>? _unrootedSymbolToProjectId;
+    private static readonly Func<ConditionalWeakTable<ISymbol, OriginatingProjectInfo?>> s_createTable = () => new ConditionalWeakTable<ISymbol, OriginatingProjectInfo?>();
 
     private readonly AsyncLazy<SolutionCompilationState> _cachedFrozenSnapshot;
 

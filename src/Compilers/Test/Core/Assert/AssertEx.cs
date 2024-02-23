@@ -959,5 +959,19 @@ namespace Roslyn.Test.Utilities
             Assert.NotNull(value);
             Debug.Assert(value is object);
         }
+
+        public static void Contains<T>(IEnumerable<T> collection, Predicate<T> filter, Func<T, string>? itemInspector = null, string? itemSeparator = null)
+        {
+            foreach (var item in collection)
+            {
+                if (filter(item))
+                {
+                    return;
+                }
+            }
+
+            Fail("Filter does not match any item in the collection: " + Environment.NewLine +
+                ToString(collection, itemSeparator ?? Environment.NewLine, itemInspector));
+        }
     }
 }

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Text.Classification;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
@@ -42,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     if (members.All(static m => m.TopLevelDisplayText != null))
                     {
                         var member = _tag.MembersOnLine[0];
+                        Contract.ThrowIfNull(member.TopLevelDisplayText);
 
                         _lazyToolTipTextBlock = new[] { new TaggedText(TextTags.Text, member.TopLevelDisplayText) }.ToTextBlock(_classificationFormatMap, _classificationTypeMap);
                     }

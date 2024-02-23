@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
             private CompilationTrackerState? _stateDoNotAccessDirectly;
 
             // guarantees only one thread is building at a time
-            private readonly SemaphoreSlim _buildLock = new(initialCount: 1);
+            private SemaphoreSlim? _buildLock;
 
             public SkeletonReferenceCache SkeletonReferenceCache { get; }
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
+            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough)
             {
                 Debug.Assert(symbol.Kind is SymbolKind.Assembly or
                              SymbolKind.NetModule or
@@ -105,10 +105,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     // this was not a tracker that has handed out a compilation (all compilations handed out must be
                     // owned by a 'FinalState').  So this symbol could not be from us.
+                    referencedThrough = null;
                     return false;
                 }
 
-                return unrootedSymbolSet.Value.ContainsAssemblyOrModuleOrDynamic(symbol, primary);
+                return unrootedSymbolSet.Value.ContainsAssemblyOrModuleOrDynamic(symbol, primary, out referencedThrough);
             }
 
             /// <summary>
@@ -248,9 +249,13 @@ namespace Microsoft.CodeAnalysis
                         if (state is FinalCompilationTrackerState finalState)
                             return finalState;
 
+                        var buildLock = InterlockedOperations.Initialize(
+                            ref _buildLock,
+                            static () => new SemaphoreSlim(initialCount: 1));
+
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
                         // build this compilation at a time.
-                        using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                        using (await buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                         {
                             return await BuildFinalStateAsync().ConfigureAwait(false);
                         }
