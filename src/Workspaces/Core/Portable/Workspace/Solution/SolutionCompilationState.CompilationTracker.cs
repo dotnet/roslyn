@@ -670,6 +670,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
+                    // Transition us to a state that only has documents for the files we've already parsed.
                     var frozenProjectState = this.ProjectState
                         .RemoveAllDocuments()
                         .AddDocuments(documentsWithTrees.ToImmutableAndClear());
