@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
             private CompilationTrackerState? _stateDoNotAccessDirectly;
 
             // guarantees only one thread is building at a time
-            private readonly SemaphoreSlim _buildLock = new(initialCount: 1);
+            private SemaphoreSlim? _buildLock;
 
             public SkeletonReferenceCache SkeletonReferenceCache { get; }
 
@@ -248,9 +248,13 @@ namespace Microsoft.CodeAnalysis
                         if (state is FinalCompilationTrackerState finalState)
                             return finalState;
 
+                        var buildLock = InterlockedOperations.Initialize(
+                            ref _buildLock,
+                            static () => new SemaphoreSlim(initialCount: 1));
+
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
                         // build this compilation at a time.
-                        using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                        using (await buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                         {
                             return await BuildFinalStateAsync().ConfigureAwait(false);
                         }
