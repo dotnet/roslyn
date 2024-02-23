@@ -498,14 +498,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(expression == null);
                 Debug.Assert(method.Parameters.AsSpan()[1..].All(static (p) => (p.IsOptional || p.IsParams) && p.RefKind is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter));
-                Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds.All(static refKind => refKind is RefKind.In or RefKind.RefReadOnlyParameter or RefKind.None));
             }
             else
             {
                 Debug.Assert(method.Parameters.All(p => p.IsOptional || p.IsParams));
-                Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds.All(static refKind => refKind is RefKind.In or RefKind.RefReadOnlyParameter or RefKind.None));
             }
 
+            Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds.All(static refKind => refKind is RefKind.In or RefKind.RefReadOnlyParameter or RefKind.None));
             Debug.Assert(methodArgumentInfo.Arguments.All(arg => arg is not BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler }));
 #endif
 
