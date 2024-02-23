@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1524,6 +1525,67 @@ unsafe class A
 
             Assert.Throws<ArgumentException>(() => ((Compilation)comp2).IsSymbolAccessibleWithin(ptr1, b));
             Assert.Throws<ArgumentException>(() => ((Compilation)comp2).IsSymbolAccessibleWithin(ptr2, b));
+        }
+
+        [Fact]
+        public void MemberNamesMatchesGetMembers()
+        {
+            var source = """
+using System;
+namespace MemberNames;
+public class C1
+{
+    public int Field1;
+    internal int Field2;
+    private int Field3;
+
+    public static int StaticField1;
+    internal static int StaticField2;
+    private static int StaticField3;
+
+    public int Prop1 { get; set; }
+    internal int Prop2 { get; set; }
+    private int Prop3 { get; set; }
+
+    public event EventHandler Event1;
+    internal event EventHandler Event2;
+    private event EventHandler Event3;
+
+    public void Method1() { } 
+    internal void Method2() { } 
+    private void Method3() { } 
+
+    public class InnerC1 { }
+    internal class InnerC2 { }
+    private class InnerC3 { }
+}
+""";
+
+            runCore(false);
+            runCore(true);
+
+            void runCore(bool useGetMembersFirst)
+            {
+                foreach (MetadataImportOptions value in Enum.GetValues(typeof(MetadataImportOptions)))
+                {
+                    var compilation = CreateCompilation(source, assemblyName: "Util.dll");
+                    var metadataRef = compilation.EmitToPortableExecutableReference();
+
+                    var testOptions = TestOptions.DebugDll.WithMetadataImportOptions(value);
+                    var testCompilation = CreateCompilation("", references: new[] { metadataRef }, options: testOptions);
+                    var symbol = testCompilation.GetTypeByMetadataName("MemberNames.C1");
+
+                    if (useGetMembersFirst)
+                    {
+                        _ = symbol.GetMembers();
+                    }
+                    var memberNames1 = symbol.MemberNames;
+                    Assert.Equal(memberNames1, symbol.MemberNames);
+                    _ = symbol.GetMembers();
+                    var memberNames2 = symbol.MemberNames;
+                    Assert.Equal(memberNames1, memberNames2);
+                }
+            }
         }
     }
 }
