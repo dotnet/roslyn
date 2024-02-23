@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private class IntTC : INumericTC<int>
         {
-            // Note: whenever we intersect or union two IntTCs,
+            // Note: whenever we intersect or union two sets of IntTCs,
             // we just keep the nonNegative flag of the set we're merging into.
             public bool nonNegative;
 
