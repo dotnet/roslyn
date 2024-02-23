@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// parameterized by a type class
         /// <see cref="INumericTC{T}"/> that provides the primitives for that type.
         /// </summary>
-        private sealed class NumericValueSetFactory<T, TTC> : IValueSetFactory<T> where TTC : class, INumericTC<T>
+        private struct NumericValueSetFactory<T, TTC> : IValueSetFactory<T> where TTC : class, INumericTC<T>
         {
             private readonly TTC _tc;
 

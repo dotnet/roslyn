@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly IValueSetFactory<char> ForChar = new NumericValueSetFactory<char, CharTC>(CharTC.Instance);
         internal static readonly IValueSetFactory<short> ForShort = new NumericValueSetFactory<short, ShortTC>(ShortTC.Instance);
         internal static readonly IValueSetFactory<ushort> ForUShort = new NumericValueSetFactory<ushort, UShortTC>(UShortTC.Instance);
-        internal static readonly IValueSetFactory<int> ForInt = new NumericValueSetFactory<int, IntTC>(tc: IntTC.DefaultInstance);
+        internal static readonly IValueSetFactory<int> ForInt = new NumericValueSetFactory<int, IntTC>(IntTC.DefaultInstance);
         internal static readonly IValueSetFactory<uint> ForUInt = new NumericValueSetFactory<uint, UIntTC>(UIntTC.Instance);
         internal static readonly IValueSetFactory<long> ForLong = new NumericValueSetFactory<long, LongTC>(LongTC.Instance);
         internal static readonly IValueSetFactory<ulong> ForULong = new NumericValueSetFactory<ulong, ULongTC>(ULongTC.Instance);

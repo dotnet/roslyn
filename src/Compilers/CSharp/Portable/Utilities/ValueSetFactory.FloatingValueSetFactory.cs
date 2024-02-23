@@ -11,12 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class FloatingValueSetFactory<TFloating, TFloatingTC> : IValueSetFactory<TFloating> where TFloatingTC : class, FloatingTC<TFloating>
         {
             public readonly TFloatingTC _tc;
-            public readonly NumericValueSetFactory<TFloating, TFloatingTC> _numericValueSetFactory;
 
             public FloatingValueSetFactory(TFloatingTC tc)
             {
                 _tc = tc;
-                _numericValueSetFactory = new NumericValueSetFactory<TFloating, TFloatingTC>(tc);
             }
 
             IValueSet IValueSetFactory.AllValues => FloatingValueSet<TFloating, TFloatingTC>.AllValues(_tc);
@@ -24,10 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             IValueSet IValueSetFactory.NoValues => FloatingValueSet<TFloating, TFloatingTC>.NoValues(_tc);
 
             public IValueSet<TFloating> Related(BinaryOperatorKind relation, TFloating value) =>
-                FloatingValueSet<TFloating, TFloatingTC>.Related(relation, value, _tc, _numericValueSetFactory);
+                FloatingValueSet<TFloating, TFloatingTC>.Related(relation, value, _tc);
 
             IValueSet IValueSetFactory.Random(int expectedSize, Random random) =>
-                FloatingValueSet<TFloating, TFloatingTC>.Random(expectedSize, random, _tc, _numericValueSetFactory);
+                FloatingValueSet<TFloating, TFloatingTC>.Random(expectedSize, random, _tc);
 
             ConstantValue IValueSetFactory.RandomValue(Random random)
             {
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
                 value.IsBad
                     ? FloatingValueSet<TFloating, TFloatingTC>.AllValues(_tc)
-                    : FloatingValueSet<TFloating, TFloatingTC>.Related(relation, _tc.FromConstantValue(value), _tc, _numericValueSetFactory);
+                    : FloatingValueSet<TFloating, TFloatingTC>.Related(relation, _tc.FromConstantValue(value), _tc);
 
             bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
             {

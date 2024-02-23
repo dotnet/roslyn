@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal static IValueSet<TFloating> NoValues(TFloatingTC tc) => new FloatingValueSet<TFloating, TFloatingTC>(
                 numbers: NumericValueSet<TFloating, TFloatingTC>.NoValues(tc), hasNaN: false, tc);
 
-            internal static IValueSet<TFloating> Random(int expectedSize, Random random, TFloatingTC tc, NumericValueSetFactory<TFloating, TFloatingTC> numericValueSetFactory)
+            internal static IValueSet<TFloating> Random(int expectedSize, Random random, TFloatingTC tc)
             {
                 bool hasNan = random.NextDouble() < 0.5;
                 if (hasNan)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (expectedSize < 1)
                     expectedSize = 2;
                 return new FloatingValueSet<TFloating, TFloatingTC>(
-                    numbers: (IValueSet<TFloating>)numericValueSetFactory.Random(expectedSize, random), hasNaN: hasNan, tc);
+                    numbers: (IValueSet<TFloating>)new NumericValueSetFactory<TFloating, TFloatingTC>(tc).Random(expectedSize, random), hasNaN: hasNan, tc);
             }
 
             public bool IsEmpty => !_hasNaN && _numbers.IsEmpty;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public static IValueSet<TFloating> Related(BinaryOperatorKind relation, TFloating value, TFloatingTC tc, NumericValueSetFactory<TFloating, TFloatingTC> numericValueSetFactory)
+            public static IValueSet<TFloating> Related(BinaryOperatorKind relation, TFloating value, TFloatingTC tc)
             {
                 if (tc.Related(Equal, tc.NaN, value))
                 {
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
                 return new FloatingValueSet<TFloating, TFloatingTC>(
-                    numbers: numericValueSetFactory.Related(relation, value),
+                    numbers: new NumericValueSetFactory<TFloating, TFloatingTC>(tc).Related(relation, value),
                     hasNaN: false,
                     tc: tc
                     );
