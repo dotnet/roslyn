@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we just keep the nonNegative flag of the set we're merging into.
             public bool nonNegative;
 
-            public IntTC(bool nonNegative)
+            private IntTC(bool nonNegative)
             {
                 this.nonNegative = nonNegative;
             }
