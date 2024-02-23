@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ISerializerService serializer,
             SolutionReplicationContext context,
             Checksum solutionChecksum,
-            SegmentedList<Checksum> checksums,
+            ImmutableSegmentedList<Checksum> checksums,
             CancellationToken cancellationToken)
         {
             using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);

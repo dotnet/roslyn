@@ -131,7 +131,11 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                     missingChecksums.Add(checksum);
             }
 
-            var assets = await RequestAssetsAsync(assetHint, missingChecksums, cancellationToken).ConfigureAwait(false);
+            // Perf: We can convert this SegmentedList to an ImmutableSegmentedList as we know that missingChecksums will not be modified
+            // during the lifetime of the immutableMissingChecksums.
+            var immutableMissingChecksums = ImmutableSegmentedList<Checksum>.ImmutableCollectionsMarshal.ToImmutableSegmentedList(missingChecksums);
+
+            var assets = await RequestAssetsAsync(assetHint, immutableMissingChecksums, cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfTrue(missingChecksums.Count != assets.Length);
 
@@ -141,7 +145,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     private async Task<ImmutableArray<object>> RequestAssetsAsync(
-        AssetHint assetHint, SegmentedList<Checksum> checksums, CancellationToken cancellationToken)
+        AssetHint assetHint, ImmutableSegmentedList<Checksum> checksums, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
         if (checksums.Count == 0)

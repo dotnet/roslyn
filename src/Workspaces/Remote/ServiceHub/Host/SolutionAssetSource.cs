@@ -19,7 +19,7 @@ internal sealed class SolutionAssetSource(ServiceBrokerClient client) : IAssetSo
     public async ValueTask<ImmutableArray<object>> GetAssetsAsync(
         Checksum solutionChecksum,
         AssetHint assetHint,
-        SegmentedList<Checksum> checksums,
+        ImmutableSegmentedList<Checksum> checksums,
         ISerializerService serializerService,
         CancellationToken cancellationToken)
     {
