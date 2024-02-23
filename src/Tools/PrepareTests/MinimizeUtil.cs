@@ -22,18 +22,10 @@ internal static class MinimizeUtil
         var duplicateDirectory = Path.Combine(destinationDirectory, duplicateDirectoryName);
         Directory.CreateDirectory(duplicateDirectory);
 
-        // https://github.com/dotnet/roslyn/issues/49486
-        // we should avoid copying the files under Resources.
-        Directory.CreateDirectory(Path.Combine(destinationDirectory, "src/Workspaces/MSBuildTest/Resources"));
         var individualFiles = new[]
         {
             "global.json",
             "NuGet.config",
-            "src/Workspaces/MSBuildTest/Resources/global.json",
-            "src/Workspaces/MSBuildTest/Resources/Directory.Build.props",
-            "src/Workspaces/MSBuildTest/Resources/Directory.Build.targets",
-            "src/Workspaces/MSBuildTest/Resources/Directory.Build.rsp",
-            "src/Workspaces/MSBuildTest/Resources/NuGet.Config",
         };
 
         foreach (var individualFile in individualFiles)
