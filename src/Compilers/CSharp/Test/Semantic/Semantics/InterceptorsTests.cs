@@ -4944,8 +4944,8 @@ partial struct CustomHandler
             var comp = CreateCompilation(new[] { (source, @"/src/Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
             comp.VerifyEmitDiagnostics(
                 // /src/Program.cs(14,25): error CS9139: Cannot intercept: compilation does not contain a file with path '/src/C:\src/Program.cs'.
-                //     [InterceptsLocation("C:/src/Program.cs", 9, 11)]
-                Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""C:/src/Program.cs""").WithArguments(@"/src/C:\src/Program.cs").WithLocation(14, 25));
+                //     [InterceptsLocation(@"C:\src/Program.cs", 9, 11)]
+                Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"@""C:\src/Program.cs""").WithArguments(@"/src/C:\src/Program.cs").WithLocation(14, 25));
         }
     }
 
