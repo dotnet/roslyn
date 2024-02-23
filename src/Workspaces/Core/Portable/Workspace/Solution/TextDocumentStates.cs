@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis
         public IEnumerable<DocumentId> GetRemovedStateIds(TextDocumentStates<TState> oldStates)
             => (_ids == oldStates._ids) ? SpecializedCollections.EmptyEnumerable<DocumentId>() : Except(oldStates._ids, _map);
 
-        private static IEnumerable<DocumentId> Except(IEnumerable<DocumentId> ids, ImmutableSortedDictionary<DocumentId, TState> map)
+        private static IEnumerable<DocumentId> Except(ImmutableList<DocumentId> ids, ImmutableSortedDictionary<DocumentId, TState> map)
         {
             foreach (var id in ids)
             {
