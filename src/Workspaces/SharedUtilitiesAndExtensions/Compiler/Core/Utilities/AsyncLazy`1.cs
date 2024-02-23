@@ -171,7 +171,36 @@ namespace Roslyn.Utilities
             return false;
         }
 
+        /// <summary>
+        /// Gets the value of this <see cref="AsyncLazy{T}"/>, blocking to get that result, without forcing computation
+        /// to happen on this thread.
+        /// </summary>
         public T GetValue(CancellationToken cancellationToken)
+            => GetValue(forceSynchronousComputeOnCallingThread: false, cancellationToken);
+
+        /// <summary>
+        /// Gets the value of this <see cref="AsyncLazy{T}"/>, blocking to get that result.  If there is no in-flight
+        /// async computation of the value, then the value will be computed on the thread calling into this.  If there
+        /// is an in-flight computation (async or otherwise), then the <paramref name="forceSynchronousComputeOnCallingThread"/>
+        /// controls what happens in that case.
+        /// </summary>
+        /// <param name="forceSynchronousComputeOnCallingThread">If there is no in-flight computation, then this parameter
+        /// has no effect, and the computation happens on the calling thread.  If there is an in-flight computation then 
+        /// this parameter has the following effect.
+        /// <list type="bullet">
+        /// <item><see langword="false"/>: The calling thread will perform a blocking wait on the computation producing
+        /// the final value on another thread.  This does mean that the caller may incur sync-over-async blocking.
+        /// However, it will ensure that only one in-flight computation to produce the value can ever be happening at a
+        /// time.</item>
+        /// <item><see langword="true"/>: The calling thread will compute the final value concurrently using <see
+        /// cref="_synchronousComputeFunction"/>.  The first thread that computes and stores the value will still 'win'
+        /// and will still produce the final value returned.  This option allows a caller to avoid sync-over-async
+        /// blocking, but at the cost of multiple in-flight computations happening at the same time.  Generally
+        /// speaking, this should <em>only</em> be used by a rare set of features that both need to block, but where
+        /// blocking latency is extremely detrimental to the user experience.</item>
+        /// </list>
+        /// </param>
+        public T GetValue(bool forceSynchronousComputeOnCallingThread, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -191,6 +220,10 @@ namespace Roslyn.Utilities
                 {
                     return _cachedResult.Result;
                 }
+
+                Contract.ThrowIfTrue(
+                    forceSynchronousComputeOnCallingThread && _synchronousComputeFunction is null,
+                    "Should never ask to compute the value synchronously when there is no synchronous function to do the work.");
 
                 // If there is an existing computation active, we'll just create another request
                 if (_computationActive)
@@ -215,20 +248,52 @@ namespace Roslyn.Utilities
             // but we don't want multiple threads attempting to compute the same thing.
             if (request != null)
             {
+                // Always want to make sure that if we ourselves are cancelling this request, that the request is cleaned up.
                 request.RegisterForCancellation(OnAsynchronousRequestCancelled, cancellationToken);
 
-                // Since we already registered for cancellation, it's possible that the registration has
-                // cancelled this new computation if we were the only requester.
-                if (newAsynchronousComputation != null)
+                if (forceSynchronousComputeOnCallingThread)
                 {
-                    StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request, callerCancellationToken: cancellationToken);
-                }
+                    // Should never get here since it requires _synchronousComputeFunction be null, and that's the 
+                    // first thing this method checks for.
+                    Contract.ThrowIfTrue(newAsynchronousComputation != null);
+                    Contract.ThrowIfNull(_synchronousComputeFunction);
 
-                // The reason we have synchronous codepaths in AsyncLazy is to support the synchronous requests for syntax trees
-                // that we may get from the compiler. Thus, it's entirely possible that this will be requested by the compiler or
-                // an analyzer on the background thread when another part of the IDE is requesting the same tree asynchronously.
-                // In that case we block the synchronous request on the asynchronous request, since that's better than alternatives.
-                return request.Task.WaitAndGetResult_CanCallOnBackground(cancellationToken);
+                    // Caller wants to try to compute on their own thread.  But we also have a real in-flight
+                    // computation going on in another thread that may win.  We want to do the work on our thread, but
+                    // also cancel that work if the other thread wins.  To that effect, we make a linked token to
+                    // represent our work.
+                    T result;
+                    try
+                    {
+                        result = _synchronousComputeFunction(cancellationToken);
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        // We faulted for some unknown reason. We should simply fault everything.
+                        CompleteWithTask(Task.FromException<T>(ex), CancellationToken.None);
+                        throw;
+
+                    }
+
+                    return CompleteWithResult(result);
+                }
+                else
+                {
+                    // Non-forcing case.  Just attach to the in-flight computation and wait on it 
+
+                    // Since we already registered for cancellation, it's possible that the registration has
+                    // cancelled this new computation if we were the only requester.
+                    if (newAsynchronousComputation != null)
+                    {
+                        StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request, callerCancellationToken: cancellationToken);
+                    }
+
+                    // The reason we have synchronous codepaths in AsyncLazy is to support the synchronous requests for syntax trees
+                    // that we may get from the compiler. Thus, it's entirely possible that this will be requested by the compiler or
+                    // an analyzer on the background thread when another part of the IDE is requesting the same tree asynchronously.
+                    // In that case we block the synchronous request on the asynchronous request, since that's better than alternatives.
+                    return request.Task.WaitAndGetResult_CanCallOnBackground(cancellationToken);
+                }
             }
             else
             {
@@ -273,6 +338,11 @@ namespace Roslyn.Utilities
                     throw;
                 }
 
+                return CompleteWithResult(result);
+            }
+
+            T CompleteWithResult(T result)
+            {
                 // We have a value, so complete
                 CompleteWithTask(Task.FromResult(result), CancellationToken.None);
 
@@ -280,10 +350,12 @@ namespace Roslyn.Utilities
                 // processing a value somebody never wanted
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // Because we called CompleteWithTask with an actual result, _cachedResult must be set. However, it's possible that result is a different result than
-                // what is in our local variable here; it's possible that an asynchronous computation was running and cancelled, but eventually completed (ignoring cancellation)
-                // and then set the cached value. Because that could be a different instance than what we have locally, we can't use the local result if the other value
-                // got cached first. Always returning the cached value ensures we always return a single value from AsyncLazy once we got one.
+                // Because we called CompleteWithTask with an actual result, _cachedResult must be set. However, it's
+                // possible that result is a different result than what is in our local variable here; it's possible
+                // that an asynchronous computation was running and cancelled, but eventually completed (ignoring
+                // cancellation) and then set the cached value. Because that could be a different instance than what we
+                // have locally, we can't use the local result if the other value got cached first. Always returning the
+                // cached value ensures we always return a single value from AsyncLazy once we got one.
                 Contract.ThrowIfNull(_cachedResult, $"We called {nameof(CompleteWithTask)} with a result, there should be a cached result.");
                 return _cachedResult.Result;
             }
