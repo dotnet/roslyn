@@ -253,8 +253,8 @@ namespace Roslyn.Utilities
 
                 if (forceSynchronousComputeOnCallingThread)
                 {
-                    // Should never get here since it requires _synchronousComputeFunction be null, and that's the 
-                    // first thing this method checks for.
+                    // Should never get here since it requires _synchronousComputeFunction be null, and that's checked
+                    // in the TakeLock section above.
                     Contract.ThrowIfTrue(newAsynchronousComputation != null);
                     Contract.ThrowIfNull(_synchronousComputeFunction);
 
