@@ -292,6 +292,7 @@ namespace Roslyn.Utilities
 
             return true;
         }
+
         public static bool IsEmpty<T>(this IReadOnlyCollection<T> source)
         {
             return source.Count == 0;

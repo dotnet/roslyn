@@ -187,6 +187,13 @@ internal sealed partial class SolutionCompilationState
             projectIdToTrackerMap: newTrackerMap);
     }
 
+    /// <summary>
+    /// Creates a mapping of <see cref="ProjectId"/> to <see cref="ICompilationTracker"/>
+    /// </summary>
+    /// <param name="changedProjectId">Changed project id</param>
+    /// <param name="dependencyGraph">Dependency graph</param>
+    /// <param name="modifyNewTrackerInfo">Callback to modify tracker information. Return value indicates whether the collection was modified.</param>
+    /// <param name="arg">Data to pass to <paramref name="modifyNewTrackerInfo"/></param>
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArg>(
         ProjectId changedProjectId,
         ProjectDependencyGraph dependencyGraph,
@@ -207,6 +214,13 @@ internal sealed partial class SolutionCompilationState
         }
     }
 
+    /// <summary>
+    /// Creates a mapping of <see cref="ProjectId"/> to <see cref="ICompilationTracker"/>
+    /// </summary>
+    /// <param name="changedProjectIds">Changed project ids</param>
+    /// <param name="dependencyGraph">Dependency graph</param>
+    /// <param name="modifyNewTrackerInfo">Callback to modify tracker information. Return value indicates whether the collection was modified.</param>
+    /// <param name="arg">Data to pass to <paramref name="modifyNewTrackerInfo"/></param>
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArg>(
         ImmutableArray<ProjectId> changedProjectIds,
         ProjectDependencyGraph dependencyGraph,
@@ -231,6 +245,13 @@ internal sealed partial class SolutionCompilationState
         }
     }
 
+    /// <summary>
+    /// Creates a mapping of <see cref="ProjectId"/> to <see cref="ICompilationTracker"/>
+    /// </summary>
+    /// <param name="canReuse">Callback to determine whether an item can be reused</param>
+    /// <param name="argCanReuse">Data to pass to <paramref name="argCanReuse"/></param>
+    /// <param name="modifyNewTrackerInfo">Callback to modify tracker information. Return value indicates whether the collection was modified.</param>
+    /// <param name="argModifyNewTrackerInfo">Data to pass to <paramref name="modifyNewTrackerInfo"/></param>
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArgCanReuse, TArgModifyNewTrackerInfo>(
         Func<ProjectId, TArgCanReuse, bool> canReuse,
         TArgCanReuse argCanReuse,
@@ -253,7 +274,7 @@ internal sealed partial class SolutionCompilationState
                 allReused = false;
             }
 
-            newTrackerInfo[id] = localTracker;
+            newTrackerInfo.Add(id, localTracker);
         }
 
         var isModified = modifyNewTrackerInfo(newTrackerInfo, argModifyNewTrackerInfo);
@@ -268,7 +289,7 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState AddProject(ProjectInfo projectInfo)
     {
         var newSolutionState = this.SolutionState.AddProject(projectInfo);
-        var newTrackerMap = CreateCompilationTrackerMap(projectInfo.Id, newSolutionState.GetProjectDependencyGraph(), static (_, _) => false, 0);
+        var newTrackerMap = CreateCompilationTrackerMap(projectInfo.Id, newSolutionState.GetProjectDependencyGraph(), static (_, _) => false, /* unused */ 0);
 
         return Branch(
             newSolutionState,
