@@ -356,7 +356,9 @@ namespace Microsoft.CodeAnalysis
                         // use however many document states have successfully parsed their syntax trees.  For example,
                         // if you had one extremely large file that took a long time to parse, and dozens of tiny ones,
                         // it's more likely that the frozen tree would have many more documents in it.
-                        using var _ = ArrayBuilder<Task>.GetInstance(out var parsingTasks);
+                        var documentCount = currentState.PendingTranslationActions.Sum(
+                            a => a is TranslationAction.AddDocumentsAction { Documents: var documents } ? documents.Length : 0);
+                        using var _ = ArrayBuilder<Task>.GetInstance(documentCount, out var parsingTasks);
 
                         foreach (var action in currentState.PendingTranslationActions)
                         {
