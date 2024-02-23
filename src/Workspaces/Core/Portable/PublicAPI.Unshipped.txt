@@ -60,5 +60,7 @@ static Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.operator !=(Microsoft.C
 static Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.operator ==(Microsoft.CodeAnalysis.Rename.SymbolRenameOptions left, Microsoft.CodeAnalysis.Rename.SymbolRenameOptions right) -> bool
 virtual Microsoft.CodeAnalysis.Editing.SymbolEditor.AsyncDeclarationEditAction.Invoke(Microsoft.CodeAnalysis.Editing.DocumentEditor editor, Microsoft.CodeAnalysis.SyntaxNode declaration, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
 virtual Microsoft.CodeAnalysis.Editing.SymbolEditor.DeclarationEditAction.Invoke(Microsoft.CodeAnalysis.Editing.DocumentEditor editor, Microsoft.CodeAnalysis.SyntaxNode declaration) -> void
+virtual Microsoft.CodeAnalysis.Host.HostLanguageServices.Dispose() -> void
+virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.Dispose() -> void
 virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.MetadataFilter.Invoke(System.Collections.Generic.IReadOnlyDictionary<string, object> metadata) -> bool
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Equals(Microsoft.CodeAnalysis.Editing.DeclarationModifiers other) -> bool
