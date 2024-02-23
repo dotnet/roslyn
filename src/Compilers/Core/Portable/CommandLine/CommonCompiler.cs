@@ -561,9 +561,9 @@ namespace Microsoft.CodeAnalysis
                 // so that the suppression information is available in the binary logs and verbose build logs.
                 if (diag.ProgrammaticSuppressionInfo != null)
                 {
-                    foreach (var (id, justification) in diag.ProgrammaticSuppressionInfo.Suppressions)
+                    foreach (var suppression in diag.ProgrammaticSuppressionInfo.Suppressions)
                     {
-                        var suppressionDiag = new SuppressionDiagnostic(diag, id, justification);
+                        var suppressionDiag = new SuppressionDiagnostic(diag, suppression.Descriptor.Id, suppression.Descriptor.Justification);
                         if (_reportedDiagnostics.Add(suppressionDiag))
                         {
                             PrintError(suppressionDiag, consoleOutput);

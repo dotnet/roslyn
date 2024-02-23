@@ -175,14 +175,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
                 var type = namedParameter is IFieldSymbol ? ((IFieldSymbol)namedParameter).Type : ((IPropertySymbol)namedParameter).Type;
 
-                var displayParts = new List<SymbolDisplayPart>();
-
-                displayParts.Add(new SymbolDisplayPart(
+                var displayParts = new List<SymbolDisplayPart>
+                {
+                    new SymbolDisplayPart(
                     namedParameter is IFieldSymbol ? SymbolDisplayPartKind.FieldName : SymbolDisplayPartKind.PropertyName,
-                    namedParameter, namedParameter.Name.ToIdentifierToken().ToString()));
-                displayParts.Add(Space());
-                displayParts.Add(Punctuation(SyntaxKind.EqualsToken));
-                displayParts.Add(Space());
+                    namedParameter, namedParameter.Name.ToIdentifierToken().ToString()),
+                    Space(),
+                    Punctuation(SyntaxKind.EqualsToken),
+                    Space()
+                };
                 displayParts.AddRange(type.ToMinimalDisplayParts(semanticModel, position));
 
                 result.Add(new SignatureHelpSymbolParameter(
@@ -200,12 +201,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         {
             if (i == 0)
             {
-                return new List<SymbolDisplayPart>
-                {
+                return
+                [
                     new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, CSharpFeaturesResources.Properties),
                     Punctuation(SyntaxKind.ColonToken),
                     Space()
-                };
+                ];
             }
 
             return null;

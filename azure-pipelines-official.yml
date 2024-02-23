@@ -171,7 +171,7 @@ stages:
         nugetConfigPath: 'NuGet.config'
         restoreDirectory: '$(Build.SourcesDirectory)\.packages'
 
-    - task: MicroBuildSigningPlugin@2
+    - task: MicroBuildSigningPlugin@4
       inputs:
         signType: $(SignType)
         zipSources: false

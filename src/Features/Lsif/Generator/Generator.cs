@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 DocumentSymbolProvider,
                 FoldingRangeProvider,
                 DiagnosticProvider,
-                new SemanticTokensCapabilities(SemanticTokensSchema.LegacyTokensSchemaForLSIF.AllTokenTypes, new[] { SemanticTokenModifiers.Static }));
+                new SemanticTokensCapabilities(SemanticTokensSchema.LegacyTokensSchemaForLSIF.AllTokenTypes, [SemanticTokenModifiers.Static]));
             generator._lsifJsonWriter.Write(capabilitiesVertex);
             return generator;
         }
@@ -166,10 +166,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 {
                     if (tasks[i].IsFaulted)
                     {
+                        var documentExceptionMessage = $"Exception while processing {documents[i].FilePath}";
                         var exception = tasks[i].Exception!.InnerExceptions.Single();
-                        exceptions.Add(exception);
+                        exceptions.Add(new Exception(documentExceptionMessage, exception));
 
-                        _logger.LogError(exception, $"Exception while processing {documents[i].FilePath}");
+                        _logger.LogError(exception, documentExceptionMessage);
                     }
                 }
 

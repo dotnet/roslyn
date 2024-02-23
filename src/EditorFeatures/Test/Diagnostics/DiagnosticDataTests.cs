@@ -181,7 +181,7 @@ namespace B
     }
 }
 ";
-            using var workspace = TestWorkspace.CreateCSharp(files: Array.Empty<string>(), sourceGeneratedFiles: [content], composition: EditorTestCompositions.EditorFeatures);
+            using var workspace = TestWorkspace.CreateCSharp(files: [], sourceGeneratedFiles: [content], composition: EditorTestCompositions.EditorFeatures);
             var hostDocument = workspace.Documents.Single();
             Assert.True(hostDocument.IsSourceGenerated);
 

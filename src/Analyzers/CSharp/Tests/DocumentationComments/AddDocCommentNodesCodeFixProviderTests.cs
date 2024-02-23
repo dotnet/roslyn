@@ -850,46 +850,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
         public async Task AddsParamTag_Class()
         {
-            var initial = @"
-/// <summary>
-/// 
-/// </summary>
-/// <param name=""Second""></param>
-class R(int [|First|], int Second, int Third);
-";
+            var initial = """
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="Second"></param>
+                class R(int [|First|], int Second, int Third);
+                """;
 
-            var expected = @"
-/// <summary>
-/// 
-/// </summary>
-/// <param name=""First""></param>
-/// <param name=""Second""></param>
-/// <param name=""Third""></param>
-class R(int First, int Second, int Third);
-";
+            var expected = """
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="First"></param>
+                /// <param name="Second"></param>
+                /// <param name="Third"></param>
+                class R(int First, int Second, int Third);
+                """;
             await TestAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
         public async Task AddsParamTag_Struct()
         {
-            var initial = @"
-/// <summary>
-/// 
-/// </summary>
-/// <param name=""Second""></param>
-struct R(int [|First|], int Second, int Third);
-";
+            var initial = """
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="Second"></param>
+                struct R(int [|First|], int Second, int Third);
+                """;
 
-            var expected = @"
-/// <summary>
-/// 
-/// </summary>
-/// <param name=""First""></param>
-/// <param name=""Second""></param>
-/// <param name=""Third""></param>
-struct R(int First, int Second, int Third);
-";
+            var expected = """
+                /// <summary>
+                /// 
+                /// </summary>
+                /// <param name="First"></param>
+                /// <param name="Second"></param>
+                /// <param name="Third"></param>
+                struct R(int First, int Second, int Third);
+                """;
             await TestAsync(initial, expected);
         }
     }

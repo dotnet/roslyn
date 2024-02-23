@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveStatementsMap> baseActiveStatements, AsyncLazy<EditAndContinueCapabilities> capabilities)
     {
         private readonly object _guard = new();
-        private readonly Dictionary<DocumentId, (AsyncLazy<DocumentAnalysisResults> results, Project baseProject, Document document, ImmutableArray<LinePositionSpan> activeStatementSpans)> _analyses = new();
+        private readonly Dictionary<DocumentId, (AsyncLazy<DocumentAnalysisResults> results, Project baseProject, Document document, ImmutableArray<LinePositionSpan> activeStatementSpans)> _analyses = [];
         private readonly AsyncLazy<ActiveStatementsMap> _baseActiveStatements = baseActiveStatements;
         private readonly AsyncLazy<EditAndContinueCapabilities> _capabilities = capabilities;
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (documents.IsEmpty())
                 {
-                    return ImmutableArray<DocumentAnalysisResults>.Empty;
+                    return [];
                 }
 
                 var tasks = documents.Select(document => Task.Run(() => GetDocumentAnalysisAsync(oldSolution, document.oldDocument, document.newDocument, activeStatementSpanProvider, cancellationToken).AsTask(), cancellationToken));
@@ -102,13 +102,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             if (oldDocument == null)
             {
                 // document has been deleted or is out-of-sync
-                return ImmutableArray<LinePositionSpan>.Empty;
+                return [];
             }
 
             if (newDocument.FilePath == null)
             {
                 // document has been added, or doesn't have a file path - we do not have tracking spans for it
-                return ImmutableArray<LinePositionSpan>.Empty;
+                return [];
             }
 
             var newTree = await newDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);

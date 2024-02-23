@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         // Let's not have special values for byte. byte.MaxValue seems overkill versus 255.
-        public static readonly IEnumerable<KeyValuePair<byte, string>> ByteSpecialValues = new Dictionary<byte, string>();
+        public static readonly IEnumerable<KeyValuePair<byte, string>> ByteSpecialValues = [];
 
         public static readonly IEnumerable<KeyValuePair<sbyte, string>> SByteSpecialValues = new Dictionary<sbyte, string>()
         {

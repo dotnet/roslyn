@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             var diagnostic = Earliest(Earliest(diagnostic1, diagnostic2), diagnostic3);
 
             return new JsonTree(_lexer.Text, root, diagnostic == null
-                ? ImmutableArray<EmbeddedDiagnostic>.Empty
-                : ImmutableArray.Create(diagnostic.Value));
+                ? []
+                : [diagnostic.Value]);
         }
 
         private static EmbeddedDiagnostic? Earliest(EmbeddedDiagnostic? d1, EmbeddedDiagnostic? d2)
@@ -396,10 +396,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
             minusToken = CreateToken(
                 JsonKind.MinusToken, literalToken.LeadingTrivia,
                 literalToken.VirtualChars.GetSubSequence(new TextSpan(0, 1)),
-                ImmutableArray<JsonTrivia>.Empty);
+                []);
             newLiteralToken = CreateToken(
                 literalToken.Kind,
-                ImmutableArray<JsonTrivia>.Empty,
+                [],
                 literalToken.VirtualChars.GetSubSequence(TextSpan.FromBounds(1, literalToken.VirtualChars.Length)),
                 literalToken.TrailingTrivia,
                 literalToken.Diagnostics);

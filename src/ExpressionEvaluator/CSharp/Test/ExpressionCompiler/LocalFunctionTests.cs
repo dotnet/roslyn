@@ -273,8 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
         // Should not bind to unnamed display class parameters
         // (unnamed parameters are treated as named "value").
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18426")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18426")]
         public void DisplayClassParameter_01()
         {
             var source =
@@ -300,8 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18426")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18426")]
         public void DisplayClassParameter_02()
         {
             var source =
@@ -340,8 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18426")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18426")]
         public void DisplayClassParameter_03()
         {
             var source =

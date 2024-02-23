@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 {
                     // If this is a preview, just return an ApplyChangesOperation for the updated document
                     var operation = new ApplyChangesOperation(newProject.Solution);
-                    return ImmutableArray.Create<CodeActionOperation>(operation);
+                    return [operation];
                 }
                 else
                 {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                         FixData.AssemblyReferenceAssemblyName,
                         FixData.AssemblyReferenceFullyQualifiedTypeName,
                         newProject);
-                    return ImmutableArray.Create<CodeActionOperation>(operation);
+                    return [operation];
                 }
             }
 

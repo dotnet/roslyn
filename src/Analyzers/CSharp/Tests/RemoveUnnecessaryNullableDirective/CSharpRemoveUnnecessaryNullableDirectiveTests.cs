@@ -86,7 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 """
                 // File Header
 
-
                 enum EnumName
                 {
                     First,

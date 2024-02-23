@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         private readonly IThreadingContext _threadingContext;
         private readonly Workspace _workspace;
         private readonly IStackTraceExplorerService _stackExplorerService;
-        private readonly Dictionary<StackFrameSymbolPart, DefinitionItem?> _definitionCache = new();
+        private readonly Dictionary<StackFrameSymbolPart, DefinitionItem?> _definitionCache = [];
 
         private Document? _cachedDocument;
         private int _cachedLineNumber;

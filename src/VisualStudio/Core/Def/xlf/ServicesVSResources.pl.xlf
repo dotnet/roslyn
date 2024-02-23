@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
-        <target state="new">Collapse local functions when collapsing to definitions</target>
+        <target state="translated">Zwiń funkcje lokalne podczas zwijania do definicji</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_metadata_signature_files_on_open">
@@ -422,9 +422,9 @@
         <target state="translated">Włącz nawigację do źródeł linków źródłowych i osadzonych</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
-        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="translated">Włącz diagnostykę operacji „pull” (eksperymentalne, wymaga ponownego uruchomienia)</target>
+      <trans-unit id="Enable_pull_diagnostics_requires_restart">
+        <source>Enable 'pull' diagnostics (requires restart)</source>
+        <target state="new">Enable 'pull' diagnostics (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enabled">
@@ -1499,7 +1499,7 @@
       </trans-unit>
       <trans-unit id="SystemVoid_is_not_a_valid_type_for_a_parameter">
         <source>'System.Void' is not a valid type for a parameter</source>
-        <target state="translated">'System.Void' nie jest prawidłowym typem dla parametru</target>
+        <target state="translated">Element „System.Void” nie jest prawidłowym typem parametru</target>
         <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">

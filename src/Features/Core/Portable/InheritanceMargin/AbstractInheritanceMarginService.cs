@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
                 if (!result.HasValue)
                 {
-                    return ImmutableArray<InheritanceMarginItem>.Empty;
+                    return [];
                 }
 
                 return result.Value;

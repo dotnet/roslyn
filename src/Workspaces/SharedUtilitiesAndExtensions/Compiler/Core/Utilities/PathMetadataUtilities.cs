@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             if (@namespace is null || @namespace == rootNamespace)
             {
-                return ImmutableArray<string>.Empty;
+                return [];
             }
 
             if (rootNamespace is not null && @namespace.StartsWith(rootNamespace + ".", StringComparison.OrdinalIgnoreCase))

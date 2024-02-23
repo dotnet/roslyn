@@ -14,7 +14,7 @@
     <Compile Include="..\..\..\Features\CSharpTest\Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor.cs" Link="AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <!-- Directly reference the Workspaces project so we always test against the latest Roslyn bits -->
@@ -28,8 +28,8 @@
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
     <ProjectReference Include="..\..\Core\CodeFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.csproj" />
-    <ProjectReference Include="..\..\Core\Tests\Microsoft.CodeAnalysis.CodeStyle.UnitTestUtilities.csproj" />
-    <ProjectReference Include="..\..\Core\Tests\Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities.csproj" />
+    <ProjectReference Include="..\..\Core\Tests\UnitTestUtilities\Microsoft.CodeAnalysis.CodeStyle.UnitTestUtilities.csproj" />
+    <ProjectReference Include="..\..\Core\Tests\LegacyTestFramework\Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities.csproj" />
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CSharp.CodeStyle.csproj" />
     <ProjectReference Include="..\CodeFixes\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.csproj" />
   </ItemGroup>

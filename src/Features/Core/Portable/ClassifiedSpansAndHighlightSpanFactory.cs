@@ -15,29 +15,14 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal static class ClassifiedSpansAndHighlightSpanFactory
     {
-        public static async Task<DocumentSpan> GetClassifiedDocumentSpanAsync(
-            Document document, TextSpan sourceSpan, ClassificationOptions options, CancellationToken cancellationToken)
-        {
-            var classifiedSpans = await ClassifyAsync(
-                document, sourceSpan, options, cancellationToken).ConfigureAwait(false);
-
-            var properties = ImmutableDictionary<string, object>.Empty.Add(
-                ClassifiedSpansAndHighlightSpan.Key, classifiedSpans);
-
-            return new DocumentSpan(document, sourceSpan, properties);
-        }
-
         public static async Task<ClassifiedSpansAndHighlightSpan> ClassifyAsync(
-            DocumentSpan documentSpan, ClassificationOptions options, CancellationToken cancellationToken)
+            DocumentSpan documentSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, ClassificationOptions options, CancellationToken cancellationToken)
         {
             // If the document span is providing us with the classified spans up front, then we
             // can just use that.  Otherwise, go back and actually classify the text for the line
             // the document span is on.
-            if (documentSpan.Properties != null &&
-                documentSpan.Properties.TryGetValue(ClassifiedSpansAndHighlightSpan.Key, out var value))
-            {
-                return (ClassifiedSpansAndHighlightSpan)value;
-            }
+            if (classifiedSpans != null)
+                return classifiedSpans.Value;
 
             return await ClassifyAsync(
                 documentSpan.Document, documentSpan.SourceSpan, options, cancellationToken).ConfigureAwait(false);
@@ -93,10 +78,12 @@ namespace Microsoft.CodeAnalysis.Classification
             // For languages that don't expose a classification service, we show the entire
             // item as plain text. Break the text into three spans so that we can properly
             // highlight the 'narrow-span' later on when we display the item.
-            return ImmutableArray.Create(
+            return
+            [
                 new ClassifiedSpan(ClassificationTypeNames.Text, TextSpan.FromBounds(widenedSpan.Start, narrowSpan.Start)),
                 new ClassifiedSpan(ClassificationTypeNames.Text, narrowSpan),
-                new ClassifiedSpan(ClassificationTypeNames.Text, TextSpan.FromBounds(narrowSpan.End, widenedSpan.End)));
+                new ClassifiedSpan(ClassificationTypeNames.Text, TextSpan.FromBounds(narrowSpan.End, widenedSpan.End)),
+            ];
         }
     }
 }

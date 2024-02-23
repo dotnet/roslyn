@@ -23,23 +23,23 @@ namespace Microsoft.CodeAnalysis
     public abstract partial class Workspace
     {
         // open documents
-        private readonly Dictionary<ProjectId, HashSet<DocumentId>> _projectToOpenDocumentsMap = new();
+        private readonly Dictionary<ProjectId, HashSet<DocumentId>> _projectToOpenDocumentsMap = [];
 
         // text buffer maps
         /// <summary>
         /// Tracks the document ID in the current context for a source text container for an opened text buffer.
         /// </summary>
         /// <remarks>For each entry in this map, there must be a corresponding entry in <see cref="_bufferToAssociatedDocumentsMap"/> where the document ID in current context is one of associated document IDs.</remarks>
-        private readonly Dictionary<SourceTextContainer, DocumentId> _bufferToDocumentInCurrentContextMap = new();
+        private readonly Dictionary<SourceTextContainer, DocumentId> _bufferToDocumentInCurrentContextMap = [];
 
         /// <summary>
         /// Tracks all the associated document IDs for a source text container for an opened text buffer.
         /// </summary>
-        private readonly Dictionary<SourceTextContainer, OneOrMany<DocumentId>> _bufferToAssociatedDocumentsMap = new();
+        private readonly Dictionary<SourceTextContainer, OneOrMany<DocumentId>> _bufferToAssociatedDocumentsMap = [];
 
-        private readonly Dictionary<DocumentId, TextTracker> _textTrackers = new();
-        private readonly Dictionary<DocumentId, SourceTextContainer> _documentToAssociatedBufferMap = new();
-        private readonly Dictionary<DocumentId, SourceGeneratedDocumentIdentity> _openSourceGeneratedDocumentIdentities = new();
+        private readonly Dictionary<DocumentId, TextTracker> _textTrackers = [];
+        private readonly Dictionary<DocumentId, SourceTextContainer> _documentToAssociatedBufferMap = [];
+        private readonly Dictionary<DocumentId, SourceGeneratedDocumentIdentity> _openSourceGeneratedDocumentIdentities = [];
 
         /// <summary>
         /// True if this workspace supports manually opening and closing documents.
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis
             var documentId = GetDocumentIdInCurrentContext(container);
             if (documentId == null)
             {
-                return ImmutableArray<DocumentId>.Empty;
+                return [];
             }
 
             return CurrentSolution.GetRelatedDocumentIds(documentId);

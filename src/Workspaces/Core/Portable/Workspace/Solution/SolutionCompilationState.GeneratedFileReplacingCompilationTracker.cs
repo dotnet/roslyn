@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
         /// to return a generated document with a specific content, regardless of what the generator actually produces. In other words, it says
         /// "take the compilation this other thing produced, and pretend the generator gave this content, even if it wouldn't."
         /// </summary>
-        private class GeneratedFileReplacingCompilationTracker(ICompilationTracker underlyingTracker, SourceGeneratedDocumentState replacementDocumentState) : ICompilationTracker
+        private class GeneratedFileReplacingCompilationTracker(ICompilationTracker underlyingTracker, TextDocumentStates<SourceGeneratedDocumentState> replacementDocumentStates) : ICompilationTracker
         {
             private AsyncLazy<Checksum>? _lazyDependentChecksum;
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
             /// <see cref="GetCompilationAsync"/>.
             /// </summary>
             [DisallowNull]
-            private Compilation? _compilationWithReplacement;
+            private Compilation? _compilationWithReplacements;
 
             public ICompilationTracker UnderlyingTracker { get; } = underlyingTracker;
             public SkeletonReferenceCache SkeletonReferenceCache { get; } = underlyingTracker.SkeletonReferenceCache.Clone();
@@ -38,18 +38,18 @@ namespace Microsoft.CodeAnalysis
 
             public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
             {
-                if (_compilationWithReplacement == null)
+                if (_compilationWithReplacements == null)
                 {
                     // We don't have a compilation yet, so this couldn't have came from us
                     return false;
                 }
                 else
                 {
-                    return UnrootedSymbolSet.Create(_compilationWithReplacement).ContainsAssemblyOrModuleOrDynamic(symbol, primary);
+                    return UnrootedSymbolSet.Create(_compilationWithReplacements).ContainsAssemblyOrModuleOrDynamic(symbol, primary);
                 }
             }
 
-            public ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate)
+            public ICompilationTracker Fork(ProjectState newProject, TranslationAction? translate)
             {
                 // TODO: This only needs to be implemented if a feature that operates from a source generated file then makes
                 // further mutations to that project, which isn't needed for now. This will be need to be fixed up when we complete
@@ -57,48 +57,49 @@ namespace Microsoft.CodeAnalysis
                 throw new NotImplementedException();
             }
 
-            public ICompilationTracker FreezePartialStateWithTree(SolutionCompilationState compilationState, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
+            public ICompilationTracker FreezePartialState(CancellationToken cancellationToken)
             {
-                // Because we override SourceGeneratedDocument.WithFrozenPartialSemantics directly, we shouldn't be able to get here.
-                throw ExceptionUtilities.Unreachable();
+                // Ensure the underlying tracker is totally frozen, and then ensure our replaced generated doc is present.
+                return new GeneratedFileReplacingCompilationTracker(UnderlyingTracker.FreezePartialState(cancellationToken), replacementDocumentStates);
             }
 
             public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 // Fast path if we've definitely already done this before
-                if (_compilationWithReplacement != null)
+                if (_compilationWithReplacements != null)
                 {
-                    return _compilationWithReplacement;
+                    return _compilationWithReplacements;
                 }
 
-                var underlyingCompilation = await UnderlyingTracker.GetCompilationAsync(compilationState, cancellationToken).ConfigureAwait(false);
                 var underlyingSourceGeneratedDocuments = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(compilationState, cancellationToken).ConfigureAwait(false);
+                var newCompilation = await UnderlyingTracker.GetCompilationAsync(compilationState, cancellationToken).ConfigureAwait(false);
 
-                underlyingSourceGeneratedDocuments.TryGetState(replacementDocumentState.Id, out var existingState);
-
-                Compilation newCompilation;
-
-                var newSyntaxTree = await replacementDocumentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-                if (existingState != null)
+                foreach (var (id, replacementState) in replacementDocumentStates.States)
                 {
-                    // The generated file still exists in the underlying compilation, but the contents may not match the open file if the open file
-                    // is stale. Replace the syntax tree so we have a tree that matches the text.
-                    var existingSyntaxTree = await existingState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    newCompilation = underlyingCompilation.ReplaceSyntaxTree(existingSyntaxTree, newSyntaxTree);
-                }
-                else
-                {
-                    // The existing output no longer exists in the underlying compilation. This could happen if the user made
-                    // an edit which would cause this file to no longer exist, but they're still operating on an open representation
-                    // of that file. To ensure that this snapshot is still usable, we'll just add this document back in. This is not a
-                    // semantically correct operation, but working on stale snapshots never has that guarantee.
-                    newCompilation = underlyingCompilation.AddSyntaxTrees(newSyntaxTree);
+                    underlyingSourceGeneratedDocuments.TryGetState(id, out var existingState);
+
+                    var replacementSyntaxTree = await replacementState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (existingState != null)
+                    {
+                        // The generated file still exists in the underlying compilation, but the contents may not match the open file if the open file
+                        // is stale. Replace the syntax tree so we have a tree that matches the text.
+                        var existingSyntaxTree = await existingState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                        newCompilation = newCompilation.ReplaceSyntaxTree(existingSyntaxTree, replacementSyntaxTree);
+                    }
+                    else
+                    {
+                        // The existing output no longer exists in the underlying compilation. This could happen if the user made
+                        // an edit which would cause this file to no longer exist, but they're still operating on an open representation
+                        // of that file. To ensure that this snapshot is still usable, we'll just add this document back in. This is not a
+                        // semantically correct operation, but working on stale snapshots never has that guarantee.
+                        newCompilation = newCompilation.AddSyntaxTrees(replacementSyntaxTree);
+                    }
                 }
 
-                Interlocked.CompareExchange(ref _compilationWithReplacement, newCompilation, null);
+                Interlocked.CompareExchange(ref _compilationWithReplacements, newCompilation, null);
 
-                return _compilationWithReplacement;
+                return _compilationWithReplacements;
             }
 
             public Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis
             private async Task<Checksum> ComputeDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
                 => Checksum.Create(
                     await UnderlyingTracker.GetDependentChecksumAsync(compilationState, cancellationToken).ConfigureAwait(false),
-                    await replacementDocumentState.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
+                    (await replacementDocumentStates.GetChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false)).Checksum);
 
             public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
             {
@@ -139,23 +140,28 @@ namespace Microsoft.CodeAnalysis
             public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                var underlyingGeneratedDocumentStates = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(
+                var newStates = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(
                     compilationState, cancellationToken).ConfigureAwait(false);
 
-                if (underlyingGeneratedDocumentStates.Contains(replacementDocumentState.Id))
+                foreach (var (id, replacementState) in replacementDocumentStates.States)
                 {
-                    // The generated file still exists in the underlying compilation, but the contents may not match the open file if the open file
-                    // is stale. Replace the syntax tree so we have a tree that matches the text.
-                    return underlyingGeneratedDocumentStates.SetState(replacementDocumentState.Id, replacementDocumentState);
+                    if (newStates.Contains(id))
+                    {
+                        // The generated file still exists in the underlying compilation, but the contents may not match the open file if the open file
+                        // is stale. Replace the syntax tree so we have a tree that matches the text.
+                        newStates = newStates.SetState(id, replacementState);
+                    }
+                    else
+                    {
+                        // The generated output no longer exists in the underlying compilation. This could happen if the user made
+                        // an edit which would cause this file to no longer exist, but they're still operating on an open representation
+                        // of that file. To ensure that this snapshot is still usable, we'll just add this document back in. This is not a
+                        // semantically correct operation, but working on stale snapshots never has that guarantee.
+                        newStates = newStates.AddRange([replacementState]);
+                    }
                 }
-                else
-                {
-                    // The generated output no longer exists in the underlying compilation. This could happen if the user made
-                    // an edit which would cause this file to no longer exist, but they're still operating on an open representation
-                    // of that file. To ensure that this snapshot is still usable, we'll just add this document back in. This is not a
-                    // semantically correct operation, but working on stale snapshots never has that guarantee.
-                    return underlyingGeneratedDocumentStates.AddRange(ImmutableArray.Create(replacementDocumentState));
-                }
+
+                return newStates;
             }
 
             public Task<bool> HasSuccessfullyLoadedAsync(
@@ -166,15 +172,15 @@ namespace Microsoft.CodeAnalysis
 
             public bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation)
             {
-                compilation = _compilationWithReplacement;
+                compilation = _compilationWithReplacements;
                 return compilation != null;
             }
 
             public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId)
             {
-                if (documentId == replacementDocumentState.Id)
+                if (replacementDocumentStates.TryGetState(documentId, out var replacementState))
                 {
-                    return replacementDocumentState;
+                    return replacementState;
                 }
                 else
                 {

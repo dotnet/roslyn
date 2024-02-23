@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
     internal sealed partial class ProjectSystemProject
     {
         private static readonly char[] s_directorySeparator = [Path.DirectorySeparatorChar];
-        private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = ImmutableArray.Create(default(MetadataReferenceProperties));
+        private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = [default(MetadataReferenceProperties)];
 
         private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
         private readonly ProjectSystemHostInfo _hostInfo;
@@ -45,21 +45,21 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// </summary>
         private int _activeBatchScopes = 0;
 
-        private readonly List<(string path, MetadataReferenceProperties properties)> _metadataReferencesAddedInBatch = new();
-        private readonly List<(string path, MetadataReferenceProperties properties)> _metadataReferencesRemovedInBatch = new();
-        private readonly List<ProjectReference> _projectReferencesAddedInBatch = new();
-        private readonly List<ProjectReference> _projectReferencesRemovedInBatch = new();
+        private readonly List<(string path, MetadataReferenceProperties properties)> _metadataReferencesAddedInBatch = [];
+        private readonly List<(string path, MetadataReferenceProperties properties)> _metadataReferencesRemovedInBatch = [];
+        private readonly List<ProjectReference> _projectReferencesAddedInBatch = [];
+        private readonly List<ProjectReference> _projectReferencesRemovedInBatch = [];
 
-        private readonly Dictionary<string, ProjectAnalyzerReference> _analyzerPathsToAnalyzers = new();
-        private readonly List<ProjectAnalyzerReference> _analyzersAddedInBatch = new();
+        private readonly Dictionary<string, ProjectAnalyzerReference> _analyzerPathsToAnalyzers = [];
+        private readonly List<ProjectAnalyzerReference> _analyzersAddedInBatch = [];
 
         /// <summary>
         /// The list of <see cref="ProjectAnalyzerReference"/> that will be removed in this batch. They have not yet
         /// been disposed, and will be disposed once the batch is applied.
         /// </summary>
-        private readonly List<ProjectAnalyzerReference> _analyzersRemovedInBatch = new();
+        private readonly List<ProjectAnalyzerReference> _analyzersRemovedInBatch = [];
 
-        private readonly List<Action<SolutionChangeAccumulator>> _projectPropertyModificationsInBatch = new();
+        private readonly List<Action<SolutionChangeAccumulator>> _projectPropertyModificationsInBatch = [];
 
         private string _assemblyName;
         private string _displayName;
@@ -92,13 +92,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// The full list of all metadata references this project has. References that have internally been converted to project references
         /// will still be in this.
         /// </summary>
-        private readonly Dictionary<string, ImmutableArray<MetadataReferenceProperties>> _allMetadataReferences = new();
+        private readonly Dictionary<string, ImmutableArray<MetadataReferenceProperties>> _allMetadataReferences = [];
 
         /// <summary>
         /// The file watching tokens for the documents in this project. We get the tokens even when we're in a batch, so the files here
         /// may not be in the actual workspace yet.
         /// </summary>
-        private readonly Dictionary<DocumentId, IWatchedFile> _documentWatchedFiles = new();
+        private readonly Dictionary<DocumentId, IWatchedFile> _documentWatchedFiles = [];
 
         /// <summary>
         /// A file change context used to watch source files, additional files, and analyzer config files for this project. It's automatically set to watch the user's project
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// <summary>
         /// track whether we have been subscribed to <see cref="IDynamicFileInfoProvider.Updated"/> event
         /// </summary>
-        private readonly HashSet<IDynamicFileInfoProvider> _eventSubscriptionTracker = new();
+        private readonly HashSet<IDynamicFileInfoProvider> _eventSubscriptionTracker = [];
 
         /// <summary>
         /// Map of the original dynamic file path to the <see cref="DynamicFileInfo.FilePath"/> that was associated with it.
@@ -982,10 +982,12 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
         private const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
         private static readonly string s_razorSourceGeneratorSdkDirectory = Path.Combine("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators") + PathUtilities.DirectorySeparatorStr;
-        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames = ImmutableArray.Create(
+        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames =
+        [
             "Microsoft.NET.Sdk.Razor.SourceGenerators",
             "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators",
-            "Microsoft.CodeAnalysis.Razor.Compiler");
+            "Microsoft.CodeAnalysis.Razor.Compiler",
+        ];
         private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyRootedFileNames = s_razorSourceGeneratorAssemblyNames.SelectAsArray(
             assemblyName => PathUtilities.DirectorySeparatorStr + assemblyName + ".dll");
 
@@ -1097,7 +1099,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         {
             using (_gate.DisposableWait())
             {
-                return _allMetadataReferences.TryGetValue(fullPath, out var list) ? list : ImmutableArray<MetadataReferenceProperties>.Empty;
+                return _allMetadataReferences.TryGetValue(fullPath, out var list) ? list : [];
             }
         }
 

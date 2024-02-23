@@ -77,8 +77,10 @@ class {|Definition:C1|}
                 Dim startDocument = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
                 Assert.NotNull(startDocument)
 
+                Dim classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider()
+
                 Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
-                Await findRefsService.FindReferencesAsync(context, startDocument, cursorPosition, CancellationToken.None)
+                Await findRefsService.FindReferencesAsync(context, startDocument, cursorPosition, classificationOptions, CancellationToken.None)
 
                 Dim definitionDocument = workspace.Documents.First(Function(d) d.AnnotatedSpans.ContainsKey("Definition"))
                 Dim definitionText = Await workspace.CurrentSolution.GetDocument(definitionDocument.Id).GetTextAsync()

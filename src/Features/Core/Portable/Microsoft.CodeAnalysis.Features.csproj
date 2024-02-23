@@ -108,6 +108,8 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp.Extraction" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServerClient.Razor" Partner="Razor" Key="$(RazorKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServerClient.Razor.Test" Partner="Razor" Key="$(RazorKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Partner="Razor" Key="$(RazorKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.Test" Partner="Razor" Key="$(RazorKey)" />
     <!--
       Only allow C# DevKit to use types from Contracts namespace. The contracts should not introduce breaking changes between versions,
       because the versions of C# DevKit and C# Extension might not be aligned.
@@ -134,11 +136,11 @@
     <!--
       WARNING: All package references must have an OSS license since this assembly is shipped with dotnet-watch and dotnet-format.
     -->
-    <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" />
-    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+    <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Condition="'$(DotNetBuildFromSource)' != 'true'" />
+    <PackageReference Include="Microsoft.DiaSymReader" />
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DocumentationComments\CodeFixes\" />

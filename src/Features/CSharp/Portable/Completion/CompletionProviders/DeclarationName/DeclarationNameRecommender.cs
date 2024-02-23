@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
 
             // If we have a direct symbol this binds to, offer its name as a potential name here.
             if (nameInfo.Symbol != null)
-                names = names.Insert(0, ImmutableArray.Create(nameInfo.Symbol.Name));
+                names = names.Insert(0, [nameInfo.Symbol.Name]);
 
             if (!names.IsDefaultOrEmpty)
             {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
             if (!IsValidType(nameInfo.Type))
                 return default;
 
-            var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false, seenTypes: new HashSet<ITypeSymbol>());
+            var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false, seenTypes: []);
 
             var baseNames = NameGenerator.GetBaseNames(type, plural);
             return baseNames;
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                                     container: null,
                                     baseName: name,
                                     filter: s => IsRelevantSymbolKind(s),
-                                    usedNames: Enumerable.Empty<string>(),
+                                    usedNames: [],
                                     cancellationToken: cancellationToken);
 
                                 if (seenUniqueNames.Add(uniqueName.Text))
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
                 {
                     MethodDeclarationSyntax method => namedType.GetMembers(method.Identifier.ValueText).OfType<IMethodSymbol>().ToImmutableArray(),
                     ConstructorDeclarationSyntax constructor => namedType.GetMembers(WellKnownMemberNames.InstanceConstructorName).OfType<IMethodSymbol>().ToImmutableArray(),
-                    _ => ImmutableArray<IMethodSymbol>.Empty
+                    _ => []
                 };
             }
         }

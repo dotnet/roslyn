@@ -30,10 +30,25 @@ namespace Microsoft.CodeAnalysis
         // Values for all these are created on demand.
         private ImmutableHashMap<ProjectId, Project> _projectIdToProjectMap;
 
-        private Solution(SolutionCompilationState compilationState)
+        /// <summary>
+        /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.
+        /// </summary>
+        private readonly AsyncLazy<Solution> _cachedFrozenSolution;
+
+        /// <summary>
+        /// Mapping of DocumentId to the frozen solution we produced for it the last time we were queried.  This
+        /// instance should be used as its own lock when reading or writing to it.
+        /// </summary>
+        private readonly Dictionary<DocumentId, AsyncLazy<Solution>> _documentIdToFrozenSolution = [];
+
+        private Solution(
+            SolutionCompilationState compilationState,
+            AsyncLazy<Solution>? cachedFrozenSolution = null)
         {
-            _projectIdToProjectMap = ImmutableHashMap<ProjectId, Project>.Empty;
+            _projectIdToProjectMap = [];
             _compilationState = compilationState;
+
+            _cachedFrozenSolution = cachedFrozenSolution ?? AsyncLazy.Create(synchronousComputeFunction: ComputeFrozenSolution);
         }
 
         internal Solution(
@@ -961,7 +976,7 @@ namespace Microsoft.CodeAnalysis
         /// document instanced defined by the document info.
         /// </summary>
         public Solution AddDocument(DocumentInfo documentInfo)
-            => AddDocuments(ImmutableArray.Create(documentInfo));
+            => AddDocuments([documentInfo]);
 
         /// <summary>
         /// Create a new <see cref="Solution"/> instance with the corresponding <see cref="Project"/>s updated to include
@@ -1007,7 +1022,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public Solution AddAdditionalDocument(DocumentInfo documentInfo)
-            => AddAdditionalDocuments(ImmutableArray.Create(documentInfo));
+            => AddAdditionalDocuments([documentInfo]);
 
         public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
@@ -1040,7 +1055,7 @@ namespace Microsoft.CodeAnalysis
             // https://github.com/dotnet/roslyn/issues/41940
 
             var info = CreateDocumentInfo(documentId, name, text, folders, filePath);
-            return this.AddAnalyzerConfigDocuments(ImmutableArray.Create(info));
+            return this.AddAnalyzerConfigDocuments([info]);
         }
 
         private DocumentInfo CreateDocumentInfo(DocumentId documentId, string name, SourceText text, IEnumerable<string>? folders, string? filePath)
@@ -1076,7 +1091,7 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveDocument(DocumentId documentId)
         {
             CheckContainsDocument(documentId);
-            return RemoveDocumentsImpl(ImmutableArray.Create(documentId));
+            return RemoveDocumentsImpl([documentId]);
         }
 
         /// <summary>
@@ -1100,7 +1115,7 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveAdditionalDocument(DocumentId documentId)
         {
             CheckContainsAdditionalDocument(documentId);
-            return RemoveAdditionalDocumentsImpl(ImmutableArray.Create(documentId));
+            return RemoveAdditionalDocumentsImpl([documentId]);
         }
 
         /// <summary>
@@ -1124,7 +1139,7 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveAnalyzerConfigDocument(DocumentId documentId)
         {
             CheckContainsAnalyzerConfigDocument(documentId);
-            return RemoveAnalyzerConfigDocumentsImpl(ImmutableArray.Create(documentId));
+            return RemoveAnalyzerConfigDocumentsImpl([documentId]);
         }
 
         /// <summary>
@@ -1345,9 +1360,9 @@ namespace Microsoft.CodeAnalysis
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
-        internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState)
+        internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
         {
-            var newCompilationState = _compilationState.WithDocumentContentsFrom(documentId, documentState);
+            var newCompilationState = _compilationState.WithDocumentContentsFrom(documentId, documentState, forceEvenIfTreesWouldDiffer);
             return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
         }
 
@@ -1442,17 +1457,66 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a branch of the solution that has its compilations frozen in whatever state they are in at the time, assuming a background compiler is
-        /// busy building this compilations.
-        /// 
-        /// A compilation for the project containing the specified document id will be guaranteed to exist with at least the syntax tree for the document.
-        /// 
-        /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
+        /// Returns a solution instance where every project is frozen at whatever current state it is in
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        internal Solution WithFrozenPartialCompilations(CancellationToken cancellationToken)
+            => _cachedFrozenSolution.GetValue(cancellationToken);
+
+        /// <inheritdoc cref="WithFrozenPartialCompilations"/>
+        internal Task<Solution> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
+            => _cachedFrozenSolution.GetValueAsync(cancellationToken);
+
+        private Solution ComputeFrozenSolution(CancellationToken cancellationToken)
+        {
+            // in progress solutions are disabled for some testing
+            if (this.Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
+                return this;
+
+            var newCompilationState = this.CompilationState.WithFrozenPartialCompilations(cancellationToken);
+
+            var frozenSolution = new Solution(
+                newCompilationState,
+                // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.
+                cachedFrozenSolution: _cachedFrozenSolution);
+
+            return frozenSolution;
+        }
+
+        /// <summary>
+        /// Creates a branch of the solution that has its compilations frozen in whatever state they are in at the time,
+        /// assuming a background compiler is busy building this compilations.
+        /// <para/> A compilation for the project containing the specified document id will be guaranteed to exist with
+        /// at least the syntax tree for the document.
+        /// <para/> This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
         /// </summary>
         internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
-            var newCompilationState = _compilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
-            return new Solution(newCompilationState);
+            return GetLazySolution().GetValue(cancellationToken);
+
+            AsyncLazy<Solution> GetLazySolution()
+            {
+                lock (_documentIdToFrozenSolution)
+                {
+                    if (!_documentIdToFrozenSolution.TryGetValue(documentId, out var lazySolution))
+                    {
+                        // in a local function to prevent lambda allocations when not needed.
+                        lazySolution = CreateLazyFrozenSolution(this.CompilationState, documentId);
+                        _documentIdToFrozenSolution.Add(documentId, lazySolution);
+                    }
+
+                    return lazySolution;
+                }
+            }
+
+            static AsyncLazy<Solution> CreateLazyFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId)
+                => AsyncLazy.Create(synchronousComputeFunction: cancellationToken => ComputeFrozenSolution(compilationState, documentId, cancellationToken));
+
+            static Solution ComputeFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId, CancellationToken cancellationToken)
+            {
+                var newCompilationState = compilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
+                return new Solution(newCompilationState);
+            }
         }
 
         internal async Task<Solution> WithMergedLinkedFileChangesAsync(
@@ -1520,7 +1584,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Document WithFrozenSourceGeneratedDocument(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)
         {
-            var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocument(documentIdentity, text);
+            var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, text)]);
             var newSolution = newCompilationState != _compilationState
                 ? new Solution(newCompilationState)
                 : this;
@@ -1530,6 +1594,14 @@ namespace Microsoft.CodeAnalysis
 
             var newProject = newSolution.GetRequiredProject(newDocumentState.Id.ProjectId);
             return newProject.GetOrCreateSourceGeneratedDocument(newDocumentState);
+        }
+
+        internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)> documents)
+        {
+            var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments(documents);
+            return newCompilationState != _compilationState
+                ? new Solution(newCompilationState)
+                : this;
         }
 
         /// <summary>

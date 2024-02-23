@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// us to not display it if it has no references, and we don't run into any 
             /// references for it (common with implicitly declared symbols).
             /// </summary>
-            protected readonly List<DefinitionItem> Definitions = new();
+            protected readonly List<DefinitionItem> Definitions = [];
 
             /// <summary>
             /// We will hear about the same definition over and over again.  i.e. for each reference 
@@ -96,8 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// bucket for it.  The first time we hear about a definition we'll make a single task
             /// and then always return that for all future references found.
             /// </summary>
-            private readonly Dictionary<DefinitionItem, RoslynDefinitionBucket> _definitionToBucket =
-                new();
+            private readonly Dictionary<DefinitionItem, RoslynDefinitionBucket> _definitionToBucket = [];
 
             /// <summary>
             /// We want to hide declarations of a symbol if the user is grouping by definition.
@@ -167,9 +166,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected abstract Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken);
             protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken);
             protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken);
-
-            public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-                => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
 
             private static ImmutableArray<string> SelectCustomColumnsToInclude(ImmutableArray<ITableColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
             {
@@ -352,6 +348,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected async Task<Entry?> TryCreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
+                ClassifiedSpansAndHighlightSpan? classifiedSpans,
                 HighlightSpanKind spanKind,
                 SymbolUsageInfo symbolUsageInfo,
                 ImmutableDictionary<string, string> additionalProperties,
@@ -360,7 +357,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var document = documentSpan.Document;
                 var options = _globalOptions.GetClassificationOptions(document.Project.Language);
                 var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, options, cancellationToken).ConfigureAwait(false);
+                var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, classifiedSpans, options, cancellationToken).ConfigureAwait(false);
 
                 var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
                 if (mappedDocumentSpan == null)
@@ -389,7 +386,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             private static async Task<(ExcerptResult, SourceText)> ExcerptAsync(
-                SourceText sourceText, DocumentSpan documentSpan, ClassificationOptions options, CancellationToken cancellationToken)
+                SourceText sourceText, DocumentSpan documentSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, ClassificationOptions options, CancellationToken cancellationToken)
             {
                 var excerptService = documentSpan.Document.Services.GetService<IDocumentExcerptService>();
                 if (excerptService != null)
@@ -401,7 +398,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     }
                 }
 
-                var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, options, cancellationToken).ConfigureAwait(false);
+                var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
+                    documentSpan, classifiedSpans, options, cancellationToken).ConfigureAwait(false);
 
                 // need to fix the span issue tracking here - https://github.com/dotnet/roslyn/issues/31001
                 var excerptResult = new ExcerptResult(
@@ -487,7 +485,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected static DefinitionItem CreateNoResultsDefinitionItem(string message)
                 => DefinitionItem.CreateNonNavigableItem(
                     GlyphTags.GetTags(Glyph.StatusInformation),
-                    ImmutableArray.Create(new TaggedText(TextTags.Text, message)));
+                    [new TaggedText(TextTags.Text, message)]);
 
             #endregion
 

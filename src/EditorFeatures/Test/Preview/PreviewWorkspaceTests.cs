@@ -99,8 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.Equal(0, previewWorkspace.CurrentSolution.Projects.First().DocumentIds.Count);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923121")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923121")]
         public void TestPreviewOpenCloseFile()
         {
             using var previewWorkspace = new PreviewWorkspace();
@@ -138,7 +137,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         public async Task TestPreviewDiagnosticTagger()
         {
             using var workspace = EditorTestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeatures);
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
             using var previewWorkspace = new PreviewWorkspace(workspace.CurrentSolution);
+
+            Assert.True(previewWorkspace.TryApplyChanges(previewWorkspace.CurrentSolution.WithOptions(
+                previewWorkspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             // preview workspace and owner of the solution now share solution and its underlying text buffer
             var hostDocument = workspace.Projects.First().Documents.First();
@@ -161,6 +167,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         {
             // TODO: WPF required due to https://github.com/dotnet/roslyn/issues/46153
             using var workspace = TestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeaturesWpf);
+
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
 
@@ -219,8 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.Equal(0, rightSpans.Count);
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28639")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28639")]
         public void TestPreviewWorkspaceDoesNotLeakSolution()
         {
             // Verify that analyzer execution doesn't leak solution instances from the preview workspace.
@@ -243,8 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             solutionObjectReference.AssertReleased();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/pull/67142")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/67142")]
         public void TestPreviewWorkspaceDoesNotLeakItself()
         {
             var composition = EditorTestCompositions.EditorFeatures;

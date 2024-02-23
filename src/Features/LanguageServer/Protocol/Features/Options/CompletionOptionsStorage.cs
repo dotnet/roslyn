@@ -14,7 +14,15 @@ internal static class CompletionOptionsStorage
         {
             TriggerOnTyping = options.GetOption(TriggerOnTyping, language),
             TriggerOnTypingLetters = options.GetOption(TriggerOnTypingLetters, language),
-            TriggerOnDeletion = options.GetOption(TriggerOnDeletion, language),
+            TriggerOnDeletion = language switch
+            {
+                LanguageNames.CSharp => options.GetOption(TriggerOnTypingLetters, language) && options.GetOption(TriggerOnDeletion, language) is true,
+                // If the option is null (i.e. default) or 'true', then we want to trigger completion.
+                // Only if the option is false do we not want to trigger.
+                LanguageNames.VisualBasic => options.GetOption(TriggerOnDeletion, language) is not false,
+                // Other languages might want to get completion options, like Razor, just forward the call to option service when it happens.
+                _ => options.GetOption(TriggerOnDeletion, language),
+            },
             TriggerInArgumentLists = options.GetOption(TriggerInArgumentLists, language),
             EnterKeyBehavior = options.GetOption(EnterKeyBehavior, language),
             SnippetsBehavior = options.GetOption(SnippetsBehavior, language),

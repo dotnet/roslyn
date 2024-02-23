@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteString(options.CryptoKeyContainer);
             writer.WriteString(options.CryptoKeyFile);
 
-            writer.WriteValue(options.CryptoPublicKey.AsSpan());
+            writer.WriteSpan(options.CryptoPublicKey.AsSpan());
             writer.WriteBoolean(options.DelaySign.HasValue);
             if (options.DelaySign.HasValue)
             {
@@ -73,57 +73,57 @@ namespace Microsoft.CodeAnalysis.Serialization
             // StrongNameProvider strongNameProvider
         }
 
-        protected static void ReadCompilationOptionsFrom(
+        protected static (
+            OutputKind outputKind,
+            bool reportSuppressedDiagnostics,
+            string moduleName,
+            string mainTypeName,
+            string scriptClassName,
+            OptimizationLevel optimizationLevel,
+            bool checkOverflow,
+            string cryptoKeyContainer,
+            string cryptoKeyFile,
+            ImmutableArray<byte> cryptoPublicKey,
+            bool? delaySign,
+            Platform platform,
+            ReportDiagnostic generalDiagnosticOption,
+            int warningLevel,
+            IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
+            bool concurrentBuild,
+            bool deterministic,
+            bool publicSign,
+            MetadataImportOptions metadataImportOptions,
+            XmlReferenceResolver xmlReferenceResolver,
+            SourceReferenceResolver sourceReferenceResolver,
+            MetadataReferenceResolver metadataReferenceResolver,
+            AssemblyIdentityComparer assemblyIdentityComparer,
+            StrongNameProvider strongNameProvider) ReadCompilationOptionsPieces(
             ObjectReader reader,
-            out OutputKind outputKind,
-            out bool reportSuppressedDiagnostics,
-            out string moduleName,
-            out string mainTypeName,
-            out string scriptClassName,
-            out OptimizationLevel optimizationLevel,
-            out bool checkOverflow,
-            out string cryptoKeyContainer,
-            out string cryptoKeyFile,
-            out ImmutableArray<byte> cryptoPublicKey,
-            out bool? delaySign,
-            out Platform platform,
-            out ReportDiagnostic generalDiagnosticOption,
-            out int warningLevel,
-            out IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
-            out bool concurrentBuild,
-            out bool deterministic,
-            out bool publicSign,
-            out MetadataImportOptions metadataImportOptions,
-            out XmlReferenceResolver xmlReferenceResolver,
-            out SourceReferenceResolver sourceReferenceResolver,
-            out MetadataReferenceResolver metadataReferenceResolver,
-            out AssemblyIdentityComparer assemblyIdentityComparer,
-            out StrongNameProvider strongNameProvider,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            outputKind = (OutputKind)reader.ReadInt32();
-            reportSuppressedDiagnostics = reader.ReadBoolean();
-            moduleName = reader.ReadString();
-            mainTypeName = reader.ReadString();
+            var outputKind = (OutputKind)reader.ReadInt32();
+            var reportSuppressedDiagnostics = reader.ReadBoolean();
+            var moduleName = reader.ReadString();
+            var mainTypeName = reader.ReadString();
 
-            scriptClassName = reader.ReadString();
-            optimizationLevel = (OptimizationLevel)reader.ReadInt32();
-            checkOverflow = reader.ReadBoolean();
+            var scriptClassName = reader.ReadString();
+            var optimizationLevel = (OptimizationLevel)reader.ReadInt32();
+            var checkOverflow = reader.ReadBoolean();
 
             // REVIEW: is it okay this being not part of snapshot?
-            cryptoKeyContainer = reader.ReadString();
-            cryptoKeyFile = reader.ReadString();
+            var cryptoKeyContainer = reader.ReadString();
+            var cryptoKeyFile = reader.ReadString();
 
-            cryptoPublicKey = reader.ReadArray<byte>().ToImmutableArrayOrEmpty();
+            var cryptoPublicKey = reader.ReadByteArray().ToImmutableArrayOrEmpty();
 
-            delaySign = reader.ReadBoolean() ? reader.ReadBoolean() : null;
+            bool? delaySign = reader.ReadBoolean() ? reader.ReadBoolean() : null;
 
-            platform = (Platform)reader.ReadInt32();
-            generalDiagnosticOption = (ReportDiagnostic)reader.ReadInt32();
+            var platform = (Platform)reader.ReadInt32();
+            var generalDiagnosticOption = (ReportDiagnostic)reader.ReadInt32();
 
-            warningLevel = reader.ReadInt32();
+            var warningLevel = reader.ReadInt32();
 
             // REVIEW: I don't think there is a guarantee on ordering of elements in the immutable dictionary.
             //         unfortunately, we need to sort them to make it deterministic
@@ -145,21 +145,46 @@ namespace Microsoft.CodeAnalysis.Serialization
                 }
             }
 
-            specificDiagnosticOptions = specificDiagnosticOptionsList ?? SpecializedCollections.EmptyEnumerable<KeyValuePair<string, ReportDiagnostic>>();
+            var specificDiagnosticOptions = specificDiagnosticOptionsList ?? SpecializedCollections.EmptyEnumerable<KeyValuePair<string, ReportDiagnostic>>();
 
-            concurrentBuild = reader.ReadBoolean();
-            deterministic = reader.ReadBoolean();
-            publicSign = reader.ReadBoolean();
+            var concurrentBuild = reader.ReadBoolean();
+            var deterministic = reader.ReadBoolean();
+            var publicSign = reader.ReadBoolean();
 
-            metadataImportOptions = (MetadataImportOptions)reader.ReadByte();
+            var metadataImportOptions = (MetadataImportOptions)reader.ReadByte();
 
             // REVIEW: What should I do with these. are these service required when compilation is built ourselves, not through
             //         compiler.
-            xmlReferenceResolver = XmlFileResolver.Default;
-            sourceReferenceResolver = SourceFileResolver.Default;
-            metadataReferenceResolver = null;
-            assemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default;
-            strongNameProvider = new DesktopStrongNameProvider();
+            var xmlReferenceResolver = XmlFileResolver.Default;
+            var sourceReferenceResolver = SourceFileResolver.Default;
+            var assemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default;
+            var strongNameProvider = new DesktopStrongNameProvider();
+
+            return (
+                outputKind,
+                reportSuppressedDiagnostics,
+                moduleName,
+                mainTypeName,
+                scriptClassName,
+                optimizationLevel,
+                checkOverflow,
+                cryptoKeyContainer,
+                cryptoKeyFile,
+                cryptoPublicKey,
+                delaySign,
+                platform,
+                generalDiagnosticOption,
+                warningLevel,
+                specificDiagnosticOptions,
+                concurrentBuild,
+                deterministic,
+                publicSign,
+                metadataImportOptions,
+                xmlReferenceResolver,
+                sourceReferenceResolver,
+                metadataReferenceResolver: null,
+                assemblyIdentityComparer,
+                strongNameProvider);
         }
 
         protected static void WriteParseOptionsTo(ParseOptions options, ObjectWriter writer)
@@ -177,17 +202,14 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        protected static void ReadParseOptionsFrom(
+        protected static (SourceCodeKind kind, DocumentationMode documentationMode, IEnumerable<KeyValuePair<string, string>> features) ReadParseOptionsPieces(
             ObjectReader reader,
-            out SourceCodeKind kind,
-            out DocumentationMode documentationMode,
-            out IEnumerable<KeyValuePair<string, string>> features,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            kind = (SourceCodeKind)reader.ReadInt32();
-            documentationMode = (DocumentationMode)reader.ReadInt32();
+            var kind = (SourceCodeKind)reader.ReadInt32();
+            var documentationMode = (DocumentationMode)reader.ReadInt32();
 
             // REVIEW: I don't think there is a guarantee on ordering of elements in the immutable dictionary.
             //         unfortunately, we need to sort them to make it deterministic
@@ -209,7 +231,8 @@ namespace Microsoft.CodeAnalysis.Serialization
                 }
             }
 
-            features = featuresList ?? SpecializedCollections.EmptyEnumerable<KeyValuePair<string, string>>();
+            var features = featuresList ?? SpecializedCollections.EmptyEnumerable<KeyValuePair<string, string>>();
+            return (kind, documentationMode, features);
         }
     }
 }

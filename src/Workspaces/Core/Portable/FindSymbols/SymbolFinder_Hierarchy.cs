@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken, ErrorSeverity.Diagnostic))
             {
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ISymbol symbol, Solution solution, IImmutableSet<Project>? projects = null, CancellationToken cancellationToken = default)
         {
             if (!symbol.IsImplementableMember())
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             var containingType = symbol.ContainingType.OriginalDefinition;
 

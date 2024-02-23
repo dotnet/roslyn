@@ -22,12 +22,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static class ObjectReaderExtensions
     {
         public static ImmutableArray<T> ReadArray<T>(this ObjectReader reader, Func<ObjectReader, T> read)
+            => ReadArray(reader, static (reader, read) => read(reader), read);
+
+        public static ImmutableArray<T> ReadArray<T, TArg>(this ObjectReader reader, Func<ObjectReader, TArg, T> read, TArg arg)
         {
             var length = reader.ReadInt32();
             using var _ = ArrayBuilder<T>.GetInstance(length, out var builder);
 
             for (var i = 0; i < length; i++)
-                builder.Add(read(reader));
+                builder.Add(read(reader, arg));
 
             return builder.ToImmutableAndClear();
         }

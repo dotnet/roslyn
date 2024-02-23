@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         removeCalleeDeclarationNode: false, cancellationToken: cancellationToken),
                 nameof(FeaturesResources.Inline_and_keep_0) + "_" + calleeMethodName);
 
-            return ImmutableArray.Create<CodeAction>(codeActionRemovesCallee, codeActionKeepsCallee);
+            return [codeActionRemovesCallee, codeActionKeepsCallee];
         }
 
         private async Task<Solution> InlineMethodAsync(Document document,

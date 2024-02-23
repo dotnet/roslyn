@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 
         private readonly DateAndTimeEmbeddedLanguage _language = language;
 
-        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('"', ':');
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ['"', ':'];
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger)
         {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                 return SpecializedTasks.Null<CompletionDescription>();
 
             return Task.FromResult((CompletionDescription?)CompletionDescription.Create(
-                ImmutableArray.Create(new TaggedText(TextTags.Text, description))));
+                [new TaggedText(TextTags.Text, description)]));
         }
     }
 }

@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         sb.Append(fieldName);
                         sb.Append(" = {");
                         sb.Append(fieldName);
-                        sb.Append("}");
+                        sb.Append('}');
                     }
 
                     if (this.Properties.Length > displayCount)

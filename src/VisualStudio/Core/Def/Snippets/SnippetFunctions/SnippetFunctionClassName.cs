@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
     {
         protected readonly string FieldName;
 
-        public SnippetFunctionClassName(AbstractSnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, string fieldName, IThreadingContext threadingContext)
+        public SnippetFunctionClassName(SnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, string fieldName, IThreadingContext threadingContext)
             : base(snippetExpansionClient, subjectBuffer, threadingContext)
         {
             this.FieldName = fieldName;

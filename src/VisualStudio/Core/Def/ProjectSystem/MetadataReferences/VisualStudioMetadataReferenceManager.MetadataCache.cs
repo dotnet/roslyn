@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly object _gate = new();
 
             // value is ValueSource so that how metadata is re-acquired back are different per entry. 
-            private readonly Dictionary<FileKey, AssemblyMetadata> _metadataCache = new();
+            private readonly Dictionary<FileKey, AssemblyMetadata> _metadataCache = [];
 
             public bool TryGetMetadata(FileKey key, [NotNullWhen(true)] out AssemblyMetadata? metadata)
             {

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor
         public readonly SolutionChangeSummary? ChangeSummary = changeSummary;
 
         public SolutionPreviewResult(IThreadingContext threadingContext, SolutionPreviewItem preview, SolutionChangeSummary? changeSummary = null)
-            : this(threadingContext, new List<SolutionPreviewItem> { preview }, changeSummary)
+            : this(threadingContext, [preview], changeSummary)
         {
         }
 

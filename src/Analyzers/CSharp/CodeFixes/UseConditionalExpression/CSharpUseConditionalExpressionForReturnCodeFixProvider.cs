@@ -38,11 +38,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
             if (ifStatement.Parent is ElseClauseSyntax &&
                 ifStatement.Statement is BlockSyntax block)
             {
-                return block.WithStatements(SyntaxFactory.SingletonList(statement))
+                return block.WithStatements([statement])
                             .WithAdditionalAnnotations(Formatter.Annotation);
             }
 
             return statement;
+        }
+
+        protected override SyntaxNode WrapIfStatementIfNecessary(IConditionalOperation operation)
+        {
+            if (operation.Syntax is IfStatementSyntax { Condition: CheckedExpressionSyntax exp })
+                return exp;
+
+            return base.WrapIfStatementIfNecessary(operation);
+        }
+
+        protected override ExpressionSyntax WrapReturnExpressionIfNecessary(ExpressionSyntax returnExpression, IOperation returnOperation)
+        {
+            if (returnOperation.Syntax is ReturnStatementSyntax { Expression: CheckedExpressionSyntax exp })
+                return exp;
+
+            return base.WrapReturnExpressionIfNecessary(returnExpression, returnOperation);
         }
 
         protected override ExpressionSyntax ConvertToExpression(IThrowOperation throwOperation)

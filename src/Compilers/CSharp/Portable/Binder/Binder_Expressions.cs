@@ -3182,13 +3182,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Reports an error when a bad special by-ref local was found.
         /// </summary>
-        internal static void CheckRestrictedTypeInAsyncMethod(Symbol containingSymbol, TypeSymbol type, BindingDiagnosticBag diagnostics, SyntaxNode syntax, bool forUsingExpression = false)
+        internal static void CheckRestrictedTypeInAsyncMethod(Symbol containingSymbol, TypeSymbol type, BindingDiagnosticBag diagnostics, SyntaxNode syntax, ErrorCode errorCode = ErrorCode.ERR_BadSpecialByRefLocal)
         {
+            Debug.Assert(errorCode is ErrorCode.ERR_BadSpecialByRefLocal or ErrorCode.ERR_BadSpecialByRefUsing or ErrorCode.ERR_BadSpecialByRefLock);
             if (containingSymbol.Kind == SymbolKind.Method
                 && ((MethodSymbol)containingSymbol).IsAsync
                 && type.IsRestrictedType())
             {
-                Error(diagnostics, forUsingExpression ? ErrorCode.ERR_BadSpecialByRefUsing : ErrorCode.ERR_BadSpecialByRefLocal, syntax, type);
+                if (errorCode == ErrorCode.ERR_BadSpecialByRefLock)
+                {
+                    Error(diagnostics, errorCode, syntax);
+                }
+                else
+                {
+                    Error(diagnostics, errorCode, syntax, type);
+                }
             }
         }
 
@@ -5819,7 +5827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindCollectionInitializerElementAddMethod(
-            ExpressionSyntax elementInitializer,
+            SyntaxNode elementInitializer,
             ImmutableArray<BoundExpression> boundElementInitializerExpressions,
             bool hasEnumerableInitializerType,
             Binder collectionInitializerAddMethodBinder,
@@ -5937,31 +5945,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal BoundNode BindCollectionExpressionElementAddMethod(
-            BoundNode element,
-            Binder collectionInitializerAddMethodBinder,
-            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
-            BindingDiagnosticBag diagnostics,
-            out bool hasErrors)
-        {
-            var result = element is BoundCollectionExpressionSpreadElement spreadElement ?
-                (BoundNode)BindCollectionExpressionSpreadElementAddMethod(
-                    (SpreadElementSyntax)spreadElement.Syntax,
-                    spreadElement,
-                    collectionInitializerAddMethodBinder,
-                    implicitReceiver,
-                    diagnostics) :
-                BindCollectionInitializerElementAddMethod(
-                    (ExpressionSyntax)element.Syntax,
-                    ImmutableArray.Create((BoundExpression)element),
-                    hasEnumerableInitializerType: true,
-                    collectionInitializerAddMethodBinder,
-                    diagnostics,
-                    implicitReceiver);
-            hasErrors = result.HasErrors;
-            return result;
-        }
-
         private BoundCollectionExpressionSpreadElement BindCollectionExpressionSpreadElementAddMethod(
             SpreadElementSyntax syntax,
             BoundCollectionExpressionSpreadElement element,

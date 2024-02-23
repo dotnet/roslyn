@@ -263,7 +263,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             // having to be converting to the same delegate type.
-            return Equals(originalDelegateCreationOperation.Type, rewrittenDelegateCreationOperation.Type);
+            if (!Equals(originalDelegateCreationOperation.Type, rewrittenDelegateCreationOperation.Type))
+                return false;
+
+            // If there are two conversions applied on the same node, ensure both are legal.
+            if (originalDelegateCreationOperation.Parent is IConversionOperation conversionOperation &&
+                conversionOperation.Syntax == castNode &&
+                !IsConversionCastSafeToRemove(castNode, castedExpressionNode, originalSemanticModel, conversionOperation, cancellationToken))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static bool IsConversionCastSafeToRemove(
@@ -314,6 +325,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // fail as 'null' cannot be converted to an unconstrained generic type.
             var isNullLiteralCast = castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression);
             if (isNullLiteralCast && !originalConvertedType.IsReferenceType && !originalConvertedType.IsNullable())
+                return false;
+
+            // SomeType s = (Action)(() => {});  // Where there's a user defined conversion from Action->SomeType.
+            //
+            // This cast is necessary.  The language does not allow lambdas to be directly converted to the destination
+            // type without explicitly stating the intermediary reified delegate type.
+            var isAnonymousFunctionCast = castedExpressionNode.WalkDownParentheses() is AnonymousFunctionExpressionSyntax;
+            if (isAnonymousFunctionCast && originalConversion.IsUserDefined)
                 return false;
 
             // So far, this looks potentially possible to remove.  Now, actually do the removal and get the

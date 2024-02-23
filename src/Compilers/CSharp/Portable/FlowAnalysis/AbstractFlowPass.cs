@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result.Append(name).Append(": ").Append(this.Dump(_labels[key]));
                 first = false;
             }
-            result.Append("}");
+            result.Append('}');
             return result.ToString();
         }
 #endif
@@ -1607,7 +1607,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void SplitIfBooleanConstant(BoundExpression node)
         {
-            if (node.ConstantValueOpt is { IsBoolean: true, BooleanValue: bool booleanValue })
+            if (node.ConstantValueOpt is { IsBoolean: true, BooleanValue: bool booleanValue }
+                && node.Type.SpecialType == SpecialType.System_Boolean)
             {
                 var unreachable = UnreachableState();
                 Split();

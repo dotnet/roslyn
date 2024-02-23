@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 #endif
     public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor : AbstractUserDiagnosticTest_NoEditor
     {
-        private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap = new();
+        private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap = [];
 
         protected AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor(ITestOutputHelper logger)
            : base(logger)
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             if (fixer == null)
             {
-                return (diagnostics, ImmutableArray<CodeAction>.Empty, null);
+                return (diagnostics, [], null);
             }
 
             var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
