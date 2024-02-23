@@ -19,23 +19,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The implementation of a value set for an numeric type <typeparamref name="T"/>.
         /// </summary>
-        private sealed class NumericValueSet<T, TTC> : IValueSet<T> where TTC : struct, INumericTC<T>
+        private sealed class NumericValueSet<T, TTC> : IValueSet<T> where TTC : class, INumericTC<T>
         {
             private readonly ImmutableArray<(T first, T last)> _intervals;
+            private readonly TTC _tc;
+            private readonly NumericValueSetFactory<T, TTC> _numericValueSetFactory;
 
-            public static readonly NumericValueSet<T, TTC> AllValues = new NumericValueSet<T, TTC>(default(TTC).MinValue, default(TTC).MaxValue);
+            public static NumericValueSet<T, TTC> AllValues(TTC tc) => new NumericValueSet<T, TTC>(tc.MinValue, tc.MaxValue, tc);
 
-            public static readonly NumericValueSet<T, TTC> NoValues = new NumericValueSet<T, TTC>(ImmutableArray<(T first, T last)>.Empty);
+            public static NumericValueSet<T, TTC> NoValues(TTC tc) => new NumericValueSet<T, TTC>(ImmutableArray<(T first, T last)>.Empty, tc);
 
-            internal NumericValueSet(T first, T last) : this(ImmutableArray.Create((first, last)))
+            internal NumericValueSet(T first, T last, TTC tc) : this(ImmutableArray.Create((first, last)), tc)
             {
-                Debug.Assert(default(TTC).Related(LessThanOrEqual, first, last));
+                Debug.Assert(tc.Related(LessThanOrEqual, first, last));
             }
 
-            internal NumericValueSet(ImmutableArray<(T first, T last)> intervals)
+            internal NumericValueSet(ImmutableArray<(T first, T last)> intervals, TTC tc)
             {
 #if DEBUG
-                TTC tc = default;
                 Debug.Assert(intervals.Length == 0 || tc.Related(GreaterThanOrEqual, intervals[0].first, tc.MinValue));
                 for (int i = 0, n = intervals.Length; i < n; i++)
                 {
@@ -48,6 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 #endif
                 _intervals = intervals;
+                _tc = tc;
+                _numericValueSetFactory = new NumericValueSetFactory<T, TTC>(tc);
             }
 
             public bool IsEmpty => _intervals.Length == 0;
@@ -60,26 +63,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw new ArgumentException();
 
                     // Prefer a value near zero.
-                    var tc = default(TTC);
-                    var gz = NumericValueSetFactory<T, TTC>.Instance.Related(BinaryOperatorKind.GreaterThanOrEqual, tc.Zero);
+                    var gz = new NumericValueSetFactory<T, TTC>(_tc).Related(BinaryOperatorKind.GreaterThanOrEqual, _tc.Zero);
                     var t = (NumericValueSet<T, TTC>)this.Intersect(gz);
                     if (!t.IsEmpty)
-                        return tc.ToConstantValue(t._intervals[0].first);
-                    return tc.ToConstantValue(this._intervals[this._intervals.Length - 1].last);
+                        return _tc.ToConstantValue(t._intervals[0].first);
+                    return _tc.ToConstantValue(this._intervals[this._intervals.Length - 1].last);
                 }
             }
 
             public bool Any(BinaryOperatorKind relation, T value)
             {
-                TTC tc = default;
                 switch (relation)
                 {
                     case LessThan:
                     case LessThanOrEqual:
-                        return _intervals.Length > 0 && tc.Related(relation, _intervals[0].first, value);
+                        return _intervals.Length > 0 && _tc.Related(relation, _intervals[0].first, value);
                     case GreaterThan:
                     case GreaterThanOrEqual:
-                        return _intervals.Length > 0 && tc.Related(relation, _intervals[_intervals.Length - 1].last, value);
+                        return _intervals.Length > 0 && _tc.Related(relation, _intervals[_intervals.Length - 1].last, value);
                     case Equal:
                         return anyIntervalContains(0, _intervals.Length - 1, value);
                     default:
@@ -94,10 +95,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return false;
 
                         if (lastIntervalIndex == firstIntervalIndex)
-                            return tc.Related(GreaterThanOrEqual, value, _intervals[lastIntervalIndex].first) && tc.Related(LessThanOrEqual, value, _intervals[lastIntervalIndex].last);
+                            return _tc.Related(GreaterThanOrEqual, value, _intervals[lastIntervalIndex].first) && _tc.Related(LessThanOrEqual, value, _intervals[lastIntervalIndex].last);
 
                         int midIndex = firstIntervalIndex + (lastIntervalIndex - firstIntervalIndex) / 2;
-                        if (tc.Related(LessThanOrEqual, value, _intervals[midIndex].last))
+                        if (_tc.Related(LessThanOrEqual, value, _intervals[midIndex].last))
                             lastIntervalIndex = midIndex;
                         else
                             firstIntervalIndex = midIndex + 1;
@@ -105,74 +106,64 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool IValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || Any(relation, default(TTC).FromConstantValue(value));
+            bool IValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || Any(relation, _tc.FromConstantValue(value));
 
             public bool All(BinaryOperatorKind relation, T value)
             {
                 if (_intervals.Length == 0)
                     return true;
 
-                TTC tc = default;
                 switch (relation)
                 {
                     case LessThan:
                     case LessThanOrEqual:
-                        return tc.Related(relation, _intervals[_intervals.Length - 1].last, value);
+                        return _tc.Related(relation, _intervals[_intervals.Length - 1].last, value);
                     case GreaterThan:
                     case GreaterThanOrEqual:
-                        return tc.Related(relation, _intervals[0].first, value);
+                        return _tc.Related(relation, _intervals[0].first, value);
                     case Equal:
-                        return _intervals.Length == 1 && tc.Related(Equal, _intervals[0].first, value) && tc.Related(Equal, _intervals[0].last, value);
+                        return _intervals.Length == 1 && _tc.Related(Equal, _intervals[0].first, value) && _tc.Related(Equal, _intervals[0].last, value);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(relation);
                 }
             }
 
-            bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => !value.IsBad && All(relation, default(TTC).FromConstantValue(value));
+            bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => !value.IsBad && All(relation, _tc.FromConstantValue(value));
 
             public IValueSet<T> Complement()
             {
                 if (_intervals.Length == 0)
-                    return AllValues;
+                    return AllValues(_tc);
 
-                TTC tc = default;
                 var builder = ArrayBuilder<(T first, T last)>.GetInstance();
 
                 // add a prefix if apropos.
-                if (tc.Related(LessThan, tc.MinValue, _intervals[0].first))
+                if (_tc.Related(LessThan, _tc.MinValue, _intervals[0].first))
                 {
-                    builder.Add((tc.MinValue, tc.Prev(_intervals[0].first)));
+                    builder.Add((_tc.MinValue, _tc.Prev(_intervals[0].first)));
                 }
 
                 // add the in-between intervals
                 int lastIndex = _intervals.Length - 1;
                 for (int i = 0; i < lastIndex; i++)
                 {
-                    builder.Add((tc.Next(_intervals[i].last), tc.Prev(_intervals[i + 1].first)));
+                    builder.Add((_tc.Next(_intervals[i].last), _tc.Prev(_intervals[i + 1].first)));
                 }
 
                 // add a suffix if apropos
-                if (tc.Related(LessThan, _intervals[lastIndex].last, tc.MaxValue))
+                if (_tc.Related(LessThan, _intervals[lastIndex].last, _tc.MaxValue))
                 {
-                    builder.Add((tc.Next(_intervals[lastIndex].last), tc.MaxValue));
+                    builder.Add((_tc.Next(_intervals[lastIndex].last), _tc.MaxValue));
                 }
 
-                return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree());
+                return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree(), _tc);
             }
 
             IValueSet IValueSet.Complement() => this.Complement();
 
             public IValueSet<T> Intersect(IValueSet<T> o)
             {
-                // We use non-negative integers for Count/Length on types that list-patterns can be used on (ie.countable and indexable ones).
-                // But we need to upgrade them to regular integers to perform operations against full integer sets.
-                if (this is NumericValueSet<int, NonNegativeIntTC> nonNegativeThis && o is NumericValueSet<int, IntTC>)
-                {
-                    return ((IValueSet<T>)ExpandToIntegerRange(nonNegativeThis)).Intersect(o);
-                }
-
                 var other = (NumericValueSet<T, TTC>)o;
-                TTC tc = default;
                 var builder = ArrayBuilder<(T first, T last)>.GetInstance();
                 var left = this._intervals;
                 var right = other._intervals;
@@ -182,22 +173,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var leftInterval = left[l];
                     var rightInterval = right[r];
-                    if (tc.Related(LessThan, leftInterval.last, rightInterval.first))
+                    if (_tc.Related(LessThan, leftInterval.last, rightInterval.first))
                     {
                         l++;
                     }
-                    else if (tc.Related(LessThan, rightInterval.last, leftInterval.first))
+                    else if (_tc.Related(LessThan, rightInterval.last, leftInterval.first))
                     {
                         r++;
                     }
                     else
                     {
-                        Add(builder, Max(leftInterval.first, rightInterval.first), Min(leftInterval.last, rightInterval.last));
-                        if (tc.Related(LessThan, leftInterval.last, rightInterval.last))
+                        Add(builder, Max(leftInterval.first, rightInterval.first, _tc), Min(leftInterval.last, rightInterval.last, _tc), _tc);
+                        if (_tc.Related(LessThan, leftInterval.last, rightInterval.last))
                         {
                             l++;
                         }
-                        else if (tc.Related(LessThan, rightInterval.last, leftInterval.last))
+                        else if (_tc.Related(LessThan, rightInterval.last, leftInterval.last))
                         {
                             r++;
                         }
@@ -209,21 +200,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree());
+                return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree(), _tc);
 
-            }
-
-            private static IValueSet<int> ExpandToIntegerRange(NumericValueSet<int, NonNegativeIntTC> nonNegativeThis)
-            {
-                return new NumericValueSet<int, IntTC>(nonNegativeThis._intervals);
             }
 
             /// <summary>
             /// Add an interval to the end of the builder.
             /// </summary>
-            private static void Add(ArrayBuilder<(T first, T last)> builder, T first, T last)
+            private static void Add(ArrayBuilder<(T first, T last)> builder, T first, T last, TTC tc)
             {
-                TTC tc = default;
                 Debug.Assert(tc.Related(LessThanOrEqual, first, last));
                 Debug.Assert(tc.Related(GreaterThanOrEqual, first, tc.MinValue));
                 Debug.Assert(tc.Related(LessThanOrEqual, last, tc.MaxValue));
@@ -232,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // merge with previous interval when adjacent
                     var oldLastInterval = builder.Pop();
-                    oldLastInterval.last = Max(last, oldLastInterval.last);
+                    oldLastInterval.last = Max(last, oldLastInterval.last, tc);
                     builder.Push(oldLastInterval);
                 }
                 else
@@ -240,15 +225,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add((first, last));
                 }
             }
-            private static T Min(T a, T b)
+            private static T Min(T a, T b, TTC tc)
             {
-                TTC tc = default;
                 return tc.Related(LessThan, a, b) ? a : b;
             }
 
-            private static T Max(T a, T b)
+            private static T Max(T a, T b, TTC tc)
             {
-                TTC tc = default;
                 return tc.Related(LessThan, a, b) ? b : a;
             }
 
@@ -256,15 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public IValueSet<T> Union(IValueSet<T> o)
             {
-                // We use non-negative integers for Count/Length on types that list-patterns can be used on (ie.countable and indexable ones).
-                // But we need to upgrade them to regular integers to perform operations against full integer sets.
-                if (o is NumericValueSet<int, NonNegativeIntTC> nonNegativeOther && this is NumericValueSet<int, IntTC>)
-                {
-                    return ((IValueSet<T>)ExpandToIntegerRange(nonNegativeOther)).Union(this);
-                }
-
                 var other = (NumericValueSet<T, TTC>)o;
-                TTC tc = default;
                 var builder = ArrayBuilder<(T first, T last)>.GetInstance();
                 var left = this._intervals;
                 var right = other._intervals;
@@ -274,19 +249,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var leftInterval = left[l];
                     var rightInterval = right[r];
-                    if (tc.Related(LessThan, leftInterval.last, rightInterval.first))
+                    if (_tc.Related(LessThan, leftInterval.last, rightInterval.first))
                     {
-                        Add(builder, leftInterval.first, leftInterval.last);
+                        Add(builder, leftInterval.first, leftInterval.last, _tc);
                         l++;
                     }
-                    else if (tc.Related(LessThan, rightInterval.last, leftInterval.first))
+                    else if (_tc.Related(LessThan, rightInterval.last, leftInterval.first))
                     {
-                        Add(builder, rightInterval.first, rightInterval.last);
+                        Add(builder, rightInterval.first, rightInterval.last, _tc);
                         r++;
                     }
                     else
                     {
-                        Add(builder, Min(leftInterval.first, rightInterval.first), Max(leftInterval.last, rightInterval.last));
+                        Add(builder, Min(leftInterval.first, rightInterval.first, _tc), Max(leftInterval.last, rightInterval.last, _tc), _tc);
                         l++;
                         r++;
                     }
@@ -295,18 +270,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 while (l < left.Length)
                 {
                     var leftInterval = left[l];
-                    Add(builder, leftInterval.first, leftInterval.last);
+                    Add(builder, leftInterval.first, leftInterval.last, _tc);
                     l++;
                 }
 
                 while (r < right.Length)
                 {
                     var rightInterval = right[r];
-                    Add(builder, rightInterval.first, rightInterval.last);
+                    Add(builder, rightInterval.first, rightInterval.last, _tc);
                     r++;
                 }
 
-                return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree());
+                return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree(), _tc);
             }
 
             IValueSet IValueSet.Union(IValueSet other) => this.Union((IValueSet<T>)other);
@@ -314,9 +289,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Produce a random value set for testing purposes.
             /// </summary>
-            internal static IValueSet<T> Random(int expectedSize, Random random)
+            internal static IValueSet<T> Random(int expectedSize, Random random, TTC tc)
             {
-                TTC tc = default;
                 T[] values = new T[expectedSize * 2];
                 for (int i = 0, n = expectedSize * 2; i < n; i++)
                 {
@@ -328,10 +302,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     T first = values[i];
                     T last = values[i + 1];
-                    Add(builder, first, last);
+                    Add(builder, first, last, tc);
                 }
 
-                return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree());
+                return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree(), tc);
             }
 
             /// <summary>
@@ -339,8 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public override string ToString()
             {
-                TTC tc = default;
-                return string.Join(",", this._intervals.Select(p => $"[{tc.ToString(p.first)}..{tc.ToString(p.last)}]"));
+                return string.Join(",", this._intervals.Select(p => $"[{_tc.ToString(p.first)}..{_tc.ToString(p.last)}]"));
             }
 
             public override bool Equals(object? obj) =>

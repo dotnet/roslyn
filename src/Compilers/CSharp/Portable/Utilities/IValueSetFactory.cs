@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The set containing all values of the type.
         /// </summary>
-        IValueSet AllValues { get; }
+        IValueSet AllValues { get; } // TODO2
 
         /// <summary>
         /// The empty set of values.

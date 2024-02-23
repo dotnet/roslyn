@@ -15,36 +15,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public static readonly NonNegativeIntValueSetFactory Instance = new NonNegativeIntValueSetFactory();
 
-            private NonNegativeIntValueSetFactory() { }
+            private readonly IValueSetFactory<int> _underlying = new NumericValueSetFactory<int, IntTC>(IntTC.NonNegativeInstance);
 
-            private readonly IValueSetFactory<int> _underlying = NumericValueSetFactory<int, NonNegativeIntTC>.Instance;
+            public IValueSet AllValues => NumericValueSet<int, IntTC>.AllValues(IntTC.NonNegativeInstance);
 
-            public IValueSet AllValues => NumericValueSet<int, NonNegativeIntTC>.AllValues;
-
-            public IValueSet NoValues => NumericValueSet<int, NonNegativeIntTC>.NoValues;
+            public IValueSet NoValues => NumericValueSet<int, IntTC>.NoValues(IntTC.NonNegativeInstance);
 
             public IValueSet<int> Related(BinaryOperatorKind relation, int value)
             {
+                var tc = IntTC.NonNegativeInstance;
                 switch (relation)
                 {
                     case LessThan:
                         if (value <= 0)
-                            return NumericValueSet<int, NonNegativeIntTC>.NoValues;
-                        return new NumericValueSet<int, NonNegativeIntTC>(0, value - 1);
+                            return NumericValueSet<int, IntTC>.NoValues(tc);
+                        return new NumericValueSet<int, IntTC>(0, value - 1, tc);
                     case LessThanOrEqual:
                         if (value < 0)
-                            return NumericValueSet<int, NonNegativeIntTC>.NoValues;
-                        return new NumericValueSet<int, NonNegativeIntTC>(0, value);
+                            return NumericValueSet<int, IntTC>.NoValues(tc);
+                        return new NumericValueSet<int, IntTC>(0, value, tc);
                     case GreaterThan:
                         if (value == int.MaxValue)
-                            return NumericValueSet<int, NonNegativeIntTC>.NoValues;
-                        return new NumericValueSet<int, NonNegativeIntTC>(Math.Max(0, value + 1), int.MaxValue);
+                            return NumericValueSet<int, IntTC>.NoValues(tc);
+                        return new NumericValueSet<int, IntTC>(Math.Max(0, value + 1), int.MaxValue, tc);
                     case GreaterThanOrEqual:
-                        return new NumericValueSet<int, NonNegativeIntTC>(Math.Max(0, value), int.MaxValue);
+                        return new NumericValueSet<int, IntTC>(Math.Max(0, value), int.MaxValue, tc);
                     case Equal:
                         if (value < 0)
-                            return NumericValueSet<int, NonNegativeIntTC>.NoValues;
-                        return new NumericValueSet<int, NonNegativeIntTC>(value, value);
+                            return NumericValueSet<int, IntTC>.NoValues(tc);
+                        return new NumericValueSet<int, IntTC>(value, value, tc);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(relation);
                 }
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue IValueSetFactory.RandomValue(Random random) => _underlying.RandomValue(random);
 
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
-                value.IsBad ? AllValues : Related(relation, default(NonNegativeIntTC).FromConstantValue(value));
+                value.IsBad ? AllValues : Related(relation, IntTC.NonNegativeInstance.FromConstantValue(value));
 
             bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right) => _underlying.Related(relation, left, right);
         }
