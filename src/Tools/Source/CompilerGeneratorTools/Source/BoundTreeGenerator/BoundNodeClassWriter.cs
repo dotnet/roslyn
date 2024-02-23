@@ -945,8 +945,7 @@ namespace BoundTreeGenerator
                         {
                             Write("if ");
                             Paren();
-                            Or(AllSpecifiableFields(node),
-                                field => wasUpdatedCheck(field));
+                            Or(AllSpecifiableFields(node), notEquals);
                             UnParen();
                             Blank();
                             Brace();
@@ -961,6 +960,26 @@ namespace BoundTreeGenerator
                         WriteLine("return this;");
                         Unbrace();
                         break;
+
+                        string notEquals(Field field)
+                        {
+                            var parameterName = ToCamelCase(field.Name);
+                            var fieldName = field.Name;
+
+                            if (TypeIsTypeSymbol(field))
+                                return $"!TypeSymbol.Equals({parameterName}, this.{fieldName}, TypeCompareKind.ConsiderEverything)";
+
+                            if (TypeIsSymbol(field))
+                                return $"!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals({parameterName}, this.{fieldName})";
+
+                            if (IsValueType(field.Type) && field.Type[^1] == '?')
+                                return $"!{parameterName}.Equals(this.{fieldName})";
+
+                            if (GetGenericType(field.Type) == "OneOrMany")
+                                return $"!{parameterName}.SequenceEqual({fieldName}, Symbols.SymbolEqualityComparer.ConsiderEverything)";
+
+                            return $"{parameterName} != this.{fieldName}";
+                        }
                     }
 
                 case TargetLanguage.VB:
@@ -976,10 +995,7 @@ namespace BoundTreeGenerator
                         if (AllSpecifiableFields(node).Any())
                         {
                             Write("If ");
-                            Or(AllSpecifiableFields(node),
-                                field => IsValueType(field.Type)
-                                            ? string.Format("{0} <> Me.{1}", ToCamelCase(field.Name), field.Name)
-                                            : string.Format("{0} IsNot Me.{1}", ToCamelCase(field.Name), field.Name));
+                            Or(AllSpecifiableFields(node), notEquals);
                             WriteLine(" Then");
                             Indent();
                             Write("Dim result = New {0}", node.Name);
@@ -996,23 +1012,24 @@ namespace BoundTreeGenerator
                         Outdent();
                         WriteLine("End Function");
                         break;
+
+                        string notEquals(Field field)
+                        {
+                            var parameterName = ToCamelCase(field.Name);
+                            var fieldName = field.Name;
+
+                            if (!IsValueType(field.Type))
+                                return $"{parameterName} IsNot Me.{fieldName}";
+
+                            if (GetGenericType(field.Type) == "OneOrMany")
+                                return $"Not {parameterName}.SequenceEqual({fieldName}, Symbols.SymbolEqualityComparer.ConsiderEverything)";
+
+                            return $"{parameterName} <> Me.{fieldName}";
+                        }
                     }
 
                 default:
                     throw new ArgumentException("Unexpected target language", nameof(_targetLang));
-            }
-
-            string wasUpdatedCheck(Field field)
-            {
-                var format = TypeIsTypeSymbol(field)
-                                ? "!TypeSymbol.Equals({0}, this.{1}, TypeCompareKind.ConsiderEverything)"
-                                : TypeIsSymbol(field)
-                                    ? "!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals({0}, this.{1})"
-                                    : IsValueType(field.Type) && field.Type[^1] == '?'
-                                        ? "!{0}.Equals(this.{1})"
-                                        : "{0} != this.{1}";
-
-                return string.Format(format, ToCamelCase(field.Name), field.Name);
             }
         }
 

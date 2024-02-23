@@ -21,7 +21,7 @@ namespace Roslyn.Utilities
     /// </remarks>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     [DebuggerTypeProxy(typeof(OneOrMany<>.DebuggerProxy))]
-    internal readonly struct OneOrMany<T> : IEquatable<OneOrMany<T>>
+    internal readonly struct OneOrMany<T>
     {
         public static readonly OneOrMany<T> Empty = new OneOrMany<T>(ImmutableArray<T>.Empty);
 
@@ -214,25 +214,6 @@ namespace Roslyn.Utilities
 
             return true;
         }
-
-        /// <summary>
-        /// Similarly to <see cref="ImmutableArray{T}"/>, true means that this instance is equal to <paramref name="other"/>,
-        /// not that that all items in the collection are equal.
-        /// </summary>
-        public bool Equals(OneOrMany<T> other)
-            => HasOneItem ? other.HasOneItem && EqualityComparer<T>.Default.Equals(_one, other._one) : _many.Equals(other._many);
-
-        public override bool Equals(object? obj)
-            => obj is OneOrMany<T> other && Equals(other);
-
-        public override int GetHashCode()
-            => HasOneItem ? _one.GetHashCode() : _many.GetHashCode();
-
-        public static bool operator ==(OneOrMany<T> left, OneOrMany<T> right)
-            => left.Equals(right);
-
-        public static bool operator !=(OneOrMany<T> left, OneOrMany<T> right)
-            => !left.Equals(right);
 
         public Enumerator GetEnumerator()
             => new(this);
