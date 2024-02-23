@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public static readonly NonNegativeIntValueSetFactory Instance = new NonNegativeIntValueSetFactory();
 
-            private readonly IValueSetFactory<int> _underlying = new NumericValueSetFactory<int, IntTC>(IntTC.NonNegativeInstance);
+            private static readonly IValueSetFactory<int> s_underlying = new NumericValueSetFactory<int, IntTC>(IntTC.NonNegativeInstance);
+
+            private NonNegativeIntValueSetFactory() { }
 
             public IValueSet AllValues => NumericValueSet<int, IntTC>.AllValues(IntTC.NonNegativeInstance);
 
@@ -49,14 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            IValueSet IValueSetFactory.Random(int expectedSize, Random random) => _underlying.Random(expectedSize, random);
+            IValueSet IValueSetFactory.Random(int expectedSize, Random random) => s_underlying.Random(expectedSize, random);
 
-            ConstantValue IValueSetFactory.RandomValue(Random random) => _underlying.RandomValue(random);
+            ConstantValue IValueSetFactory.RandomValue(Random random) => s_underlying.RandomValue(random);
 
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
                 value.IsBad ? AllValues : Related(relation, IntTC.NonNegativeInstance.FromConstantValue(value));
 
-            bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right) => _underlying.Related(relation, left, right);
+            bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right) => s_underlying.Related(relation, left, right);
         }
     }
 }
