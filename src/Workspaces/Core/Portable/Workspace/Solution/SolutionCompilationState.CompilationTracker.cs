@@ -696,7 +696,7 @@ namespace Microsoft.CodeAnalysis
                         using var _1 = ArrayBuilder<DocumentState>.GetInstance(out var documentsWithTrees);
                         using var _2 = ArrayBuilder<SyntaxTree>.GetInstance(out var alreadyParsedTrees);
 
-                        foreach (var (documentId, documentState) in projectState.DocumentStates.States)
+                        foreach (var (documentId, documentState) in projectState.DocumentStates.GetStatesInCompilationOrder())
                         {
                             if (documentState.TryGetSyntaxTree(out var alreadyParsedTree))
                             {
