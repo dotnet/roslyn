@@ -1914,7 +1914,7 @@ done:
             // In release mode, when the semantic model options include DisableNullableAnalysis,
             // we want to completely avoid doing any work for nullable analysis.
 #pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
-            if (DisableNullableAnalysis)
+            if (NullableAnalysisIsDisabled)
 #pragma warning restore RSEXPERIMENTAL001
             {
                 return;
