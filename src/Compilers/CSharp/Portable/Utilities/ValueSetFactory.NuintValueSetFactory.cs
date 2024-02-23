@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class NuintValueSetFactory : IValueSetFactory<uint>, IValueSetFactory
         {
             public static readonly NuintValueSetFactory Instance = new NuintValueSetFactory();
-            private static readonly NumericValueSetFactory<uint> s_numericValueSetFactory = new NumericValueSetFactory<uint>(UIntTC.Instance);
 
             private NuintValueSetFactory() { }
 
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public IValueSet<uint> Related(BinaryOperatorKind relation, uint value)
             {
                 return new NuintValueSet(
-                    values: s_numericValueSetFactory.Related(relation, value),
+                    values: new NumericValueSetFactory<uint>(UIntTC.Instance).Related(relation, value),
                     hasLarge: relation switch { GreaterThan => true, GreaterThanOrEqual => true, _ => false }
                     );
             }
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IValueSet IValueSetFactory.Random(int expectedSize, Random random)
             {
                 return new NuintValueSet(
-                    values: (IValueSet<uint>)s_numericValueSetFactory.Random(expectedSize, random),
+                    values: (IValueSet<uint>)new NumericValueSetFactory<uint>(UIntTC.Instance).Random(expectedSize, random),
                     hasLarge: random.NextDouble() < 0.25
                     );
             }

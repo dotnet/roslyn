@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class NintValueSetFactory : IValueSetFactory<int>, IValueSetFactory
         {
             public static readonly NintValueSetFactory Instance = new NintValueSetFactory();
-            private static readonly NumericValueSetFactory<int> s_numericValueSetFactory = new NumericValueSetFactory<int>(IntTC.DefaultInstance);
 
             private NintValueSetFactory() { }
 
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new NintValueSet(
                     hasSmall: relation switch { LessThan => true, LessThanOrEqual => true, _ => false },
-                    values: s_numericValueSetFactory.Related(relation, value),
+                    values: new NumericValueSetFactory<int>(IntTC.DefaultInstance).Related(relation, value),
                     hasLarge: relation switch { GreaterThan => true, GreaterThanOrEqual => true, _ => false }
                     );
             }
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new NintValueSet(
                     hasSmall: random.NextDouble() < 0.25,
-                    values: (IValueSet<int>)s_numericValueSetFactory.Random(expectedSize, random),
+                    values: (IValueSet<int>)new NumericValueSetFactory<int>(IntTC.DefaultInstance).Random(expectedSize, random),
                     hasLarge: random.NextDouble() < 0.25
                     );
             }

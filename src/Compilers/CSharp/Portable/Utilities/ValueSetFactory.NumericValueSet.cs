@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private readonly ImmutableArray<(T first, T last)> _intervals;
             private readonly INumericTC<T> _tc;
-            private readonly NumericValueSetFactory<T> _numericValueSetFactory;
 
             public static NumericValueSet<T> AllValues(INumericTC<T> tc) => new NumericValueSet<T>(tc.MinValue, tc.MaxValue, tc);
 
@@ -50,7 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
                 _intervals = intervals;
                 _tc = tc;
-                _numericValueSetFactory = new NumericValueSetFactory<T>(tc);
             }
 
             public bool IsEmpty => _intervals.Length == 0;
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw new ArgumentException();
 
                     // Prefer a value near zero.
-                    var gz = _numericValueSetFactory.Related(BinaryOperatorKind.GreaterThanOrEqual, _tc.Zero);
+                    var gz = new NumericValueSetFactory<T>(tc).Related(BinaryOperatorKind.GreaterThanOrEqual, _tc.Zero);
                     var t = (NumericValueSet<T>)this.Intersect(gz);
                     if (!t.IsEmpty)
                         return _tc.ToConstantValue(t._intervals[0].first);
