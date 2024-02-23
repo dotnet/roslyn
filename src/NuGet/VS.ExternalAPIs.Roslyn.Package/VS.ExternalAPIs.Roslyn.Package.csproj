@@ -100,10 +100,9 @@
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.Features.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces.MSBuild\$(Configuration)\net472\Microsoft.CodeAnalysis.Workspaces.MSBuild.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost\$(Configuration)\net472\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Workspaces.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces.Desktop\$(Configuration)\net472\Microsoft.CodeAnalysis.Workspaces.Desktop.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces.MSBuild\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Workspaces.MSBuild.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.CSharp\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.CSharp.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.Implementation\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.Implementation.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.LiveShare\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.LiveShare.dll" TargetDir="" />

@@ -5,8 +5,6 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <TargetFrameworks>$(NetRoslynBuildHostNetCoreVersion);net472</TargetFrameworks>
-    <!-- We'll always be running our build host with the same host that is used to launch the language server process directly, so we don't need to create another one -->
-    <UseAppHost>false</UseAppHost>
     <!-- Set to false since it's also set in Microsoft.CodeAnalysis.LanguageServer -->
     <SelfContained>false</SelfContained>
     <!-- We don't ship a regular NuGet package for this (it gets included in the Workspaces.MSBuild package directly), but we still need to publish symbols -->
@@ -50,10 +48,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
-    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
   
   <ItemGroup>
@@ -75,4 +70,6 @@
       </ProjectDepsJsonFile>
     </ItemGroup>
   </Target>
+  
+  <Import Project="..\Shared\WorkspacesMSBuildShared.projitems" Label="Shared" />
 </Project>
