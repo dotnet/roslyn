@@ -860,8 +860,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             // it has line break right before it
             if (trivia2.IsElastic())
             {
-                // eat up consecutive elastic trivia or next line
-                if (trivia1.IsElastic() || IsEndOfLine(trivia1))
+                // eat up consecutive elastic trivia or first or next line
+                if (trivia1.IsElastic() || trivia1.RawKind == 0 || IsEndOfLine(trivia1))
                 {
                     return LineColumnDelta.Default;
                 }
