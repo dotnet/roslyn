@@ -161,30 +161,30 @@ internal sealed partial class SolutionCompilationState
         var projectId = newProjectState.Id;
 
         var newDependencyGraph = newSolutionState.GetProjectDependencyGraph();
-        var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph, modifyTrackerMapInfo, (translate, forkTracker, projectId, newProjectState));
+        var newTrackerMap = CreateCompilationTrackerMap(
+            projectId,
+            newDependencyGraph,
+            static (trackerMap, arg) =>
+            {
+                // If we have a tracker for this project, then fork it as well (along with the
+                // translation action and store it in the tracker map.
+                if (trackerMap.TryGetValue(arg.projectId, out var tracker))
+                {
+                    trackerMap.Remove(arg.projectId);
+
+                    if (arg.forkTracker)
+                        trackerMap.Add(arg.projectId, tracker.Fork(arg.newProjectState, arg.translate));
+
+                    return true;
+                }
+
+                return false;
+            },
+            (translate, forkTracker, projectId, newProjectState));
 
         return this.Branch(
             newSolutionState,
             projectIdToTrackerMap: newTrackerMap);
-
-        static bool modifyTrackerMapInfo(
-            Dictionary<ProjectId, ICompilationTracker> trackerMap,
-            (TranslationAction? translate, bool forkTracker, ProjectId projectId, ProjectState newProjectState) arg)
-        {
-            // If we have a tracker for this project, then fork it as well (along with the
-            // translation action and store it in the tracker map.
-            if (trackerMap.TryGetValue(arg.projectId, out var tracker))
-            {
-                trackerMap.Remove(arg.projectId);
-
-                if (arg.forkTracker)
-                    trackerMap.Add(arg.projectId, tracker.Fork(arg.newProjectState, arg.translate));
-
-                return true;
-            }
-
-            return false;
-        }
     }
 
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArg>(
@@ -279,20 +279,20 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState RemoveProject(ProjectId projectId)
     {
         var newSolutionState = this.SolutionState.RemoveProject(projectId);
-        var newTrackerMap = CreateCompilationTrackerMap(projectId, newSolutionState.GetProjectDependencyGraph(), modifyTrackerMapInfo, projectId);
+        var newTrackerMap = CreateCompilationTrackerMap(
+            projectId,
+            newSolutionState.GetProjectDependencyGraph(),
+            static (trackerMap, projectId) =>
+            {
+                trackerMap.Remove(projectId);
+
+                return true;
+            },
+            projectId);
 
         return this.Branch(
             newSolutionState,
             projectIdToTrackerMap: newTrackerMap);
-
-        static bool modifyTrackerMapInfo(
-            Dictionary<ProjectId, ICompilationTracker> trackerMap,
-            ProjectId projectId)
-        {
-            trackerMap.Remove(projectId);
-
-            return true;
-        }
     }
 
     /// <inheritdoc cref="SolutionState.WithProjectAssemblyName"/>
@@ -985,7 +985,19 @@ internal sealed partial class SolutionCompilationState
         var newTrackerMap = CreateCompilationTrackerMap(
             projectIdsToUnfreeze.ToImmutableArray(),
             this.SolutionState.GetProjectDependencyGraph(),
-            modifyTrackerMapInfo,
+            static (trackerMap, projectIdsToUnfreeze) =>
+            {
+                var mapModified = false;
+                foreach (var projectId in projectIdsToUnfreeze)
+                {
+                    Contract.ThrowIfFalse(trackerMap.TryGetValue(projectId, out var existingTracker));
+                    var replacingItemTracker = (GeneratedFileReplacingCompilationTracker)existingTracker;
+                    trackerMap[projectId] = replacingItemTracker.UnderlyingTracker;
+                    mapModified = true;
+                }
+
+                return mapModified;
+            },
             projectIdsToUnfreeze);
 
         // We pass the same solution state, since this change is only a change of the generated documents -- none of the core
@@ -994,20 +1006,6 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState,
             projectIdToTrackerMap: newTrackerMap,
             frozenSourceGeneratedDocumentStates: null);
-
-        static bool modifyTrackerMapInfo(
-            Dictionary<ProjectId, ICompilationTracker> trackerMap,
-            IEnumerable<ProjectId> projectIdsToUnfreeze)
-        {
-            foreach (var projectId in projectIdsToUnfreeze)
-            {
-                Contract.ThrowIfFalse(trackerMap.TryGetValue(projectId, out var existingTracker));
-                var replacingItemTracker = (GeneratedFileReplacingCompilationTracker)existingTracker;
-                trackerMap[projectId] = replacingItemTracker.UnderlyingTracker;
-            }
-
-            return true;
-        }
     }
 
     /// <summary>
@@ -1066,7 +1064,25 @@ internal sealed partial class SolutionCompilationState
         var newTrackerMap = CreateCompilationTrackerMap(
             documentStatesByProjectId.Keys.ToImmutableArray(),
             this.SolutionState.GetProjectDependencyGraph(),
-            modifyTrackerMapInfo,
+            static (trackerMap, arg) =>
+            {
+                var mapModified = false;
+                foreach (var (projectId, documentStatesForProject) in arg.documentStatesByProjectId)
+                {
+                    // We want to create a new snapshot with a new compilation tracker that will do this replacement.
+                    // If we already have an existing tracker we'll just wrap that (so we also are reusing any underlying
+                    // computations). If we don't have one, we'll create one and then wrap it.
+                    if (!trackerMap.TryGetValue(projectId, out var existingTracker))
+                    {
+                        existingTracker = CreateCompilationTracker(projectId, arg.SolutionState);
+                    }
+
+                    trackerMap[projectId] = new GeneratedFileReplacingCompilationTracker(existingTracker, new(documentStatesForProject));
+                    mapModified = true;
+                }
+
+                return mapModified;
+            },
             (documentStatesByProjectId, this.SolutionState));
 
         // We pass the same solution state, since this change is only a change of the generated documents -- none of the core
@@ -1075,26 +1091,6 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState,
             projectIdToTrackerMap: newTrackerMap,
             frozenSourceGeneratedDocumentStates: new TextDocumentStates<SourceGeneratedDocumentState>(documentStates));
-
-        static bool modifyTrackerMapInfo(
-            Dictionary<ProjectId, ICompilationTracker> trackerMap,
-            (Dictionary<ProjectId, ImmutableArray<SourceGeneratedDocumentState>> documentStatesByProjectId, SolutionState solutionState) arg)
-        {
-            foreach (var (projectId, documentStatesForProject) in arg.documentStatesByProjectId)
-            {
-                // We want to create a new snapshot with a new compilation tracker that will do this replacement.
-                // If we already have an existing tracker we'll just wrap that (so we also are reusing any underlying
-                // computations). If we don't have one, we'll create one and then wrap it.
-                if (!trackerMap.TryGetValue(projectId, out var existingTracker))
-                {
-                    existingTracker = CreateCompilationTracker(projectId, arg.solutionState);
-                }
-
-                trackerMap[projectId] = new GeneratedFileReplacingCompilationTracker(existingTracker, new(documentStatesForProject));
-            }
-
-            return true;
-        }
     }
 
     public SolutionCompilationState WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
