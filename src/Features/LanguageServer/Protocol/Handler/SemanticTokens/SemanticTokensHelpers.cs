@@ -41,7 +41,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // results but will speed up how quickly we can respond to the client's request.
             var document = contextDocument.WithFrozenPartialSemantics(cancellationToken);
             var project = document.Project;
-            var options = globalOptions.GetClassificationOptions(project.Language) with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
+            var options = globalOptions.GetClassificationOptions(project.Language) with {
+                ForceFrozenPartialSemanticsForCrossProcessOperations = true,
+            };
 
             // The results from the range handler should not be cached since we don't want to cache
             // partial token results. In addition, a range request is only ever called with a whole

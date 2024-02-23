@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 if (options.ClassifyReassignedVariables)
                 {
-                    var reassignedVariableSpans = await reassignedVariableService.GetLocationsAsync(document, textSpans, cancellationToken).ConfigureAwait(false);
+                    var reassignedVariableSpans = await reassignedVariableService.GetLocationsAsync(document, textSpans, options, cancellationToken).ConfigureAwait(false);
                     foreach (var span in reassignedVariableSpans)
                         result.Add(new ClassifiedSpan(span, ClassificationTypeNames.ReassignedVariable));
                 }

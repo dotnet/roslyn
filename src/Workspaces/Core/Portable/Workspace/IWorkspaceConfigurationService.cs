@@ -43,8 +43,7 @@ internal readonly record struct WorkspaceConfigurationOptions(
 #else
         false,
 #endif
-    [property: DataMember(Order = 4)] bool RunSourceGeneratorsInSameProcessOnly = false,
-    [property: DataMember(Order = 5)] bool DisableNullableAnalysisInClassification = false)
+    [property: DataMember(Order = 4)] bool RunSourceGeneratorsInSameProcessOnly = false)
 {
     public WorkspaceConfigurationOptions()
         : this(CacheStorage: StorageDatabase.SQLite)
