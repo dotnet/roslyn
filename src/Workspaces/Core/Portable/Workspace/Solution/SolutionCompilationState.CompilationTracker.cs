@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis
                     if (state is FinalCompilationTrackerState finalState)
                         return finalState;
 
-                    // Transition from wherever we're currently an in-progress-state.
+                    // Transition from wherever we're currently at to an in-progress-state.
                     var expandedInProgressState = state switch
                     {
                         // We're already there, so no transition needed.
