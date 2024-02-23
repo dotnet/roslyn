@@ -34,15 +34,3 @@ internal readonly record struct ClassificationOptions(
 {
     public static readonly ClassificationOptions Default = new();
 }
-
-internal static class ClassificationConfigurationOptions
-{
-    public static ClassificationOptions GetClassificationConfigurationOptions(this IGlobalOptionService globalOptions)
-        => new ClassificationOptions()
-        {
-            DisableNullableAnalysisInClassification = globalOptions.GetOption(DisableNullableAnalysisInClassification)
-        };
-
-    public static readonly Option2<bool> DisableNullableAnalysisInClassification = new(
-        "dotnet_disable_nullable_analysis_in_classification", ClassificationOptions.Default.DisableNullableAnalysisInClassification);
-}

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (document.TryGetNullableDisabledSemanticModel(out var semanticModel))
                 return semanticModel;
 
-            semanticModel = await document.GetNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            semanticModel = await document.GetSemanticModelAsync(SemanticModelOptions.DisableNullableAnalysis, cancellationToken).ConfigureAwait(false);
             return semanticModel ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
         }
 

@@ -283,9 +283,11 @@ namespace Microsoft.CodeAnalysis
         /// return the same value if called multiple times.
         /// </returns>
         [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
-        public async Task<SemanticModel?> GetNullableDisabledSemanticModelAsync(CancellationToken cancellationToken = default)
+#pragma warning disable RS0026 // Add public types and members to the declared API
+        public async Task<SemanticModel?> GetSemanticModelAsync(SemanticModelOptions options, CancellationToken cancellationToken = default)
+#pragma warning restore RS0026 // Add public types and members to the declared API
         {
-            return await GetSemanticModelHelperAsync(disableNullableAnalysis: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return await GetSemanticModelHelperAsync(disableNullableAnalysis: options == SemanticModelOptions.DisableNullableAnalysis, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -348,11 +350,11 @@ namespace Microsoft.CodeAnalysis
                 // first try set the cache if it has not been set
                 if (disableNullableAnalysis)
                 {
-                    original = Interlocked.CompareExchange(ref _nullableDisabledModel, new WeakReference<SemanticModel>(result), null);
+                    original = SetModel(ref _nullableDisabledModel, result);
                 }
                 else
                 {
-                    original = Interlocked.CompareExchange(ref _model, new WeakReference<SemanticModel>(result), null);
+                    original = SetModel(ref _model, result);
                 }
 
                 // okay, it is first time.
@@ -567,6 +569,12 @@ namespace Microsoft.CodeAnalysis
         {
             var provider = (ProjectState.ProjectAnalyzerConfigOptionsProvider)Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider;
             return await provider.GetOptionsAsync(DocumentState, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static WeakReference<SemanticModel>? SetModel(ref WeakReference<SemanticModel>? reference, SemanticModel result)
+        {
+            var original = Interlocked.CompareExchange(ref reference, new WeakReference<SemanticModel>(result), null);
+            return original;
         }
     }
 }

@@ -14,6 +14,7 @@ internal static class ClassificationOptionsStorage
             ClassifyReassignedVariables = globalOptions.GetOption(ClassifyReassignedVariables, language),
             ColorizeRegexPatterns = globalOptions.GetOption(ColorizeRegexPatterns, language),
             ColorizeJsonPatterns = globalOptions.GetOption(ColorizeJsonPatterns, language),
+            DisableNullableAnalysisInClassification = globalOptions.GetOption(DisableNullableAnalysisInClassification, language),
             // ForceFrozenPartialSemanticsForCrossProcessOperations not stored in global options
         };
 
@@ -28,4 +29,7 @@ internal static class ClassificationOptionsStorage
 
     public static PerLanguageOption2<bool> ColorizeJsonPatterns =
         new("dotnet_colorize_json_patterns", ClassificationOptions.Default.ColorizeJsonPatterns);
+
+    public static PerLanguageOption2<bool> DisableNullableAnalysisInClassification =
+        new("dotnet_disable_nullable_analysis_in_classification", ClassificationOptions.Default.DisableNullableAnalysisInClassification);
 }
