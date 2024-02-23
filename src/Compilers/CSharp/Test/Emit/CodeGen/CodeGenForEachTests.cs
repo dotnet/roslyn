@@ -4391,7 +4391,7 @@ public static class Extensions
                     {
                         public int Current { get; private set; }
                         public bool MoveNext() => Current++ != 3;
-                        public void Dispose({{modifier}} int x = 5) { Console.Write("D"); }
+                        public void Dispose({{modifier}} int x = 5) { Console.Write(x); }
                     }
                 }
                 """;
@@ -4399,17 +4399,17 @@ public static class Extensions
             {
                 CreateCompilation(source).VerifyDiagnostics(
                     // (20,29): error CS1741: A ref or out parameter cannot have a default value
-                    //         public void Dispose(ref int x = 5) { Console.Write("D"); }
+                    //         public void Dispose(ref int x = 5) { Console.Write(x); }
                     Diagnostic(ErrorCode.ERR_RefOutDefaultValue, "ref").WithLocation(20, 29));
             }
             else
             {
-                var verifier = CompileAndVerify(source, expectedOutput: "123D", verify: Verification.FailsILVerify);
+                var verifier = CompileAndVerify(source, expectedOutput: "1235", verify: Verification.FailsILVerify);
                 if (modifier == "ref readonly")
                 {
                     verifier.VerifyDiagnostics(
                         // (20,50): warning CS9200: A default value is specified for 'ref readonly' parameter 'x', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
-                        //         public void Dispose(ref readonly int x = 5) { Console.Write("D"); }
+                        //         public void Dispose(ref readonly int x = 5) { Console.Write(x); }
                         Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "5").WithArguments("x").WithLocation(20, 50));
                 }
                 else
