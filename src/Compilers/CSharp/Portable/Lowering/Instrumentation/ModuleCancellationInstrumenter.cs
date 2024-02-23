@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp;
 /// - Replaces calls to methods that do not take <see cref="CancellationToken"/> as the last parameter with matching overloads that do and passes it the host token.
 /// </remarks>
 internal sealed class ModuleCancellationInstrumenter(
-        MethodSymbol throwMethod,
-        SyntheticBoundNodeFactory factory,
-        Instrumenter previous)
-        : CompoundInstrumenter(previous)
+    MethodSymbol throwMethod,
+    SyntheticBoundNodeFactory factory,
+    Instrumenter previous)
+    : CompoundInstrumenter(previous)
 {
     private readonly MethodSymbol _throwMethod = throwMethod;
     private readonly SyntheticBoundNodeFactory _factory = factory;
@@ -86,7 +86,7 @@ internal sealed class ModuleCancellationInstrumenter(
             return;
         }
 
-        instrumentation = _factory.Instrumentation(
+        instrumentation = _factory.CombineInstrumentation(
             instrumentation,
             prologue: _factory.ExpressionStatement(_factory.ThrowIfModuleCancellationRequested()));
     }
@@ -165,27 +165,31 @@ internal sealed class ModuleCancellationInstrumenter(
                 member is MethodSymbol { Parameters: [.., { RefKind: RefKind.None, Type: { } lastParamType }] parametersWithCancellationToken } overload &&
                 overload.Arity == method.Arity &&
                 method.Parameters.Length == parametersWithCancellationToken.Length - 1 &&
-                lastParamType.Equals(_throwMethod.ContainingType, TypeCompareKind.ConsiderEverything) &&
-                MemberSignatureComparer.HaveSameParameterTypes(
-                    method.Parameters.AsSpan(),
-                    typeMap1: null,
-                    parametersWithCancellationToken.AsSpan(0, method.Parameters.Length),
-                    method.TypeSubstitution,
-                    MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
-                    TypeComparisonKind) &&
-                MemberSignatureComparer.HaveSameReturnTypes(
-                    method,
-                    typeMap1: null,
-                    overload,
-                    method.TypeSubstitution,
-                    TypeComparisonKind) &&
-                MemberSignatureComparer.HaveSameConstraints(
-                    method.TypeParameters,
-                    typeMap1: null,
-                    overload.TypeParameters,
-                    method.TypeSubstitution))
+                lastParamType.Equals(_throwMethod.ContainingType, TypeCompareKind.ConsiderEverything))
             {
-                return (overload.Arity > 0) ? overload.Construct(method.TypeArgumentsWithAnnotations) : overload;
+                var typeMap = (method.Arity > 0) ? new TypeMap(overload.TypeParameters, method.TypeArgumentsWithAnnotations, allowAlpha: true) : null;
+
+                if (MemberSignatureComparer.HaveSameParameterTypes(
+                        method.Parameters.AsSpan(),
+                        typeMap1: null,
+                        parametersWithCancellationToken.AsSpan(0, method.Parameters.Length),
+                        typeMap,
+                        MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
+                        TypeComparisonKind) &&
+                    MemberSignatureComparer.HaveSameReturnTypes(
+                        method,
+                        typeMap1: null,
+                        overload,
+                        typeMap,
+                        TypeComparisonKind) &&
+                    MemberSignatureComparer.HaveSameConstraints(
+                        method.TypeParameters,
+                        typeMap1: null,
+                        overload.TypeParameters,
+                        typeMap))
+                {
+                    return (overload.Arity > 0) ? overload.Construct(method.TypeArgumentsWithAnnotations) : overload;
+                }
             }
         }
 

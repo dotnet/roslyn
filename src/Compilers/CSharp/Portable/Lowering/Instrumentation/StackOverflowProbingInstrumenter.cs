@@ -76,7 +76,7 @@ internal sealed class StackOverflowProbingInstrumenter(
             return;
         }
 
-        instrumentation = _factory.Instrumentation(
+        instrumentation = _factory.CombineInstrumentation(
             instrumentation,
             prologue: _factory.ExpressionStatement(_factory.Call(receiver: null, _ensureStackMethod)));
     }

@@ -32,18 +32,18 @@ public sealed class ModuleCancellationTests : CSharpTestBase
             expectedOutput: expectedOutput);
 
     private static void AssertNotInstrumented(CompilationVerifier verifier, string qualifiedMethodName)
-        => AssertInstrumented(verifier, qualifiedMethodName, "<PrivateImplementationDetails>.ModuleCancellationToken", expected: false);
+        => AssertNotInstrumented(verifier, qualifiedMethodName, "<PrivateImplementationDetails>.ModuleCancellationToken");
 
     private static void AssertNotInstrumentedWithTokenLoad(CompilationVerifier verifier, string qualifiedMethodName)
-        => AssertInstrumented(verifier, qualifiedMethodName, @"ldsfld     ""System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken""", expected: false);
+        => AssertNotInstrumented(verifier, qualifiedMethodName, @"ldsfld ""System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken""");
 
-    private static void AssertInstrumented(CompilationVerifier verifier, string qualifiedMethodName, string instrumentationIndicator, bool expected = true)
+    private static void AssertNotInstrumented(CompilationVerifier verifier, string qualifiedMethodName, string instrumentationIndicator)
     {
         var il = verifier.VisualizeIL(qualifiedMethodName);
-        var isInstrumented = il.Contains(instrumentationIndicator);
+        var isInstrumented = string.Join(" ", il.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)).Contains(instrumentationIndicator);
 
-        AssertEx.AreEqual(expected, isInstrumented,
-            $"Method '{qualifiedMethodName}' should {(expected ? "be" : "not be")} instrumented with '{instrumentationIndicator}'. Actual IL:{Environment.NewLine}{il}");
+        Assert.False(isInstrumented,
+            $"Method '{qualifiedMethodName}' should be instrumented with '{instrumentationIndicator}'. Actual IL:{Environment.NewLine}{il}");
     }
 
     [Fact]
@@ -1791,8 +1791,8 @@ public sealed class ModuleCancellationTests : CSharpTestBase
                     G<int>(1);
                 }
 
-                void G<T>(int a) where T : struct => throw null;
-                void G<T>(int a, CancellationToken token) where T : struct => throw null;
+                void G<T>(T a) where T : struct => throw null;
+                void G<T>(T a, CancellationToken token) where T : struct => throw null;
             }
             """;
 
@@ -1815,6 +1815,49 @@ public sealed class ModuleCancellationTests : CSharpTestBase
               IL_0017:  nop
               // sequence point: }
               IL_0018:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void ArgumentReplacement_Overload_Generic_MatchingConstraint_AlphaRename()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G<int, bool>(1, true);
+                }
+
+                void G<S, T>(S a, T b) where T : struct => throw null;
+                void G<T, S>(T a, S b, CancellationToken token) where S : struct => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        verifier.VerifyMethodBody("C.F", """
+            {
+              // Code size       26 (0x1a)
+              .maxstack  4
+              // sequence point: <hidden>
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              // sequence point: {
+              IL_000a:  nop
+              // sequence point: G<int, bool>(1, true);
+              IL_000b:  ldarg.0
+              IL_000c:  ldc.i4.1
+              IL_000d:  ldc.i4.1
+              IL_000e:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0013:  call       "void C.G<int, bool>(int, bool, System.Threading.CancellationToken)"
+              IL_0018:  nop
+              // sequence point: }
+              IL_0019:  ret
             }
             """);
     }
@@ -1900,10 +1943,16 @@ public sealed class ModuleCancellationTests : CSharpTestBase
         AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
     }
 
-    [Fact]
-    public void ArgumentReplacement_Overload_ReturnType()
+    [Theory]
+    [InlineData("ref", "")]
+    [InlineData("", "ref")]
+    [InlineData("ref readonly", "")]
+    [InlineData("", "ref readonly")]
+    [InlineData("ref", "ref readonly")]
+    [InlineData("ref readonly", "ref")]
+    public void ArgumentReplacement_Overload_ReturnType(string modifiers1, string modifiers2)
     {
-        var source = """
+        var source = $$"""
             using System.Threading;
             using System.Threading.Tasks;
             
@@ -1914,8 +1963,8 @@ public sealed class ModuleCancellationTests : CSharpTestBase
                     G(1);
                 }
 
-                int G(int a) => throw null;
-                ref int G(int a, CancellationToken token) => throw null;
+                {{modifiers1}} int G(int a) => throw null;
+                {{modifiers2}} int G(int a, CancellationToken token) => throw null;
             }
             """;
 
@@ -1979,12 +2028,10 @@ public sealed class ModuleCancellationTests : CSharpTestBase
     }
 
     [Theory]
-    [InlineData("private")]
-    [InlineData("protected")]
-    [InlineData("internal")]
-    [InlineData("private protected")]
-    [InlineData("internal protected")]
-    public void ArgumentReplacement_Overload_NonMatchingVisibility(string modifier)
+    [CombinatorialData]
+    public void ArgumentReplacement_Overload_NonMatchingVisibility(
+        [CombinatorialValues("protected", "internal", "private protected", "internal protected")] string modifier1,
+        [CombinatorialValues("private", "protected", "internal", "private protected", "internal protected")] string modifier2)
     {
         var source = $$"""
             using System.Threading;
@@ -1992,8 +2039,8 @@ public sealed class ModuleCancellationTests : CSharpTestBase
             
             class B
             {
-                public static void G(int a) => throw null;
-                {{modifier}} static void G(int a, CancellationToken token) => throw null;
+                {{modifier1}} static void G(int a) => throw null;
+                {{modifier2}} static void G(int a, CancellationToken token) => throw null;
             }
 
             class C : B
@@ -2006,7 +2053,32 @@ public sealed class ModuleCancellationTests : CSharpTestBase
             """;
 
         var verifier = CompileAndVerify(source);
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+
+        if (modifier1 == modifier2)
+        {
+            verifier.VerifyMethodBody("C.F", $$"""
+            {
+              // Code size       24 (0x18)
+              .maxstack  2
+              // sequence point: <hidden>
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              // sequence point: {
+              IL_000a:  nop
+              // sequence point: G(1);
+              IL_000b:  ldc.i4.1
+              IL_000c:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0011:  call       "void B.G(int, System.Threading.CancellationToken)"
+              IL_0016:  nop
+              // sequence point: }
+              IL_0017:  ret
+            }
+            """);
+        }
+        else
+        {
+            AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+        }
     }
 
     [Fact]

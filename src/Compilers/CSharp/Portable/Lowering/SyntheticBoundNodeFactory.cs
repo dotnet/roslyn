@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundStatement? Concat(BoundStatement? first, BoundStatement? second)
             => (first == null) ? second : (second == null) ? first : StatementList(first, second);
 
-        public BoundBlockInstrumentation Instrumentation(BoundBlockInstrumentation? innerInstrumentation = null, LocalSymbol? local = null, BoundStatement? prologue = null, BoundStatement? epilogue = null)
+        public BoundBlockInstrumentation CombineInstrumentation(BoundBlockInstrumentation? innerInstrumentation = null, LocalSymbol? local = null, BoundStatement? prologue = null, BoundStatement? epilogue = null)
         {
             return (innerInstrumentation != null)
                 ? new BoundBlockInstrumentation(

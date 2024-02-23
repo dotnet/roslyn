@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var instrumentationEpilogue = (returnLogger != null) ?
                 _factory.ExpressionStatement(_factory.Call(receiver: _factory.Local(_scope.ContextVariable), returnLogger)) : _factory.NoOp(NoOpStatementFlavor.Default);
 
-            instrumentation = _factory.Instrumentation(instrumentation, _scope.ContextVariable, instrumentationPrologue, instrumentationEpilogue);
+            instrumentation = _factory.CombineInstrumentation(instrumentation, _scope.ContextVariable, instrumentationPrologue, instrumentationEpilogue);
 
             _scope.Close(isMethodBody);
         }
