@@ -262,20 +262,35 @@ namespace Roslyn.Utilities
                     // computation going on in another thread that may win.  We want to do the work on our thread, but
                     // also cancel that work if the other thread wins.  To that effect, we make a linked token to
                     // represent our work.
-                    T result;
+                    using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+                    // If the async work finishes, cancel the current work on this thread.
+                    request.Task.ContinueWith(_ => linkedTokenSource.Cancel(), CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+
                     try
                     {
-                        result = _synchronousComputeFunction(cancellationToken);
+                        var result = _synchronousComputeFunction(linkedTokenSource.Token);
+
+                        // We finished computing on this thread.  Attempt to assign our result as the value of this
+                        // AsyncLazy.  If another thread beat us though, we'll return its value.
+                        return CompleteWithResult(result);
                     }
-                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    catch (OperationCanceledException)
+                    {
+                        // We may have canceled for one of two reasons.  Our own cancellation token got canceled.  If
+                        // so, we want to check for that and throw the appropriate exception to our caller.
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        // Otherwise, the async work must have finished first.
+                        Contract.ThrowIfFalse(request.Task.IsCompleted);
+                        return request.Task.GetAwaiter().GetResult();
+                    }
+                    catch (Exception ex)
                     {
                         // We faulted for some unknown reason. We should simply fault everything.
                         CompleteWithTask(Task.FromException<T>(ex), CancellationToken.None);
                         throw;
-
                     }
-
-                    return CompleteWithResult(result);
                 }
                 else
                 {
@@ -288,10 +303,12 @@ namespace Roslyn.Utilities
                         StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request, callerCancellationToken: cancellationToken);
                     }
 
-                    // The reason we have synchronous codepaths in AsyncLazy is to support the synchronous requests for syntax trees
-                    // that we may get from the compiler. Thus, it's entirely possible that this will be requested by the compiler or
-                    // an analyzer on the background thread when another part of the IDE is requesting the same tree asynchronously.
-                    // In that case we block the synchronous request on the asynchronous request, since that's better than alternatives.
+                    // The reason we have synchronous codepaths in AsyncLazy is to support the synchronous requests for
+                    // syntax trees that we may get from the compiler. Thus, it's entirely possible that this will be
+                    // requested by the compiler or an analyzer on the background thread when another part of the IDE is
+                    // requesting the same tree asynchronously. In that case we block the synchronous request on the
+                    // asynchronous request.  This is unfortunate as it is sync-over-async blocking, but it prevents
+                    // concurrent computation of the value.
                     return request.Task.WaitAndGetResult_CanCallOnBackground(cancellationToken);
                 }
             }
