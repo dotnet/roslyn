@@ -348,11 +348,11 @@ namespace Microsoft.CodeAnalysis
                 // first try set the cache if it has not been set
                 if (disableNullableAnalysis)
                 {
-                    SetModel(ref _nullableDisabledModel, result);
+                    original = Interlocked.CompareExchange(ref _nullableDisabledModel, new WeakReference<SemanticModel>(result), null);
                 }
                 else
                 {
-                    SetModel(ref _model, result);
+                    original = Interlocked.CompareExchange(ref _model, new WeakReference<SemanticModel>(result), null);
                 }
 
                 // okay, it is first time.
@@ -567,25 +567,6 @@ namespace Microsoft.CodeAnalysis
         {
             var provider = (ProjectState.ProjectAnalyzerConfigOptionsProvider)Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider;
             return await provider.GetOptionsAsync(DocumentState, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static void SetModel(ref WeakReference<SemanticModel>? reference, SemanticModel result)
-        {
-            var original = Interlocked.CompareExchange(ref reference, new WeakReference<SemanticModel>(result), null);
-            if (original == null)
-            {
-                return;
-            }
-
-            lock (original)
-            {
-                if (original.TryGetTarget(out var semanticModel))
-                {
-                    return;
-                }
-
-                original.SetTarget(result);
-            }
         }
     }
 }
