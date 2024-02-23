@@ -19,22 +19,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The implementation of a value set for an numeric type <typeparamref name="T"/>.
         /// </summary>
-        private sealed class NumericValueSet<T, TTC> : IValueSet<T> where TTC : class, INumericTC<T>
+        private sealed class NumericValueSet<T> : IValueSet<T>
         {
             private readonly ImmutableArray<(T first, T last)> _intervals;
-            private readonly TTC _tc;
-            private readonly NumericValueSetFactory<T, TTC> _numericValueSetFactory;
+            private readonly INumericTC<T> _tc;
+            private readonly NumericValueSetFactory<T> _numericValueSetFactory;
 
-            public static NumericValueSet<T, TTC> AllValues(TTC tc) => new NumericValueSet<T, TTC>(tc.MinValue, tc.MaxValue, tc);
+            public static NumericValueSet<T> AllValues(INumericTC<T> tc) => new NumericValueSet<T>(tc.MinValue, tc.MaxValue, tc);
 
-            public static NumericValueSet<T, TTC> NoValues(TTC tc) => new NumericValueSet<T, TTC>(ImmutableArray<(T first, T last)>.Empty, tc);
+            public static NumericValueSet<T> NoValues(INumericTC<T> tc) => new NumericValueSet<T>(ImmutableArray<(T first, T last)>.Empty, tc);
 
-            internal NumericValueSet(T first, T last, TTC tc) : this(ImmutableArray.Create((first, last)), tc)
+            internal NumericValueSet(T first, T last, INumericTC<T> tc) : this(ImmutableArray.Create((first, last)), tc)
             {
                 Debug.Assert(tc.Related(LessThanOrEqual, first, last));
             }
 
-            internal NumericValueSet(ImmutableArray<(T first, T last)> intervals, TTC tc)
+            internal NumericValueSet(ImmutableArray<(T first, T last)> intervals, INumericTC<T> tc)
             {
 #if DEBUG
                 Debug.Assert(intervals.Length == 0 || tc.Related(GreaterThanOrEqual, intervals[0].first, tc.MinValue));
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
                 _intervals = intervals;
                 _tc = tc;
-                _numericValueSetFactory = new NumericValueSetFactory<T, TTC>(tc);
+                _numericValueSetFactory = new NumericValueSetFactory<T>(tc);
             }
 
             public bool IsEmpty => _intervals.Length == 0;
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Prefer a value near zero.
                     var gz = _numericValueSetFactory.Related(BinaryOperatorKind.GreaterThanOrEqual, _tc.Zero);
-                    var t = (NumericValueSet<T, TTC>)this.Intersect(gz);
+                    var t = (NumericValueSet<T>)this.Intersect(gz);
                     if (!t.IsEmpty)
                         return _tc.ToConstantValue(t._intervals[0].first);
                     return _tc.ToConstantValue(this._intervals[this._intervals.Length - 1].last);
@@ -156,14 +156,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add((_tc.Next(_intervals[lastIndex].last), _tc.MaxValue));
                 }
 
-                return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree(), _tc);
+                return new NumericValueSet<T>(builder.ToImmutableAndFree(), _tc);
             }
 
             IValueSet IValueSet.Complement() => this.Complement();
 
             public IValueSet<T> Intersect(IValueSet<T> o)
             {
-                var other = (NumericValueSet<T, TTC>)o;
+                var other = (NumericValueSet<T>)o;
+                // TODO2 assert we're using the same TC
                 var builder = ArrayBuilder<(T first, T last)>.GetInstance();
                 var left = this._intervals;
                 var right = other._intervals;
@@ -200,14 +201,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree(), _tc);
+                return new NumericValueSet<T>(builder.ToImmutableAndFree(), _tc);
 
             }
 
             /// <summary>
             /// Add an interval to the end of the builder.
             /// </summary>
-            private static void Add(ArrayBuilder<(T first, T last)> builder, T first, T last, TTC tc)
+            private static void Add(ArrayBuilder<(T first, T last)> builder, T first, T last, INumericTC<T> tc)
             {
                 Debug.Assert(tc.Related(LessThanOrEqual, first, last));
                 Debug.Assert(tc.Related(GreaterThanOrEqual, first, tc.MinValue));
@@ -225,12 +226,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add((first, last));
                 }
             }
-            private static T Min(T a, T b, TTC tc)
+            private static T Min(T a, T b, INumericTC<T> tc)
             {
                 return tc.Related(LessThan, a, b) ? a : b;
             }
 
-            private static T Max(T a, T b, TTC tc)
+            private static T Max(T a, T b, INumericTC<T> tc)
             {
                 return tc.Related(LessThan, a, b) ? b : a;
             }
@@ -239,7 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public IValueSet<T> Union(IValueSet<T> o)
             {
-                var other = (NumericValueSet<T, TTC>)o;
+                var other = (NumericValueSet<T>)o;
+                // TODO2 assert we're using the same TC
                 var builder = ArrayBuilder<(T first, T last)>.GetInstance();
                 var left = this._intervals;
                 var right = other._intervals;
@@ -281,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     r++;
                 }
 
-                return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree(), _tc);
+                return new NumericValueSet<T>(builder.ToImmutableAndFree(), _tc);
             }
 
             IValueSet IValueSet.Union(IValueSet other) => this.Union((IValueSet<T>)other);
@@ -289,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Produce a random value set for testing purposes.
             /// </summary>
-            internal static IValueSet<T> Random(int expectedSize, Random random, TTC tc)
+            internal static IValueSet<T> Random(int expectedSize, Random random, INumericTC<T> tc)
             {
                 T[] values = new T[expectedSize * 2];
                 for (int i = 0, n = expectedSize * 2; i < n; i++)
@@ -305,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Add(builder, first, last, tc);
                 }
 
-                return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree(), tc);
+                return new NumericValueSet<T>(builder.ToImmutableAndFree(), tc);
             }
 
             /// <summary>
@@ -317,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override bool Equals(object? obj) =>
-                obj is NumericValueSet<T, TTC> other &&
+                obj is NumericValueSet<T> other &&
                 this._intervals.SequenceEqual(other._intervals);
 
             public override int GetHashCode()

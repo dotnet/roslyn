@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class NuintValueSetFactory : IValueSetFactory<uint>, IValueSetFactory
         {
             public static readonly NuintValueSetFactory Instance = new NuintValueSetFactory();
-            private static readonly NumericValueSetFactory<uint, UIntTC> s_numericValueSetFactory = new NumericValueSetFactory<uint, UIntTC>(UIntTC.Instance);
+            private static readonly NumericValueSetFactory<uint> s_numericValueSetFactory = new NumericValueSetFactory<uint>(UIntTC.Instance);
 
             private NuintValueSetFactory() { }
 
