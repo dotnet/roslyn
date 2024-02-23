@@ -670,7 +670,9 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    var frozenProjectState = this.ProjectState.AddDocuments(documentsWithTrees.ToImmutableAndClear());
+                    var frozenProjectState = this.ProjectState
+                        .RemoveAllDocuments()
+                        .AddDocuments(documentsWithTrees.ToImmutableAndClear());
 
                     var compilationWithoutGeneratedDocuments = this.CreateEmptyCompilation().AddSyntaxTrees(alreadyParsedTrees);
                     var compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments;
