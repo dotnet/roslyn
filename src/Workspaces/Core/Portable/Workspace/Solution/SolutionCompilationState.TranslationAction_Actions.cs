@@ -222,14 +222,11 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class ProjectAssemblyNameAction(
                 ProjectState oldProjectState,
-                ProjectState newProjectState,
-                string assemblyName)
+                ProjectState newProjectState)
                 : TranslationAction(oldProjectState, newProjectState)
             {
                 public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
-                {
-                    return Task.FromResult(oldCompilation.WithAssemblyName(assemblyName));
-                }
+                    => Task.FromResult(oldCompilation.WithAssemblyName(NewProjectState.AssemblyName));
 
                 // Updating the options of a compilation doesn't require us to reparse trees, so we can use this to update
                 // compilations with stale generated trees.

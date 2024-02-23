@@ -269,7 +269,7 @@ internal sealed partial class SolutionCompilationState
         return ForkProject(
             this.SolutionState.WithProjectAssemblyName(projectId, assemblyName),
             static (stateChange, assemblyName) => new TranslationAction.ProjectAssemblyNameAction(
-                stateChange.OldProjectState, stateChange.NewProjectState, assemblyName),
+                stateChange.OldProjectState, stateChange.NewProjectState),
             forkTracker: true,
             arg: assemblyName);
     }
