@@ -26,6 +26,7 @@ usage()
   echo "Test actions:"
   echo "  --testCoreClr              Run unit tests on .NET Core (short: --test, -t)"
   echo "  --testMono                 Run unit tests on Mono"
+  echo "  --testCompilerOnly         Run only the compiler unit tests"
   echo "  --testIOperation           Run unit tests with the IOperation test hook"
   echo ""
   echo "Advanced settings:"
@@ -61,6 +62,7 @@ publish=false
 test_core_clr=false
 test_mono=false
 test_ioperation=false
+test_compiler_only=false
 
 configuration="Debug"
 verbosity='minimal'
@@ -126,6 +128,9 @@ while [[ $# > 0 ]]; do
       ;;
     --testmono)
       test_mono=true
+      ;;
+    --testcompileronly)
+      test_compiler_only=true
       ;;
     --testioperation)
       test_ioperation=true
@@ -301,6 +306,25 @@ function BuildSolution {
     $properties
 }
 
+function GetCompilerTestAssembliesIncludePaths {
+  assemblies="--include '^Microsoft\.CodeAnalysis\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CompilerServer\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Syntax\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Symbol\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Semantic\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Symbol\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Semantic\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Emit\.UnitTests$'"
+  assemblies+=" --include '^Roslyn\.Compilers\.VisualBasic\.IOperation\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.CommandLine\.UnitTests$'"
+  echo "$assemblies"
+}
+
 install=false
 if [[ "$restore" == true || "$test_core_clr" == true ]]; then
   install=true
@@ -322,6 +346,11 @@ fi
 
 if [[ "$test_core_clr" == true ]]; then
   runtests_args=""
+
+  if [[ -n "$test_compiler_only" ]]; then
+    runtests_args="$runtests_args $(GetCompilerTestAssembliesIncludePaths)"
+  fi
+
   if [[ -n "$helix_queue_name" ]]; then
     runtests_args="$runtests_args --helixQueueName $helix_queue_name"
   fi

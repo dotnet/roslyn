@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -370,25 +371,6 @@ namespace Microsoft.CodeAnalysis
             return this.AddProject(newProject);
         }
 
-        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
-        {
-            var builder = _filePathToDocumentIdsMap.ToBuilder();
-
-            foreach (var documentState in documentStates)
-            {
-                var filePath = documentState.FilePath;
-
-                if (RoslynString.IsNullOrEmpty(filePath))
-                {
-                    continue;
-                }
-
-                builder.MultiAdd(filePath, documentState.Id);
-            }
-
-            return builder.ToImmutable();
-        }
-
         private static IEnumerable<TextDocumentState> GetDocumentStates(ProjectState projectState)
             => projectState.DocumentStates.States.Values
                    .Concat<TextDocumentState>(projectState.AdditionalDocumentStates.States.Values)
@@ -422,10 +404,56 @@ namespace Microsoft.CodeAnalysis
                 dependencyGraph: newDependencyGraph);
         }
 
+        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedAndRemovedDocuments(
+            ArrayBuilder<TextDocumentState> documentsToAdd,
+            ArrayBuilder<TextDocumentState> documentsToRemove)
+        {
+            if (documentsToRemove.Count == 0 && documentsToAdd.Count == 0)
+                return _filePathToDocumentIdsMap;
+
+            var builder = _filePathToDocumentIdsMap.ToBuilder();
+
+            // Add first, then remove.  This helps avoid the case where a filepath now sees no documents, so we remove
+            // the entry entirely for it in the dictionary, only to add it back in.  Adding then removing will at least
+            // keep the entry, but increase the docs for it, then lower it back down.
+
+            AddDocumentFilePaths(documentsToAdd, builder);
+            RemoveDocumentFilePaths(documentsToRemove, builder);
+
+            return builder.ToImmutable();
+        }
+
+        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
+        {
+            var builder = _filePathToDocumentIdsMap.ToBuilder();
+            AddDocumentFilePaths(documentStates, builder);
+            return builder.ToImmutable();
+        }
+
+        private static void AddDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        {
+            foreach (var documentState in documentStates)
+            {
+                var filePath = documentState.FilePath;
+
+                if (RoslynString.IsNullOrEmpty(filePath))
+                {
+                    continue;
+                }
+
+                builder.MultiAdd(filePath, documentState.Id);
+            }
+        }
+
         public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
+            RemoveDocumentFilePaths(documentStates, builder);
+            return builder.ToImmutable();
+        }
 
+        private static void RemoveDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        {
             foreach (var documentState in documentStates)
             {
                 var filePath = documentState.FilePath;
@@ -442,8 +470,6 @@ namespace Microsoft.CodeAnalysis
 
                 builder.MultiRemove(filePath, documentState.Id);
             }
-
-            return builder.ToImmutable();
         }
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithFilePath(DocumentId documentId, string? oldFilePath, string? newFilePath)
@@ -938,6 +964,18 @@ namespace Microsoft.CodeAnalysis
             }
 
             return UpdateDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
+        }
+
+        public StateChange WithDocumentState(DocumentState newDocument)
+        {
+            var oldDocument = GetRequiredDocumentState(newDocument.Id);
+            if (oldDocument == newDocument)
+            {
+                var oldProject = GetRequiredProjectState(newDocument.Id.ProjectId);
+                return new(this, oldProject, oldProject);
+            }
+
+            return UpdateDocumentState(newDocument, contentChanged: true);
         }
 
         /// <summary>

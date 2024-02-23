@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// Checksum representing the full checksum tree for this solution compilation state.  Includes the checksum for
-        /// <see cref="SolutionState"/>, as well as the checksums for <see cref="FrozenSourceGeneratedDocumentState"/>
+        /// <see cref="SolutionState"/>, as well as the checksums for <see cref="FrozenSourceGeneratedDocumentStates"/>
         /// if present.
         /// </summary>
         private readonly AsyncLazy<SolutionCompilationStateChecksums> _lazyChecksums;
@@ -101,20 +101,22 @@ namespace Microsoft.CodeAnalysis
                         ? await this.SolutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
                         : await this.SolutionState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
 
-                    var frozenSourceGeneratedDocumentIdentityChecksum = Checksum.Null;
-                    var frozenSourceGeneratedDocumentTextChecksum = Checksum.Null;
+                    ChecksumCollection? frozenSourceGeneratedDocumentIdentities = null;
+                    ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments = null;
 
-                    if (FrozenSourceGeneratedDocumentState != null)
+                    if (FrozenSourceGeneratedDocumentStates.HasValue)
                     {
                         var serializer = this.SolutionState.Services.GetRequiredService<ISerializerService>();
-                        frozenSourceGeneratedDocumentIdentityChecksum = serializer.CreateChecksum(FrozenSourceGeneratedDocumentState.Identity, cancellationToken);
-                        frozenSourceGeneratedDocumentTextChecksum = (await FrozenSourceGeneratedDocumentState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)).Text;
+                        var identityChecksums = FrozenSourceGeneratedDocumentStates.Value
+                            .SelectAsArray(static (s, arg) => arg.serializer.CreateChecksum(s.Identity, cancellationToken: arg.cancellationToken), (serializer, cancellationToken));
+                        frozenSourceGeneratedDocumentIdentities = new ChecksumCollection(identityChecksums);
+                        frozenSourceGeneratedDocuments = await FrozenSourceGeneratedDocumentStates.Value.GetChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false);
                     }
 
                     return new SolutionCompilationStateChecksums(
                         solutionStateChecksum,
-                        frozenSourceGeneratedDocumentIdentityChecksum,
-                        frozenSourceGeneratedDocumentTextChecksum);
+                        frozenSourceGeneratedDocumentIdentities,
+                        frozenSourceGeneratedDocuments);
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
