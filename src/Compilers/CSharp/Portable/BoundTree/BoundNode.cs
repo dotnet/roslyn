@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             WasConverted = 1 << 8,
 
-            ParamsCollection = 1 << 9,
+            ParamsArrayOrCollection = 1 << 9,
 
-            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted | ParamsCollection,
+            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted | ParamsArrayOrCollection,
         }
 
         protected new BoundNode MemberwiseClone()
@@ -152,9 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(original is BoundExpression || !original.IsSuppressed);
             this.IsSuppressed = original.IsSuppressed;
 
-            if (original.IsParamsCollection)
+            if (original.IsParamsArrayOrCollection)
             {
-                this.IsParamsCollection = true;
+                this.IsParamsArrayOrCollection = true;
             }
 
 #if DEBUG
@@ -327,28 +327,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
-        public bool IsParamsCollection
+        public bool IsParamsArrayOrCollection
         {
             get
             {
-                return (_attributes & BoundNodeAttributes.ParamsCollection) != 0;
+                return (_attributes & BoundNodeAttributes.ParamsArrayOrCollection) != 0;
             }
             protected set
             {
-                Debug.Assert((_attributes & BoundNodeAttributes.ParamsCollection) == 0, $"{nameof(BoundNodeAttributes.ParamsCollection)} flag should not be set twice or reset");
-                Debug.Assert(value || !IsParamsCollection);
+                Debug.Assert((_attributes & BoundNodeAttributes.ParamsArrayOrCollection) == 0, $"{nameof(BoundNodeAttributes.ParamsArrayOrCollection)} flag should not be set twice or reset");
+                Debug.Assert(value || !IsParamsArrayOrCollection);
                 Debug.Assert(!value ||
                              this is BoundArrayCreation { Bounds: [BoundLiteral { WasCompilerGenerated: true }], InitializerOpt: BoundArrayInitialization { WasCompilerGenerated: true }, WasCompilerGenerated: true } or
                                      BoundUnconvertedCollectionExpression { WasCompilerGenerated: true } or
-                                     BoundCollectionExpression { WasCompilerGenerated: true, UnconvertedCollectionExpression.IsParamsCollection: true } or
-                                     BoundConversion { Operand: BoundCollectionExpression { IsParamsCollection: true } });
+                                     BoundCollectionExpression { WasCompilerGenerated: true, UnconvertedCollectionExpression.IsParamsArrayOrCollection: true } or
+                                     BoundConversion { Operand: BoundCollectionExpression { IsParamsArrayOrCollection: true } });
                 Debug.Assert(!value ||
                              this is not BoundUnconvertedCollectionExpression collection ||
                              ImmutableArray<BoundNode>.CastUp(collection.Elements.CastArray<BoundExpression>()) == collection.Elements);
 
                 if (value)
                 {
-                    _attributes |= BoundNodeAttributes.ParamsCollection;
+                    _attributes |= BoundNodeAttributes.ParamsArrayOrCollection;
                 }
             }
         }

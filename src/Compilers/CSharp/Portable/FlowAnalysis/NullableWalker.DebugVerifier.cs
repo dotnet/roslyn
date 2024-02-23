@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void VerifyExpression(BoundExpression expression, bool overrideSkippedExpression = false)
             {
-                if (expression.IsParamsCollection)
+                if (expression.IsParamsArrayOrCollection)
                 {
                     // Params collections are processed element wise. 
                     Debug.Assert(!_analyzedNullabilityMap.ContainsKey(expression), $"Found unexpected {expression} `{expression.Syntax}` in the map.");
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitArrayCreation(BoundArrayCreation node)
             {
-                if (node.IsParamsCollection)
+                if (node.IsParamsArrayOrCollection)
                 {
                     // Synthesized params array is processed element wise.
                     this.Visit(node.InitializerOpt);
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
             {
-                if (node.IsParamsCollection)
+                if (node.IsParamsArrayOrCollection)
                 {
                     // Synthesized params collection is processed element wise.
                     this.VisitList(node.UnconvertedCollectionExpression.Elements);
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Visit(node.Operand.GetInterpolatedStringHandlerData().Construction);
                 }
-                else if (node.IsParamsCollection)
+                else if (node.IsParamsArrayOrCollection)
                 {
                     // Synthesized params collection is processed element wise.
                     this.Visit(node.Operand);

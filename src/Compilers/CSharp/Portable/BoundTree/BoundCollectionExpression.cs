@@ -31,15 +31,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return numberIncludingLastSpread > 0;
         }
 
-        public new bool IsParamsCollection
+        public new bool IsParamsArrayOrCollection
         {
             get
             {
-                return base.IsParamsCollection;
+                return base.IsParamsArrayOrCollection;
             }
             init
             {
-                base.IsParamsCollection = value;
+                base.IsParamsArrayOrCollection = value;
             }
         }
     }
