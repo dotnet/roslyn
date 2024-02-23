@@ -8,6 +8,7 @@
 #if NET8_0_OR_GREATER
 
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 #pragma warning disable RS0016 // Add public types and members to the declared API (this is a supporting forwarder for an internal polyfill API)
 [assembly: TypeForwardedTo(typeof(ExperimentalAttribute))]
