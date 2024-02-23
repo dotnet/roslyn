@@ -2408,7 +2408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets a new SyntaxTreeSemanticModel for the specified syntax tree.
         /// </summary>
-        [Experimental(RoslynExperiments.RSEXPERIMENTAL001, UrlFormat = RoslynExperiments.RSEXPERIMENTAL001_Url)]
+        [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
         public new SemanticModel GetSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options)
         {
             if (syntaxTree == null)
@@ -3837,7 +3837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _options; }
         }
 
-        [Experimental(RoslynExperiments.RSEXPERIMENTAL001)]
+        [Experimental(RoslynExperiments.NullableDisabledSemanticModel)]
         protected override SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options)
         {
             return this.GetSemanticModel(syntaxTree, options);

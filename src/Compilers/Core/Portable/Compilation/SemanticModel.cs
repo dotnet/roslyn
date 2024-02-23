@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
             get { return false; }
         }
 
-        [Experimental(RoslynExperiments.RSEXPERIMENTAL001, UrlFormat = RoslynExperiments.RSEXPERIMENTAL001_Url)]
+        [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
         public abstract bool NullableAnalysisIsDisabled { get; }
 
         /// <summary>

@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxTree SyntaxTree => _memberModel.SyntaxTree;
 
-        [Experimental(RoslynExperiments.RSEXPERIMENTAL001, UrlFormat = RoslynExperiments.RSEXPERIMENTAL001_Url)]
+        [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
         public override bool NullableAnalysisIsDisabled => _parentSemanticModel.NullableAnalysisIsDisabled;
 
         public override bool IgnoresAccessibility => _parentSemanticModel.IgnoresAccessibility;

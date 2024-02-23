@@ -5,13 +5,10 @@
 namespace Microsoft.CodeAnalysis;
 
 /// <summary>
-/// IDs of currently active experimental APIs.
+/// Defines diagnostic info for Roslyn experimental APIs.
 /// </summary>
 internal static class RoslynExperiments
 {
-    /// <summary>
-    /// Nullable disabled semantic model.
-    /// </summary>
-    internal const string RSEXPERIMENTAL001 = nameof(RSEXPERIMENTAL001);
-    internal const string RSEXPERIMENTAL001_Url = "https://github.com/dotnet/roslyn/issues/70609";
+    internal const string NullableDisabledSemanticModel = "RSEXPERIMENTAL001";
+    internal const string NullableDisabledSemanticModel_Url = "https://github.com/dotnet/roslyn/issues/70609";
 }

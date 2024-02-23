@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis;
 
-[Experimental(RoslynExperiments.RSEXPERIMENTAL001, UrlFormat = RoslynExperiments.RSEXPERIMENTAL001_Url)]
+[Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
 [Flags]
 public enum SemanticModelOptions
 {

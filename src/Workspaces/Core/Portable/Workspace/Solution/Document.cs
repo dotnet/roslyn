@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis
         /// In almost all cases, you should call <see cref="GetSemanticModelAsync"/>, which will compute the semantic model
         /// if necessary.
         /// </summary>
-        [Experimental(RoslynExperiments.RSEXPERIMENTAL001, UrlFormat = RoslynExperiments.RSEXPERIMENTAL001_Url)]
+        [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
         public bool TryGetNullableDisabledSemanticModel([NotNullWhen(returnValue: true)] out SemanticModel? semanticModel)
         {
             semanticModel = null;
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis
         /// cref="SupportsSemanticModel"/> returns <see langword="false"/>. This function will
         /// return the same value if called multiple times.
         /// </returns>
-        [Experimental(RoslynExperiments.RSEXPERIMENTAL001, UrlFormat = RoslynExperiments.RSEXPERIMENTAL001_Url)]
+        [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
         public async Task<SemanticModel?> GetNullableDisabledSemanticModelAsync(CancellationToken cancellationToken = default)
         {
             return await GetSemanticModelHelperAsync(disableNullableAnalysis: true, cancellationToken: cancellationToken).ConfigureAwait(false);

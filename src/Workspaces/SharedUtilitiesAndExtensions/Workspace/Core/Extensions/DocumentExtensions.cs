@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return semanticModel ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
         }
 
-        [Experimental(RoslynExperiments.RSEXPERIMENTAL001, UrlFormat = RoslynExperiments.RSEXPERIMENTAL001_Url)]
+        [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
         public static async ValueTask<SemanticModel> GetRequiredNullableDisabledSemanticModelAsync(this Document document, CancellationToken cancellationToken)
         {
             if (document.TryGetNullableDisabledSemanticModel(out var semanticModel))

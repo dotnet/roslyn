@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        [Experimental(RoslynExperiments.RSEXPERIMENTAL001, UrlFormat = RoslynExperiments.RSEXPERIMENTAL001_Url)]
+        [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
         public sealed override bool NullableAnalysisIsDisabled
         {
             get

@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary> 
         Friend MustOverride Shadows ReadOnly Property Root As SyntaxNode
 
-        <Experimental(RoslynExperiments.RSEXPERIMENTAL001, UrlFormat:=RoslynExperiments.RSEXPERIMENTAL001_Url)>
+        <Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat:=RoslynExperiments.NullableDisabledSemanticModel_Url)>
         Public NotOverridable Overrides ReadOnly Property NullableAnalysisIsDisabled As Boolean = False
 
         ''' <summary>
