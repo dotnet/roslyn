@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
 [Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class StringLiteralBraceCompletionService() : AbstractCSharpBraceCompletionService
+internal sealed class StringLiteralBraceCompletionService() : AbstractCSharpBraceCompletionService
 {
     protected override char OpeningBrace => DoubleQuote.OpenCharacter;
     protected override char ClosingBrace => DoubleQuote.CloseCharacter;
@@ -43,11 +42,8 @@ internal class StringLiteralBraceCompletionService() : AbstractCSharpBraceComple
         if (start > 0 && text[start - 1] == '@')
             start--;
 
-        var leftToken = document.SyntaxTree.FindTokenOnLeftOfPosition(start, cancellationToken);
-
-        return document.SyntaxTree.IsExpressionContext(start, leftToken, attributes: true, cancellationToken)
-            || document.SyntaxTree.IsStatementContext(start, leftToken, cancellationToken)
-            || document.SyntaxTree.IsGlobalStatementContext(start, cancellationToken)
+        // Has to be the start of an expression, or within a directive (string literals are legal there).
+        return IsLegalExpressionLocation(document.SyntaxTree, start, cancellationToken)
             || document.SyntaxTree.IsPreProcessorDirectiveContext(start, cancellationToken);
     }
 
