@@ -771,6 +771,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             foreach (var documentIdToTest in documentIdsToTest)
             {
                 var document = frozenSolution.GetRequiredDocument(documentIdToTest);
+                Assert.Single(document.GetLinkedDocumentIds());
+
                 Assert.Equal(document.GetLinkedDocumentIds().Single(), documentIdsToTest.Except([documentIdToTest]).Single());
                 document = document.WithText(SourceText.From("// Something else"));
 
