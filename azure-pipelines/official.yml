@@ -20,6 +20,9 @@ trigger:
 #    - microbuild
 
 parameters:
+# As an entrypoint pipeline yml file, all parameters here show up in the Queue Run dialog.
+# If any paramaters should NOT be queue-time options, they should be removed from here
+# and references to them in this file replaced with hard-coded values.
 - name: RealSign
   displayName: Real sign?
   type: boolean
@@ -78,8 +81,7 @@ extends:
             Is1ESPT: true
             RealSign: ${{ or(parameters.RealSign, eq(variables['Build.Reason'],'Schedule')) }}
             # ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
-            EnableCompliance: ${{ parameters.EnableCompliance }}
-            EnableAPIScan: ${{ parameters.EnableAPIScan }}
+            EnableAPIScan: ${{ and(parameters.EnableCompliance, parameters.EnableAPIScan, ne(variables['Build.Reason'], 'pullRequest')) }}
             windowsPool: VSEngSS-MicroBuild2022-1ES
             linuxPool:
               name: AzurePipelines-EO
@@ -112,8 +114,7 @@ extends:
             Is1ESPT: true
             RealSign: ${{ or(parameters.RealSign, eq(variables['Build.Reason'],'Schedule')) }}
             # ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
-            EnableCompliance: ${{ parameters.EnableCompliance }}
-            EnableAPIScan: ${{ parameters.EnableAPIScan }}
+            EnableAPIScan: ${{ and(parameters.EnableCompliance, parameters.EnableAPIScan, ne(variables['Build.Reason'], 'pullRequest')) }}
             windowsPool: VSEngSS-MicroBuild2022-1ES
             linuxPool:
               name: AzurePipelines-EO
