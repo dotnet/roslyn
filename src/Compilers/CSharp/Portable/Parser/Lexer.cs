@@ -285,13 +285,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private SyntaxListBuilder _leadingTriviaCache = new SyntaxListBuilder(10);
         private SyntaxListBuilder _trailingTriviaCache = new SyntaxListBuilder(10);
 
-        private static int GetFullWidth(SyntaxListBuilder builder)
+        private static int GetFullWidth(SyntaxListBuilder? builder)
         {
             int width = 0;
 
-            for (int i = 0; i < builder.Count; i++)
+            if (builder != null)
             {
-                width += builder[i]!.FullWidth;
+                for (int i = 0; i < builder.Count; i++)
+                {
+                    width += builder[i]!.FullWidth;
+                }
             }
 
             return width;
@@ -300,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private SyntaxToken LexSyntaxToken()
         {
             _leadingTriviaCache.Clear();
-            this.LexSyntaxTrivia(afterFirstToken: TextWindow.Position > 0, isTrailing: false, triviaList: _leadingTriviaCache);
+            this.LexSyntaxTrivia(afterFirstToken: TextWindow.Position > 0, isTrailing: false, triviaList: ref _leadingTriviaCache);
             var leading = _leadingTriviaCache;
 
             var tokenInfo = default(TokenInfo);
@@ -310,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var errors = this.GetErrors(GetFullWidth(leading));
 
             _trailingTriviaCache.Clear();
-            this.LexSyntaxTrivia(afterFirstToken: true, isTrailing: true, triviaList: _trailingTriviaCache);
+            this.LexSyntaxTrivia(afterFirstToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
             var trailing = _trailingTriviaCache;
 
             return Create(in tokenInfo, leading, trailing, errors);
@@ -319,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SyntaxTriviaList LexSyntaxLeadingTrivia()
         {
             _leadingTriviaCache.Clear();
-            this.LexSyntaxTrivia(afterFirstToken: TextWindow.Position > 0, isTrailing: false, triviaList: _leadingTriviaCache);
+            this.LexSyntaxTrivia(afterFirstToken: TextWindow.Position > 0, isTrailing: false, triviaList: ref _leadingTriviaCache);
             return new SyntaxTriviaList(default(Microsoft.CodeAnalysis.SyntaxToken),
                 _leadingTriviaCache.ToListNode(), position: 0, index: 0);
         }
@@ -327,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SyntaxTriviaList LexSyntaxTrailingTrivia()
         {
             _trailingTriviaCache.Clear();
-            this.LexSyntaxTrivia(afterFirstToken: true, isTrailing: true, triviaList: _trailingTriviaCache);
+            this.LexSyntaxTrivia(afterFirstToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
             return new SyntaxTriviaList(default(Microsoft.CodeAnalysis.SyntaxToken),
                 _trailingTriviaCache.ToListNode(), position: 0, index: 0);
         }
@@ -1855,7 +1858,7 @@ LoopExit:
             }
         }
 
-        private void LexSyntaxTrivia(bool afterFirstToken, bool isTrailing, SyntaxListBuilder triviaList)
+        private void LexSyntaxTrivia(bool afterFirstToken, bool isTrailing, ref SyntaxListBuilder triviaList)
         {
             bool onlyWhitespaceOnLine = !isTrailing;
 
@@ -1865,7 +1868,7 @@ LoopExit:
                 char ch = TextWindow.PeekChar();
                 if (ch == ' ')
                 {
-                    this.AddTrivia(this.ScanWhitespace(), triviaList);
+                    this.AddTrivia(this.ScanWhitespace(), ref triviaList);
                     continue;
                 }
                 else if (ch > 127)
@@ -1887,7 +1890,7 @@ LoopExit:
                     case '\v':       // Vertical Tab
                     case '\f':       // Form-feed
                     case '\u001A':
-                        this.AddTrivia(this.ScanWhitespace(), triviaList);
+                        this.AddTrivia(this.ScanWhitespace(), ref triviaList);
                         break;
                     case '/':
                         if ((ch = TextWindow.PeekChar(1)) == '/')
@@ -1901,14 +1904,14 @@ LoopExit:
                                     return;
                                 }
 
-                                this.AddTrivia(this.LexXmlDocComment(XmlDocCommentStyle.SingleLine), triviaList);
+                                this.AddTrivia(this.LexXmlDocComment(XmlDocCommentStyle.SingleLine), ref triviaList);
                                 break;
                             }
 
                             // normal single line comment
                             this.ScanToEndOfLine();
                             var text = TextWindow.GetText(false);
-                            this.AddTrivia(SyntaxFactory.Comment(text), triviaList);
+                            this.AddTrivia(SyntaxFactory.Comment(text), ref triviaList);
                             onlyWhitespaceOnLine = false;
                             break;
                         }
@@ -1924,11 +1927,11 @@ LoopExit:
                                     return;
                                 }
 
-                                this.AddTrivia(this.LexXmlDocComment(XmlDocCommentStyle.Delimited), triviaList);
+                                this.AddTrivia(this.LexXmlDocComment(XmlDocCommentStyle.Delimited), ref triviaList);
                                 break;
                             }
 
-                            lexMultiLineComment(triviaList, delimiter: '/');
+                            lexMultiLineComment(ref triviaList, delimiter: '/');
                             onlyWhitespaceOnLine = false;
                             break;
                         }
@@ -1938,14 +1941,14 @@ LoopExit:
                     case '@' when TextWindow.PeekChar(1) == '*':
                         // Razor comment. We pretend that it's a multi-line comment for error recovery, but it's an error case.
                         this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_UnexpectedCharacter, '@');
-                        lexMultiLineComment(triviaList, delimiter: '@');
+                        lexMultiLineComment(ref triviaList, delimiter: '@');
                         onlyWhitespaceOnLine = false;
                         break;
                     case '\r':
                     case '\n':
                         var endOfLine = this.ScanEndOfLine();
                         RoslynDebug.AssertNotNull(endOfLine);
-                        this.AddTrivia(endOfLine, triviaList);
+                        this.AddTrivia(endOfLine, ref triviaList);
                         if (isTrailing)
                         {
                             return;
@@ -1956,7 +1959,7 @@ LoopExit:
                     case '#':
                         if (_allowPreprocessorDirectives)
                         {
-                            this.LexDirectiveAndExcludedTrivia(afterFirstToken, isTrailing || !onlyWhitespaceOnLine, triviaList);
+                            this.LexDirectiveAndExcludedTrivia(afterFirstToken, isTrailing || !onlyWhitespaceOnLine, ref triviaList);
                             break;
                         }
                         else
@@ -1977,7 +1980,7 @@ LoopExit:
                         {
                             if (IsConflictMarkerTrivia())
                             {
-                                this.LexConflictMarkerTrivia(triviaList);
+                                this.LexConflictMarkerTrivia(ref triviaList);
                                 break;
                             }
                         }
@@ -1989,7 +1992,7 @@ LoopExit:
                 }
             }
 
-            void lexMultiLineComment(SyntaxListBuilder triviaList, char delimiter)
+            void lexMultiLineComment(ref SyntaxListBuilder triviaList, char delimiter)
             {
                 bool isTerminated;
                 this.ScanMultiLineComment(out isTerminated, delimiter);
@@ -2000,7 +2003,7 @@ LoopExit:
                 }
 
                 var text = TextWindow.GetText(false);
-                this.AddTrivia(SyntaxFactory.Comment(text), triviaList);
+                this.AddTrivia(SyntaxFactory.Comment(text), ref triviaList);
             }
         }
 
@@ -2040,7 +2043,7 @@ LoopExit:
             return false;
         }
 
-        private void LexConflictMarkerTrivia(SyntaxListBuilder triviaList)
+        private void LexConflictMarkerTrivia(ref SyntaxListBuilder triviaList)
         {
             this.Start();
 
@@ -2051,20 +2054,20 @@ LoopExit:
 
             // First create a trivia from the start of this merge conflict marker to the
             // end of line/file (whichever comes first).
-            LexConflictMarkerHeader(triviaList);
+            LexConflictMarkerHeader(ref triviaList);
 
             // Now add the newlines as the next trivia.
-            LexConflictMarkerEndOfLine(triviaList);
+            LexConflictMarkerEndOfLine(ref triviaList);
 
             // Now, if it was an ||||||| or ======= marker, then also created a DisabledText trivia for
             // the contents of the file after it, up until the next >>>>>>> marker we see.
             if (startCh is '|' or '=')
             {
-                LexConflictMarkerDisabledText(startCh == '=', triviaList);
+                LexConflictMarkerDisabledText(startCh == '=', ref triviaList);
             }
         }
 
-        private SyntaxListBuilder LexConflictMarkerDisabledText(bool atSecondMiddleMarker, SyntaxListBuilder triviaList)
+        private SyntaxListBuilder LexConflictMarkerDisabledText(bool atSecondMiddleMarker, ref SyntaxListBuilder triviaList)
         {
             // Consume everything from the end of the current mid-conflict marker to the start of the next
             // end-conflict marker
@@ -2097,18 +2100,18 @@ LoopExit:
 
             if (this.TextWindow.Width > 0)
             {
-                this.AddTrivia(SyntaxFactory.DisabledText(TextWindow.GetText(false)), triviaList);
+                this.AddTrivia(SyntaxFactory.DisabledText(TextWindow.GetText(false)), ref triviaList);
             }
 
             if (hitNextMarker)
             {
-                LexConflictMarkerTrivia(triviaList);
+                LexConflictMarkerTrivia(ref triviaList);
             }
 
             return triviaList;
         }
 
-        private void LexConflictMarkerEndOfLine(SyntaxListBuilder triviaList)
+        private void LexConflictMarkerEndOfLine(ref SyntaxListBuilder triviaList)
         {
             this.Start();
             while (SyntaxFacts.IsNewLine(this.TextWindow.PeekChar()))
@@ -2118,11 +2121,11 @@ LoopExit:
 
             if (this.TextWindow.Width > 0)
             {
-                this.AddTrivia(SyntaxFactory.EndOfLine(TextWindow.GetText(false)), triviaList);
+                this.AddTrivia(SyntaxFactory.EndOfLine(TextWindow.GetText(false)), ref triviaList);
             }
         }
 
-        private void LexConflictMarkerHeader(SyntaxListBuilder triviaList)
+        private void LexConflictMarkerHeader(ref SyntaxListBuilder triviaList)
         {
             while (true)
             {
@@ -2135,14 +2138,19 @@ LoopExit:
                 this.TextWindow.AdvanceChar();
             }
 
-            this.AddTrivia(SyntaxFactory.ConflictMarker(TextWindow.GetText(false)), triviaList);
+            this.AddTrivia(SyntaxFactory.ConflictMarker(TextWindow.GetText(false)), ref triviaList);
         }
 
-        private void AddTrivia(CSharpSyntaxNode trivia, SyntaxListBuilder list)
+        private void AddTrivia(CSharpSyntaxNode trivia, [NotNull] ref SyntaxListBuilder? list)
         {
             if (this.HasErrors)
             {
                 trivia = trivia.WithDiagnosticsGreen(this.GetErrors(leadingTriviaWidth: 0));
+            }
+
+            if (list == null)
+            {
+                list = new SyntaxListBuilder(TriviaListInitialCapacity);
             }
 
             list.Add(trivia);
@@ -2289,19 +2297,19 @@ top:
         private void LexDirectiveAndExcludedTrivia(
             bool afterFirstToken,
             bool afterNonWhitespaceOnLine,
-            SyntaxListBuilder triviaList)
+            ref SyntaxListBuilder triviaList)
         {
-            var directive = this.LexSingleDirective(true, true, afterFirstToken, afterNonWhitespaceOnLine, triviaList);
+            var directive = this.LexSingleDirective(true, true, afterFirstToken, afterNonWhitespaceOnLine, ref triviaList);
 
             // also lex excluded stuff            
             var branching = directive as BranchingDirectiveTriviaSyntax;
             if (branching != null && !branching.BranchTaken)
             {
-                this.LexExcludedDirectivesAndTrivia(true, triviaList);
+                this.LexExcludedDirectivesAndTrivia(true, ref triviaList);
             }
         }
 
-        private void LexExcludedDirectivesAndTrivia(bool endIsActive, SyntaxListBuilder triviaList)
+        private void LexExcludedDirectivesAndTrivia(bool endIsActive, ref SyntaxListBuilder triviaList)
         {
             while (true)
             {
@@ -2309,7 +2317,7 @@ top:
                 var text = this.LexDisabledText(out hasFollowingDirective);
                 if (text != null)
                 {
-                    this.AddTrivia(text, triviaList);
+                    this.AddTrivia(text, ref triviaList);
                 }
 
                 if (!hasFollowingDirective)
@@ -2317,7 +2325,7 @@ top:
                     break;
                 }
 
-                var directive = this.LexSingleDirective(false, endIsActive, false, false, triviaList);
+                var directive = this.LexSingleDirective(false, endIsActive, false, false, ref triviaList);
                 var branching = directive as BranchingDirectiveTriviaSyntax;
                 if (directive.Kind == SyntaxKind.EndIfDirectiveTrivia || (branching != null && branching.BranchTaken))
                 {
@@ -2325,7 +2333,7 @@ top:
                 }
                 else if (directive.Kind == SyntaxKind.IfDirectiveTrivia)
                 {
-                    this.LexExcludedDirectivesAndTrivia(false, triviaList);
+                    this.LexExcludedDirectivesAndTrivia(false, ref triviaList);
                 }
             }
         }
@@ -2335,12 +2343,12 @@ top:
             bool endIsActive,
             bool afterFirstToken,
             bool afterNonWhitespaceOnLine,
-            SyntaxListBuilder triviaList)
+            ref SyntaxListBuilder triviaList)
         {
             if (SyntaxFacts.IsWhitespace(TextWindow.PeekChar()))
             {
                 this.Start();
-                this.AddTrivia(this.ScanWhitespace(), triviaList);
+                this.AddTrivia(this.ScanWhitespace(), ref triviaList);
             }
 
             CSharpSyntaxNode directive;
@@ -2351,7 +2359,7 @@ top:
 
             directive = _directiveParser.ParseDirective(isActive, endIsActive, afterFirstToken, afterNonWhitespaceOnLine);
 
-            this.AddTrivia(directive, triviaList);
+            this.AddTrivia(directive, ref triviaList);
             _directives = directive.ApplyDirectives(_directives);
             _mode = saveMode;
             return directive;
@@ -2415,9 +2423,8 @@ top:
             TokenInfo info = default(TokenInfo);
             this.ScanDirectiveToken(ref info);
             var errors = this.GetErrors(leadingTriviaWidth: 0);
-            _trailingTriviaCache.Clear();
-            this.LexDirectiveTrailingTrivia(info.Kind == SyntaxKind.EndOfDirectiveToken, _trailingTriviaCache);
-            return Create(in info, null, _trailingTriviaCache, errors);
+            var trailing = this.LexDirectiveTrailingTrivia(info.Kind == SyntaxKind.EndOfDirectiveToken);
+            return Create(in info, null, trailing, errors);
         }
 
         public SyntaxToken LexEndOfDirectiveWithOptionalPreprocessingMessage()
@@ -2449,9 +2456,8 @@ top:
                 : SyntaxFactory.PreprocessingMessage(builder.ToStringAndFree());
 
             // now try to consume the EOL if there.
-            _trailingTriviaCache.Clear();
-            this.LexDirectiveTrailingTrivia(includeEndOfLine: true, _trailingTriviaCache);
-            var endOfDirective = SyntaxFactory.Token(leading, SyntaxKind.EndOfDirectiveToken, _trailingTriviaCache.ToListNode());
+            var trailing = this.LexDirectiveTrailingTrivia(includeEndOfLine: true)?.ToListNode();
+            var endOfDirective = SyntaxFactory.Token(leading, SyntaxKind.EndOfDirectiveToken, trailing);
 
             return endOfDirective;
         }
@@ -2622,8 +2628,11 @@ top:
             return info.Kind != SyntaxKind.None;
         }
 
-        private void LexDirectiveTrailingTrivia(bool includeEndOfLine, SyntaxListBuilder triviaList)
+        private SyntaxListBuilder? LexDirectiveTrailingTrivia(bool includeEndOfLine)
         {
+            _trailingTriviaCache.Clear();
+            SyntaxListBuilder trivia = _trailingTriviaCache;
+
             CSharpSyntaxNode? tr;
             while (true)
             {
@@ -2637,7 +2646,7 @@ top:
                 {
                     if (includeEndOfLine)
                     {
-                        AddTrivia(tr, triviaList);
+                        AddTrivia(tr, ref trivia);
                     }
                     else
                     {
@@ -2649,9 +2658,11 @@ top:
                 }
                 else
                 {
-                    AddTrivia(tr, triviaList);
+                    AddTrivia(tr, ref trivia);
                 }
             }
+
+            return trivia.Count > 0 ? trivia : null;
         }
 
         private CSharpSyntaxNode? LexDirectiveTrivia()
@@ -2735,14 +2746,14 @@ top:
         {
             TokenInfo xmlTokenInfo = default(TokenInfo);
 
-            _leadingTriviaCache.Clear();
-            this.LexXmlDocCommentLeadingTrivia(_leadingTriviaCache);
+            SyntaxListBuilder? leading = null;
+            this.LexXmlDocCommentLeadingTrivia(ref leading);
 
             this.Start();
             this.ScanXmlToken(ref xmlTokenInfo);
-            var errors = this.GetErrors(GetFullWidth(_leadingTriviaCache));
+            var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(in xmlTokenInfo, _leadingTriviaCache, null, errors);
+            return Create(in xmlTokenInfo, leading, null, errors);
         }
 
         private bool ScanXmlToken(ref TokenInfo info)
@@ -3091,25 +3102,25 @@ top:
         {
             TokenInfo tagInfo = default(TokenInfo);
 
-            _leadingTriviaCache.Clear();
-            this.LexXmlDocCommentLeadingTriviaWithWhitespace(_leadingTriviaCache);
+            SyntaxListBuilder? leading = null;
+            this.LexXmlDocCommentLeadingTriviaWithWhitespace(ref leading);
 
             this.Start();
             this.ScanXmlElementTagToken(ref tagInfo);
-            var errors = this.GetErrors(GetFullWidth(_leadingTriviaCache));
+            var errors = this.GetErrors(GetFullWidth(leading));
 
             // PERF: De-dupe common XML element tags
             if (errors == null && tagInfo.ContextualKind == SyntaxKind.None && tagInfo.Kind == SyntaxKind.IdentifierToken)
             {
                 RoslynDebug.AssertNotNull(tagInfo.Text);
-                SyntaxToken? token = DocumentationCommentXmlTokens.LookupToken(tagInfo.Text, _leadingTriviaCache);
+                SyntaxToken? token = DocumentationCommentXmlTokens.LookupToken(tagInfo.Text, leading);
                 if (token != null)
                 {
                     return token;
                 }
             }
 
-            return Create(in tagInfo, _leadingTriviaCache, null, errors);
+            return Create(in tagInfo, leading, null, errors);
         }
 
         private bool ScanXmlElementTagToken(ref TokenInfo info)
@@ -3277,14 +3288,14 @@ top:
         {
             TokenInfo info = default(TokenInfo);
 
-            _leadingTriviaCache.Clear();
-            this.LexXmlDocCommentLeadingTrivia(_leadingTriviaCache);
+            SyntaxListBuilder? leading = null;
+            this.LexXmlDocCommentLeadingTrivia(ref leading);
 
             this.Start();
             this.ScanXmlAttributeTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(_leadingTriviaCache));
+            var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(in info, _leadingTriviaCache, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         private bool ScanXmlAttributeTextToken(ref TokenInfo info)
@@ -3431,14 +3442,14 @@ top:
             TokenInfo info = default(TokenInfo);
 
             //TODO: Dev11 allows C# comments and newlines in cref trivia (DevDiv #530523).
-            _leadingTriviaCache.Clear();
-            this.LexXmlDocCommentLeadingTriviaWithWhitespace(_leadingTriviaCache);
+            SyntaxListBuilder? leading = null;
+            this.LexXmlDocCommentLeadingTriviaWithWhitespace(ref leading);
 
             this.Start();
             this.ScanXmlCharacter(ref info);
-            var errors = this.GetErrors(GetFullWidth(_leadingTriviaCache));
+            var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(in info, _leadingTriviaCache, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         /// <summary>
@@ -3487,14 +3498,14 @@ top:
             TokenInfo info = default(TokenInfo);
 
             //TODO: Dev11 allows C# comments and newlines in cref trivia (DevDiv #530523).
-            _leadingTriviaCache.Clear();
-            this.LexXmlDocCommentLeadingTriviaWithWhitespace(_leadingTriviaCache);
+            SyntaxListBuilder? leading = null;
+            this.LexXmlDocCommentLeadingTriviaWithWhitespace(ref leading);
 
             this.Start();
             this.ScanXmlCrefToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(_leadingTriviaCache));
+            var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(in info, _leadingTriviaCache, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         /// <summary>
@@ -3899,14 +3910,14 @@ top:
         {
             TokenInfo info = default(TokenInfo);
 
-            _leadingTriviaCache.Clear();
-            this.LexXmlDocCommentLeadingTrivia(_leadingTriviaCache);
+            SyntaxListBuilder? leading = null;
+            this.LexXmlDocCommentLeadingTrivia(ref leading);
 
             this.Start();
             this.ScanXmlCDataSectionTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(_leadingTriviaCache));
+            var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(in info, _leadingTriviaCache, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         private bool ScanXmlCDataSectionTextToken(ref TokenInfo info)
@@ -4021,14 +4032,14 @@ top:
         {
             TokenInfo info = default(TokenInfo);
 
-            _leadingTriviaCache.Clear();
-            this.LexXmlDocCommentLeadingTrivia(_leadingTriviaCache);
+            SyntaxListBuilder? leading = null;
+            this.LexXmlDocCommentLeadingTrivia(ref leading);
 
             this.Start();
             this.ScanXmlCommentTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(_leadingTriviaCache));
+            var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(in info, _leadingTriviaCache, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         private bool ScanXmlCommentTextToken(ref TokenInfo info)
@@ -4151,14 +4162,14 @@ top:
         {
             TokenInfo info = default(TokenInfo);
 
-            _leadingTriviaCache.Clear();
-            this.LexXmlDocCommentLeadingTrivia(_leadingTriviaCache);
+            SyntaxListBuilder? leading = null;
+            this.LexXmlDocCommentLeadingTrivia(ref leading);
 
             this.Start();
             this.ScanXmlProcessingInstructionTextToken(ref info);
-            var errors = this.GetErrors(GetFullWidth(_leadingTriviaCache));
+            var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(in info, _leadingTriviaCache, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         // CONSIDER: This could easily be merged with ScanXmlCDataSectionTextToken
@@ -4272,7 +4283,7 @@ top:
         /// Collects XML doc comment exterior trivia, and therefore is a no op unless we are in the Start or Exterior of an XML doc comment.
         /// </summary>
         /// <param name="trivia">List in which to collect the trivia</param>
-        private void LexXmlDocCommentLeadingTrivia(SyntaxListBuilder trivia)
+        private void LexXmlDocCommentLeadingTrivia(ref SyntaxListBuilder? trivia)
         {
             var start = TextWindow.Position;
             this.Start();
@@ -4290,7 +4301,7 @@ top:
                 {
                     TextWindow.AdvanceChar(3);
                     var text = TextWindow.GetText(true);
-                    this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), trivia);
+                    this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), ref trivia);
                     this.MutateLocation(XmlDocCommentLocation.Interior);
                     return;
                 }
@@ -4319,7 +4330,7 @@ top:
                             {
                                 TextWindow.AdvanceChar(3);
                                 var text = TextWindow.GetText(true);
-                                this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), trivia);
+                                this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), ref trivia);
                                 this.MutateLocation(XmlDocCommentLocation.Interior);
                                 return;
                             }
@@ -4337,7 +4348,7 @@ top:
                                 var text = TextWindow.GetText(true);
                                 if (!String.IsNullOrEmpty(text))
                                 {
-                                    this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), trivia);
+                                    this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), ref trivia);
                                 }
 
                                 // This setup ensures that on the final line of a comment, if we have
@@ -4347,7 +4358,7 @@ top:
                                 if (TextWindow.PeekChar() == '*' && TextWindow.PeekChar(1) == '/')
                                 {
                                     TextWindow.AdvanceChar(2);
-                                    this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia("*/"), trivia);
+                                    this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia("*/"), ref trivia);
                                     this.MutateLocation(XmlDocCommentLocation.End);
                                 }
                                 else
@@ -4382,7 +4393,7 @@ top:
 
                                 var text = TextWindow.GetText(true);
                                 if (!String.IsNullOrEmpty(text))
-                                    this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), trivia);
+                                    this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), ref trivia);
                                 this.MutateLocation(XmlDocCommentLocation.Interior);
                             }
 
@@ -4396,23 +4407,23 @@ top:
                 {
                     TextWindow.AdvanceChar(2);
                     var text = TextWindow.GetText(true);
-                    this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), trivia);
+                    this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), ref trivia);
                     this.MutateLocation(XmlDocCommentLocation.End);
                 }
             }
         }
 
-        private void LexXmlDocCommentLeadingTriviaWithWhitespace(SyntaxListBuilder trivia)
+        private void LexXmlDocCommentLeadingTriviaWithWhitespace(ref SyntaxListBuilder? trivia)
         {
             while (true)
             {
-                this.LexXmlDocCommentLeadingTrivia(trivia);
+                this.LexXmlDocCommentLeadingTrivia(ref trivia);
 
                 char ch = TextWindow.PeekChar();
                 if (this.LocationIs(XmlDocCommentLocation.Interior)
                     && (SyntaxFacts.IsWhitespace(ch) || SyntaxFacts.IsNewLine(ch)))
                 {
-                    this.LexXmlWhitespaceAndNewLineTrivia(trivia);
+                    this.LexXmlWhitespaceAndNewLineTrivia(ref trivia);
                 }
                 else
                 {
@@ -4425,7 +4436,7 @@ top:
         /// Collects whitespace and new line trivia for XML doc comments. Does not see XML doc comment exterior trivia, and is a no op unless we are in the interior.
         /// </summary>
         /// <param name="trivia">List in which to collect the trivia</param>
-        private void LexXmlWhitespaceAndNewLineTrivia(SyntaxListBuilder trivia)
+        private void LexXmlWhitespaceAndNewLineTrivia(ref SyntaxListBuilder? trivia)
         {
             this.Start();
             if (this.LocationIs(XmlDocCommentLocation.Interior))
@@ -4437,14 +4448,14 @@ top:
                     case '\t':       // Horizontal tab
                     case '\v':       // Vertical Tab
                     case '\f':       // Form-feed
-                        this.AddTrivia(this.ScanWhitespace(), trivia);
+                        this.AddTrivia(this.ScanWhitespace(), ref trivia);
                         break;
 
                     case '\r':
                     case '\n':
                         var endOfLine = this.ScanEndOfLine();
                         RoslynDebug.AssertNotNull(endOfLine);
-                        this.AddTrivia(endOfLine, trivia);
+                        this.AddTrivia(endOfLine, ref trivia);
                         this.MutateLocation(XmlDocCommentLocation.Exterior);
                         return;
 
