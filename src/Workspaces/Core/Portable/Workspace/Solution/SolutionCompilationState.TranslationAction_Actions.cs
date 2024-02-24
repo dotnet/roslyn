@@ -130,18 +130,13 @@ namespace Microsoft.CodeAnalysis
 
                 public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    var trees = await GetAllSyntaxTreesAsync(cancellationToken).ConfigureAwait(false);
-                    return oldCompilation.AddSyntaxTrees(trees);
-                }
-
-                private async Task<SyntaxTree[]> GetAllSyntaxTreesAsync(CancellationToken cancellationToken)
-                {
                     // Parse all the documents in parallel.
                     using var _ = ArrayBuilder<Task<SyntaxTree>>.GetInstance(this.Documents.Length, out var tasks);
                     foreach (var document in this.Documents)
                         tasks.Add(Task.Run(async () => await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken));
 
-                    return await Task.WhenAll(tasks).ConfigureAwait(false);
+                    var trees = await Task.WhenAll(tasks).ConfigureAwait(false);
+                    return oldCompilation.AddSyntaxTrees(trees);
                 }
 
                 // This action adds the specified trees, but leaves the generated trees untouched.
