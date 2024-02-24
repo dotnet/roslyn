@@ -2632,7 +2632,7 @@ top:
             return info.Kind != SyntaxKind.None;
         }
 
-        private void LexDirectiveTrailingTrivia(bool includeEndOfLine, ref SyntaxListBuilder? trivia)
+        private void LexDirectiveTrailingTrivia(bool includeEndOfLine, ref SyntaxListBuilder trivia)
         {
             CSharpSyntaxNode? tr;
             while (true)
