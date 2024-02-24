@@ -21,16 +21,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SourceComplexParameterSymbolBase : SourceParameterSymbol, IAttributeTargetSymbol
     {
         [Flags]
-        private enum ParameterSyntaxKind : byte
+        private enum ParameterFlags : byte
         {
-            Regular = 0,
-            ParamsParameter = 1,
-            ExtensionThisParameter = 2,
-            DefaultParameter = 4,
+            None = 0,
+            HasParamsModifier = 0x1,
+            ParamsParameter = 0x02, // Value of this flag is either derived from HasParamsModifier, or inherited from overridden member 
+            ExtensionThisParameter = 0x04,
+            DefaultParameter = 0x08,
         }
 
         private readonly SyntaxReference _syntaxRef;
-        private readonly ParameterSyntaxKind _parameterSyntaxKind;
+        private readonly ParameterFlags _parameterSyntaxKind;
 
         private ThreeState _lazyHasOptionalAttribute;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             Location location,
             SyntaxReference syntaxRef,
+            bool hasParamsModifier,
             bool isParams,
             bool isExtensionMethodThis,
             ScopedKind scope)
@@ -53,20 +55,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyHasOptionalAttribute = ThreeState.Unknown;
             _syntaxRef = syntaxRef;
 
+            if (hasParamsModifier)
+            {
+                _parameterSyntaxKind |= ParameterFlags.HasParamsModifier;
+            }
+
             if (isParams)
             {
-                _parameterSyntaxKind |= ParameterSyntaxKind.ParamsParameter;
+                _parameterSyntaxKind |= ParameterFlags.ParamsParameter;
             }
 
             if (isExtensionMethodThis)
             {
-                _parameterSyntaxKind |= ParameterSyntaxKind.ExtensionThisParameter;
+                _parameterSyntaxKind |= ParameterFlags.ExtensionThisParameter;
             }
 
             var parameterSyntax = this.ParameterSyntax;
             if (parameterSyntax != null && parameterSyntax.Default != null)
             {
-                _parameterSyntaxKind |= ParameterSyntaxKind.DefaultParameter;
+                _parameterSyntaxKind |= ParameterFlags.DefaultParameter;
             }
 
             _lazyDefaultSyntaxValue = ConstantValue.Unset;
@@ -866,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool IsValidUnscopedRefAttributeTarget()
         {
-            return UseUpdatedEscapeRules && (RefKind != RefKind.None || (IsParams && Type.IsRefLikeType));
+            return UseUpdatedEscapeRules && (RefKind != RefKind.None || (HasParamsModifier && Type.IsRefLikeType));
         }
 
         private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(CSharpAttributeData attribute)
@@ -1435,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (_parameterSyntaxKind & ParameterSyntaxKind.DefaultParameter) != 0;
+                return (_parameterSyntaxKind & ParameterFlags.DefaultParameter) != 0;
             }
         }
 
@@ -1499,11 +1506,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override MarshalPseudoCustomAttributeData MarshallingInformation
             => GetDecodedWellKnownAttributeData()?.MarshallingInformation;
 
-        public sealed override bool IsParamsArray => (_parameterSyntaxKind & ParameterSyntaxKind.ParamsParameter) != 0 && this.Type.IsSZArray();
+        protected sealed override bool HasParamsModifier => (_parameterSyntaxKind & ParameterFlags.HasParamsModifier) != 0;
 
-        public sealed override bool IsParamsCollection => (_parameterSyntaxKind & ParameterSyntaxKind.ParamsParameter) != 0 && !this.Type.IsSZArray();
+        public sealed override bool IsParamsArray => (_parameterSyntaxKind & ParameterFlags.ParamsParameter) != 0 && this.Type.IsSZArray();
 
-        internal override bool IsExtensionMethodThis => (_parameterSyntaxKind & ParameterSyntaxKind.ExtensionThisParameter) != 0;
+        public sealed override bool IsParamsCollection => (_parameterSyntaxKind & ParameterFlags.ParamsParameter) != 0 && !this.Type.IsSZArray();
+
+        internal override bool IsExtensionMethodThis => (_parameterSyntaxKind & ParameterFlags.ExtensionThisParameter) != 0;
 
         public abstract override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
@@ -1681,10 +1690,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             Location location,
             SyntaxReference syntaxRef,
+            bool hasParamsModifier,
             bool isParams,
             bool isExtensionMethodThis,
             ScopedKind scope)
-            : base(owner, ordinal, refKind, name, location, syntaxRef, isParams, isExtensionMethodThis, scope)
+            : base(owner, ordinal, refKind, name, location, syntaxRef, hasParamsModifier: hasParamsModifier, isParams: isParams, isExtensionMethodThis, scope)
         {
             _parameterType = parameterType;
         }
@@ -1707,10 +1717,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             Location location,
             SyntaxReference syntaxRef,
+            bool hasParamsModifier,
             bool isParams,
             bool isExtensionMethodThis,
             ScopedKind scope)
-            : base(owner, ordinal, refKind, name, location, syntaxRef, isParams, isExtensionMethodThis, scope)
+            : base(owner, ordinal, refKind, name, location, syntaxRef, hasParamsModifier: hasParamsModifier, isParams: isParams, isExtensionMethodThis, scope)
         {
             Debug.Assert(!refCustomModifiers.IsEmpty);
 

@@ -57,6 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        protected override bool HasParamsModifier
+        {
+            get { return false; }
+        }
+
         public override bool IsParamsArray
         {
             get { return false; }

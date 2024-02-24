@@ -8345,10 +8345,16 @@ class C2 : C1
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.None, comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
             Assert.False(comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().IsParams);
-            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
-            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
+
+            Assert.Equal(ScopedKind.None, comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.False(comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().IsParams);
+
+            Assert.Equal(ScopedKind.None, comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
 
             comp.VerifyDiagnostics();
         }
@@ -8380,11 +8386,24 @@ class C2 : C1
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
-            Assert.Equal(comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
-            Assert.NotEqual(comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.None, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.True(comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().IsParams);
+
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.None, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.True(comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().IsParams);
+
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.None, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
 
             comp.VerifyDiagnostics(
+                // (13,32): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public override Span<long> Test1(Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test1").WithArguments("a").WithLocation(13, 32),
+                // (16,32): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
+                //     public override Span<long> Test2(Span<long> a)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("a").WithLocation(16, 32),
                 // (19,32): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
                 //     public override Span<long> Test3(Span<long> a)
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test3").WithArguments("a").WithLocation(19, 32)
@@ -8427,9 +8446,15 @@ class C2 : C1
                 // (14,32): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
                 //     public override Span<long> Test1([UnscopedRef] Span<long> a)
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test1").WithArguments("a").WithLocation(14, 32),
+                // (14,39): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     public override Span<long> Test1([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(14, 39),
                 // (17,32): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
                 //     public override Span<long> Test2([UnscopedRef] Span<long> a)
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("a").WithLocation(17, 32),
+                // (17,39): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     public override Span<long> Test2([UnscopedRef] Span<long> a)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(17, 39),
                 // (20,32): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
                 //     public override Span<long> Test3([UnscopedRef] Span<long> a)
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test3").WithArguments("a").WithLocation(20, 32),
@@ -8482,15 +8507,7 @@ class C2 : C1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("a").WithLocation(17, 32),
                 // (20,32): error CS8987: The 'scoped' modifier of parameter 'a' doesn't match overridden or implemented member.
                 //     public override Span<long> Test3([UnscopedRef] params Span<long> a)
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test3").WithArguments("a").WithLocation(20, 32),
-
-                // PROTOTYPE(ParamsCollections): The params modifier is getting dropped due to overriding (that is not new for params collections),
-                //                               but that is causing the unexpected warning. Not sure it is worth the effort trying to suppress it for
-                //                               this edge case. The confusing part is the "unscoped by default" statement.
-
-                // (20,39): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
-                //     public override Span<long> Test3([UnscopedRef] params Span<long> a)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(20, 39)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test3").WithArguments("a").WithLocation(20, 32)
                 );
         }
 
@@ -9196,6 +9213,132 @@ partial class C1
                 //     public partial Span<long> Test3([UnscopedRef] params Span<long> a)
                 Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "Test3").WithLocation(20, 31)
                 );
+        }
+
+        [Fact]
+        public void ParameterRefSafetyScope_26_Mismatch_Overriding()
+        {
+            var src = @"
+using System;
+
+abstract class C1
+{
+    public abstract Span<long> Test1(params Span<long> a);
+    public abstract Span<long> Test2(params scoped Span<long> a);
+    public abstract Span<long> Test3(scoped Span<long> a);
+}
+
+class C2 : C1
+{
+    public override Span<long> Test1(params Span<long> a)
+        => throw null;
+
+    public override Span<long> Test2(params Span<long> a)
+        => throw null;
+
+    public override Span<long> Test3(params Span<long> a)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.True(comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().IsParams);
+
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.True(comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().IsParams);
+
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
+            Assert.False(comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().IsParams);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterRefSafetyScope_27_Mismatch_Overriding()
+        {
+            var src = @"
+using System;
+
+abstract class C1
+{
+    public abstract Span<long> Test1(params Span<long> a);
+    public abstract Span<long> Test2(params scoped Span<long> a);
+    public abstract Span<long> Test3(scoped Span<long> a);
+}
+
+class C2 : C1
+{
+    public override Span<long> Test1(scoped Span<long> a)
+        => throw null;
+
+    public override Span<long> Test2(scoped Span<long> a)
+        => throw null;
+
+    public override Span<long> Test3(scoped Span<long> a)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.True(comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().IsParams);
+
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.True(comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().IsParams);
+
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
+            Assert.False(comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().IsParams);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterRefSafetyScope_28_Mismatch_Overriding()
+        {
+            var src = @"
+using System;
+
+abstract class C1
+{
+    public abstract Span<long> Test1(params Span<long> a);
+    public abstract Span<long> Test2(params scoped Span<long> a);
+    public abstract Span<long> Test3(scoped Span<long> a);
+}
+
+class C2 : C1
+{
+    public override Span<long> Test1(params scoped Span<long> a)
+        => throw null;
+
+    public override Span<long> Test2(params scoped Span<long> a)
+        => throw null;
+
+    public override Span<long> Test3(params scoped Span<long> a)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C1.Test1").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().EffectiveScope);
+            Assert.True(comp.GetMember<MethodSymbol>("C2.Test1").Parameters.Single().IsParams);
+
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C1.Test2").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().EffectiveScope);
+            Assert.True(comp.GetMember<MethodSymbol>("C2.Test2").Parameters.Single().IsParams);
+
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C1.Test3").Parameters.Single().EffectiveScope);
+            Assert.Equal(ScopedKind.ScopedValue, comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().EffectiveScope);
+            Assert.False(comp.GetMember<MethodSymbol>("C2.Test3").Parameters.Single().IsParams);
+
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         refKind,
                         syntax.Identifier,
                         ordinal,
-                        isParams: paramsKeyword.Kind() != SyntaxKind.None,
+                        hasParamsModifier: paramsKeyword.Kind() != SyntaxKind.None,
                         isExtensionMethodThis: ordinal == 0 && thisKeyword.Kind() != SyntaxKind.None,
                         addRefReadOnlyModifier,
                         scope,
