@@ -3603,6 +3603,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(LexerCache.MaxKeywordLength, max);
         }
 
+        [Fact]
+        public void TestNoKind8441InKeywordKinds()
+        {
+            var reservedKeywords = SyntaxFacts.GetReservedKeywordKinds();
+            Assert.DoesNotContain((SyntaxKind)8441, reservedKeywords);
+
+            var contextualKeywords = SyntaxFacts.GetContextualKeywordKinds();
+            Assert.DoesNotContain((SyntaxKind)8441, contextualKeywords);
+
+            var keywords = SyntaxFacts.GetKeywordKinds();
+            Assert.DoesNotContain((SyntaxKind)8441, keywords);
+        }
+
         [WorkItem(545781, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545781")]
         [Fact]
         public void DecimalLiteralsOtherCulture()
