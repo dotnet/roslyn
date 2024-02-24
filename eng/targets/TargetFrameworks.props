@@ -15,7 +15,7 @@
     <NetRoslyn>net8.0</NetRoslyn>
     <NetRoslynAll>net7.0;net8.0</NetRoslynAll>
     <NetVS>net8.0</NetVS>
-    <NetVSCode>net7.0</NetVSCode>
+    <NetVSCode>net8.0</NetVSCode>
     <NetVSShared>net7.0;net8.0</NetVSShared>
     <NetRoslynBuildHostNetCoreVersion>net6.0</NetRoslynBuildHostNetCoreVersion>
   </PropertyGroup>

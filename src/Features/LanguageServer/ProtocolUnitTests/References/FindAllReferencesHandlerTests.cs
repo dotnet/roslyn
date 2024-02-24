@@ -241,14 +241,11 @@ class A
 
             var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
 
-            // Namespace definitions should not have a location
-            Assert.True(results.Any(r => r.DefinitionText != null && r.Location == null));
-
-            // Namespace references should have a location
-            Assert.True(results.Any(r => r.DefinitionText == null && r.Location != null));
+            // Namespace source definitions and references should have locations:
+            Assert.True(results.All(r => r.Location != null));
 
             AssertValidDefinitionProperties(results, 0, Glyph.Namespace);
-            AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 2);
+            AssertHighlightCount(results, expectedDefinitionCount: 1, expectedWrittenReferenceCount: 0, expectedReferenceCount: 2);
         }
 
         [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1245616/")]
