@@ -2632,42 +2632,6 @@ top:
             return info.Kind != SyntaxKind.None;
         }
 
-        private SyntaxListBuilder? LexDirectiveTrailingTriviaOrig(bool includeEndOfLine)
-        {
-            SyntaxListBuilder? trivia = null;
-
-            CSharpSyntaxNode? tr;
-            while (true)
-            {
-                var pos = TextWindow.Position;
-                tr = this.LexDirectiveTrivia();
-                if (tr == null)
-                {
-                    break;
-                }
-                else if (tr.Kind == SyntaxKind.EndOfLineTrivia)
-                {
-                    if (includeEndOfLine)
-                    {
-                        AddTrivia(tr, ref trivia);
-                    }
-                    else
-                    {
-                        // don't consume end of line...
-                        TextWindow.Reset(pos);
-                    }
-
-                    break;
-                }
-                else
-                {
-                    AddTrivia(tr, ref trivia);
-                }
-            }
-
-            return trivia;
-        }
-
         private void LexDirectiveTrailingTrivia(bool includeEndOfLine, ref SyntaxListBuilder? trivia)
         {
             CSharpSyntaxNode? tr;
