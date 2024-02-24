@@ -76,7 +76,7 @@ Temporarily, for compatibility purposes, when the initial matching strategy outl
 - A *mapped path* of each syntax tree is determined by applying [`/pathmap`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.commandlinearguments.pathmap?view=roslyn-dotnet-4.7.0) substitution to `SyntaxTree.FilePath`.
 - For a given `[InterceptsLocation]` usage, the `filePath` argument value is compared to the *mapped path* of each syntax tree using ordinal string comparison. If exactly one syntax tree matches under this comparison, that is the *referenced syntax tree*. Otherwise, an error occurs.
 
-Support for the "compat" strategy will be dropped prior to stable release.
+Support for the "compat" strategy will be dropped prior to stable release. Tracked by https://github.com/dotnet/roslyn/issues/72265.
 
 #### Position
 
