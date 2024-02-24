@@ -398,7 +398,7 @@ stages:
         displayName: Validate Build Artifacts
 
       - pwsh: |
-           ./eng/validate-rules-missing-documentation.ps1 -ci
+          ./eng/validate-rules-missing-documentation.ps1 -ci
         displayName: Validate rules missing documentation
 
       - pwsh: |
