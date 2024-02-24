@@ -9,7 +9,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
@@ -102,8 +101,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                             SyntaxKind.Utf8MultiLineRawStringLiteralToken &&
                         token.Text.EndsWith("u8", StringComparison.OrdinalIgnoreCase))
                     {
-                        AddClassification(TextSpan.FromBounds(token.Span.Start, token.Span.End - "u8".Length), type);
-                        AddClassification(TextSpan.FromBounds(token.Span.End - "u8".Length, token.Span.End), ClassificationTypeNames.Keyword);
+                        ClassifyLiteralAndSuffix(token.Span, type, "u8".Length);
+                    }
+                    else if (token.IsKind(SyntaxKind.NumericLiteralToken) &&
+                        TryGetNumericLiteralSuffix(token.Text, out var suffixLength))
+                    {
+                        ClassifyLiteralAndSuffix(token.Span, type, suffixLength);
                     }
                     else
                     {
@@ -260,6 +263,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             else
             {
                 AddClassification(trivia, ClassificationTypeNames.ExcludedCode);
+            }
+        }
+
+        private void ClassifyLiteralAndSuffix(TextSpan tokenSpan, string literalClassification, int suffixLength)
+        {
+            var split = tokenSpan.End - suffixLength;
+            AddClassification(TextSpan.FromBounds(tokenSpan.Start, split), literalClassification);
+            AddClassification(TextSpan.FromBounds(split, tokenSpan.End), ClassificationTypeNames.Keyword);
+        }
+
+        private static bool TryGetNumericLiteralSuffix(string tokenText, out int suffixLength)
+        {
+            // Walk left for as long as we encounter valid suffixes (both integer and floating point) and count the number of characters on the way.
+            // The lexer ensures that the token only ends in valid suffixes; invalid suffix characters are part of a different token.
+
+            // § 6.4.5.3: '0x' and '0b' mean it must be an integer literal, so we can disregard the floating-point suffixes.
+            var isDefinitelyIntegerLiteral = IsHexOrBinaryInteger(tokenText);
+
+            suffixLength = 0;
+            for (var i = tokenText.Length - 1; i >= 0 && IsValidSuffixCharacter(tokenText[i], !isDefinitelyIntegerLiteral); i--)
+            {
+                suffixLength++;
+            }
+
+            return suffixLength > 0;
+
+            static bool IsHexOrBinaryInteger(string tokenText)
+                => tokenText is ['0', 'b' or 'B' or 'x' or 'X', ..];
+
+            static bool IsValidSuffixCharacter(char c, bool allowRealTypeSuffixes)
+            {
+                return c switch
+                {
+                    // 'D' and 'F' require special handling: they're suffixes of real literals _and_ hexadecimal digits.
+                    'D' or 'd' or 'F' or 'f' or 'M' or 'm' when allowRealTypeSuffixes => true,
+                    'L' or 'l' or 'U' or 'u' => true,
+                    _ => false
+                };
             }
         }
     }
