@@ -1000,56 +1000,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var referenceResolver = DeclaringCompilation.Options.SourceReferenceResolver ?? SourceFileResolver.Default;
-
-            // First, the attributeFilePath might be a mapped path of one of the trees in the compilation.
-            // In this case, it's not intended to be resolved relative to anything, and we won't know if this is the case until we look it up.
-            var matchingTrees = DeclaringCompilation.GetSyntaxTreesByMappedPath(attributeFilePath);
-            if (matchingTrees.Count == 0
-                && referenceResolver.NormalizePath(attributeFilePath, baseFilePath: SyntaxTree.FilePath) is { } normalizedFilePath)
+            var normalizedPath = FileUtilities.GetNormalizedPathOrOriginalPath(attributeFilePath, basePath: SyntaxTree.FilePath);
+            var matchingTrees = DeclaringCompilation.GetSyntaxTreesByPath(normalizedPath);
+            if (matchingTrees.Count > 1)
             {
-                // Try again but normalize the given file path relative to the containing file of the attribute application
-                matchingTrees = DeclaringCompilation.GetSyntaxTreesByMappedPath(normalizedFilePath);
-
-                // Use the normalized path in the following diagnostic messages so the user has a hint of where we are searching.
-                // Relative paths are the happy path so we want them to know how the compiler has resolved the path they gave us.
-                attributeFilePath = normalizedFilePath;
+                diagnostics.Add(ErrorCode.ERR_InterceptorNonUniquePath, attributeData.GetAttributeArgumentLocation(filePathParameterIndex), normalizedPath);
+                return;
             }
 
             if (matchingTrees.Count == 0)
             {
-                // if we expect '/_/Program.cs':
+                // Temporary compat behavior: check if 'attributeFilePath' is equivalent to a mapped path of one of the syntax trees in the compilation.
+                matchingTrees = DeclaringCompilation.GetSyntaxTreesByMappedPath(attributeFilePath);
 
-                // we might get: '\_\Program.cs' <-- slashes not normalized
-                // we might get: '\_/Program.cs' <-- slashes don't match
+                if (matchingTrees.Count > 1)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterceptorNonUniquePath, attributeData.GetAttributeArgumentLocation(filePathParameterIndex), attributeFilePath);
+                    return;
+                }
+            }
+
+            // Neither the primary or compat methods of resolving the file path found any match.
+            if (matchingTrees.Count == 0)
+            {
+                // if we expect '/src/Program.cs':
                 // we might get: 'Program.cs' <-- suffix match
-                // Force normalization of all '\' to '/', but when we recommend a path in the diagnostic message, ensure it will match what we expect if the user decides to use it.
                 var syntaxTrees = DeclaringCompilation.SyntaxTrees;
-                var suffixMatch = syntaxTrees.FirstOrDefault(static (tree, pair)
-                    => mapPath(pair.referenceResolver, tree)
+                var suffixMatch = syntaxTrees.FirstOrDefault(static (tree, attributeFilePathWithForwardSlashes)
+                    => tree.FilePath
                         .Replace('\\', '/')
-                        .EndsWith(pair.attributeFilePath),
-                    (referenceResolver, attributeFilePath: attributeFilePath.Replace('\\', '/')));
+                        .EndsWith(attributeFilePathWithForwardSlashes),
+                    attributeFilePath.Replace('\\', '/'));
                 if (suffixMatch != null)
                 {
+                    var recommendedPath = PathUtilities.IsAbsolute(SyntaxTree.FilePath)
+                        ? PathUtilities.GetRelativePath(PathUtilities.GetDirectoryName(SyntaxTree.FilePath), suffixMatch.FilePath)
+                        : suffixMatch.FilePath;
                     diagnostics.Add(
                         ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate,
                         attributeData.GetAttributeArgumentLocation(filePathParameterIndex),
                         attributeFilePath,
-                        mapPath(referenceResolver, suffixMatch));
+                        recommendedPath);
                     return;
                 }
 
-                diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilation, attributeData.GetAttributeArgumentLocation(filePathParameterIndex), attributeFilePath);
+                diagnostics.Add(ErrorCode.ERR_InterceptorPathNotInCompilation, attributeData.GetAttributeArgumentLocation(filePathParameterIndex), normalizedPath);
 
                 return;
             }
-            else if (matchingTrees.Count > 1)
-            {
-                diagnostics.Add(ErrorCode.ERR_InterceptorNonUniquePath, attributeData.GetAttributeArgumentLocation(filePathParameterIndex), attributeFilePath);
-                return;
-            }
 
+            Debug.Assert(matchingTrees.Count == 1);
             SyntaxTree? matchingTree = matchingTrees[0];
             // Internally, line and character numbers are 0-indexed, but when they appear in code or diagnostic messages, they are 1-indexed.
             int lineNumberZeroBased = lineNumberOneBased - 1;
@@ -1108,11 +1108,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             DeclaringCompilation.AddInterception(matchingTree.FilePath, lineNumberZeroBased, characterNumberZeroBased, attributeLocation, this);
-
-            static string mapPath(SourceReferenceResolver? referenceResolver, SyntaxTree tree)
-            {
-                return referenceResolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
-            }
 
             // Caller must free the returned builder.
             ArrayBuilder<string> getNamespaceNames()

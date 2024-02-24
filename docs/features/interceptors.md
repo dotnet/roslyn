@@ -68,21 +68,15 @@ File-local declarations of this type (`file class InterceptsLocationAttribute`) 
 
 #### File paths
 
-Prior to stable release, we will reach a state where the following rules apply:
+The *referenced syntax tree* of an `[InterceptsLocation]` is determined by normalizing the `filePath` argument value relative to the path of the containing syntax tree of the `[InterceptsLocation]` usage, similar to how paths in `#line` directives are normalized. Let this normalized path be called `normalizedInterceptorPath`. If exactly one syntax tree in the compilation has a normalized path which matches `normalizedInterceptorPath` by ordinal string comparison, that is the *referenced syntax tree*. Otherwise, an error occurs.
 
-1. A *mapped path* of each syntax tree is determined by applying [`/pathmap`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.commandlinearguments.pathmap?view=roslyn-dotnet-4.7.0) substitution to `SyntaxTree.FilePath`.
-2. The *referenced syntax tree* of an `[InterceptsLocation]` is determined in an equivalent fashion to how the referenced file of a `#line` directive is determined. Specifically, the `filePath` argument value is resolved relative to the path of the containing syntax tree of the `[InterceptsLocation]` usage. Pathmap substitution is applied to the result of this relative resolution. If exactly one syntax tree matches this resolved and mapped path, that is the *referenced syntax tree*.
-    - `#line` directives are not considered when determining the call referenced by an `[InterceptsLocation]` attribute. In other words, the file path, line and column numbers used in `[InterceptsLocation]` are expected to refer to *unmapped* source locations.
-3. If the above comparison does not match exactly one syntax tree, an error occurs.
+`#line` directives are not considered when determining the call referenced by an `[InterceptsLocation]` attribute. In other words, the file path, line and column numbers used in `[InterceptsLocation]` are expected to refer to *unmapped* source locations.
 
-Temporarily, for compatibility purposes, we use the following rules:
+Temporarily, for compatibility purposes, when the initial matching strategy outlined above fails to match any syntax trees, we will fall back to a "compat" matching strategy which works in the following way:
+- A *mapped path* of each syntax tree is determined by applying [`/pathmap`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.commandlinearguments.pathmap?view=roslyn-dotnet-4.7.0) substitution to `SyntaxTree.FilePath`.
+- For a given `[InterceptsLocation]` usage, the `filePath` argument value is compared to the *mapped path* of each syntax tree using ordinal string comparison. If exactly one syntax tree matches under this comparison, that is the *referenced syntax tree*. Otherwise, an error occurs.
 
-The *referenced syntax tree* of an `[InterceptsLocation]` is determined using the following rules:
-1. A *mapped path* of each syntax tree is determined by applying [`/pathmap`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.commandlinearguments.pathmap?view=roslyn-dotnet-4.7.0) substitution to `SyntaxTree.FilePath`.
-2. For a given `[InterceptsLocation]` usage, the `filePath` argument value is compared to the *mapped path* of each syntax tree using ordinal string comparison. If exactly one syntax tree matches under this comparison, that is the *referenced syntax tree*.
-3. If no syntax tree matched by the above comparison, then the `filePath` argument value is resolved relative to path of the containing syntax tree of the `[InterceptsLocation]` usage. Pathmap substitution is applied to the result of this relative resolution. If exactly one syntax tree matches this resolved and mapped path, that is the *referenced syntax tree*.
-    - `#line` directives are not considered in either of the above comparisons when determining the call referenced by an `[InterceptsLocation]` attribute. In other words, the line and column numbers used in the attribute are expected to refer to *unmapped* source locations, while the file path is expected to either be unmapped or to have `/pathmap` substitution already applied.
-4. If neither of the above methods of comparison matched exactly one syntax tree, an error occurs.
+Support for the "compat" strategy will be dropped prior to stable release.
 
 #### Position
 

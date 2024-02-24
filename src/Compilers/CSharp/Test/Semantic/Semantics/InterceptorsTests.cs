@@ -2614,9 +2614,9 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, PlatformInformation.IsWindows ? @"C:\Users\me\projects\Program.cs" : "/Users/me/projects/Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
-            // C:\Users\me\projects\Program.cs(21,25): error CS9139: Cannot intercept: compilation does not contain a file with path 'C:\Users\me\projects\projects\Program.cs'.
+            // C:\Users\me\projects\Program.cs(21,25): error CS9140: Cannot intercept: compilation does not contain a file with path 'projects/Program.cs'. Did you mean to use path 'Program.cs'?
             //     [InterceptsLocation("projects/Program.cs", 15, 11)]
-            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""projects/Program.cs""").WithArguments(PlatformInformation.IsWindows ? @"C:\Users\me\projects\projects\Program.cs" : "/Users/me/projects/projects/Program.cs").WithLocation(21, 25)
+            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, @"""projects/Program.cs""").WithArguments("projects/Program.cs", "Program.cs").WithLocation(21, 25)
             );
     }
 
@@ -5221,6 +5221,71 @@ partial struct CustomHandler
             // My\Machine\Specific\Path\obj/Generated.cs(6,25): error CS9139: Cannot intercept: compilation does not contain a file with path '../src/Program.cs'.
             //     [InterceptsLocation("../src/Program.cs", 2, 3)]
             Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"""../src/Program.cs""").WithArguments("../src/Program.cs").WithLocation(6, 25));
+    }
+
+    [Fact]
+    public void OldVersusNewResolutionStrategy()
+    {
+        // relative path resolution will match a file (and the node referenced is not interceptable)
+        // exact mapped resolution will match a *different* file (and the node referenced is interceptable)
+        var source1 = ("""
+            class C1
+            {
+                void M1()
+                {
+                    var _ =
+                        C.Interceptable;
+                }
+            }
+            """, PlatformInformation.IsWindows ? @"C:\src1\file1.cs" : "/src1/file1.cs");
+
+        var directory2 = PlatformInformation.IsWindows ? @"C:\src2\" : "/src2/";
+        var path2 = PlatformInformation.IsWindows ? @"C:\src2\file1.cs" : "/src2/file1.cs";
+        var source2 = ("""
+            class C2
+            {
+                static void Main()
+                {
+                    // var _ =
+                        C.Interceptable();
+                }
+            }
+
+            class C
+            {
+                public static void Interceptable() => throw null!;
+            }
+            """, path2);
+
+        var source3 = ("""
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class Interceptors
+            {
+                [InterceptsLocation("./file1.cs", 6, 15)] // 1
+                public static void Interceptor() => Console.Write(1);
+            }
+            """, PlatformInformation.IsWindows ? @"C:\src1\interceptors.cs" : "/src1/interceptors.cs");
+
+        // Demonstrate that "relative path" resolution happens first by triggering the not interceptable error.
+        var pathMap = ImmutableArray.Create(new KeyValuePair<string, string>(directory2, "./"));
+        var comp = CreateCompilation([source1, source2, source3, s_attributesSource],
+            parseOptions: RegularWithInterceptors,
+            options: TestOptions.DebugExe.WithSourceReferenceResolver(
+                new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)));
+        comp.VerifyEmitDiagnostics(
+            // C:\src1\interceptors.cs(6,6): error CS9151: Possible method name 'Interceptable' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("./file1.cs", 6, 15)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""./file1.cs"", 6, 15)").WithArguments("Interceptable").WithLocation(6, 6));
+
+        // excluding 'source1' from the compilation, we fall back to exact match of mapped path, and interception is successful.
+        var verifier = CompileAndVerify([source2, source3, s_attributesSource],
+            parseOptions: RegularWithInterceptors,
+            options: TestOptions.DebugExe.WithSourceReferenceResolver(
+                new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)),
+            expectedOutput: "1");
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]
