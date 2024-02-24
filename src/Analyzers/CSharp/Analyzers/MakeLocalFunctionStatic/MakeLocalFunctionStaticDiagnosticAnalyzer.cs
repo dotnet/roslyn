@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                     Descriptor,
                     localFunction.Identifier.GetLocation(),
                     option.Notification,
+                    context.Options,
                     additionalLocations: ImmutableArray.Create(localFunction.GetLocation()),
                     properties: null));
             }

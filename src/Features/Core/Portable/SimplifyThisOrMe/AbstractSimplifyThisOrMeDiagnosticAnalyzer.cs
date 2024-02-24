@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor, thisExpression.GetLocation(), notification,
+                context.Options,
                 ImmutableArray.Create(memberAccessExpression.GetLocation()),
                 builder.ToImmutable()));
         }

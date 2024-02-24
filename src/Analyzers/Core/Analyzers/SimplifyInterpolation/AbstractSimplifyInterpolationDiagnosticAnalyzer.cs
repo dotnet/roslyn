@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 Descriptor,
                 firstUnnecessaryLocation,
                 option.Notification,
+                context.Options,
                 additionalLocations: [interpolation.Syntax.GetLocation()],
                 additionalUnnecessaryLocations: remainingUnnecessaryLocations));
         }

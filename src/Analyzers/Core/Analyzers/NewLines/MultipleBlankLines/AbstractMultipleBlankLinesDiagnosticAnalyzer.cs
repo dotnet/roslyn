@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
                 this.Descriptor,
                 Location.Create(badTrivia.SyntaxTree!, new TextSpan(badTrivia.SpanStart, 0)),
                 notificationOption,
+                context.Options,
                 additionalLocations: ImmutableArray.Create(token.GetLocation()),
                 properties: null));
         }

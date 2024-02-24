@@ -119,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UseCoalesceExpression
                 Descriptor,
                 ifStatement.GetFirstToken().GetLocation(),
                 option.Notification,
+                context.Options,
                 ImmutableArray.Create(
                     expressionToCoalesce.GetLocation(),
                     ifStatement.GetLocation(),
