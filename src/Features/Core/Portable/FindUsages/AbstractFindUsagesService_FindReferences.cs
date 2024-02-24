@@ -73,11 +73,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
             using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var result);
 
-            var factory = solution.Services.GetRequiredService<IDefinitionsAndReferencesFactory>();
+            var provider = solution.Services.GetRequiredService<IExternalDefinitionItemProvider>();
 
             foreach (var definition in definitions)
             {
-                var thirdParty = await factory.GetThirdPartyDefinitionItemAsync(solution, definition, cancellationToken).ConfigureAwait(false);
+                var thirdParty = await provider.GetThirdPartyDefinitionItemAsync(solution, definition, cancellationToken).ConfigureAwait(false);
                 result.AddIfNotNull(thirdParty);
             }
 
@@ -226,8 +226,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             // There will only be one 'definition' that all matching literal reference.
             // So just create it now and report to the context what it is.
             var definition = DefinitionItem.CreateNonNavigableItem(
-                [TextTags.StringLiteral],
-                [new TaggedText(TextTags.Text, searchTitle)]);
+                tags: [TextTags.StringLiteral],
+                displayParts: [new TaggedText(TextTags.Text, searchTitle)]);
 
             await context.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
 

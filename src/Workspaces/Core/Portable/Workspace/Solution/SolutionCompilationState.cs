@@ -50,8 +50,8 @@ internal sealed partial class SolutionCompilationState
     /// they came from.  That way if we are asked about many symbols from the same assembly/module we can answer the
     /// question quickly after computing for the first one.  Created on demand.
     /// </summary>
-    private ConditionalWeakTable<ISymbol, ProjectId?>? _unrootedSymbolToProjectId;
-    private static readonly Func<ConditionalWeakTable<ISymbol, ProjectId?>> s_createTable = () => new ConditionalWeakTable<ISymbol, ProjectId?>();
+    private ConditionalWeakTable<ISymbol, OriginatingProjectInfo?>? _unrootedSymbolToProjectId;
+    private static readonly Func<ConditionalWeakTable<ISymbol, OriginatingProjectInfo?>> s_createTable = () => new ConditionalWeakTable<ISymbol, OriginatingProjectInfo?>();
 
     private readonly AsyncLazy<SolutionCompilationState> _cachedFrozenSnapshot;
 
@@ -269,7 +269,7 @@ internal sealed partial class SolutionCompilationState
         return ForkProject(
             this.SolutionState.WithProjectAssemblyName(projectId, assemblyName),
             static (stateChange, assemblyName) => new TranslationAction.ProjectAssemblyNameAction(
-                stateChange.OldProjectState, stateChange.NewProjectState, assemblyName),
+                stateChange.OldProjectState, stateChange.NewProjectState),
             forkTracker: true,
             arg: assemblyName);
     }
@@ -1477,16 +1477,6 @@ internal sealed partial class SolutionCompilationState
         }
 
         return result;
-    }
-
-    private static async Task<SyntaxTree[]> GetAllSyntaxTreesAsync(IEnumerable<DocumentState> documents, int documentCount, CancellationToken cancellationToken)
-    {
-        // Parse all the documents in parallel.
-        using var _ = ArrayBuilder<Task<SyntaxTree>>.GetInstance(documentCount, out var tasks);
-        foreach (var document in documents)
-            tasks.Add(Task.Run(async () => await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken));
-
-        return await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
     internal TestAccessor GetTestAccessor()

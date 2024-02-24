@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> nameDisplayParts,
-            ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
+            ImmutableArray<AssemblyLocation> metadataLocations,
             ImmutableDictionary<string, string>? properties,
             ImmutableDictionary<string, string>? displayableProperties,
             bool displayIfNoReferences) : DefinitionItem(
-                tags, displayParts, nameDisplayParts, originationParts,
-                sourceSpans, classifiedSpans, properties, displayableProperties, displayIfNoReferences)
+                tags, displayParts, nameDisplayParts,
+                sourceSpans, classifiedSpans, metadataLocations, properties, displayableProperties, displayIfNoReferences)
         {
             internal sealed override bool IsExternal => false;
 
