@@ -16,7 +16,7 @@ internal interface IClassificationConfigurationService
     ClassificationOptions Options { get; }
 }
 
-[ExportWorkspaceService(typeof(IWorkspaceConfigurationService)), Shared]
+[ExportWorkspaceService(typeof(IClassificationConfigurationService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultClassificationConfigurationService() : IClassificationConfigurationService
