@@ -2424,7 +2424,7 @@ top:
             this.ScanDirectiveToken(ref info);
             var errors = this.GetErrors(leadingTriviaWidth: 0);
             _trailingTriviaCache.Clear();
-            this.LexDirectiveTrailingTrivia(info.Kind == SyntaxKind.EndOfDirectiveToken, _trailingTriviaCache);
+            this.LexDirectiveTrailingTrivia(info.Kind == SyntaxKind.EndOfDirectiveToken, ref _trailingTriviaCache);
             return Create(in info, null, _trailingTriviaCache, errors);
         }
 
@@ -2458,7 +2458,7 @@ top:
 
             // now try to consume the EOL if there.
             _trailingTriviaCache.Clear();
-            this.LexDirectiveTrailingTrivia(includeEndOfLine: true, _trailingTriviaCache);
+            this.LexDirectiveTrailingTrivia(includeEndOfLine: true, ref _trailingTriviaCache);
             var trailing = _trailingTriviaCache.ToListNode();
             var endOfDirective = SyntaxFactory.Token(leading, SyntaxKind.EndOfDirectiveToken, trailing);
 
@@ -2631,7 +2631,7 @@ top:
             return info.Kind != SyntaxKind.None;
         }
 
-        private void LexDirectiveTrailingTrivia(bool includeEndOfLine, SyntaxListBuilder trivia)
+        private void LexDirectiveTrailingTrivia(bool includeEndOfLine, ref SyntaxListBuilder trivia)
         {
             CSharpSyntaxNode? tr;
             while (true)
