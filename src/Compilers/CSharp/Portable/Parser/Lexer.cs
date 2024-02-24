@@ -70,6 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal partial class Lexer : AbstractLexer
     {
+        private const int TriviaListInitialCapacity = 8;
+
         private readonly CSharpParseOptions _options;
 
         private LexerMode _mode;
@@ -280,8 +282,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private readonly SyntaxListBuilder _leadingTriviaCache = new SyntaxListBuilder(10);
-        private readonly SyntaxListBuilder _trailingTriviaCache = new SyntaxListBuilder(10);
+        private SyntaxListBuilder _leadingTriviaCache = new SyntaxListBuilder(10);
+        private SyntaxListBuilder _trailingTriviaCache = new SyntaxListBuilder(10);
 
         private static int GetFullWidth(SyntaxListBuilder? builder)
         {
