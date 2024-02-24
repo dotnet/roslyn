@@ -1,6 +1,8 @@
 param (
     [string]$rootDirectory,
-    [string[]]$includeDirectories
+    [string[]]$includeDirectories,
+    [bool]$ci = $false,
+    [bool]$prepareMachine = $false
 )
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
@@ -11,11 +13,11 @@ try {
 
   Exec-DotNet "tool run dotnet-format -v detailed whitespace $rootDirectory --folder --include-generated --include $includeDirectories --verify-no-changes"
 
-  exit 0
+  ExitWithExitCode 0
 }
 catch {
   Write-Host $_
-  exit 1
+  ExitWithExitCode 1
 }
 finally {
   Pop-Location

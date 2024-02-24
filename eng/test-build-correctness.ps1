@@ -33,6 +33,7 @@ try {
 
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
+  $prepareMachine = $ci
 
   if ($enableDumps) {
     $key = "HKLM:\\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"

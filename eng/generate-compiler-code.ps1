@@ -116,6 +116,7 @@ function Get-ToolPath($projectRelativePath) {
 try {
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
+  $prepareMachine = $ci
 
   $dotnet = Ensure-DotnetSdk
   $boundTreeGenProject = Get-ToolPath 'BoundTreeGenerator\CompilersBoundTreeGenerator.csproj'
