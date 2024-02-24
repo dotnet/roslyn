@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.
         /// </summary>
-        private AsyncLazy<Solution> CachedFrozenSolution { get; init; }
+        private readonly AsyncLazy<Solution> _cachedFrozenSolution;
 
         /// <summary>
         /// Mapping of DocumentId to the frozen solution we produced for it the last time we were queried.  This
@@ -41,12 +41,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private readonly Dictionary<DocumentId, AsyncLazy<Solution>> _documentIdToFrozenSolution = [];
 
-        private Solution(SolutionCompilationState compilationState)
+        private Solution(
+            SolutionCompilationState compilationState,
+            AsyncLazy<Solution>? cachedFrozenSolution = null)
         {
             _projectIdToProjectMap = [];
             _compilationState = compilationState;
 
-            this.CachedFrozenSolution = AsyncLazy.Create(ComputeFrozenSolution);
+            _cachedFrozenSolution = cachedFrozenSolution ?? AsyncLazy.Create(synchronousComputeFunction: ComputeFrozenSolution);
         }
 
         internal Solution(
@@ -183,7 +185,7 @@ namespace Microsoft.CodeAnalysis
         /// necessary to resolve symbols back to the actual project/compilation that produced them for correctness.
         /// </remarks>
         internal ProjectId? GetOriginatingProjectId(ISymbol symbol)
-            => _compilationState.GetOriginatingProjectId(symbol);
+            => _compilationState.GetOriginatingProjectInfo(symbol)?.ProjectId;
 
         /// <inheritdoc cref="GetOriginatingProjectId"/>
         internal Project? GetOriginatingProject(ISymbol symbol)
@@ -1458,8 +1460,12 @@ namespace Microsoft.CodeAnalysis
         /// Returns a solution instance where every project is frozen at whatever current state it is in
         /// </summary>
         /// <param name="cancellationToken"></param>
+        internal Solution WithFrozenPartialCompilations(CancellationToken cancellationToken)
+            => _cachedFrozenSolution.GetValue(cancellationToken);
+
+        /// <inheritdoc cref="WithFrozenPartialCompilations"/>
         internal Task<Solution> WithFrozenPartialCompilationsAsync(CancellationToken cancellationToken)
-            => this.CachedFrozenSolution.GetValueAsync(cancellationToken);
+            => _cachedFrozenSolution.GetValueAsync(cancellationToken);
 
         private Solution ComputeFrozenSolution(CancellationToken cancellationToken)
         {
@@ -1468,11 +1474,11 @@ namespace Microsoft.CodeAnalysis
                 return this;
 
             var newCompilationState = this.CompilationState.WithFrozenPartialCompilations(cancellationToken);
-            var frozenSolution = new Solution(newCompilationState)
-            {
+
+            var frozenSolution = new Solution(
+                newCompilationState,
                 // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.
-                CachedFrozenSolution = this.CachedFrozenSolution,
-            };
+                cachedFrozenSolution: _cachedFrozenSolution);
 
             return frozenSolution;
         }
@@ -1504,7 +1510,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             static AsyncLazy<Solution> CreateLazyFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId)
-                => AsyncLazy.Create(cancellationToken => ComputeFrozenSolution(compilationState, documentId, cancellationToken));
+                => AsyncLazy.Create(synchronousComputeFunction: cancellationToken => ComputeFrozenSolution(compilationState, documentId, cancellationToken));
 
             static Solution ComputeFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId, CancellationToken cancellationToken)
             {

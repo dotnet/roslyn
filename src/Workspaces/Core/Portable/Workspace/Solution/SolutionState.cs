@@ -404,6 +404,25 @@ namespace Microsoft.CodeAnalysis
                 dependencyGraph: newDependencyGraph);
         }
 
+        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedAndRemovedDocuments(
+            ArrayBuilder<TextDocumentState> documentsToAdd,
+            ArrayBuilder<TextDocumentState> documentsToRemove)
+        {
+            if (documentsToRemove.Count == 0 && documentsToAdd.Count == 0)
+                return _filePathToDocumentIdsMap;
+
+            var builder = _filePathToDocumentIdsMap.ToBuilder();
+
+            // Add first, then remove.  This helps avoid the case where a filepath now sees no documents, so we remove
+            // the entry entirely for it in the dictionary, only to add it back in.  Adding then removing will at least
+            // keep the entry, but increase the docs for it, then lower it back down.
+
+            AddDocumentFilePaths(documentsToAdd, builder);
+            RemoveDocumentFilePaths(documentsToRemove, builder);
+
+            return builder.ToImmutable();
+        }
+
         public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
