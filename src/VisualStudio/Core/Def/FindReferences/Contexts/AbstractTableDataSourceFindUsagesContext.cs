@@ -345,6 +345,57 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
+            protected async Task AddDocumentSpanEntriesAsync(
+                ArrayBuilder<Entry> entries,
+                RoslynDefinitionBucket definitionBucket,
+                DefinitionItem definition,
+                CancellationToken cancellationToken)
+            {
+                for (int i = 0, n = definition.SourceSpans.Length; i < n; i++)
+                {
+                    var sourceSpan = definition.SourceSpans[i];
+                    var classifiedSpan = definition.ClassifiedSpans.IsEmpty ? null : definition.ClassifiedSpans[i];
+
+                    var entry = await TryCreateDocumentSpanEntryAsync(
+                        definitionBucket,
+                        sourceSpan,
+                        classifiedSpan,
+                        HighlightSpanKind.Definition,
+                        SymbolUsageInfo.None,
+                        definition.DisplayableProperties,
+                        cancellationToken).ConfigureAwait(false);
+
+                    entries.AddIfNotNull(entry);
+                }
+            }
+
+            protected async Task<Entry?> TryCreateDefinitionEntryAsync(
+                RoslynDefinitionBucket definitionBucket, DefinitionItem definition, CancellationToken cancellationToken)
+            {
+                var documentSpan = definition.SourceSpans[0];
+                var sourceText = await documentSpan.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var lineText = AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start);
+
+                var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
+                if (mappedDocumentSpan == null)
+                {
+                    // this will be removed from the result
+                    return null;
+                }
+
+                var (guid, projectName, _) = GetGuidAndProjectInfo(documentSpan.Document);
+
+                return new DefinitionItemEntry(
+                    this,
+                    definitionBucket,
+                    projectName,
+                    guid,
+                    lineText,
+                    mappedDocumentSpan.Value,
+                    documentSpan,
+                    ThreadingContext);
+            }
+
             protected async Task<Entry?> TryCreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,

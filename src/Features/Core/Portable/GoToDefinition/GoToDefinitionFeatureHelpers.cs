@@ -91,10 +91,10 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
             if (thirdPartyNavigationAllowed)
             {
-                var factory = solution.Services.GetService<IDefinitionsAndReferencesFactory>();
-                if (factory != null)
+                var provider = solution.Services.GetService<IExternalDefinitionItemProvider>();
+                if (provider != null)
                 {
-                    var thirdPartyItem = await factory.GetThirdPartyDefinitionItemAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
+                    var thirdPartyItem = await provider.GetThirdPartyDefinitionItemAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
                     definitions.AddIfNotNull(thirdPartyItem);
                 }
             }

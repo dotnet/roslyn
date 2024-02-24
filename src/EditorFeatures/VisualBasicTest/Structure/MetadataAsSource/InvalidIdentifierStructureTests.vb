@@ -64,8 +64,8 @@ End Class
 End Class
 "
             Await VerifyBlockSpansAsync(code,
-                Region("textspan1", "hint1", "Class C " & Ellipsis, autoCollapse:=False),
-                Region("textspan2", "hint2", "Public Sub  " & Ellipsis, autoCollapse:=True))
+                Region("textspan2", "hint2", "Public Sub  " & Ellipsis, autoCollapse:=True),
+                Region("textspan1", "hint1", "Class C " & Ellipsis, autoCollapse:=False))
         End Function
 
     End Class

@@ -53,13 +53,14 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        /// <inheritdoc cref="Solution.GetOriginatingProjectId"/>
-        public ProjectId? GetOriginatingProjectId(ISymbol? symbol)
+        public OriginatingProjectInfo? GetOriginatingProjectInfo(ISymbol? symbol)
         {
             if (symbol == null)
+            {
                 return null;
+            }
 
-            var projectId = GetOriginatingProjectIdWorker(symbol);
+            var unrootedSymbolInfo = GetOriginatingProjectInfoWorker(symbol);
 
             // Validate some invariants we think should hold.  We want to know if this breaks, which indicates some part
             // of our system not working as we might expect.  If they break, create NFWs so we can find out and
@@ -67,6 +68,8 @@ namespace Microsoft.CodeAnalysis
 
             if (SymbolKey.IsBodyLevelSymbol(symbol))
             {
+                var projectId = unrootedSymbolInfo?.ProjectId;
+
                 // If this is a method-body-level symbol, then we will have it's syntax tree.  Since  we already have a
                 // mapping from syntax-trees to docs, so we can immediately map this back to it's originating project.
                 //
@@ -103,10 +106,10 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return projectId;
+            return unrootedSymbolInfo;
         }
 
-        private ProjectId? GetOriginatingProjectIdWorker(ISymbol symbol)
+        private OriginatingProjectInfo? GetOriginatingProjectInfoWorker(ISymbol symbol)
         {
             InterlockedOperations.Initialize(ref _unrootedSymbolToProjectId, s_createTable);
 
@@ -115,7 +118,7 @@ namespace Microsoft.CodeAnalysis
 
             while (symbol != null)
             {
-                var result = GetProjectIdDirectly(symbol, _unrootedSymbolToProjectId);
+                var result = GetOriginatingProjectInfoDirectly(symbol, _unrootedSymbolToProjectId);
                 if (result != null)
                     return result;
 
@@ -125,8 +128,7 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        private ProjectId? GetProjectIdDirectly(
-            ISymbol symbol, ConditionalWeakTable<ISymbol, ProjectId?> unrootedSymbolToProjectId)
+        private OriginatingProjectInfo? GetOriginatingProjectInfoDirectly(ISymbol symbol, ConditionalWeakTable<ISymbol, OriginatingProjectInfo?> unrootedSymbolToProjectId)
         {
             if (symbol.IsKind(SymbolKind.Namespace, out INamespaceSymbol? ns))
             {
@@ -135,7 +137,7 @@ namespace Microsoft.CodeAnalysis
                     // A namespace that spans a compilation.  These don't belong to an assembly/module directly.
                     // However, as we're looking for the project this corresponds to, we can look for the
                     // source-module component (the first in the constituent namespaces) and then search using that.
-                    return GetOriginatingProjectId(ns.ConstituentNamespaces[0]);
+                    return GetOriginatingProjectInfo(ns.ConstituentNamespaces[0]);
                 }
             }
             else if (symbol.IsKind(SymbolKind.Assembly) ||
@@ -152,8 +154,8 @@ namespace Microsoft.CodeAnalysis
                     // references) for that project.  This is the case for metadata symbols.  A metadata symbol might be
                     // found in many projects, so we just return the first result as that's just as good for finding the
                     // metadata symbol as any other project.
-                    projectId = TryGetProjectId(symbol, primary: true) ??
-                                TryGetProjectId(symbol, primary: false);
+                    projectId = FindProject(symbol, primary: true) ??
+                                FindProject(symbol, primary: false);
 
                     // Have to lock as there's no atomic AddOrUpdate in netstandard2.0 and we could throw if two
                     // threads tried to add the same item.
@@ -175,19 +177,18 @@ namespace Microsoft.CodeAnalysis
             {
                 // Cref type parameters don't belong to any containing symbol.  But we can map them to a doc/project
                 // using the declaring syntax of the type parameter itself.
-                var tree = typeParameter.Locations[0].SourceTree;
-                var doc = this.GetDocumentState(tree, projectId: null);
-                return doc?.Id.ProjectId;
+                if (GetDocumentState(typeParameter.Locations[0].SourceTree, projectId: null) is { } document)
+                    return new OriginatingProjectInfo(document.Id.ProjectId, ReferencedThrough: null);
             }
 
             return null;
 
-            ProjectId? TryGetProjectId(ISymbol symbol, bool primary)
+            OriginatingProjectInfo? FindProject(ISymbol symbol, bool primary)
             {
                 foreach (var (id, tracker) in _projectIdToTrackerMap)
                 {
-                    if (tracker.ContainsAssemblyOrModuleOrDynamic(symbol, primary))
-                        return id;
+                    if (tracker.ContainsAssemblyOrModuleOrDynamic(symbol, primary, out var referencedThrough))
+                        return new OriginatingProjectInfo(id, referencedThrough);
                 }
 
                 return null;

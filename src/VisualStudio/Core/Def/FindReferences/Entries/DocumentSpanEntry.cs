@@ -38,13 +38,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// contents of that line, and hovering will reveal a tooltip showing that line along
         /// with a few lines above/below it.
         /// </summary>
-        private sealed class DocumentSpanEntry : AbstractDocumentSpanEntry, ISupportsNavigation
+        private sealed class DocumentSpanEntry : AbstractDocumentSpanEntry
         {
             private readonly HighlightSpanKind _spanKind;
             private readonly ExcerptResult _excerptResult;
             private readonly SymbolReferenceKinds _symbolReferenceKinds;
             private readonly ImmutableDictionary<string, string> _customColumnsData;
-            private readonly IThreadingContext _threadingContext;
             private readonly string _rawProjectName;
             private readonly List<string> _projectFlavors = [];
 
@@ -63,16 +62,23 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 SymbolUsageInfo symbolUsageInfo,
                 ImmutableDictionary<string, string> customColumnsData,
                 IThreadingContext threadingContext)
-                : base(context, definitionBucket, projectGuid, lineText, mappedSpanResult)
+                : base(context, definitionBucket, projectGuid, lineText, mappedSpanResult, threadingContext)
             {
                 _spanKind = spanKind;
                 _excerptResult = excerptResult;
                 _symbolReferenceKinds = symbolUsageInfo.ToSymbolReferenceKinds();
                 _customColumnsData = customColumnsData;
-                _threadingContext = threadingContext;
                 _rawProjectName = rawProjectName;
-                this.AddFlavor(projectFlavor);
+
+                if (projectFlavor != null)
+                    _projectFlavors.Add(projectFlavor);
             }
+
+            protected override Document Document
+                => _excerptResult.Document;
+
+            protected override TextSpan NavigateToTargetSpan
+                => _excerptResult.Span;
 
             protected override string GetProjectName()
             {
@@ -281,39 +287,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return Span.FromBounds(
                     sourceText.Lines[firstLineNumber].Start,
                     sourceText.Lines[lastLineNumber].End);
-            }
-
-            public bool CanNavigateTo()
-            {
-                if (_excerptResult.Document is SourceGeneratedDocument)
-                {
-                    var workspace = _excerptResult.Document.Project.Solution.Workspace;
-                    var documentNavigationService = workspace.Services.GetService<IDocumentNavigationService>();
-
-                    return documentNavigationService != null;
-                }
-
-                return false;
-            }
-
-            public async Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
-            {
-                Contract.ThrowIfFalse(CanNavigateTo());
-
-                // If the document is a source generated document, we need to do the navigation ourselves;
-                // this is because the file path given to the table control isn't a real file path to a file
-                // on disk.
-
-                var workspace = _excerptResult.Document.Project.Solution.Workspace;
-                var documentNavigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-
-                await documentNavigationService.TryNavigateToSpanAsync(
-                    _threadingContext,
-                    workspace,
-                    _excerptResult.Document.Id,
-                    _excerptResult.Span,
-                    options,
-                    cancellationToken).ConfigureAwait(false);
             }
         }
     }
