@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
@@ -48,6 +50,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         }
 
         public static INamedTypeSymbol GetTopLevelContainingNamedType(ISymbol symbol)
+            => TryGetTopLevelContainingNamedType(symbol) ?? throw ExceptionUtilities.UnexpectedValue(symbol);
+
+        public static INamedTypeSymbol? TryGetTopLevelContainingNamedType(ISymbol symbol)
         {
             // Traverse up until we find a named type that is parented by the namespace
             var topLevelNamedType = symbol;
@@ -55,6 +60,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 topLevelNamedType.Kind != SymbolKind.NamedType)
             {
                 topLevelNamedType = topLevelNamedType.ContainingSymbol;
+                if (topLevelNamedType == null)
+                {
+                    return null;
+                }
             }
 
             return (INamedTypeSymbol)topLevelNamedType;
