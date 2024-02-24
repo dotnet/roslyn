@@ -3,7 +3,8 @@
 # the generator source files. 
 [CmdletBinding(PositionalBinding=$false)]
 param ([string]$configuration = "Debug", 
-       [switch]$test = $false)
+       [switch]$test = $false,
+       [bool]$ci = $false)
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
@@ -136,11 +137,11 @@ try {
   Run-IOperation $coreDir $operationsProject
   Run-GetText
 
-  exit 0
+  ExitWithExitCode 0
 }
 catch {
   Write-Host $_
-  exit 1
+  ExitWithExitCode 1
 }
 finally {
   Pop-Location
