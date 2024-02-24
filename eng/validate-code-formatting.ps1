@@ -1,7 +1,7 @@
 param (
     [string]$rootDirectory,
     [string[]]$includeDirectories,
-    [bool]$ci = $false
+    [switch]$ci = $false
 )
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"

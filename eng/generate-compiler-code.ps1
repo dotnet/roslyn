@@ -4,7 +4,7 @@
 [CmdletBinding(PositionalBinding=$false)]
 param ([string]$configuration = "Debug", 
        [switch]$test = $false,
-       [bool]$ci = $false)
+       [switch]$ci = $false)
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
