@@ -126,9 +126,16 @@ namespace Microsoft.CodeAnalysis
                 ImmutableArray<DocumentState> documents)
                 : TranslationAction(oldProjectState, newProjectState)
             {
+                public readonly ImmutableArray<DocumentState> Documents = documents;
+
                 public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    var trees = await GetAllSyntaxTreesAsync(documents, documents.Length, cancellationToken).ConfigureAwait(false);
+                    // Parse all the documents in parallel.
+                    using var _ = ArrayBuilder<Task<SyntaxTree>>.GetInstance(this.Documents.Length, out var tasks);
+                    foreach (var document in this.Documents)
+                        tasks.Add(Task.Run(async () => await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken));
+
+                    var trees = await Task.WhenAll(tasks).ConfigureAwait(false);
                     return oldCompilation.AddSyntaxTrees(trees);
                 }
 
@@ -209,14 +216,11 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class ProjectAssemblyNameAction(
                 ProjectState oldProjectState,
-                ProjectState newProjectState,
-                string assemblyName)
+                ProjectState newProjectState)
                 : TranslationAction(oldProjectState, newProjectState)
             {
                 public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
-                {
-                    return Task.FromResult(oldCompilation.WithAssemblyName(assemblyName));
-                }
+                    => Task.FromResult(oldCompilation.WithAssemblyName(NewProjectState.AssemblyName));
 
                 // Updating the options of a compilation doesn't require us to reparse trees, so we can use this to update
                 // compilations with stale generated trees.

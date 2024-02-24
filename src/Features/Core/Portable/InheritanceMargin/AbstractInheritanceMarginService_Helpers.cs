@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
                     foreach (var import in group)
                     {
-                        var item = DefinitionItem.CreateNonNavigableItem([], []);
+                        var item = DefinitionItem.CreateNonNavigableItem(tags: [], displayParts: []);
                         targetItems.Add(new InheritanceTargetItem(
                             InheritanceRelationship.InheritedImport, item.Detach(), Glyph.None, languageGlyph,
                             import.NamespaceOrType.ToDisplayString(), projectName));
@@ -247,9 +247,14 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     foreach (var import in group)
                     {
                         var item = DefinitionItem.Create(
-                            [], [],
-                            new DocumentSpan(destinationDocument, import.DeclaringSyntaxReference!.Span),
-                            classifiedSpans: null);
+                            tags: [],
+                            displayParts: [],
+                            sourceSpans: [new DocumentSpan(destinationDocument, import.DeclaringSyntaxReference!.Span)],
+                            classifiedSpans: [],
+                            metadataLocations: [],
+                            nameDisplayParts: default,
+                            displayIfNoReferences: true);
+
                         targetItems.Add(new InheritanceTargetItem(
                             InheritanceRelationship.InheritedImport, item.Detach(), Glyph.None, languageGlyph,
                             import.NamespaceOrType.ToDisplayString(), projectName));
@@ -709,30 +714,31 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     includeHiddenLocations: false);
             }
 
-            if (locations.Length == 1)
+            if (locations is [var location])
             {
-                var location = locations[0];
                 if (location.IsInMetadata)
                 {
-                    return DefinitionItem.CreateMetadataDefinition(
+                    Contract.ThrowIfNull(symbol.ContainingAssembly);
+
+                    var metadataLocation = DefinitionItemFactory.GetMetadataLocation(symbol.ContainingAssembly, solution, out var originatingProjectId);
+
+                    return DefinitionItem.Create(
                         tags: [],
                         displayParts: [],
-                        nameDisplayParts: [],
-                        solution,
-                        symbol);
+                        sourceSpans: [],
+                        classifiedSpans: [],
+                        metadataLocations: [metadataLocation],
+                        properties: ImmutableDictionary<string, string>.Empty.WithMetadataSymbolProperties(symbol, originatingProjectId));
                 }
-                else if (location.IsInSource && location.IsVisibleSourceLocation())
+
+                if (location.IsInSource && location.IsVisibleSourceLocation() && solution.GetDocument(location.SourceTree) is { } document)
                 {
-                    var document = solution.GetDocument(location.SourceTree);
-                    if (document != null)
-                    {
-                        return DefinitionItem.Create(
-                            tags: [],
-                            displayParts: [],
-                            new DocumentSpan(document, location.SourceSpan),
-                            classifiedSpans: null,
-                            nameDisplayParts: []);
-                    }
+                    return DefinitionItem.Create(
+                        tags: [],
+                        displayParts: [],
+                        sourceSpans: [new DocumentSpan(document, location.SourceSpan)],
+                        classifiedSpans: [],
+                        metadataLocations: []);
                 }
             }
 
