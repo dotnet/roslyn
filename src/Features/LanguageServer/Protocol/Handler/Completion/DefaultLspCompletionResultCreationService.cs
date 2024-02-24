@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             TextSpan defaultSpan,
             string typedText,
             CompletionItem item,
+            LSP.CompletionItemKind kind,
             CompletionService completionService,
             CancellationToken cancellationToken)
         {
