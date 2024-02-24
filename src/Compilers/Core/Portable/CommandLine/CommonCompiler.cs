@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis
         /// Perform source generation, if the compiler supports it.
         /// </summary>
         /// <param name="input">The compilation before any source generation has occurred.</param>
-        /// <param name="baseDirectory">The base directory for the <see cref="SyntaxTree.FilePath"/> of generated files.</param>
+        /// <param name="generatedFilesBaseDirectory">The base directory for the <see cref="SyntaxTree.FilePath"/> of generated files.</param>
         /// <param name="parseOptions">The <see cref="ParseOptions"/> to use when parsing any generated sources.</param>
         /// <param name="generators">The generators to run</param>
         /// <param name="analyzerConfigOptionsProvider">A provider that returns analyzer config options.</param>
@@ -811,14 +811,14 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
         private protected (Compilation Compilation, GeneratorDriverTimingInfo DriverTimingInfo) RunGenerators(
             Compilation input,
-            string baseDirectory,
+            string generatedFilesBaseDirectory,
             ParseOptions parseOptions,
             ImmutableArray<ISourceGenerator> generators,
             AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider,
             ImmutableArray<AdditionalText> additionalTexts,
             DiagnosticBag generatorDiagnostics)
         {
-            Debug.Assert(baseDirectory is not null);
+            Debug.Assert(generatedFilesBaseDirectory is not null);
 
             GeneratorDriver? driver = null;
             string cacheKey = string.Empty;
@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis
                                                   .ReplaceAdditionalTexts(additionalTexts);
             }
 
-            driver ??= CreateGeneratorDriver(baseDirectory, parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
+            driver ??= CreateGeneratorDriver(generatedFilesBaseDirectory, parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
             driver = driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var diagnostics);
             generatorDiagnostics.AddRange(diagnostics);
 

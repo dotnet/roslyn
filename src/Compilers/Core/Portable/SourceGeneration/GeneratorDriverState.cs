@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
             OptionsProvider = optionsProvider;
             StateTable = stateTable;
             SyntaxStore = syntaxStore;
-            DriverOptions = driverOptions;
+            _driverOptions = driverOptions;
             DisabledOutputs = driverOptions.DisabledOutputs;
             TrackIncrementalSteps = driverOptions.TrackIncrementalGeneratorSteps;
             RunTime = runtime;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The base directory for the <see cref="SyntaxTree.FilePath"/> of generated files.
         /// </summary>
-        internal string? BaseDirectory => DriverOptions.BaseDirectory;
+        internal string? BaseDirectory => _driverOptions.BaseDirectory;
 
         /// <summary>
         /// ParseOptions to use when parsing generator provided source.
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly SyntaxStore SyntaxStore;
 
-        private readonly GeneratorDriverOptions DriverOptions;
+        private readonly GeneratorDriverOptions _driverOptions;
 
         /// <summary>
         /// A bit field containing the output kinds that should not be produced by this generator driver.
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis
                 generatorStates ?? this.GeneratorStates,
                 stateTable ?? this.StateTable,
                 syntaxStore ?? this.SyntaxStore,
-                this.DriverOptions,
+                this._driverOptions,
                 runTime ?? this.RunTime,
                 parseOptionsChanged ?? this.ParseOptionsChanged
                 );

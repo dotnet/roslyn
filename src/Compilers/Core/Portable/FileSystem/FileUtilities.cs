@@ -228,7 +228,7 @@ namespace Roslyn.Utilities
                 return null;
             }
 
-            string? normalizedPath = PathUtilities.IsAbsolute(resolvedPath) ? TryNormalizeAbsolutePath(resolvedPath) : null;
+            string? normalizedPath = TryNormalizeAbsolutePath(resolvedPath);
             if (normalizedPath == null)
             {
                 return null;
@@ -273,7 +273,10 @@ namespace Roslyn.Utilities
 
         internal static string? TryNormalizeAbsolutePath(string path)
         {
-            Debug.Assert(PathUtilities.IsAbsolute(path));
+            if (!PathUtilities.IsAbsolute(path))
+            {
+                return null;
+            }
 
             try
             {
