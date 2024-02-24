@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,7 +9,6 @@ using System.Linq;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -46,14 +43,14 @@ namespace Microsoft.CodeAnalysis
         /// target.
         /// </summary>
         [DataMember(Order = 3)]
-        internal string NavigationTarget { get; }
+        internal string? NavigationTarget { get; }
 
         /// <summary>
         /// Gets the navigation hint for the text, or <see langword="null"/> if the text does not have a navigation
         /// hint.
         /// </summary>
         [DataMember(Order = 4)]
-        internal string NavigationHint { get; }
+        internal string? NavigationHint { get; }
 
         /// <summary>
         /// Creates a new instance of <see cref="TaggedText"/>
@@ -73,7 +70,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="style">The style(s) to apply to the text.</param>
         /// <param name="navigationTarget">The navigation target for the text, or <see langword="null"/> if the text does not have a navigation target.</param>
         /// <param name="navigationHint">The navigation hint for the text, or <see langword="null"/> if the text does not have a navigation hint.</param>
-        internal TaggedText(string tag, string text, TaggedTextStyle style, string navigationTarget, string navigationHint)
+        internal TaggedText(string tag, string text, TaggedTextStyle style, string? navigationTarget, string? navigationHint)
         {
             Tag = tag ?? throw new ArgumentNullException(nameof(tag));
             Text = text ?? throw new ArgumentNullException(nameof(text));
@@ -88,15 +85,13 @@ namespace Microsoft.CodeAnalysis
 
     internal static class TaggedTextExtensions
     {
-        public static ImmutableArray<TaggedText> ToTaggedText(this IEnumerable<SymbolDisplayPart> displayParts, Func<ISymbol, string> getNavigationHint = null, bool includeNavigationHints = true)
-            => displayParts.ToTaggedText(TaggedTextStyle.None, getNavigationHint, includeNavigationHints);
-
         public static ImmutableArray<TaggedText> ToTaggedText(
-            this IEnumerable<SymbolDisplayPart> displayParts, TaggedTextStyle style, Func<ISymbol, string> getNavigationHint = null, bool includeNavigationHints = true)
+            this IEnumerable<SymbolDisplayPart>? displayParts, TaggedTextStyle style = TaggedTextStyle.None, Func<ISymbol?, string?>? getNavigationHint = null, bool includeNavigationHints = true)
         {
             if (displayParts == null)
                 return [];
 
+            // To support CodeGeneration symbols, which do not support ToDisplayString we need to be able to override it.
             getNavigationHint ??= static symbol => symbol?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
 
             return displayParts.SelectAsArray(d =>
@@ -123,133 +118,66 @@ namespace Microsoft.CodeAnalysis
             return SymbolDisplayPartKindTags.GetTag(part.Kind);
         }
 
-        private static string GetNavigationTarget(ISymbol symbol)
+        private static string? GetNavigationTarget(ISymbol? symbol)
             => symbol is null ? null : SymbolKey.CreateString(symbol);
 
         public static string JoinText(this ImmutableArray<TaggedText> values)
         {
+            if (values.IsDefaultOrEmpty)
+            {
+                return "";
+            }
 
-            return values.IsDefault
-                ? null
-                : Join(values);
-        }
+            if (values is [var value])
+            {
+                return value.Text;
+            }
 
-        private static string Join(ImmutableArray<TaggedText> values)
-        {
-            var pooled = PooledStringBuilder.GetInstance();
-            var builder = pooled.Builder;
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+            builder.EnsureCapacity(values.Sum(static value => value.Text.Length));
             foreach (var val in values)
             {
                 builder.Append(val.Text);
             }
 
-            return pooled.ToStringAndFree();
+            return builder.ToString();
         }
 
         public static string ToClassificationTypeName(this string taggedTextTag)
-        {
-            switch (taggedTextTag)
+            => taggedTextTag switch
             {
-                case TextTags.Keyword:
-                    return ClassificationTypeNames.Keyword;
-
-                case TextTags.Class:
-                    return ClassificationTypeNames.ClassName;
-
-                case TextTags.Delegate:
-                    return ClassificationTypeNames.DelegateName;
-
-                case TextTags.Enum:
-                    return ClassificationTypeNames.EnumName;
-
-                case TextTags.Interface:
-                    return ClassificationTypeNames.InterfaceName;
-
-                case TextTags.Module:
-                    return ClassificationTypeNames.ModuleName;
-
-                case TextTags.Struct:
-                    return ClassificationTypeNames.StructName;
-
-                case TextTags.TypeParameter:
-                    return ClassificationTypeNames.TypeParameterName;
-
-                case TextTags.Field:
-                    return ClassificationTypeNames.FieldName;
-
-                case TextTags.Event:
-                    return ClassificationTypeNames.EventName;
-
-                case TextTags.Label:
-                    return ClassificationTypeNames.LabelName;
-
-                case TextTags.Local:
-                    return ClassificationTypeNames.LocalName;
-
-                case TextTags.Method:
-                    return ClassificationTypeNames.MethodName;
-
-                case TextTags.Namespace:
-                    return ClassificationTypeNames.NamespaceName;
-
-                case TextTags.Parameter:
-                    return ClassificationTypeNames.ParameterName;
-
-                case TextTags.Property:
-                    return ClassificationTypeNames.PropertyName;
-
-                case TextTags.ExtensionMethod:
-                    return ClassificationTypeNames.ExtensionMethodName;
-
-                case TextTags.EnumMember:
-                    return ClassificationTypeNames.EnumMemberName;
-
-                case TextTags.Constant:
-                    return ClassificationTypeNames.ConstantName;
-
-                case TextTags.Alias:
-                case TextTags.Assembly:
-                case TextTags.ErrorType:
-                case TextTags.RangeVariable:
-                    return ClassificationTypeNames.Identifier;
-
-                case TextTags.NumericLiteral:
-                    return ClassificationTypeNames.NumericLiteral;
-
-                case TextTags.StringLiteral:
-                    return ClassificationTypeNames.StringLiteral;
-
-                case TextTags.Space:
-                case TextTags.LineBreak:
-                    return ClassificationTypeNames.WhiteSpace;
-
-                case TextTags.Operator:
-                    return ClassificationTypeNames.Operator;
-
-                case TextTags.Punctuation:
-                    return ClassificationTypeNames.Punctuation;
-
-                case TextTags.AnonymousTypeIndicator:
-                case TextTags.Text:
-                    return ClassificationTypeNames.Text;
-
-                case TextTags.Record:
-                    return ClassificationTypeNames.RecordClassName;
-
-                case TextTags.RecordStruct:
-                    return ClassificationTypeNames.RecordStructName;
-
-                case TextTags.ContainerStart:
-                case TextTags.ContainerEnd:
-                case TextTags.CodeBlockStart:
-                case TextTags.CodeBlockEnd:
-                    // These tags are not visible so classify them as whitespace
-                    return ClassificationTypeNames.WhiteSpace;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(taggedTextTag);
-            }
-        }
+                TextTags.Keyword => ClassificationTypeNames.Keyword,
+                TextTags.Class => ClassificationTypeNames.ClassName,
+                TextTags.Delegate => ClassificationTypeNames.DelegateName,
+                TextTags.Enum => ClassificationTypeNames.EnumName,
+                TextTags.Interface => ClassificationTypeNames.InterfaceName,
+                TextTags.Module => ClassificationTypeNames.ModuleName,
+                TextTags.Struct => ClassificationTypeNames.StructName,
+                TextTags.TypeParameter => ClassificationTypeNames.TypeParameterName,
+                TextTags.Field => ClassificationTypeNames.FieldName,
+                TextTags.Event => ClassificationTypeNames.EventName,
+                TextTags.Label => ClassificationTypeNames.LabelName,
+                TextTags.Local => ClassificationTypeNames.LocalName,
+                TextTags.Method => ClassificationTypeNames.MethodName,
+                TextTags.Namespace => ClassificationTypeNames.NamespaceName,
+                TextTags.Parameter => ClassificationTypeNames.ParameterName,
+                TextTags.Property => ClassificationTypeNames.PropertyName,
+                TextTags.ExtensionMethod => ClassificationTypeNames.ExtensionMethodName,
+                TextTags.EnumMember => ClassificationTypeNames.EnumMemberName,
+                TextTags.Constant => ClassificationTypeNames.ConstantName,
+                TextTags.Alias or TextTags.Assembly or TextTags.ErrorType or TextTags.RangeVariable => ClassificationTypeNames.Identifier,
+                TextTags.NumericLiteral => ClassificationTypeNames.NumericLiteral,
+                TextTags.StringLiteral => ClassificationTypeNames.StringLiteral,
+                TextTags.Space or TextTags.LineBreak => ClassificationTypeNames.WhiteSpace,
+                TextTags.Operator => ClassificationTypeNames.Operator,
+                TextTags.Punctuation => ClassificationTypeNames.Punctuation,
+                TextTags.AnonymousTypeIndicator or TextTags.Text => ClassificationTypeNames.Text,
+                TextTags.Record => ClassificationTypeNames.RecordClassName,
+                TextTags.RecordStruct => ClassificationTypeNames.RecordStructName,
+                // These tags are not visible so classify them as whitespace
+                TextTags.ContainerStart or TextTags.ContainerEnd or TextTags.CodeBlockStart or TextTags.CodeBlockEnd => ClassificationTypeNames.WhiteSpace,
+                _ => throw ExceptionUtilities.UnexpectedValue(taggedTextTag),
+            };
 
         public static IEnumerable<ClassifiedSpan> ToClassifiedSpans(
             this IEnumerable<TaggedText> parts)

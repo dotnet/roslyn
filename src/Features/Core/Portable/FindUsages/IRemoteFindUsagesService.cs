@@ -178,8 +178,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
         ImmutableArray<string> tags,
         ImmutableArray<TaggedText> displayParts,
         ImmutableArray<TaggedText> nameDisplayParts,
-        ImmutableArray<TaggedText> originationParts,
         ImmutableArray<SerializableDocumentSpan> sourceSpans,
+        ImmutableArray<AssemblyLocation> metadataLocations,
         ImmutableDictionary<string, string> properties,
         ImmutableDictionary<string, string> displayableProperties,
         bool displayIfNoReferences)
@@ -197,10 +197,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public readonly ImmutableArray<TaggedText> NameDisplayParts = nameDisplayParts;
 
         [DataMember(Order = 4)]
-        public readonly ImmutableArray<TaggedText> OriginationParts = originationParts;
+        public readonly ImmutableArray<SerializableDocumentSpan> SourceSpans = sourceSpans;
 
         [DataMember(Order = 5)]
-        public readonly ImmutableArray<SerializableDocumentSpan> SourceSpans = sourceSpans;
+        public readonly ImmutableArray<AssemblyLocation> MetadataLocations = metadataLocations;
 
         [DataMember(Order = 6)]
         public readonly ImmutableDictionary<string, string> Properties = properties;
@@ -216,8 +216,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
                    item.Tags,
                    item.DisplayParts,
                    item.NameDisplayParts,
-                   item.OriginationParts,
                    item.SourceSpans.SelectAsArray(SerializableDocumentSpan.Dehydrate),
+                   item.MetadataLocations,
                    item.Properties,
                    item.DisplayableProperties,
                    item.DisplayIfNoReferences);
@@ -230,10 +230,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 Tags,
                 DisplayParts,
                 NameDisplayParts,
-                OriginationParts,
                 sourceSpans,
                 // todo: consider serializing this over.
                 classifiedSpans: sourceSpans.SelectAsArray(ss => (ClassifiedSpansAndHighlightSpan?)null),
+                MetadataLocations,
                 Properties,
                 DisplayableProperties,
                 DisplayIfNoReferences);
