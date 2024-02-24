@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// <see langword="true"/> if this Document supports providing data through the
-        /// <see cref="GetSemanticModelAsync"/> method.
+        /// <see cref="GetSemanticModelAsync(CancellationToken)"/> method.
         ///
         /// If <see langword="false"/> then that method will return <see langword="null"/> instead.
         /// </summary>
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets the current semantic model for this document if the model is already computed and still cached.
-        /// In almost all cases, you should call <see cref="GetSemanticModelAsync"/>, which will compute the semantic model
+        /// In almost all cases, you should call <see cref="GetSemanticModelAsync(CancellationToken)"/>, which will compute the semantic model
         /// if necessary.
         /// </summary>
         public bool TryGetSemanticModel([NotNullWhen(returnValue: true)] out SemanticModel? semanticModel)
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets the current nullable disabled semantic model for this document if the model is already computed and still cached.
-        /// In almost all cases, you should call <see cref="GetSemanticModelAsync"/>, which will compute the semantic model
+        /// In almost all cases, you should call <see cref="GetSemanticModelAsync(CancellationToken)"/>, which will compute the semantic model
         /// if necessary.
         /// </summary>
         [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
@@ -283,9 +283,9 @@ namespace Microsoft.CodeAnalysis
         /// return the same value if called multiple times.
         /// </returns>
         [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
-#pragma warning disable RS0026 // Add public types and members to the declared API
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public async Task<SemanticModel?> GetSemanticModelAsync(SemanticModelOptions options, CancellationToken cancellationToken = default)
-#pragma warning restore RS0026 // Add public types and members to the declared API
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
             return await GetSemanticModelHelperAsync(disableNullableAnalysis: options == SemanticModelOptions.DisableNullableAnalysis, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
