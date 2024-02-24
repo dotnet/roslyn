@@ -4613,10 +4613,14 @@ partial struct CustomHandler
             parseOptions: RegularWithInterceptors,
             options: TestOptions.DebugExe.WithSourceReferenceResolver(
                 new SourceFileResolver(ImmutableArray<string>.Empty, null, pathMap)));
-        comp.VerifyEmitDiagnostics(
+        comp.VerifyEmitDiagnostics(PlatformInformation.IsWindows
             // C:\My\Machine\Specific\Path\Program.cs(11,25): error CS9139: Cannot intercept: compilation does not contain a file with path 'C:\_\Program.cs'.
             //     [InterceptsLocation(@"\_\Program.cs", 5, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"@""\_\Program.cs""").WithArguments(PlatformInformation.IsWindows ? @"C:\_\Program.cs" : "/_//_/Program.cs").WithLocation(11, 25));
+            ? Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"@""\_\Program.cs""").WithArguments(PlatformInformation.IsWindows ? @"C:\_\Program.cs" : "/_//_/Program.cs").WithLocation(11, 25)
+
+            // /My/Machine/Specific/Path/Program.cs(11,25): error CS9139: Cannot intercept: compilation does not contain a file with path '/My/Machine/Specific/Path/\_\Program.cs'.
+            //     [InterceptsLocation(@"\_\Program.cs", 5, 3)]
+            : Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"@""\_\Program.cs""").WithArguments(@"/My/Machine/Specific/Path/\_\Program.cs").WithLocation(11, 25));
     }
 
     [Fact]
@@ -4747,9 +4751,10 @@ partial struct CustomHandler
                 // C:\My\Machine\Specific\Path\Program.cs(11,25): error CS9139: Cannot intercept: compilation does not contain a file with path 'C:\_\Program.cs'.
                 //     [InterceptsLocation(@"/_/Program.cs", 5, 3)]
                 ? Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"@""/_/Program.cs""").WithArguments(PlatformInformation.IsWindows ? @"C:\_\Program.cs" : "/_/Program.cs").WithLocation(11, 25)
-                // /My/Machine/Specific/Path/Program.cs(11,25): error CS9140: Cannot intercept: compilation does not contain a file with path '/_/Program.cs'. Did you mean to use path '\_/Program.cs'?
+
+                // /My/Machine/Specific/Path/Program.cs(11,25): error CS9139: Cannot intercept: compilation does not contain a file with path '/_/Program.cs'.
                 //     [InterceptsLocation(@"/_/Program.cs", 5, 3)]
-                : Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate, @"@""/_/Program.cs""").WithArguments("/_/Program.cs", @"\_/Program.cs").WithLocation(11, 25));
+                : Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"@""/_/Program.cs""").WithArguments("/_/Program.cs").WithLocation(11, 25));
     }
 
     [Fact]
