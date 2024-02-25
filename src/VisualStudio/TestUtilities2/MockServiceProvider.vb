@@ -28,8 +28,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         Private ReadOnly _exportProvider As Composition.ExportProvider
         Private ReadOnly _fileChangeEx As New MockVsFileChangeEx
-        Private ReadOnly _localRegistry As New StubLocalRegistry
-        Private _settingsManager As ISettingsManager
 
         Public MockMonitorSelection As IVsMonitorSelection
 
@@ -60,22 +58,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
                 Case GetType(SVsFileChangeEx)
                     Return _fileChangeEx
-
-                Case GetType(SLocalRegistry)
-                    Return _localRegistry
-
-                Case GetType(SVsSettingsPersistenceManager)
-                    If _settingsManager Is Nothing Then
-                        LoggerFactory.Reset()
-                        _settingsManager = SettingsManagerFactory.CreateInstance(New StubSettingsManagerHost())
-                    End If
-
-                    Return _settingsManager
-
-                Case GetType(SVsFeatureFlags)
-                    ' The only places that we consume this treat it as optional, so we can skip it here, and remove this in 
-                    ' https://github.com/dotnet/roslyn/pull/69160.
-                    Return Nothing
 
                 Case Else
                     Throw New Exception($"{NameOf(MockServiceProvider)} does not implement {serviceType.FullName}.")

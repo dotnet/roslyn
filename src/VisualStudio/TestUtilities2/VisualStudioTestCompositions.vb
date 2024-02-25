@@ -4,7 +4,6 @@
 
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.CSharp
 Imports Microsoft.VisualStudio.LanguageServices.Remote
@@ -26,6 +25,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 GetType(VisualStudioRemoteHostClientProvider.Factory), ' Do not use ServiceHub in VS unit tests, run services locally.
                 GetType(IStreamingFindUsagesPresenter),                ' TODO: should we be using the actual implementation (https://github.com/dotnet/roslyn/issues/46380)?
                 GetType(HACK_ThemeColorFixer),
-                GetType(Implementation.Notification.VSNotificationServiceFactory))
+                GetType(Implementation.Notification.VSNotificationServiceFactory),
+                GetType(Options.VisualStudioOptionPersisterProvider)) ' Unit tests shouldn't depend on environmental user settings that might be set (even if we could read them)
     End Class
 End Namespace
