@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 // #define COLLECT_STATS
 
 using System;
@@ -63,22 +61,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return kind != SyntaxKind.None;
         }
 
-        internal SyntaxTrivia LookupTrivia(
+        internal SyntaxTrivia? LookupTrivia(
+            char[] textBuffer,
+            int keyStart,
+            int keyLength,
+            int hashCode)
+        {
+            return _triviaMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
+        }
+
+        internal void AddTrivia(
             char[] textBuffer,
             int keyStart,
             int keyLength,
             int hashCode,
-            Func<SyntaxTrivia> createTriviaFunction)
+            SyntaxTrivia value)
         {
-            var value = _triviaMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
-
-            if (value == null)
-            {
-                value = createTriviaFunction();
-                _triviaMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
-            }
-
-            return value;
+            _triviaMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
         }
 
         // TODO: remove this when done tweaking this cache.

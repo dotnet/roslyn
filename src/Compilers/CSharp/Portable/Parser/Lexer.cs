@@ -2226,11 +2226,6 @@ LoopExit:
         /// <returns>A trivia node with the whitespace text</returns>
         private SyntaxTrivia ScanWhitespace()
         {
-            if (_createWhitespaceTriviaFunction == null)
-            {
-                _createWhitespaceTriviaFunction = this.CreateWhitespaceTrivia;
-            }
-
             int hashCode = Hash.FnvOffsetBias;  // FNV base
             bool onlySpaces = true;
 
@@ -2274,21 +2269,31 @@ top:
 
                 if (width < MaxCachedTokenSize)
                 {
-                    return _cache.LookupTrivia(
+                    var trivia = _cache.LookupTrivia(
                         TextWindow.CharacterWindow,
                         TextWindow.LexemeRelativeStart,
                         width,
-                        hashCode,
-                        _createWhitespaceTriviaFunction);
+                        hashCode);
+
+                    if (trivia is null)
+                    {
+                        trivia = CreateWhitespaceTrivia();
+                        _cache.AddTrivia(
+                            TextWindow.CharacterWindow,
+                            TextWindow.LexemeRelativeStart,
+                            width,
+                            hashCode,
+                            trivia);
+                    }
+
+                    return trivia;
                 }
                 else
                 {
-                    return _createWhitespaceTriviaFunction();
+                    return CreateWhitespaceTrivia();
                 }
             }
         }
-
-        private Func<SyntaxTrivia>? _createWhitespaceTriviaFunction;
 
         private SyntaxTrivia CreateWhitespaceTrivia()
         {
