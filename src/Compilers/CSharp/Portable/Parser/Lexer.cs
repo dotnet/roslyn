@@ -284,7 +284,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private SyntaxListBuilder _leadingTriviaCache = new SyntaxListBuilder(10);
         private SyntaxListBuilder _trailingTriviaCache = new SyntaxListBuilder(10);
-        private SyntaxListBuilder _directiveTriviaCache = new SyntaxListBuilder(10);
+
+        private SyntaxListBuilder? _directiveTriviaCache;
+        private SyntaxListBuilder GetDirectiveTriviaCache()
+        {
+            if (_directiveTriviaCache is null)
+            {
+                _directiveTriviaCache = new SyntaxListBuilder(10);
+            }
+            else
+            {
+                _directiveTriviaCache.Clear();
+            }
+
+            return _directiveTriviaCache;
+        }
 
         private static int GetFullWidth(SyntaxListBuilder? builder)
         {
@@ -2429,9 +2443,9 @@ top:
             TokenInfo info = default(TokenInfo);
             this.ScanDirectiveToken(ref info);
             var errors = this.GetErrors(leadingTriviaWidth: 0);
-            _directiveTriviaCache.Clear();
-            this.LexDirectiveTrailingTrivia(info.Kind == SyntaxKind.EndOfDirectiveToken, ref _directiveTriviaCache);
-            return Create(in info, null, _directiveTriviaCache, errors);
+            var directiveTriviaCache = GetDirectiveTriviaCache();
+            this.LexDirectiveTrailingTrivia(info.Kind == SyntaxKind.EndOfDirectiveToken, ref directiveTriviaCache);
+            return Create(in info, null, directiveTriviaCache, errors);
         }
 
         public SyntaxToken LexEndOfDirectiveWithOptionalPreprocessingMessage()
@@ -2463,9 +2477,9 @@ top:
                 : SyntaxFactory.PreprocessingMessage(builder.ToStringAndFree());
 
             // now try to consume the EOL if there.
-            _directiveTriviaCache.Clear();
-            this.LexDirectiveTrailingTrivia(includeEndOfLine: true, ref _directiveTriviaCache);
-            var trailing = _directiveTriviaCache.ToListNode();
+            var directiveTriviaCache = GetDirectiveTriviaCache();
+            this.LexDirectiveTrailingTrivia(includeEndOfLine: true, ref directiveTriviaCache);
+            var trailing = directiveTriviaCache.ToListNode();
             var endOfDirective = SyntaxFactory.Token(leading, SyntaxKind.EndOfDirectiveToken, trailing);
 
             return endOfDirective;
