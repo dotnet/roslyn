@@ -3744,7 +3744,7 @@ top:
                     // check to see if it is an actual keyword
                     // NOTE: name attribute values don't respect keywords - everything is an identifier.
                     SyntaxKind keywordKind;
-                    if (!InXmlNameAttributeValue && !info.IsVerbatim && !info.HasIdentifierEscapeSequence && _cache.TryGetKeywordKind(info.StringValue, out keywordKind))
+                    if (!InXmlNameAttributeValue && !info.IsVerbatim && !info.HasIdentifierEscapeSequence && _cache.TryGetKeywordKind(info.StringValue!, out keywordKind))
                     {
                         if (SyntaxFacts.IsContextualKeyword(keywordKind))
                         {
