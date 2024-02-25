@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                     {
                         CommandIdentifier = CompleteComplexEditCommand,
                         Title = nameof(CompleteComplexEditCommand),
-                        Arguments = [textDocumentIdentifier.Uri, textEdit, isSnippetString, lspOffset]
+                        Arguments = [textDocumentIdentifier, textEdit, isSnippetString, lspOffset]
                     };
                 }
             }
