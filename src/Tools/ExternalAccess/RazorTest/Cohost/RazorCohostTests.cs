@@ -59,7 +59,7 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
             }
         };
 
-        var response = await server.GetTestAccessor().ExecuteRequestAsync<TextDocumentPositionParams, TestRequest>(RazorHandler.MethodName, request, CancellationToken.None);
+        var response = await server.GetTestAccessor().ExecuteRequestAsync<TextDocumentPositionParams, TestRequest>(RazorHandler.MethodName, LanguageServerConstants.DefaultLanguageName, request, CancellationToken.None);
 
         Assert.NotNull(response);
         Assert.Equal(document.GetURI(), response.DocumentUri);
@@ -88,7 +88,7 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
             }
         };
 
-        var response = await server.GetTestAccessor().ExecuteRequestAsync<VSGetProjectContextsParams, VSProjectContextList?>(VSMethods.GetProjectContextsName, request, CancellationToken.None);
+        var response = await server.GetTestAccessor().ExecuteRequestAsync<VSGetProjectContextsParams, VSProjectContextList?>(VSMethods.GetProjectContextsName, LanguageServerConstants.DefaultLanguageName, request, CancellationToken.None);
 
         Assert.NotNull(response);
         var projectContext = Assert.Single(response?.ProjectContexts);
@@ -118,7 +118,7 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
             }
         };
 
-        await server.GetTestAccessor().ExecuteRequestAsync<DidOpenTextDocumentParams, NoValue?>(Methods.TextDocumentDidOpenName, didOpenRequest, CancellationToken.None);
+        await server.GetTestAccessor().ExecuteRequestAsync<DidOpenTextDocumentParams, NoValue?>(Methods.TextDocumentDidOpenName, LanguageServerConstants.DefaultLanguageName, didOpenRequest, CancellationToken.None);
 
         var workspaceManager = server.GetLspServices().GetRequiredService<LspWorkspaceManager>();
         Assert.True(workspaceManager.GetTrackedLspText().TryGetValue(document.GetURI(), out var trackedText));
@@ -144,7 +144,7 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
             ]
         };
 
-        await server.GetTestAccessor().ExecuteRequestAsync<DidChangeTextDocumentParams, object>(Methods.TextDocumentDidChangeName, didChangeRequest, CancellationToken.None);
+        await server.GetTestAccessor().ExecuteRequestAsync<DidChangeTextDocumentParams, object>(Methods.TextDocumentDidChangeName, LanguageServerConstants.DefaultLanguageName, didChangeRequest, CancellationToken.None);
 
         Assert.True(workspaceManager.GetTrackedLspText().TryGetValue(document.GetURI(), out trackedText));
         Assert.Equal("Not The Original text", trackedText.Text.ToString());
@@ -167,7 +167,7 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
 
         var serverAccessor = server!.GetTestAccessor();
 
-        await serverAccessor.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = new() }, CancellationToken.None);
+        await serverAccessor.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, LanguageServerConstants.DefaultLanguageName, new InitializeParams { Capabilities = new() }, CancellationToken.None);
 
         return server;
     }

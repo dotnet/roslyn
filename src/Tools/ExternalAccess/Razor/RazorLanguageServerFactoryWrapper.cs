@@ -15,9 +15,9 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    [Export(typeof(IRazorLanguageServerFactoryWrapper))]
+    [Export(typeof(AbstractRazorLanguageServerFactoryWrapper))]
     [Shared]
-    internal class RazorLanguageServerFactoryWrapper : IRazorLanguageServerFactoryWrapper
+    internal class RazorLanguageServerFactoryWrapper : AbstractRazorLanguageServerFactoryWrapper
     {
         private readonly ILanguageServerFactory _languageServerFactory;
 
@@ -33,15 +33,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             _languageServerFactory = languageServerFactory;
         }
 
-        public IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, IRazorTestCapabilitiesProvider razorCapabilitiesProvider, HostServices hostServices)
+        internal override IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, JsonSerializer jsonSerializer, IRazorTestCapabilitiesProvider razorCapabilitiesProvider, HostServices hostServices)
         {
             var capabilitiesProvider = new RazorCapabilitiesProvider(razorCapabilitiesProvider);
-            var languageServer = _languageServerFactory.Create(jsonRpc, capabilitiesProvider, WellKnownLspServerKinds.RazorLspServer, NoOpLspLogger.Instance, hostServices);
+            var languageServer = _languageServerFactory.Create(jsonRpc, jsonSerializer, capabilitiesProvider, WellKnownLspServerKinds.RazorLspServer, NoOpLspLogger.Instance, hostServices);
 
             return new RazorLanguageServerTargetWrapper(languageServer);
         }
 
-        public DocumentInfo CreateDocumentInfo(
+        internal override DocumentInfo CreateDocumentInfo(
             DocumentId id,
             string name,
             IReadOnlyList<string>? folders = null,
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 .WithDocumentServiceProvider(documentServiceProvider);
         }
 
-        public void AddJsonConverters(JsonSerializer jsonSerializer)
+        internal override void AddJsonConverters(JsonSerializer jsonSerializer)
         {
             VSInternalExtensionUtilities.AddVSInternalExtensionConverters(jsonSerializer);
         }

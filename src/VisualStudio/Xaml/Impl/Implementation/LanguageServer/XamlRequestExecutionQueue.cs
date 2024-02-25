@@ -6,6 +6,7 @@ using System;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
@@ -23,15 +24,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             _projectService = projectService;
         }
 
-        protected override string GetLanguageForRequest<TRequest>(string methodName, TRequest request)
-        {
-            if (request is ITextDocumentParams textDocumentParams &&
-                textDocumentParams.TextDocument is { Uri: { IsAbsoluteUri: true } documentUri })
-            {
-                _projectService.TrackOpenDocument(documentUri.LocalPath);
-            }
+        //internal override string GetLanguageForRequest(string methodName, JObject request)
+        //{
+        //    if (request is ITextDocumentParams textDocumentParams &&
+        //        textDocumentParams.TextDocument is { Uri: { IsAbsoluteUri: true } documentUri })
+        //    {
+        //        _projectService.TrackOpenDocument(documentUri.LocalPath);
+        //    }
 
-            return base.GetLanguageForRequest(methodName, request);
-        }
+        //    return base.GetLanguageForRequest(methodName, request);
+        //}
     }
 }

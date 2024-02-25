@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
+using Newtonsoft.Json;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -213,6 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             var hostServices = VisualStudioMefHostServices.Create(_exportProvider);
             var server = Create(
                 jsonRpc,
+                jsonMessageFormatter.JsonSerializer,
                 languageClient,
                 serverKind,
                 logger,
@@ -224,6 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
         public virtual AbstractLanguageServer<RequestContext> Create(
             JsonRpc jsonRpc,
+            JsonSerializer jsonSerializer,
             ICapabilitiesProvider capabilitiesProvider,
             WellKnownLspServerKinds serverKind,
             AbstractLspLogger logger,
@@ -232,6 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             var server = new RoslynLanguageServer(
                 LspServiceProvider,
                 jsonRpc,
+                jsonSerializer,
                 capabilitiesProvider,
                 logger,
                 hostServices,
