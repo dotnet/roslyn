@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -262,8 +263,8 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             var isFullyLoaded = await service.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
             if (!isFullyLoaded)
             {
-                await findContext.ReportInformationalMessageAsync(
-                    EditorFeaturesResources.The_results_may_be_incomplete_due_to_the_solution_still_loading_projects, cancellationToken).ConfigureAwait(false);
+                await findContext.ReportMessageAsync(
+                    EditorFeaturesResources.The_results_may_be_incomplete_due_to_the_solution_still_loading_projects, NotificationSeverity.Information, cancellationToken).ConfigureAwait(false);
             }
 
             // We were able to find the doc prior to loading the workspace (or else we would not have the service).
