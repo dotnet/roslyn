@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the nullable disbaled semantic model for this document asynchronously.
+        /// Gets the nullable disabled semantic model for this document asynchronously.
         /// </summary>
         /// <returns>
         /// The returned <see cref="SemanticModel"/> may be <see langword="null"/> if <see
@@ -287,7 +287,10 @@ namespace Microsoft.CodeAnalysis
         public async Task<SemanticModel?> GetSemanticModelAsync(SemanticModelOptions options, CancellationToken cancellationToken = default)
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
-            return await GetSemanticModelHelperAsync(disableNullableAnalysis: options == SemanticModelOptions.DisableNullableAnalysis, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return await GetSemanticModelHelperAsync(
+                disableNullableAnalysis: (options & SemanticModelOptions.DisableNullableAnalysis) == SemanticModelOptions.DisableNullableAnalysis,
+                cancellationToken: cancellationToken
+            ).ConfigureAwait(false);
         }
 
         /// <summary>
