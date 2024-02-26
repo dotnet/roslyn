@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (trivia2.IsElastic())
             {
                 // eat up consecutive elastic trivia or first or next line
-                if (trivia1.IsElastic() || trivia1.RawKind == 0 || IsEndOfLine(trivia1))
+                if (trivia1.IsElastic() || (trivia1.RawKind == 0 && trivia2.SpanStart == 0) || IsEndOfLine(trivia1))
                 {
                     return LineColumnDelta.Default;
                 }

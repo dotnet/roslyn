@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryNullableDirec
         {
             foreach (var diagnostic in diagnostics)
             {
+                // Remove the directive. Use SyntaxRemoveOptions.AddElasticMarker so the code action post-processing
+                // steps know to remove extraneous blank lines appearing after the removal.
                 var nullableDirective = diagnostic.Location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken);
                 editor.RemoveNode(nullableDirective, SyntaxRemoveOptions.AddElasticMarker);
             }
