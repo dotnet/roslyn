@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         /// <summary>
         /// Flag indicating if a solution crawler is running incremental analyzers in background.
-        /// We get build progress updates from <see cref="ISolutionCrawlerProgressReporter.ProgressChanged"/>.
+        /// We get build progress updates from :ISolutionCrawlerProgressReporter.ProgressChanged.
         /// Solution crawler progress events are guaranteed to be invoked in a serial fashion.
         /// </summary>
         protected bool IsSolutionCrawlerRunning { get; private set; }
