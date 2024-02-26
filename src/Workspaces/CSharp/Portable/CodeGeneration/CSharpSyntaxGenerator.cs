@@ -803,8 +803,14 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
                              .WithBody(null);
 
                     case SyntaxKind.OperatorDeclaration:
-                        return ((OperatorDeclarationSyntax)member)
-                                 .WithModifiers(default)
+                        var operatorDeclaration = (OperatorDeclarationSyntax)member;
+                        var abstractVirtualModifiers = operatorDeclaration.Modifiers.Where(x =>
+                            x.Kind() == SyntaxKind.AbstractKeyword
+                            || x.Kind() == SyntaxKind.VirtualKeyword
+                            || x.Kind() == SyntaxKind.PublicKeyword);
+                        return operatorDeclaration
+                                 .WithModifiers(SyntaxTokenList.Create(abstractVirtualModifiers.ToArray()))
+                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
                                  .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                                  .WithBody(null);
 
