@@ -1071,7 +1071,10 @@ internal sealed partial class SolutionCompilationState
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // if we don't have one or it is stale, create a new partial solution
+            var oldProjectState = this.SolutionState.GetRequiredProjectState(projectId);
+            if (!oldProjectState.SupportsCompilation)
+                continue;
+
             var oldTracker = GetCompilationTracker(projectId);
             var newTracker = oldTracker.FreezePartialState(cancellationToken);
             if (oldTracker == newTracker)
@@ -1079,7 +1082,6 @@ internal sealed partial class SolutionCompilationState
 
             Contract.ThrowIfFalse(newIdToProjectStateMapBuilder.ContainsKey(projectId));
 
-            var oldProjectState = this.SolutionState.GetRequiredProjectState(projectId);
             var newProjectState = newTracker.ProjectState;
 
             newIdToProjectStateMapBuilder[projectId] = newProjectState;
