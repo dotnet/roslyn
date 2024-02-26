@@ -40,16 +40,9 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             var project = document.Project;
             SemanticModel semanticModel;
-            if (options.DisableNullableAnalysisInClassification)
-            {
 #pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
-                semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 #pragma warning restore RSEXPERIMENTAL001
-            }
-            else
-            {
-                semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            }
 
             AddEmbeddedLanguageClassifications(
                 project.Solution.Services, project, semanticModel, textSpans, options, result, cancellationToken);
