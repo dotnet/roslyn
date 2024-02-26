@@ -1071,6 +1071,7 @@ internal sealed partial class SolutionCompilationState
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            // Definitely do nothing for non-C#/VB projects.  We have nothing to freeze in that case.
             var oldProjectState = this.SolutionState.GetRequiredProjectState(projectId);
             if (!oldProjectState.SupportsCompilation)
                 continue;
@@ -1160,6 +1161,7 @@ internal sealed partial class SolutionCompilationState
                     oldDocumentState != newDocumentState &&
                     oldDocumentState.FilePath != newDocumentState.FilePath)
                 {
+                    filePathToDocumentIdsMapChanged = true;
                     SolutionState.RemoveDocumentFilePath(oldDocumentState, filePathToDocumentIdsMapBuilder);
                     SolutionState.AddDocumentFilePath(newDocumentState, filePathToDocumentIdsMapBuilder);
                 }
