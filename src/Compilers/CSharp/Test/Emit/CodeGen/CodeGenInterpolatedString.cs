@@ -60,6 +60,7 @@ public class Test
 {
     const string constantabc = ""abc"";
     const string constantnull = null;
+    const char constantchar = 'd';
 
     static void Main()
     {
@@ -69,6 +70,8 @@ public class Test
         Console.WriteLine($""{constantnull}"");
         Console.WriteLine($""{constantabc}{constantnull}"");
         Console.WriteLine($""({constantabc})({constantnull})"");
+        Console.WriteLine($""{constantabc}{constantchar}"");
+        Console.WriteLine($""{constantabc}({constantchar})"");
     }
 }
 ";
@@ -78,12 +81,14 @@ abc
 
 abc
 (abc)()
+abcd
+abc(d)
 ");
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size       61 (0x3d)
+  // Code size       81 (0x51)
   .maxstack  1
   IL_0000:  ldstr      """"
   IL_0005:  call       ""void System.Console.WriteLine(string)""
@@ -97,7 +102,11 @@ abc
   IL_002d:  call       ""void System.Console.WriteLine(string)""
   IL_0032:  ldstr      ""(abc)()""
   IL_0037:  call       ""void System.Console.WriteLine(string)""
-  IL_003c:  ret
+  IL_003c:  ldstr      ""abcd""
+  IL_0041:  call       ""void System.Console.WriteLine(string)""
+  IL_0046:  ldstr      ""abc(d)""
+  IL_004b:  call       ""void System.Console.WriteLine(string)""
+  IL_0050:  ret
 }
 ");
         }
@@ -151,6 +160,8 @@ public class Test
     {
         string a = ""a"";
         string b = ""b"";
+        const string c = ""c"";
+        const char d = 'd';
 
         Console.WriteLine($""a: {a}"");
         Console.WriteLine($""{a + b}"");
@@ -159,6 +170,7 @@ public class Test
         Console.WriteLine($""{{{a}}}"");
         Console.WriteLine(""a:"" + $"" {a}"");
         Console.WriteLine($""a: {$""{a}, b: {b}""}"");
+        Console.WriteLine($""acd: {a}{c}{d}, b: {b}"");
     }
 }
 ";
@@ -169,12 +181,13 @@ a: a, b: b
 {a}
 a: a
 a: a, b: b
+acd: acd, b: b
 ");
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size      134 (0x86)
+  // Code size      156 (0x9c)
   .maxstack  4
   .locals init (string V_0, //a
                 string V_1) //b
@@ -215,7 +228,13 @@ a: a, b: b
   IL_007a:  ldloc.1
   IL_007b:  call       ""string string.Concat(string, string, string, string)""
   IL_0080:  call       ""void System.Console.WriteLine(string)""
-  IL_0085:  ret
+  IL_0085:  ldstr      ""acd: ""
+  IL_008a:  ldloc.0
+  IL_008b:  ldstr      ""cd, b: ""
+  IL_0090:  ldloc.1
+  IL_0091:  call       ""string string.Concat(string, string, string, string)""
+  IL_0096:  call       ""void System.Console.WriteLine(string)""
+  IL_009b:  ret
 }
 ");
         }
@@ -231,20 +250,24 @@ public class Test
     static void Main()
     {
         object a = ""a"";
+        const string b = ""b"";
+        const char c = 'c';
 
         Console.WriteLine($""{a}"");
         Console.WriteLine($""a: {a}"");
+        Console.WriteLine($""a: {a}, b: {b}, c: {c}"");
     }
 }
 ";
             var comp = CompileAndVerify(source, expectedOutput: @"a
 a: a
+a: a, b: b, c: c
 ");
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size       39 (0x27)
+  // Code size       55 (0x37)
   .maxstack  2
   .locals init (object V_0) //a
   IL_0000:  ldstr      ""a""
@@ -257,7 +280,11 @@ a: a
   IL_001b:  ldloc.0
   IL_001c:  call       ""string string.Format(string, object)""
   IL_0021:  call       ""void System.Console.WriteLine(string)""
-  IL_0026:  ret
+  IL_0026:  ldstr      ""a: {0}, b: b, c: c""
+  IL_002b:  ldloc.0
+  IL_002c:  call       ""string string.Format(string, object)""
+  IL_0031:  call       ""void System.Console.WriteLine(string)""
+  IL_0036:  ret
 }
 ");
         }
@@ -282,6 +309,44 @@ public class Test
             var comp = CompileAndVerify(source, expectedOutput: @"a => Format(""a: {0}"", a)");
 
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CombinationWithNonConcatenationAndStringConstants()
+        {
+            var source = @"
+using System;
+
+public class Test
+{
+    static void Main()
+    {
+        object a = ""a"";
+        const string cd = ""cd"";
+        const char f = 'f';
+
+        Console.WriteLine($""{a}b{cd}e{f}g"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"abcdefg
+");
+
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.Main", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (object V_0) //a
+  IL_0000:  ldstr      ""a""
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      ""{0}bcdefg""
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""string string.Format(string, object)""
+  IL_0011:  call       ""void System.Console.WriteLine(string)""
+  IL_0016:  ret
+}
+");
         }
     }
 }

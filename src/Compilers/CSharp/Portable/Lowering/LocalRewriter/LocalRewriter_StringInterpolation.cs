@@ -18,7 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.ConversionKind == ConversionKind.InterpolatedString);
             BoundExpression format;
             ArrayBuilder<BoundExpression> expressions;
-            MakeInterpolatedStringFormat((BoundInterpolatedString)conversion.Operand, out format, out expressions);
+            // TODO: Last argument could be true for some cases
+            // e.g. - ((FormattableString)$"Now: {DateTime.Now}").ToString(CultureInfo.GetCulture("some-lang"))
+            //      - FormattableString.Invariant($"Now: {DateTime.Now}")
+            MakeInterpolatedStringFormat((BoundInterpolatedString)conversion.Operand, out format, out expressions, false);
             expressions.Insert(0, format);
             var stringFactory = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory);
 
@@ -184,6 +187,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new InterpolationHandlerResult(resultExpressions.ToImmutableAndFree(), builderTemp, appendShouldProceedLocal?.LocalSymbol, this);
         }
 
+        private bool IsTreatedAsLiteralInStringConcatenation(BoundExpression expression)
+        {
+            return expression.ConstantValueOpt is { IsString: true } or { IsChar: true };
+        }
+
         private bool CanLowerToStringConcatenation(BoundInterpolatedString node)
         {
             foreach (var part in node.Parts)
@@ -193,9 +201,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // this is one of the expression holes
                     if (_inExpressionLambda ||
                         fillin.HasErrors ||
-                        fillin.Value.Type?.SpecialType != SpecialType.System_String ||
                         fillin.Alignment != null ||
-                        fillin.Format != null)
+                        fillin.Format != null ||
+                        !(
+                        IsTreatedAsLiteralInStringConcatenation(fillin.Value) ||
+                            fillin.Value.Type is { SpecialType: SpecialType.System_String }
+                        ))
                     {
                         return false;
                     }
@@ -205,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private void MakeInterpolatedStringFormat(BoundInterpolatedString node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions)
+        private void MakeInterpolatedStringFormat(BoundInterpolatedString node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions, bool canHideOptimization = false)
         {
             _factory.Syntax = node.Syntax;
             int n = node.Parts.Length - 1;
@@ -218,6 +229,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var part = node.Parts[i];
                 if (part is BoundStringInsert fillin)
                 {
+                    // string or char constants without alignment or format
+                    if (canHideOptimization && fillin is { Alignment: null, Format: null, Value.ConstantValueOpt: { } constantValueOpt })
+                    {
+                        switch (constantValueOpt)
+                        {
+                            case { IsChar: true, CharValue: char ch }:
+                                stringBuilder.Append(escapeInterpolatedStringLiteral(ch.ToString()));
+                                continue;
+
+                            case { IsString: true, StringValue: var str }:
+                                stringBuilder.Append(escapeInterpolatedStringLiteral(str ?? ""));
+                                continue;
+                        }
+                    }
                     // this is one of the expression holes
                     stringBuilder.Append('{').Append(nextFormatPosition++);
                     if (fillin.Alignment != null && !fillin.Alignment.HasErrors)
@@ -305,7 +330,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (part is BoundStringInsert fillin)
                     {
                         // this is one of the filled-in expressions
-                        part = fillin.Value;
+                        if (fillin.Value is { ConstantValueOpt: { IsChar: true, CharValue: var charLiteralValue } })
+                        {
+                            // Converts char to string because $"{'c'}" should be "c", not 'c'
+                            part = _factory.StringLiteral(charLiteralValue.ToString());
+                        }
+                        else
+                        {
+                            part = fillin.Value;
+                        }
                     }
                     else
                     {
@@ -343,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     String.Format("Jenny don\'t change your number {0}", new object[] { 8675309 })
                 //
 
-                MakeInterpolatedStringFormat(node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions);
+                MakeInterpolatedStringFormat(node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions, true);
 
                 // The normal pattern for lowering is to lower subtrees before the enclosing tree. However we cannot lower
                 // the arguments first in this situation because we do not know what conversions will be
