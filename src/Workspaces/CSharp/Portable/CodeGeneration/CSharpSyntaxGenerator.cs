@@ -802,11 +802,17 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
                              .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                              .WithBody(null);
 
-                case SyntaxKind.PropertyDeclaration:
-                    var property = (PropertyDeclarationSyntax)member;
-                    return property
-                        .WithModifiers(default)
-                        .WithAccessorList(WithoutBodies(property.AccessorList));
+                    case SyntaxKind.OperatorDeclaration:
+                        return ((OperatorDeclarationSyntax)member)
+                                 .WithModifiers(default)
+                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                                 .WithBody(null);
+
+                    case SyntaxKind.PropertyDeclaration:
+                        var property = (PropertyDeclarationSyntax)member;
+                        return property
+                            .WithModifiers(default)
+                            .WithAccessorList(WithoutBodies(property.AccessorList));
 
                 case SyntaxKind.IndexerDeclaration:
                     var indexer = (IndexerDeclarationSyntax)member;
