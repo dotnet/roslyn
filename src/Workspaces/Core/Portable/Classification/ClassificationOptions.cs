@@ -2,35 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Composition;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Classification;
 
-internal interface IClassificationConfigurationService
-{
-    ClassificationOptions Options { get; }
-}
-
-[ExportWorkspaceService(typeof(IClassificationConfigurationService)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DefaultClassificationConfigurationService() : IClassificationConfigurationService
-{
-    public ClassificationOptions Options => ClassificationOptions.Default;
-}
-
 [DataContract]
-internal readonly record struct ClassificationOptions(
-    [property: DataMember(Order = 1)] bool ClassifyReassignedVariables = false,
-    [property: DataMember(Order = 2)] bool ColorizeRegexPatterns = true,
-    [property: DataMember(Order = 3)] bool ColorizeJsonPatterns = true,
-    [property: DataMember(Order = 4)] bool ForceFrozenPartialSemanticsForCrossProcessOperations = false,
-    [property: DataMember(Order = 5)] bool DisableNullableAnalysisInClassification = false)
+internal readonly record struct ClassificationOptions
 {
+    [DataMember] public bool ClassifyReassignedVariables { get; init; } = false;
+    [DataMember] public bool ColorizeRegexPatterns { get; init; } = true;
+    [DataMember] public bool ColorizeJsonPatterns { get; init; } = true;
+    [DataMember] public bool ForceFrozenPartialSemanticsForCrossProcessOperations { get; init; } = false;
+
+    public ClassificationOptions()
+    {
+    }
+
     public static readonly ClassificationOptions Default = new();
 }

@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -18,6 +17,6 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
     /// </summary>
     internal interface IReassignedVariableService : ILanguageService
     {
-        Task<ImmutableArray<TextSpan>> GetLocationsAsync(Document document, ImmutableArray<TextSpan> textSpans, ClassificationOptions options, CancellationToken cancellationToken);
+        Task<ImmutableArray<TextSpan>> GetLocationsAsync(Document document, ImmutableArray<TextSpan> textSpans, CancellationToken cancellationToken);
     }
 }
