@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Classification;
 
-internal interface IClassificationConfigurationService
+internal interface IClassificationConfigurationService : IWorkspaceService
 {
     ClassificationOptions Options { get; }
 }
