@@ -1064,8 +1064,8 @@ internal sealed partial class SolutionCompilationState
         var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
 
-        using var _1 = ArrayBuilder<TextDocumentState>.GetInstance(out var documentsToRemove);
-        using var _2 = ArrayBuilder<TextDocumentState>.GetInstance(out var documentsToAdd);
+        var filePathToDocumentIdsMapBuilder = this.SolutionState.FilePathToDocumentIdsMap.ToBuilder();
+        var filePathToDocumentIdsMapChanged = false;
 
         foreach (var projectId in this.SolutionState.ProjectIds)
         {
@@ -1112,9 +1112,10 @@ internal sealed partial class SolutionCompilationState
         var newIdToProjectStateMap = newIdToProjectStateMapBuilder.ToImmutable();
         var newIdToTrackerMap = newIdToTrackerMapBuilder.ToImmutable();
 
-        var filePathToDocumentIdsMap = this.SolutionState.CreateFilePathToDocumentIdsMapWithAddedAndRemovedDocuments(
-            documentsToAdd: documentsToAdd,
-            documentsToRemove: documentsToRemove);
+        var filePathToDocumentIdsMap = filePathToDocumentIdsMapChanged
+            ? filePathToDocumentIdsMapBuilder.ToImmutable()
+            : null;
+
         var dependencyGraph = SolutionState.CreateDependencyGraph(this.SolutionState.ProjectIds, newIdToProjectStateMap);
 
         var newState = this.SolutionState.Branch(
@@ -1135,11 +1136,18 @@ internal sealed partial class SolutionCompilationState
             TextDocumentStates<TDocumentState> newStates) where TDocumentState : TextDocumentState
         {
             // Get the trivial sets of documents that are present in one set but not the other.
+
             foreach (var documentId in newStates.GetAddedStateIds(oldStates))
-                documentsToAdd.Add(newStates.GetRequiredState(documentId));
+            {
+                filePathToDocumentIdsMapChanged = true;
+                SolutionState.AddDocumentFilePath(newStates.GetRequiredState(documentId), filePathToDocumentIdsMapBuilder);
+            }
 
             foreach (var documentId in newStates.GetRemovedStateIds(oldStates))
-                documentsToRemove.Add(oldStates.GetRequiredState(documentId));
+            {
+                filePathToDocumentIdsMapChanged = true;
+                SolutionState.RemoveDocumentFilePath(oldStates.GetRequiredState(documentId), filePathToDocumentIdsMapBuilder);
+            }
 
             // Now go through the states that are in both sets.  We have to check these all as it is possible for
             // document to change its file path without its id changing.
@@ -1149,8 +1157,8 @@ internal sealed partial class SolutionCompilationState
                     oldDocumentState != newDocumentState &&
                     oldDocumentState.FilePath != newDocumentState.FilePath)
                 {
-                    documentsToRemove.Remove(oldDocumentState);
-                    documentsToAdd.Add(newDocumentState);
+                    SolutionState.RemoveDocumentFilePath(oldDocumentState, filePathToDocumentIdsMapBuilder);
+                    SolutionState.AddDocumentFilePath(newDocumentState, filePathToDocumentIdsMapBuilder);
                 }
             }
         }
