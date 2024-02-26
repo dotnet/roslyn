@@ -180,7 +180,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub EscapeSequences()
+        Public Sub EscapeSequencesStringConcat()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -195,6 +195,25 @@ Module Program
 End Module
     </file>
 </compilation>, expectedOutput:="Solution: { Ø }")
+
+        End Sub
+
+        <Fact>
+        Public Sub EscapeSequences()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Dim arr As Object() = {}
+        Write($"Solution: {{ { If(arr.Length > 0, String.Join("", "", arr), "Ø") } }} / Length: {arr.Length}")
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:="Solution: { Ø } / Length: 0")
 
         End Sub
 

@@ -43,12 +43,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' We have to process all of the escape sequences in the string.
                 Dim valueWithEscapes = DirectCast(node.Contents(0), BoundLiteral).Value.StringValue
 
-                Return factory.StringLiteral(ConstantValue.Create(valueWithEscapes.Replace("{{", "{").Replace("}}", "}")))
+                Return factory.StringLiteral(ConstantValue.Create(UnescapeLiteralInterpolatedString(valueWithEscapes)))
 
             Else
+                ' If all the interpolations can be interpreted as strings (including char constants)
+                ' and there is no alignment or format string,
+                ' We can use String.Concat by interpreting them as string concatenations.
+                ' For example, we translate the expression:
+                '     $"Jenny, don't change your number: {phoneNumberString}."
+                ' into
+                '     String.Concat("Jenny, don't change your number: ", phoneNumberString)
+                ' via
+                '     "Jenny, don't change your number: " & phoneNumberString
+                ' This optimization has been adopted in C# for .NET Framework.
+                If node.Contents.Where(
+                    Function(item) item.Kind = BoundKind.Interpolation
+                ).All(
+                    Function(item) IsOneInterpolationLowerableToConcat(DirectCast(item, BoundInterpolation))
+                ) Then
+                    Return ConvertToConcatenationNode(node.Contents, node.Type, factory)
+                End If
+
                 Return InvokeInterpolatedStringFactory(node, node.Type, "Format", node.Type, factory)
             End If
 
+        End Function
+
+        Private Function UnescapeLiteralInterpolatedString(valueWithEscapes As String) As String
+            Return valueWithEscapes.Replace("{{", "{").Replace("}}", "}")
         End Function
 
         Private Function RewriteInterpolatedStringConversion(conversion As BoundConversion) As BoundExpression
@@ -189,6 +211,75 @@ ReturnBadExpression:
             ReportDiagnostic(node, ErrorFactory.ErrorInfo(ERRID.ERR_InterpolatedStringFactoryError, factoryType.Name, factoryMethodName), _diagnostics)
             Return factory.Convert(targetType, factory.BadExpression(DirectCast(MyBase.VisitInterpolatedStringExpression(node), BoundExpression)))
 
+        End Function
+        ''' <summary>
+        ''' Returns true if the interpolation part can be lowered to a string concatenation.
+        ''' </summary>
+        ''' <param name="interpolation">interpolation node</param>
+        ''' <returns><see langword="True"/> if the part can be accepted as a part of string concatenation.</returns>
+        Private Function IsOneInterpolationLowerableToConcat(interpolation As BoundInterpolation) As Boolean
+            If interpolation.AlignmentOpt IsNot Nothing OrElse interpolation.FormatStringOpt IsNot Nothing Then
+                Return False
+            End If
+            If IsTreatedAsStringLiteralInStringConcatenation(interpolation.Expression) Then
+                Return True
+            End If
+            Return interpolation.Expression.Type.IsStringType()
+        End Function
+
+        Private Function IsTreatedAsStringLiteralInStringConcatenation(expression As BoundExpression) As Boolean
+            If Not expression.IsConstant Then
+                Return False
+            End If
+            Return expression.ConstantValueOpt.IsString OrElse expression.ConstantValueOpt.IsChar
+        End Function
+
+        Private Function ConvertElementToConcatenationOperand(item As BoundNode, factory As SyntheticBoundNodeFactory) As BoundExpression
+            Select Case item.Kind
+                Case BoundKind.Literal
+                    Dim literal = DirectCast(item, BoundLiteral)
+                    Debug.Assert(literal.Value.StringValue IsNot Nothing)
+                    Dim literalValue = literal.Value.StringValue
+                    Dim unescapedLiteralValue = UnescapeLiteralInterpolatedString(literalValue)
+                    Return If(
+                        String.Equals(literalValue, unescapedLiteralValue),
+                        literal,
+                        factory.StringLiteral(ConstantValue.Create(unescapedLiteralValue))
+                    )
+                Case BoundKind.Interpolation
+                    ' We don't have to check the existences of alignment or format string options here because we have done
+                    Dim interpolation = DirectCast(item, BoundInterpolation)
+                    Debug.Assert(interpolation.FormatStringOpt Is Nothing)
+                    Debug.Assert(interpolation.AlignmentOpt Is Nothing)
+                    Dim expression = interpolation.Expression
+                    If expression.ConstantValueOpt?.IsChar Then
+                        Return factory.StringLiteral(ConstantValue.Create(expression.ConstantValueOpt.CharValue.ToString()))
+                    End If
+                    ' If we consider some pseudo string literal expressions (e.g. Char.ConvertFromUtf32(Integer) and String.Empty) in the future,
+                    ' insert here:
+                    ' (1) let string constants be passed directly first (2) Convert such expressions to string constants after (1)
+                    Return expression
+                Case Else
+                    Throw ExceptionUtilities.Unreachable()
+            End Select
+        End Function
+
+        Private Function ConvertToConcatenationNode(contents As ImmutableArray(Of BoundNode), factoryType As TypeSymbol, factory As SyntheticBoundNodeFactory) As BoundExpression
+            Return VisitExpression(contents.AsEnumerable().Reverse().Aggregate(Of BoundExpression)(
+                    Nothing,
+                    Function(right, left)
+                        If right Is Nothing Then
+                            Return ConvertElementToConcatenationOperand(left, factory)
+                        End If
+                        Return RewriteConcatenateOperator(
+                            factory.Binary(
+                                BinaryOperatorKind.Concatenate,
+                                factoryType, ConvertElementToConcatenationOperand(left, factory),
+                                right
+                            )
+                        )
+                    End Function
+                ))
         End Function
 
     End Class
