@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis
 
         protected override string PreparePathToLoad(string originalAnalyzerPath, ImmutableHashSet<string> cultureNames)
         {
-            var mvid = ReadMvid(originalAnalyzerPath);
+            var mvid = AssemblyUtilities.ReadMvid(originalAnalyzerPath);
             if (_mvidPathMap.TryGetValue(mvid, out Task<string>? copyTask))
             {
                 return copyTask.Result;
@@ -233,20 +233,6 @@ namespace Microsoft.CodeAnalysis
             Directory.CreateDirectory(directory);
 
             return (directory, mutex);
-        }
-
-        private static Guid ReadMvid(string filePath)
-        {
-            RoslynDebug.Assert(PathUtilities.IsAbsolute(filePath));
-
-            using (var reader = new PEReader(FileUtilities.OpenRead(filePath)))
-            {
-                var metadataReader = reader.GetMetadataReader();
-                var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
-                var fileMvid = metadataReader.GetGuid(mvidHandle);
-
-                return fileMvid;
-            }
         }
     }
 }
