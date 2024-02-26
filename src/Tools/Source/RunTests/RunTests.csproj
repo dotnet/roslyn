@@ -17,6 +17,8 @@
     <PackageReference Include="Microsoft.Win32.Registry" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Microsoft.TeamFoundationServer.Client" />
+    <!-- fix of vulnerability in 6.0.0 coming via Microsoft.TeamFoundationServer.Client -->
+    <PackageReference Include="System.Security.Cryptography.Xml" VersionOverride="6.0.1" />
     <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
   </ItemGroup>
 
