@@ -62,5 +62,3 @@ virtual Microsoft.CodeAnalysis.Editing.SymbolEditor.AsyncDeclarationEditAction.I
 virtual Microsoft.CodeAnalysis.Editing.SymbolEditor.DeclarationEditAction.Invoke(Microsoft.CodeAnalysis.Editing.DocumentEditor editor, Microsoft.CodeAnalysis.SyntaxNode declaration) -> void
 virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.MetadataFilter.Invoke(System.Collections.Generic.IReadOnlyDictionary<string, object> metadata) -> bool
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Equals(Microsoft.CodeAnalysis.Editing.DeclarationModifiers other) -> bool
-[RSEXPERIMENTAL001]Microsoft.CodeAnalysis.Document.GetSemanticModelAsync(Microsoft.CodeAnalysis.SemanticModelOptions options, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.SemanticModel>
-[RSEXPERIMENTAL001]Microsoft.CodeAnalysis.Document.TryGetNullableDisabledSemanticModel(out Microsoft.CodeAnalysis.SemanticModel semanticModel) -> bool
