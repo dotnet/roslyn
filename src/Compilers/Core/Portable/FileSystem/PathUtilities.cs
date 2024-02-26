@@ -588,13 +588,10 @@ namespace Roslyn.Utilities
                 }
             }
 
-            // add the rest of the full path parts only if there is something to add.
-            if (index < fullPathParts.Length)
+            // add the rest of the full path parts
+            for (int i = index; i < fullPathParts.Length; i++)
             {
-                for (int i = index; i < fullPathParts.Length; i++)
-                {
-                    relativePath = CombinePathsUnchecked(relativePath, fullPathParts[i]);
-                }
+                relativePath = CombinePathsUnchecked(relativePath, fullPathParts[i]);
             }
 
             relativePath = TrimTrailingSeparators(relativePath);
