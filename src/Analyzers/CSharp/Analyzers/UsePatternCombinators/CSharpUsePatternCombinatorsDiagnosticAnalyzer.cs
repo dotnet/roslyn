@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 descriptor: isSafe ? this.Descriptor : s_unsafeDescriptor,
                 expression.GetLocation(),
                 styleOption.Notification,
+                context.Options,
                 additionalLocations: null,
                 properties: isSafe ? s_safeProperties : null));
         }

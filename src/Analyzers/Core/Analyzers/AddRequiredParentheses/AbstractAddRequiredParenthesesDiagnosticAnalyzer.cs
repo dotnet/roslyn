@@ -147,6 +147,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                     Descriptor,
                     operatorToken.GetLocation(),
                     notificationOption,
+                    context.Options,
                     additionalLocations,
                     properties));
 

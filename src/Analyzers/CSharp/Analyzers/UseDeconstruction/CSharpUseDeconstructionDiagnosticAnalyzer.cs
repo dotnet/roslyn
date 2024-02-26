@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 Descriptor,
                 variableDeclaration.Variables[0].Identifier.GetLocation(),
                 notificationOption,
+                context.Options,
                 additionalLocations: null,
                 properties: null));
         }
@@ -80,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 Descriptor,
                 forEachStatement.Identifier.GetLocation(),
                 notificationOption,
+                context.Options,
                 additionalLocations: null,
                 properties: null));
         }

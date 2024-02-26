@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -54,6 +51,16 @@ namespace Microsoft.CodeAnalysis
 
             value = default!;
             return false;
+        }
+
+        public static bool IsAnalysisLevelGreaterThanOrEquals(this AnalyzerConfigOptions analyzerConfigOptions, int minAnalysisLevel)
+        {
+            // See https://github.com/dotnet/roslyn/pull/70794 for details.
+            const string AnalysisLevelKey = "build_property.EffectiveAnalysisLevelStyle";
+
+            return analyzerConfigOptions.TryGetValue(AnalysisLevelKey, out var value)
+                && double.TryParse(value, out var version)
+                && version >= minAnalysisLevel;
         }
     }
 }

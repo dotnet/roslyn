@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
                 Descriptor,
                 name.GetLocation(),
                 option.Notification,
+                context.Options,
                 additionalLocations: additionalLocations,
                 modifiersAdded ? ModifiersAddedProperties : null));
         }

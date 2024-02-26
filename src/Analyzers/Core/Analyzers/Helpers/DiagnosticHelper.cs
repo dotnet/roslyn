@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
         /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
         /// <param name="notificationOption">Notification option for the diagnostic.</param>
+        /// <param name="analyzerOptions">Analyzer options</param>
         /// <param name="additionalLocations">
         /// An optional set of additional locations related to the diagnostic.
         /// Typically, these are locations of other items referenced in the message.
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticDescriptor descriptor,
             Location location,
             NotificationOption2 notificationOption,
+            AnalyzerOptions analyzerOptions,
             IEnumerable<Location>? additionalLocations,
             ImmutableDictionary<string, string?>? properties,
             params object[] messageArgs)
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 message = new LocalizableStringWithArguments(descriptor.MessageFormat, messageArgs);
             }
 
-            return CreateWithMessage(descriptor, location, notificationOption, additionalLocations, properties, message);
+            return CreateWithMessage(descriptor, location, notificationOption, analyzerOptions, additionalLocations, properties, message);
         }
 
         /// <summary>
@@ -68,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
         /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
         /// <param name="notificationOption">Notification option of the diagnostic.</param>
+        /// <param name="analyzerOptions">Analyzer options.</param>
         /// <param name="additionalLocations">
         /// An optional set of additional locations related to the diagnostic.
         /// Typically, these are locations of other items referenced in the message.
@@ -85,13 +88,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticDescriptor descriptor,
             Location location,
             NotificationOption2 notificationOption,
+            AnalyzerOptions analyzerOptions,
             ImmutableArray<Location> additionalLocations,
             ImmutableArray<Location> additionalUnnecessaryLocations,
             params object[] messageArgs)
         {
             if (additionalUnnecessaryLocations.IsEmpty)
             {
-                return Create(descriptor, location, notificationOption, additionalLocations, ImmutableDictionary<string, string?>.Empty, messageArgs);
+                return Create(descriptor, location, notificationOption, analyzerOptions, additionalLocations, ImmutableDictionary<string, string?>.Empty, messageArgs);
             }
 
             var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
@@ -100,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 descriptor,
                 location,
                 notificationOption,
+                analyzerOptions,
                 additionalLocations.AddRange(additionalUnnecessaryLocations),
                 tagIndices,
                 ImmutableDictionary<string, string?>.Empty,
@@ -112,6 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
         /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
         /// <param name="notificationOption">Notification option for the diagnostic.</param>
+        /// <param name="analyzerOptions">Analyzer options.</param>
         /// <param name="additionalLocations">
         /// An optional set of additional locations related to the diagnostic.
         /// Typically, these are locations of other items referenced in the message.
@@ -133,6 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticDescriptor descriptor,
             Location location,
             NotificationOption2 notificationOption,
+            AnalyzerOptions analyzerOptions,
             ImmutableArray<Location> additionalLocations,
             ImmutableArray<Location> additionalUnnecessaryLocations,
             ImmutableDictionary<string, string?>? properties,
@@ -140,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (additionalUnnecessaryLocations.IsEmpty)
             {
-                return Create(descriptor, location, notificationOption, additionalLocations, properties, messageArgs);
+                return Create(descriptor, location, notificationOption, analyzerOptions, additionalLocations, properties, messageArgs);
             }
 
             var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
@@ -149,6 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 descriptor,
                 location,
                 notificationOption,
+                analyzerOptions,
                 additionalLocations.AddRange(additionalUnnecessaryLocations),
                 tagIndices,
                 properties,
@@ -179,6 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticDescriptor descriptor,
             Location location,
             NotificationOption2 notificationOption,
+            AnalyzerOptions analyzerOptions,
             IEnumerable<Location> additionalLocations,
             IDictionary<string, IEnumerable<int>> tagIndices,
             ImmutableDictionary<string, string?>? properties,
@@ -190,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             properties ??= ImmutableDictionary<string, string?>.Empty;
             properties = properties.AddRange(tagIndices.Select(kvp => new KeyValuePair<string, string?>(kvp.Key, EncodeIndices(kvp.Value, additionalLocations.Count()))));
 
-            return Create(descriptor, location, notificationOption, additionalLocations, properties, messageArgs);
+            return Create(descriptor, location, notificationOption, analyzerOptions, additionalLocations, properties, messageArgs);
 
             static string EncodeIndices(IEnumerable<int> indices, int additionalLocationsLength)
             {
@@ -213,6 +222,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
         /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
         /// <param name="notificationOption">Notification option for the diagnostic.</param>
+        /// <param name="analyzerOptions">Analyzer options.</param>
         /// <param name="additionalLocations">
         /// An optional set of additional locations related to the diagnostic.
         /// Typically, these are locations of other items referenced in the message.
@@ -229,6 +239,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticDescriptor descriptor,
             Location location,
             NotificationOption2 notificationOption,
+            AnalyzerOptions analyzerOptions,
             IEnumerable<Location>? additionalLocations,
             ImmutableDictionary<string, string?>? properties,
             LocalizableString message)
@@ -253,11 +264,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 descriptor.HelpLinkUri,
                 location,
                 additionalLocations,
-                GetEffectiveCustomTags(descriptor, notificationOption),
+                GetEffectiveCustomTags(descriptor, notificationOption, analyzerOptions),
                 properties);
 
-            static IEnumerable<string> GetEffectiveCustomTags(DiagnosticDescriptor descriptor, NotificationOption2 notificationOption)
+            static IEnumerable<string> GetEffectiveCustomTags(DiagnosticDescriptor descriptor, NotificationOption2 notificationOption, AnalyzerOptions analyzerOptions)
             {
+                // 'CustomSeverityConfigurable' is only enabled when AnalysisLevel >= 9.
+                var skipCustomConfiguration = !analyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions.IsAnalysisLevelGreaterThanOrEquals(9);
+                if (skipCustomConfiguration)
+                {
+                    foreach (var customTag in descriptor.CustomTags)
+                    {
+                        if (customTag != WellKnownDiagnosticTags.CustomSeverityConfigurable)
+                            yield return customTag;
+                    }
+
+                    yield break;
+                }
+
                 var isCustomConfigured = notificationOption.IsExplicitlySpecified;
                 var hasCustomConfigurableTag = false;
                 foreach (var customTag in descriptor.CustomTags)

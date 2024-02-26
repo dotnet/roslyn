@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 Descriptor,
                 outermostUsing.UsingKeyword.GetLocation(),
                 option.Notification,
+                context.Options,
                 additionalLocations: ImmutableArray.Create(outermostUsing.GetLocation()),
                 properties: null));
         }

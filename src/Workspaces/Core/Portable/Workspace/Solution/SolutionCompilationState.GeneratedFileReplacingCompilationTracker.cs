@@ -36,20 +36,21 @@ namespace Microsoft.CodeAnalysis
 
             public GeneratorDriver? GeneratorDriver => UnderlyingTracker.GeneratorDriver;
 
-            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
+            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough)
             {
                 if (_compilationWithReplacements == null)
                 {
                     // We don't have a compilation yet, so this couldn't have came from us
+                    referencedThrough = null;
                     return false;
                 }
                 else
                 {
-                    return UnrootedSymbolSet.Create(_compilationWithReplacements).ContainsAssemblyOrModuleOrDynamic(symbol, primary);
+                    return UnrootedSymbolSet.Create(_compilationWithReplacements).ContainsAssemblyOrModuleOrDynamic(symbol, primary, out referencedThrough);
                 }
             }
 
-            public ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate)
+            public ICompilationTracker Fork(ProjectState newProject, TranslationAction? translate)
             {
                 // TODO: This only needs to be implemented if a feature that operates from a source generated file then makes
                 // further mutations to that project, which isn't needed for now. This will be need to be fixed up when we complete
@@ -61,12 +62,6 @@ namespace Microsoft.CodeAnalysis
             {
                 // Ensure the underlying tracker is totally frozen, and then ensure our replaced generated doc is present.
                 return new GeneratedFileReplacingCompilationTracker(UnderlyingTracker.FreezePartialState(cancellationToken), replacementDocumentStates);
-            }
-
-            public ICompilationTracker FreezePartialStateWithDocument(DocumentState docState, CancellationToken cancellationToken)
-            {
-                // Because we override SourceGeneratedDocument.WithFrozenPartialSemantics directly, we shouldn't be able to get here.
-                throw ExceptionUtilities.Unreachable();
             }
 
             public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)

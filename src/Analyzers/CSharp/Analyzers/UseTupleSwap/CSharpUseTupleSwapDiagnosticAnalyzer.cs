@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
                 Descriptor,
                 localDeclarationStatement.GetFirstToken().GetLocation(),
                 styleOption.Notification,
+                syntaxContext.Options,
                 additionalLocations,
                 properties: null));
         }
