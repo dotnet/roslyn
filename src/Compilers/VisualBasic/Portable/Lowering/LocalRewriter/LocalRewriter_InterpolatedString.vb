@@ -3,9 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Runtime.InteropServices
 Imports System.Text
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -64,13 +62,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return ConvertToConcatenationNode(node.Contents, node.Type, factory)
                 End If
 
-                Return InvokeInterpolatedStringFactory(node, node.Type, "Format", node.Type, factory)
+                Return InvokeInterpolatedStringFactory(node, node.Type, "Format", node.Type, factory, True)
             End If
 
         End Function
 
         Private Function UnescapeLiteralInterpolatedString(valueWithEscapes As String) As String
             Return valueWithEscapes.Replace("{{", "{").Replace("}}", "}")
+        End Function
+
+        Private Function EscapeStringConstantForLiteralInterpolatedString(value As String) As String
+            Return value.Replace("{", "{{").Replace("}", "}}")
         End Function
 
         Private Function RewriteInterpolatedStringConversion(conversion As BoundConversion) As BoundExpression
@@ -104,11 +106,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    binder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory, conversion.Syntax, _diagnostics),
                                                    "Create",
                                                    conversion.Type,
-                                                   New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, node.Syntax, _compilationState, _diagnostics))
+                                                   New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, node.Syntax, _compilationState, _diagnostics),
+                                                   False)
 
         End Function
 
-        Private Function InvokeInterpolatedStringFactory(node As BoundInterpolatedStringExpression, factoryType As TypeSymbol, factoryMethodName As String, targetType As TypeSymbol, factory As SyntheticBoundNodeFactory) As BoundExpression
+        Private Function InvokeInterpolatedStringFactory(node As BoundInterpolatedStringExpression, factoryType As TypeSymbol, factoryMethodName As String, targetType As TypeSymbol, factory As SyntheticBoundNodeFactory, Optional trustsFormatProvider As Boolean = False) As BoundExpression
 
             Dim hasErrors As Boolean = False
 
@@ -151,9 +154,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Case BoundKind.Interpolation
 
-                        interpolationOrdinal += 1
-
                         Dim interpolation = DirectCast(item, BoundInterpolation)
+
+                        ' Don't trust format provider everywhen.
+                        ' They MAY format literals and embedded strings differently.
+                        ' (trustsFormatProvider = False)
+                        If trustsFormatProvider AndAlso
+                            interpolation.AlignmentOpt Is Nothing AndAlso
+                            interpolation.FormatStringOpt Is Nothing AndAlso
+                            TryInsertConstantEquivalentIntoLiteral(interpolation.Expression, formatStringBuilderHandle.Builder) Then
+                            Continue For
+                        End If
+
+                        interpolationOrdinal += 1
 
                         With formatStringBuilderHandle.Builder
 
@@ -227,6 +240,30 @@ ReturnBadExpression:
             Return interpolation.Expression.Type.IsStringType()
         End Function
 
+        Private Function TryInsertConstantEquivalentIntoLiteral(expression As BoundExpression, builder As StringBuilder) As Boolean
+            If expression.ConstantValueOpt IsNot Nothing Then
+                With expression.ConstantValueOpt
+                    If .IsString Then
+                        builder?.Append(EscapeStringConstantForLiteralInterpolatedString(.StringValue))
+                        Return True
+                    End If
+                    If .IsChar Then
+                        ' Optimize instead of EscapeStringConstantForLiteralInterpolatedString(String)
+                        If .CharValue = "{"c Then
+                            builder?.Append("{{")
+                        ElseIf .CharValue = "}"c Then
+                            builder?.Append("}}")
+                        Else
+                            builder?.Append(.CharValue)
+                        End If
+                        Return True
+                    End If
+                End With
+            End If
+
+            Return False
+        End Function
+
         Private Function IsTreatedAsStringLiteralInStringConcatenation(expression As BoundExpression) As Boolean
             If Not expression.IsConstant Then
                 Return False
@@ -258,14 +295,14 @@ ReturnBadExpression:
                     ' If we consider some pseudo string literal expressions (e.g. Char.ConvertFromUtf32(Integer) and String.Empty) in the future,
                     ' insert here:
                     ' (1) let string constants be passed directly first (2) Convert such expressions to string constants after (1)
-                    Return expression
+                    Return VisitExpression(expression)
                 Case Else
                     Throw ExceptionUtilities.Unreachable()
             End Select
         End Function
 
         Private Function ConvertToConcatenationNode(contents As ImmutableArray(Of BoundNode), factoryType As TypeSymbol, factory As SyntheticBoundNodeFactory) As BoundExpression
-            Return VisitExpression(contents.AsEnumerable().Reverse().Aggregate(Of BoundExpression)(
+            Return contents.AsEnumerable().Reverse().Aggregate(Of BoundExpression)(
                     Nothing,
                     Function(right, left)
                         If right Is Nothing Then
@@ -279,7 +316,7 @@ ReturnBadExpression:
                             )
                         )
                     End Function
-                ))
+                )
         End Function
 
     End Class
