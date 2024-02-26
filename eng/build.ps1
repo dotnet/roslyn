@@ -752,8 +752,7 @@ try {
   if ($bootstrap -and $bootstrapDir -eq "") {
     Write-Host "Building bootstrap Compiler"
     $bootstrapDir = Join-Path (Join-Path $ArtifactsDir "bootstrap") "build"
-    Exec-Script (Join-Path $PSScriptRoot "make-bootstrap.ps1") "-ouptut $bootstrapDir -force -ci:$ci"
-    $bootstrapDir = Join-Path (Join-Path $ArtifactsDir "bootstrap") "build"
+    Exec-Script (Join-Path $PSScriptRoot "make-bootstrap.ps1") "-output $bootstrapDir -force -ci:$ci"
   }
 
   if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish) {
