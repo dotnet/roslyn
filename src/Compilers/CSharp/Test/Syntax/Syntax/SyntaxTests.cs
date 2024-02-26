@@ -289,5 +289,14 @@ void goo()
             var keywords = SyntaxFacts.GetKeywordKinds();
             Assert.DoesNotContain((SyntaxKind)8441, keywords);
         }
+
+        [Fact]
+        public void TestAllPunctuationKindsExist()
+        {
+            foreach (var punctuationKind in SyntaxFacts.GetPunctuationKinds())
+            {
+                Assert.True(Enum.IsDefined(typeof(SyntaxKind), punctuationKind));
+            }
+        }
     }
 }

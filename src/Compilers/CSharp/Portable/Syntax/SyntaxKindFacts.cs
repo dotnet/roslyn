@@ -176,11 +176,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetPunctuationKinds()
         {
-            for (int i = (int)SyntaxKind.TildeToken; i <= (int)SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken; i++)
+            for (int i = (int)SyntaxKind.TildeToken; i <= (int)SyntaxKind.DotDotToken; i++)
             {
                 Debug.Assert(Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i));
                 yield return (SyntaxKind)i;
             }
+
+            for (int i = (int)SyntaxKind.SlashGreaterThanToken; i <= (int)SyntaxKind.XmlProcessingInstructionEndToken; i++)
+            {
+                Debug.Assert(Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i));
+                yield return (SyntaxKind)i;
+            }
+
+            for (int i = (int)SyntaxKind.BarBarToken; i <= (int)SyntaxKind.QuestionQuestionEqualsToken; i++)
+            {
+                Debug.Assert(Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i));
+                yield return (SyntaxKind)i;
+            }
+
+            yield return SyntaxKind.GreaterThanGreaterThanGreaterThanToken;
+            yield return SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
         }
 
         public static bool IsPunctuationOrKeyword(SyntaxKind kind)
