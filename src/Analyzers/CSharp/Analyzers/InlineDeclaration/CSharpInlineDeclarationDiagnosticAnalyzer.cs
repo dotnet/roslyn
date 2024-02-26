@@ -246,6 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 Descriptor,
                 reportNode.GetLocation(),
                 option.Notification,
+                context.Options,
                 additionalLocations: allLocations,
                 properties: null));
         }

@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
                 Descriptor,
                 coalesceExpression.OperatorToken.GetLocation(),
                 option.Notification,
+                context.Options,
                 additionalLocations: ImmutableArray.Create(coalesceExpression.GetLocation()),
                 properties: null));
         }
@@ -168,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
                 Descriptor,
                 ifStatement.IfKeyword.GetLocation(),
                 option.Notification,
+                context.Options,
                 additionalLocations: ImmutableArray.Create(ifStatement.GetLocation()),
                 properties: null));
         }
