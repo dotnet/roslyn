@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
         protected abstract SyntaxToken GetIdentifierOfSingleVariableDesignation(TSingleVariableDesignationSyntax variable);
 
         public async Task<ImmutableArray<TextSpan>> GetLocationsAsync(
-            Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+            Document document, ImmutableArray<TextSpan> spans, ClassificationOptions options, CancellationToken cancellationToken)
         {
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -91,9 +92,8 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
             {
                 if (!syntaxTreeToModel.TryGetValue(syntaxTree, out var model))
                 {
-                    var disableNullableAnalysis = document.Project.Solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options.DisableNullableAnalysisInClassification;
 #pragma warning disable RSEXPERIMENTAL001 // sym-shipped usage of experimental API
-                    model = compilation.GetSemanticModel(syntaxTree, disableNullableAnalysis ? SemanticModelOptions.DisableNullableAnalysis : SemanticModelOptions.None);
+                    model = compilation.GetSemanticModel(syntaxTree, options.DisableNullableAnalysisInClassification ? SemanticModelOptions.DisableNullableAnalysis : SemanticModelOptions.None);
 #pragma warning restore RSEXPERIMENTAL001
                     syntaxTreeToModel.Add(syntaxTree, model);
                 }

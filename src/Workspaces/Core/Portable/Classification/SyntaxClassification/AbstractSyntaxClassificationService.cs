@@ -41,16 +41,16 @@ namespace Microsoft.CodeAnalysis.Classification
             try
             {
                 SemanticModel semanticModel;
-#pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
-                if (document.Project.Solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options.DisableNullableAnalysisInClassification)
+                if (options.DisableNullableAnalysisInClassification)
                 {
+#pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
                     semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+#pragma warning restore RSEXPERIMENTAL001
                 }
                 else
                 {
                     semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 }
-#pragma warning restore RSEXPERIMENTAL001
 
                 AddSemanticClassifications(semanticModel, textSpans, getNodeClassifiers, getTokenClassifiers, result, options, cancellationToken);
             }
