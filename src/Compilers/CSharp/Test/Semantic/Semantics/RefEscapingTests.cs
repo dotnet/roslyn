@@ -760,6 +760,12 @@ ref struct S1
                 // (22,18): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
                 //         global = local && global;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(22, 18),
+                // (22,18): error CS8347: Cannot use a result of 'S1.operator &(S1, S1)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         global = local && global;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "local && global").WithArguments("S1.operator &(S1, S1)", "x").WithLocation(22, 18),
+                // (25,16): error CS8347: Cannot use a result of 'S1.operator |(S1, S1)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return global || local;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "global || local").WithArguments("S1.operator |(S1, S1)", "y").WithLocation(25, 16),
                 // (25,26): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
                 //         return global || local;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(25, 26)
@@ -7764,6 +7770,266 @@ public struct Vec4
                 // (5,23): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         return ref M2(x);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(5, 23));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct()
+        {
+            var source = """
+                class C
+                {
+                    S M1()
+                    {
+                        S s;
+                        s = 100 + default(S); // 1
+                        return s;
+                    }
+
+                    S M2()
+                    {
+                        return 200 + default(S); // 2
+                    }
+
+                    S M3(in int x)
+                    {
+                        S s;
+                        s = x + default(S); // 3
+                        return s;
+                    }
+
+                    S M4(in int x)
+                    {
+                        return x + default(S);
+                    }
+
+                    S M4s(scoped in int x)
+                    {
+                        return x + default(S); // 4
+                    }
+
+                    S M5(in int x)
+                    {
+                        S s = x + default(S);
+                        return s;
+                    }
+
+                    S M5s(scoped in int x)
+                    {
+                        S s = x + default(S);
+                        return s; // 5
+                    }
+
+                    S M6()
+                    {
+                        S s = 300 + default(S);
+                        return s; // 6
+                    }
+
+                    void M7(in int x)
+                    {
+                        scoped S s;
+                        s = x + default(S);
+                        s = 100 + default(S);
+                    }
+                }
+
+                ref struct S
+                {
+                    public static S operator+(in int x, S y) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         s = 100 + default(S); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "100").WithLocation(6, 13),
+                // (6,13): error CS8347: Cannot use a result of 'S.operator +(in int, S)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = 100 + default(S); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "100 + default(S)").WithArguments("S.operator +(in int, S)", "x").WithLocation(6, 13),
+                // (12,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return 200 + default(S); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "200").WithLocation(12, 16),
+                // (12,16): error CS8347: Cannot use a result of 'S.operator +(in int, S)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return 200 + default(S); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "200 + default(S)").WithArguments("S.operator +(in int, S)", "x").WithLocation(12, 16),
+                // (18,13): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
+                //         s = x + default(S); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(18, 13),
+                // (18,13): error CS8347: Cannot use a result of 'S.operator +(in int, S)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = x + default(S); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x + default(S)").WithArguments("S.operator +(in int, S)", "x").WithLocation(18, 13),
+                // (29,16): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //         return x + default(S); // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(29, 16),
+                // (29,16): error CS8347: Cannot use a result of 'S.operator +(in int, S)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return x + default(S); // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x + default(S)").WithArguments("S.operator +(in int, S)", "x").WithLocation(29, 16),
+                // (41,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(41, 16),
+                // (47,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(47, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedUnaryOperator_RefStruct()
+        {
+            var source = """
+                class C
+                {
+                    S M1()
+                    {
+                        S s;
+                        s = +s; // 1
+                        return s;
+                    }
+
+                    S M2()
+                    {
+                        return +new S(); // 2
+                    }
+
+                    S M3(in S x)
+                    {
+                        S s;
+                        s = +x; // 3
+                        return s;
+                    }
+
+                    S M4(in S x)
+                    {
+                        return +x;
+                    }
+
+                    S M4s(scoped in S x)
+                    {
+                        return +x; // 4
+                    }
+
+                    S M5(in S x)
+                    {
+                        S s = +x;
+                        return s;
+                    }
+
+                    S M5s(scoped in S x)
+                    {
+                        S s = +x;
+                        return s; // 5
+                    }
+
+                    S M6()
+                    {
+                        S s = +new S();
+                        return s; // 6
+                    }
+
+                    void M7(in S x)
+                    {
+                        scoped S s;
+                        s = +x;
+                        s = +new S();
+                    }
+                }
+
+                ref struct S
+                {
+                    public static S operator+(in S s) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS8347: Cannot use a result of 'S.operator +(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         s = +s; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "+s").WithArguments("S.operator +(in S)", "s").WithLocation(6, 13),
+                // (6,14): error CS8168: Cannot return local 's' by reference because it is not a ref local
+                //         s = +s; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s").WithArguments("s").WithLocation(6, 14),
+                // (12,16): error CS8347: Cannot use a result of 'S.operator +(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         return +new S(); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "+new S()").WithArguments("S.operator +(in S)", "s").WithLocation(12, 16),
+                // (12,17): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return +new S(); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "new S()").WithLocation(12, 17),
+                // (18,13): error CS8347: Cannot use a result of 'S.operator +(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         s = +x; // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "+x").WithArguments("S.operator +(in S)", "s").WithLocation(18, 13),
+                // (18,14): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
+                //         s = +x; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(18, 14),
+                // (29,16): error CS8347: Cannot use a result of 'S.operator +(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         return +x; // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "+x").WithArguments("S.operator +(in S)", "s").WithLocation(29, 16),
+                // (29,17): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //         return +x; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(29, 17),
+                // (41,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(41, 16),
+                // (47,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(47, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedLogicalOperator_RefStruct()
+        {
+            var source = """
+                class C
+                {
+                    S M1(S s1, S s2)
+                    {
+                        S s = s1 && s2;
+                        return s; // 1
+                    }
+
+                    S M2(S s1, S s2)
+                    {
+                        return s1 && s2; // 2
+                    }
+
+                    S M3(in S s1, in S s2)
+                    {
+                        S s = s1 && s2;
+                        return s;
+                    }
+
+                    S M4(scoped in S s1, in S s2)
+                    {
+                        S s = s1 && s2;
+                        return s; // 3
+                    }
+
+                    S M5(in S s1, scoped in S s2)
+                    {
+                        S s = s1 && s2;
+                        return s; // 4
+                    }
+                }
+
+                ref struct S
+                {
+                    public static bool operator true(in S s) => throw null;
+                    public static bool operator false(in S s) => throw null;
+                    public static S operator &(in S x, in S y) => throw null;
+                    public static S operator |(in S x, in S y) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(6, 16),
+                // (11,16): error CS8166: Cannot return a parameter by reference 's1' because it is not a ref parameter
+                //         return s1 && s2; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "s1").WithArguments("s1").WithLocation(11, 16),
+                // (11,16): error CS8347: Cannot use a result of 'S.operator &(in S, in S)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return s1 && s2; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "s1 && s2").WithArguments("S.operator &(in S, in S)", "x").WithLocation(11, 16),
+                // (23,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(23, 16),
+                // (29,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(29, 16));
         }
     }
 }
