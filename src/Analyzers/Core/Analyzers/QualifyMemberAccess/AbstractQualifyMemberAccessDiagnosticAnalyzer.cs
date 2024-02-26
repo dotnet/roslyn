@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                     Descriptor,
                     GetLocation(operation),
                     optionValue.Notification,
+                    context.Options,
                     additionalLocations: null,
                     properties: null));
             }

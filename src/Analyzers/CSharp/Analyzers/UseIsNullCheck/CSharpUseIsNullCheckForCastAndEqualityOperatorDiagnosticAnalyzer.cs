@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 : s_NegatedProperties;
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
-                    Descriptor, binaryExpression.GetLocation(), option.Notification, additionalLocations: null, properties));
+                    Descriptor, binaryExpression.GetLocation(), option.Notification, context.Options, additionalLocations: null, properties));
         }
 
         private static bool IsObjectCastAndNullCheck(

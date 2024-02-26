@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 Descriptor,
                 conditionalExpression.GetLocation(),
                 option.Notification,
+                context.Options,
                 locations,
                 properties: null));
         }

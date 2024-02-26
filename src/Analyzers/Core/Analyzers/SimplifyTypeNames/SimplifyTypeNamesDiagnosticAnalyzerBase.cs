@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         protected abstract ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context, SyntaxNode root);
         protected abstract ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, TextSpanIntervalTree? codeBlockIntervalTree);
 
-        public bool TrySimplify(SemanticModel model, SyntaxNode node, [NotNullWhen(true)] out Diagnostic? diagnostic, TSimplifierOptions options, CancellationToken cancellationToken)
+        public bool TrySimplify(SemanticModel model, SyntaxNode node, [NotNullWhen(true)] out Diagnostic? diagnostic, TSimplifierOptions options, AnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {
             if (!CanSimplifyTypeNameExpression(
                     model, node, options,
@@ -139,11 +139,11 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                 return false;
             }
 
-            diagnostic = CreateDiagnostic(model, options, issueSpan, diagnosticId, inDeclaration);
+            diagnostic = CreateDiagnostic(model, options, analyzerOptions, issueSpan, diagnosticId, inDeclaration);
             return true;
         }
 
-        internal static Diagnostic CreateDiagnostic(SemanticModel model, TSimplifierOptions options, TextSpan issueSpan, string diagnosticId, bool inDeclaration)
+        internal static Diagnostic CreateDiagnostic(SemanticModel model, TSimplifierOptions options, AnalyzerOptions analyzerOptions, TextSpan issueSpan, string diagnosticId, bool inDeclaration)
         {
             DiagnosticDescriptor descriptor;
             NotificationOption2 notificationOption;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             var builder = ImmutableDictionary.CreateBuilder<string, string?>();
             builder["OptionName"] = nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
             builder["OptionLanguage"] = model.Language;
-            var diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), notificationOption, additionalLocations: null, builder.ToImmutable());
+            var diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), notificationOption, analyzerOptions, additionalLocations: null, builder.ToImmutable());
 
 #if LOG
             var sourceText = tree.GetText();

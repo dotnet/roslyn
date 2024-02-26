@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
                 Descriptor,
                 expressionColon.GetLocation(),
                 styleOption.Notification,
+                syntaxContext.Options,
                 ImmutableArray.Create(subpattern.GetLocation()),
                 properties: null));
         }

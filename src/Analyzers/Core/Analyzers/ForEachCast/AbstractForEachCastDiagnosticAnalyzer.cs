@@ -146,6 +146,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
                 Descriptor,
                 node.GetFirstToken().GetLocation(),
                 option.Notification,
+                context.Options,
                 additionalLocations: null,
                 properties: isFixable ? s_isFixableProperties : null,
                 node.GetFirstToken().ToString(),

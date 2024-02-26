@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
             var properties = ImmutableDictionary<string, string?>.Empty.Add(nameof(ArrayCreationOperationLocation), operationLocation.ToString());
 
             context.ReportDiagnostic(
-                DiagnosticHelper.Create(Descriptor, location, notificationOption, additionalLocations, properties));
+                DiagnosticHelper.Create(Descriptor, location, notificationOption, context.Options, additionalLocations, properties));
         }
 
         internal static bool TryConvertToUtf8String(StringBuilder? builder, ImmutableArray<IOperation> arrayCreationElements)
