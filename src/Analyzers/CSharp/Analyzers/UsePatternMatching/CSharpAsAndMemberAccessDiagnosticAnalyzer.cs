@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 Descriptor,
                 asExpression.GetLocation(),
                 styleOption.Notification,
+                context.Options,
                 additionalLocations: null,
                 properties: null));
 

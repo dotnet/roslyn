@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             {
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor, typeNode.GetLocation(),
-                    optionValue.Notification, additionalLocations: null,
+                    optionValue.Notification, context.Options, additionalLocations: null,
                     PreferFrameworkTypeConstants.Properties));
             }
 

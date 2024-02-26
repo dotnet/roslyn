@@ -107,6 +107,7 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
                 this.Descriptor,
                 GetDiagnosticLocation(block),
                 notificationOption,
+                context.Options,
                 additionalLocations: ImmutableArray.Create(nextToken.GetLocation()),
                 properties: null));
         }

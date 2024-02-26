@@ -215,6 +215,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     var diagnostic = DiagnosticHelper.Create(s_expressionValueIsUnusedRule,
                                                              value.Syntax.GetLocation(),
                                                              _options.UnusedValueExpressionStatementNotification,
+                                                             context.Options,
                                                              additionalLocations: null,
                                                              properties);
                     context.ReportDiagnostic(diagnostic);
@@ -570,6 +571,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                                 var diagnostic = DiagnosticHelper.Create(s_valueAssignedIsUnusedRule,
                                                                          _symbolStartAnalyzer._compilationAnalyzer.GetDefinitionLocationToFade(unreadWriteOperation),
                                                                          _options.UnusedValueAssignmentSeverity,
+                                                                         context.Options,
                                                                          additionalLocations: null,
                                                                          properties,
                                                                          symbol.Name);

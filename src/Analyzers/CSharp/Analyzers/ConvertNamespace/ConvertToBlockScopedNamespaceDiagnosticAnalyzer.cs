@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 this.Descriptor,
                 diagnosticLocation,
                 option.Notification,
+                context.Options,
                 ImmutableArray.Create(declaration.GetLocation()),
                 ImmutableDictionary<string, string?>.Empty);
         }

@@ -8,7 +8,7 @@
 
     Requirements: 
       - NetVSShared must include both NetVS and NetVSCode
-      - NetRoslynSourceBuild must include NetRoslynToolset
+      - NetRoslynSourceBuild must include NetRoslyn
       - NetRoslynAll must include all .NET Core TFMS in any property below
   -->
   <PropertyGroup>
@@ -36,7 +36,7 @@
     -->
     <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' != 'Product'">
       <PropertyGroup>
-        <NetRoslynToolset>$(NetPrevious)</NetRoslynToolset>
+        <NetRoslyn>$(NetPrevious)</NetRoslyn>
         <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
         <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
         <NetRoslynBuildHostNetCoreVersion>$(NetPrevious)</NetRoslynBuildHostNetCoreVersion>
@@ -48,7 +48,7 @@
     -->
     <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' == 'Product'">
       <PropertyGroup>
-        <NetRoslynToolset>$(NetCurrent)</NetRoslynToolset>
+        <NetRoslyn>$(NetCurrent)</NetRoslyn>
         <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
         <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
         <NetRoslynBuildHostNetCoreVersion>$(NetCurrent)</NetRoslynBuildHostNetCoreVersion>
@@ -62,7 +62,7 @@
     -->
     <Otherwise>
       <PropertyGroup>
-        <NetRoslynToolset>net8.0</NetRoslynToolset>
+        <NetRoslyn>net8.0</NetRoslyn>
         <NetRoslynSourceBuild>net7.0;net8.0</NetRoslynSourceBuild>
       </PropertyGroup>
     </Otherwise>
