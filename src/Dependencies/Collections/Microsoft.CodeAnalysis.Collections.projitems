@@ -12,6 +12,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+Builder+KeyCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+Builder+PrivateMarshal.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+Builder+ValueCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+Builder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+Enumerator.cs" />
@@ -53,6 +54,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)RoslynImmutableInterlocked.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedArray`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SegmentedCollectionsMarshal.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SegmentedDictionary`2+PrivateMarshal.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedDictionary`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedHashSet`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedList`1.cs" />

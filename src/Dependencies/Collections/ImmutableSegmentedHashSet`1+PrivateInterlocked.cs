@@ -10,7 +10,8 @@ namespace Microsoft.CodeAnalysis.Collections
     internal readonly partial struct ImmutableSegmentedHashSet<T>
     {
         /// <summary>
-        /// Private helper class for use only by <see cref="RoslynImmutableInterlocked"/>.
+        /// Private helper class for use only by <see cref="RoslynImmutableInterlocked"/> and
+        /// <see cref="SegmentedCollectionsMarshal"/>.
         /// </summary>
         internal static class PrivateInterlocked
         {
@@ -40,6 +41,14 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 return new ImmutableSegmentedHashSet<T>(set);
             }
+
+            /// <inheritdoc cref="SegmentedCollectionsMarshal.AsImmutableSegmentedHashSet{T}(SegmentedHashSet{T}?)"/>
+            internal static ImmutableSegmentedHashSet<T> AsImmutableSegmentedHashSet(SegmentedHashSet<T>? set)
+                => set is not null ? new ImmutableSegmentedHashSet<T>(set) : default;
+
+            /// <inheritdoc cref="SegmentedCollectionsMarshal.AsSegmentedHashSet{T}(ImmutableSegmentedHashSet{T})"/>
+            internal static SegmentedHashSet<T>? AsSegmentedHashSet(ImmutableSegmentedHashSet<T> set)
+                => set._set;
         }
     }
 }
