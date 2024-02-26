@@ -134,6 +134,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 s_descriptor,
                 objectCreationExpression.GetFirstToken().GetLocation(),
                 option.Notification,
+                context.Options,
                 locations,
                 properties: null));
 
@@ -164,6 +165,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                         s_unnecessaryCodeDescriptor,
                         location1,
                         NotificationOption2.ForSeverity(s_unnecessaryCodeDescriptor.DefaultSeverity),
+                        context.Options,
                         additionalLocations: locations,
                         additionalUnnecessaryLocations: [syntaxTree.GetLocation(TextSpan.FromBounds(match.Initializer.FullSpan.End, match.Statement.Span.End))]));
                 }

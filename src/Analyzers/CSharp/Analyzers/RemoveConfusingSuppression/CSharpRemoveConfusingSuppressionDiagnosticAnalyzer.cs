@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
                 Descriptor,
                 ((PostfixUnaryExpressionSyntax)left).OperatorToken.GetLocation(),
                 NotificationOption2.Warning,
+                context.Options,
                 ImmutableArray.Create(node.GetLocation()),
                 properties: null));
         }

@@ -121,6 +121,7 @@ internal partial class SolutionCompilationState
             var projectId = this.ProjectState.Id;
             var infosOpt = await connection.TryInvokeAsync(
                 compilationState,
+                projectId,
                 (service, solutionChecksum, cancellationToken) => service.GetSourceGenerationInfoAsync(solutionChecksum, projectId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
@@ -166,6 +167,7 @@ internal partial class SolutionCompilationState
             // we know the contents of any new/changed files.
             var generatedSourcesOpt = await connection.TryInvokeAsync(
                 compilationState,
+                projectId,
                 (service, solutionChecksum, cancellationToken) => service.GetContentsAsync(
                     solutionChecksum, projectId, documentsToAddOrUpdate.ToImmutable(), cancellationToken),
                 cancellationToken).ConfigureAwait(false);

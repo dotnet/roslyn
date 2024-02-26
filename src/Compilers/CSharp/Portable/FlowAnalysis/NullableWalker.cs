@@ -339,6 +339,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void SetResult(BoundExpression? expression, VisitResult visitResult, bool updateAnalyzedNullability, bool? isLvalue)
         {
+            // As a general rule, the state should only be conditional for expressions of type bool,
+            // although there are a few exceptions.
+            Debug.Assert(TypeAllowsConditionalState(visitResult.RValueType.Type)
+                || !IsConditionalState
+                || expression is BoundTypeExpression);
+
             _visitResult = visitResult;
             if (updateAnalyzedNullability)
             {
@@ -3547,6 +3553,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Visit(node, expressionIsRead: false);
         }
 
+        private static bool TypeAllowsConditionalState(TypeSymbol? type)
+        {
+            return type is not null
+                && (type.SpecialType == SpecialType.System_Boolean || type.IsDynamic() || type.IsErrorType());
+        }
+
+        private void UnsplitIfNeeded(TypeSymbol? type)
+        {
+            if (!TypeAllowsConditionalState(type))
+            {
+                Unsplit();
+            }
+        }
+
         private BoundNode Visit(BoundNode? node, bool expressionIsRead)
         {
 #if DEBUG
@@ -4490,36 +4510,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? elementType.SetUnknownNullabilityForReferenceTypes()
                     : TypeWithAnnotations.Create(bestType);
 
-                if (bestType is object)
+                // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
+                for (int i = 0; i < n; i++)
                 {
-                    // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
-                    for (int i = 0; i < n; i++)
-                    {
-                        var expressionNoConversion = expressionsNoConversions[i];
-                        var expression = GetConversionIfApplicable(expressions[i], expressionNoConversion);
-                        expressionTypes[i] = VisitConversion(expression, expressionNoConversion, conversions[i], inferredType, expressionTypes[i], checkConversion: true,
-                            fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
-                    }
-
-                    // Set top-level nullability on inferred element type
-                    var elementState = BestTypeInferrer.GetNullableState(expressionTypes);
-                    inferredType = TypeWithState.Create(inferredType.Type, elementState).ToTypeWithAnnotations(compilation);
-
-                    for (int i = 0; i < n; i++)
-                    {
-                        // Report top-level warnings
-                        _ = VisitConversion(conversionOpt: null, conversionOperand: expressionsNoConversions[i], Conversion.Identity, targetTypeWithNullability: inferredType, operandType: expressionTypes[i],
-                            checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false);
-                    }
+                    var expressionNoConversion = expressionsNoConversions[i];
+                    var expression = GetConversionIfApplicable(expressions[i], expressionNoConversion);
+                    expressionTypes[i] = VisitConversion(expression, expressionNoConversion, conversions[i], inferredType, expressionTypes[i], checkConversion: true,
+                        fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
+                    Unsplit();
                 }
-                else
+
+                // Set top-level nullability on inferred element type
+                var elementState = BestTypeInferrer.GetNullableState(expressionTypes);
+                inferredType = TypeWithState.Create(inferredType.Type, elementState).ToTypeWithAnnotations(compilation);
+
+                for (int i = 0; i < n; i++)
                 {
-                    // We need to ensure that we're tracking the inferred type with nullability of any conversions that
-                    // were stripped off.
-                    for (int i = 0; i < n; i++)
-                    {
-                        TrackAnalyzedNullabilityThroughConversionGroup(inferredType.ToTypeWithState(), expressions[i] as BoundConversion, expressionsNoConversions[i]);
-                    }
+                    // Report top-level warnings
+                    _ = VisitConversion(conversionOpt: null, conversionOperand: expressionsNoConversions[i], Conversion.Identity, targetTypeWithNullability: inferredType, operandType: expressionTypes[i],
+                        checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false);
                 }
 
                 expressionsNoConversions.Free();
@@ -5825,6 +5834,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             resultType ??= node.Type?.SetUnknownNullabilityForReferenceTypes();
 
+            UnsplitIfNeeded(resultType);
+
             TypeWithAnnotations resultTypeWithAnnotations;
 
             if (resultType is null)
@@ -6435,7 +6446,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Annotations are ignored when binding an attribute to avoid cycles. (Members used
             // in attributes are error scenarios, so missing warnings should not be important.)
-            return IsAnalyzingAttribute ? FlowAnalysisAnnotations.None : parameter.FlowAnalysisAnnotations;
+            if (IsAnalyzingAttribute)
+                return FlowAnalysisAnnotations.None;
+
+            var annotations = parameter.FlowAnalysisAnnotations;
+
+            // Conditional annotations are ignored on parameters of non-boolean members.
+            if (parameter.ContainingSymbol.GetTypeOrReturnType().Type.SpecialType != SpecialType.System_Boolean)
+            {
+                // NotNull = NotNullWhenTrue + NotNullWhenFalse
+                bool hasNotNullWhenTrue = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNullWhenTrue;
+                bool hasNotNullWhenFalse = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNullWhenFalse;
+                if (hasNotNullWhenTrue ^ hasNotNullWhenFalse)
+                {
+                    annotations &= ~FlowAnalysisAnnotations.NotNull;
+                }
+
+                // MaybeNull = MaybeNullWhenTrue + MaybeNullWhenFalse
+                bool hasMaybeNullWhenTrue = (annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNullWhenTrue;
+                bool hasMaybeNullWhenFalse = (annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNullWhenFalse;
+                if (hasMaybeNullWhenTrue ^ hasMaybeNullWhenFalse)
+                {
+                    annotations &= ~FlowAnalysisAnnotations.MaybeNull;
+                }
+
+            }
+
+            return annotations;
         }
 
         /// <summary>
@@ -8004,10 +8041,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(node, includeExplicitConversions: true);
             SnapshotWalkerThroughConversionGroup(node, operand);
-            if (targetType.SpecialType == SpecialType.System_Boolean &&
-                (operand.Type?.SpecialType == SpecialType.System_Boolean || operand.Type?.IsErrorType() == true))
+            if (TypeAllowsConditionalState(targetType.Type) && TypeAllowsConditionalState(operand.Type))
             {
-                Visit(operand);
+                Visit(operand); // don't Unsplit
             }
             else
             {

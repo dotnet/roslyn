@@ -294,7 +294,7 @@ class A { }";
 
         Assert.Equal(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
         Assert.Equal(nameof(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand), resolvedItem.Command.Title);
-        Assert.Equal(completionParams.TextDocument.Uri, ProtocolConversions.CreateAbsoluteUri((string)resolvedItem.Command.Arguments[0]));
+        AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
         AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
         Assert.Equal(false, resolvedItem.Command.Arguments[2]);
         Assert.Equal((long)14, resolvedItem.Command.Arguments[3]);
@@ -855,7 +855,7 @@ public class C
                 Assert.Equal(nameof(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand), resolvedItem.Command.Title);
                 Assert.Equal(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
 
-                Assert.Equal(completionParams.TextDocument.Uri, ProtocolConversions.CreateAbsoluteUri((string)resolvedItem.Command.Arguments[0]));
+                AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
 
                 var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(0, 5), End = new(0, 5) }, NewText = "ComplexItem" };
                 AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
@@ -912,7 +912,7 @@ public class C
         Assert.Equal(nameof(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand), resolvedItem.Command.Title);
         Assert.Equal(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
 
-        Assert.Equal(completionParams.TextDocument.Uri, ProtocolConversions.CreateAbsoluteUri((string)resolvedItem.Command.Arguments[0]));
+        AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
 
         var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(7, 4), End = new(7, 13) }, NewText = "public override global::System.Boolean AbstractMethod(global::System.Int32 x)\r\n    {\r\n        throw new System.NotImplementedException();\r\n    }" };
         AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);

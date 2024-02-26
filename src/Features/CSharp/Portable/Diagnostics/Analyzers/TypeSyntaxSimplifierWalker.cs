@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private readonly CSharpSimplifyTypeNamesDiagnosticAnalyzer _analyzer;
         private readonly SemanticModel _semanticModel;
         private readonly CSharpSimplifierOptions _options;
+        private readonly AnalyzerOptions _analyzerOptions;
         private readonly TextSpanIntervalTree? _ignoredSpans;
         private readonly CancellationToken _cancellationToken;
 
@@ -72,12 +74,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
         }
 
-        public TypeSyntaxSimplifierWalker(CSharpSimplifyTypeNamesDiagnosticAnalyzer analyzer, SemanticModel semanticModel, CSharpSimplifierOptions options, TextSpanIntervalTree? ignoredSpans, CancellationToken cancellationToken)
+        public TypeSyntaxSimplifierWalker(CSharpSimplifyTypeNamesDiagnosticAnalyzer analyzer, SemanticModel semanticModel, CSharpSimplifierOptions options, AnalyzerOptions analyzerOptions, TextSpanIntervalTree? ignoredSpans, CancellationToken cancellationToken)
             : base(SyntaxWalkerDepth.StructuredTrivia)
         {
             _analyzer = analyzer;
             _semanticModel = semanticModel;
             _options = options;
+            _analyzerOptions = analyzerOptions;
             _ignoredSpans = ignoredSpans;
             _cancellationToken = cancellationToken;
 
@@ -287,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         /// </summary>
         private bool TrySimplify(SyntaxNode node)
         {
-            if (!_analyzer.TrySimplify(_semanticModel, node, out var diagnostic, _options, _cancellationToken))
+            if (!_analyzer.TrySimplify(_semanticModel, node, out var diagnostic, _options, _analyzerOptions, _cancellationToken))
                 return false;
 
             DiagnosticsBuilder.Add(diagnostic);

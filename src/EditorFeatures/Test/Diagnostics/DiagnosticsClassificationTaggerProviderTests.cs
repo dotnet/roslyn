@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         c.ReportDiagnostic(DiagnosticHelper.Create(
                             _rule, primaryLocation,
                             NotificationOption2.Error,
+                            c.Options,
                             additionalLocations: null,
                             properties: null));
                     }
@@ -114,6 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         c.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                             _rule, primaryLocation,
                             NotificationOption2.Error,
+                            c.Options,
                             additionalLocations,
                             additionalUnnecessaryLocations));
                     }

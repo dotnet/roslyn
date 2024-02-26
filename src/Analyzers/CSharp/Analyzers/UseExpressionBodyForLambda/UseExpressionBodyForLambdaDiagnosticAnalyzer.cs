@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context, CodeStyleOption2<ExpressionBodyPreference> option)
         {
             var declaration = (LambdaExpressionSyntax)context.Node;
-            var diagnostic = AnalyzeSyntax(context.SemanticModel, option, declaration, context.CancellationToken);
+            var diagnostic = AnalyzeSyntax(context.SemanticModel, option, declaration, context.Options, context.CancellationToken);
             if (diagnostic != null)
             {
                 context.ReportDiagnostic(diagnostic);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
         private static Diagnostic? AnalyzeSyntax(
             SemanticModel semanticModel, CodeStyleOption2<ExpressionBodyPreference> option,
-            LambdaExpressionSyntax declaration, CancellationToken cancellationToken)
+            LambdaExpressionSyntax declaration, AnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {
             if (UseExpressionBodyForLambdaHelpers.CanOfferUseExpressionBody(option.Value, declaration, declaration.GetLanguageVersion(), cancellationToken))
             {
@@ -79,7 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 var properties = ImmutableDictionary<string, string?>.Empty;
                 return DiagnosticHelper.Create(
                     s_useExpressionBodyForLambda,
-                    location, option.Notification, additionalLocations, properties);
+                    location, option.Notification,
+                    analyzerOptions, additionalLocations, properties);
             }
 
             if (UseExpressionBodyForLambdaHelpers.CanOfferUseBlockBody(semanticModel, option.Value, declaration, cancellationToken))
@@ -92,7 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 return DiagnosticHelper.Create(
                     s_useBlockBodyForLambda,
-                    location, option.Notification, additionalLocations, properties);
+                    location, option.Notification,
+                    analyzerOptions, additionalLocations, properties);
             }
 
             return null;

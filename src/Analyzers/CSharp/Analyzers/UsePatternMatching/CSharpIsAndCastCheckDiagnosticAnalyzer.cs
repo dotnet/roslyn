@@ -154,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 Descriptor,
                 localDeclarationStatement.GetLocation(),
                 styleOption.Notification,
+                syntaxContext.Options,
                 additionalLocations,
                 properties: null));
         }
