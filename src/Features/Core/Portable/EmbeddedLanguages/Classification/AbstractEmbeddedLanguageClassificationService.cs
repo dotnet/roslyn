@@ -106,12 +106,9 @@ namespace Microsoft.CodeAnalysis.Classification
             private void ProcessToken(SyntaxToken token)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-
-                // Directives need to be processes as they can contain strings, which then have escapes in them.
-                if (token.ContainsDirectives)
-                    ProcessTriviaList(token.LeadingTrivia);
-
+                ProcessTriviaList(token.LeadingTrivia);
                 ClassifyToken(token);
+                ProcessTriviaList(token.TrailingTrivia);
             }
 
             private void ClassifyToken(SyntaxToken token)
@@ -119,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 if (token.Span.IntersectsWith(_textSpan) && _owner.SyntaxTokenKinds.Contains(token.RawKind))
                 {
                     var context = new EmbeddedLanguageClassificationContext(
-                        _solutionServices, _project, _semanticModel, token, _textSpan, _options, _owner.Info.VirtualCharService, _result, _cancellationToken);
+                        _solutionServices, _project, _semanticModel, token, _options, _owner.Info.VirtualCharService, _result, _cancellationToken);
 
                     var classifiers = _owner.GetServices(_semanticModel, token, _cancellationToken);
                     foreach (var classifier in classifiers)
@@ -149,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             private void ProcessTrivia(SyntaxTrivia trivia)
             {
-                if (trivia.IsDirective && trivia.FullSpan.IntersectsWith(_textSpan))
+                if (trivia.HasStructure && trivia.FullSpan.IntersectsWith(_textSpan))
                     VisitTokens(trivia.GetStructure()!);
             }
         }
