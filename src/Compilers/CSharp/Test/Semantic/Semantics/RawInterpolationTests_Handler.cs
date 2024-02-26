@@ -2057,13 +2057,11 @@ System.Console.WriteLine(" + expression + @");";
 
         var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"
 value:1
-value:2
-value:
-value:");
+value:2");
 
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       81 (0x51)
+  // Code size       65 (0x41)
   .maxstack  3
   .locals init (bool V_0, //b
                 object V_1,
@@ -2072,7 +2070,7 @@ value:");
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_2
   IL_0004:  ldc.i4.0
-  IL_0005:  ldc.i4.4
+  IL_0005:  ldc.i4.2
   IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_000b:  ldloc.0
   IL_000c:  brfalse.s  IL_0017
@@ -2094,15 +2092,9 @@ value:");
   IL_002e:  ldnull
   IL_002f:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)""
   IL_0034:  ldloca.s   V_2
-  IL_0036:  ldnull
-  IL_0037:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
-  IL_003c:  ldloca.s   V_2
-  IL_003e:  ldnull
-  IL_003f:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
-  IL_0044:  ldloca.s   V_2
-  IL_0046:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-  IL_004b:  call       ""void System.Console.WriteLine(string)""
-  IL_0050:  ret
+  IL_0036:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_003b:  call       ""void System.Console.WriteLine(string)""
+  IL_0040:  ret
 }
 ");
     }
@@ -11635,11 +11627,9 @@ System.Console.WriteLine({expression});";
         CompileAndVerify(comp, expectedOutput: @"
 (
 value:1
-),
-[
+),[
 value:2
-],
-{
+],{
 value:3
 }
 ");

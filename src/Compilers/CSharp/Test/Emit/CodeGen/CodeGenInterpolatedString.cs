@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -60,6 +61,7 @@ public class Test
 {
     const string constantabc = ""abc"";
     const string constantnull = null;
+    const char constantchar = 'd';
 
     static void Main()
     {
@@ -69,6 +71,11 @@ public class Test
         Console.WriteLine($""{constantnull}"");
         Console.WriteLine($""{constantabc}{constantnull}"");
         Console.WriteLine($""({constantabc})({constantnull})"");
+        Console.WriteLine($""{constantabc}{constantchar}"");
+        Console.WriteLine($""{constantabc}({constantchar})"");
+        Console.WriteLine($""{constantchar}"");
+        Console.WriteLine($""{constantnull}"");
+        Console.WriteLine($""{constantnull}{constantabc}{default}{constantnull}{null}"");
     }
 }
 ";
@@ -78,12 +85,17 @@ abc
 
 abc
 (abc)()
+abcd
+abc(d)
+d
+
+abc
 ");
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size       61 (0x3d)
+  // Code size      111 (0x6f)
   .maxstack  1
   IL_0000:  ldstr      """"
   IL_0005:  call       ""void System.Console.WriteLine(string)""
@@ -97,7 +109,17 @@ abc
   IL_002d:  call       ""void System.Console.WriteLine(string)""
   IL_0032:  ldstr      ""(abc)()""
   IL_0037:  call       ""void System.Console.WriteLine(string)""
-  IL_003c:  ret
+  IL_003c:  ldstr      ""abcd""
+  IL_0041:  call       ""void System.Console.WriteLine(string)""
+  IL_0046:  ldstr      ""abc(d)""
+  IL_004b:  call       ""void System.Console.WriteLine(string)""
+  IL_0050:  ldstr      ""d""
+  IL_0055:  call       ""void System.Console.WriteLine(string)""
+  IL_005a:  ldstr      """"
+  IL_005f:  call       ""void System.Console.WriteLine(string)""
+  IL_0064:  ldstr      ""abc""
+  IL_0069:  call       ""void System.Console.WriteLine(string)""
+  IL_006e:  ret
 }
 ");
         }
@@ -151,6 +173,9 @@ public class Test
     {
         string a = ""a"";
         string b = ""b"";
+        const string c = ""c"";
+        const char d = 'd';
+        const string n = null;
 
         Console.WriteLine($""a: {a}"");
         Console.WriteLine($""{a + b}"");
@@ -159,6 +184,9 @@ public class Test
         Console.WriteLine($""{{{a}}}"");
         Console.WriteLine(""a:"" + $"" {a}"");
         Console.WriteLine($""a: {$""{a}, b: {b}""}"");
+        Console.WriteLine($""acd: {a}{c}{d}, b: {b}"");
+        Console.WriteLine($""{{{'{'}{""{""}{a}{""}""}{'}'}}}"");
+        Console.WriteLine($""{a}{n}{b}{null}{a}{null}{c}"");
     }
 }
 ";
@@ -169,12 +197,15 @@ a: a, b: b
 {a}
 a: a
 a: a, b: b
+acd: acd, b: b
+{{{a}}}
+abac
 ");
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size      134 (0x86)
+  // Code size      195 (0xc3)
   .maxstack  4
   .locals init (string V_0, //a
                 string V_1) //b
@@ -215,7 +246,24 @@ a: a, b: b
   IL_007a:  ldloc.1
   IL_007b:  call       ""string string.Concat(string, string, string, string)""
   IL_0080:  call       ""void System.Console.WriteLine(string)""
-  IL_0085:  ret
+  IL_0085:  ldstr      ""acd: ""
+  IL_008a:  ldloc.0
+  IL_008b:  ldstr      ""cd, b: ""
+  IL_0090:  ldloc.1
+  IL_0091:  call       ""string string.Concat(string, string, string, string)""
+  IL_0096:  call       ""void System.Console.WriteLine(string)""
+  IL_009b:  ldstr      ""{{{""
+  IL_00a0:  ldloc.0
+  IL_00a1:  ldstr      ""}}}""
+  IL_00a6:  call       ""string string.Concat(string, string, string)""
+  IL_00ab:  call       ""void System.Console.WriteLine(string)""
+  IL_00b0:  ldloc.0
+  IL_00b1:  ldloc.1
+  IL_00b2:  ldloc.0
+  IL_00b3:  ldstr      ""c""
+  IL_00b8:  call       ""string string.Concat(string, string, string, string)""
+  IL_00bd:  call       ""void System.Console.WriteLine(string)""
+  IL_00c2:  ret
 }
 ");
         }
@@ -231,21 +279,29 @@ public class Test
     static void Main()
     {
         object a = ""a"";
+        const string b = ""b"";
+        const char c = 'c';
 
         Console.WriteLine($""{a}"");
         Console.WriteLine($""a: {a}"");
+        Console.WriteLine($""a: {a}, b: {b}, c: {c}"");
+        Console.WriteLine($""{{{'{'}{""{""}{a}{""}""}{'}'}}}"");
+        Console.WriteLine($""{null}{b}{a}{null}{a}{null}"");
     }
 }
 ";
             var comp = CompileAndVerify(source, expectedOutput: @"a
 a: a
+a: a, b: b, c: c
+{{{a}}}
+baa
 ");
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size       39 (0x27)
-  .maxstack  2
+  // Code size       88 (0x58)
+  .maxstack  3
   .locals init (object V_0) //a
   IL_0000:  ldstr      ""a""
   IL_0005:  stloc.0
@@ -257,7 +313,20 @@ a: a
   IL_001b:  ldloc.0
   IL_001c:  call       ""string string.Format(string, object)""
   IL_0021:  call       ""void System.Console.WriteLine(string)""
-  IL_0026:  ret
+  IL_0026:  ldstr      ""a: {0}, b: b, c: c""
+  IL_002b:  ldloc.0
+  IL_002c:  call       ""string string.Format(string, object)""
+  IL_0031:  call       ""void System.Console.WriteLine(string)""
+  IL_0036:  ldstr      ""{{{{{{{0}}}}}}}""
+  IL_003b:  ldloc.0
+  IL_003c:  call       ""string string.Format(string, object)""
+  IL_0041:  call       ""void System.Console.WriteLine(string)""
+  IL_0046:  ldstr      ""b{0}{1}""
+  IL_004b:  ldloc.0
+  IL_004c:  ldloc.0
+  IL_004d:  call       ""string string.Format(string, object, object)""
+  IL_0052:  call       ""void System.Console.WriteLine(string)""
+  IL_0057:  ret
 }
 ");
         }
@@ -282,6 +351,68 @@ public class Test
             var comp = CompileAndVerify(source, expectedOutput: @"a => Format(""a: {0}"", a)");
 
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ExpressionsAreNotOptimized2()
+        {
+            string toObject = Environment.Version.Major > 4 ? ", Object" : "";
+            var source = @"
+using System;
+using System.Linq.Expressions;
+
+public class Test
+{
+    static void Main()
+    {
+        const char c = 'c';
+        Expression<Func<string, string>> f = a => $""a: {a} c: {c} f: {nameof(f)}"";
+
+        Console.Write(f);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"a => Format(""a: {0} c: {1} f: {2}"", a, Convert(c" + toObject + @"), ""f"")");
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CombinationWithNonConcatenationAndStringConstants()
+        {
+            var source = @"
+using System;
+
+public class Test
+{
+    static void Main()
+    {
+        object a = ""a"";
+        const string cd = ""cd"";
+        const char f = 'f';
+
+        Console.WriteLine($""{a}b{cd}e{f}g"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"abcdefg
+");
+
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.Main", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (object V_0) //a
+  IL_0000:  ldstr      ""a""
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      ""{0}bcdefg""
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""string string.Format(string, object)""
+  IL_0011:  call       ""void System.Console.WriteLine(string)""
+  IL_0016:  ret
+}
+");
         }
     }
 }
