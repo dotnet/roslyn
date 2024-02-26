@@ -417,8 +417,11 @@ namespace Microsoft.CodeAnalysis
             // the entry entirely for it in the dictionary, only to add it back in.  Adding then removing will at least
             // keep the entry, but increase the docs for it, then lower it back down.
 
-            AddDocumentFilePaths(documentsToAdd, builder);
-            RemoveDocumentFilePaths(documentsToRemove, builder);
+            if (documentsToAdd.Count > 0)
+                AddDocumentFilePaths(documentsToAdd, builder);
+
+            if (documentsToRemove.Count > 0)
+                RemoveDocumentFilePaths(documentsToRemove, builder);
 
             return builder.ToImmutable();
         }
