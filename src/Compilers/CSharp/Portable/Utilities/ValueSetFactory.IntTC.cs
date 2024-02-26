@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static readonly IntTC DefaultInstance = new IntTC(nonNegative: false);
             public static readonly IntTC NonNegativeInstance = new IntTC(nonNegative: true);
 
-            int INumericTC<int>.MinValue => nonNegative ? 0 : int.MinValue;
+            public int MinValue => nonNegative ? 0 : int.MinValue;
 
             int INumericTC<int>.MaxValue => int.MaxValue;
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int INumericTC<int>.Prev(int value)
             {
-                Debug.Assert(value != (nonNegative ? 0 : int.MinValue));
+                Debug.Assert(value != MinValue);
                 return value - 1;
             }
 
