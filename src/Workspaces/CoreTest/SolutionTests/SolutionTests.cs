@@ -4727,8 +4727,7 @@ class C
             var project = workspace.CurrentSolution.AddProject("TypeScript", "TypeScript", "TypeScript");
             project = project.AddDocument("Extra.ts", SourceText.From("class Extra { }")).Project;
 
-            // Because we froze before ever even looking at anything semantics related, we should have no documents in
-            // this project.
+            // Freeze should have no impact on non-c#/vb projects.
             var frozenSolution = project.Solution.WithFrozenPartialCompilations(CancellationToken.None);
             var frozenProject = frozenSolution.Projects.Single();
             Assert.Single(frozenProject.Documents);
