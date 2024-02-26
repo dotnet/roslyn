@@ -91,8 +91,9 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
             {
                 if (!syntaxTreeToModel.TryGetValue(syntaxTree, out var model))
                 {
+                    var disableNullableAnalysis = document.Project.Solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options.DisableNullableAnalysisInClassification;
 #pragma warning disable RSEXPERIMENTAL001 // sym-shipped usage of experimental API
-                    model = compilation.GetSemanticModel(syntaxTree, SemanticModelOptions.DisableNullableAnalysis);
+                    model = compilation.GetSemanticModel(syntaxTree, disableNullableAnalysis ? SemanticModelOptions.DisableNullableAnalysis : SemanticModelOptions.None);
 #pragma warning restore RSEXPERIMENTAL001
                     syntaxTreeToModel.Add(syntaxTree, model);
                 }
