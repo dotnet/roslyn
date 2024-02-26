@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             {
                 context.ReportDiagnostic(
                     DiagnosticHelper.Create(
-                        Descriptor, context.Operation.Syntax.GetLocation(), notificationOption, additionalLocations: null, properties: null));
+                        Descriptor, context.Operation.Syntax.GetLocation(), notificationOption, context.Options, additionalLocations: null, properties: null));
             }
         }
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             {
                 context.ReportDiagnostic(
                     DiagnosticHelper.Create(
-                        Descriptor, syntax.GetLocation(), notificationOption, additionalLocations: null, properties: null));
+                        Descriptor, syntax.GetLocation(), notificationOption, context.Options, additionalLocations: null, properties: null));
             }
         }
     }

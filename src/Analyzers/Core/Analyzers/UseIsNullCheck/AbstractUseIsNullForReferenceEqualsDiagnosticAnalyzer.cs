@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 DiagnosticHelper.Create(
                     Descriptor, nameNode.GetLocation(),
                     option.Notification,
+                    context.Options,
                     additionalLocations, properties));
         }
 

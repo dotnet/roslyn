@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
                 GetUseProgramMainDiagnosticLocation(
                     root, isHidden: severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden),
                 option.Notification,
+                context.Options,
                 [],
                 ImmutableDictionary<string, string?>.Empty));
         }
