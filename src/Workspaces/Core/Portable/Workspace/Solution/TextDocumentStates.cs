@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis
         public bool HasAnyStateChanges(TextDocumentStates<TState> oldStates)
             => !_map.Values.SequenceEqual(oldStates._map.Values);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is TextDocumentStates<TState> other && Equals(other);
 
         public override int GetHashCode()
