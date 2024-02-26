@@ -4616,7 +4616,7 @@ partial struct CustomHandler
         comp.VerifyEmitDiagnostics(PlatformInformation.IsWindows
             // C:\My\Machine\Specific\Path\Program.cs(11,25): error CS9139: Cannot intercept: compilation does not contain a file with path 'C:\_\Program.cs'.
             //     [InterceptsLocation(@"\_\Program.cs", 5, 3)]
-            ? Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"@""\_\Program.cs""").WithArguments(PlatformInformation.IsWindows ? @"C:\_\Program.cs" : "/_//_/Program.cs").WithLocation(11, 25)
+            ? Diagnostic(ErrorCode.ERR_InterceptorPathNotInCompilation, @"@""\_\Program.cs""").WithArguments(@"C:\_\Program.cs").WithLocation(11, 25)
 
             // /My/Machine/Specific/Path/Program.cs(11,25): error CS9139: Cannot intercept: compilation does not contain a file with path '/My/Machine/Specific/Path/\_\Program.cs'.
             //     [InterceptsLocation(@"\_\Program.cs", 5, 3)]
