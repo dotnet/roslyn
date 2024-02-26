@@ -3041,7 +3041,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
         {
+            var savedState = this.State.Clone();
             VisitStatements(node.Statements);
+            this.State = savedState;
             return null;
         }
 
