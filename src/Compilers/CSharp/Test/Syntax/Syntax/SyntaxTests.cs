@@ -276,5 +276,18 @@ void goo()
                 }
             }
         }
+
+        [Fact]
+        public void TestNoKind8441InKeywordKinds()
+        {
+            var reservedKeywords = SyntaxFacts.GetReservedKeywordKinds();
+            Assert.DoesNotContain((SyntaxKind)8441, reservedKeywords);
+
+            var contextualKeywords = SyntaxFacts.GetContextualKeywordKinds();
+            Assert.DoesNotContain((SyntaxKind)8441, contextualKeywords);
+
+            var keywords = SyntaxFacts.GetKeywordKinds();
+            Assert.DoesNotContain((SyntaxKind)8441, keywords);
+        }
     }
 }
