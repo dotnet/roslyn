@@ -1135,6 +1135,9 @@ internal sealed partial class SolutionCompilationState
             TextDocumentStates<TDocumentState> oldStates,
             TextDocumentStates<TDocumentState> newStates) where TDocumentState : TextDocumentState
         {
+            if (oldStates.Equals(newStates))
+                return;
+
             // Get the trivial sets of documents that are present in one set but not the other.
 
             foreach (var documentId in newStates.GetAddedStateIds(oldStates))

@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -216,6 +215,15 @@ namespace Microsoft.CodeAnalysis
 
         public bool HasAnyStateChanges(TextDocumentStates<TState> oldStates)
             => !_map.Values.SequenceEqual(oldStates._map.Values);
+
+        public override bool Equals(object obj)
+            => obj is TextDocumentStates<TState> other && Equals(other);
+
+        public override int GetHashCode()
+            => throw new NotSupportedException();
+
+        public bool Equals(TextDocumentStates<TState> other)
+            => _map == other._map && _ids == other.Ids;
 
         private sealed class DocumentIdComparer : IComparer<DocumentId?>
         {
