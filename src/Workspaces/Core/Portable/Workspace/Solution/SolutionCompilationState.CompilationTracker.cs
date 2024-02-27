@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis
                         _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
                     };
 
-                    var newState = InProgressState.Create(
+                    var newState = new InProgressState(
                         state.IsFrozen,
                         compilationWithoutGeneratedDocuments,
                         state.GeneratorInfo,
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis
                         // here from a frozen state (as a frozen state always ensures we have a
                         // WithCompilationTrackerState).  As such, we can safely still preserve that we're not
                         // frozen here.
-                        var allSyntaxTreesParsedState = InProgressState.Create(
+                        var allSyntaxTreesParsedState = new InProgressState(
                             isFrozen: false,
                             new Lazy<Compilation>(CreateEmptyCompilation),
                             CompilationTrackerGeneratorInfo.Empty,
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis
                             // all states forked from those states frozen as well.  This ensures we don't attempt to move
                             // generator docs back to the uncomputed state from that point onwards.  We'll just keep
                             // whateverZ generated docs we have.
-                            currentState = InProgressState.Create(
+                            currentState = new InProgressState(
                                 currentState.IsFrozen,
                                 compilationWithoutGeneratedDocuments,
                                 generatorInfo,
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis
 
                     return new CompilationTracker(
                         frozenProjectState,
-                        InProgressState.Create(
+                        new InProgressState(
                             isFrozen: true,
                             lazyCompilationWithoutGeneratedDocuments,
                             CompilationTrackerGeneratorInfo.Empty,
@@ -756,7 +756,7 @@ namespace Microsoft.CodeAnalysis
 
                     return new CompilationTracker(
                         frozenProjectState,
-                        InProgressState.Create(
+                        new InProgressState(
                             isFrozen: true,
                             compilationWithoutGeneratedDocuments,
                             generatorInfo,
