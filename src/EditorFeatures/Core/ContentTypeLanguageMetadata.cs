@@ -8,22 +8,21 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal class ContentTypeLanguageMetadata : LanguageMetadata
 {
-    internal class ContentTypeLanguageMetadata : LanguageMetadata
+    public string DefaultContentType { get; }
+
+    public ContentTypeLanguageMetadata(IDictionary<string, object> data)
+        : base(data)
     {
-        public string DefaultContentType { get; }
+        this.DefaultContentType = (string)data.GetValueOrDefault("DefaultContentType");
+    }
 
-        public ContentTypeLanguageMetadata(IDictionary<string, object> data)
-            : base(data)
-        {
-            this.DefaultContentType = (string)data.GetValueOrDefault("DefaultContentType");
-        }
-
-        public ContentTypeLanguageMetadata(string defaultContentType, string language)
-            : base(language)
-        {
-            this.DefaultContentType = defaultContentType;
-        }
+    public ContentTypeLanguageMetadata(string defaultContentType, string language)
+        : base(language)
+    {
+        this.DefaultContentType = defaultContentType;
     }
 }
