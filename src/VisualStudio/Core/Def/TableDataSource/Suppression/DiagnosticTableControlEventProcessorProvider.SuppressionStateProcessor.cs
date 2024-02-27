@@ -4,22 +4,21 @@
 
 using Microsoft.VisualStudio.Shell.TableControl;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
+
+internal partial class DiagnosticTableControlEventProcessorProvider
 {
-    internal partial class DiagnosticTableControlEventProcessorProvider
+    private class SuppressionStateEventProcessor : EventProcessor
     {
-        private class SuppressionStateEventProcessor : EventProcessor
+        private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
+
+        public SuppressionStateEventProcessor(VisualStudioDiagnosticListSuppressionStateService suppressionStateService)
+            => _suppressionStateService = suppressionStateService;
+
+        public override void PostprocessSelectionChanged(TableSelectionChangedEventArgs e)
         {
-            private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
-
-            public SuppressionStateEventProcessor(VisualStudioDiagnosticListSuppressionStateService suppressionStateService)
-                => _suppressionStateService = suppressionStateService;
-
-            public override void PostprocessSelectionChanged(TableSelectionChangedEventArgs e)
-            {
-                // Update the suppression state information for the new error list selection.
-                _suppressionStateService.ProcessSelectionChanged(e);
-            }
+            // Update the suppression state information for the new error list selection.
+            _suppressionStateService.ProcessSelectionChanged(e);
         }
     }
 }

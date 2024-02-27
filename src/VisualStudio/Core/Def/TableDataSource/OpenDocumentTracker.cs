@@ -7,111 +7,110 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
+
+internal class OpenDocumentTracker<TItem>
+    where TItem : TableItem
 {
-    internal class OpenDocumentTracker<TItem>
-        where TItem : TableItem
+    private readonly object _gate = new();
+    private readonly Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>> _map = [];
+
+    private readonly Workspace _workspace;
+
+    public OpenDocumentTracker(Workspace workspace)
     {
-        private readonly object _gate = new();
-        private readonly Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>> _map = [];
+        _workspace = workspace;
 
-        private readonly Workspace _workspace;
+        _workspace.DocumentClosed += OnDocumentClosed;
+        _workspace.WorkspaceChanged += OnWorkspaceChanged;
+    }
 
-        public OpenDocumentTracker(Workspace workspace)
-        {
-            _workspace = workspace;
-
-            _workspace.DocumentClosed += OnDocumentClosed;
-            _workspace.WorkspaceChanged += OnWorkspaceChanged;
-        }
-
-        public void TrackOpenDocument(DocumentId documentId, object id, AbstractTableEntriesSnapshot<TItem> snapshot)
-        {
-            lock (_gate)
-            {
-                if (!_map.TryGetValue(documentId, out var secondMap))
-                {
-                    secondMap = [];
-                    _map.Add(documentId, secondMap);
-                }
-
-                if (secondMap.TryGetValue(id, out var oldWeakSnapshot) && oldWeakSnapshot.TryGetTarget(out var oldSnapshot))
-                {
-                    oldSnapshot.StopTracking();
-                }
-
-                secondMap[id] = new WeakReference<AbstractTableEntriesSnapshot<TItem>>(snapshot);
-            }
-        }
-
-        private void StopTracking(DocumentId documentId)
-        {
-            lock (_gate)
-            {
-                StopTracking_NoLock(documentId);
-            }
-        }
-
-        private void StopTracking(Solution solution, ProjectId? projectId = null)
-        {
-            lock (_gate)
-            {
-                foreach (var documentId in _map.Keys.Where(d => projectId == null ? true : d.ProjectId == projectId).ToList())
-                {
-                    if (solution.GetDocument(documentId) != null)
-                    {
-                        // document still exist.
-                        continue;
-                    }
-
-                    StopTracking_NoLock(documentId);
-                }
-            }
-        }
-
-        private void StopTracking_NoLock(DocumentId documentId)
+    public void TrackOpenDocument(DocumentId documentId, object id, AbstractTableEntriesSnapshot<TItem> snapshot)
+    {
+        lock (_gate)
         {
             if (!_map.TryGetValue(documentId, out var secondMap))
             {
-                return;
+                secondMap = [];
+                _map.Add(documentId, secondMap);
             }
 
-            _map.Remove(documentId);
-            foreach (var weakSnapshot in secondMap.Values)
+            if (secondMap.TryGetValue(id, out var oldWeakSnapshot) && oldWeakSnapshot.TryGetTarget(out var oldSnapshot))
             {
-                if (!weakSnapshot.TryGetTarget(out var snapshot))
+                oldSnapshot.StopTracking();
+            }
+
+            secondMap[id] = new WeakReference<AbstractTableEntriesSnapshot<TItem>>(snapshot);
+        }
+    }
+
+    private void StopTracking(DocumentId documentId)
+    {
+        lock (_gate)
+        {
+            StopTracking_NoLock(documentId);
+        }
+    }
+
+    private void StopTracking(Solution solution, ProjectId? projectId = null)
+    {
+        lock (_gate)
+        {
+            foreach (var documentId in _map.Keys.Where(d => projectId == null ? true : d.ProjectId == projectId).ToList())
+            {
+                if (solution.GetDocument(documentId) != null)
                 {
+                    // document still exist.
                     continue;
                 }
 
-                snapshot.StopTracking();
+                StopTracking_NoLock(documentId);
             }
         }
-
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
-        {
-            switch (e.Kind)
-            {
-                case WorkspaceChangeKind.SolutionRemoved:
-                case WorkspaceChangeKind.SolutionCleared:
-                    StopTracking(e.NewSolution);
-                    break;
-
-                case WorkspaceChangeKind.ProjectRemoved:
-                    StopTracking(e.NewSolution, e.ProjectId);
-                    break;
-
-                case WorkspaceChangeKind.DocumentRemoved:
-                    StopTracking(e.DocumentId!);
-                    break;
-
-                default:
-                    // do nothing
-                    break;
-            }
-        }
-
-        private void OnDocumentClosed(object sender, DocumentEventArgs e)
-            => StopTracking(e.Document.Id);
     }
+
+    private void StopTracking_NoLock(DocumentId documentId)
+    {
+        if (!_map.TryGetValue(documentId, out var secondMap))
+        {
+            return;
+        }
+
+        _map.Remove(documentId);
+        foreach (var weakSnapshot in secondMap.Values)
+        {
+            if (!weakSnapshot.TryGetTarget(out var snapshot))
+            {
+                continue;
+            }
+
+            snapshot.StopTracking();
+        }
+    }
+
+    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    {
+        switch (e.Kind)
+        {
+            case WorkspaceChangeKind.SolutionRemoved:
+            case WorkspaceChangeKind.SolutionCleared:
+                StopTracking(e.NewSolution);
+                break;
+
+            case WorkspaceChangeKind.ProjectRemoved:
+                StopTracking(e.NewSolution, e.ProjectId);
+                break;
+
+            case WorkspaceChangeKind.DocumentRemoved:
+                StopTracking(e.DocumentId!);
+                break;
+
+            default:
+                // do nothing
+                break;
+        }
+    }
+
+    private void OnDocumentClosed(object sender, DocumentEventArgs e)
+        => StopTracking(e.Document.Id);
 }
