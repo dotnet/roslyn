@@ -1148,6 +1148,13 @@ internal sealed partial class SolutionCompilationState
             if (oldStates.Equals(newStates))
                 return;
 
+            // We want to make sure that all the documents in the new-state are properly represented in the file map.
+            // It's ok if old-state documents are still in the map as GetDocumentIdsWithFilePath will filter them out
+            // later since we're producing a frozen-partial map.
+            // 
+            // Iterating over the new-states has an additional benefit.  For projects that haven't ever been looked at
+            // (so they haven't really parsed any documents), this will results in empty new-states.  So this loop will
+            // be almost a no-op for most non-relevant projects.
             foreach (var (documentId, newDocumentState) in newStates.States)
             {
                 if (!oldStates.TryGetState(documentId, out var oldDocumentState))
