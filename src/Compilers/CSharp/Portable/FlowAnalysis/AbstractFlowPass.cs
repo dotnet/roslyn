@@ -3041,19 +3041,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
         {
+            var savedState = this.State.Clone();
             VisitStatements(node.Statements);
+            SetState(savedState);
             return null;
         }
 
         public override BoundNode VisitLoweredSwitchExpression(BoundLoweredSwitchExpression node)
         {
+            var savedState = this.State.Clone();
             VisitStatements(node.Statements);
             foreach (var switchArm in node.SwitchArms)
             {
+                SetState(savedState.Clone());
                 VisitStatements(switchArm.Statements);
                 VisitRvalue(switchArm.Value);
             }
 
+            SetState(savedState);
             return null;
         }
 
