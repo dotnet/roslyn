@@ -241,13 +241,11 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
             return null;
         }
 
-        // This method helps reducing the memory footprint of EA.Diagnostics which an observer component looking
-        // at debugging executables only making sure that we end up loading IVisualDiagnosticsLanguageService workspace
-        // for debugged processes referencing Microsoft.Maui.Essentials.dll.
-        // This would include Maui, Maui Hybrid, iOS and Android projects. 
+        // This method helps reducing the memory footprint of EA.Diagnostics by only making sure that we end up loading
+        // IVisualDiagnosticsLanguageService workspace for debugged processes referencing Microsoft.Maui.Essentials.dll.
+        // This would include Maui, Maui Hybrid, iOS and Android projects.
         private Workspace? ProcessInfoToWorkspace(ProcessInfo processInfo)
         {
-            // 
             string? path = processInfo.Path;
             string? directoryName = null;
             if (path != null)
