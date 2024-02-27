@@ -417,17 +417,7 @@ namespace Microsoft.CodeAnalysis
         private static void AddDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, FilePathToDocumentIdsMap.Builder builder)
         {
             foreach (var documentState in documentStates)
-                AddDocumentFilePath(documentState, builder);
-        }
-
-        public static void AddDocumentFilePath(TextDocumentState documentState, FilePathToDocumentIdsMap.Builder builder)
-        {
-            var filePath = documentState.FilePath;
-
-            if (RoslynString.IsNullOrEmpty(filePath))
-                return;
-
-            builder.MultiAdd(filePath, documentState.Id);
+                builder.MultiAdd(documentState.FilePath, documentState.Id);
         }
 
         public FilePathToDocumentIdsMap CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
@@ -440,19 +430,7 @@ namespace Microsoft.CodeAnalysis
         private static void RemoveDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, FilePathToDocumentIdsMap.Builder builder)
         {
             foreach (var documentState in documentStates)
-                RemoveDocumentFilePath(documentState, builder);
-        }
-
-        public static void RemoveDocumentFilePath(TextDocumentState documentState, FilePathToDocumentIdsMap.Builder builder)
-        {
-            var filePath = documentState.FilePath;
-            if (RoslynString.IsNullOrEmpty(filePath))
-                return;
-
-            if (!builder.TryGetValue(filePath, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentState.Id))
-                throw new ArgumentException($"The given documentId was not found in '{nameof(_filePathToDocumentIdsMap)}'.");
-
-            builder.MultiRemove(filePath, documentState.Id);
+                builder.MultiRemove(documentState.FilePath, documentState.Id);
         }
 
         private FilePathToDocumentIdsMap CreateFilePathToDocumentIdsMapWithFilePath(DocumentId documentId, string? oldFilePath, string? newFilePath)

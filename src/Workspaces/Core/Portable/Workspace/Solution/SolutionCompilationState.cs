@@ -1160,8 +1160,8 @@ internal sealed partial class SolutionCompilationState
                     oldDocumentState != newDocumentState &&
                     oldDocumentState.FilePath != newDocumentState.FilePath)
                 {
-                    SolutionState.RemoveDocumentFilePath(oldDocumentState, filePathToDocumentIdsMapBuilder);
-                    SolutionState.AddDocumentFilePath(newDocumentState, filePathToDocumentIdsMapBuilder);
+                    filePathToDocumentIdsMapBuilder.MultiRemove(oldDocumentState.FilePath, oldDocumentState.Id);
+                    filePathToDocumentIdsMapBuilder.MultiAdd(newDocumentState.FilePath, newDocumentState.Id);
                 }
             }
         }

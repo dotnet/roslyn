@@ -73,10 +73,23 @@ internal readonly struct FilePathToDocumentIdsMap
         public bool TryGetValue(string filePath, out ImmutableArray<DocumentId> documentIdsWithPath)
             => _builder.TryGetValue(filePath, out documentIdsWithPath);
 
-        public void MultiAdd(string filePath, DocumentId documentId)
-            => _builder.MultiAdd(filePath, documentId);
+        public void MultiAdd(string? filePath, DocumentId documentId)
+        {
+            if (RoslynString.IsNullOrEmpty(filePath))
+                return;
 
-        public void MultiRemove(string filePath, DocumentId documentId)
-            => _builder.MultiRemove(filePath, documentId);
+            _builder.MultiAdd(filePath, documentId);
+        }
+
+        public void MultiRemove(string? filePath, DocumentId documentId)
+        {
+            if (RoslynString.IsNullOrEmpty(filePath))
+                return;
+
+            if (!this.TryGetValue(filePath, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentId))
+                throw new ArgumentException($"The given documentId was not found");
+
+            _builder.MultiRemove(filePath, documentId);
+        }
     }
 }
