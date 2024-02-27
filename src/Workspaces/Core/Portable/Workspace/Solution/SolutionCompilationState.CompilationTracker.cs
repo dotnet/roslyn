@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis
             private static readonly Func<ProjectState, string> s_logBuildCompilationAsync =
                 state => string.Join(",", state.AssemblyName, state.DocumentStates.Count);
 
+            private static readonly Lazy<Compilation?> s_lazyNullCompilation = new Lazy<Compilation?>(() => null);
+
             public ProjectState ProjectState { get; }
 
             /// <summary>
@@ -139,32 +141,30 @@ namespace Microsoft.CodeAnalysis
 
                     var (compilationWithoutGeneratedDocuments, staleCompilationWithGeneratedDocuments) = state switch
                     {
-                        InProgressState inProgressState => (inProgressState.CompilationWithoutGeneratedDocuments, inProgressState.StaleCompilationWithGeneratedDocuments),
-                        FinalCompilationTrackerState finalState => (finalState.CompilationWithoutGeneratedDocuments, finalState.FinalCompilationWithGeneratedDocuments),
+                        InProgressState inProgressState => (inProgressState.LazyCompilationWithoutGeneratedDocuments, inProgressState.LazyStaleCompilationWithGeneratedDocuments),
+                        FinalCompilationTrackerState finalState => (new Lazy<Compilation>(() => finalState.CompilationWithoutGeneratedDocuments), new Lazy<Compilation?>(() => finalState.FinalCompilationWithGeneratedDocuments)),
                         _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
                     };
-
-                    var finalSteps = UpdatePendingTranslationActions(
-                        state switch
-                        {
-                            InProgressState inProgressState => inProgressState.PendingTranslationActions,
-                            FinalCompilationTrackerState => [],
-                            _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
-                        });
 
                     var newState = InProgressState.Create(
                         state.IsFrozen,
                         compilationWithoutGeneratedDocuments,
                         state.GeneratorInfo,
                         staleCompilationWithGeneratedDocuments,
-                        finalSteps);
+                        GetPendingTranslationActions(state));
 
                     return newState;
                 }
 
-                ImmutableList<TranslationAction> UpdatePendingTranslationActions(
-                    ImmutableList<TranslationAction> pendingTranslationActions)
+                ImmutableList<TranslationAction> GetPendingTranslationActions(CompilationTrackerState state)
                 {
+                    var pendingTranslationActions = state switch
+                    {
+                        InProgressState inProgressState => inProgressState.PendingTranslationActions,
+                        FinalCompilationTrackerState => [],
+                        _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
+                    };
+
                     if (translate is null)
                         return pendingTranslationActions;
 
@@ -335,9 +335,9 @@ namespace Microsoft.CodeAnalysis
                         // frozen here.
                         var allSyntaxTreesParsedState = InProgressState.Create(
                             isFrozen: false,
-                            compilationWithoutGeneratedDocuments,
+                            new Lazy<Compilation>(CreateEmptyCompilation),
                             CompilationTrackerGeneratorInfo.Empty,
-                            staleCompilationWithGeneratedDocuments: null,
+                            staleCompilationWithGeneratedDocuments: s_lazyNullCompilation,
                             pendingTranslationActions: translationActionsBuilder.ToImmutable());
 
                         WriteState(allSyntaxTreesParsedState);
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis
                         var translationAction = inProgressState.PendingTranslationActions[0];
 
                         var compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
-                        var staleCompilationWithGeneratedDocuments = inProgressState.StaleCompilationWithGeneratedDocuments;
+                        var staleCompilationWithGeneratedDocuments = inProgressState.LazyStaleCompilationWithGeneratedDocuments.Value;
 
                         // If staleCompilationWithGeneratedDocuments is the same as compilationWithoutGeneratedDocuments,
                         // then it means a prior run of generators didn't produce any files. In that case, we'll just make
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis
                     var isFrozen = inProgressState.IsFrozen;
                     var generatorInfo = inProgressState.GeneratorInfo;
                     var compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
-                    var staleCompilationWithGeneratedDocuments = inProgressState.StaleCompilationWithGeneratedDocuments;
+                    var staleCompilationWithGeneratedDocuments = inProgressState.LazyStaleCompilationWithGeneratedDocuments.Value;
 
                     // Project is complete only if the following are all true:
                     //  1. HasAllInformation flag is set for the project
@@ -720,16 +720,21 @@ namespace Microsoft.CodeAnalysis
                         .RemoveAllDocuments()
                         .AddDocuments(documentsWithTrees.ToImmutableAndClear());
 
-                    var compilationWithoutGeneratedDocuments = this.CreateEmptyCompilation().AddSyntaxTrees(alreadyParsedTrees);
-                    var compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments;
+                    // Defer creating these compilations.  It's common to freeze projects (as part of a solution freeze)
+                    // that are then never examined.  Creating compilations can be a little costly, so this saves doing
+                    // that to the point where it is truly needed.
+                    var lazyCompilationWithoutGeneratedDocuments = new Lazy<Compilation>(() => this.CreateEmptyCompilation().AddSyntaxTrees(alreadyParsedTrees));
+
+                    // Safe cast to appease NRT system.
+                    var lazyCompilationWithGeneratedDocuments = (Lazy<Compilation?>)lazyCompilationWithoutGeneratedDocuments!;
 
                     return new CompilationTracker(
                         frozenProjectState,
                         InProgressState.Create(
                             isFrozen: true,
-                            compilationWithoutGeneratedDocuments,
+                            lazyCompilationWithoutGeneratedDocuments,
                             CompilationTrackerGeneratorInfo.Empty,
-                            compilationWithGeneratedDocuments,
+                            lazyCompilationWithGeneratedDocuments,
                             pendingTranslationActions: []),
                         clonedCache);
                 }
@@ -745,9 +750,9 @@ namespace Microsoft.CodeAnalysis
                     // Grab whatever is in the in-progress-state so far, add any generated docs, and snap 
                     // us to a frozen state with that information.
                     var generatorInfo = inProgressState.GeneratorInfo;
-                    var compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
-                    var compilationWithGeneratedDocuments = compilationWithoutGeneratedDocuments.AddSyntaxTrees(
-                        generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken)));
+                    var compilationWithoutGeneratedDocuments = inProgressState.LazyCompilationWithoutGeneratedDocuments;
+                    var compilationWithGeneratedDocuments = new Lazy<Compilation?>(() => compilationWithoutGeneratedDocuments.Value.AddSyntaxTrees(
+                        generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
 
                     return new CompilationTracker(
                         frozenProjectState,
@@ -872,9 +877,9 @@ namespace Microsoft.CodeAnalysis
 
                     ValidateCompilationTreesMatchesProjectState(inProgressState.CompilationWithoutGeneratedDocuments, projectState, generatorInfo: null);
 
-                    if (inProgressState.StaleCompilationWithGeneratedDocuments != null)
+                    if (inProgressState.LazyStaleCompilationWithGeneratedDocuments.Value != null)
                     {
-                        ValidateCompilationTreesMatchesProjectState(inProgressState.StaleCompilationWithGeneratedDocuments, projectState, inProgressState.GeneratorInfo);
+                        ValidateCompilationTreesMatchesProjectState(inProgressState.LazyStaleCompilationWithGeneratedDocuments.Value, projectState, inProgressState.GeneratorInfo);
                     }
                 }
                 else
