@@ -1494,6 +1494,76 @@ class Program
 }");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72016")]
+        public void InParamEnumTypeParam()
+        {
+            var text = @"
+class Program
+{
+    static void Main()
+    {
+        Enum1 v = Enum1.Value1;
+        System.Console.WriteLine(M(v));
+    }
+
+    static string M<T>(in T x) where T : System.Enum => x.ToString();
+
+    public enum Enum1
+    {
+        Value1
+    }
+}
+
+";
+
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: "Value1");
+
+            comp.VerifyIL("Program.M<T>", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. ""T""
+  IL_0007:  callvirt   ""string object.ToString()""
+  IL_000c:  ret
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72016")]
+        public void InParamEnumTypeParamStruct()
+        {
+            var text = @"
+class Program
+{
+    static void Main()
+    {
+        Enum1 v = Enum1.Value1;
+        System.Console.WriteLine(M(v));
+    }
+
+    static string M<T>(in T x) where T : struct, System.Enum => x.ToString();
+
+    public enum Enum1
+    {
+        Value1
+    }
+}
+
+";
+
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: "Value1");
+
+            comp.VerifyIL("Program.M<T>", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. ""T""
+  IL_0007:  callvirt   ""string object.ToString()""
+  IL_000c:  ret
+}");
+        }
+
         [Fact]
         public void InParamConv()
         {
