@@ -707,17 +707,16 @@ namespace Microsoft.CodeAnalysis
                     // acts as a reasonable lower bound for the number of documents we'll be adding.
                     var alreadyParsedCount = this.ProjectState.DocumentStates.States.Count(static s => s.Value.TryGetSyntaxTree(out _));
 
-                    using var _1 = ArrayBuilder<DocumentState>.GetInstance(alreadyParsedCount, out var documentsWithTrees);
-
                     // Specifically an ImmutableArray.Builder as we can presize reasonably and we want to convert to an
                     // ImmutableArray at the end.
+                    var documentsWithTreesBuilder = ImmutableArray.CreateBuilder<DocumentState>(alreadyParsedCount);
                     var alreadyParsedTreesBuilder = ImmutableArray.CreateBuilder<SyntaxTree>(alreadyParsedCount);
 
                     foreach (var documentState in this.ProjectState.DocumentStates.GetStatesInCompilationOrder())
                     {
                         if (documentState.TryGetSyntaxTree(out var alreadyParsedTree))
                         {
-                            documentsWithTrees.Add(documentState);
+                            documentsWithTreesBuilder.Add(documentState);
                             alreadyParsedTreesBuilder.Add(alreadyParsedTree);
                         }
                     }
@@ -725,7 +724,7 @@ namespace Microsoft.CodeAnalysis
                     // Transition us to a state that only has documents for the files we've already parsed.
                     var frozenProjectState = this.ProjectState
                         .RemoveAllDocuments()
-                        .AddDocuments(documentsWithTrees.ToImmutableAndClear());
+                        .AddDocuments(documentsWithTreesBuilder.ToImmutableAndClear());
 
                     // Defer creating these compilations.  It's common to freeze projects (as part of a solution freeze)
                     // that are then never examined.  Creating compilations can be a little costly, so this saves doing
