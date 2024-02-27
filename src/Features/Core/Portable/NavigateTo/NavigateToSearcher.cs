@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
 [Flags]
-internal enum NavigateToSearchScope
+internal enum NavigateToDocumentScope
 {
     RegularDocuments = 0b01,
     GeneratedDocuments = 0b10,
@@ -123,11 +123,11 @@ internal sealed class NavigateToSearcher
     }
 
     public Task SearchAsync(bool searchCurrentDocument, CancellationToken cancellationToken)
-        => SearchAsync(searchCurrentDocument, NavigateToSearchScope.AllDocuments, cancellationToken);
+        => SearchAsync(searchCurrentDocument, NavigateToDocumentScope.AllDocuments, cancellationToken);
 
     public async Task SearchAsync(
         bool searchCurrentDocument,
-        NavigateToSearchScope scope,
+        NavigateToDocumentScope scope,
         CancellationToken cancellationToken)
     {
         var isFullyLoaded = true;
@@ -185,14 +185,14 @@ internal sealed class NavigateToSearcher
 
     private async Task SearchAllProjectsAsync(
         bool isFullyLoaded,
-        NavigateToSearchScope scope,
+        NavigateToDocumentScope scope,
         CancellationToken cancellationToken)
     {
         var seenItems = new HashSet<INavigateToSearchResult>(NavigateToSearchResultComparer.Instance);
         var orderedProjects = GetOrderedProjectsToProcess();
 
-        var searchRegularDocuments = scope.HasFlag(NavigateToSearchScope.RegularDocuments);
-        var searchGeneratedDocuments = scope.HasFlag(NavigateToSearchScope.GeneratedDocuments);
+        var searchRegularDocuments = scope.HasFlag(NavigateToDocumentScope.RegularDocuments);
+        var searchGeneratedDocuments = scope.HasFlag(NavigateToDocumentScope.GeneratedDocuments);
         Debug.Assert(searchRegularDocuments || searchGeneratedDocuments);
 
         var projectCount = orderedProjects.Sum(g => g.Length);

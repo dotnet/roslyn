@@ -42,6 +42,11 @@ internal sealed partial class RoslynSearchItemsSourceProvider
 
             try
             {
+                if (searchQuery is ICodeSearchQuery codeSearchQuery)
+                {
+
+                }
+
                 // Make a task that waits indefinitely, or until the cancellation token is signaled.
                 var cancellationTriggeredTask = Task.Delay(-1, cancellationToken);
 
