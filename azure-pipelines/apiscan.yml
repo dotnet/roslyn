@@ -8,6 +8,12 @@ jobs:
   dependsOn: Windows
   pool: ${{ parameters.windowsPool }}
   timeoutInMinutes: 120
+  templateContext:
+    outputs:
+    - output: pipelineArtifact
+      displayName: 📢 collect apiscan artifact
+      targetPath: $(Pipeline.Workspace)/.gdn/.r/apiscan/001/Logs
+      artifactName: apiscan-logs
   variables:
   - name: SymbolsFeatureName
     value: $[ dependencies.Windows.outputs['SetPipelineVariables.SymbolsFeatureName'] ]
@@ -42,3 +48,4 @@ jobs:
     inputs:
       GdnPublishTsaOnboard: True
       GdnPublishTsaConfigFile: $(Build.SourcesDirectory)\azure-pipelines\TSAOptions.json
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
