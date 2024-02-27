@@ -114,7 +114,7 @@ internal sealed class CSharpImplementExplicitlyCodeRefactoringProvider() : Abstr
             return;
 
         // Have to make sure we've got a simple name for the rewrite below to be legal.
-        if (instance.IsImplicit && identifierName is SimpleNameSyntax)
+        if (instance.IsImplicit && syntaxFacts.IsSimpleName(identifierName))
         {
             if (instance is IInstanceReferenceOperation instanceReference &&
                 instanceReference.ReferenceKind != InstanceReferenceKind.ContainingTypeInstance)
