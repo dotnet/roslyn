@@ -22,19 +22,17 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -391,6 +389,28 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var callbackDispatcherServiceTypes = callbackDispatchers.Select(d => d.Metadata.ServiceInterface);
             AssertEx.SetEqual(descriptorsWithCallbackServiceTypes, callbackDispatcherServiceTypes);
+        }
+
+        [Fact]
+        public void ImmutableSegmentedListIsMessagePackSerializable()
+        {
+            var messagePackOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePackFormatters.DefaultResolver);
+            var lists = new object[]
+            {
+                ImmutableSegmentedList<int>.Empty,
+                ImmutableSegmentedList<int>.Empty.Add(1),
+                ImmutableSegmentedList<int>.Empty.AddRange(Enumerable.Range(10, 50)),
+            };
+
+            foreach (var original in lists)
+            {
+                using var stream = new MemoryStream();
+                MessagePackSerializer.Serialize(stream, original, messagePackOptions);
+                stream.Position = 0;
+
+                var deserialized = MessagePackSerializer.Deserialize(original.GetType(), stream, messagePackOptions);
+                Assert.Equal(original, deserialized);
+            }
         }
     }
 }
