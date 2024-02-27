@@ -24,6 +24,60 @@ namespace Microsoft.CodeAnalysis
         ProjectState OldProjectState,
         ProjectState NewProjectState);
 
+    internal readonly struct FilePathToDocumentIdsMap
+    {
+        private static readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> s_emptyMap
+            = ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase);
+        public static readonly FilePathToDocumentIdsMap Empty = new(s_emptyMap);
+
+        private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _map;
+
+        private FilePathToDocumentIdsMap(ImmutableDictionary<string, ImmutableArray<DocumentId>> map)
+        {
+            _map = map;
+        }
+
+        public bool TryGetValue(string filePath, out ImmutableArray<DocumentId> documentIdsWithPath)
+                => _map.TryGetValue(filePath, out documentIdsWithPath);
+
+        public static bool operator ==(FilePathToDocumentIdsMap left, FilePathToDocumentIdsMap right)
+            => left._map == right._map;
+
+        public static bool operator !=(FilePathToDocumentIdsMap left, FilePathToDocumentIdsMap right)
+            => !(left == right);
+
+        public override int GetHashCode()
+            => throw new NotSupportedException();
+
+        public override bool Equals([NotNullWhen(true)] object? obj)
+            => obj is FilePathToDocumentIdsMap map && Equals(map);
+
+        public Builder ToBuilder()
+            => new(_map.ToBuilder());
+
+        public readonly struct Builder
+        {
+            private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder _builder;
+
+            public Builder(ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+            {
+                _builder = builder;
+            }
+
+            public FilePathToDocumentIdsMap ToImmutable()
+                => new(_builder.ToImmutable());
+
+            public bool TryGetValue(string filePath, out ImmutableArray<DocumentId> documentIdsWithPath)
+                => _builder.TryGetValue(filePath, out documentIdsWithPath);
+
+            public void MultiAdd(string filePath, DocumentId documentId)
+                => _builder.MultiAdd(filePath, documentId);
+
+            public void MultiRemove(string filePath, DocumentId documentId)
+                => _builder.MultiRemove(filePath, documentId);
+        }
+    }
+
     /// <summary>
     /// Represents a set of projects and their source code documents.
     ///
@@ -41,7 +95,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly SolutionInfo.SolutionAttributes _solutionAttributes;
         private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
-        private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _filePathToDocumentIdsMap;
+        private readonly FilePathToDocumentIdsMap _filePathToDocumentIdsMap;
         private readonly ProjectDependencyGraph _dependencyGraph;
 
         // holds on data calculated based on the AnalyzerReferences list
@@ -56,7 +110,7 @@ namespace Microsoft.CodeAnalysis
             SolutionOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
-            ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathToDocumentIdsMap,
+            FilePathToDocumentIdsMap filePathToDocumentIdsMap,
             ProjectDependencyGraph dependencyGraph,
             Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers)
         {
@@ -97,7 +151,7 @@ namespace Microsoft.CodeAnalysis
                 options,
                 analyzerReferences,
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
-                filePathToDocumentIdsMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
+                filePathToDocumentIdsMap: FilePathToDocumentIdsMap.Empty,
                 dependencyGraph: ProjectDependencyGraph.Empty,
                 lazyAnalyzers: null)
         {
@@ -149,7 +203,7 @@ namespace Microsoft.CodeAnalysis
             SolutionOptionSet? options = null,
             IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
             ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
-            ImmutableDictionary<string, ImmutableArray<DocumentId>>? filePathToDocumentIdsMap = null,
+            FilePathToDocumentIdsMap? filePathToDocumentIdsMap = null,
             ProjectDependencyGraph? dependencyGraph = null)
         {
             solutionAttributes ??= _solutionAttributes;
@@ -182,7 +236,7 @@ namespace Microsoft.CodeAnalysis
                 options,
                 analyzerReferences,
                 idToProjectStateMap,
-                filePathToDocumentIdsMap,
+                filePathToDocumentIdsMap.Value,
                 dependencyGraph,
                 analyzerReferencesEqual ? _lazyAnalyzers : null);
         }
@@ -220,7 +274,7 @@ namespace Microsoft.CodeAnalysis
                 _lazyAnalyzers);
         }
 
-        public ImmutableDictionary<string, ImmutableArray<DocumentId>> FilePathToDocumentIdsMap => _filePathToDocumentIdsMap;
+        public FilePathToDocumentIdsMap FilePathToDocumentIdsMap => _filePathToDocumentIdsMap;
 
         /// <summary>
         /// The version of the most recently modified project.
@@ -406,20 +460,20 @@ namespace Microsoft.CodeAnalysis
                 dependencyGraph: newDependencyGraph);
         }
 
-        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
+        public FilePathToDocumentIdsMap CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
             AddDocumentFilePaths(documentStates, builder);
             return builder.ToImmutable();
         }
 
-        private static void AddDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        private static void AddDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, FilePathToDocumentIdsMap.Builder builder)
         {
             foreach (var documentState in documentStates)
                 AddDocumentFilePath(documentState, builder);
         }
 
-        public static void AddDocumentFilePath(TextDocumentState documentState, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        public static void AddDocumentFilePath(TextDocumentState documentState, FilePathToDocumentIdsMap.Builder builder)
         {
             var filePath = documentState.FilePath;
 
@@ -429,20 +483,20 @@ namespace Microsoft.CodeAnalysis
             builder.MultiAdd(filePath, documentState.Id);
         }
 
-        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
+        public FilePathToDocumentIdsMap CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
             RemoveDocumentFilePaths(documentStates, builder);
             return builder.ToImmutable();
         }
 
-        private static void RemoveDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        private static void RemoveDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, FilePathToDocumentIdsMap.Builder builder)
         {
             foreach (var documentState in documentStates)
                 RemoveDocumentFilePath(documentState, builder);
         }
 
-        public static void RemoveDocumentFilePath(TextDocumentState documentState, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        public static void RemoveDocumentFilePath(TextDocumentState documentState, FilePathToDocumentIdsMap.Builder builder)
         {
             var filePath = documentState.FilePath;
             if (RoslynString.IsNullOrEmpty(filePath))
@@ -454,7 +508,7 @@ namespace Microsoft.CodeAnalysis
             builder.MultiRemove(filePath, documentState.Id);
         }
 
-        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithFilePath(DocumentId documentId, string? oldFilePath, string? newFilePath)
+        private FilePathToDocumentIdsMap CreateFilePathToDocumentIdsMapWithFilePath(DocumentId documentId, string? oldFilePath, string? newFilePath)
         {
             if (oldFilePath == newFilePath)
             {
@@ -1185,7 +1239,7 @@ namespace Microsoft.CodeAnalysis
             ProjectState oldProjectState,
             ProjectState newProjectState,
             ProjectDependencyGraph? newDependencyGraph = null,
-            ImmutableDictionary<string, ImmutableArray<DocumentId>>? newFilePathToDocumentIdsMap = null)
+            FilePathToDocumentIdsMap? newFilePathToDocumentIdsMap = null)
         {
             var projectId = newProjectState.Id;
 
@@ -1213,7 +1267,7 @@ namespace Microsoft.CodeAnalysis
                 return [];
             }
 
-            return _filePathToDocumentIdsMap.TryGetValue(filePath!, out var documentIds)
+            return _filePathToDocumentIdsMap.TryGetValue(filePath, out var documentIds)
                 ? documentIds
                 : [];
         }

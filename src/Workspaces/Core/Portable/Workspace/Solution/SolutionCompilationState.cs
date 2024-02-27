@@ -1113,7 +1113,7 @@ internal sealed partial class SolutionCompilationState
         var newIdToProjectStateMap = newIdToProjectStateMapBuilder.ToImmutable();
         var newIdToTrackerMap = newIdToTrackerMapBuilder.ToImmutable();
 
-        var filePathToDocumentIdsMap = filePathToDocumentIdsMapChanged
+        FilePathToDocumentIdsMap? filePathToDocumentIdsMap = filePathToDocumentIdsMapChanged
             ? filePathToDocumentIdsMapBuilder.ToImmutable()
             : null;
 
