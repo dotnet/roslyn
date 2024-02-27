@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -1209,13 +1210,33 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string? filePath)
         {
             if (string.IsNullOrEmpty(filePath))
-            {
                 return [];
+
+            if (!_filePathToDocumentIdsMap.TryGetValue(filePath, out var documentIds))
+                return [];
+
+            // If this wasn't the result of a freeze, then we can return the document ids as is.  They should be accurate.
+            if (!_filePathToDocumentIdsMap.IsFrozen)
+            {
+                Debug.Assert(documentIds.All(ContainsAnyDocument));
+                return documentIds;
             }
 
-            return _filePathToDocumentIdsMap.TryGetValue(filePath, out var documentIds)
-                ? documentIds
-                : [];
+            // We were frozen.  So we may be seeing document ids that no longer exist within this snapshot.  If so,
+            // filter them out.
+            using var _ = ArrayBuilder<DocumentId>.GetInstance(documentIds.Length, out var result);
+
+            foreach (var documentId in documentIds)
+            {
+                if (ContainsAnyDocument(documentId))
+                    result.Add(documentId);
+            }
+
+            result.RemoveDuplicates();
+            return result.ToImmutableAndClear();
+
+            bool ContainsAnyDocument(DocumentId documentId)
+                => this.ContainsDocument(documentId) || this.ContainsAdditionalDocument(documentId) || this.ContainsAnalyzerConfigDocument(documentId);
         }
 
         public static ProjectDependencyGraph CreateDependencyGraph(

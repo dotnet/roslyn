@@ -1064,8 +1064,18 @@ internal sealed partial class SolutionCompilationState
         var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
 
-        var filePathToDocumentIdsMapBuilder = this.SolutionState.FilePathToDocumentIdsMap.ToBuilder();
-        var filePathToDocumentIdsMapChanged = false;
+        // Keep track of the files that were potentially added between the last frozen snapshot point we have for a
+        // project and now.  Specifically, if a file was removed in reality, it may show us as an add as we are
+        // effectively jumping back to a prior point in time for a particular project.  We want all those files (and
+        // related doc ids) to be present in the frozen solution we hand back.
+        //
+        // Note: we only keep track of added files.  We do not keep track of removed files.  This is intentionally done
+        // for performance reasons.  Specifically, it is quite normal for a project to drop all documents when frozen
+        // (for example, when no documents have been parsed in it).  Actually dropping all these files from this map is
+        // very expensive.  This does mean that the FilePathToDocumentIdsMap will be a superset of all files.  That's
+        // ok.  We'll mark this map as being frozen (and thus potentially containing a superset of legal ids), and later
+        // on our helpers will check for that and filter down to the set that is in a solution when queried.
+        var filePathToDocumentIdsMapBuilder = this.SolutionState.FilePathToDocumentIdsMap.ToFrozen().ToBuilder();
 
         foreach (var projectId in this.SolutionState.ProjectIds)
         {
@@ -1113,9 +1123,7 @@ internal sealed partial class SolutionCompilationState
         var newIdToProjectStateMap = newIdToProjectStateMapBuilder.ToImmutable();
         var newIdToTrackerMap = newIdToTrackerMapBuilder.ToImmutable();
 
-        FilePathToDocumentIdsMap? filePathToDocumentIdsMap = filePathToDocumentIdsMapChanged
-            ? filePathToDocumentIdsMapBuilder.ToImmutable()
-            : null;
+        var filePathToDocumentIdsMap = filePathToDocumentIdsMapBuilder.ToImmutable();
 
         var dependencyGraph = SolutionState.CreateDependencyGraph(this.SolutionState.ProjectIds, newIdToProjectStateMap);
 
@@ -1139,19 +1147,9 @@ internal sealed partial class SolutionCompilationState
             if (oldStates.Equals(newStates))
                 return;
 
-            // Get the trivial sets of documents that are present in one set but not the other.
-
+            // Keep track of files that are definitely added.  Make sure the added doc is in the file path map.
             foreach (var documentId in newStates.GetAddedStateIds(oldStates))
-            {
-                filePathToDocumentIdsMapChanged = true;
                 SolutionState.AddDocumentFilePath(newStates.GetRequiredState(documentId), filePathToDocumentIdsMapBuilder);
-            }
-
-            foreach (var documentId in newStates.GetRemovedStateIds(oldStates))
-            {
-                filePathToDocumentIdsMapChanged = true;
-                SolutionState.RemoveDocumentFilePath(oldStates.GetRequiredState(documentId), filePathToDocumentIdsMapBuilder);
-            }
 
             // Now go through the states that are in both sets.  We have to check these all as it is possible for
             // document to change its file path without its id changing.
@@ -1161,7 +1159,6 @@ internal sealed partial class SolutionCompilationState
                     oldDocumentState != newDocumentState &&
                     oldDocumentState.FilePath != newDocumentState.FilePath)
                 {
-                    filePathToDocumentIdsMapChanged = true;
                     SolutionState.RemoveDocumentFilePath(oldDocumentState, filePathToDocumentIdsMapBuilder);
                     SolutionState.AddDocumentFilePath(newDocumentState, filePathToDocumentIdsMapBuilder);
                 }
