@@ -2,44 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
-
-internal class UnitTestingIncrementalAnalyzerProviderMetadata : WorkspaceKindMetadata
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    public string Name { get; }
-
-    public UnitTestingIncrementalAnalyzerProviderMetadata(IDictionary<string, object> data)
-        : base(data)
+    internal sealed class UnitTestingIncrementalAnalyzerProviderMetadata(string name, IReadOnlyList<string> workspaceKinds)
     {
-        this.Name = (string)data.GetValueOrDefault("Name");
-    }
+        public string Name { get; } = name;
+        public IReadOnlyList<string> WorkspaceKinds { get; } = workspaceKinds;
 
-    public UnitTestingIncrementalAnalyzerProviderMetadata(
-        string name,
-        params string[] workspaceKinds)
-        : base(workspaceKinds)
-    {
-        this.Name = name;
-    }
-
-    public override bool Equals(object obj)
-    {
-        return obj is UnitTestingIncrementalAnalyzerProviderMetadata metadata
-            && base.Equals(obj)
-            && Name == metadata.Name;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = 1997033996;
-        hashCode = hashCode * -1521134295 + base.GetHashCode();
-        hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
-        return hashCode;
+        public UnitTestingIncrementalAnalyzerProviderMetadata(IDictionary<string, object> data)
+            : this(name: (string)data[nameof(CodeAnalysis.SolutionCrawler.ExportIncrementalAnalyzerProviderAttribute.Name)],
+                   workspaceKinds: (IReadOnlyList<string>)data[nameof(CodeAnalysis.SolutionCrawler.ExportIncrementalAnalyzerProviderAttribute.WorkspaceKinds)])
+        {
+        }
     }
 }

@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-
 internal abstract class AbstractDiagnosticPropertiesService : IDiagnosticPropertiesService
 {
     public ImmutableDictionary<string, string> GetAdditionalProperties(Diagnostic diagnostic)

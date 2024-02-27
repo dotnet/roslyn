@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 
-
 [ExportWorkspaceServiceFactory(typeof(ISettingsAggregator), ServiceLayer.Default), Shared]
 internal class SettingsAggregatorFactory : IWorkspaceServiceFactory
 {

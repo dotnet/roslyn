@@ -15,7 +15,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 
-
 /// <summary>
 /// Looks for code of the forms:
 /// <code>

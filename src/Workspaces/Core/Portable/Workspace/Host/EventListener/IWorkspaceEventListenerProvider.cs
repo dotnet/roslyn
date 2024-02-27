@@ -10,67 +10,68 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Host;
-
-/// <summary>
-/// Ensure <see cref="IEventListener{TService}.StartListening(Workspace, TService)"/> is called for the workspace
-/// </summary>
-internal interface IWorkspaceEventListenerService : IWorkspaceService
+namespace Microsoft.CodeAnalysis.Host
 {
-    void EnsureListeners();
-    void Stop();
-}
-
-[ExportWorkspaceServiceFactory(typeof(IWorkspaceEventListenerService), layer: ServiceLayer.Default), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class DefaultWorkspaceEventListenerServiceFactory(
-    [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners) : IWorkspaceServiceFactory
-{
-    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+    /// <summary>
+    /// Ensure <see cref="IEventListener{TService}.StartListening(Workspace, TService)"/> is called for the workspace
+    /// </summary>
+    internal interface IWorkspaceEventListenerService : IWorkspaceService
     {
-        var workspace = workspaceServices.Workspace;
-        return new Service(workspace, EventListenerTracker<object>.GetListeners(workspace, eventListeners));
+        void EnsureListeners();
+        void Stop();
     }
 
-    private class Service(Workspace workspace, IEnumerable<IEventListener<object>> eventListeners) : IWorkspaceEventListenerService
+    [ExportWorkspaceServiceFactory(typeof(IWorkspaceEventListenerService), layer: ServiceLayer.Default), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class DefaultWorkspaceEventListenerServiceFactory(
+        [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners) : IWorkspaceServiceFactory
     {
-        private readonly object _gate = new();
-        private bool _initialized = false;
-        private readonly ImmutableArray<IEventListener<object>> _eventListeners = eventListeners.ToImmutableArray();
-
-        public void EnsureListeners()
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            lock (_gate)
-            {
-                if (_initialized)
-                {
-                    // already initialized
-                    return;
-                }
-
-                _initialized = true;
-            }
-
-            foreach (var listener in _eventListeners)
-            {
-                listener.StartListening(workspace, serviceOpt: null);
-            }
+            var workspace = workspaceServices.Workspace;
+            return new Service(workspace, EventListenerTracker<object>.GetListeners(workspace.Kind, eventListeners));
         }
 
-        public void Stop()
+        private class Service(Workspace workspace, IEnumerable<IEventListener<object>> eventListeners) : IWorkspaceEventListenerService
         {
-            lock (_gate)
+            private readonly object _gate = new();
+            private bool _initialized = false;
+            private readonly ImmutableArray<IEventListener<object>> _eventListeners = eventListeners.ToImmutableArray();
+
+            public void EnsureListeners()
             {
-                if (!_initialized)
+                lock (_gate)
                 {
-                    // never initialized. nothing to do
-                    return;
+                    if (_initialized)
+                    {
+                        // already initialized
+                        return;
+                    }
+
+                    _initialized = true;
                 }
 
-                foreach (var listener in _eventListeners.OfType<IEventListenerStoppable>())
+                foreach (var listener in _eventListeners)
                 {
-                    listener.StopListening(workspace);
+                    listener.StartListening(workspace, serviceOpt: null);
+                }
+            }
+
+            public void Stop()
+            {
+                lock (_gate)
+                {
+                    if (!_initialized)
+                    {
+                        // never initialized. nothing to do
+                        return;
+                    }
+
+                    foreach (var listener in _eventListeners.OfType<IEventListenerStoppable>())
+                    {
+                        listener.StopListening(workspace);
+                    }
                 }
             }
         }

@@ -50,7 +50,7 @@ internal record PositionalParameterInfo(
             property,
             KeepAsOverride: false)));
 
-           // The user may not know about init or be converting code from before init was introduced.
+        // The user may not know about init or be converting code from before init was introduced.
         // In this case we can convert set properties to init ones
         var allowSetToInitConversion = !symbols
             .Any(symbol => symbol.SetMethod is IMethodSymbol { IsInitOnly: true });

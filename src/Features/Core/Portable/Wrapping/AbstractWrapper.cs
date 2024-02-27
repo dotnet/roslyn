@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Wrapping;
 
-
 /// <summary>
 /// Common implementation of all <see cref="ISyntaxWrapper"/>.  This type takes care of a lot of common logic for
 /// all of them, including:

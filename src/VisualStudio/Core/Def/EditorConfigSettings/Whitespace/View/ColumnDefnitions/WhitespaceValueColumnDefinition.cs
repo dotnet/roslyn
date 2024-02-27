@@ -17,7 +17,6 @@ using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View.ColumnDefnitions;
 
-
 [Export(typeof(ITableColumnDefinition))]
 [Name(Value)]
 internal class WhitespaceValueColumnDefinition : TableColumnDefinitionBase

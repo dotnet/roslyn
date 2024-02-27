@@ -14,7 +14,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
 
-
 [Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
 internal class CharLiteralBraceCompletionService : AbstractCSharpBraceCompletionService
 {

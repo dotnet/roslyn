@@ -7,7 +7,6 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
 
-
 #pragma warning disable RS0030 // Do not used banned APIs
 /// <summary>
 /// A <see cref="CodeActionOperation"/> for navigating to a specific position in a document.

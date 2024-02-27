@@ -6,10 +6,9 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Host.Mef;
 
-/// <summary>
-/// MEF metadata class used to find exports declared for a specific language.
-/// </summary>
-internal class LanguageMetadata(IDictionary<string, object> data) : ILanguageMetadata
+internal interface ILayeredServiceMetadata
 {
-    public string Language { get; } = (string)data[nameof(Language)];
+    public IReadOnlyList<string> WorkspaceKinds { get; }
+    public string Layer { get; }
+    public string ServiceType { get; }
 }

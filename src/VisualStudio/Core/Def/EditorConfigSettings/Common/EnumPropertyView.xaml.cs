@@ -7,7 +7,6 @@ using System.Windows.Controls;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-
 /// <summary>
 /// Interaction logic for EnumPropertyView.xaml
 /// </summary>
