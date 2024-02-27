@@ -1148,18 +1148,20 @@ internal sealed partial class SolutionCompilationState
             if (oldStates.Equals(newStates))
                 return;
 
-            // Keep track of files that are definitely added.  Make sure the added doc is in the file path map.
-            foreach (var documentId in newStates.GetAddedStateIds(oldStates))
-                filePathToDocumentIdsMapBuilder.Add(newStates.GetRequiredState(documentId).FilePath, documentId);
-
-            // Now go through the states that are in both sets.  We have to check these all as it is possible for
-            // document to change its file path without its id changing.
-            foreach (var (documentId, oldDocumentState) in oldStates.States)
+            foreach (var (documentId, newDocumentState) in newStates.States)
             {
-                if (newStates.States.TryGetValue(documentId, out var newDocumentState) &&
-                    oldDocumentState != newDocumentState &&
-                    oldDocumentState.FilePath != newDocumentState.FilePath)
+                if (!oldStates.TryGetState(documentId, out var oldDocumentState))
                 {
+                    // Keep track of files that are definitely added.  Make sure the added doc is in the file path map.
+                    filePathToDocumentIdsMapBuilder.Add(newDocumentState.FilePath, documentId);
+
+                }
+                else if (oldDocumentState != newDocumentState &&
+                         oldDocumentState.FilePath != newDocumentState.FilePath)
+                {
+                    // Otherwise, if the document is in both, but the file name changed, then remove the old mapping
+                    // and add the new mapping.  Importantly, we don't want other linked files with the *old* path
+                    // to consider this document one of their linked brethren.
                     filePathToDocumentIdsMapBuilder.Remove(oldDocumentState.FilePath, oldDocumentState.Id);
                     filePathToDocumentIdsMapBuilder.Add(newDocumentState.FilePath, newDocumentState.Id);
                 }
