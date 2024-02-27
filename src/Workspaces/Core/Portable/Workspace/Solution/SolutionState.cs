@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis
         private static void AddDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, FilePathToDocumentIdsMap.Builder builder)
         {
             foreach (var documentState in documentStates)
-                builder.MultiAdd(documentState.FilePath, documentState.Id);
+                builder.Add(documentState.FilePath, documentState.Id);
         }
 
         public FilePathToDocumentIdsMap CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis
         private static void RemoveDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, FilePathToDocumentIdsMap.Builder builder)
         {
             foreach (var documentState in documentStates)
-                builder.MultiRemove(documentState.FilePath, documentState.Id);
+                builder.Remove(documentState.FilePath, documentState.Id);
         }
 
         private FilePathToDocumentIdsMap CreateFilePathToDocumentIdsMapWithFilePath(DocumentId documentId, string? oldFilePath, string? newFilePath)
@@ -442,15 +442,8 @@ namespace Microsoft.CodeAnalysis
 
             var builder = _filePathToDocumentIdsMap.ToBuilder();
 
-            if (!RoslynString.IsNullOrEmpty(oldFilePath))
-            {
-                builder.MultiRemove(oldFilePath, documentId);
-            }
-
-            if (!RoslynString.IsNullOrEmpty(newFilePath))
-            {
-                builder.MultiAdd(newFilePath, documentId);
-            }
+            builder.Remove(oldFilePath, documentId);
+            builder.Add(newFilePath, documentId);
 
             return builder.ToImmutable();
         }

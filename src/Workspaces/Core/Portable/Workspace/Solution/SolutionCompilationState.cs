@@ -1150,7 +1150,7 @@ internal sealed partial class SolutionCompilationState
 
             // Keep track of files that are definitely added.  Make sure the added doc is in the file path map.
             foreach (var documentId in newStates.GetAddedStateIds(oldStates))
-                SolutionState.AddDocumentFilePath(newStates.GetRequiredState(documentId), filePathToDocumentIdsMapBuilder);
+                filePathToDocumentIdsMapBuilder.Add(newStates.GetRequiredState(documentId).FilePath, documentId);
 
             // Now go through the states that are in both sets.  We have to check these all as it is possible for
             // document to change its file path without its id changing.
@@ -1160,8 +1160,8 @@ internal sealed partial class SolutionCompilationState
                     oldDocumentState != newDocumentState &&
                     oldDocumentState.FilePath != newDocumentState.FilePath)
                 {
-                    filePathToDocumentIdsMapBuilder.MultiRemove(oldDocumentState.FilePath, oldDocumentState.Id);
-                    filePathToDocumentIdsMapBuilder.MultiAdd(newDocumentState.FilePath, newDocumentState.Id);
+                    filePathToDocumentIdsMapBuilder.Remove(oldDocumentState.FilePath, oldDocumentState.Id);
+                    filePathToDocumentIdsMapBuilder.Add(newDocumentState.FilePath, newDocumentState.Id);
                 }
             }
         }

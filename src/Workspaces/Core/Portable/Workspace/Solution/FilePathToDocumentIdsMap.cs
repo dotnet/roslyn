@@ -73,7 +73,7 @@ internal readonly struct FilePathToDocumentIdsMap
         public bool TryGetValue(string filePath, out ImmutableArray<DocumentId> documentIdsWithPath)
             => _builder.TryGetValue(filePath, out documentIdsWithPath);
 
-        public void MultiAdd(string? filePath, DocumentId documentId)
+        public void Add(string? filePath, DocumentId documentId)
         {
             if (RoslynString.IsNullOrEmpty(filePath))
                 return;
@@ -81,7 +81,7 @@ internal readonly struct FilePathToDocumentIdsMap
             _builder.MultiAdd(filePath, documentId);
         }
 
-        public void MultiRemove(string? filePath, DocumentId documentId)
+        public void Remove(string? filePath, DocumentId documentId)
         {
             if (RoslynString.IsNullOrEmpty(filePath))
                 return;
