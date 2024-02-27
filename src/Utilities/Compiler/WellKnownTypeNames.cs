@@ -227,6 +227,7 @@ namespace Analyzer.Utilities
         public const string SystemDiagnosticsProcessStartInfo = "System.Diagnostics.ProcessStartInfo";
         public const string SystemDiagnosticsTraceListener = "System.Diagnostics.TraceListener";
         public const string SystemDiagnosticsTracingEventSource = "System.Diagnostics.Tracing.EventSource";
+        public const string SystemDiagnosticsUnreachableException = "System.Diagnostics.UnreachableException";
         public const string SystemDirectoryDirectoryEntry = "System.DirectoryServices.DirectoryEntry";
         public const string SystemDirectoryServicesActiveDirectoryADSearcher = "System.DirectoryServices.ActiveDirectory.ADSearcher";
         public const string SystemDirectoryServicesDirectorySearcher = "System.DirectoryServices.DirectorySearcher";
