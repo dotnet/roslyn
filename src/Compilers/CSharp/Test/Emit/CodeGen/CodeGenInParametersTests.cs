@@ -1459,7 +1459,7 @@ class Program
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72016")]
         public void InParamEnum()
         {
             var text = @"
