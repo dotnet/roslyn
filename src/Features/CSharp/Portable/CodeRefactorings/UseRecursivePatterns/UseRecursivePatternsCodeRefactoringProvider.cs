@@ -122,7 +122,9 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
                 return root =>
                 {
                     // It's possible we decided to discard a pattern due to it being redundant (such as a null check
-                    // combined with a property check belonging to the same field we confirmed not being null)
+                    // combined with a property check belonging to the same field we confirmed not being null).
+                    // For instance 'cf != null && cf.C != 0', the left null check doesn't add more information than the 
+                    // right expression because the is pattern `cf is { C: not 0 }` already checks for null implicitly
                     if (leftNames.Length == 0)
                     {
                         var rightSubpattern = CreateSubpattern(rightNames, CreatePattern(rightReceiver, rightTarget, rightFlipped));
