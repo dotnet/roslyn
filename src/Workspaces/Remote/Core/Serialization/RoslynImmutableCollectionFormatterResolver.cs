@@ -33,25 +33,25 @@ internal sealed class RoslynImmutableCollectionFormatterResolver : IFormatterRes
         {
             Formatter = (IMessagePackFormatter<T>?)GetFormatter(typeof(T));
         }
-    }
 
-    internal static object? GetFormatter(Type t)
-    {
-        var ti = t.GetTypeInfo();
-
-        if (ti.IsGenericType)
+        private static object? GetFormatter(Type t)
         {
-            var genericType = ti.GetGenericTypeDefinition();
+            var ti = t.GetTypeInfo();
 
-            if (s_formatterMap.TryGetValue(genericType, out var formatterType))
-                return CreateInstance(formatterType, ti.GenericTypeArguments);
+            if (ti.IsGenericType)
+            {
+                var genericType = ti.GetGenericTypeDefinition();
+
+                if (s_formatterMap.TryGetValue(genericType, out var formatterType))
+                    return CreateInstance(formatterType, ti.GenericTypeArguments);
+            }
+
+            return null;
         }
 
-        return null;
-    }
-
-    private static object? CreateInstance(Type genericType, Type[] genericTypeArguments, params object[] arguments)
-    {
-        return Activator.CreateInstance(genericType.MakeGenericType(genericTypeArguments), arguments);
+        private static object? CreateInstance(Type genericType, Type[] genericTypeArguments, params object[] arguments)
+        {
+            return Activator.CreateInstance(genericType.MakeGenericType(genericTypeArguments), arguments);
+        }
     }
 }
