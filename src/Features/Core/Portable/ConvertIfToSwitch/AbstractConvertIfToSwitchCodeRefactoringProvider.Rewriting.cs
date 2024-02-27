@@ -14,59 +14,58 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
+namespace Microsoft.CodeAnalysis.ConvertIfToSwitch;
+
+internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider<
+    TIfStatementSyntax, TExpressionSyntax, TIsExpressionSyntax, TPatternSyntax>
 {
-    internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider<
-        TIfStatementSyntax, TExpressionSyntax, TIsExpressionSyntax, TPatternSyntax>
+    public abstract SyntaxNode CreateSwitchExpressionStatement(SyntaxNode target, ImmutableArray<AnalyzedSwitchSection> sections, Feature feature);
+    public abstract SyntaxNode CreateSwitchStatement(TIfStatementSyntax ifStatement, SyntaxNode target, IEnumerable<SyntaxNode> sectionList);
+    public abstract IEnumerable<SyntaxNode> AsSwitchSectionStatements(IOperation operation);
+    public abstract SyntaxNode AsSwitchLabelSyntax(AnalyzedSwitchLabel label, Feature feature);
+    protected abstract SyntaxTriviaList GetLeadingTriviaToTransfer(SyntaxNode syntaxToRemove);
+
+    private async Task<Document> UpdateDocumentAsync(
+        Document document,
+        SyntaxNode target,
+        TIfStatementSyntax ifStatement,
+        ImmutableArray<AnalyzedSwitchSection> sections,
+        Feature feature,
+        bool convertToSwitchExpression,
+        CancellationToken cancellationToken)
     {
-        public abstract SyntaxNode CreateSwitchExpressionStatement(SyntaxNode target, ImmutableArray<AnalyzedSwitchSection> sections, Feature feature);
-        public abstract SyntaxNode CreateSwitchStatement(TIfStatementSyntax ifStatement, SyntaxNode target, IEnumerable<SyntaxNode> sectionList);
-        public abstract IEnumerable<SyntaxNode> AsSwitchSectionStatements(IOperation operation);
-        public abstract SyntaxNode AsSwitchLabelSyntax(AnalyzedSwitchLabel label, Feature feature);
-        protected abstract SyntaxTriviaList GetLeadingTriviaToTransfer(SyntaxNode syntaxToRemove);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var generator = SyntaxGenerator.GetGenerator(document);
+        var ifSpan = ifStatement.Span;
+        var options = root.SyntaxTree.Options;
 
-        private async Task<Document> UpdateDocumentAsync(
-            Document document,
-            SyntaxNode target,
-            TIfStatementSyntax ifStatement,
-            ImmutableArray<AnalyzedSwitchSection> sections,
-            Feature feature,
-            bool convertToSwitchExpression,
-            CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var ifSpan = ifStatement.Span;
-            var options = root.SyntaxTree.Options;
+        var @switch = convertToSwitchExpression
+            ? CreateSwitchExpressionStatement(target, sections, feature)
+            : CreateSwitchStatement(ifStatement, target, sections.Select(section => AsSwitchSectionSyntax(section, generator, feature)));
 
-            var @switch = convertToSwitchExpression
-                ? CreateSwitchExpressionStatement(target, sections, feature)
-                : CreateSwitchStatement(ifStatement, target, sections.Select(section => AsSwitchSectionSyntax(section, generator, feature)));
+        var lastNode = sections.Last().SyntaxToRemove;
+        @switch = @switch
+            .WithLeadingTrivia(ifStatement.GetLeadingTrivia())
+            .WithTrailingTrivia(lastNode.GetTrailingTrivia())
+            .WithAdditionalAnnotations(Formatter.Annotation)
+            .WithAdditionalAnnotations(Simplifier.Annotation);
 
-            var lastNode = sections.Last().SyntaxToRemove;
-            @switch = @switch
-                .WithLeadingTrivia(ifStatement.GetLeadingTrivia())
-                .WithTrailingTrivia(lastNode.GetTrailingTrivia())
-                .WithAdditionalAnnotations(Formatter.Annotation)
-                .WithAdditionalAnnotations(Simplifier.Annotation);
+        var nodesToRemove = sections.Skip(1).Select(s => s.SyntaxToRemove).Where(s => s.Parent == ifStatement.Parent);
+        root = root.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia);
+        Debug.Assert(root is object); // we didn't remove the root
+        root = root.ReplaceNode(root.FindNode(ifSpan, getInnermostNodeForTie: true), @switch);
+        return document.WithSyntaxRoot(root);
+    }
 
-            var nodesToRemove = sections.Skip(1).Select(s => s.SyntaxToRemove).Where(s => s.Parent == ifStatement.Parent);
-            root = root.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia);
-            Debug.Assert(root is object); // we didn't remove the root
-            root = root.ReplaceNode(root.FindNode(ifSpan, getInnermostNodeForTie: true), @switch);
-            return document.WithSyntaxRoot(root);
-        }
+    private SyntaxNode AsSwitchSectionSyntax(AnalyzedSwitchSection section, SyntaxGenerator generator, Feature feature)
+    {
+        var statements = AsSwitchSectionStatements(section.Body);
+        var sectionNode = section.Labels.IsDefault
+            ? generator.DefaultSwitchSection(statements)
+            : generator.SwitchSectionFromLabels(section.Labels.Select(label => AsSwitchLabelSyntax(label, feature)), statements);
 
-        private SyntaxNode AsSwitchSectionSyntax(AnalyzedSwitchSection section, SyntaxGenerator generator, Feature feature)
-        {
-            var statements = AsSwitchSectionStatements(section.Body);
-            var sectionNode = section.Labels.IsDefault
-                ? generator.DefaultSwitchSection(statements)
-                : generator.SwitchSectionFromLabels(section.Labels.Select(label => AsSwitchLabelSyntax(label, feature)), statements);
+        sectionNode = sectionNode.WithPrependedLeadingTrivia(GetLeadingTriviaToTransfer(section.SyntaxToRemove));
 
-            sectionNode = sectionNode.WithPrependedLeadingTrivia(GetLeadingTriviaToTransfer(section.SyntaxToRemove));
-
-            return sectionNode;
-        }
+        return sectionNode;
     }
 }
