@@ -3047,23 +3047,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitLoweredSwitchExpression(BoundLoweredSwitchExpression node)
-        {
-            var initialState = this.State.Clone();
-            var endState = UnreachableState();
-            VisitStatements(node.Statements);
-            foreach (var switchArm in node.SwitchArms)
-            {
-                SetState(initialState.Clone());
-                VisitStatements(switchArm.Statements);
-                VisitRvalue(switchArm.Value);
-                Join(ref endState, ref this.State);
-            }
-
-            SetState(endState);
-            return null;
-        }
-
         public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
         {
             var savedState = this.State.Clone();

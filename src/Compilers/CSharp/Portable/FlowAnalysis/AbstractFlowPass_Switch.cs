@@ -181,5 +181,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetState(endState);
             return node;
         }
+
+        public override BoundNode VisitLoweredSwitchExpression(BoundLoweredSwitchExpression node)
+        {
+            var initialState = this.State.Clone();
+            var endState = UnreachableState();
+            VisitStatements(node.Statements);
+            foreach (var switchArm in node.SwitchArms)
+            {
+                SetState(initialState.Clone());
+                VisitStatements(switchArm.Statements);
+                VisitRvalue(switchArm.Value);
+                Join(ref endState, ref this.State);
+            }
+
+            SetState(endState);
+            return node;
+        }
     }
 }
