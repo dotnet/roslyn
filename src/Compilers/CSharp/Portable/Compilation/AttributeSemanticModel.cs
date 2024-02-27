@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableWalker.AnalyzeWithoutRewrite(Compilation, symbol: null, boundRoot, binder, diagnostics, createSnapshots);
         }
 
-        protected override bool IsNullableAnalysisEnabled()
+        protected override bool IsNullableAnalysisEnabledCore()
         {
             return IsNullableAnalysisEnabledIn(Compilation, (AttributeSyntax)Root);
         }

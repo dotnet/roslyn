@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                             this.Descriptor,
                             token.GetLocation(),
                             NotificationOption2.Silent,
+                            context.Options,
                             additionalLocations: null,
                             properties));
                     }

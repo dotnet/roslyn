@@ -188,6 +188,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 Descriptor,
                 conditionalExpression.GetLocation(),
                 option.Notification,
+                context.Options,
                 locations,
                 properties));
         }

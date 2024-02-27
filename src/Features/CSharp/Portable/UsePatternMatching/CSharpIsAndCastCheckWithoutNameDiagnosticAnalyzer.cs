@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 DiagnosticHelper.Create(
                     Descriptor, isExpression.GetLocation(),
                     styleOption.Notification,
+                    context.Options,
                     SpecializedCollections.EmptyCollection<Location>(),
                     ImmutableDictionary<string, string?>.Empty));
         }

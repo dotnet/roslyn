@@ -214,7 +214,7 @@ namespace Roslyn.Utilities
         {
             if (dictionary.TryGetValue(key, out var collection))
             {
-                if (collection.Length == 1)
+                if (collection.Length == 1 && EqualityComparer<TValue>.Default.Equals(collection[0], value))
                 {
                     dictionary.Remove(key);
                 }

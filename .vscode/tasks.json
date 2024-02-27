@@ -49,7 +49,7 @@
           "msbuild",
           "-p:RunAnalyzersDuringBuild=false",
           "-p:GenerateFullPaths=true",
-          "src/Compilers/CSharp/csc/csc.csproj"
+          "src/Compilers/CSharp/csc/AnyCpu/csc.csproj"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"

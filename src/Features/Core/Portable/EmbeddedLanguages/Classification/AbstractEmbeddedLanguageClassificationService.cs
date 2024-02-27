@@ -38,8 +38,12 @@ namespace Microsoft.CodeAnalysis.Classification
         public async Task AddEmbeddedLanguageClassificationsAsync(
             Document document, ImmutableArray<TextSpan> textSpans, ClassificationOptions options, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var project = document.Project;
+            SemanticModel semanticModel;
+#pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
+            semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+#pragma warning restore RSEXPERIMENTAL001
+
             AddEmbeddedLanguageClassifications(
                 project.Solution.Services, project, semanticModel, textSpans, options, result, cancellationToken);
         }

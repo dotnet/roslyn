@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 Descriptor,
                 firstToken.GetLocation(),
                 option.Notification,
+                context.Options,
                 additionalLocations: null,
                 properties: null,
                 SyntaxFacts.GetText(firstToken.Kind())));
