@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
                 this.Descriptor,
                 statement.GetFirstToken().GetLocation(),
                 notificationOption,
+                context.Options,
                 additionalLocations,
                 properties: null));
             return true;

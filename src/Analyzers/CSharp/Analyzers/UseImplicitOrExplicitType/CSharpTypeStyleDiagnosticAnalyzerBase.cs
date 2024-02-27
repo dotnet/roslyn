@@ -72,10 +72,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             // The severity preference is not Hidden, as indicated by IsStylePreferred.
             var descriptor = Descriptor;
-            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Notification));
+            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Notification, context.Options));
         }
 
-        private static Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, NotificationOption2 notificationOption)
-            => DiagnosticHelper.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan), notificationOption, additionalLocations: null, properties: null);
+        private static Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, NotificationOption2 notificationOption, AnalyzerOptions analyzerOptions)
+            => DiagnosticHelper.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan), notificationOption, analyzerOptions, additionalLocations: null, properties: null);
     }
 }

@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     SymbolDisplayMemberOptions.IncludeModifiers |
                     SymbolDisplayMemberOptions.IncludeParameters |
                     SymbolDisplayMemberOptions.IncludeType,
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);

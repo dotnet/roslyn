@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                                     Descriptor,
                                     location,
                                     option.Notification,
+                                    context.Options,
                                     additionalLocations: null,
                                     properties: null);
                                 symbolEndContext.ReportDiagnostic(diagnostic);

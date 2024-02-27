@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             if (CSharpSemanticFacts.Instance.IsInExpressionTree(semanticModel, operation.Syntax, infoCache.ExpressionOfTType, context.CancellationToken))
                 return;
 
-            context.ReportDiagnostic(CreateDiagnostic(result.Value, option.Notification));
+            context.ReportDiagnostic(CreateDiagnostic(result.Value, option.Notification, context.Options));
         }
 
         public static Result? AnalyzeInvocation(IInvocationOperation invocation, InfoCache infoCache)
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             return !invocation.Syntax.IsLeftSideOfAnyAssignExpression() || indexer == null || !IsWriteableIndexer(invocation, indexer);
         }
 
-        private Diagnostic CreateDiagnostic(Result result, NotificationOption2 notificationOption)
+        private Diagnostic CreateDiagnostic(Result result, NotificationOption2 notificationOption, AnalyzerOptions analyzerOptions)
         {
             // Keep track of the invocation node
             var invocation = result.Invocation;
@@ -262,6 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 Descriptor,
                 location,
                 notificationOption,
+                analyzerOptions,
                 additionalLocations,
                 ImmutableDictionary<string, string?>.Empty,
                 result.SliceLikeMethod.Name);

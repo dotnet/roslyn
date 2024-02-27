@@ -144,6 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     Descriptor,
                     localDeclaration.Declaration.Variables[0].Identifier.GetLocation(),
                     styleOption.Notification,
+                    syntaxContext.Options,
                     additionalLocations,
                     properties: null));
             }
@@ -154,6 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     Descriptor,
                     localDeclaration.GetLocation(),
                     styleOption.Notification,
+                    syntaxContext.Options,
                     additionalLocations,
                     properties: null));
 
@@ -163,6 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                         Descriptor,
                         anonymousFunctionStatement!.GetLocation(),
                         styleOption.Notification,
+                        syntaxContext.Options,
                         additionalLocations,
                         properties: null));
                 }

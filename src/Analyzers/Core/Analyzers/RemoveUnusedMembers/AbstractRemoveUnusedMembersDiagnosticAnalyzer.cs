@@ -515,6 +515,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             rule,
                             GetDiagnosticLocation(member),
                             NotificationOption2.ForSeverity(rule.DefaultSeverity),
+                            symbolEndContext.Options,
                             additionalLocations: null,
                             properties: null,
                             GetMessage(rule, member));

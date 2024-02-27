@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 // Report the diagnostic on the "switch" keyword.
                 location: switchStatement.GetFirstToken().GetLocation(),
                 notificationOption: styleOption.Notification,
+                context.Options,
                 additionalLocations: additionalLocations.ToArrayAndFree(),
                 properties: ImmutableDictionary<string, string?>.Empty
                     .Add(Constants.NodeToGenerateKey, ((int)nodeToGenerate).ToString(CultureInfo.InvariantCulture))

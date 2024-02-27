@@ -159,7 +159,8 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                             _incrementDescriptor,
                             assignmentToken.GetLocation(),
                             option.Notification,
-                            additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
+                            context.Options,
+                additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
                             properties: ImmutableDictionary.Create<string, string?>()
                                 .Add(UseCompoundAssignmentUtilities.Increment, UseCompoundAssignmentUtilities.Increment)));
                         return;
@@ -178,6 +179,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                             _decrementDescriptor,
                             assignmentToken.GetLocation(),
                             option.Notification,
+                            context.Options,
                             additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
                             properties: ImmutableDictionary.Create<string, string?>()
                                 .Add(UseCompoundAssignmentUtilities.Decrement, UseCompoundAssignmentUtilities.Decrement)));
@@ -190,6 +192,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 Descriptor,
                 assignmentToken.GetLocation(),
                 option.Notification,
+                context.Options,
                 additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
                 properties: null));
         }

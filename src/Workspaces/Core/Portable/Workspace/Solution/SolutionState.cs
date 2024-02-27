@@ -220,6 +220,8 @@ namespace Microsoft.CodeAnalysis
                 _lazyAnalyzers);
         }
 
+        public ImmutableDictionary<string, ImmutableArray<DocumentId>> FilePathToDocumentIdsMap => _filePathToDocumentIdsMap;
+
         /// <summary>
         /// The version of the most recently modified project.
         /// </summary>
@@ -414,16 +416,17 @@ namespace Microsoft.CodeAnalysis
         private static void AddDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
         {
             foreach (var documentState in documentStates)
-            {
-                var filePath = documentState.FilePath;
+                AddDocumentFilePath(documentState, builder);
+        }
 
-                if (RoslynString.IsNullOrEmpty(filePath))
-                {
-                    continue;
-                }
+        public static void AddDocumentFilePath(TextDocumentState documentState, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        {
+            var filePath = documentState.FilePath;
 
-                builder.MultiAdd(filePath, documentState.Id);
-            }
+            if (RoslynString.IsNullOrEmpty(filePath))
+                return;
+
+            builder.MultiAdd(filePath, documentState.Id);
         }
 
         public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
@@ -436,21 +439,19 @@ namespace Microsoft.CodeAnalysis
         private static void RemoveDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
         {
             foreach (var documentState in documentStates)
-            {
-                var filePath = documentState.FilePath;
+                RemoveDocumentFilePath(documentState, builder);
+        }
 
-                if (RoslynString.IsNullOrEmpty(filePath))
-                {
-                    continue;
-                }
+        public static void RemoveDocumentFilePath(TextDocumentState documentState, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        {
+            var filePath = documentState.FilePath;
+            if (RoslynString.IsNullOrEmpty(filePath))
+                return;
 
-                if (!builder.TryGetValue(filePath, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentState.Id))
-                {
-                    throw new ArgumentException($"The given documentId was not found in '{nameof(_filePathToDocumentIdsMap)}'.");
-                }
+            if (!builder.TryGetValue(filePath, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentState.Id))
+                throw new ArgumentException($"The given documentId was not found in '{nameof(_filePathToDocumentIdsMap)}'.");
 
-                builder.MultiRemove(filePath, documentState.Id);
-            }
+            builder.MultiRemove(filePath, documentState.Id);
         }
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithFilePath(DocumentId documentId, string? oldFilePath, string? newFilePath)

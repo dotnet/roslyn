@@ -69,18 +69,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // work if multiple threads end up down this path.  But only one of them will
                 // win when we access the lock below.
 
-                using var _1 = ArrayBuilder<Entry>.GetInstance(out var declarations);
+                using var _1 = ArrayBuilder<Entry>.GetInstance(out var entries);
                 using var _2 = PooledHashSet<(string? filePath, TextSpan span)>.GetInstance(out var seenLocations);
 
-                for (int i = 0, n = definition.SourceSpans.Length; i < n; i++)
-                {
-                    var declarationLocation = definition.SourceSpans[i];
-                    var classifiedSpans = definition.ClassifiedSpans[i];
-                    var definitionEntry = await TryCreateDocumentSpanEntryAsync(
-                        definitionBucket, declarationLocation, classifiedSpans, HighlightSpanKind.Definition, SymbolUsageInfo.None,
-                        additionalProperties: definition.DisplayableProperties, cancellationToken).ConfigureAwait(false);
-                    declarations.AddIfNotNull(definitionEntry);
-                }
+                await AddDocumentSpanEntriesAsync(entries, definitionBucket, definition, cancellationToken).ConfigureAwait(false);
 
                 var changed = false;
                 lock (Gate)
@@ -90,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     {
                         // We only include declaration entries in the entries we show when 
                         // not grouping by definition.
-                        EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.AddRange(declarations);
+                        EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.AddRange(entries);
                         CurrentVersionNumber++;
                         changed = true;
                     }
