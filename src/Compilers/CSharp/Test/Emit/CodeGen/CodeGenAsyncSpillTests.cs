@@ -3902,7 +3902,7 @@ public ref struct S
                 //             Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
                 Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "F").WithArguments("S").WithLocation(9, 17)
                 );
-            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics() .VerifyEmitDiagnostics(
+            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics().VerifyEmitDiagnostics(
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"o switch
         {
             Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
