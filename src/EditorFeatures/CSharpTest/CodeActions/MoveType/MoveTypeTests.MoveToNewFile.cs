@@ -1012,8 +1012,7 @@ namespace N
 
             var expectedDocumentName = "Inner.cs";
             var destinationDocumentText =
-@"
-#if true
+@"#if true
 public class Inner
 {
 
