@@ -412,263 +412,6 @@ public sealed class ModuleCancellationTests : CSharpTestBase
     }
 
     [Fact]
-    public void InstanceConstructors_Overload_BaseCall()
-    {
-        var source = """
-            using System.Threading;
-
-            class B
-            {
-                public B(int a) {}
-                public B(int a, CancellationToken token) {}
-            }
-
-            class C() : B(1)
-            {
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        verifier.VerifyMethodBody("C..ctor", """
-            {
-              // Code size       24 (0x18)
-              .maxstack  3
-              // sequence point: <hidden>
-              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
-              // sequence point: B(1)
-              IL_000a:  ldarg.0
-              IL_000b:  ldc.i4.1
-              IL_000c:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0011:  call       "B..ctor(int, System.Threading.CancellationToken)"
-              IL_0016:  nop
-              IL_0017:  ret
-            }
-            """);
-    }
-
-    [Fact]
-    public void InstanceConstructors_Overload_ThisCall()
-    {
-        var source = """
-            using System.Threading;
-
-            class C
-            {
-                public C() : this(1) {}
-                public C(int a) {}
-                public C(int a, CancellationToken token) {}
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        verifier.VerifyMethodBody("C..ctor()", """
-            {
-              // Code size       25 (0x19)
-              .maxstack  3
-              // sequence point: <hidden>
-              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
-              // sequence point: this(1)
-              IL_000a:  ldarg.0
-              IL_000b:  ldc.i4.1
-              IL_000c:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0011:  call       "C..ctor(int, System.Threading.CancellationToken)"
-              IL_0016:  nop
-              // sequence point: {
-              IL_0017:  nop
-              // sequence point: }
-              IL_0018:  ret
-            }
-            """);
-    }
-
-    [Fact]
-    public void Constructor_Overload_ObjectCreation()
-    {
-        var source = """
-            using System.Threading;
-
-            class C
-            {
-                C(int a) {}
-                C(int a, CancellationToken token) {}
-
-                void F()
-                {
-                    var c = new C(1);
-                }
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        verifier.VerifyMethodBody("C.F", """
-            {
-              // Code size       24 (0x18)
-              .maxstack  2
-              .locals init (C V_0) //c
-              // sequence point: <hidden>
-              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
-              // sequence point: {
-              IL_000a:  nop
-              // sequence point: var c = new C(1);
-              IL_000b:  ldc.i4.1
-              IL_000c:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0011:  newobj     "C..ctor(int, System.Threading.CancellationToken)"
-              IL_0016:  stloc.0
-              // sequence point: }
-              IL_0017:  ret
-            }
-            """);
-    }
-
-    [Fact]
-    public void Constructor_Overload_CollectionInitializers()
-    {
-        var source = """
-            using System.Collections;
-            using System.Collections.Generic;
-            using System.Threading;
-
-            class C : IEnumerable<int>
-            {
-                void F()
-                {
-                    var c = new C()
-                    {
-                        1, 2
-                    };
-                }
-
-                public void Add(int x) {}
-                public void Add(int x, CancellationToken token) {}
-
-                public IEnumerator<int> GetEnumerator() => throw null;
-                IEnumerator IEnumerable.GetEnumerator() => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        verifier.VerifyMethodBody("C.F", """
-            {
-              // Code size       44 (0x2c)
-              .maxstack  4
-              .locals init (C V_0) //c
-              // sequence point: <hidden>
-              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
-              // sequence point: {
-              IL_000a:  nop
-              // sequence point: var c = new  ...         };
-              IL_000b:  newobj     "C..ctor()"
-              IL_0010:  dup
-              IL_0011:  ldc.i4.1
-              IL_0012:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0017:  callvirt   "void C.Add(int, System.Threading.CancellationToken)"
-              IL_001c:  nop
-              IL_001d:  dup
-              IL_001e:  ldc.i4.2
-              IL_001f:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0024:  callvirt   "void C.Add(int, System.Threading.CancellationToken)"
-              IL_0029:  nop
-              IL_002a:  stloc.0
-              // sequence point: }
-              IL_002b:  ret
-            }
-            """);
-    }
-
-    [Fact]
-    public void InstanceConstructors_Overload_SetsRequiredMembers_NotCompatible()
-    {
-        var source = """
-            using System.Threading;
-            using System.Diagnostics.CodeAnalysis;
-            
-            namespace System.Diagnostics.CodeAnalysis
-            {
-                [AttributeUsage(AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
-                internal sealed class SetsRequiredMembersAttribute : Attribute
-                {
-                }
-            }
-
-            class B
-            {
-                [SetsRequiredMembers]
-                public B(int a) {}
-
-                public B(int a, CancellationToken token) {}
-            }
-
-            [method: SetsRequiredMembers]
-            class C() : B(1)
-            {
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-        AssertNotInstrumentedWithTokenLoad(verifier, "C..ctor");
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("[SetsRequiredMembers]")]
-    public void InstanceConstructors_Overload_SetsRequiredMembers_Compatible(string attributes)
-    {
-        var source = $$"""
-            using System.Threading;
-            using System.Diagnostics.CodeAnalysis;
-            
-            namespace System.Diagnostics.CodeAnalysis
-            {
-                [AttributeUsage(AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
-                internal sealed class SetsRequiredMembersAttribute : Attribute
-                {
-                }
-            }
-
-            class B
-            {
-                {{attributes}}
-                public B(int a) {}
-
-                [SetsRequiredMembers]
-                public B(int a, CancellationToken token) {}
-            }
-
-            [method: SetsRequiredMembers]
-            class C() : B(1)
-            {
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        verifier.VerifyMethodBody("C..ctor", """
-            {
-              // Code size       24 (0x18)
-              .maxstack  3
-              // sequence point: <hidden>
-              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
-              // sequence point: B(1)
-              IL_000a:  ldarg.0
-              IL_000b:  ldc.i4.1
-              IL_000c:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0011:  call       "B..ctor(int, System.Threading.CancellationToken)"
-              IL_0016:  nop
-              IL_0017:  ret
-            }
-            """);
-    }
-
-    [Fact]
     public void PropertyAccessors_Auto()
     {
         var source = """
@@ -1704,8 +1447,6 @@ public sealed class ModuleCancellationTests : CSharpTestBase
             """);
     }
 
-
-
     [Fact]
     public void ArgumentReplacement_IndirectCall_Positional()
     {
@@ -2075,6 +1816,263 @@ public sealed class ModuleCancellationTests : CSharpTestBase
               IL_001d:  pop
               // sequence point: }
               IL_001e:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void CancellableOverload_InstanceConstructor_BaseCall()
+    {
+        var source = """
+            using System.Threading;
+
+            class B
+            {
+                public B(int a) {}
+                public B(int a, CancellationToken token) {}
+            }
+
+            class C() : B(1)
+            {
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        verifier.VerifyMethodBody("C..ctor", """
+            {
+              // Code size       24 (0x18)
+              .maxstack  3
+              // sequence point: <hidden>
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              // sequence point: B(1)
+              IL_000a:  ldarg.0
+              IL_000b:  ldc.i4.1
+              IL_000c:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0011:  call       "B..ctor(int, System.Threading.CancellationToken)"
+              IL_0016:  nop
+              IL_0017:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void CancellableOverload_InstanceConstructor_ThisCall()
+    {
+        var source = """
+            using System.Threading;
+
+            class C
+            {
+                public C() : this(1) {}
+                public C(int a) {}
+                public C(int a, CancellationToken token) {}
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        verifier.VerifyMethodBody("C..ctor()", """
+            {
+              // Code size       25 (0x19)
+              .maxstack  3
+              // sequence point: <hidden>
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              // sequence point: this(1)
+              IL_000a:  ldarg.0
+              IL_000b:  ldc.i4.1
+              IL_000c:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0011:  call       "C..ctor(int, System.Threading.CancellationToken)"
+              IL_0016:  nop
+              // sequence point: {
+              IL_0017:  nop
+              // sequence point: }
+              IL_0018:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void CancellableOverload_InstanceConstructor_ObjectCreation()
+    {
+        var source = """
+            using System.Threading;
+
+            class C
+            {
+                C(int a) {}
+                C(int a, CancellationToken token) {}
+
+                void F()
+                {
+                    var c = new C(1);
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        verifier.VerifyMethodBody("C.F", """
+            {
+              // Code size       24 (0x18)
+              .maxstack  2
+              .locals init (C V_0) //c
+              // sequence point: <hidden>
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              // sequence point: {
+              IL_000a:  nop
+              // sequence point: var c = new C(1);
+              IL_000b:  ldc.i4.1
+              IL_000c:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0011:  newobj     "C..ctor(int, System.Threading.CancellationToken)"
+              IL_0016:  stloc.0
+              // sequence point: }
+              IL_0017:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void CancellableOverload_InstanceConstructor_CollectionInitializers()
+    {
+        var source = """
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Threading;
+
+            class C : IEnumerable<int>
+            {
+                void F()
+                {
+                    var c = new C()
+                    {
+                        1, 2
+                    };
+                }
+
+                public void Add(int x) {}
+                public void Add(int x, CancellationToken token) {}
+
+                public IEnumerator<int> GetEnumerator() => throw null;
+                IEnumerator IEnumerable.GetEnumerator() => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        verifier.VerifyMethodBody("C.F", """
+            {
+              // Code size       44 (0x2c)
+              .maxstack  4
+              .locals init (C V_0) //c
+              // sequence point: <hidden>
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              // sequence point: {
+              IL_000a:  nop
+              // sequence point: var c = new  ...         };
+              IL_000b:  newobj     "C..ctor()"
+              IL_0010:  dup
+              IL_0011:  ldc.i4.1
+              IL_0012:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0017:  callvirt   "void C.Add(int, System.Threading.CancellationToken)"
+              IL_001c:  nop
+              IL_001d:  dup
+              IL_001e:  ldc.i4.2
+              IL_001f:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0024:  callvirt   "void C.Add(int, System.Threading.CancellationToken)"
+              IL_0029:  nop
+              IL_002a:  stloc.0
+              // sequence point: }
+              IL_002b:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void CancellableOverload_InstanceConstructor_SetsRequiredMembers_NotCompatible()
+    {
+        var source = """
+            using System.Threading;
+            using System.Diagnostics.CodeAnalysis;
+            
+            namespace System.Diagnostics.CodeAnalysis
+            {
+                [AttributeUsage(AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
+                internal sealed class SetsRequiredMembersAttribute : Attribute
+                {
+                }
+            }
+
+            class B
+            {
+                [SetsRequiredMembers]
+                public B(int a) {}
+
+                public B(int a, CancellationToken token) {}
+            }
+
+            [method: SetsRequiredMembers]
+            class C() : B(1)
+            {
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+        AssertNotInstrumentedWithTokenLoad(verifier, "C..ctor");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("[SetsRequiredMembers]")]
+    public void CancellableOverload_InstanceConstructor_SetsRequiredMembers_Compatible(string attributes)
+    {
+        var source = $$"""
+            using System.Threading;
+            using System.Diagnostics.CodeAnalysis;
+            
+            namespace System.Diagnostics.CodeAnalysis
+            {
+                [AttributeUsage(AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
+                internal sealed class SetsRequiredMembersAttribute : Attribute
+                {
+                }
+            }
+
+            class B
+            {
+                {{attributes}}
+                public B(int a) {}
+
+                [SetsRequiredMembers]
+                public B(int a, CancellationToken token) {}
+            }
+
+            [method: SetsRequiredMembers]
+            class C() : B(1)
+            {
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        verifier.VerifyMethodBody("C..ctor", """
+            {
+              // Code size       24 (0x18)
+              .maxstack  3
+              // sequence point: <hidden>
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              // sequence point: B(1)
+              IL_000a:  ldarg.0
+              IL_000b:  ldc.i4.1
+              IL_000c:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0011:  call       "B..ctor(int, System.Threading.CancellationToken)"
+              IL_0016:  nop
+              IL_0017:  ret
             }
             """);
     }
