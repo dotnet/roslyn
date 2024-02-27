@@ -75,6 +75,14 @@ namespace Microsoft.CodeAnalysis.Collections
 
         private readonly SegmentedList<T> _list;
 
+        public static class ImmutableCollectionsMarshal
+        {
+            public static ImmutableSegmentedList<T> ToImmutableSegmentedList(SegmentedList<T> list)
+            {
+                return new ImmutableSegmentedList<T>(list);
+            }
+        }
+
         private ImmutableSegmentedList(SegmentedList<T> list)
             => _list = list;
 

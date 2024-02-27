@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 using MessagePack;
@@ -12,6 +14,7 @@ using MessagePack.Formatters;
 using MessagePack.Resolvers;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -34,7 +37,115 @@ namespace Microsoft.CodeAnalysis.Remote
             new ForceTypelessFormatter<IdeCodeStyleOptions>(),
         ];
 
-        private static readonly ImmutableArray<IFormatterResolver> s_resolvers = [StandardResolverAllowPrivate.Instance];
+        public sealed class RoslynImmutableCollectionFormatterResolver : IFormatterResolver
+        {
+            public static RoslynImmutableCollectionFormatterResolver Instance = new();
+
+            public IMessagePackFormatter<T>? GetFormatter<T>()
+            {
+                return FormatterCache<T>.Formatter;
+            }
+
+            private static class FormatterCache<T>
+            {
+                internal static readonly IMessagePackFormatter<T>? Formatter;
+
+                static FormatterCache()
+                {
+                    Formatter = (IMessagePackFormatter<T>?)ImmutableCollectionGetFormatterHelper.GetFormatter(typeof(T));
+                }
+            }
+
+            public class ImmutableSegmentedListFormatter<T> : IMessagePackFormatter<ImmutableSegmentedList<T>>
+            {
+                ImmutableSegmentedList<T> IMessagePackFormatter<ImmutableSegmentedList<T>>.Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+                {
+                    if (reader.TryReadNil())
+                        return default;
+
+                    var len = reader.ReadArrayHeader();
+                    if (len == 0)
+                        return ImmutableSegmentedList<T>.Empty;
+
+                    var formatter = options.Resolver.GetFormatterWithVerify<T>();
+
+                    // TODO: Should there be a CreateBuilder that takes in an initial capacity
+                    // similar to what ImmutableArray allows?
+                    var builder = ImmutableSegmentedList.CreateBuilder<T>();
+                    options.Security.DepthStep(ref reader);
+                    try
+                    {
+                        for (var i = 0; i < len; i++)
+                            builder.Add(formatter.Deserialize(ref reader, options));
+                    }
+                    finally
+                    {
+                        reader.Depth--;
+                    }
+
+                    return builder.ToImmutable();
+                }
+
+                void IMessagePackFormatter<ImmutableSegmentedList<T>>.Serialize(ref MessagePackWriter writer, ImmutableSegmentedList<T> value, MessagePackSerializerOptions options)
+                {
+                    if (value.IsDefault)
+                    {
+                        writer.WriteNil();
+                    }
+                    else if (value.IsEmpty)
+                    {
+                        writer.WriteArrayHeader(0);
+                    }
+                    else
+                    {
+                        var formatter = options.Resolver.GetFormatterWithVerify<T>();
+
+                        writer.WriteArrayHeader(value.Count);
+                        foreach (var item in value)
+                            formatter.Serialize(ref writer, item, options);
+                    }
+                }
+            }
+
+            internal static class ImmutableCollectionGetFormatterHelper
+            {
+                private static readonly Dictionary<Type, Type> s_formatterMap = new()
+                {
+                    { typeof(ImmutableSegmentedList<>), typeof(ImmutableSegmentedListFormatter<>) },
+                };
+
+                internal static object? GetFormatter(Type t)
+                {
+                    var ti = t.GetTypeInfo();
+
+                    if (ti.IsGenericType)
+                    {
+                        var genericType = ti.GetGenericTypeDefinition();
+                        //var genericTypeInfo = genericType.GetTypeInfo();
+                        //var isNullable = genericTypeInfo.IsNullable();
+                        //var nullableElementType = isNullable ? ti.GenericTypeArguments[0] : null;
+
+                        if (s_formatterMap.TryGetValue(genericType, out var formatterType))
+                        {
+                            return CreateInstance(formatterType, ti.GenericTypeArguments);
+                        }
+                        //else if (isNullable && nullableElementType?.IsConstructedGenericType is true && nullableElementType.GetGenericTypeDefinition() == typeof(ImmutableArray<>))
+                        //{
+                        //    return CreateInstance(typeof(NullableFormatter<>), new[] { nullableElementType });
+                        //}
+                    }
+
+                    return null;
+                }
+
+                private static object? CreateInstance(Type genericType, Type[] genericTypeArguments, params object[] arguments)
+                {
+                    return Activator.CreateInstance(genericType.MakeGenericType(genericTypeArguments), arguments);
+                }
+            }
+        }
+
+        private static readonly ImmutableArray<IFormatterResolver> s_resolvers = [RoslynImmutableCollectionFormatterResolver.Instance, StandardResolverAllowPrivate.Instance];
 
         internal static readonly IFormatterResolver DefaultResolver = CompositeResolver.Create(Formatters, s_resolvers);
 
