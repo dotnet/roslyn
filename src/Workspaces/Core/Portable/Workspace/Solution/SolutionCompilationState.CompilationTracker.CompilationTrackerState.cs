@@ -116,8 +116,12 @@ internal partial class SolutionCompilationState
                     isFrozen,
                     new Lazy<Compilation>(() => compilationWithoutGeneratedDocuments),
                     generatorInfo,
-                    staleCompilationWithGeneratedDocuments is null ? s_lazyNullCompilation : new Lazy<Compilation?>(() => staleCompilationWithGeneratedDocuments),
+                    staleCompilationWithGeneratedDocuments is null ? s_lazyNullCompilation : CreateLazyCompilation(staleCompilationWithGeneratedDocuments),
                     pendingTranslationActions);
+
+                // Extracted as a local function to prevent captures.
+                static Lazy<Compilation?> CreateLazyCompilation(Compilation? staleCompilationWithGeneratedDocuments)
+                    => new(() => staleCompilationWithGeneratedDocuments);
             }
 
             public static InProgressState Create(
