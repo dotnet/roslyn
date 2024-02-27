@@ -501,10 +501,10 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
 
             static bool IsNullCheck(SyntaxNode? exp)
             {
-                if (exp is BinaryExpressionSyntax binaryExpression && binaryExpression.Kind() == NotEqualsExpression
-                    && (binaryExpression.Left.Kind() == NullLiteralExpression || binaryExpression.Right.Kind() == NullLiteralExpression))
+                if (exp is BinaryExpressionSyntax(NotEqualsExpression) binaryExpression)
                 {
-                    return true;
+                    if (binaryExpression.Left.Kind() == NullLiteralExpression || binaryExpression.Right.Kind() == NullLiteralExpression)
+                        return true;
                 }
 
                 return false;
