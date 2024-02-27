@@ -1102,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
         }
 
         [Fact]
-        public async Task TestRawString1()
+        public async Task TestInterpolatedRawString1()
         {
             await new VerifyCS.Test
             {
@@ -1174,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
         }
 
         [Fact]
-        public async Task TestRawString2()
+        public async Task TestInterpolatedRawString2()
         {
             await new VerifyCS.Test
             {
@@ -1244,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
         }
 
         [Fact]
-        public async Task TestRawString3()
+        public async Task TestInterpolatedRawString3()
         {
             await new VerifyCS.Test
             {
@@ -1316,7 +1316,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
         }
 
         [Fact]
-        public async Task TestRawString4()
+        public async Task TestInterpolatedRawString4()
         {
             await new VerifyCS.Test
             {
@@ -1389,6 +1389,150 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
                                         limit 1
 
                                         """;
+                            }
+                        }
+                    }
+                    """",
+                LanguageVersion = LanguageVersion.CSharp11,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestInterpolatedRawString5()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """"
+                    [|namespace Microsoft.CodeAnalysis.SQLite.v2|]
+                    {
+                        internal partial class SQLitePersistentStorage
+                        {
+                            private abstract class Accessor<TKey, TDatabaseKey>
+                                where TDatabaseKey : struct
+                            {
+                                private string _insert_or_replace_into_writecache_table_values_0primarykey_1checksum_2data;
+
+                                public Accessor()
+                                {
+                                    _insert_or_replace_into_writecache_table_values_0primarykey_1checksum_2data = $"""
+                                            insert or replace into {0}.{1}
+                                            ({2})
+                                        """;
+
+                                    return;
+
+                                    string GetSelectRowIdQuery(string database)
+                                        => $"""
+                                                select rowid from {0}.{1} where
+                                                {2}
+                                                limit 1
+                                            """;
+                                }
+                            }
+                        }
+                    }
+                    """",
+                FixedCode = """"
+                    namespace $$Microsoft.CodeAnalysis.SQLite.v2;
+
+                    internal partial class SQLitePersistentStorage
+                    {
+                        private abstract class Accessor<TKey, TDatabaseKey>
+                            where TDatabaseKey : struct
+                        {
+                            private string _insert_or_replace_into_writecache_table_values_0primarykey_1checksum_2data;
+                    
+                            public Accessor()
+                            {
+                                _insert_or_replace_into_writecache_table_values_0primarykey_1checksum_2data = $"""
+                                        insert or replace into {0}.{1}
+                                        ({2})
+                                    """;
+                    
+                                return;
+                    
+                                string GetSelectRowIdQuery(string database)
+                                    => $"""
+                                            select rowid from {0}.{1} where
+                                            {2}
+                                            limit 1
+                                        """;
+                            }
+                        }
+                    }
+                    """",
+                LanguageVersion = LanguageVersion.CSharp11,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestInterpolatedRawString6()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """"
+                    [|namespace Microsoft.CodeAnalysis.SQLite.v2|]
+                    {
+                        internal partial class SQLitePersistentStorage
+                        {
+                            private abstract class Accessor<TKey, TDatabaseKey>
+                                where TDatabaseKey : struct
+                            {
+                                private string _insert_or_replace_into_writecache_table_values_0primarykey_1checksum_2data;
+
+                                public Accessor()
+                                {
+                                    _insert_or_replace_into_writecache_table_values_0primarykey_1checksum_2data = $"""
+                        insert or replace into {0}.{1}
+                        ({2})
+                    """;
+
+                                    return;
+
+                                    string GetSelectRowIdQuery(string database)
+                                        => $"""
+                        select rowid from {0}.{1} where
+                        {2}
+                        limit 1
+                    """;
+                                }
+                            }
+                        }
+                    }
+                    """",
+                FixedCode = """"
+                    namespace $$Microsoft.CodeAnalysis.SQLite.v2;
+
+                    internal partial class SQLitePersistentStorage
+                    {
+                        private abstract class Accessor<TKey, TDatabaseKey>
+                            where TDatabaseKey : struct
+                        {
+                            private string _insert_or_replace_into_writecache_table_values_0primarykey_1checksum_2data;
+                    
+                            public Accessor()
+                            {
+                                _insert_or_replace_into_writecache_table_values_0primarykey_1checksum_2data = $"""
+                        insert or replace into {0}.{1}
+                        ({2})
+                    """;
+                    
+                                return;
+                    
+                                string GetSelectRowIdQuery(string database)
+                                    => $"""
+                        select rowid from {0}.{1} where
+                        {2}
+                        limit 1
+                    """;
                             }
                         }
                     }

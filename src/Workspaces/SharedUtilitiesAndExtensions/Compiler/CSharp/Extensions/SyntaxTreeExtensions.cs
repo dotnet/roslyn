@@ -415,13 +415,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (token.Kind() is
                     SyntaxKind.InterpolatedStringStartToken or
-                    SyntaxKind.InterpolatedStringTextToken or
                     SyntaxKind.InterpolatedStringEndToken or
                     SyntaxKind.InterpolatedRawStringEndToken or
                     SyntaxKind.InterpolatedSingleLineRawStringStartToken or
                     SyntaxKind.InterpolatedMultiLineRawStringStartToken)
             {
                 return token.SpanStart < position && token.Span.End > position;
+            }
+
+            if (token.Kind() is SyntaxKind.InterpolatedStringTextToken)
+            {
+                // A interpolated text token is special in that it has no start/end delimiters itself.  So we just want
+                // to know if we're touching it's span (as opposed to the above check which forces the position to be 
+                // strictly within).
+                return token.Span.Contains(position);
             }
 
             return false;
