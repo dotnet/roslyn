@@ -91,7 +91,9 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
             {
                 if (!syntaxTreeToModel.TryGetValue(syntaxTree, out var model))
                 {
-                    model = compilation.GetSemanticModel(syntaxTree);
+#pragma warning disable RSEXPERIMENTAL001 // sym-shipped usage of experimental API
+                    model = compilation.GetSemanticModel(syntaxTree, SemanticModelOptions.DisableNullableAnalysis);
+#pragma warning restore RSEXPERIMENTAL001
                     syntaxTreeToModel.Add(syntaxTree, model);
                 }
 
