@@ -304,6 +304,57 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             """);
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    public void ConcatTwo_ReadOnlySpan_NullConcatArgument(int? missingUnimportantMember)
+    {
+        var source = """
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    var c = 'c';
+                    Console.Write(M1(c));
+                    Console.Write(M2(c));
+                }
+
+                static string M1(char c) => c + (string)null;
+                static string M2(char c) => (string)null + c;
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+
+        if (missingUnimportantMember.HasValue)
+        {
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
+        }
+
+        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "cc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        verifier.VerifyDiagnostics();
+
+        var expectedEquivalentIL = """
+            {
+              // Code size       17 (0x11)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "string char.ToString()"
+              IL_0007:  dup
+              IL_0008:  brtrue.s   IL_0010
+              IL_000a:  pop
+              IL_000b:  ldstr      ""
+              IL_0010:  ret
+            }
+            """;
+
+        verifier.VerifyIL("Test.M1", expectedEquivalentIL);
+        verifier.VerifyIL("Test.M2", expectedEquivalentIL);
+    }
+
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
     [InlineData(null)]
     [InlineData((int)SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
@@ -1517,6 +1568,63 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_002b:  ret
             }
             """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    [InlineData(null)]
+    [InlineData((int)SpecialMember.System_String__Concat_3ReadOnlySpans)]
+    public void ConcatThree_ReadOnlySpan_NullConcatArgument(int? missingUnimportantMember)
+    {
+        var source = """
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    var s = "s";
+                    var c = 'c';
+                    Console.Write(M1(s, c));
+                    Console.Write(M2(s, c));
+                    Console.Write(M3(s, c));
+                }
+
+                static string M1(string s, char c) => (string)null + s + c;
+                static string M2(string s, char c) => s + (c + (string)null);
+                static string M3(string s, char c) => (s + c) + (string)null;
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+
+        if (missingUnimportantMember.HasValue)
+        {
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
+        }
+
+        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "scscsc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        verifier.VerifyDiagnostics();
+
+        var expectedEquivalentIL = """
+            {
+              // Code size       21 (0x15)
+              .maxstack  2
+              .locals init (char V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0006:  ldarg.1
+              IL_0007:  stloc.0
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000f:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_0014:  ret
+            }
+            """;
+
+        verifier.VerifyIL("Test.M1", expectedEquivalentIL);
+        verifier.VerifyIL("Test.M2", expectedEquivalentIL);
+        verifier.VerifyIL("Test.M3", expectedEquivalentIL);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
@@ -3362,6 +3470,75 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
               IL_0037:  ret
             }
             """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+    [InlineData(null)]
+    [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
+    [InlineData((int)SpecialMember.System_String__Concat_4ReadOnlySpans)]
+    public void ConcatFour_ReadOnlySpan_NullConcatArgument(int? missingUnimportantMember)
+    {
+        var source = """
+            using System;
+
+            public class Test
+            {
+                static void Main()
+                {
+                    var s = "s";
+                    var c = 'c';
+                    Console.Write(M1(s, c));
+                    Console.Write(M2(s, c));
+                    Console.Write(M3(s, c));
+                    Console.Write(M4(s, c));
+                    Console.Write(M5(s, c));
+                    Console.Write(M6(s, c));
+                }
+
+                static string M1(string s, char c) => (string)null + s + c + s;
+                static string M2(string s, char c) => s + (string)null + c + s;
+                static string M3(string s, char c) => s + ((string)null + c) + s;
+                static string M4(string s, char c) => s + c + (string)null + s;
+                static string M5(string s, char c) => s + (c + (string)null) + s;
+                static string M6(string s, char c) => s + c + s + (string)null;
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+
+        if (missingUnimportantMember.HasValue)
+        {
+            comp.MakeMemberMissing((SpecialMember)missingUnimportantMember.Value);
+        }
+
+        var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "scsscsscsscsscsscs" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
+
+        verifier.VerifyDiagnostics();
+
+        var expectedEquivalentIL = """
+            {
+              // Code size       27 (0x1b)
+              .maxstack  3
+              .locals init (char V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0006:  ldarg.1
+              IL_0007:  stloc.0
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+              IL_000f:  ldarg.0
+              IL_0010:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+              IL_0015:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+              IL_001a:  ret
+            }
+            """;
+
+        verifier.VerifyIL("Test.M1", expectedEquivalentIL);
+        verifier.VerifyIL("Test.M2", expectedEquivalentIL);
+        verifier.VerifyIL("Test.M3", expectedEquivalentIL);
+        verifier.VerifyIL("Test.M4", expectedEquivalentIL);
+        verifier.VerifyIL("Test.M5", expectedEquivalentIL);
+        verifier.VerifyIL("Test.M6", expectedEquivalentIL);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
