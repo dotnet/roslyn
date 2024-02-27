@@ -4,20 +4,19 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
+
+internal partial class ITypeSymbolExtensions
 {
-    internal partial class ITypeSymbolExtensions
+    private class CompilationTypeGenerator(Compilation compilation) : ITypeGenerator
     {
-        private class CompilationTypeGenerator(Compilation compilation) : ITypeGenerator
-        {
-            public ITypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank)
-                => compilation.CreateArrayTypeSymbol(elementType, rank);
+        public ITypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank)
+            => compilation.CreateArrayTypeSymbol(elementType, rank);
 
-            public ITypeSymbol CreatePointerTypeSymbol(ITypeSymbol pointedAtType)
-                => compilation.CreatePointerTypeSymbol(pointedAtType);
+        public ITypeSymbol CreatePointerTypeSymbol(ITypeSymbol pointedAtType)
+            => compilation.CreatePointerTypeSymbol(pointedAtType);
 
-            public ITypeSymbol Construct(INamedTypeSymbol namedType, ITypeSymbol[] typeArguments)
-                => namedType.Construct(typeArguments);
-        }
+        public ITypeSymbol Construct(INamedTypeSymbol namedType, ITypeSymbol[] typeArguments)
+            => namedType.Construct(typeArguments);
     }
 }

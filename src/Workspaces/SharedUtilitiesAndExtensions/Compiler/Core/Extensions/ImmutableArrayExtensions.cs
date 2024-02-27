@@ -7,38 +7,37 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal static class ImmutableArrayExtensions
 {
-    internal static class ImmutableArrayExtensions
+    public static ImmutableArray<T> ToImmutableArray<T>(this HashSet<T> set)
     {
-        public static ImmutableArray<T> ToImmutableArray<T>(this HashSet<T> set)
+        return [.. set];
+    }
+
+    public static bool Contains<T>(this ImmutableArray<T> items, T item, IEqualityComparer<T>? equalityComparer)
+        => items.IndexOf(item, 0, equalityComparer) >= 0;
+
+    public static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this T[]? items)
+    {
+        if (items == null)
         {
-            return [.. set];
+            return [];
         }
 
-        public static bool Contains<T>(this ImmutableArray<T> items, T item, IEqualityComparer<T>? equalityComparer)
-            => items.IndexOf(item, 0, equalityComparer) >= 0;
+        return ImmutableArray.Create<T>(items);
+    }
 
-        public static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this T[]? items)
-        {
-            if (items == null)
-            {
-                return [];
-            }
+    public static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
+        => new(first, second);
 
-            return ImmutableArray.Create<T>(items);
-        }
+    public static ImmutableArray<T> TakeAsArray<T>(this ImmutableArray<T> array, int count)
+    {
+        using var _ = ArrayBuilder<T>.GetInstance(count, out var result);
+        for (var i = 0; i < count; i++)
+            result.Add(array[i]);
 
-        public static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
-            => new(first, second);
-
-        public static ImmutableArray<T> TakeAsArray<T>(this ImmutableArray<T> array, int count)
-        {
-            using var _ = ArrayBuilder<T>.GetInstance(count, out var result);
-            for (var i = 0; i < count; i++)
-                result.Add(array[i]);
-
-            return result.ToImmutableAndClear();
-        }
+        return result.ToImmutableAndClear();
     }
 }

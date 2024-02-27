@@ -5,13 +5,12 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+/// <summary>
+/// Available in workspaces that accept changes in solution level analyzers.
+/// </summary>
+internal interface ISolutionAnalyzerSetterWorkspaceService : IWorkspaceService
 {
-    /// <summary>
-    /// Available in workspaces that accept changes in solution level analyzers.
-    /// </summary>
-    internal interface ISolutionAnalyzerSetterWorkspaceService : IWorkspaceService
-    {
-        void SetAnalyzerReferences(ImmutableArray<AnalyzerReference> references);
-    }
+    void SetAnalyzerReferences(ImmutableArray<AnalyzerReference> references);
 }

@@ -4,21 +4,20 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.SolutionCrawler
+namespace Microsoft.CodeAnalysis.SolutionCrawler;
+
+/// <summary>
+/// Register a solution crawler for a particular workspace
+/// </summary>
+internal interface ISolutionCrawlerRegistrationService : IWorkspaceService
 {
+    void Register(Workspace workspace);
+
     /// <summary>
-    /// Register a solution crawler for a particular workspace
+    /// Unregisters solution crawler for given <paramref name="workspace"/>.
+    /// No-op if never registered or already unregistered.
     /// </summary>
-    internal interface ISolutionCrawlerRegistrationService : IWorkspaceService
-    {
-        void Register(Workspace workspace);
+    void Unregister(Workspace workspace, bool blockingShutdown = false);
 
-        /// <summary>
-        /// Unregisters solution crawler for given <paramref name="workspace"/>.
-        /// No-op if never registered or already unregistered.
-        /// </summary>
-        void Unregister(Workspace workspace, bool blockingShutdown = false);
-
-        void AddAnalyzerProvider(IIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata);
-    }
+    void AddAnalyzerProvider(IIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata);
 }

@@ -8,17 +8,16 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Serialization
-{
-    /// <summary>
-    /// This deal with serializing/deserializing language specific data
-    /// </summary>
-    internal interface IOptionsSerializationService : ILanguageService
-    {
-        void WriteTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken);
-        void WriteTo(ParseOptions options, ObjectWriter writer);
+namespace Microsoft.CodeAnalysis.Serialization;
 
-        CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
-        ParseOptions ReadParseOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
-    }
+/// <summary>
+/// This deal with serializing/deserializing language specific data
+/// </summary>
+internal interface IOptionsSerializationService : ILanguageService
+{
+    void WriteTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken);
+    void WriteTo(ParseOptions options, ObjectWriter writer);
+
+    CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
+    ParseOptions ReadParseOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
 }
