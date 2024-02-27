@@ -63,7 +63,7 @@ internal static class PRTagger
             if (!product.IsGitHubRepo())
             {
                 logger.LogWarning($"Only GitHub repos are supported. Skipped repo: {product.Name}");
-                return -1;
+                continue;
             }
 
             var gitHubRepoName = product.RepoHttpBaseUrl.Split('/').Last();
