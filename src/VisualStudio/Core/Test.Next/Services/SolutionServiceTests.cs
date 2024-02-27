@@ -360,7 +360,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var testAnalyzerProvider = new TestAnalyzerProvider();
             solutionCrawlerService.AddAnalyzerProvider(
                 testAnalyzerProvider,
-                new IncrementalAnalyzerProviderMetadata("Test", highPriorityForActiveFile: false, workspaceKinds: WorkspaceKind.RemoteWorkspace));
+                new IncrementalAnalyzerProviderMetadata("Test", highPriorityForActiveFile: false, [WorkspaceKind.RemoteWorkspace]));
 
             // check our solution crawler has ran
             Assert.True(await testAnalyzerProvider.Analyzer.Called);
