@@ -118,17 +118,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (instance == null)
                 return;
 
-            if (instance.IsImplicit)
+            // Have to make sure we've got a simple name for the rewrite below to be legal.
+            if (instance.IsImplicit && identifierName is SimpleNameSyntax)
             {
                 if (instance is IInstanceReferenceOperation instanceReference &&
                     instanceReference.ReferenceKind != InstanceReferenceKind.ContainingTypeInstance)
                 {
                     return;
                 }
-
-                // Have to make sure we've got a simple name for the rewrite below to be legal.
-                if (identifierName is not SimpleNameSyntax)
-                    return;
 
                 // Accessing the member not off of <dot>.  i.e just plain `Goo()`.  Replace with
                 // ((IGoo)this).Goo();
