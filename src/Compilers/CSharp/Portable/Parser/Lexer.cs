@@ -2480,7 +2480,7 @@ top:
             }
 
             this.LexDirectiveTrailingTrivia(includeEndOfLine: true, ref directiveTriviaCache);
-            var trailing = directiveTriviaCache.ToListNode();
+            var trailing = directiveTriviaCache?.ToListNode();
             _directiveTriviaCache = directiveTriviaCache;
 
             var endOfDirective = SyntaxFactory.Token(leading, SyntaxKind.EndOfDirectiveToken, trailing);
