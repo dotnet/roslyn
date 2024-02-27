@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Data.SqlTypes;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -24,6 +26,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics;
 /// <summary>
 /// LSP Service responsible for hooking up to the debugger's broker IHotReloadSessionNotificationService
 /// and listening to start/end debugging session delegating to IVisualDiagnosticsLanguageService workspace service
+/// for debugger process referencing Maui.Essentials.dll
 /// </summary>
 [ExportCSharpVisualBasicLspServiceFactory(typeof(OnInitializedService)), Shared]
 internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
@@ -75,7 +78,6 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
 
         private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            // This timer is necessary because OnInitializedService 
             lock (_lock)
             {
                 _ = OnTimerElapsedAsync();
@@ -92,8 +94,8 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
         {
             _cancellationToken = cancellationToken;
             // This is not ideal, OnInitializedAsync has no way to know when the service broker is ready to be queried
-            // We start a timer and wait rough a second to see if the broker gets initialized.
-            // TODO dabarbe: Service broker is initialized as part of another LSP service, not sure if there's a way for this service to have an api to await on?
+            // We start a timer and wait roughly a second to see if the broker gets initialized.
+            // TODO dabarbe: Service broker is initialized as part of another LSP service, not sure if there's a way await on, or having a task completion source?
             _timer.Start();
             return Task.CompletedTask;
         }
@@ -115,7 +117,7 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
         {
             if (_adviseHotReloadSessionNotificationService != null)
             {
-                // just double make sure the timer is stopped
+                // Already initialized, just double make sure the timer is stopped
                 _timer.Stop();
                 return;
             }
@@ -127,6 +129,7 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
                 IHotReloadSessionNotificationService? hotReloadSessionNotificationService = await broker.HotReloadSessionNotificationServiceAsync().ConfigureAwait(false);
                 if (hotReloadSessionNotificationService != null)
                 {
+                    // We have the broker service, stop the timer
                     _adviseHotReloadSessionNotificationService = await InitializeHotReloadSessionNotificationServiceAsync(hotReloadSessionNotificationService).ConfigureAwait(false);
                     if (_adviseHotReloadSessionNotificationService != null)
                     {
@@ -216,7 +219,7 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
                 return null;
             }
 
-            Workspace workspace = ProcessInfoToWorkspace(processInfo);
+            Workspace? workspace = ProcessInfoToWorkspace(processInfo);
             if (workspace != null)
             {
                 IVisualDiagnosticsLanguageService? visualDiagnosticsLanguageService;
@@ -238,13 +241,47 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
             return null;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Need to determine if multiple workspace exists in LSP server")]
-        private Workspace ProcessInfoToWorkspace(ProcessInfo processInfo)
+        // This method helps reducing the memory footprint of EA.Diagnostics which an observer component looking
+        // at debugging executables only making sure that we end up loading IVisualDiagnosticsLanguageService workspace
+        // for debugged processes referencing Microsoft.Maui.Essentials.dll.
+        // This would include Maui, Maui Hybrid, iOS and Android projects. 
+        private Workspace? ProcessInfoToWorkspace(ProcessInfo processInfo)
         {
-            // Review: Does LSP supports more than one host workspace for a given process? For a given process name with path, should we retrieve the proper Workspace or it's always the host Workspace below?
-            // If the Host workspace provides access to a active set of source code projects and documents and their associated syntax trees, compilations and semantic models, and maps to the current opened solution in C# Dev Kit.
-            // Than I think we're good, are we? 
-            return this._lspWorkspaceRegistrationService.GetAllRegistrations().Where(w => w.Kind == WorkspaceKind.Host).FirstOrDefault();
+            // 
+            string? path = processInfo.Path;
+            string? directoryName = null;
+            if (path != null)
+            {
+                // for Mobile, the path is a path to assets which is not a path to a process
+                directoryName = Path.GetDirectoryName(path);
+            }
+
+            Workspace workspace = this._lspWorkspaceRegistrationService.GetAllRegistrations().Where(w => w.Kind == WorkspaceKind.Host).FirstOrDefault();
+
+            Dictionary<string, bool> mauiEssentialProjects = new Dictionary<string, bool>();
+
+            if (workspace != null && !string.IsNullOrEmpty(directoryName))
+            {
+                foreach (Project project in workspace.CurrentSolution.Projects)
+                {
+                    // Workaround for single project with multiple TargetFrameworks, only the first framework project contains the Metadata References, the others don't
+                    if (project.MetadataReferences != null && project.MetadataReferences.Any(item => item.Display != null && item.Display.ToLower().Contains("microsoft.maui.essentials.dll")))
+                    {
+                        if (project.FilePath != null && !mauiEssentialProjects.ContainsKey(project.FilePath))
+                        {
+                            mauiEssentialProjects.Add(project.FilePath, true);
+                        }
+                    }
+
+                    // Only return workspaces that utilize the Maui.Essentials library.
+                    if (project.OutputFilePath != null && project.OutputFilePath.Contains(directoryName) && project.FilePath != null && mauiEssentialProjects.ContainsKey(project.FilePath))
+                    {
+                        return workspace;
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }
