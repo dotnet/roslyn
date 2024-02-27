@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +15,9 @@ namespace Roslyn.Utilities
     {
         public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction)
             => new(asynchronousComputeFunction);
+
+        public static AsyncLazy<T> Create<T>(Func<CancellationToken, T> synchronousComputeFunction)
+            => new(cancellationToken => Task.FromResult(synchronousComputeFunction(cancellationToken)), synchronousComputeFunction);
 
         public static AsyncLazy<T> Create<T>(T value)
             => new(value);
@@ -83,18 +85,7 @@ namespace Roslyn.Utilities
         /// Creates an AsyncLazy that always returns the value, analogous to <see cref="Task.FromResult{T}" />.
         /// </summary>
         public AsyncLazy(T value)
-        {
-            _cachedResult = Task.FromResult(value);
-        }
-
-#pragma warning disable IDE0060 // Remove unused parameter
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("'cacheResult' is no longer supported.  Use constructor without it.", error: false)]
-        public AsyncLazy(Func<CancellationToken, Task<T>> asynchronousComputeFunction, bool cacheResult)
-            : this(asynchronousComputeFunction)
-        {
-        }
-#pragma warning restore IDE0060 // Remove unused parameter
+            => _cachedResult = Task.FromResult(value);
 
         public AsyncLazy(Func<CancellationToken, Task<T>> asynchronousComputeFunction)
             : this(asynchronousComputeFunction, synchronousComputeFunction: null)
@@ -300,7 +291,7 @@ namespace Roslyn.Utilities
 
         private Request CreateNewRequest_NoLock()
         {
-            _requests ??= new HashSet<Request>();
+            _requests ??= [];
 
             var request = new Request();
             _requests.Add(request);

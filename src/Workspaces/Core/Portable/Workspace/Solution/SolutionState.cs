@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis
             _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
 
             // when solution state is changed, we recalculate its checksum
-            _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectsToInclude: null, c));
+            _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectConeId: null, c));
 
             CheckInvariants();
 
@@ -218,6 +219,8 @@ namespace Microsoft.CodeAnalysis
                 _dependencyGraph,
                 _lazyAnalyzers);
         }
+
+        public ImmutableDictionary<string, ImmutableArray<DocumentId>> FilePathToDocumentIdsMap => _filePathToDocumentIdsMap;
 
         /// <summary>
         /// The version of the most recently modified project.
@@ -370,25 +373,6 @@ namespace Microsoft.CodeAnalysis
             return this.AddProject(newProject);
         }
 
-        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
-        {
-            var builder = _filePathToDocumentIdsMap.ToBuilder();
-
-            foreach (var documentState in documentStates)
-            {
-                var filePath = documentState.FilePath;
-
-                if (RoslynString.IsNullOrEmpty(filePath))
-                {
-                    continue;
-                }
-
-                builder.MultiAdd(filePath, documentState.Id);
-            }
-
-            return builder.ToImmutable();
-        }
-
         private static IEnumerable<TextDocumentState> GetDocumentStates(ProjectState projectState)
             => projectState.DocumentStates.States.Values
                    .Concat<TextDocumentState>(projectState.AdditionalDocumentStates.States.Values)
@@ -422,28 +406,52 @@ namespace Microsoft.CodeAnalysis
                 dependencyGraph: newDependencyGraph);
         }
 
+        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
+        {
+            var builder = _filePathToDocumentIdsMap.ToBuilder();
+            AddDocumentFilePaths(documentStates, builder);
+            return builder.ToImmutable();
+        }
+
+        private static void AddDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        {
+            foreach (var documentState in documentStates)
+                AddDocumentFilePath(documentState, builder);
+        }
+
+        public static void AddDocumentFilePath(TextDocumentState documentState, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        {
+            var filePath = documentState.FilePath;
+
+            if (RoslynString.IsNullOrEmpty(filePath))
+                return;
+
+            builder.MultiAdd(filePath, documentState.Id);
+        }
+
         public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
-
-            foreach (var documentState in documentStates)
-            {
-                var filePath = documentState.FilePath;
-
-                if (RoslynString.IsNullOrEmpty(filePath))
-                {
-                    continue;
-                }
-
-                if (!builder.TryGetValue(filePath, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentState.Id))
-                {
-                    throw new ArgumentException($"The given documentId was not found in '{nameof(_filePathToDocumentIdsMap)}'.");
-                }
-
-                builder.MultiRemove(filePath, documentState.Id);
-            }
-
+            RemoveDocumentFilePaths(documentStates, builder);
             return builder.ToImmutable();
+        }
+
+        private static void RemoveDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        {
+            foreach (var documentState in documentStates)
+                RemoveDocumentFilePath(documentState, builder);
+        }
+
+        public static void RemoveDocumentFilePath(TextDocumentState documentState, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        {
+            var filePath = documentState.FilePath;
+            if (RoslynString.IsNullOrEmpty(filePath))
+                return;
+
+            if (!builder.TryGetValue(filePath, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentState.Id))
+                throw new ArgumentException($"The given documentId was not found in '{nameof(_filePathToDocumentIdsMap)}'.");
+
+            builder.MultiRemove(filePath, documentState.Id);
         }
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithFilePath(DocumentId documentId, string? oldFilePath, string? newFilePath)
@@ -938,6 +946,18 @@ namespace Microsoft.CodeAnalysis
             }
 
             return UpdateDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
+        }
+
+        public StateChange WithDocumentState(DocumentState newDocument)
+        {
+            var oldDocument = GetRequiredDocumentState(newDocument.Id);
+            if (oldDocument == newDocument)
+            {
+                var oldProject = GetRequiredProjectState(newDocument.Id.ProjectId);
+                return new(this, oldProject, oldProject);
+            }
+
+            return UpdateDocumentState(newDocument, contentChanged: true);
         }
 
         /// <summary>

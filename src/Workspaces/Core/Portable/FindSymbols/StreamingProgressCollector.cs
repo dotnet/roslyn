@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         IStreamingFindReferencesProgress underlyingProgress) : IStreamingFindReferencesProgress
     {
         private readonly object _gate = new();
-        private readonly Dictionary<ISymbol, List<ReferenceLocation>> _symbolToLocations = new();
+        private readonly Dictionary<ISymbol, List<ReferenceLocation>> _symbolToLocations = [];
 
         public IStreamingProgressTracker ProgressTracker => underlyingProgress.ProgressTracker;
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 lock (_gate)
                 {
                     foreach (var definition in group.Symbols)
-                        _symbolToLocations[definition] = new List<ReferenceLocation>();
+                        _symbolToLocations[definition] = [];
                 }
 
                 return underlyingProgress.OnDefinitionFoundAsync(group, cancellationToken);

@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                             Descriptor,
                             Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
                             NotificationOption2.Warning,
+                            context.Options,
                             additionalLocations: null,
                             properties: null,
                             diag.Message));

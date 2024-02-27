@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.Telemetry
 
         // these don't have concurrency limit on purpose to reduce chance of lock contention. 
         // if that becomes a problem - by showing up in our perf investigation, then we will consider adding concurrency limit.
-        private static readonly ConcurrentDictionary<FunctionId, string> s_eventMap = new();
-        private static readonly ConcurrentDictionary<(FunctionId id, string name), string> s_propertyMap = new();
+        private static readonly ConcurrentDictionary<FunctionId, string> s_eventMap = [];
+        private static readonly ConcurrentDictionary<(FunctionId id, string name), string> s_propertyMap = [];
 
         protected abstract bool LogDelta { get; }
 

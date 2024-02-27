@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             /// <summary>
             /// State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
             /// </summary>
-            private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap = new();
+            private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap = [];
             /// <summary>
             /// List of properties that have a 'get' accessor usage, while the value itself is not used, e.g.:
             /// <code>
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             /// </code>
             /// Here, 'get' accessor is used in an increment operation, but the result of the increment operation isn't used and 'P' itself is not used anywhere else, so it can be safely removed
             /// </summary>
-            private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = new();
+            private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = [];
             private readonly INamedTypeSymbol? _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
             private readonly INamedTypeSymbol? _eventArgsType;
             private readonly INamedTypeSymbol? _iNotifyCompletionType;
@@ -515,6 +515,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             rule,
                             GetDiagnosticLocation(member),
                             NotificationOption2.ForSeverity(rule.DefaultSeverity),
+                            symbolEndContext.Options,
                             additionalLocations: null,
                             properties: null,
                             GetMessage(rule, member));

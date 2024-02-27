@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                                 Descriptor,
                                 nameNode.GetLocation(),
                                 option.Notification,
+                                context.Options,
                                 additionalLocations: null,
                                 properties));
                         }

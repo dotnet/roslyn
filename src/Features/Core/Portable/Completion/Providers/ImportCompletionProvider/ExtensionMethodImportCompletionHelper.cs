@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
@@ -45,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => SymbolComputer.QueueCacheWarmUpTask(project);
 
         public static async Task<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
-            Document document,
-            int position,
+            SyntaxContext syntaxContext,
             ITypeSymbol receiverTypeSymbol,
             ISet<string> namespaceInScope,
             ImmutableArray<ITypeSymbol> targetTypesSymbols,
@@ -55,6 +55,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CancellationToken cancellationToken)
         {
             SerializableUnimportedExtensionMethods? result = null;
+            var document = syntaxContext.Document;
+            var position = syntaxContext.Position;
             var project = document.Project;
 
             var totalTime = SharedStopwatch.StartNew();
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             else
             {
                 result = await GetUnimportedExtensionMethodsInCurrentProcessAsync(
-                    document, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceCacheCreation, hideAdvancedMembers, remoteAssetSyncTime: null, cancellationToken)
+                    document, syntaxContext.SemanticModel, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceCacheCreation, hideAdvancedMembers, remoteAssetSyncTime: null, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -98,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static async Task<SerializableUnimportedExtensionMethods> GetUnimportedExtensionMethodsInCurrentProcessAsync(
             Document document,
+            SemanticModel? semanticModel,
             int position,
             ITypeSymbol receiverTypeSymbol,
             ISet<string> namespaceInScope,
@@ -111,15 +114,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // First find symbols of all applicable extension methods.
             // Workspace's syntax/symbol index is used to avoid iterating every method symbols in the solution.
-            var symbolComputer = await SymbolComputer.CreateAsync(
-                document, position, receiverTypeSymbol, namespaceInScope, cancellationToken).ConfigureAwait(false);
-            var (extentsionMethodSymbols, isPartialResult) = await symbolComputer.GetExtensionMethodSymbolsAsync(forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
+            semanticModel ??= await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var symbolComputer = new SymbolComputer(
+                document, semanticModel, receiverTypeSymbol, position, namespaceInScope);
+            var (extensionMethodSymbols, isPartialResult) = await symbolComputer.GetExtensionMethodSymbolsAsync(forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
 
             var getSymbolsTime = stopwatch.Elapsed;
             stopwatch = SharedStopwatch.StartNew();
 
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var items = ConvertSymbolsToCompletionItems(compilation, extentsionMethodSymbols, targetTypes, cancellationToken);
+            var items = ConvertSymbolsToCompletionItems(compilation, extensionMethodSymbols, targetTypes, cancellationToken);
 
             var createItemsTime = stopwatch.Elapsed;
 
@@ -138,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static ImmutableArray<SerializableImportCompletionItem> ConvertSymbolsToCompletionItems(
             Compilation compilation, ImmutableArray<IMethodSymbol> extentsionMethodSymbols, ImmutableArray<ITypeSymbol> targetTypeSymbols, CancellationToken cancellationToken)
         {
-            Dictionary<ITypeSymbol, bool> typeConvertibilityCache = new();
+            Dictionary<ITypeSymbol, bool> typeConvertibilityCache = [];
             using var _1 = PooledDictionary<INamespaceSymbol, string>.GetInstance(out var namespaceNameCache);
             using var _2 = PooledDictionary<(string containingNamespace, string methodName, bool isGeneric), (IMethodSymbol bestSymbol, int overloadCount, bool includeInTargetTypedCompletion)>
                 .GetInstance(out var overloadMap);

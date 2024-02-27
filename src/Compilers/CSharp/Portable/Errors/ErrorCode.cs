@@ -2202,7 +2202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorLineOutOfRange = 9142,
         ERR_InterceptorCharacterOutOfRange = 9143,
         ERR_InterceptorSignatureMismatch = 9144,
-        ERR_InterceptorPathNotInCompilationWithUnmappedCandidate = 9145,
+        // ERR_InterceptorPathNotInCompilationWithUnmappedCandidate = 9145,
         ERR_InterceptorMethodMustBeOrdinary = 9146,
         ERR_InterceptorMustReferToStartOfTokenPosition = 9147,
         ERR_InterceptorMustHaveMatchingThisParameter = 9148,
@@ -2286,6 +2286,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionExpressionMissingAdd = 9215,
 
         #endregion
+
+        WRN_ConvertingLock = 9216,
+        ERR_BadSpecialByRefLock = 9217,
 
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).

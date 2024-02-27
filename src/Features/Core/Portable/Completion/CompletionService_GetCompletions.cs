@@ -341,8 +341,8 @@ namespace Microsoft.CodeAnalysis.Completion
             // We might need to handle large amount of items with import completion enabled,
             // so use a dedicated pool to minimize array allocations. Set the size of pool to a small
             // number 5 because we don't expect more than a couple of callers at the same time.
-            private static readonly ObjectPool<Dictionary<string, object>> s_uniqueSourcesPool = new(factory: () => new Dictionary<string, object>(), size: 5);
-            private static readonly ObjectPool<List<CompletionItem>> s_sortListPool = new(factory: () => new List<CompletionItem>(), size: 5);
+            private static readonly ObjectPool<Dictionary<string, object>> s_uniqueSourcesPool = new(factory: () => [], size: 5);
+            private static readonly ObjectPool<List<CompletionItem>> s_sortListPool = new(factory: () => [], size: 5);
 
             private readonly Dictionary<string, object> _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
             private readonly CompletionService _service = service;

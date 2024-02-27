@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// us to not display it if it has no references, and we don't run into any 
             /// references for it (common with implicitly declared symbols).
             /// </summary>
-            protected readonly List<DefinitionItem> Definitions = new();
+            protected readonly List<DefinitionItem> Definitions = [];
 
             /// <summary>
             /// We will hear about the same definition over and over again.  i.e. for each reference 
@@ -96,8 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// bucket for it.  The first time we hear about a definition we'll make a single task
             /// and then always return that for all future references found.
             /// </summary>
-            private readonly Dictionary<DefinitionItem, RoslynDefinitionBucket> _definitionToBucket =
-                new();
+            private readonly Dictionary<DefinitionItem, RoslynDefinitionBucket> _definitionToBucket = [];
 
             /// <summary>
             /// We want to hide declarations of a symbol if the user is grouping by definition.
@@ -344,6 +343,57 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 {
                     throw ExceptionUtilities.Unreachable();
                 }
+            }
+
+            protected async Task AddDocumentSpanEntriesAsync(
+                ArrayBuilder<Entry> entries,
+                RoslynDefinitionBucket definitionBucket,
+                DefinitionItem definition,
+                CancellationToken cancellationToken)
+            {
+                for (int i = 0, n = definition.SourceSpans.Length; i < n; i++)
+                {
+                    var sourceSpan = definition.SourceSpans[i];
+                    var classifiedSpan = definition.ClassifiedSpans.IsEmpty ? null : definition.ClassifiedSpans[i];
+
+                    var entry = await TryCreateDocumentSpanEntryAsync(
+                        definitionBucket,
+                        sourceSpan,
+                        classifiedSpan,
+                        HighlightSpanKind.Definition,
+                        SymbolUsageInfo.None,
+                        definition.DisplayableProperties,
+                        cancellationToken).ConfigureAwait(false);
+
+                    entries.AddIfNotNull(entry);
+                }
+            }
+
+            protected async Task<Entry?> TryCreateDefinitionEntryAsync(
+                RoslynDefinitionBucket definitionBucket, DefinitionItem definition, CancellationToken cancellationToken)
+            {
+                var documentSpan = definition.SourceSpans[0];
+                var sourceText = await documentSpan.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var lineText = AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start);
+
+                var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
+                if (mappedDocumentSpan == null)
+                {
+                    // this will be removed from the result
+                    return null;
+                }
+
+                var (guid, projectName, _) = GetGuidAndProjectInfo(documentSpan.Document);
+
+                return new DefinitionItemEntry(
+                    this,
+                    definitionBucket,
+                    projectName,
+                    guid,
+                    lineText,
+                    mappedDocumentSpan.Value,
+                    documentSpan,
+                    ThreadingContext);
             }
 
             protected async Task<Entry?> TryCreateDocumentSpanEntryAsync(

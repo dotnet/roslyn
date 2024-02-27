@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
             private readonly bool _separateGroups;
             private readonly SyntaxTrivia _newLineTrivia;
 
-            public readonly IList<TextChange> TextChanges = new List<TextChange>();
+            public readonly IList<TextChange> TextChanges = [];
 
             public Rewriter(OrganizeImportsOptions options)
             {

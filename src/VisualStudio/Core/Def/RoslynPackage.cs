@@ -23,7 +23,6 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
@@ -267,33 +266,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             await TaskScheduler.Default;
 
-            await LoadInteractiveMenusAsync(cancellationToken).ConfigureAwait(true);
             await LoadStackTraceExplorerMenusAsync(cancellationToken).ConfigureAwait(true);
 
             // Initialize keybinding reset detector
             await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync().ConfigureAwait(true);
-        }
-
-        private async Task LoadInteractiveMenusAsync(CancellationToken cancellationToken)
-        {
-            // Obtain services and QueryInterface from the main thread
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
-            var monitorSelectionService = (IVsMonitorSelection)await GetServiceAsync(typeof(SVsShellMonitorSelection)).ConfigureAwait(true);
-
-            // Switch to the background object for constructing commands
-            await TaskScheduler.Default;
-
-            var threadingContext = ComponentModel.GetService<IThreadingContext>();
-
-            await new CSharpResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel, threadingContext)
-                .InitializeResetInteractiveFromProjectCommandAsync()
-                .ConfigureAwait(true);
-
-            await new VisualBasicResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel, threadingContext)
-                .InitializeResetInteractiveFromProjectCommandAsync()
-                .ConfigureAwait(true);
         }
 
         private async Task LoadStackTraceExplorerMenusAsync(CancellationToken cancellationToken)

@@ -5182,8 +5182,6 @@ class C
 
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
-                state.SendTypeChars("Sys")
-
                 Dim task1 As Task = Nothing
                 Dim task2 As Task = Nothing
 
@@ -5214,6 +5212,8 @@ class C
                     End Sub
 
                 AddHandler provider.ProviderCalled, providerCalledHandler
+
+                state.SendTypeChars("Sys")
 
                 ' SendCommitUniqueCompletionListItem is a asynchronous operation.
                 ' It guarantees that ProviderCalled will be triggered and after that the completion will deadlock waiting for a task to be resolved.
@@ -5259,7 +5259,6 @@ class C
                 Dim globalOptions = state.Workspace.GetService(Of IGlobalOptionService)
                 globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
-                state.SendTypeChars("Sys")
                 Dim task1 As Task = Nothing
                 Dim task2 As Task = Nothing
 
@@ -5289,6 +5288,8 @@ class C
                     End Sub
 
                 AddHandler provider.ProviderCalled, providerCalledHandler
+
+                state.SendTypeChars("Sys")
 
                 ' SendCommitUniqueCompletionListItem is an asynchronous operation.
                 ' It guarantees that ProviderCalled will be triggered and after that the completion will deadlock waiting for a task to be resolved.

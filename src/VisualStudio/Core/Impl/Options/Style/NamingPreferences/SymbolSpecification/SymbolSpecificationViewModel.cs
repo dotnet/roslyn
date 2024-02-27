@@ -46,8 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             // The list of supported SymbolKinds is limited due to https://github.com/dotnet/roslyn/issues/8753.
             if (languageName == LanguageNames.CSharp)
             {
-                SymbolKindList = new List<SymbolKindViewModel>
-                {
+                SymbolKindList =
+                [
                     new SymbolKindViewModel(SymbolKind.Namespace, ServicesVSResources.NamingSpecification_CSharp_Namespace, specification),
                     new SymbolKindViewModel(TypeKind.Class, ServicesVSResources.NamingSpecification_CSharp_Class, specification),
                     new SymbolKindViewModel(TypeKind.Struct, ServicesVSResources.NamingSpecification_CSharp_Struct, specification),
@@ -62,11 +62,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new SymbolKindViewModel(SymbolKind.Parameter, ServicesVSResources.NamingSpecification_CSharp_Parameter, specification),
                     new SymbolKindViewModel(SymbolKind.TypeParameter, ServicesVSResources.NamingSpecification_CSharp_TypeParameter, specification),
                     new SymbolKindViewModel(SymbolKind.Local, ServicesVSResources.NamingSpecification_CSharp_Local, specification)
-                };
+                ];
 
                 // Not localized because they're language keywords
-                AccessibilityList = new List<AccessibilityViewModel>
-                {
+                AccessibilityList =
+                [
                     new AccessibilityViewModel(Accessibility.Public, "public", specification),
                     new AccessibilityViewModel(Accessibility.Internal, "internal", specification),
                     new AccessibilityViewModel(Accessibility.Private, "private", specification),
@@ -74,22 +74,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new AccessibilityViewModel(Accessibility.ProtectedOrInternal, "protected internal", specification),
                     new AccessibilityViewModel(Accessibility.ProtectedAndInternal, "private protected", specification),
                     new AccessibilityViewModel(Accessibility.NotApplicable, "local", specification),
-                };
+                ];
 
                 // Not localized because they're language keywords
-                ModifierList = new List<ModifierViewModel>
-                {
+                ModifierList =
+                [
                     new ModifierViewModel(DeclarationModifiers.Abstract, "abstract", specification),
                     new ModifierViewModel(DeclarationModifiers.Async, "async", specification),
                     new ModifierViewModel(DeclarationModifiers.Const, "const", specification),
                     new ModifierViewModel(DeclarationModifiers.ReadOnly, "readonly", specification),
                     new ModifierViewModel(DeclarationModifiers.Static, "static", specification)
-                };
+                ];
             }
             else if (languageName == LanguageNames.VisualBasic)
             {
-                SymbolKindList = new List<SymbolKindViewModel>
-                {
+                SymbolKindList =
+                [
                     new SymbolKindViewModel(SymbolKind.Namespace, ServicesVSResources.NamingSpecification_VisualBasic_Namespace, specification),
                     new SymbolKindViewModel(TypeKind.Class, ServicesVSResources.NamingSpecification_VisualBasic_Class, specification),
                     new SymbolKindViewModel(TypeKind.Struct, ServicesVSResources.NamingSpecification_VisualBasic_Structure, specification),
@@ -104,29 +104,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new SymbolKindViewModel(SymbolKind.Parameter, ServicesVSResources.NamingSpecification_VisualBasic_Parameter, specification),
                     new SymbolKindViewModel(SymbolKind.TypeParameter, ServicesVSResources.NamingSpecification_VisualBasic_TypeParameter, specification),
                     new SymbolKindViewModel(SymbolKind.Local, ServicesVSResources.NamingSpecification_VisualBasic_Local, specification)
-                };
+                ];
 
                 // Not localized because they're language keywords
-                AccessibilityList = new List<AccessibilityViewModel>
-                {
+                AccessibilityList =
+                [
                     new AccessibilityViewModel(Accessibility.Public, "Public", specification),
                     new AccessibilityViewModel(Accessibility.Friend, "Friend", specification),
                     new AccessibilityViewModel(Accessibility.Private, "Private", specification),
-                    new AccessibilityViewModel(Accessibility.Protected , "Protected", specification),
+                    new AccessibilityViewModel(Accessibility.Protected, "Protected", specification),
                     new AccessibilityViewModel(Accessibility.ProtectedOrInternal, "Protected Friend", specification),
                     new AccessibilityViewModel(Accessibility.ProtectedAndInternal, "Private Protected", specification),
                     new AccessibilityViewModel(Accessibility.NotApplicable, "Local", specification),
-                };
+                ];
 
                 // Not localized because they're language keywords
-                ModifierList = new List<ModifierViewModel>
-                {
+                ModifierList =
+                [
                     new ModifierViewModel(DeclarationModifiers.Abstract, "MustInherit", specification),
                     new ModifierViewModel(DeclarationModifiers.Async, "Async", specification),
                     new ModifierViewModel(DeclarationModifiers.Const, "Const", specification),
                     new ModifierViewModel(DeclarationModifiers.ReadOnly, "ReadOnly", specification),
                     new ModifierViewModel(DeclarationModifiers.Static, "Shared", specification)
-                };
+                ];
             }
             else
             {

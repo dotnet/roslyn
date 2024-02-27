@@ -1778,7 +1778,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_InvalidExperimentalDiagID = 37328
 
-        ERR_NextAvailable = 37329
+        ERR_LockTypeUnsupported = 37329
+
+        ERR_NextAvailable = 37330
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
@@ -2010,6 +2012,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         WRN_AnalyzerReferencesNewerCompiler = 42506
         WRN_DuplicateAnalyzerReference = 42507
+
+        WRN_ConvertingLock = 42508
 
         ' // AVAILABLE                             42600 - 49998
         WRN_NextAvailable = 42600

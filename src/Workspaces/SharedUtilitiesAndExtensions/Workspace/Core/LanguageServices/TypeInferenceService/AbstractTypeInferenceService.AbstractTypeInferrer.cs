@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.LanguageService.TypeInferenceService
             protected readonly SemanticModel SemanticModel;
             protected readonly Func<TypeInferenceInfo, bool> IsUsableTypeFunc;
 
-            private readonly HashSet<SyntaxNode> _seenExpressionInferType = new();
-            private readonly HashSet<SyntaxNode> _seenExpressionGetType = new();
+            private readonly HashSet<SyntaxNode> _seenExpressionInferType = [];
+            private readonly HashSet<SyntaxNode> _seenExpressionGetType = [];
 
             private static readonly Func<TypeInferenceInfo, bool> s_isNotNull = t => t.InferredType != null;
 
@@ -90,8 +90,10 @@ namespace Microsoft.CodeAnalysis.LanguageService.TypeInferenceService
 
             protected static IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol parameterSymbol)
             {
-                var result = new List<ITypeSymbol>();
-                result.Add(parameterSymbol.Type);
+                var result = new List<ITypeSymbol>
+                {
+                    parameterSymbol.Type
+                };
 
                 if (parameterSymbol.IsParams)
                 {

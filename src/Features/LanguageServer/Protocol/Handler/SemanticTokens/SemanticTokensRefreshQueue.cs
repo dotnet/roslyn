@@ -35,13 +35,13 @@ internal class SemanticTokensRefreshQueue :
     /// <summary>
     /// Mapping from project id to the workqueue for producing the corresponding compilation for it on the OOP server.
     /// </summary>
-    private readonly Dictionary<ProjectId, CompilationAvailableEventSource> _projectIdToEventSource = new();
+    private readonly Dictionary<ProjectId, CompilationAvailableEventSource> _projectIdToEventSource = [];
 
     /// <summary>
     /// Mapping from project id to the project-cone-checksum for it we were at when the project for it had its
     /// compilation produced on the oop server.
     /// </summary>
-    private readonly Dictionary<ProjectId, Checksum> _projectIdToLastComputedChecksum = new();
+    private readonly Dictionary<ProjectId, Checksum> _projectIdToLastComputedChecksum = [];
 
     private readonly LspWorkspaceManager _lspWorkspaceManager;
     private readonly IClientLanguageServerManager _notificationManager;

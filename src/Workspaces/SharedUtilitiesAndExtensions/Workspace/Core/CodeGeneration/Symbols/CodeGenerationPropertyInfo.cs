@@ -10,8 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationPropertyInfo
     {
-        private static readonly ConditionalWeakTable<IPropertySymbol, CodeGenerationPropertyInfo> s_propertyToInfoMap =
-            new();
+        private static readonly ConditionalWeakTable<IPropertySymbol, CodeGenerationPropertyInfo> s_propertyToInfoMap = new();
 
         private readonly bool _isNew;
         private readonly bool _isUnsafe;

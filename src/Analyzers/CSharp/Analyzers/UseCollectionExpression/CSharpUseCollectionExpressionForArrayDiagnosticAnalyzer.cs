@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
@@ -82,6 +83,29 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
                 semanticModel, expression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
         {
             return default;
+        }
+
+        // If we have an initializer that itself is only full of collection expressions (like `{ ["a"], ["b"] }`), then
+        // we can only convert if the final type we're converting to has an element type that itself is a collection type.
+        if (expression.Initializer is { Expressions.Count: > 0 } &&
+            expression.Initializer.Expressions.All(e => e is CollectionExpressionSyntax))
+        {
+            var convertedType = semanticModel.GetTypeInfo(expression.WalkUpParentheses(), cancellationToken).ConvertedType;
+            if (convertedType is null)
+                return default;
+
+            var ienumerableType = convertedType.OriginalDefinition.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T
+                ? (INamedTypeSymbol)convertedType
+                : convertedType.AllInterfaces.FirstOrDefault(
+                    i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
+            if (ienumerableType is null)
+                return default;
+
+            if (!UseCollectionExpressionHelpers.IsConstructibleCollectionType(
+                    semanticModel.Compilation, ienumerableType.TypeArguments.Single()))
+            {
+                return default;
+            }
         }
 
         return matches;
@@ -167,6 +191,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
                 Descriptor,
                 initializer.OpenBraceToken.GetLocation(),
                 option.Notification,
+                context.Options,
                 additionalLocations: ImmutableArray.Create(initializer.GetLocation()),
                 properties: changesSemantics ? ChangesSemantics : null));
         }
@@ -181,6 +206,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             Descriptor,
             expression.GetFirstToken().GetLocation(),
             notification,
+            context.Options,
             additionalLocations: locations,
             properties: properties));
 
@@ -195,6 +221,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
             NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+            context.Options,
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations,
             properties: properties));

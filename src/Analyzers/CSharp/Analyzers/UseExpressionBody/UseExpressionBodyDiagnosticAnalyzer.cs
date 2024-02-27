@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 var properties = ImmutableDictionary<string, string?>.Empty.Add(nameof(UseExpressionBody), "");
                 return DiagnosticHelper.Create(
                     CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, hasAnyCodeStyleOption: true, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle),
-                    location, preference.Notification, additionalLocations: additionalLocations, properties: properties);
+                    location, preference.Notification, context.Options, additionalLocations: additionalLocations, properties: properties);
             }
 
             if (helper.CanOfferUseBlockBody(preference, declaration, forAnalyzer: true, out var fixesError, out var expressionBody))
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 return DiagnosticHelper.Create(
                     CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, hasAnyCodeStyleOption: true, helper.UseBlockBodyTitle, helper.UseBlockBodyTitle),
-                    location, preference.Notification, additionalLocations: additionalLocations, properties: properties);
+                    location, preference.Notification, context.Options, additionalLocations: additionalLocations, properties: properties);
             }
 
             return null;
