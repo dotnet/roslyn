@@ -2063,46 +2063,42 @@ value:");
 
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       81 (0x51)
+  // Code size       78 (0x4e)
   .maxstack  3
   .locals init (bool V_0, //b
-                object V_1,
-                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_2)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_2
+  IL_0002:  ldloca.s   V_1
   IL_0004:  ldc.i4.0
   IL_0005:  ldc.i4.4
   IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
-  IL_000b:  ldloc.0
-  IL_000c:  brfalse.s  IL_0017
-  IL_000e:  ldc.i4.1
-  IL_000f:  box        ""int""
-  IL_0014:  stloc.1
-  IL_0015:  br.s       IL_0019
-  IL_0017:  ldnull
-  IL_0018:  stloc.1
-  IL_0019:  ldloca.s   V_2
-  IL_001b:  ldloc.1
-  IL_001c:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)""
-  IL_0021:  ldloca.s   V_2
-  IL_0023:  ldloc.0
-  IL_0024:  brfalse.s  IL_002e
-  IL_0026:  ldc.i4.2
-  IL_0027:  box        ""int""
-  IL_002c:  br.s       IL_002f
-  IL_002e:  ldnull
-  IL_002f:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)""
-  IL_0034:  ldloca.s   V_2
-  IL_0036:  ldnull
-  IL_0037:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
-  IL_003c:  ldloca.s   V_2
-  IL_003e:  ldnull
-  IL_003f:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
-  IL_0044:  ldloca.s   V_2
-  IL_0046:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-  IL_004b:  call       ""void System.Console.WriteLine(string)""
-  IL_0050:  ret
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldloc.0
+  IL_000e:  brfalse.s  IL_0018
+  IL_0010:  ldc.i4.1
+  IL_0011:  box        ""int""
+  IL_0016:  br.s       IL_0019
+  IL_0018:  ldnull
+  IL_0019:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)""
+  IL_001e:  ldloca.s   V_1
+  IL_0020:  ldloc.0
+  IL_0021:  brfalse.s  IL_002b
+  IL_0023:  ldc.i4.2
+  IL_0024:  box        ""int""
+  IL_0029:  br.s       IL_002c
+  IL_002b:  ldnull
+  IL_002c:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)""
+  IL_0031:  ldloca.s   V_1
+  IL_0033:  ldnull
+  IL_0034:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
+  IL_0039:  ldloca.s   V_1
+  IL_003b:  ldnull
+  IL_003c:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
+  IL_0041:  ldloca.s   V_1
+  IL_0043:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_0048:  call       ""void System.Console.WriteLine(string)""
+  IL_004d:  ret
 }
 ");
     }
@@ -4454,58 +4450,50 @@ public partial struct CustomHandler
 
         verifier.VerifyIL("<top-level-statements-entry-point>", !expression.Contains('+') ? @"
 {
-  // Code size       59 (0x3b)
+  // Code size       56 (0x38)
   .maxstack  2
-  .locals init (string V_0,
-                CustomHandler V_1)
+  .locals init (CustomHandler V_0)
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
   IL_0005:  ldc.i4.0
   IL_0006:  box        ""bool""
   IL_000b:  unbox.any  ""bool""
-  IL_0010:  brfalse.s  IL_0023
-  IL_0012:  ldloca.s   V_1
+  IL_0010:  brfalse.s  IL_0022
+  IL_0012:  ldloca.s   V_0
   IL_0014:  initobj    ""CustomHandler""
-  IL_001a:  ldloc.1
+  IL_001a:  ldloc.0
   IL_001b:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
-  IL_0020:  stloc.0
-  IL_0021:  br.s       IL_0034
-  IL_0023:  ldstr      ""{0,2:f}Literal""
-  IL_0028:  ldc.i4.1
-  IL_0029:  box        ""int""
-  IL_002e:  call       ""string string.Format(string, object)""
-  IL_0033:  stloc.0
-  IL_0034:  ldloc.0
-  IL_0035:  call       ""void System.Console.WriteLine(string)""
-  IL_003a:  ret
+  IL_0020:  br.s       IL_0032
+  IL_0022:  ldstr      ""{0,2:f}Literal""
+  IL_0027:  ldc.i4.1
+  IL_0028:  box        ""int""
+  IL_002d:  call       ""string string.Format(string, object)""
+  IL_0032:  call       ""void System.Console.WriteLine(string)""
+  IL_0037:  ret
 }
 "
 : @"
 {
-  // Code size       69 (0x45)
+  // Code size       66 (0x42)
   .maxstack  2
-  .locals init (string V_0,
-                CustomHandler V_1)
+  .locals init (CustomHandler V_0)
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
   IL_0005:  ldc.i4.0
   IL_0006:  box        ""bool""
   IL_000b:  unbox.any  ""bool""
-  IL_0010:  brfalse.s  IL_0023
-  IL_0012:  ldloca.s   V_1
+  IL_0010:  brfalse.s  IL_0022
+  IL_0012:  ldloca.s   V_0
   IL_0014:  initobj    ""CustomHandler""
-  IL_001a:  ldloc.1
+  IL_001a:  ldloc.0
   IL_001b:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
-  IL_0020:  stloc.0
-  IL_0021:  br.s       IL_003e
-  IL_0023:  ldstr      ""{0,2:f}""
-  IL_0028:  ldc.i4.1
-  IL_0029:  box        ""int""
-  IL_002e:  call       ""string string.Format(string, object)""
-  IL_0033:  ldstr      ""Literal""
-  IL_0038:  call       ""string string.Concat(string, string)""
-  IL_003d:  stloc.0
-  IL_003e:  ldloc.0
-  IL_003f:  call       ""void System.Console.WriteLine(string)""
-  IL_0044:  ret
+  IL_0020:  br.s       IL_003c
+  IL_0022:  ldstr      ""{0,2:f}""
+  IL_0027:  ldc.i4.1
+  IL_0028:  box        ""int""
+  IL_002d:  call       ""string string.Format(string, object)""
+  IL_0032:  ldstr      ""Literal""
+  IL_0037:  call       ""string string.Concat(string, string)""
+  IL_003c:  call       ""void System.Console.WriteLine(string)""
+  IL_0041:  ret
 }
 ");
     }
@@ -4538,38 +4526,34 @@ literal:Literal");
 
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       79 (0x4f)
+  // Code size       76 (0x4c)
   .maxstack  4
-  .locals init (CustomHandler V_0,
-                CustomHandler V_1)
+  .locals init (CustomHandler V_0)
   IL_0000:  ldc.i4.0
   IL_0001:  box        ""bool""
   IL_0006:  unbox.any  ""bool""
-  IL_000b:  brfalse.s  IL_0019
-  IL_000d:  ldloca.s   V_1
+  IL_000b:  brfalse.s  IL_0018
+  IL_000d:  ldloca.s   V_0
   IL_000f:  initobj    ""CustomHandler""
-  IL_0015:  ldloc.1
-  IL_0016:  stloc.0
-  IL_0017:  br.s       IL_0043
-  IL_0019:  ldloca.s   V_1
-  IL_001b:  ldc.i4.7
-  IL_001c:  ldc.i4.1
-  IL_001d:  call       ""CustomHandler..ctor(int, int)""
-  IL_0022:  ldloca.s   V_1
-  IL_0024:  ldc.i4.1
-  IL_0025:  box        ""int""
-  IL_002a:  ldc.i4.2
-  IL_002b:  ldstr      ""f""
-  IL_0030:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_0035:  ldloca.s   V_1
-  IL_0037:  ldstr      ""Literal""
-  IL_003c:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_0041:  ldloc.1
-  IL_0042:  stloc.0
-  IL_0043:  ldloc.0
-  IL_0044:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
-  IL_0049:  call       ""void System.Console.WriteLine(string)""
-  IL_004e:  ret
+  IL_0015:  ldloc.0
+  IL_0016:  br.s       IL_0041
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  ldc.i4.7
+  IL_001b:  ldc.i4.1
+  IL_001c:  call       ""CustomHandler..ctor(int, int)""
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  ldc.i4.1
+  IL_0024:  box        ""int""
+  IL_0029:  ldc.i4.2
+  IL_002a:  ldstr      ""f""
+  IL_002f:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0034:  ldloca.s   V_0
+  IL_0036:  ldstr      ""Literal""
+  IL_003b:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0040:  ldloc.0
+  IL_0041:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
+  IL_0046:  call       ""void System.Console.WriteLine(string)""
+  IL_004b:  ret
 }
 ");
     }
@@ -4602,38 +4586,34 @@ literal:Literal");
 
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       79 (0x4f)
+  // Code size       76 (0x4c)
   .maxstack  4
-  .locals init (CustomHandler V_0,
-                CustomHandler V_1)
+  .locals init (CustomHandler V_0)
   IL_0000:  ldc.i4.0
   IL_0001:  box        ""bool""
   IL_0006:  unbox.any  ""bool""
-  IL_000b:  brfalse.s  IL_0019
-  IL_000d:  ldloca.s   V_1
+  IL_000b:  brfalse.s  IL_0018
+  IL_000d:  ldloca.s   V_0
   IL_000f:  initobj    ""CustomHandler""
-  IL_0015:  ldloc.1
-  IL_0016:  stloc.0
-  IL_0017:  br.s       IL_0043
-  IL_0019:  ldloca.s   V_1
-  IL_001b:  ldc.i4.7
-  IL_001c:  ldc.i4.1
-  IL_001d:  call       ""CustomHandler..ctor(int, int)""
-  IL_0022:  ldloca.s   V_1
-  IL_0024:  ldc.i4.1
-  IL_0025:  box        ""int""
-  IL_002a:  ldc.i4.2
-  IL_002b:  ldstr      ""f""
-  IL_0030:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_0035:  ldloca.s   V_1
-  IL_0037:  ldstr      ""Literal""
-  IL_003c:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_0041:  ldloc.1
-  IL_0042:  stloc.0
-  IL_0043:  ldloc.0
-  IL_0044:  box        ""CustomHandler""
-  IL_0049:  call       ""void System.Console.WriteLine(object)""
-  IL_004e:  ret
+  IL_0015:  ldloc.0
+  IL_0016:  br.s       IL_0041
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  ldc.i4.7
+  IL_001b:  ldc.i4.1
+  IL_001c:  call       ""CustomHandler..ctor(int, int)""
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  ldc.i4.1
+  IL_0024:  box        ""int""
+  IL_0029:  ldc.i4.2
+  IL_002a:  ldstr      ""f""
+  IL_002f:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0034:  ldloca.s   V_0
+  IL_0036:  ldstr      ""Literal""
+  IL_003b:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0040:  ldloc.0
+  IL_0041:  box        ""CustomHandler""
+  IL_0046:  call       ""void System.Console.WriteLine(object)""
+  IL_004b:  ret
 }
 ");
     }
@@ -4693,38 +4673,34 @@ literal:Literal");
 
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       79 (0x4f)
+  // Code size       76 (0x4c)
   .maxstack  4
-  .locals init (CustomHandler V_0,
-                CustomHandler V_1)
+  .locals init (CustomHandler V_0)
   IL_0000:  ldc.i4.0
   IL_0001:  box        ""bool""
   IL_0006:  unbox.any  ""bool""
-  IL_000b:  brfalse.s  IL_0019
-  IL_000d:  ldloca.s   V_1
+  IL_000b:  brfalse.s  IL_0018
+  IL_000d:  ldloca.s   V_0
   IL_000f:  initobj    ""CustomHandler""
-  IL_0015:  ldloc.1
-  IL_0016:  stloc.0
-  IL_0017:  br.s       IL_0043
-  IL_0019:  ldloca.s   V_1
-  IL_001b:  ldc.i4.7
-  IL_001c:  ldc.i4.1
-  IL_001d:  call       ""CustomHandler..ctor(int, int)""
-  IL_0022:  ldloca.s   V_1
-  IL_0024:  ldc.i4.1
-  IL_0025:  box        ""int""
-  IL_002a:  ldc.i4.2
-  IL_002b:  ldstr      ""f""
-  IL_0030:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_0035:  ldloca.s   V_1
-  IL_0037:  ldstr      ""Literal""
-  IL_003c:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_0041:  ldloc.1
-  IL_0042:  stloc.0
-  IL_0043:  ldloc.0
-  IL_0044:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
-  IL_0049:  call       ""void System.Console.WriteLine(string)""
-  IL_004e:  ret
+  IL_0015:  ldloc.0
+  IL_0016:  br.s       IL_0041
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  ldc.i4.7
+  IL_001b:  ldc.i4.1
+  IL_001c:  call       ""CustomHandler..ctor(int, int)""
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  ldc.i4.1
+  IL_0024:  box        ""int""
+  IL_0029:  ldc.i4.2
+  IL_002a:  ldstr      ""f""
+  IL_002f:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0034:  ldloca.s   V_0
+  IL_0036:  ldstr      ""Literal""
+  IL_003b:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0040:  ldloc.0
+  IL_0041:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
+  IL_0046:  call       ""void System.Console.WriteLine(string)""
+  IL_004b:  ret
 }
 ");
     }

@@ -366,22 +366,18 @@ class C
             compilation.VerifyDiagnostics();
 
             compilation.VerifyIL("C.M",
-@"
+"""
 {
-    // Code size       19 (0x13)
-    .maxstack  1
-    .locals init (System.Exception V_0)
-    IL_0000:  ldarg.0
-    IL_0001:  brfalse.s  IL_000b
-    IL_0003:  newobj     ""System.NullReferenceException..ctor()""
-    IL_0008:  stloc.0
-    IL_0009:  br.s       IL_0011
-    IL_000b:  newobj     ""System.ArgumentException..ctor()""
-    IL_0010:  stloc.0
-    IL_0011:  ldloc.0
-    IL_0012:  throw
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000a
+  IL_0003:  newobj     "System.NullReferenceException..ctor()"
+  IL_0008:  br.s       IL_000f
+  IL_000a:  newobj     "System.ArgumentException..ctor()"
+  IL_000f:  throw
 }
-");
+""");
         }
 
         [Fact]
