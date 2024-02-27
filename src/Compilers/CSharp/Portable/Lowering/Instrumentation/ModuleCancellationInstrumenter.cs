@@ -123,12 +123,17 @@ internal sealed class ModuleCancellationInstrumenter(
     {
         Previous.InterceptCallAndAdjustArguments(ref method, ref receiver, ref arguments, ref argumentRefKindsOpt);
 
+        // If the target method is defined within this compilation it is already being instrumented to be cancellable.
+        // However, if we are calling Invoke method of a delegate or a virtual/interface method we can't determine whether
+        // or not the target is in the current compilation. Hence we replace the cancellation token for all calls.
+
         if (arguments is [.., { Type: { } lastArgumentType } lastArgument] &&
             (argumentRefKindsOpt.IsDefault || argumentRefKindsOpt is [.., RefKind.None]) &&
             lastArgumentType.Equals(_throwMethod.ContainingType, TypeCompareKind.ConsiderEverything))
         {
             // The last argument is a CancellationToken. Replace it with the module-level token.
             // Keep the previous expression so that side-effects are preserved.
+
             arguments = [.. arguments[0..^1], _factory.Sequence([lastArgument], _factory.ModuleCancellationToken())];
         }
         else if (FindOverloadWithCancellationToken(method) is { } cancellableOverload)
@@ -160,6 +165,13 @@ internal sealed class ModuleCancellationInstrumenter(
 
         foreach (var member in methodDefinition.ContainingType.GetMembers(method.Name))
         {
+            // If the member is the method being compiled, calling it could result in a recursion not present in the code previously.
+            // We can't guarantee the instrumentation won't result in infinite recursion, but we can avoid the trivial case.
+            if (member == _factory.TopLevelMethod?.OriginalDefinition)
+            {
+                continue;
+            }
+
             // It's unlikely that real-world APIs have overloads that differ in dynamic,
             // but if they do avoid selecting them since their intended use might differ.
             //

@@ -412,7 +412,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
     }
 
     [Fact]
-    public void InstanceConstructors_Overloads_BaseCall()
+    public void InstanceConstructors_Overload_BaseCall()
     {
         var source = """
             using System.Threading;
@@ -449,7 +449,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
     }
 
     [Fact]
-    public void InstanceConstructors_Overloads_ThisCall()
+    public void InstanceConstructors_Overload_ThisCall()
     {
         var source = """
             using System.Threading;
@@ -486,7 +486,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
     }
 
     [Fact]
-    public void Constructor_Overloads_ObjectCreation()
+    public void Constructor_Overload_ObjectCreation()
     {
         var source = """
             using System.Threading;
@@ -527,7 +527,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
     }
 
     [Fact]
-    public void Constructor_Overloads_CollectionInitializers()
+    public void Constructor_Overload_CollectionInitializers()
     {
         var source = """
             using System.Collections;
@@ -584,7 +584,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
     }
 
     [Fact]
-    public void InstanceConstructors_Overloads_SetsRequiredMembers_NotCompatible()
+    public void InstanceConstructors_Overload_SetsRequiredMembers_NotCompatible()
     {
         var source = """
             using System.Threading;
@@ -619,7 +619,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
     [Theory]
     [InlineData("")]
     [InlineData("[SetsRequiredMembers]")]
-    public void InstanceConstructors_Overloads_SetsRequiredMembers_Compatible(string attributes)
+    public void InstanceConstructors_Overload_SetsRequiredMembers_Compatible(string attributes)
     {
         var source = $$"""
             using System.Threading;
@@ -1704,810 +1704,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
             """);
     }
 
-    [Fact]
-    public void ArgumentReplacement_Overload_Matching()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    G(1);
-                }
 
-                void G(int a)
-                {
-                }
-            
-                void G(out int a, CancellationToken token) => throw null;
-                void G(long a, CancellationToken token) => throw null;
-                void G(CancellationToken token) => throw null;
-                void G(int a, CancellationToken token) => throw null;
-                void G(CancellationToken token, int a) => throw null;
-                void G(int a, int b, CancellationToken token) => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        verifier.VerifyMethodBody("C.F", """
-             {
-              // Code size       25 (0x19)
-              .maxstack  3
-              // sequence point: <hidden>
-              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
-              // sequence point: {
-              IL_000a:  nop
-              // sequence point: G(1);
-              IL_000b:  ldarg.0
-              IL_000c:  ldc.i4.1
-              IL_000d:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0012:  call       "void C.G(int, System.Threading.CancellationToken)"
-              IL_0017:  nop
-              // sequence point: }
-              IL_0018:  ret
-            }
-            """);
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_ObjectVsDynamic_Arg()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    G(1);
-                }
-
-                void G(object a) => throw null;
-                void G(dynamic a, CancellationToken token) => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_ObjectToDynamic_Return()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    var x = G(1);
-                    var y = x.ToString();
-                }
-
-                object G(int a) => throw null;
-                dynamic G(int a, CancellationToken token) => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_DynamicToObject_Return()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    var x = G(1);
-                    var y = x.ToString();
-                }
-
-                dynamic G(int a) => throw null;
-                object G(int a, CancellationToken token) => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_ArgumentNames()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    G((1, 1));
-                }
-
-                (int u, int v) G((int x, int y) a) => throw null;
-                (int u, int w) G((int z, int y) b, CancellationToken token) => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        verifier.VerifyMethodBody("C.F", """
-            {
-              // Code size       31 (0x1f)
-              .maxstack  3
-              // sequence point: <hidden>
-              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
-              // sequence point: {
-              IL_000a:  nop
-              // sequence point: G((1, 1));
-              IL_000b:  ldarg.0
-              IL_000c:  ldc.i4.1
-              IL_000d:  ldc.i4.1
-              IL_000e:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
-              IL_0013:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0018:  call       "System.ValueTuple<int, int> C.G(System.ValueTuple<int, int>, System.Threading.CancellationToken)"
-              IL_001d:  pop
-              // sequence point: }
-              IL_001e:  ret
-            }
-            """);
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_ExplicitInterfaceImpl()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            interface I
-            {
-                void G(int a);
-                void G(int a, CancellationToken token);
-            }
-
-            class C : I
-            {
-                void F(CancellationToken token)
-                {
-                    ((I)this).G(1, token);
-                    ((I)this).G(1);
-                }
-
-                void I.G(int a) => throw null;
-                void I.G(int a, CancellationToken token) => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        verifier.VerifyMethodBody("C.F", """
-            {
-              // Code size       38 (0x26)
-              .maxstack  3
-              // sequence point: <hidden>
-              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
-              // sequence point: {
-              IL_000a:  nop
-              // sequence point: ((I)this).G(1, token);
-              IL_000b:  ldarg.0
-              IL_000c:  ldc.i4.1
-              IL_000d:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0012:  callvirt   "void I.G(int, System.Threading.CancellationToken)"
-              IL_0017:  nop
-              // sequence point: ((I)this).G(1);
-              IL_0018:  ldarg.0
-              IL_0019:  ldc.i4.1
-              IL_001a:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_001f:  callvirt   "void I.G(int, System.Threading.CancellationToken)"
-              IL_0024:  nop
-              // sequence point: }
-              IL_0025:  ret
-            }
-            """);
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_SpecializedCancellable_SameArity()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    G<int>(0, 1);
-                }
-
-                void G<T>(T a, T b) => throw null;
-                void G<T>(int a, T b, CancellationToken token) => throw null;
-                void G<T>(bool a, T b, CancellationToken token) => throw null;
-            }    
-            """;
-
-        var verifier = CompileAndVerify(source);
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_SpecializedCancellable_DifferentArity()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    G<int, bool>(1, true);
-                }
-
-                void G<S, T>(S a, T b) => throw null;
-                void G<T>(int a, T b, CancellationToken token) => throw null;
-                void G<T>(bool a, T b, CancellationToken token) => throw null;
-            }    
-            """;
-
-        var verifier = CompileAndVerify(source);
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_GenericCancellable_SameArity()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    G<int>(0, 1);
-                }
-
-                void G<T>(int a, T b) => throw null;
-                void G<T>(T a, T b, CancellationToken token) => throw null;
-            }    
-            """;
-
-        var verifier = CompileAndVerify(source);
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_GenericCancellable_DifferentArity()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    G<bool>(1, true);
-                }
-            
-                void G<T>(int a, T b) => throw null;
-                void G<S, T>(S a, T b, CancellationToken token) => throw null;
-            }    
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_GenericContainingType()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C<T>
-            {
-                void F(CancellationToken token)
-                {
-                    G(default);
-                    G(default, token);
-                }
-
-                void G(T a)
-                {
-                }
-            
-                void G(T a, CancellationToken token) => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        verifier.VerifyMethodBody("C<T>.F", """
-            {
-              // Code size       54 (0x36)
-              .maxstack  3
-              .locals init (T V_0)
-              // sequence point: <hidden>
-              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
-              // sequence point: {
-              IL_000a:  nop
-              // sequence point: G(default);
-              IL_000b:  ldarg.0
-              IL_000c:  ldloca.s   V_0
-              IL_000e:  initobj    "T"
-              IL_0014:  ldloc.0
-              IL_0015:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_001a:  call       "void C<T>.G(T, System.Threading.CancellationToken)"
-              IL_001f:  nop
-              // sequence point: G(default, token);
-              IL_0020:  ldarg.0
-              IL_0021:  ldloca.s   V_0
-              IL_0023:  initobj    "T"
-              IL_0029:  ldloc.0
-              IL_002a:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_002f:  call       "void C<T>.G(T, System.Threading.CancellationToken)"
-              IL_0034:  nop
-              // sequence point: }
-              IL_0035:  ret
-            }
-            """);
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_GenericContainingType2()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C<S, T>
-            {
-                void F()
-                {
-                    G(default);
-                }
-
-                void G(S a)
-                {
-                }
-            
-                void G(T a, CancellationToken token) => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        AssertNotInstrumentedWithTokenLoad(verifier, "C<S, T>.F");
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_GenericContainingType_Specialized()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class D<T>
-            {
-                public static void G(T a) {}
-                public static void G(int a, CancellationToken token) {}
-            }
-
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    D<int>.G(1);
-                }
-            }
-                
-            """;
-
-        var verifier = CompileAndVerify(source);
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_GenericContainingType_Specialized_Generic()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class D<T>
-            {
-                public static void G<S>(T a) {}
-                public static void G<S>(S a, CancellationToken token) {}
-            }
-
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    D<int>.G<int>(1);
-                }
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_GenericContainingType_Generalized()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class D<T>
-            {
-                public static void G(int a) {}
-                public static void G(T a, CancellationToken token) {}
-            }
-
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    D<int>.G(1);
-                }
-            }
-                
-            """;
-
-        var verifier = CompileAndVerify(source);
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_Generic_MatchingConstraint()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    G<int>(1);
-                }
-
-                void G<T>(T a) where T : struct => throw null;
-                void G<T>(T a, CancellationToken token) where T : struct => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        verifier.VerifyMethodBody("C.F", """
-            {
-              // Code size       25 (0x19)
-              .maxstack  3
-              // sequence point: <hidden>
-              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
-              // sequence point: {
-              IL_000a:  nop
-              // sequence point: G<int>(1);
-              IL_000b:  ldarg.0
-              IL_000c:  ldc.i4.1
-              IL_000d:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0012:  call       "void C.G<int>(int, System.Threading.CancellationToken)"
-              IL_0017:  nop
-              // sequence point: }
-              IL_0018:  ret
-            }
-            """);
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_Generic_MatchingConstraint_TypeParameterNamesDiffer()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    G<int, bool>(1, true);
-                }
-
-                void G<S, T>(S a, T b) where T : struct => throw null;
-                void G<T, S>(T a, S b, CancellationToken token) where S : struct => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        verifier.VerifyMethodBody("C.F", """
-            {
-              // Code size       26 (0x1a)
-              .maxstack  4
-              // sequence point: <hidden>
-              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
-              // sequence point: {
-              IL_000a:  nop
-              // sequence point: G<int, bool>(1, true);
-              IL_000b:  ldarg.0
-              IL_000c:  ldc.i4.1
-              IL_000d:  ldc.i4.1
-              IL_000e:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0013:  call       "void C.G<int, bool>(int, bool, System.Threading.CancellationToken)"
-              IL_0018:  nop
-              // sequence point: }
-              IL_0019:  ret
-            }
-            """);
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_Generic_CompatibleButNotSameConstraint()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    G<int>(1);
-                }
-
-                void G<T>(int a) => throw null;            
-                void G<T>(int a, CancellationToken token) where T : struct => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_Generic_IncompatibleConstraint()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    G<int>(1);
-                }
-
-                void G<T>(int a) => throw null;            
-                void G<T>(int a, CancellationToken token) where T : class => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_NoMatching()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    G(1);
-                }
-
-                void G(int a)
-                {
-                }
-            
-                int G(int a, CancellationToken token) => throw null;
-                void G(out int a, CancellationToken token) => throw null;
-                void G(long a, CancellationToken token) => throw null;
-                void G(CancellationToken token) => throw null;
-                void G(CancellationToken token, int a) => throw null;
-                void G(int a, int b, CancellationToken token) => throw null;
-                void G<T>(int a, CancellationToken token) => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
-
-    [Theory]
-    [InlineData("ref", "")]
-    [InlineData("", "ref")]
-    [InlineData("ref readonly", "")]
-    [InlineData("", "ref readonly")]
-    [InlineData("ref", "ref readonly")]
-    [InlineData("ref readonly", "ref")]
-    public void ArgumentReplacement_Overload_ReturnType(string modifiers1, string modifiers2)
-    {
-        var source = $$"""
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    G(1);
-                }
-
-                {{modifiers1}} int G(int a) => throw null;
-                {{modifiers2}} int G(int a, CancellationToken token) => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_InstanceToStatic()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    G(1);
-                }
-
-                void G(int a)
-                {
-                }
-            
-                static void G(int a, CancellationToken token) => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_StaticToInstance()
-    {
-        var source = """
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class C
-            {
-                void F(CancellationToken token)
-                {
-                    G(1);
-                }
-
-                static void G(int a)
-                {
-                }
-            
-                void G(int a, CancellationToken token) => throw null;
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
-
-    [Theory]
-    [CombinatorialData]
-    public void ArgumentReplacement_Overload_NonMatchingVisibility(
-        [CombinatorialValues("protected", "internal", "private protected", "internal protected")] string modifier1,
-        [CombinatorialValues("private", "protected", "internal", "private protected", "internal protected")] string modifier2)
-    {
-        var source = $$"""
-            using System.Threading;
-            using System.Threading.Tasks;
-            
-            class B
-            {
-                {{modifier1}} static void G(int a) => throw null;
-                {{modifier2}} static void G(int a, CancellationToken token) => throw null;
-            }
-
-            class C : B
-            {
-                void F(CancellationToken token)
-                {
-                    G(1);
-                }
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-
-        if (modifier1 == modifier2)
-        {
-            verifier.VerifyMethodBody("C.F", $$"""
-            {
-              // Code size       24 (0x18)
-              .maxstack  2
-              // sequence point: <hidden>
-              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
-              // sequence point: {
-              IL_000a:  nop
-              // sequence point: G(1);
-              IL_000b:  ldc.i4.1
-              IL_000c:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
-              IL_0011:  call       "void B.G(int, System.Threading.CancellationToken)"
-              IL_0016:  nop
-              // sequence point: }
-              IL_0017:  ret
-            }
-            """);
-        }
-        else
-        {
-            AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-        }
-    }
-
-    [Fact]
-    public void ArgumentReplacement_Overload_Indexer()
-    {
-        var source = """
-            using System.Threading;
-            
-            class C
-            {
-                int this[int x] => 0;
-                int this[int x, CancellationToken token] => 0;
-
-                void F()
-                {
-                    var _ = this[1];
-                }
-            }
-            """;
-
-        var verifier = CompileAndVerify(source);
-        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
-    }
 
     [Fact]
     public void ArgumentReplacement_IndirectCall_Positional()
@@ -2715,5 +1912,828 @@ public sealed class ModuleCancellationTests : CSharpTestBase
 
         var verifier = CompileAndVerify(source);
         AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_Matching()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G(1);
+                }
+
+                void G(int a)
+                {
+                }
+            
+                void G(out int a, CancellationToken token) => throw null;
+                void G(long a, CancellationToken token) => throw null;
+                void G(CancellationToken token) => throw null;
+                void G(int a, CancellationToken token) => throw null;
+                void G(CancellationToken token, int a) => throw null;
+                void G(int a, int b, CancellationToken token) => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        verifier.VerifyMethodBody("C.F", """
+             {
+              // Code size       25 (0x19)
+              .maxstack  3
+              // sequence point: <hidden>
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              // sequence point: {
+              IL_000a:  nop
+              // sequence point: G(1);
+              IL_000b:  ldarg.0
+              IL_000c:  ldc.i4.1
+              IL_000d:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0012:  call       "void C.G(int, System.Threading.CancellationToken)"
+              IL_0017:  nop
+              // sequence point: }
+              IL_0018:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void CancellableOverload_ObjectVsDynamic_Arg()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G(1);
+                }
+
+                void G(object a) => throw null;
+                void G(dynamic a, CancellationToken token) => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_ObjectToDynamic_Return()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    var x = G(1);
+                    var y = x.ToString();
+                }
+
+                object G(int a) => throw null;
+                dynamic G(int a, CancellationToken token) => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_DynamicToObject_Return()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    var x = G(1);
+                    var y = x.ToString();
+                }
+
+                dynamic G(int a) => throw null;
+                object G(int a, CancellationToken token) => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_ArgumentNames()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G((1, 1));
+                }
+
+                (int u, int v) G((int x, int y) a) => throw null;
+                (int u, int w) G((int z, int y) b, CancellationToken token) => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        verifier.VerifyMethodBody("C.F", """
+            {
+              // Code size       31 (0x1f)
+              .maxstack  3
+              // sequence point: <hidden>
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              // sequence point: {
+              IL_000a:  nop
+              // sequence point: G((1, 1));
+              IL_000b:  ldarg.0
+              IL_000c:  ldc.i4.1
+              IL_000d:  ldc.i4.1
+              IL_000e:  newobj     "System.ValueTuple<int, int>..ctor(int, int)"
+              IL_0013:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0018:  call       "System.ValueTuple<int, int> C.G(System.ValueTuple<int, int>, System.Threading.CancellationToken)"
+              IL_001d:  pop
+              // sequence point: }
+              IL_001e:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void CancellableOverload_ExplicitInterfaceImpl()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            interface I
+            {
+                void G(int a);
+                void G(int a, CancellationToken token);
+            }
+
+            class C : I
+            {
+                void F(CancellationToken token)
+                {
+                    ((I)this).G(1, token);
+                    ((I)this).G(1);
+                }
+
+                void I.G(int a) => throw null;
+                void I.G(int a, CancellationToken token) => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        verifier.VerifyMethodBody("C.F", """
+            {
+              // Code size       38 (0x26)
+              .maxstack  3
+              // sequence point: <hidden>
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              // sequence point: {
+              IL_000a:  nop
+              // sequence point: ((I)this).G(1, token);
+              IL_000b:  ldarg.0
+              IL_000c:  ldc.i4.1
+              IL_000d:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0012:  callvirt   "void I.G(int, System.Threading.CancellationToken)"
+              IL_0017:  nop
+              // sequence point: ((I)this).G(1);
+              IL_0018:  ldarg.0
+              IL_0019:  ldc.i4.1
+              IL_001a:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_001f:  callvirt   "void I.G(int, System.Threading.CancellationToken)"
+              IL_0024:  nop
+              // sequence point: }
+              IL_0025:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void CancellableOverload_SpecializedCancellable_SameArity()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G<int>(0, 1);
+                }
+
+                void G<T>(T a, T b) => throw null;
+                void G<T>(int a, T b, CancellationToken token) => throw null;
+                void G<T>(bool a, T b, CancellationToken token) => throw null;
+            }    
+            """;
+
+        var verifier = CompileAndVerify(source);
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_SpecializedCancellable_DifferentArity()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G<int, bool>(1, true);
+                }
+
+                void G<S, T>(S a, T b) => throw null;
+                void G<T>(int a, T b, CancellationToken token) => throw null;
+                void G<T>(bool a, T b, CancellationToken token) => throw null;
+            }    
+            """;
+
+        var verifier = CompileAndVerify(source);
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_GenericCancellable_SameArity()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G<int>(0, 1);
+                }
+
+                void G<T>(int a, T b) => throw null;
+                void G<T>(T a, T b, CancellationToken token) => throw null;
+            }    
+            """;
+
+        var verifier = CompileAndVerify(source);
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_GenericCancellable_DifferentArity()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G<bool>(1, true);
+                }
+            
+                void G<T>(int a, T b) => throw null;
+                void G<S, T>(S a, T b, CancellationToken token) => throw null;
+            }    
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_GenericContainingType()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C<T>
+            {
+                void F(CancellationToken token)
+                {
+                    G(default);
+                    G(default, token);
+                }
+
+                void G(T a)
+                {
+                }
+            
+                void G(T a, CancellationToken token) => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        verifier.VerifyMethodBody("C<T>.F", """
+            {
+              // Code size       54 (0x36)
+              .maxstack  3
+              .locals init (T V_0)
+              // sequence point: <hidden>
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              // sequence point: {
+              IL_000a:  nop
+              // sequence point: G(default);
+              IL_000b:  ldarg.0
+              IL_000c:  ldloca.s   V_0
+              IL_000e:  initobj    "T"
+              IL_0014:  ldloc.0
+              IL_0015:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_001a:  call       "void C<T>.G(T, System.Threading.CancellationToken)"
+              IL_001f:  nop
+              // sequence point: G(default, token);
+              IL_0020:  ldarg.0
+              IL_0021:  ldloca.s   V_0
+              IL_0023:  initobj    "T"
+              IL_0029:  ldloc.0
+              IL_002a:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_002f:  call       "void C<T>.G(T, System.Threading.CancellationToken)"
+              IL_0034:  nop
+              // sequence point: }
+              IL_0035:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void CancellableOverload_GenericContainingType2()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C<S, T>
+            {
+                void F()
+                {
+                    G(default);
+                }
+
+                void G(S a)
+                {
+                }
+            
+                void G(T a, CancellationToken token) => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        AssertNotInstrumentedWithTokenLoad(verifier, "C<S, T>.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_GenericContainingType_Specialized()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class D<T>
+            {
+                public static void G(T a) {}
+                public static void G(int a, CancellationToken token) {}
+            }
+
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    D<int>.G(1);
+                }
+            }
+                
+            """;
+
+        var verifier = CompileAndVerify(source);
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_GenericContainingType_Specialized_Generic()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class D<T>
+            {
+                public static void G<S>(T a) {}
+                public static void G<S>(S a, CancellationToken token) {}
+            }
+
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    D<int>.G<int>(1);
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_GenericContainingType_Generalized()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class D<T>
+            {
+                public static void G(int a) {}
+                public static void G(T a, CancellationToken token) {}
+            }
+
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    D<int>.G(1);
+                }
+            }
+                
+            """;
+
+        var verifier = CompileAndVerify(source);
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_Generic_MatchingConstraint()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G<int>(1);
+                }
+
+                void G<T>(T a) where T : struct => throw null;
+                void G<T>(T a, CancellationToken token) where T : struct => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        verifier.VerifyMethodBody("C.F", """
+            {
+              // Code size       25 (0x19)
+              .maxstack  3
+              // sequence point: <hidden>
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              // sequence point: {
+              IL_000a:  nop
+              // sequence point: G<int>(1);
+              IL_000b:  ldarg.0
+              IL_000c:  ldc.i4.1
+              IL_000d:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0012:  call       "void C.G<int>(int, System.Threading.CancellationToken)"
+              IL_0017:  nop
+              // sequence point: }
+              IL_0018:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void CancellableOverload_Generic_MatchingConstraint_TypeParameterNamesDiffer()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G<int, bool>(1, true);
+                }
+
+                void G<S, T>(S a, T b) where T : struct => throw null;
+                void G<T, S>(T a, S b, CancellationToken token) where S : struct => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        verifier.VerifyMethodBody("C.F", """
+            {
+              // Code size       26 (0x1a)
+              .maxstack  4
+              // sequence point: <hidden>
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              // sequence point: {
+              IL_000a:  nop
+              // sequence point: G<int, bool>(1, true);
+              IL_000b:  ldarg.0
+              IL_000c:  ldc.i4.1
+              IL_000d:  ldc.i4.1
+              IL_000e:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0013:  call       "void C.G<int, bool>(int, bool, System.Threading.CancellationToken)"
+              IL_0018:  nop
+              // sequence point: }
+              IL_0019:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void CancellableOverload_Generic_CompatibleButNotSameConstraint()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G<int>(1);
+                }
+
+                void G<T>(int a) => throw null;            
+                void G<T>(int a, CancellationToken token) where T : struct => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_Generic_IncompatibleConstraint()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G<int>(1);
+                }
+
+                void G<T>(int a) => throw null;            
+                void G<T>(int a, CancellationToken token) where T : class => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_NoMatching()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G(1);
+                }
+
+                void G(int a)
+                {
+                }
+            
+                int G(int a, CancellationToken token) => throw null;
+                void G(out int a, CancellationToken token) => throw null;
+                void G(long a, CancellationToken token) => throw null;
+                void G(CancellationToken token) => throw null;
+                void G(CancellationToken token, int a) => throw null;
+                void G(int a, int b, CancellationToken token) => throw null;
+                void G<T>(int a, CancellationToken token) => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Theory]
+    [InlineData("ref", "")]
+    [InlineData("", "ref")]
+    [InlineData("ref readonly", "")]
+    [InlineData("", "ref readonly")]
+    [InlineData("ref", "ref readonly")]
+    [InlineData("ref readonly", "ref")]
+    public void CancellableOverload_ReturnType(string modifiers1, string modifiers2)
+    {
+        var source = $$"""
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G(1);
+                }
+
+                {{modifiers1}} int G(int a) => throw null;
+                {{modifiers2}} int G(int a, CancellationToken token) => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_InstanceToStatic()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G(1);
+                }
+
+                void G(int a)
+                {
+                }
+            
+                static void G(int a, CancellationToken token) => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_StaticToInstance()
+    {
+        var source = """
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                void F(CancellationToken token)
+                {
+                    G(1);
+                }
+
+                static void G(int a)
+                {
+                }
+            
+                void G(int a, CancellationToken token) => throw null;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void CancellableOverload_NonMatchingVisibility(
+        [CombinatorialValues("protected", "internal", "private protected", "internal protected")] string modifier1,
+        [CombinatorialValues("private", "protected", "internal", "private protected", "internal protected")] string modifier2)
+    {
+        var source = $$"""
+            using System.Threading;
+            using System.Threading.Tasks;
+            
+            class B
+            {
+                {{modifier1}} static void G(int a) => throw null;
+                {{modifier2}} static void G(int a, CancellationToken token) => throw null;
+            }
+
+            class C : B
+            {
+                void F(CancellationToken token)
+                {
+                    G(1);
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+
+        if (modifier1 == modifier2)
+        {
+            verifier.VerifyMethodBody("C.F", $$"""
+            {
+              // Code size       24 (0x18)
+              .maxstack  2
+              // sequence point: <hidden>
+              IL_0000:  ldsflda    "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0005:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+              // sequence point: {
+              IL_000a:  nop
+              // sequence point: G(1);
+              IL_000b:  ldc.i4.1
+              IL_000c:  ldsfld     "System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken"
+              IL_0011:  call       "void B.G(int, System.Threading.CancellationToken)"
+              IL_0016:  nop
+              // sequence point: }
+              IL_0017:  ret
+            }
+            """);
+        }
+        else
+        {
+            AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+        }
+    }
+
+    [Fact]
+    public void CancellableOverload_Indexer()
+    {
+        var source = """
+            using System.Threading;
+            
+            class C
+            {
+                int this[int x] => 0;
+                int this[int x, CancellationToken token] => 0;
+
+                void F()
+                {
+                    var _ = this[1];
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_InfiniteRecursionAvoidance()
+    {
+        var source = """
+            using System.Threading;
+
+            class C<T>
+            {
+                void G<S>(T a, S b, CancellationToken token) => G<int>(default, default);
+                void G<S>(T a, S b) {}
+            }
+            """;
+
+        // Avoid instrumentation that would trivially cause infinite recursion.
+        var verifier = CompileAndVerify(source);
+        AssertNotInstrumentedWithTokenLoad(verifier, "C<T>.G<S>(T, S, System.Threading.CancellationToken)");
     }
 }
