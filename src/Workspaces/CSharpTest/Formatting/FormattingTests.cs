@@ -10964,15 +10964,15 @@ var result1 = Array.Empty<string>() switch
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72196")]
         public async Task TestSwitchExpression_WithNonFormattedListPattern_ShouldFormatListPattern()
         {
-           await AssertFormatAsync(
-                code: @"
+            await AssertFormatAsync(
+               code: @"
 var result2 = Array.Empty<string>() switch
 {
 [] => 0,
     _ => 1,
 };
 ",
-                expected: @"
+               expected: @"
 var result2 = Array.Empty<string>() switch
 {
     [] => 0,
