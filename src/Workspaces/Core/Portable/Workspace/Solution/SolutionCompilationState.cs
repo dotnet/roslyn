@@ -1114,9 +1114,9 @@ internal sealed partial class SolutionCompilationState
 
             if (oldProjectState != newProjectState)
             {
-                CheckDocumentStates(oldProjectState.DocumentStates, newProjectState.DocumentStates);
-                CheckDocumentStates(oldProjectState.AdditionalDocumentStates, newProjectState.AdditionalDocumentStates);
-                CheckDocumentStates(oldProjectState.AnalyzerConfigDocumentStates, newProjectState.AnalyzerConfigDocumentStates);
+                CheckDocumentStates(filePathToDocumentIdsMapBuilder, oldProjectState.DocumentStates, newProjectState.DocumentStates);
+                CheckDocumentStates(filePathToDocumentIdsMapBuilder, oldProjectState.AdditionalDocumentStates, newProjectState.AdditionalDocumentStates);
+                CheckDocumentStates(filePathToDocumentIdsMapBuilder, oldProjectState.AnalyzerConfigDocumentStates, newProjectState.AnalyzerConfigDocumentStates);
             }
         }
 
@@ -1140,7 +1140,8 @@ internal sealed partial class SolutionCompilationState
 
         return newCompilationState;
 
-        void CheckDocumentStates<TDocumentState>(
+        static void CheckDocumentStates<TDocumentState>(
+            FilePathToDocumentIdsMap.Builder filePathToDocumentIdsMapBuilder,
             TextDocumentStates<TDocumentState> oldStates,
             TextDocumentStates<TDocumentState> newStates) where TDocumentState : TextDocumentState
         {
