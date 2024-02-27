@@ -2,15 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -37,7 +30,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         public ConcurrentCache(int size, IEqualityComparer<TKey> keyComparer)
-            : base(size)
+            // Defer creating the backing array until it is actually needed.  This saves on expensive allocations for
+            // short-lived compilations that do not end up using the cache.  As the cache is simple best-effort, it's
+            // fine if multiple threads end up creating the backing array at the same time.  One thread will be last and
+            // will win, and the others will just end up creating a small piece of garbage that will be collected.
+            : base(size, createBackingArray: false)
         {
             _keyComparer = keyComparer;
         }

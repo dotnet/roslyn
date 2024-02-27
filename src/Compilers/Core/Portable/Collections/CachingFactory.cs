@@ -215,17 +215,21 @@ namespace Microsoft.CodeAnalysis
     // Just holds the data for the derived caches.
     internal abstract class CachingBase<TEntry>
     {
+        private readonly int _alignedSize;
+        private TEntry[]? _entries;
+
         // cache size is always ^2. 
         // items are placed at [hash ^ mask]
         // new item will displace previous one at the same location.
         protected readonly int mask;
-        protected readonly TEntry[] Entries;
 
-        internal CachingBase(int size)
+        protected TEntry[] Entries => _entries ??= new TEntry[_alignedSize];
+
+        internal CachingBase(int size, bool createBackingArray = true)
         {
-            var alignedSize = AlignSize(size);
-            this.mask = alignedSize - 1;
-            this.Entries = new TEntry[alignedSize];
+            _alignedSize = AlignSize(size);
+            this.mask = _alignedSize - 1;
+            _entries = createBackingArray ? new TEntry[_alignedSize] : null;
         }
 
         private static int AlignSize(int size)
