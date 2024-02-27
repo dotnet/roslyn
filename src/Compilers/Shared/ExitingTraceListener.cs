@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static void Install(ICompilerServerLogger logger)
         {
-            //Trace.Listeners.Clear();
-            //Trace.Listeners.Add(new ExitingTraceListener(logger));
+            Trace.Listeners.Clear();
+            Trace.Listeners.Add(new ExitingTraceListener(logger));
         }
 
         private void Exit(string originalMessage)
