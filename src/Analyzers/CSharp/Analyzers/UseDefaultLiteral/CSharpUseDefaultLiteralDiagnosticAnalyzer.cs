@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
                     Descriptor,
                     defaultExpression.GetLocation(),
                     preference.Notification,
+                    context.Options,
                     additionalLocations: [],
                     additionalUnnecessaryLocations: [defaultExpression.SyntaxTree.GetLocation(fadeSpan)]));
         }

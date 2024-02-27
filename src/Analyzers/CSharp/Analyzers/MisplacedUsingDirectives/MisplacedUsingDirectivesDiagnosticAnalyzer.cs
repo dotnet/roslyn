@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
                     descriptor,
                     usingDirective.GetLocation(),
                     option.Notification,
+                    context.Options,
                     additionalLocations: null,
                     properties: null));
             }

@@ -54,6 +54,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             Descriptor,
             analysisResult.DiagnosticLocation,
             option.Notification,
+            context.Options,
             additionalLocations: locations,
             properties: properties));
 
@@ -70,6 +71,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
                 UnnecessaryCodeDescriptor,
                 additionalUnnecessaryLocations[0],
                 NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+                context.Options,
                 additionalLocations: locations,
                 additionalUnnecessaryLocations: additionalUnnecessaryLocations,
                 properties: properties));
@@ -87,6 +89,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
                     UnnecessaryCodeDescriptor,
                     additionalUnnecessaryLocations[0],
                     NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+                    context.Options,
                     additionalLocations: locations,
                     additionalUnnecessaryLocations: additionalUnnecessaryLocations,
                     properties: properties));

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly SolutionInfo.SolutionAttributes _solutionAttributes;
         private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
-        private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _filePathToDocumentIdsMap;
+        private readonly FilePathToDocumentIdsMap _filePathToDocumentIdsMap;
         private readonly ProjectDependencyGraph _dependencyGraph;
 
         // holds on data calculated based on the AnalyzerReferences list
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis
             SolutionOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
-            ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathToDocumentIdsMap,
+            FilePathToDocumentIdsMap filePathToDocumentIdsMap,
             ProjectDependencyGraph dependencyGraph,
             Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers)
         {
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis
                 options,
                 analyzerReferences,
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
-                filePathToDocumentIdsMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
+                filePathToDocumentIdsMap: FilePathToDocumentIdsMap.Empty,
                 dependencyGraph: ProjectDependencyGraph.Empty,
                 lazyAnalyzers: null)
         {
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis
             SolutionOptionSet? options = null,
             IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
             ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
-            ImmutableDictionary<string, ImmutableArray<DocumentId>>? filePathToDocumentIdsMap = null,
+            FilePathToDocumentIdsMap? filePathToDocumentIdsMap = null,
             ProjectDependencyGraph? dependencyGraph = null)
         {
             solutionAttributes ??= _solutionAttributes;
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis
                 options,
                 analyzerReferences,
                 idToProjectStateMap,
-                filePathToDocumentIdsMap,
+                filePathToDocumentIdsMap.Value,
                 dependencyGraph,
                 analyzerReferencesEqual ? _lazyAnalyzers : null);
         }
@@ -219,6 +220,8 @@ namespace Microsoft.CodeAnalysis
                 _dependencyGraph,
                 _lazyAnalyzers);
         }
+
+        public FilePathToDocumentIdsMap FilePathToDocumentIdsMap => _filePathToDocumentIdsMap;
 
         /// <summary>
         /// The version of the most recently modified project.
@@ -404,56 +407,33 @@ namespace Microsoft.CodeAnalysis
                 dependencyGraph: newDependencyGraph);
         }
 
-        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
+        public FilePathToDocumentIdsMap CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
             AddDocumentFilePaths(documentStates, builder);
             return builder.ToImmutable();
         }
 
-        private static void AddDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        private static void AddDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, FilePathToDocumentIdsMap.Builder builder)
         {
             foreach (var documentState in documentStates)
-            {
-                var filePath = documentState.FilePath;
-
-                if (RoslynString.IsNullOrEmpty(filePath))
-                {
-                    continue;
-                }
-
-                builder.MultiAdd(filePath, documentState.Id);
-            }
+                builder.Add(documentState.FilePath, documentState.Id);
         }
 
-        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
+        public FilePathToDocumentIdsMap CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
             RemoveDocumentFilePaths(documentStates, builder);
             return builder.ToImmutable();
         }
 
-        private static void RemoveDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        private static void RemoveDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, FilePathToDocumentIdsMap.Builder builder)
         {
             foreach (var documentState in documentStates)
-            {
-                var filePath = documentState.FilePath;
-
-                if (RoslynString.IsNullOrEmpty(filePath))
-                {
-                    continue;
-                }
-
-                if (!builder.TryGetValue(filePath, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentState.Id))
-                {
-                    throw new ArgumentException($"The given documentId was not found in '{nameof(_filePathToDocumentIdsMap)}'.");
-                }
-
-                builder.MultiRemove(filePath, documentState.Id);
-            }
+                builder.Remove(documentState.FilePath, documentState.Id);
         }
 
-        private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithFilePath(DocumentId documentId, string? oldFilePath, string? newFilePath)
+        private FilePathToDocumentIdsMap CreateFilePathToDocumentIdsMapWithFilePath(DocumentId documentId, string? oldFilePath, string? newFilePath)
         {
             if (oldFilePath == newFilePath)
             {
@@ -462,15 +442,8 @@ namespace Microsoft.CodeAnalysis
 
             var builder = _filePathToDocumentIdsMap.ToBuilder();
 
-            if (!RoslynString.IsNullOrEmpty(oldFilePath))
-            {
-                builder.MultiRemove(oldFilePath, documentId);
-            }
-
-            if (!RoslynString.IsNullOrEmpty(newFilePath))
-            {
-                builder.MultiAdd(newFilePath, documentId);
-            }
+            builder.Remove(oldFilePath, documentId);
+            builder.Add(newFilePath, documentId);
 
             return builder.ToImmutable();
         }
@@ -1184,7 +1157,7 @@ namespace Microsoft.CodeAnalysis
             ProjectState oldProjectState,
             ProjectState newProjectState,
             ProjectDependencyGraph? newDependencyGraph = null,
-            ImmutableDictionary<string, ImmutableArray<DocumentId>>? newFilePathToDocumentIdsMap = null)
+            FilePathToDocumentIdsMap? newFilePathToDocumentIdsMap = null)
         {
             var projectId = newProjectState.Id;
 
@@ -1208,13 +1181,41 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string? filePath)
         {
             if (string.IsNullOrEmpty(filePath))
-            {
                 return [];
+
+            if (!_filePathToDocumentIdsMap.TryGetValue(filePath, out var documentIds))
+                return [];
+
+            // If this wasn't the result of a freeze, then we can return the document ids as is.  They should be accurate.
+            if (!_filePathToDocumentIdsMap.IsFrozen)
+            {
+                Debug.Assert(documentIds.All(ContainsAnyDocument));
+                return documentIds;
             }
 
-            return _filePathToDocumentIdsMap.TryGetValue(filePath!, out var documentIds)
-                ? documentIds
-                : [];
+            // We were frozen.  So we may be seeing document ids that no longer exist within this snapshot.  If so,
+            // filter them out.
+            using var _ = ArrayBuilder<DocumentId>.GetInstance(documentIds.Length, out var result);
+
+            foreach (var documentId in documentIds)
+            {
+                if (ContainsAnyDocument(documentId))
+                    result.Add(documentId);
+            }
+
+            result.RemoveDuplicates();
+            return result.ToImmutableAndClear();
+
+            bool ContainsAnyDocument(DocumentId documentId)
+            {
+                var project = this.GetProjectState(documentId.ProjectId);
+                if (project is null)
+                    return false;
+
+                return project.DocumentStates.Contains(documentId)
+                    || project.AdditionalDocumentStates.Contains(documentId)
+                    || project.AnalyzerConfigDocumentStates.Contains(documentId);
+            }
         }
 
         public static ProjectDependencyGraph CreateDependencyGraph(

@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
             private readonly int _position;
             private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap = [];
             private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> _documentationMap = [];
-            private readonly Func<ISymbol, string?> _getNavigationHint;
+            private readonly Func<ISymbol?, string?> _getNavigationHint;
 
             protected readonly LanguageServices LanguageServices;
             protected readonly SymbolDescriptionOptions Options;
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
             protected abstract void AddEnumUnderlyingTypeSeparator();
             protected abstract Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(ISymbol symbol);
             protected abstract ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format);
-            protected abstract string? GetNavigationHint(ISymbol symbol);
+            protected abstract string? GetNavigationHint(ISymbol? symbol);
 
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
@@ -428,7 +428,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 var result = new Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>(_documentationMap);
                 foreach (var (group, parts) in _groupMap)
                 {
-                    var taggedText = parts.ToTaggedText(_getNavigationHint, includeNavigationHints);
+                    // To support CodeGeneration symbols, which do not support ToDisplayString we need to pass custom implementation:
+                    var taggedText = parts.ToTaggedText(TaggedTextStyle.None, _getNavigationHint, includeNavigationHints);
                     if (group == SymbolDescriptionGroups.MainDescription)
                     {
                         // Mark the main description as a code block.

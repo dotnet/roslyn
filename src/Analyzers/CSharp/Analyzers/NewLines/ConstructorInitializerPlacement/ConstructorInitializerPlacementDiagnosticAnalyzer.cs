@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
                 this.Descriptor,
                 colonToken.GetLocation(),
                 notificationOption,
+                context.Options,
                 additionalLocations: ImmutableArray.Create(initializer.GetLocation()),
                 properties: null));
         }

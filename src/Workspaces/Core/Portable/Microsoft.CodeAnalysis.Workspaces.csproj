@@ -40,6 +40,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\DefaultAnalyzerAssemblyLoader.cs" Link="Diagnostics\CompilerShared\DefaultAnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\ShadowCopyAnalyzerAssemblyLoader.cs" Link="Diagnostics\CompilerShared\ShadowCopyAnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Text\SourceHashAlgorithms.cs" Link="Text\SourceHashAlgorithms.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\AssemblyUtilitiesCore.cs" Link="AssemblyUtilitiesCore.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="AnalyzerRunner" />

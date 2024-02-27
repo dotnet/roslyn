@@ -4527,7 +4527,7 @@ class C
 
             // Because we froze before ever even looking at anything semantics related, we should have no documents in
             // this project.
-            var frozenSolution = await project.Solution.WithFrozenPartialCompilationsAsync(CancellationToken.None);
+            var frozenSolution = project.Solution.WithFrozenPartialCompilations(CancellationToken.None);
             var frozenProject = frozenSolution.Projects.Single();
             Assert.Empty(frozenProject.Documents);
 
@@ -4546,7 +4546,7 @@ class C
 
             // Because we froze after looking at anything semantics related, we should have the documents in this
             // project.
-            var frozenSolution = await project.Solution.WithFrozenPartialCompilationsAsync(CancellationToken.None);
+            var frozenSolution = project.Solution.WithFrozenPartialCompilations(CancellationToken.None);
             var frozenProject = frozenSolution.Projects.Single();
             Assert.Single(frozenProject.Documents);
 
@@ -4568,7 +4568,7 @@ class C
             // Getting compilation from one should not affect frozen-ness of other project.
             await project1.GetCompilationAsync();
 
-            var frozenSolution = await project1.Solution.WithFrozenPartialCompilationsAsync(CancellationToken.None);
+            var frozenSolution = project1.Solution.WithFrozenPartialCompilations(CancellationToken.None);
             var frozenProject1 = frozenSolution.GetProject(project1.Id);
             Assert.Single(frozenProject1.Documents);
 
@@ -4598,7 +4598,7 @@ class C
             // Getting compilation from project1 should not affect project 2.
             await project1.GetCompilationAsync();
 
-            var frozenSolution = await project1.Solution.WithFrozenPartialCompilationsAsync(CancellationToken.None);
+            var frozenSolution = project1.Solution.WithFrozenPartialCompilations(CancellationToken.None);
             var frozenProject1 = frozenSolution.GetProject(project1.Id);
             Assert.Single(frozenProject1.Documents);
 
@@ -4628,7 +4628,7 @@ class C
             // Getting compilation from project2 should affect project 1 as there's a ptp relationship with it.
             await project2.GetCompilationAsync();
 
-            var frozenSolution = await project1.Solution.WithFrozenPartialCompilationsAsync(CancellationToken.None);
+            var frozenSolution = project1.Solution.WithFrozenPartialCompilations(CancellationToken.None);
             var frozenProject1 = frozenSolution.GetProject(project1.Id);
             Assert.Single(frozenProject1.Documents);
 
@@ -4658,7 +4658,7 @@ class C
             var compilation1 = await project1.GetCompilationAsync();
             var syntaxTree1 = await project1.Documents.Single().GetSyntaxTreeAsync();
 
-            var frozenSolution = await project1.Solution.WithFrozenPartialCompilationsAsync(CancellationToken.None);
+            var frozenSolution = project1.Solution.WithFrozenPartialCompilations(CancellationToken.None);
 
             var forkedProject1 = frozenSolution.WithDocumentText(project1.Documents.Single().Id, SourceText.From("class Doc2 { }")).GetProject(project1.Id);
             var forkedDocument1 = forkedProject1.Documents.Single();
@@ -4693,7 +4693,7 @@ class C
             Assert.Equal("// source1", generatedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
 
             var frozenSolution = freeze
-                ? await project1.Solution.WithFrozenPartialCompilationsAsync(CancellationToken.None)
+                ? project1.Solution.WithFrozenPartialCompilations(CancellationToken.None)
                 : project1.Solution;
 
             var forkedProject1 = frozenSolution.WithDocumentText(project1.Documents.Single().Id, SourceText.From("class Doc2 { }")).GetProject(project1.Id);
@@ -4718,6 +4718,22 @@ class C
             {
                 Assert.Equal("// source2", forkedGeneratedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
             }
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialSolutionOtherLanguage()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("TypeScript", "TypeScript", "TypeScript");
+            project = project.AddDocument("Extra.ts", SourceText.From("class Extra { }")).Project;
+
+            // Freeze should have no impact on non-c#/vb projects.
+            var frozenSolution = project.Solution.WithFrozenPartialCompilations(CancellationToken.None);
+            var frozenProject = frozenSolution.Projects.Single();
+            Assert.Single(frozenProject.Documents);
+
+            var frozenCompilation = await frozenProject.GetCompilationAsync();
+            Assert.Null(frozenCompilation);
         }
     }
 }

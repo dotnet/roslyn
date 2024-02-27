@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 Descriptor,
                 diagnosticLocation,
                 option.Notification,
+                context.Options,
                 [operationLocation, declarationLocation],
                 ImmutableDictionary<string, string?>.Empty));
         }

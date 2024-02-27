@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 Descriptor,
                 AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<TLanguageKindEnum, TParenthesizedExpressionSyntax>.GetDiagnosticSquiggleLocation(parenthesizedExpression, cancellationToken),
                 preference.Notification,
+                context.Options,
                 additionalLocations,
                 additionalUnnecessaryLocations));
         }

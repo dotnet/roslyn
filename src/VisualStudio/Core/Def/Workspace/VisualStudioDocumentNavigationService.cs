@@ -387,14 +387,16 @@ internal sealed class VisualStudioDocumentNavigationService(
                 return false;
             }
 
+            // Find the active ITextView of the buffer, ensures the span is visible, selects it and places the cursor to its start.
+            // Note that we swap the start and the end of the span in order to place the cursor at the start of the span rather than the end.
             return ErrorHandler.Succeeded(
                 textManager.NavigateToLineAndColumn2(
                     vsTextBuffer,
                     VSConstants.LOGVIEWID.TextView_guid,
-                    vsTextSpan.iStartLine,
-                    vsTextSpan.iStartIndex,
-                    vsTextSpan.iEndLine,
-                    vsTextSpan.iEndIndex,
+                    iStartRow: vsTextSpan.iEndLine,
+                    iStartIndex: vsTextSpan.iEndIndex,
+                    iEndRow: vsTextSpan.iStartLine,
+                    iEndIndex: vsTextSpan.iStartIndex,
                     (uint)_VIEWFRAMETYPE.vftCodeWindow));
         }
     }

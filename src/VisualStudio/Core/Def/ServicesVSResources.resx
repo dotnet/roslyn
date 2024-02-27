@@ -2041,4 +2041,7 @@ Additional information: {1}</value>
   <data name="When_types_loosely_match" xml:space="preserve">
     <value>When types loosely match</value>
   </data>
+  <data name="AssemblyNameAndVersionDisplay" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>  
 </root>
