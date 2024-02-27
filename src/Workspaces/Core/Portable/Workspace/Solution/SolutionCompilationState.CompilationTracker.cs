@@ -703,15 +703,17 @@ namespace Microsoft.CodeAnalysis
                     // parsed documents over to the new project state so we can preserve as much information as
                     // possible.
 
-                    using var _1 = ArrayBuilder<DocumentState>.GetInstance(out var documentsWithTrees);
-                    using var _2 = ArrayBuilder<SyntaxTree>.GetInstance(out var alreadyParsedTrees);
+                    var alreadyParsedCount = this.ProjectState.DocumentStates.States.Count(s => s.Value.TryGetSyntaxTree(out _));
+
+                    using var _1 = ArrayBuilder<DocumentState>.GetInstance(alreadyParsedCount, out var documentsWithTrees);
+                    using var _2 = ArrayBuilder<SyntaxTree>.GetInstance(alreadyParsedCount, out var alreadyParsedTreesBuilder);
 
                     foreach (var documentState in this.ProjectState.DocumentStates.GetStatesInCompilationOrder())
                     {
                         if (documentState.TryGetSyntaxTree(out var alreadyParsedTree))
                         {
                             documentsWithTrees.Add(documentState);
-                            alreadyParsedTrees.Add(alreadyParsedTree);
+                            alreadyParsedTreesBuilder.Add(alreadyParsedTree);
                         }
                     }
 
@@ -723,6 +725,7 @@ namespace Microsoft.CodeAnalysis
                     // Defer creating these compilations.  It's common to freeze projects (as part of a solution freeze)
                     // that are then never examined.  Creating compilations can be a little costly, so this saves doing
                     // that to the point where it is truly needed.
+                    var alreadyParsedTrees = alreadyParsedTreesBuilder.ToImmutableAndClear();
                     var lazyCompilationWithoutGeneratedDocuments = new Lazy<Compilation>(() => this.CreateEmptyCompilation().AddSyntaxTrees(alreadyParsedTrees));
 
                     // Safe cast to appease NRT system.
