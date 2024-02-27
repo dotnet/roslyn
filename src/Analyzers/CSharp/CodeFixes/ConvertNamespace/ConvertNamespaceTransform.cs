@@ -126,8 +126,7 @@ internal static class ConvertNamespaceTransform
         {
             // if this line is inside a string-literal or interpolated-text-content, then we definitely do not want to
             // touch what is inside there.  Note: this will not apply to raw-string literals, which can potentially be
-            // dedented safely depending on the position of their close terminator.>	Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll!Microsoft.CodeAnalysis.CSharp.ConvertNamespace.ConvertNamespaceTransform.DedentNamespace(Microsoft.CodeAnalysis.ParsedDocument document, string indentation, Microsoft.CodeAnalysis.SyntaxAnnotation annotation, System.Threading.CancellationToken cancellationToken) Line 108	C#
-
+            // dedented safely depending on the position of their close terminator.
             if (syntaxTree.IsEntirelyWithinStringLiteral(textLine.Span.Start, out var stringLiteral, cancellationToken))
             {
                 SyntaxNode stringNode;
