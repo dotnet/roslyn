@@ -5203,7 +5203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         public IMethodSymbol? GetInterceptorMethod(InvocationExpressionSyntax node, CancellationToken cancellationToken)
         {
-            cancellationtoken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
             CheckSyntaxNode(node);
 
