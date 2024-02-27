@@ -1207,7 +1207,15 @@ namespace Microsoft.CodeAnalysis
             return result.ToImmutableAndClear();
 
             bool ContainsAnyDocument(DocumentId documentId)
-                => this.ContainsDocument(documentId) || this.ContainsAdditionalDocument(documentId) || this.ContainsAnalyzerConfigDocument(documentId);
+            {
+                var project = this.GetProjectState(documentId.ProjectId);
+                if (project is null)
+                    return false;
+
+                return project.DocumentStates.Contains(documentId)
+                    || project.AdditionalDocumentStates.Contains(documentId)
+                    || project.AnalyzerConfigDocumentStates.Contains(documentId);
+            }
         }
 
         public static ProjectDependencyGraph CreateDependencyGraph(
