@@ -309,7 +309,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _state.SpinWaitComplete(incompletePart, cancellationToken);
             }
         }
-#nullable disable
 
         private void ValidateLinkedAssemblies(BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
@@ -367,7 +366,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var cursor = GlobalNamespace;
-
                 foreach (var namespacePart in namespaceParts)
                 {
                     cursor = (NamespaceSymbol?)cursor.GetMembers(namespacePart).FirstOrDefault(member => member.Kind == SymbolKind.Namespace);
@@ -408,6 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+#nullable disable
 
         public override ImmutableArray<Location> Locations
         {
