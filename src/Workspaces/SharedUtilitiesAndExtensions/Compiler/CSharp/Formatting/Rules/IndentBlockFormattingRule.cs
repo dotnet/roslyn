@@ -257,7 +257,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (!bracketPair.IsValidBracketOrBracePair())
                 return;
 
-            if (node.Parent != null && node.Kind() is SyntaxKind.ListPattern or SyntaxKind.CollectionExpression)
+            if (node.Parent != null && node.Kind() is SyntaxKind.ListPattern)
+            {
+                AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracketPair);
+                AddIndentBlockOperation(list, bracketPair.openBracket.GetNextToken(includeZeroWidth: true), bracketPair.closeBracket.GetPreviousToken(includeZeroWidth: true));
+                return;
+            }
+
+            if (node.Parent != null && node.Kind() is SyntaxKind.CollectionExpression)
             {
                 // Brackets in list patterns are formatted like blocks, so align close bracket with open bracket
                 AddIndentBlockOperation(list, bracketPair.openBracket.GetNextToken(includeZeroWidth: true), bracketPair.closeBracket.GetPreviousToken(includeZeroWidth: true));
@@ -269,7 +276,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // Then we want to compute the indentation relative to the construct that the collection expression is
                 // attached to.  So ask to be relative to the start of the line the prior token is on if we're on the
                 // same line as it.
-                AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracketPair);
+                var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
+
+                var firstToken = node.GetFirstToken(includeZeroWidth: true);
+                var lastToken = node.GetLastToken(includeZeroWidth: true);
+                var baseToken = firstToken.GetPreviousToken(includeZeroWidth: true);
+
+                SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
             }
         }
 
