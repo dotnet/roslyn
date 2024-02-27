@@ -703,10 +703,15 @@ namespace Microsoft.CodeAnalysis
                     // parsed documents over to the new project state so we can preserve as much information as
                     // possible.
 
+                    // Note: this count may be innacurate as parsing may be going on in the background.  However, it
+                    // acts as a reasonable lower bound for the number of documents we'll be adding.
                     var alreadyParsedCount = this.ProjectState.DocumentStates.States.Count(static s => s.Value.TryGetSyntaxTree(out _));
 
                     using var _1 = ArrayBuilder<DocumentState>.GetInstance(alreadyParsedCount, out var documentsWithTrees);
-                    using var _2 = ArrayBuilder<SyntaxTree>.GetInstance(alreadyParsedCount, out var alreadyParsedTreesBuilder);
+
+                    // Specifically an ImmutableArray.Builder as we can presize reasonably and we want to convert to an
+                    // ImmutableArray at the end.
+                    var alreadyParsedTreesBuilder = ImmutableArray.CreateBuilder<SyntaxTree>(alreadyParsedCount);
 
                     foreach (var documentState in this.ProjectState.DocumentStates.GetStatesInCompilationOrder())
                     {
