@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
             }
         }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor syntaxEditor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor syntaxEditor, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var nodesToRemove = new HashSet<SyntaxNode>();
 

@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 {
     internal partial class HideBaseCodeFixProvider
     {
-        private class AddNewKeywordAction(Document document, SyntaxNode node, CodeActionOptionsProvider fallbackOptions) : CodeAction
+        private class AddNewKeywordAction(Document document, SyntaxNode node, ICodeActionOptionsProvider fallbackOptions) : CodeAction
         {
             private readonly Document _document = document;
             private readonly SyntaxNode _node = node;
-            private readonly CodeActionOptionsProvider _fallbackOptions = fallbackOptions;
+            private readonly ICodeActionOptionsProvider _fallbackOptions = fallbackOptions;
 
             public override string Title => CSharpCodeFixesResources.Hide_base_member;
 

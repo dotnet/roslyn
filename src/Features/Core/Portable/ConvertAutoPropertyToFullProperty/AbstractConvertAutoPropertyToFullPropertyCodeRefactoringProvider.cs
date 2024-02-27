@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
         where TTypeDeclarationNode : SyntaxNode
         where TCodeGenerationContextInfo : CodeGenerationContextInfo
     {
-        protected abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken);
+        protected abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, INamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken);
         protected abstract (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
             TCodeGenerationContextInfo info, SyntaxNode property, string fieldName, SyntaxGenerator generator, CancellationToken cancellationToken);
         protected abstract SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             SyntaxNode property,
             IPropertySymbol propertySymbol,
             SyntaxNode root,
-            CodeActionOptionsProvider fallbackOptions,
+            ICodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(document.DocumentState.ParseOptions);

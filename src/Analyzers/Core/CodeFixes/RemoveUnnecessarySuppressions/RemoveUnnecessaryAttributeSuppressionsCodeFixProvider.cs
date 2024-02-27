@@ -37,7 +37,7 @@ internal sealed class RemoveUnnecessaryAttributeSuppressionsCodeFixProvider() : 
         }
     }
 
-    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
         {

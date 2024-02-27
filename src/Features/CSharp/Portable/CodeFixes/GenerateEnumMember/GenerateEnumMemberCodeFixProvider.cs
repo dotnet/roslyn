@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateEnumMember
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             [CS0117, CS1061];
 
-        protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, ICleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IGenerateEnumMemberService>();
             return service.GenerateEnumMemberAsync(document, node, fallbackOptions, cancellationToken);

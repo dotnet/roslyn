@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             /// <summary>
             /// This helper is implementing access to the editorconfig option. This would usually be done via <see cref="CodeFixOptionsProvider"/> but
-            /// we do not have access to <see cref="CodeActionOptionsProvider"/> here since the code action implementation is also used to implement <see cref="IImplementInterfaceService "/>.
+            /// we do not have access to <see cref="ICodeActionOptionsProvider"/> here since the code action implementation is also used to implement <see cref="IImplementInterfaceService "/>.
             /// TODO: remove - see https://github.com/dotnet/roslyn/issues/60990.
             /// </summary>
             public async ValueTask<AccessibilityModifiersRequired> GetAccessibilityModifiersRequiredAsync(Document document, CancellationToken cancellationToken)
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return value.Value;
                 }
 
-                var fallbackFormattingOptions = await ((OptionsProvider<SyntaxFormattingOptions>)Options.FallbackOptions).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false);
+                var fallbackFormattingOptions = await ((IOptionsProvider<SyntaxFormattingOptions>)Options.FallbackOptions).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false);
 
                 return fallbackFormattingOptions.AccessibilityModifiersRequired;
             }

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private Task<Document> FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            Document document, ImmutableArray<Diagnostic> diagnostics, ICodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
             return FixAllWithEditorAsync(
                 document,
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// with <paramref name="fallbackOptions"/> providing default values for options not specified explicitly in the corresponding editorconfig.
         /// </summary>
         protected abstract Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
         /// <summary>
         /// Whether or not this diagnostic should be included when performing a FixAll.  This is

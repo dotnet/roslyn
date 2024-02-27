@@ -38,7 +38,7 @@ internal sealed class SimplifyConditionalCodeFixProvider() : SyntaxEditorBasedCo
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
+        ICodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var generator = SyntaxGenerator.GetGenerator(document);

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseNameofInAttribute
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor,
-            CodeActionOptionsProvider fallbackOptions,
+            ICodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)

@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         public Solution Solution => Project.Solution;
         public FixAllScope Scope { get; }
         public abstract FixAllKind FixAllKind { get; }
-        public CodeActionOptionsProvider CodeActionOptionsProvider { get; }
+        public ICodeActionOptionsProvider CodeActionOptionsProvider { get; }
 
         protected CommonFixAllState(
             TFixAllProvider fixAllProvider,
             Document? document,
             Project project,
             TProvider provider,
-            CodeActionOptionsProvider optionsProvider,
+            ICodeActionOptionsProvider optionsProvider,
             FixAllScope scope,
             string? codeActionEquivalenceKey)
         {

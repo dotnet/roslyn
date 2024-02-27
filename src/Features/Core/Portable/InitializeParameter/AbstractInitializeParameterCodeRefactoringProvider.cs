@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IBlockOperation? blockStatement,
             ImmutableArray<SyntaxNode> listOfParameterNodes,
             TextSpan parameterSpan,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken);
 
         protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             SyntaxNode functionDeclaration,
             IMethodSymbol methodSymbol,
             IBlockOperation? blockStatement,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken);
 
         protected abstract void InsertStatement(

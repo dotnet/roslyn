@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             Document document,
             ImmutableArray<ISymbol> selectedMembers,
             IPullMemberUpOptionsService service,
-            CleanCodeGenerationOptionsProvider fallbackOptions) : CodeActionWithOptions
+            ICleanCodeGenerationOptionsProvider fallbackOptions) : CodeActionWithOptions
         {
             /// <summary>
             /// Member which user initially selects. It will be selected initially when the dialog pops up.
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             private readonly ImmutableArray<ISymbol> _selectedMembers = selectedMembers;
             private readonly Document _document = document;
             private readonly IPullMemberUpOptionsService _service = service;
-            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
+            private readonly ICleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             public override string Title => FeaturesResources.Pull_members_up_to_base_type;
 

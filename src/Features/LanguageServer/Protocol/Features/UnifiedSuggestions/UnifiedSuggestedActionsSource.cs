@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             TextDocument document,
             TextSpan selection,
             ICodeActionRequestPriorityProvider priorityProvider,
-            CodeActionOptionsProvider fallbackOptions,
+            ICodeActionOptionsProvider fallbackOptions,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             TextDocument document,
             TextSpan selection,
             CodeActionRequestPriority? priority,
-            CodeActionOptionsProvider options,
+            ICodeActionOptionsProvider options,
             Func<string, IDisposable?> addOperationScope,
             bool filterOutsideSelection,
             CancellationToken cancellationToken)
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             TextSpan selection,
             CodeRefactoringProvider provider,
             FixAllProviderInfo? fixAllProviderInfo,
-            CodeActionOptionsProvider optionsProvider,
+            ICodeActionOptionsProvider optionsProvider,
             Workspace workspace,
             CancellationToken cancellationToken)
         {

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
     {
         public abstract SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);
         public abstract Task<ImmutableArray<SyntaxNode>> GetReplacementMembersAsync(
-            Document document, IPropertySymbol property, SyntaxNode propertyDeclaration, IFieldSymbol propertyBackingField, string desiredGetMethodName, string desiredSetMethodName, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+            Document document, IPropertySymbol property, SyntaxNode propertyDeclaration, IFieldSymbol propertyBackingField, string desiredGetMethodName, string desiredSetMethodName, ICodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
         protected abstract TCrefSyntax? TryGetCrefSyntax(TIdentifierNameSyntax identifierName);
         protected abstract TCrefSyntax CreateCrefSyntax(TCrefSyntax originalCref, SyntaxToken identifierToken, SyntaxNode? parameterType);

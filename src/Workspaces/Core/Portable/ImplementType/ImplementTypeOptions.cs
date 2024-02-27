@@ -29,4 +29,4 @@ internal readonly record struct ImplementTypeOptions
 
 internal readonly record struct ImplementTypeGenerationOptions(
     ImplementTypeOptions ImplementTypeOptions,
-    CleanCodeGenerationOptionsProvider FallbackOptions);
+    ICleanCodeGenerationOptionsProvider FallbackOptions);

@@ -15,13 +15,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Private ReadOnly _targetSymbol As INamedTypeSymbol
             Private ReadOnly _generatedEvent As IEventSymbol
             Private ReadOnly _codeGenService As ICodeGenerationService
-            Private ReadOnly _fallbackOptions As CodeAndImportGenerationOptionsProvider
+            Private ReadOnly _fallbackOptions As ICodeAndImportGenerationOptionsProvider
 
             Public Sub New(solution As Solution,
                     targetSymbol As INamedTypeSymbol,
                     generatedEvent As IEventSymbol,
                     codeGenService As ICodeGenerationService,
-                    fallbackOptions As CodeAndImportGenerationOptionsProvider)
+                    fallbackOptions As ICodeAndImportGenerationOptionsProvider)
                 _solution = solution
                 _targetSymbol = targetSymbol
                 _generatedEvent = generatedEvent

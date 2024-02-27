@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 Document document,
                 ImmutableArray<IPragmaBasedCodeAction> pragmaActions,
                 ImmutableArray<Diagnostic> diagnostics,
-                CodeActionOptionsProvider fallbackOptions,
+                ICodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 // We apply all the pragma suppression fixes sequentially.

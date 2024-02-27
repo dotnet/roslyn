@@ -75,10 +75,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// to access these options in code shared with Code Style layer.
         /// </summary>
         /// <remarks>
-        /// This is a <see cref="CodeActionOptionsProvider"/> (rather than <see cref="CodeActionOptions"/> directly)
+        /// This is a <see cref="ICodeActionOptionsProvider"/> (rather than <see cref="CodeActionOptions"/> directly)
         /// to allow code fix to update documents across multiple projects that differ in language (and hence language specific options).
         /// </remarks>
-        internal readonly CodeActionOptionsProvider Options;
+        internal readonly ICodeActionOptionsProvider Options;
 
         /// <summary>
         /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             TextSpan span,
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
-            CodeActionOptionsProvider options,
+            ICodeActionOptionsProvider options,
             CancellationToken cancellationToken)
         {
             VerifyDiagnosticsArgument(diagnostics, span);

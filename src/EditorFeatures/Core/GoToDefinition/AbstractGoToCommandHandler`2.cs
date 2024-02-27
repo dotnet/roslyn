@@ -44,7 +44,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor = uiThreadOperationExecutor;
     private readonly IAsynchronousOperationListener _listener = listener;
 
-    public readonly OptionsProvider<ClassificationOptions> ClassificationOptionsProvider = globalOptions.GetClassificationOptionsProvider();
+    public readonly IOptionsProvider<ClassificationOptions> ClassificationOptionsProvider = globalOptions.GetClassificationOptionsProvider();
 
     /// <summary>
     /// The current go-to command that is in progress.  Tracked so that if we issue multiple find-impl commands that

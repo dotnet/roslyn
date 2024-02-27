@@ -36,7 +36,7 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
     protected sealed override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
+        ICodeActionOptionsProvider fallbackOptions,
         ExpressionSyntax arrayCreationExpression,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)

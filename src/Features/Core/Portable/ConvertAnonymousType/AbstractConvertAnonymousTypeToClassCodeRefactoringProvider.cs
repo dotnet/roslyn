@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
                 anonymousObject.Span);
         }
 
-        private async Task<Document> ConvertAsync(Document document, TextSpan span, CodeActionOptionsProvider fallbackOptions, bool isRecord, CancellationToken cancellationToken)
+        private async Task<Document> ConvertAsync(Document document, TextSpan span, ICodeActionOptionsProvider fallbackOptions, bool isRecord, CancellationToken cancellationToken)
         {
             var (anonymousObject, anonymousType) = await TryGetAnonymousObjectAsync(document, span, cancellationToken).ConfigureAwait(false);
 

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
         protected abstract bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType);
         protected abstract string ToDisplayString(IParameterSymbol parameter, SymbolDisplayFormat format);
-        protected abstract ValueTask<bool> PrefersThrowExpressionAsync(Document document, SimplifierOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        protected abstract ValueTask<bool> PrefersThrowExpressionAsync(Document document, ISimplifierOptionsProvider fallbackOptions, CancellationToken cancellationToken);
         protected abstract IFieldSymbol? TryMapToWritableInstanceField(IPropertySymbol property, CancellationToken cancellationToken);
 
         public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             Action<CodeAction, TextSpan> registerSingleAction,
             Action<ImmutableArray<CodeAction>> registerMultipleActions,
             Accessibility? desiredAccessibility,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             Document document,
             TextSpan textSpan,
             Accessibility? desiredAccessibility,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var helpers = document.GetRequiredLanguageService<IRefactoringHelpersService>();
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         }
 
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(
-            Document document, TextSpan textSpan, bool addNullChecks, Accessibility? desiredAccessibility, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, bool addNullChecks, Accessibility? desiredAccessibility, ICleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateConstructorFromMembers, cancellationToken))
             {
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
         }
 
-        private ImmutableArray<CodeAction> GetCodeActions(Document document, State state, bool addNullChecks, CleanCodeGenerationOptionsProvider fallbackOptions)
+        private ImmutableArray<CodeAction> GetCodeActions(Document document, State state, bool addNullChecks, ICleanCodeGenerationOptionsProvider fallbackOptions)
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
 

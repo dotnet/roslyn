@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
             string languageName,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using var cancellationTokenSource = new CancellationTokenSource();

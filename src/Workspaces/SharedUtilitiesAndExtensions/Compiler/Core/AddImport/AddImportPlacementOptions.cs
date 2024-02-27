@@ -39,9 +39,9 @@ internal sealed record class AddImportPlacementOptions
     public static readonly AddImportPlacementOptions Default = new();
 }
 
-internal interface AddImportPlacementOptionsProvider
+internal interface IAddImportPlacementOptionsProvider
 #if !CODE_STYLE
-    : OptionsProvider<AddImportPlacementOptions>
+    : IOptionsProvider<AddImportPlacementOptions>
 #endif
 {
 }
@@ -64,7 +64,7 @@ internal static partial class AddImportPlacementOptionsProviders
     public static bool AllowImportsInHiddenRegions(this Document document)
         => document.Services.GetService<ISpanMappingService>()?.SupportsMappingImportDirectives == true;
 
-    public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+    public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, IAddImportPlacementOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
         => await GetAddImportPlacementOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 #endif
 }

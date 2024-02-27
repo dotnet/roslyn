@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
         /// <inheritdoc/>
         public async Task<Solution> SyncNamespacesAsync(
             ImmutableArray<Project> projects,
-            CodeActionOptionsProvider options,
+            ICodeActionOptionsProvider options,
             IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
             Solution solution,
             CodeFixProvider codeFixProvider,
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject,
-            CodeActionOptionsProvider options,
+            ICodeActionOptionsProvider options,
             IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {

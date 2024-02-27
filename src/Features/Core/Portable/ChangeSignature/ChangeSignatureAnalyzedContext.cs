@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
     }
 
     internal sealed class ChangeSignatureAnalysisSucceededContext(
-        Document document, int positionForTypeBinding, ISymbol symbol, ParameterConfiguration parameterConfiguration, CodeCleanupOptionsProvider fallbackOptions) : ChangeSignatureAnalyzedContext
+        Document document, int positionForTypeBinding, ISymbol symbol, ParameterConfiguration parameterConfiguration, ICodeCleanupOptionsProvider fallbackOptions) : ChangeSignatureAnalyzedContext
     {
         public readonly Document Document = document;
         public readonly ISymbol Symbol = symbol;
         public readonly ParameterConfiguration ParameterConfiguration = parameterConfiguration;
         public readonly int PositionForTypeBinding = positionForTypeBinding;
-        public readonly CodeCleanupOptionsProvider FallbackOptions = fallbackOptions;
+        public readonly ICodeCleanupOptionsProvider FallbackOptions = fallbackOptions;
 
         public Solution Solution => Document.Project.Solution;
     }

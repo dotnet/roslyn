@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             string? codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
             FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
-            CodeActionOptionsProvider codeActionOptionsProvider)
+            ICodeActionOptionsProvider codeActionOptionsProvider)
             : base(fixAllProvider, document, project, codeFixProvider, codeActionOptionsProvider, scope, codeActionEquivalenceKey)
         {
             // We need the trigger diagnostic span for span based fix all scopes, i.e. FixAllScope.ContainingMember and FixAllScope.ContainingType
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsToFix,
             CodeFixProvider codeFixProvider,
             string? codeActionEquivalenceKey,
-            CodeActionOptionsProvider codeActionOptionsProvider)
+            ICodeActionOptionsProvider codeActionOptionsProvider)
         {
             var triggerDocument = diagnosticsToFix.First().Key;
             var diagnosticSpan = diagnosticsToFix.First().Value.FirstOrDefault()?.Location.SourceSpan;
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsToFix,
             CodeFixProvider codeFixProvider,
             string? codeActionEquivalenceKey,
-            CodeActionOptionsProvider codeActionOptionsProvider)
+            ICodeActionOptionsProvider codeActionOptionsProvider)
         {
             var triggerProject = diagnosticsToFix.First().Key;
             var diagnosticIds = GetDiagnosticsIds(diagnosticsToFix.Values);

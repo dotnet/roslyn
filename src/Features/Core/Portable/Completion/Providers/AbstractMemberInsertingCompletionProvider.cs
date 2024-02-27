@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private async Task<Document> DetermineNewDocumentAsync(
             Document document,
             CompletionItem completionItem,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Document document,
             CompletionItem completionItem,
             TextLine line,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
+            ICodeAndImportGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();

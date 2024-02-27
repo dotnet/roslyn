@@ -65,7 +65,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         Document document,
         TypeDeclarationSyntax typeDeclaration,
         ParameterListSyntax parameterList,
-        CodeActionOptionsProvider optionsProvider,
+        ICodeActionOptionsProvider optionsProvider,
         CancellationToken cancellationToken)
     {
         var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);

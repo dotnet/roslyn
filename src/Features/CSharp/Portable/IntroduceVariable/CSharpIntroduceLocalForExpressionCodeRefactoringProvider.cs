@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
         protected override async Task<ExpressionStatementSyntax> CreateTupleDeconstructionAsync(
             Document document,
-            CodeActionOptionsProvider optionsProvider,
+            ICodeActionOptionsProvider optionsProvider,
             INamedTypeSymbol tupleType,
             ExpressionSyntax expression,
             CancellationToken cancellationToken)

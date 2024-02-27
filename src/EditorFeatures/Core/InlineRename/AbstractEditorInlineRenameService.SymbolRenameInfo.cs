@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private readonly SymbolicRenameInfo _info;
 
             private Document Document => _info.Document!;
-            private readonly CodeCleanupOptionsProvider _fallbackOptions;
+            private readonly ICodeCleanupOptionsProvider _fallbackOptions;
             private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
             /// <summary>
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public SymbolInlineRenameInfo(
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 SymbolicRenameInfo info,
-                CodeCleanupOptionsProvider fallbackOptions,
+                ICodeCleanupOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 Contract.ThrowIfTrue(info.IsError);

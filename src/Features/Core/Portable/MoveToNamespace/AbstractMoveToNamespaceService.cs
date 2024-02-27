@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
     internal interface IMoveToNamespaceService : ILanguageService
     {
-        Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(Document document, TextSpan span, CodeCleanupOptionsProvider options, CancellationToken cancellationToken);
+        Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(Document document, TextSpan span, ICodeCleanupOptionsProvider options, CancellationToken cancellationToken);
         Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(Document document, int position, CancellationToken cancellationToken);
-        Task<MoveToNamespaceResult> MoveToNamespaceAsync(MoveToNamespaceAnalysisResult analysisResult, string targetNamespace, CodeCleanupOptionsProvider options, CancellationToken cancellationToken);
+        Task<MoveToNamespaceResult> MoveToNamespaceAsync(MoveToNamespaceAnalysisResult analysisResult, string targetNamespace, ICodeCleanupOptionsProvider options, CancellationToken cancellationToken);
         MoveToNamespaceOptionsResult GetChangeNamespaceOptions(Document document, string defaultNamespace, ImmutableArray<string> namespaces);
         IMoveToNamespaceOptionsService OptionsService { get; }
     }
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         public async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
             Document document,
             TextSpan span,
-            CodeCleanupOptionsProvider cleanupOptions,
+            ICodeCleanupOptionsProvider cleanupOptions,
             CancellationToken cancellationToken)
         {
             // Code actions cannot be completed without the options needed
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         public Task<MoveToNamespaceResult> MoveToNamespaceAsync(
             MoveToNamespaceAnalysisResult analysisResult,
             string targetNamespace,
-            CodeCleanupOptionsProvider fallbackOptions,
+            ICodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             if (!analysisResult.CanPerform)
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             Document document,
             SyntaxNode container,
             string targetNamespace,
-            CodeCleanupOptionsProvider options,
+            ICodeCleanupOptionsProvider options,
             CancellationToken cancellationToken)
         {
             var memberSymbols = await GetMemberSymbolsAsync(document, container, cancellationToken).ConfigureAwait(false);
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             Document document,
             SyntaxNode container,
             string targetNamespace,
-            CodeCleanupOptionsProvider fallbackOptions,
+            ICodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var moveTypeService = document.GetLanguageService<IMoveTypeService>();

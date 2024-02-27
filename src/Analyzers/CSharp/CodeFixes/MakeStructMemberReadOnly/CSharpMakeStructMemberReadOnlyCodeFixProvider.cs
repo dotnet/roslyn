@@ -37,7 +37,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider() : SyntaxEd
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
+        ICodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var generator = editor.Generator;

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         public readonly SyntaxNode TypeNode;
         public readonly INamedTypeSymbol TypeToExtractFrom;
         public readonly IEnumerable<ISymbol> ExtractableMembers;
-        public readonly CleanCodeGenerationOptionsProvider FallbackOptions;
+        public readonly ICleanCodeGenerationOptionsProvider FallbackOptions;
         public readonly string ErrorMessage;
 
         public ExtractInterfaceTypeAnalysisResult(
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             SyntaxNode typeNode,
             INamedTypeSymbol typeToExtractFrom,
             IEnumerable<ISymbol> extractableMembers,
-            CleanCodeGenerationOptionsProvider fallbackOptions)
+            ICleanCodeGenerationOptionsProvider fallbackOptions)
         {
             CanExtractInterface = true;
             DocumentToExtractFrom = documentToExtractFrom;

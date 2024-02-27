@@ -34,7 +34,7 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyCodeFixProvid
     protected override Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
+        ICodeActionOptionsProvider fallbackOptions,
         SyntaxNode diagnosticNode,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)

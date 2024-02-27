@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 {
     internal partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
     {
-        private sealed class GenerateLocalCodeAction(TService service, Document document, State state, CodeGenerationOptionsProvider fallbackOptions) : CodeAction
+        private sealed class GenerateLocalCodeAction(TService service, Document document, State state, ICodeGenerationOptionsProvider fallbackOptions) : CodeAction
         {
             private readonly TService _service = service;
             private readonly Document _document = document;
             private readonly State _state = state;
-            private readonly CodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
+            private readonly ICodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             public override string Title
             {

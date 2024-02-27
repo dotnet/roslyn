@@ -39,7 +39,7 @@ internal sealed class CSharpMakeStructReadOnlyCodeFixProvider : SyntaxEditorBase
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
+        ICodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var typeDeclarations = diagnostics.Select(d => d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));

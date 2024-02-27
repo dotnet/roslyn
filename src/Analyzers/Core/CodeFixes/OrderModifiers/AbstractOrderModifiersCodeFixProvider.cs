@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var options = await document.GetAnalyzerOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
             var option = GetCodeStyleOption(options);

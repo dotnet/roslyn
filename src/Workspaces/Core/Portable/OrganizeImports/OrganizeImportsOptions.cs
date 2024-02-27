@@ -27,7 +27,7 @@ internal readonly record struct OrganizeImportsOptions
     public static readonly OrganizeImportsOptions Default = new();
 }
 
-internal interface OrganizeImportsOptionsProvider : OptionsProvider<OrganizeImportsOptions>
+internal interface IOrganizeImportsOptionsProvider : IOptionsProvider<OrganizeImportsOptions>
 {
 }
 
@@ -51,6 +51,6 @@ internal static class OrganizeImportsOptionsProviders
         return configOptions.GetOrganizeImportsOptions(document.Project.Language, fallbackOptions);
     }
 
-    public static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(this Document document, OrganizeImportsOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+    public static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(this Document document, IOrganizeImportsOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
         => await GetOrganizeImportsOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 }

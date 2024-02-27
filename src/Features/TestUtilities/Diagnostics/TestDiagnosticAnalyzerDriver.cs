@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         private readonly bool _includeNonLocalDocumentDiagnostics;
 
         internal readonly IGlobalOptionService GlobalOptions;
-        internal readonly CodeActionOptionsProvider FallbackOptions;
+        internal readonly ICodeActionOptionsProvider FallbackOptions;
 
         public TestDiagnosticAnalyzerDriver(Workspace workspace, bool includeSuppressedDiagnostics = false, bool includeNonLocalDocumentDiagnostics = false)
         {

@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         Document document,
         IMoveStaticMembersOptionsService service,
         INamedTypeSymbol selectedType,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
+        ICleanCodeGenerationOptionsProvider fallbackOptions,
         ImmutableArray<ISymbol> selectedMembers) : CodeActionWithOptions
     {
         private readonly Document _document = document;
         private readonly ImmutableArray<ISymbol> _selectedMembers = selectedMembers;
         private readonly INamedTypeSymbol _selectedType = selectedType;
         private readonly IMoveStaticMembersOptionsService _service = service;
-        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
+        private readonly ICleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
         public override string Title => FeaturesResources.Move_static_members_to_another_type;
 

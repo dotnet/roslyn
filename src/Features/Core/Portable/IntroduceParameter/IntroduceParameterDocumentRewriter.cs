@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
             IMethodSymbol methodSymbol,
             SyntaxNode containingMethod,
             IntroduceParameterCodeActionKind selectedCodeAction,
-            CodeGenerationOptionsProvider fallbackOptions,
+            ICodeGenerationOptionsProvider fallbackOptions,
             bool allOccurrences)
         {
             private readonly AbstractIntroduceParameterCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax, TArgumentSyntax> _service = service;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
             private readonly IMethodSymbol _methodSymbol = methodSymbol;
             private readonly SyntaxNode _containerMethod = containingMethod;
             private readonly IntroduceParameterCodeActionKind _actionKind = selectedCodeAction;
-            private readonly CodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
+            private readonly ICodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
             private readonly bool _allOccurrences = allOccurrences;
 
             public async Task<SyntaxNode> RewriteDocumentAsync(Compilation compilation, Document document, List<TExpressionSyntax> invocations, CancellationToken cancellationToken)

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options
     [ExportWorkspaceService(typeof(ILegacyGlobalOptionsWorkspaceService)), Shared]
     internal sealed class OmnisharpLegacyGlobalOptionsWorkspaceService : ILegacyGlobalOptionsWorkspaceService
     {
-        private readonly CleanCodeGenerationOptionsProvider _provider;
+        private readonly ICleanCodeGenerationOptionsProvider _provider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -35,9 +35,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options
 
         public int RazorTabSize
             => LineFormattingOptions.Default.TabSize;
-
-        public CleanCodeGenerationOptionsProvider CleanCodeGenerationOptionsProvider
-            => _provider;
 
         /// TODO: remove. https://github.com/dotnet/roslyn/issues/57283
         public bool InlineHintsOptionsDisplayAllOverride

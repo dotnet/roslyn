@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         public async Task<ImmutableArray<CodeAction>> GenerateVariableAsync(
             Document document,
             SyntaxNode node,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
+            ICodeAndImportGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateVariable, cancellationToken))
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             => false;
 
         private static async Task AddPropertyCodeActionsAsync(
-            ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            ArrayBuilder<CodeAction> result, SemanticDocument document, State state, ICodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (state.IsInOutContext)
                 return;
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         }
 
         private static async Task<bool> NameIsHighlyUnlikelyToWarrantSymbolAsync(
-            Document document, State state, SymbolKind kind, Accessibility accessibility, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, State state, SymbolKind kind, Accessibility accessibility, INamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Check If the user explicitly used _ as the start of the name they're generating.  Don't offer to generate
             // a non-field symbol unless that's genuinely the naming style they have setup.
@@ -138,14 +138,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             return false;
         }
 
-        private static void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions)
+        private static void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state, ICodeAndImportGenerationOptionsProvider fallbackOptions)
         {
             result.Add(new GenerateVariableCodeAction(
                 document, state, generateProperty: true, isReadonly: false, isConstant: false,
                 refKind: GetRefKindFromContext(state), fallbackOptions));
         }
 
-        private static void AddFieldCodeActions(ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions)
+        private static void AddFieldCodeActions(ArrayBuilder<CodeAction> result, SemanticDocument document, State state, ICodeAndImportGenerationOptionsProvider fallbackOptions)
         {
             if (state.TypeToGenerateIn.TypeKind != TypeKind.Interface)
             {
@@ -177,14 +177,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             }
         }
 
-        private static void GenerateWriteableField(ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions)
+        private static void GenerateWriteableField(ArrayBuilder<CodeAction> result, SemanticDocument document, State state, ICodeAndImportGenerationOptionsProvider fallbackOptions)
         {
             result.Add(new GenerateVariableCodeAction(
                 document, state, generateProperty: false, isReadonly: false, isConstant: false, refKind: RefKind.None, fallbackOptions));
         }
 
         private async Task AddLocalCodeActionsAsync(
-            ArrayBuilder<CodeAction> result, Document document, State state, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            ArrayBuilder<CodeAction> result, Document document, State state, ICodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (state.CanGenerateLocal())
             {
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         }
 
         private static async Task AddParameterCodeActionsAsync(
-            ArrayBuilder<CodeAction> result, Document document, State state, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            ArrayBuilder<CodeAction> result, Document document, State state, ICodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (state.CanGenerateParameter())
             {

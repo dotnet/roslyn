@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             return canEditDocument;
         }
 
-        private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, ICodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var formattingRules = GetFormattingRules(document);
             if (formattingRules == null)

@@ -19,21 +19,21 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         private sealed class State
         {
             public SemanticDocument SemanticDocument { get; }
-            public CodeCleanupOptionsProvider FallbackOptions { get; }
+            public ICodeCleanupOptionsProvider FallbackOptions { get; }
 
             public TTypeDeclarationSyntax TypeNode { get; set; }
             public string TypeName { get; set; }
             public string DocumentNameWithoutExtension { get; set; }
             public bool IsDocumentNameAValidIdentifier { get; set; }
 
-            private State(SemanticDocument document, CodeCleanupOptionsProvider fallbackOptions)
+            private State(SemanticDocument document, ICodeCleanupOptionsProvider fallbackOptions)
             {
                 SemanticDocument = document;
                 FallbackOptions = fallbackOptions;
             }
 
             internal static State Generate(
-                SemanticDocument document, TTypeDeclarationSyntax typeDeclaration, CodeCleanupOptionsProvider fallbackOptions,
+                SemanticDocument document, TTypeDeclarationSyntax typeDeclaration, ICodeCleanupOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 var state = new State(document, fallbackOptions);

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal readonly record struct CodeGenerationSolutionContext(
         Solution Solution,
         CodeGenerationContext Context,
-        CodeAndImportGenerationOptionsProvider FallbackOptions);
+        ICodeAndImportGenerationOptionsProvider FallbackOptions);
 
     /// <summary>
     /// General options for controlling the code produced by the <see cref="CodeGenerator"/> that apply to all documents.

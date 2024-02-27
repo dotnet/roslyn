@@ -37,10 +37,10 @@ internal sealed class ConsecutiveStatementPlacementCodeFixProvider() : CodeFixPr
         return Task.CompletedTask;
     }
 
-    private static Task<Document> UpdateDocumentAsync(Document document, Diagnostic diagnostic, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    private static Task<Document> UpdateDocumentAsync(Document document, Diagnostic diagnostic, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         => FixAllAsync(document, [diagnostic], fallbackOptions, cancellationToken);
 
-    public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);

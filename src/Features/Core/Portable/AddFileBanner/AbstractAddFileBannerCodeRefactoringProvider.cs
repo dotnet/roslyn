@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             Document document,
             ImmutableArray<TextSpan> fixAllSpans,
             SyntaxEditor editor,
-            CodeActionOptionsProvider optionsProvider,
+            ICodeActionOptionsProvider optionsProvider,
             string? equivalenceKey,
             CancellationToken cancellationToken)
         {

@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 document As Document,
                 generateCodeItem As RoslynNavigationBarItem,
                 codeGenerationContext As CodeGenerationContext,
-                fallbackOptions As CodeAndImportGenerationOptionsProvider,
+                fallbackOptions As ICodeAndImportGenerationOptionsProvider,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             Select Case generateCodeItem.Kind
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 document As Document,
                 generateCodeItem As GenerateDefaultConstructor,
                 codeGenerationContext As CodeGenerationContext,
-                fallbackOptions As CodeAndImportGenerationOptionsProvider,
+                fallbackOptions As ICodeAndImportGenerationOptionsProvider,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 document As Document,
                 generateCodeItem As GenerateEventHandler,
                 codeGenerationContext As CodeGenerationContext,
-                fallbackOptions As CodeAndImportGenerationOptionsProvider,
+                fallbackOptions As ICodeAndImportGenerationOptionsProvider,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 document As Document,
                 generateCodeItem As GenerateFinalizer,
                 codeGenerationContext As CodeGenerationContext,
-                fallbackOptions As CodeAndImportGenerationOptionsProvider,
+                fallbackOptions As ICodeAndImportGenerationOptionsProvider,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 document As Document,
                 generateCodeItem As GenerateMethod,
                 codeGenerationContext As CodeGenerationContext,
-                fallbackOptions As CodeAndImportGenerationOptionsProvider,
+                fallbackOptions As ICodeAndImportGenerationOptionsProvider,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)

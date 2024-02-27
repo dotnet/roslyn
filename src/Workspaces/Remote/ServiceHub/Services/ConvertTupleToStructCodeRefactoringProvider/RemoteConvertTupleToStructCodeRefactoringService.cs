@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
             throw ExceptionUtilities.Unreachable();
         }
 
-        private static async Task<Solution> CleanupAsync(Solution oldSolution, Solution newSolution, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        private static async Task<Solution> CleanupAsync(Solution oldSolution, Solution newSolution, ICodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var changes = newSolution.GetChangedDocuments(oldSolution);
             var final = newSolution;

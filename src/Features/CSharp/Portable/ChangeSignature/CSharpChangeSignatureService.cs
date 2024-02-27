@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxNode potentiallyUpdatedNode,
             SyntaxNode originalNode,
             SignatureChange signaturePermutation,
-            LineFormattingOptionsProvider fallbackOptions,
+            ILineFormattingOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var updatedNode = potentiallyUpdatedNode as CSharpSyntaxNode;
@@ -765,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         private async ValueTask<ImmutableArray<SyntaxTrivia>> UpdateParamTagsInLeadingTriviaAsync(
-            Document document, CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature, LineFormattingOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature, ILineFormattingOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (!node.HasLeadingTrivia)
             {

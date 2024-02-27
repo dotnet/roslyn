@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Next
         End Function
 
-        Private Shared Async Function GenerateEventFromAddRemoveHandlerAsync(document As Document, handlerStatement As AddRemoveHandlerStatementSyntax, fallbackOptions As CodeAndImportGenerationOptionsProvider, cancellationToken As CancellationToken) As Task(Of CodeAction)
+        Private Shared Async Function GenerateEventFromAddRemoveHandlerAsync(document As Document, handlerStatement As AddRemoveHandlerStatementSyntax, fallbackOptions As ICodeAndImportGenerationOptionsProvider, cancellationToken As CancellationToken) As Task(Of CodeAction)
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             Dim handlerExpression = GetHandlerExpression(handlerStatement)
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                 delegateSymbol As IMethodSymbol,
                 actualEventName As String,
                 targetType As INamedTypeSymbol,
-                fallbackOptions As CodeAndImportGenerationOptionsProvider,
+                fallbackOptions As ICodeAndImportGenerationOptionsProvider,
                 cancellationToken As CancellationToken) As Task(Of CodeAction)
 
             Dim codeGenService = document.Project.Solution.Services.GetLanguageServices(targetType.Language).GetService(Of ICodeGenerationService)
@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Return TypeOf node Is HandlesClauseItemSyntax OrElse TypeOf node Is QualifiedNameSyntax OrElse TypeOf node Is AddRemoveHandlerStatementSyntax
         End Function
 
-        Private Shared Async Function GenerateEventFromImplementsAsync(document As Document, node As QualifiedNameSyntax, fallbackOptions As CodeAndImportGenerationOptionsProvider, cancellationToken As CancellationToken) As Task(Of CodeAction)
+        Private Shared Async Function GenerateEventFromImplementsAsync(document As Document, node As QualifiedNameSyntax, fallbackOptions As ICodeAndImportGenerationOptionsProvider, cancellationToken As CancellationToken) As Task(Of CodeAction)
             If node.Right.IsMissing Then
                 Return Nothing
             End If
@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             End If
         End Function
 
-        Private Shared Async Function GenerateEventFromHandlesAsync(document As Document, handlesClauseItem As HandlesClauseItemSyntax, fallbackOptions As CodeAndImportGenerationOptionsProvider, cancellationToken As CancellationToken) As Task(Of CodeAction)
+        Private Shared Async Function GenerateEventFromHandlesAsync(document As Document, handlesClauseItem As HandlesClauseItemSyntax, fallbackOptions As ICodeAndImportGenerationOptionsProvider, cancellationToken As CancellationToken) As Task(Of CodeAction)
             If handlesClauseItem.IsMissing OrElse handlesClauseItem.EventContainer.IsMissing OrElse handlesClauseItem.EventMember.IsMissing Then
                 Return Nothing
             End If

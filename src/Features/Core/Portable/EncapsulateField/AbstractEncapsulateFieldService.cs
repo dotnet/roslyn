@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 {
     internal abstract partial class AbstractEncapsulateFieldService : ILanguageService
     {
-        protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, ICodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
         protected abstract Task<ImmutableArray<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
 
-        public async Task<EncapsulateFieldResult> EncapsulateFieldsInSpanAsync(Document document, TextSpan span, CleanCodeGenerationOptionsProvider fallbackOptions, bool useDefaultBehavior, CancellationToken cancellationToken)
+        public async Task<EncapsulateFieldResult> EncapsulateFieldsInSpanAsync(Document document, TextSpan span, ICleanCodeGenerationOptionsProvider fallbackOptions, bool useDefaultBehavior, CancellationToken cancellationToken)
         {
             var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
             if (fields.IsDefaultOrEmpty)
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 c => EncapsulateFieldsAsync(document, fields, fallbackOptions, useDefaultBehavior, c));
         }
 
-        public async Task<ImmutableArray<CodeAction>> GetEncapsulateFieldCodeActionsAsync(Document document, TextSpan span, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeAction>> GetEncapsulateFieldCodeActionsAsync(Document document, TextSpan span, ICleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
             if (fields.IsDefaultOrEmpty)
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             return builder.ToImmutable();
         }
 
-        private ImmutableArray<CodeAction> EncapsulateAllFields(Document document, ImmutableArray<IFieldSymbol> fields, CleanCodeGenerationOptionsProvider fallbackOptions)
+        private ImmutableArray<CodeAction> EncapsulateAllFields(Document document, ImmutableArray<IFieldSymbol> fields, ICleanCodeGenerationOptionsProvider fallbackOptions)
         {
             return
             [
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             ];
         }
 
-        private ImmutableArray<CodeAction> EncapsulateOneField(Document document, IFieldSymbol field, CleanCodeGenerationOptionsProvider fallbackOptions)
+        private ImmutableArray<CodeAction> EncapsulateOneField(Document document, IFieldSymbol field, ICleanCodeGenerationOptionsProvider fallbackOptions)
         {
             var fields = ImmutableArray.Create(field);
             return
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         public async Task<Solution> EncapsulateFieldsAsync(
             Document document, ImmutableArray<IFieldSymbol> fields,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             bool updateReferences, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 document, fields, fallbackOptions, updateReferences, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Solution> EncapsulateFieldsInCurrentProcessAsync(Document document, ImmutableArray<IFieldSymbol> fields, CleanCodeGenerationOptionsProvider fallbackOptions, bool updateReferences, CancellationToken cancellationToken)
+        private async Task<Solution> EncapsulateFieldsInCurrentProcessAsync(Document document, ImmutableArray<IFieldSymbol> fields, ICleanCodeGenerationOptionsProvider fallbackOptions, bool updateReferences, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(fields.Length == 0);
 
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             Document document,
             IFieldSymbol field,
             bool updateReferences,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var originalField = field;
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         }
 
         private async Task<Solution> UpdateReferencesAsync(
-            bool updateReferences, Solution solution, Document document, IFieldSymbol field, string finalFieldName, string generatedPropertyName, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            bool updateReferences, Solution solution, Document document, IFieldSymbol field, string finalFieldName, string generatedPropertyName, ICodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (!updateReferences)
             {
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             IFieldSymbol field,
             string finalName,
             Func<DocumentId, TextSpan, bool> filter,
-            CodeCleanupOptionsProvider fallbackOptions,
+            ICodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var options = new SymbolRenameOptions(
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             Solution destinationSolution,
             IFieldSymbol field,
             IPropertySymbol property,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
+            ICodeAndImportGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();

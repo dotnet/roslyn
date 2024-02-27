@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         {
             private readonly TService _service;
             private readonly SemanticDocument _document;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
+            private readonly ICodeAndImportGenerationOptionsProvider _fallbackOptions;
 
             private readonly NamingRule _fieldNamingRule;
             private readonly NamingRule _propertyNamingRule;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             public ImmutableDictionary<string, string> ParameterToNewPropertyMap { get; private set; }
             public bool IsContainedInUnsafeType { get; private set; }
 
-            private State(TService service, SemanticDocument document, NamingRule fieldNamingRule, NamingRule propertyNamingRule, NamingRule parameterNamingRule, CodeAndImportGenerationOptionsProvider fallbackOptions)
+            private State(TService service, SemanticDocument document, NamingRule fieldNamingRule, NamingRule propertyNamingRule, NamingRule parameterNamingRule, ICodeAndImportGenerationOptionsProvider fallbackOptions)
             {
                 _service = service;
                 _document = document;
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 TService service,
                 SemanticDocument document,
                 SyntaxNode node,
-                CodeAndImportGenerationOptionsProvider fallbackOptions,
+                ICodeAndImportGenerationOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 var fieldNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, fallbackOptions, cancellationToken).ConfigureAwait(false);

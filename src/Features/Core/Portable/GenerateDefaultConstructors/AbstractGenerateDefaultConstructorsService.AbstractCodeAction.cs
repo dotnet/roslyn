@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
             private readonly Document _document;
             private readonly State _state;
             private readonly string _title;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
+            private readonly ICodeAndImportGenerationOptionsProvider _fallbackOptions;
 
             protected AbstractCodeAction(
                 Document document,
                 State state,
                 IList<IMethodSymbol> constructors,
                 string title,
-                CodeAndImportGenerationOptionsProvider fallbackOptions)
+                ICodeAndImportGenerationOptionsProvider fallbackOptions)
             {
                 _document = document;
                 _state = state;

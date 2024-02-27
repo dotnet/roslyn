@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 
         protected sealed override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            SyntaxEditor editor, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var unassignedParameters = await GetUnassignedParametersAsync(
                 document, diagnostics, cancellationToken).ConfigureAwait(false);

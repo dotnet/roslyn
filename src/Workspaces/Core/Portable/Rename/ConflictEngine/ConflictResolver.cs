@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             LightweightRenameLocations lightweightRenameLocations,
             string replacementText,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
-            CodeCleanupOptionsProvider fallbackOptions,
+            ICodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             SymbolicRenameLocations renameLocations,
             string replacementText,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
-            CodeCleanupOptionsProvider fallbackOptions,
+            ICodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             // when someone e.g. renames a symbol from metadata through the API (IDE blocks this), we need to return
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         private static Task<MutableConflictResolution> ResolveMutableConflictsAsync(
             SymbolicRenameLocations renameLocationSet,
-            CodeCleanupOptionsProvider fallbackOptions,
+            ICodeCleanupOptionsProvider fallbackOptions,
             Location renameSymbolDeclarationLocation,
             string replacementText,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,

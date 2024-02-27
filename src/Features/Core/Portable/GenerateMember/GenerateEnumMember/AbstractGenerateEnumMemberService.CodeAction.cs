@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
         private partial class GenerateEnumMemberCodeAction(
             Document document,
             State state,
-            CodeAndImportGenerationOptionsProvider fallbackOptions) : CodeAction
+            ICodeAndImportGenerationOptionsProvider fallbackOptions) : CodeAction
         {
             private readonly Document _document = document;
             private readonly State _state = state;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions = fallbackOptions;
+            private readonly ICodeAndImportGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {

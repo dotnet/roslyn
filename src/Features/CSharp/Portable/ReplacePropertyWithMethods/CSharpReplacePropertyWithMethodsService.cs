@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             IFieldSymbol propertyBackingField,
             string desiredGetMethodName,
             string desiredSetMethodName,
-            CodeGenerationOptionsProvider fallbackOptions,
+            ICodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             if (propertyDeclarationNode is not PropertyDeclarationSyntax propertyDeclaration)

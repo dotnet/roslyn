@@ -62,40 +62,40 @@ internal readonly record struct CodeAndImportGenerationOptions
             AddImportOptions = AddImportPlacementOptions.Default
         };
 
-    internal CodeAndImportGenerationOptionsProvider CreateProvider()
+    internal ICodeAndImportGenerationOptionsProvider CreateProvider()
         => new Provider(this);
 
-    private sealed class Provider(CodeAndImportGenerationOptions options) : CodeAndImportGenerationOptionsProvider
+    private sealed class Provider(CodeAndImportGenerationOptions options) : ICodeAndImportGenerationOptionsProvider
     {
-        ValueTask<CodeAndImportGenerationOptions> OptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<CodeAndImportGenerationOptions> IOptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(options);
 
-        ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<CodeGenerationOptions> IOptionsProvider<CodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(options.GenerationOptions);
 
-        ValueTask<NamingStylePreferences> OptionsProvider<NamingStylePreferences>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<NamingStylePreferences> IOptionsProvider<NamingStylePreferences>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(options.GenerationOptions.NamingStyle);
 
-        ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<AddImportPlacementOptions> IOptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(options.AddImportOptions);
     }
 #endif
 }
 
-internal interface CodeGenerationOptionsProvider :
+internal interface ICodeGenerationOptionsProvider :
 #if !CODE_STYLE
-    OptionsProvider<CodeGenerationOptions>,
+    IOptionsProvider<CodeGenerationOptions>,
 #endif
-    NamingStylePreferencesProvider
+    INamingStylePreferencesProvider
 {
 }
 
-internal interface CodeAndImportGenerationOptionsProvider :
+internal interface ICodeAndImportGenerationOptionsProvider :
 #if !CODE_STYLE
-    OptionsProvider<CodeAndImportGenerationOptions>,
+    IOptionsProvider<CodeAndImportGenerationOptions>,
 #endif
-    CodeGenerationOptionsProvider,
-    AddImportPlacementOptionsProvider
+    ICodeGenerationOptionsProvider,
+    IAddImportPlacementOptionsProvider
 {
 }
 
@@ -125,10 +125,10 @@ internal static class CodeGenerationOptionsProviders
         return configOptions.GetCodeGenerationOptions(document.Project.Services, fallbackOptions);
     }
 
-    public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetCodeGenerationOptionsAsync(document, await ((OptionsProvider<CodeGenerationOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+    public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, ICodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+        => await GetCodeGenerationOptionsAsync(document, await ((IOptionsProvider<CodeGenerationOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 
-    public static async ValueTask<CodeGenerationContextInfo> GetCodeGenerationInfoAsync(this Document document, CodeGenerationContext context, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+    public static async ValueTask<CodeGenerationContextInfo> GetCodeGenerationInfoAsync(this Document document, CodeGenerationContext context, ICodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(document.Project.ParseOptions);
 

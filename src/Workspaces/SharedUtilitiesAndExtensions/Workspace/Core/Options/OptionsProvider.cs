@@ -11,19 +11,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal interface OptionsProvider<TOptions>
+/// <summary>
+/// Used when a service may need to retrive language specific <typeparamref name="TOptions"/> but it is not known up-front
+/// which language (or langauges) will the options be needed for.
+/// </summary>
+internal interface IOptionsProvider<TOptions>
 {
     ValueTask<TOptions> GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken);
 }
 
 internal static class OptionsProvider
 {
-    private sealed class OptionsReaderProvider<TOptions>(IOptionsReader optionsReader, Func<IOptionsReader, string, TOptions> reader) : OptionsProvider<TOptions>
+    private sealed class OptionsReaderProvider<TOptions>(IOptionsReader optionsReader, Func<IOptionsReader, string, TOptions> reader) : IOptionsProvider<TOptions>
     {
         public ValueTask<TOptions> GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(reader(optionsReader, languageServices.Language));
     }
 
-    public static OptionsProvider<TOptions> GetProvider<TOptions>(this IOptionsReader optionsReader, Func<IOptionsReader, string, TOptions> reader)
+    public static IOptionsProvider<TOptions> GetProvider<TOptions>(this IOptionsReader optionsReader, Func<IOptionsReader, string, TOptions> reader)
         => new OptionsReaderProvider<TOptions>(optionsReader, reader);
 }

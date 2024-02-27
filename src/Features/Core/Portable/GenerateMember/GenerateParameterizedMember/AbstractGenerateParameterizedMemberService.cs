@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         protected virtual string GetExplicitConversionDisplayText(State state)
             => string.Empty;
 
-        protected async ValueTask<ImmutableArray<CodeAction>> GetActionsAsync(Document document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        protected async ValueTask<ImmutableArray<CodeAction>> GetActionsAsync(Document document, State state, ICodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
             result.Add(new GenerateParameterizedMemberCodeAction((TService)this, document, state, fallbackOptions, isAbstract: false, generateProperty: false));

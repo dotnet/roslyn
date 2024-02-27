@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(
-            TextDocument textDocument, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            TextDocument textDocument, TextSpan span, IEnumerable<Diagnostic> diagnostics, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (textDocument is not Document document)
                 return Task.FromResult(ImmutableArray<CodeFix>.Empty);
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             return GetSuppressionsAsync(document, span, diagnostics, fallbackOptions, skipSuppressMessage: false, skipUnsuppress: false, cancellationToken: cancellationToken);
         }
 
-        internal async Task<ImmutableArray<PragmaWarningCodeAction>> GetPragmaSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        internal async Task<ImmutableArray<PragmaWarningCodeAction>> GetPragmaSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var codeFixes = await GetSuppressionsAsync(document, span, diagnostics, fallbackOptions, skipSuppressMessage: true, skipUnsuppress: true, cancellationToken: cancellationToken).ConfigureAwait(false);
             return codeFixes.SelectMany(fix => fix.Action.NestedActions)
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         private async Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(
-            Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
+            Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, ICodeActionOptionsProvider fallbackOptions, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
         {
             var suppressionTargetInfo = await GetSuppressionTargetInfoAsync(document, span, cancellationToken).ConfigureAwait(false);
             if (suppressionTargetInfo == null)
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         public async Task<ImmutableArray<CodeFix>> GetFixesAsync(
-            Project project, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Project project, IEnumerable<Diagnostic> diagnostics, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
             {
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         private async Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(
-            Document documentOpt, Project project, IEnumerable<Diagnostic> diagnostics, SuppressionTargetInfo suppressionTargetInfo, CodeActionOptionsProvider fallbackOptions, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
+            Document documentOpt, Project project, IEnumerable<Diagnostic> diagnostics, SuppressionTargetInfo suppressionTargetInfo, ICodeActionOptionsProvider fallbackOptions, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
         {
             // We only care about diagnostics that can be suppressed/unsuppressed.
             diagnostics = diagnostics.Where(IsFixableDiagnostic);

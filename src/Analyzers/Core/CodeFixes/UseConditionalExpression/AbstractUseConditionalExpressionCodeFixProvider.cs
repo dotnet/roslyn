@@ -47,11 +47,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         protected abstract Task FixOneAsync(
             Document document, Diagnostic diagnostic,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+            SyntaxEditor editor, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
-            CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             Document document, IConditionalOperation ifOperation,
             IOperation trueStatement, IOperation falseStatement,
             IOperation trueValue, IOperation falseValue,
-            bool isRef, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            bool isRef, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         /// Checks if we should wrap the conditional expression over multiple lines.
         /// </summary>
         private static async Task<bool> MakeMultiLineAsync(
-            Document document, SyntaxNode condition, SyntaxNode trueSyntax, SyntaxNode falseSyntax, CodeActionOptionsProvider fallbackOptions,
+            Document document, SyntaxNode condition, SyntaxNode trueSyntax, SyntaxNode falseSyntax, ICodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);

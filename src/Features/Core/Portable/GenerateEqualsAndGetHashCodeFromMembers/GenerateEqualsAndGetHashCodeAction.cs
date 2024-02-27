@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             SyntaxNode typeDeclaration,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> selectedMembers,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             bool generateEquals,
             bool generateGetHashCode,
             bool implementIEquatable,
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly SyntaxNode _typeDeclaration = typeDeclaration;
             private readonly INamedTypeSymbol _containingType = containingType;
             private readonly ImmutableArray<ISymbol> _selectedMembers = selectedMembers;
-            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
+            private readonly ICleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             public override string EquivalenceKey => Title;
 

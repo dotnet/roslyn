@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
                 makePrivate As Boolean,
                 document As Document,
                 declarationAnnotation As SyntaxAnnotation,
-                fallbackOptions As CodeAndImportGenerationOptionsProvider,
+                fallbackOptions As ICodeAndImportGenerationOptionsProvider,
                 cancellationToken As CancellationToken) As Task(Of SyntaxNode)
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)

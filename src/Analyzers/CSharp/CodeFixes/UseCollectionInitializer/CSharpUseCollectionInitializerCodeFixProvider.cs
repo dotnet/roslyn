@@ -35,7 +35,7 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider() :
 
     protected override async Task<(SyntaxNode, SyntaxNode)> GetReplacementNodesAsync(
         Document document,
-        CodeActionOptionsProvider fallbackOptions,
+        ICodeActionOptionsProvider fallbackOptions,
         BaseObjectCreationExpressionSyntax objectCreation,
         bool useCollectionExpression,
         ImmutableArray<Match<StatementSyntax>> matches,
@@ -48,7 +48,7 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider() :
 
     private static async Task<ExpressionSyntax> GetNewObjectCreationAsync(
         Document document,
-        CodeActionOptionsProvider fallbackOptions,
+        ICodeActionOptionsProvider fallbackOptions,
         BaseObjectCreationExpressionSyntax objectCreation,
         bool useCollectionExpression,
         ImmutableArray<Match<StatementSyntax>> matches,

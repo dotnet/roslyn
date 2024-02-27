@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-internal class TestOptionsProvider<TOptions>(TOptions options) : OptionsProvider<TOptions>
+internal class TestOptionsProvider<TOptions>(TOptions options) : IOptionsProvider<TOptions>
 {
     public ValueTask<TOptions> GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => ValueTaskFactory.FromResult(options);

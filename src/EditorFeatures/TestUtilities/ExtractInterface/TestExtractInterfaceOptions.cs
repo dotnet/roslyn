@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
             string languageName,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ICleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             this.AllExtractableMembers = extractableMembers;

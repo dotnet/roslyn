@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            SyntaxEditor editor, ICodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Fix-All for this feature is somewhat complicated.  Each time we fix one case, it
             // may make the next case unfixable.  For example:

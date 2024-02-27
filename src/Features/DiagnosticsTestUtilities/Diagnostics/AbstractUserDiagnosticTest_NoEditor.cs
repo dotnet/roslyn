@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Document document,
             FixAllScope scope,
             string equivalenceKey,
-            CodeActionOptionsProvider optionsProvider)
+            ICodeActionOptionsProvider optionsProvider)
         {
             Assert.NotEmpty(diagnostics);
 

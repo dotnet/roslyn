@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         private static async Task<CodeAction> GetFixAllFixAsync(
             CodeAction originalCodeAction,
             CodeRefactoringProvider provider,
-            CodeActionOptionsProvider optionsProvider,
+            ICodeActionOptionsProvider optionsProvider,
             Document document,
             TextSpan selectionSpan,
             FixAllScope scope)

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
         }
 
         private static async Task<AddConstructorParameterResult?> AddConstructorParametersFromMembersAsync(
-            Document document, TextSpan textSpan, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, ICodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_AddConstructorParametersFromMembers, cancellationToken))
             {

@@ -508,7 +508,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         private static async Task FindReferencesAsync(
-            IStreamingFindUsagesPresenter presenter, SymbolListItem symbolListItem, Project project, OptionsProvider<ClassificationOptions> classificationOptions)
+            IStreamingFindUsagesPresenter presenter, SymbolListItem symbolListItem, Project project, IOptionsProvider<ClassificationOptions> classificationOptions)
         {
             try
             {
@@ -542,7 +542,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             SymbolListItem symbolListItem,
             Project project,
             FindUsagesContext context,
-            OptionsProvider<ClassificationOptions> classificationOptions,
+            IOptionsProvider<ClassificationOptions> classificationOptions,
             CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);

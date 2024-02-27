@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     internal abstract partial class AbstractFindUsagesService
     {
         public async Task FindImplementationsAsync(
-            IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+            IFindUsagesContext context, Document document, int position, IOptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
         {
             // If this is a symbol from a metadata-as-source project, then map that symbol back to a symbol in the primary workspace.
             var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         public static async Task FindImplementationsAsync(
-            IFindUsagesContext context, ISymbol symbol, Project project, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+            IFindUsagesContext context, ISymbol symbol, Project project, IOptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         private static async Task FindImplementationsInCurrentProcessAsync(
-            ISymbol symbol, Project project, IFindUsagesContext context, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+            ISymbol symbol, Project project, IFindUsagesContext context, IOptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
         {
             await context.SetSearchTitleAsync(
                 string.Format(FeaturesResources._0_implementations,

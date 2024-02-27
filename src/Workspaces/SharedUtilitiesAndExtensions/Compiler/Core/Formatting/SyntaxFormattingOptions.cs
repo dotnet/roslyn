@@ -49,11 +49,11 @@ internal record class SyntaxFormattingOptions
 #endif
 }
 
-internal interface SyntaxFormattingOptionsProvider :
+internal interface ISyntaxFormattingOptionsProvider :
 #if !CODE_STYLE
-    OptionsProvider<SyntaxFormattingOptions>,
+    IOptionsProvider<SyntaxFormattingOptions>,
 #endif
-    LineFormattingOptionsProvider
+    ILineFormattingOptionsProvider
 {
 }
 
@@ -69,7 +69,7 @@ internal static partial class SyntaxFormattingOptionsProviders
         return configOptions.GetSyntaxFormattingOptions(document.Project.Services, fallbackOptions);
     }
 
-    public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetSyntaxFormattingOptionsAsync(document, await ((OptionsProvider<SyntaxFormattingOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+    public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, ISyntaxFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+        => await GetSyntaxFormattingOptionsAsync(document, await ((IOptionsProvider<SyntaxFormattingOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 #endif
 }

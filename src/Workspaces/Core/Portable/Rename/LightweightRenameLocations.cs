@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 renameLocations.ReferencedSymbols.SelectAsArray(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)));
         }
 
-        public Task<ConflictResolution> ResolveConflictsAsync(ISymbol symbol, string replacementText, ImmutableArray<SymbolKey> nonConflictSymbolKeys, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        public Task<ConflictResolution> ResolveConflictsAsync(ISymbol symbol, string replacementText, ImmutableArray<SymbolKey> nonConflictSymbolKeys, ICodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
             => ConflictResolver.ResolveLightweightConflictsAsync(symbol, this, replacementText, nonConflictSymbolKeys, fallbackOptions, cancellationToken);
 
         public LightweightRenameLocations Filter(Func<DocumentId, TextSpan, bool> filter)

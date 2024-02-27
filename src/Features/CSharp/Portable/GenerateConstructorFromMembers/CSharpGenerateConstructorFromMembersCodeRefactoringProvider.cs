@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructorFromMembers
         protected override string ToDisplayString(IParameterSymbol parameter, SymbolDisplayFormat format)
             => SymbolDisplay.ToDisplayString(parameter, format);
 
-        protected override async ValueTask<bool> PrefersThrowExpressionAsync(Document document, SimplifierOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        protected override async ValueTask<bool> PrefersThrowExpressionAsync(Document document, ISimplifierOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var options = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             return options.PreferThrowExpression.Value;

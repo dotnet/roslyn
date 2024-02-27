@@ -22,9 +22,9 @@ internal sealed record class LineFormattingOptions
     [DataMember] public string NewLine { get; init; } = Environment.NewLine;
 }
 
-internal interface LineFormattingOptionsProvider
+internal interface ILineFormattingOptionsProvider
 #if !CODE_STYLE
-    : OptionsProvider<LineFormattingOptions>
+    : IOptionsProvider<LineFormattingOptions>
 #endif
 {
 }
@@ -51,7 +51,7 @@ internal static partial class LineFormattingOptionsProviders
         return configOptions.GetLineFormattingOptions(document.Project.Language, fallbackOptions);
     }
 
-    public static async ValueTask<LineFormattingOptions> GetLineFormattingOptionsAsync(this Document document, LineFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+    public static async ValueTask<LineFormattingOptions> GetLineFormattingOptionsAsync(this Document document, ILineFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
         => await GetLineFormattingOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 #endif
 }
