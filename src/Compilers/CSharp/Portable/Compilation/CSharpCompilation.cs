@@ -2410,7 +2410,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // TODO2: when is SourceModule not an instance of SourceModuleSymbol?
             ((SourceModuleSymbol)SourceModule).DiscoverInterceptorsIfNeeded();
             if (_interceptions is null)
             {

@@ -1873,8 +1873,6 @@ public class InterceptorsTests : CSharpTestBase
             );
     }
 
-    // TODO2: disallow interceptors in local functions
-
     [Fact]
     public void InterceptorCannotBeGeneric_01()
     {
@@ -6156,5 +6154,50 @@ partial struct CustomHandler
 
         interceptor = model.GetInterceptorMethod(call);
         Assert.Equal("void Interceptors.D.Interceptor1()", interceptor.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void GetInterceptorMethod_08()
+    {
+        // Demonstrate that nested types are searched for InterceptsLocationAttributes
+        var source = ("""
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null;
+            }
+            """, "Program.cs");
+
+        var interceptorSource = ("""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            namespace Interceptors
+            {
+                static class Outer
+                {
+                    public static class D
+                    {
+                        [InterceptsLocation("Program.cs", 1, 3)]
+                        public static void Interceptor1() => Console.Write(1);
+                    }
+                }
+            }
+            """, "Interceptor.cs");
+
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "Interceptors"));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+        var interceptor = model.GetInterceptorMethod(call);
+        Assert.Equal("void Interceptors.Outer.D.Interceptor1()", interceptor.ToTestDisplayString());
+
+        comp.VerifyEmitDiagnostics();
+
+        interceptor = model.GetInterceptorMethod(call);
+        Assert.Equal("void Interceptors.Outer.D.Interceptor1()", interceptor.ToTestDisplayString());
     }
 }

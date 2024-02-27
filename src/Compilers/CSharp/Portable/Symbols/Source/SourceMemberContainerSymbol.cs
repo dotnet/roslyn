@@ -5239,15 +5239,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        private bool MayContainInterceptors
-        {
-            get
-            {
-                // TODO2: finer-grained check
-                return declaration.AnyMemberHasAttributes;
-            }
-        }
-
         internal void DiscoverInterceptors(ArrayBuilder<NamespaceOrTypeSymbol> toSearch)
         {
             foreach (var type in this.GetTypeMembers())
@@ -5255,7 +5246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 toSearch.Add(type);
             }
 
-            if (!MayContainInterceptors)
+            if (!declaration.AnyMemberHasAttributes)
             {
                 return;
             }
