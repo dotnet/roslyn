@@ -6190,35 +6190,31 @@ public partial struct CustomHandler
   IL_0037:  ret
 }
 "
-: @"
+: """
 {
-  // Code size       69 (0x45)
+  // Code size       66 (0x42)
   .maxstack  2
-  .locals init (string V_0,
-                CustomHandler V_1)
-  IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
+  .locals init (CustomHandler V_0)
+  IL_0000:  call       "void CultureInfoNormalizer.Normalize()"
   IL_0005:  ldc.i4.0
-  IL_0006:  box        ""bool""
-  IL_000b:  unbox.any  ""bool""
-  IL_0010:  brfalse.s  IL_0023
-  IL_0012:  ldloca.s   V_1
-  IL_0014:  initobj    ""CustomHandler""
-  IL_001a:  ldloc.1
-  IL_001b:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
-  IL_0020:  stloc.0
-  IL_0021:  br.s       IL_003e
-  IL_0023:  ldstr      ""{0,2:f}""
-  IL_0028:  ldc.i4.1
-  IL_0029:  box        ""int""
-  IL_002e:  call       ""string string.Format(string, object)""
-  IL_0033:  ldstr      ""Literal""
-  IL_0038:  call       ""string string.Concat(string, string)""
-  IL_003d:  stloc.0
-  IL_003e:  ldloc.0
-  IL_003f:  call       ""void System.Console.WriteLine(string)""
-  IL_0044:  ret
+  IL_0006:  box        "bool"
+  IL_000b:  unbox.any  "bool"
+  IL_0010:  brfalse.s  IL_0022
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  initobj    "CustomHandler"
+  IL_001a:  ldloc.0
+  IL_001b:  call       "string CustomHandler.op_Implicit(CustomHandler)"
+  IL_0020:  br.s       IL_003c
+  IL_0022:  ldstr      "{0,2:f}"
+  IL_0027:  ldc.i4.1
+  IL_0028:  box        "int"
+  IL_002d:  call       "string string.Format(string, object)"
+  IL_0032:  ldstr      "Literal"
+  IL_0037:  call       "string string.Concat(string, string)"
+  IL_003c:  call       "void System.Console.WriteLine(string)"
+  IL_0041:  ret
 }
-");
+""");
         }
 
         [Theory]
