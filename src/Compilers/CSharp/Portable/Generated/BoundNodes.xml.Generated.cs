@@ -2247,7 +2247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlockInstrumentation Update(OneOrMany<LocalSymbol> locals, BoundStatement? prologue, BoundStatement? epilogue)
         {
-            if (!locals.SequenceEqual(Locals, Symbols.SymbolEqualityComparer.ConsiderEverything) || prologue != this.Prologue || epilogue != this.Epilogue)
+            if (!locals.SequenceEqual(Locals) || prologue != this.Prologue || epilogue != this.Epilogue)
             {
                 var result = new BoundBlockInstrumentation(this.Syntax, locals, prologue, epilogue, this.HasErrors);
                 result.CopyAttributes(this);

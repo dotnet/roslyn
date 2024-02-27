@@ -147,52 +147,62 @@ internal sealed class ModuleCancellationInstrumenter(
     /// </summary>
     private MethodSymbol? FindOverloadWithCancellationToken(MethodSymbol method)
     {
-        if (method.MethodKind is not (MethodKind.Ordinary or MethodKind.Constructor or MethodKind.AnonymousFunction or MethodKind.LocalFunction))
+        // Switching to a cancellable overload only applies to ordinary methods and constructors.
+        if (method.MethodKind is not (MethodKind.Ordinary or MethodKind.Constructor))
         {
             return null;
         }
 
-        // It's unlikely that real-world APIs have overloads that differ in dynamic,
-        // but if they do avoid selecting them since their intended use might differ.
-        //
-        // Similarly, we also only consider overloads with the same visibility.
-        // We could potentially allow the visibility to differ,
-        // but we'd need to check if the overload is accessible at the call site.
+        // Look for an overload of the definition with no type parameter substitutions.
+        var methodDefinition = method.OriginalDefinition;
 
-        const TypeCompareKind TypeComparisonKind = TypeCompareKind.CLRSignatureCompareOptions & ~TypeCompareKind.IgnoreDynamic;
+        var methodsSetsRequiredMembers = methodDefinition.HasSetsRequiredMembers;
 
-        foreach (var member in method.ContainingType.GetMembers(method.Name))
+        foreach (var member in methodDefinition.ContainingType.GetMembers(method.Name))
         {
-            if (member.IsStatic == method.IsStatic &&
-                member.MetadataVisibility == method.MetadataVisibility &&
+            // It's unlikely that real-world APIs have overloads that differ in dynamic,
+            // but if they do avoid selecting them since their intended use might differ.
+            //
+            // Similarly, we also only consider overloads with the same visibility.
+            // We could potentially allow the visibility to differ,
+            // but we'd need to check if the overload is accessible at the call site.
+
+            const TypeCompareKind TypeComparisonKind = TypeCompareKind.CLRSignatureCompareOptions & ~TypeCompareKind.IgnoreDynamic;
+
+            if (member.IsStatic == methodDefinition.IsStatic &&
+                member.MetadataVisibility == methodDefinition.MetadataVisibility &&
                 member is MethodSymbol { Parameters: [.., { RefKind: RefKind.None, Type: { } lastParamType }] parametersWithCancellationToken } overload &&
-                overload.MethodKind == method.MethodKind &&
-                overload.Arity == method.Arity &&
-                method.Parameters.Length == parametersWithCancellationToken.Length - 1 &&
-                lastParamType.Equals(_throwMethod.ContainingType, TypeCompareKind.ConsiderEverything))
+                overload.Arity == methodDefinition.Arity &&
+                methodDefinition.Parameters.Length == parametersWithCancellationToken.Length - 1 &&
+                lastParamType.Equals(_throwMethod.ContainingType, TypeCompareKind.ConsiderEverything) &&
+                (!methodsSetsRequiredMembers || overload.HasSetsRequiredMembers))
             {
-                var typeMap = (method.Arity > 0) ? new TypeMap(overload.TypeParameters, method.TypeArgumentsWithAnnotations, allowAlpha: true) : null;
+                // we are only considering constructors and ordinary methods, which have different name.
+                Debug.Assert(methodDefinition.MethodKind == overload.MethodKind);
+
+                var typeMap = (methodDefinition.Arity > 0) ? new TypeMap(overload.TypeParameters, methodDefinition.TypeParameters) : null;
 
                 if (MemberSignatureComparer.HaveSameParameterTypes(
-                        method.Parameters.AsSpan(),
+                        methodDefinition.Parameters.AsSpan(),
                         typeMap1: null,
-                        parametersWithCancellationToken.AsSpan(0, method.Parameters.Length),
+                        parametersWithCancellationToken.AsSpan(0, methodDefinition.Parameters.Length),
                         typeMap,
                         MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
                         TypeComparisonKind) &&
                     MemberSignatureComparer.HaveSameReturnTypes(
-                        method,
+                        methodDefinition,
                         typeMap1: null,
                         overload,
                         typeMap,
                         TypeComparisonKind) &&
                     MemberSignatureComparer.HaveSameConstraints(
-                        method.TypeParameters,
+                        methodDefinition.TypeParameters,
                         typeMap1: null,
                         overload.TypeParameters,
                         typeMap))
                 {
-                    return (overload.Arity > 0) ? overload.Construct(method.TypeArgumentsWithAnnotations) : overload;
+                    var result = overload.AsMember(method.ContainingType);
+                    return (result.Arity > 0) ? result.Construct(method.TypeArgumentsWithAnnotations) : result;
                 }
             }
         }
