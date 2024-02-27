@@ -21,32 +21,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(WorkspaceSymbolsHandler)), Shared]
     [Method(Methods.WorkspaceSymbolName)]
-    internal sealed class WorkspaceSymbolsHandler : ILspServiceRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class WorkspaceSymbolsHandler(IAsynchronousOperationListenerProvider listenerProvider)
+        : ILspServiceRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?>
     {
-        private static readonly IImmutableSet<string> s_supportedKinds =
-            ImmutableHashSet.Create(
-                NavigateToItemKind.Class,
-                NavigateToItemKind.Constant,
-                NavigateToItemKind.Delegate,
-                NavigateToItemKind.Enum,
-                NavigateToItemKind.EnumItem,
-                NavigateToItemKind.Event,
-                NavigateToItemKind.Field,
-                NavigateToItemKind.Interface,
-                NavigateToItemKind.Method,
-                NavigateToItemKind.Module,
-                NavigateToItemKind.Property,
-                NavigateToItemKind.Structure);
+        private static readonly IImmutableSet<string> s_supportedKinds = [
+            NavigateToItemKind.Class,
+            NavigateToItemKind.Constant,
+            NavigateToItemKind.Delegate,
+            NavigateToItemKind.Enum,
+            NavigateToItemKind.EnumItem,
+            NavigateToItemKind.Event,
+            NavigateToItemKind.Field,
+            NavigateToItemKind.Interface,
+            NavigateToItemKind.Method,
+            NavigateToItemKind.Module,
+            NavigateToItemKind.Property,
+            NavigateToItemKind.Structure
+        ];
 
-        private readonly IAsynchronousOperationListener _asyncListener;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspaceSymbolsHandler(
-            IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigateTo);
-        }
+        private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigateTo);
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
@@ -66,29 +61,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 s_supportedKinds,
                 cancellationToken);
 
-            await searcher.SearchAsync(searchCurrentDocument: false, cancellationToken).ConfigureAwait(false);
+            await searcher.SearchAsync(NavigateToSearchScope.Solution, cancellationToken).ConfigureAwait(false);
             return progress.GetFlattenedValues();
         }
 
-        private class LSPNavigateToCallback : INavigateToSearchCallback
+        private sealed class LSPNavigateToCallback(
+            RequestContext context,
+            BufferedProgress<SymbolInformation[]> progress)
+            : INavigateToSearchCallback
         {
-            private readonly RequestContext _context;
-            private readonly BufferedProgress<SymbolInformation[]> _progress;
-
-            public LSPNavigateToCallback(
-                RequestContext context,
-                BufferedProgress<SymbolInformation[]> progress)
-            {
-                _context = context;
-                _progress = progress;
-            }
-
             public async Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
             {
                 var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(project.Solution, cancellationToken).ConfigureAwait(false);
 
                 var location = await ProtocolConversions.TextSpanToLocationAsync(
-                    document, result.NavigableItem.SourceSpan, result.NavigableItem.IsStale, _context, cancellationToken).ConfigureAwait(false);
+                    document, result.NavigableItem.SourceSpan, result.NavigableItem.IsStale, context, cancellationToken).ConfigureAwait(false);
                 if (location == null)
                     return;
 
@@ -96,7 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var symbolInfo = service.Create(
                     result.Name, result.AdditionalInformation, ProtocolConversions.NavigateToKindToSymbolKind(result.Kind), location, result.NavigableItem.Glyph);
 
-                _progress.Report(symbolInfo);
+                progress.Report(symbolInfo);
             }
 
             public void Done(bool isFullyLoaded)
