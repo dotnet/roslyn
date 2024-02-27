@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis
             var hash = GetKeyHash(key);
             var idx = hash & mask;
 
-            entries[idx].hash = hash;
-            entries[idx].value = value;
+            Entries[idx].hash = hash;
+            Entries[idx].value = value;
         }
 
         public bool TryGetValue(TKey key, [MaybeNullWhen(returnValue: false)] out TValue value)
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
             int hash = GetKeyHash(key);
             int idx = hash & mask;
 
-            var entries = this.entries;
+            var entries = this.Entries;
             if (entries[idx].hash == hash)
             {
                 var candidate = entries[idx].value;
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis
             int hash = GetKeyHash(key);
             int idx = hash & mask;
 
-            var entries = this.entries;
+            var entries = this.Entries;
             if (entries[idx].hash == hash)
             {
                 var candidate = entries[idx].value;
@@ -154,8 +154,8 @@ namespace Microsoft.CodeAnalysis
             var hash = RuntimeHelpers.GetHashCode(key);
             var idx = hash & mask;
 
-            entries[idx].key = key;
-            entries[idx].value = value;
+            Entries[idx].key = key;
+            Entries[idx].value = value;
         }
 
         public bool TryGetValue(TKey key, [MaybeNullWhen(returnValue: false)] out TValue value)
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis
             int hash = RuntimeHelpers.GetHashCode(key);
             int idx = hash & mask;
 
-            var entries = this.entries;
+            var entries = this.Entries;
             if ((object)entries[idx].key == (object)key)
             {
                 value = entries[idx].value;
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis
             int hash = RuntimeHelpers.GetHashCode(key);
             int idx = hash & mask;
 
-            var entries = this.entries;
+            var entries = this.Entries;
             if ((object)entries[idx].key == (object)key)
             {
                 return entries[idx].value;
@@ -219,13 +219,13 @@ namespace Microsoft.CodeAnalysis
         // items are placed at [hash ^ mask]
         // new item will displace previous one at the same location.
         protected readonly int mask;
-        protected readonly TEntry[] entries;
+        protected readonly TEntry[] Entries;
 
         internal CachingBase(int size)
         {
             var alignedSize = AlignSize(size);
             this.mask = alignedSize - 1;
-            this.entries = new TEntry[alignedSize];
+            this.Entries = new TEntry[alignedSize];
         }
 
         private static int AlignSize(int size)

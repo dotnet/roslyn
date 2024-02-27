@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
 {
     // very simple cache with a specified size.
     // expiration policy is "new entry wins over old entry if hashed into the same bucket"
-    internal class ConcurrentCache<TKey, TValue> : CachingBase<ConcurrentCache<TKey, TValue>.Entry>
+    internal sealed class ConcurrentCache<TKey, TValue> : CachingBase<ConcurrentCache<TKey, TValue>.Entry>
         where TKey : notnull
     {
         private readonly IEqualityComparer<TKey> _keyComparer;
@@ -50,13 +50,13 @@ namespace Microsoft.CodeAnalysis
             var hash = _keyComparer.GetHashCode(key);
             var idx = hash & mask;
 
-            var entry = this.entries[idx];
+            var entry = this.Entries[idx];
             if (entry != null && entry.hash == hash && _keyComparer.Equals(entry.key, key))
             {
                 return false;
             }
 
-            entries[idx] = new Entry(hash, key, value);
+            Entries[idx] = new Entry(hash, key, value);
             return true;
         }
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
             int hash = _keyComparer.GetHashCode(key);
             int idx = hash & mask;
 
-            var entry = this.entries[idx];
+            var entry = this.Entries[idx];
             if (entry != null && entry.hash == hash && _keyComparer.Equals(entry.key, key))
             {
                 value = entry.value;
