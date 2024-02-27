@@ -457,6 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // which is unnecessary IL bloat. Thus we require `needsSpanRefParamConstructor` to be true
             if (!needsSpanRefParamConstructor)
             {
+                preparedArgs.Free();
                 result = null;
                 return false;
             }
@@ -486,6 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            preparedArgs.Free();
             result = null;
             return false;
 
