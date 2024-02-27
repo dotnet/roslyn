@@ -156,18 +156,14 @@ namespace Microsoft.CodeAnalysis.Collections
         public ImmutableSegmentedDictionary<TKey, TValue> AddRange(IEnumerable<KeyValuePair<TKey, TValue>> pairs)
         {
             var self = this;
-            SegmentedDictionary<TKey, TValue>? dictionary = null;
 
             // Optimize the case of adding to an empty collection
-            if (self.IsEmpty)
+            if (self.IsEmpty && TryCastToImmutableSegmentedDictionary(pairs, out var other) && self.KeyComparer == other.KeyComparer)
             {
-                if (TryCastToImmutableSegmentedDictionary(pairs, out var other) && self.KeyComparer == other.KeyComparer)
-                    return other;
-
-                if (pairs.TryGetCount(out var count) && count > 0)
-                    dictionary = new SegmentedDictionary<TKey, TValue>(count, self._dictionary.Comparer);
+                return other;
             }
 
+            SegmentedDictionary<TKey, TValue>? dictionary = null;
             foreach (var pair in pairs)
             {
                 ICollection<KeyValuePair<TKey, TValue>> collectionToCheck = dictionary ?? self._dictionary;
