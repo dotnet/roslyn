@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (Instrument)
                 {
-                    Instrumenter.InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableNameSyntax);
+                    Instrumenter.InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt);
                 }
 
                 var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());

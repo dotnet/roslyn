@@ -119,11 +119,9 @@ internal sealed class ModuleCancellationInstrumenter(
         ref MethodSymbol method,
         ref BoundExpression? receiver,
         ref ImmutableArray<BoundExpression> arguments,
-        ref ImmutableArray<RefKind> argumentRefKindsOpt,
-        bool invokedAsExtensionMethod,
-        SimpleNameSyntax? nameSyntax)
+        ref ImmutableArray<RefKind> argumentRefKindsOpt)
     {
-        Previous.InterceptCallAndAdjustArguments(ref method, ref receiver, ref arguments, ref argumentRefKindsOpt, invokedAsExtensionMethod, nameSyntax);
+        Previous.InterceptCallAndAdjustArguments(ref method, ref receiver, ref arguments, ref argumentRefKindsOpt);
 
         if (arguments is [.., { Type: { } lastArgumentType } lastArgument] &&
             (argumentRefKindsOpt.IsDefault || argumentRefKindsOpt is [.., RefKind.None]) &&
@@ -149,6 +147,11 @@ internal sealed class ModuleCancellationInstrumenter(
     /// </summary>
     private MethodSymbol? FindOverloadWithCancellationToken(MethodSymbol method)
     {
+        if (method.MethodKind is not (MethodKind.Ordinary or MethodKind.Constructor or MethodKind.AnonymousFunction or MethodKind.LocalFunction))
+        {
+            return null;
+        }
+
         // It's unlikely that real-world APIs have overloads that differ in dynamic,
         // but if they do avoid selecting them since their intended use might differ.
         //
@@ -163,6 +166,7 @@ internal sealed class ModuleCancellationInstrumenter(
             if (member.IsStatic == method.IsStatic &&
                 member.MetadataVisibility == method.MetadataVisibility &&
                 member is MethodSymbol { Parameters: [.., { RefKind: RefKind.None, Type: { } lastParamType }] parametersWithCancellationToken } overload &&
+                overload.MethodKind == method.MethodKind &&
                 overload.Arity == method.Arity &&
                 method.Parameters.Length == parametersWithCancellationToken.Length - 1 &&
                 lastParamType.Equals(_throwMethod.ContainingType, TypeCompareKind.ConsiderEverything))

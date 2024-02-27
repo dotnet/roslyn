@@ -232,13 +232,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Similarly to an interceptor, gives the instrumenter an opportunity to adjust call target, receiver and arguments.
         /// </summary>
+        /// <remarks>
+        /// Unlike interceptors, called also for constructor calls (with <paramref name="receiver"/> being null).
+        /// </remarks>
         public virtual void InterceptCallAndAdjustArguments(
             ref MethodSymbol method,
             ref BoundExpression? receiver,
             ref ImmutableArray<BoundExpression> arguments,
-            ref ImmutableArray<RefKind> argumentRefKindsOpt,
-            bool invokedAsExtensionMethod,
-            SimpleNameSyntax? nameSyntax)
+            ref ImmutableArray<RefKind> argumentRefKindsOpt)
         {
         }
 

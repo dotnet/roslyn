@@ -165,11 +165,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref MethodSymbol method,
             ref BoundExpression? receiver,
             ref ImmutableArray<BoundExpression> arguments,
-            ref ImmutableArray<RefKind> argumentRefKindsOpt,
-            bool invokedAsExtensionMethod,
-            SimpleNameSyntax? nameSyntax)
+            ref ImmutableArray<RefKind> argumentRefKindsOpt)
         {
-            Previous.InterceptCallAndAdjustArguments(ref method, ref receiver, ref arguments, ref argumentRefKindsOpt, invokedAsExtensionMethod, nameSyntax);
+            Previous.InterceptCallAndAdjustArguments(ref method, ref receiver, ref arguments, ref argumentRefKindsOpt);
         }
 
         public override BoundExpression InstrumentObjectCreationExpression(BoundObjectCreationExpression original, BoundExpression rewritten)

@@ -928,108 +928,114 @@ namespace BoundTreeGenerator
         {
             if (!AllFields(node).Any())
                 return;
-            bool emitNew = (!Fields(node).Any()) && BaseType(node) is Node;
 
+            bool emitNew = (!Fields(node).Any()) && BaseType(node) is Node;
             switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
-                    {
-                        Blank();
-                        Write("public{1} {0} Update", node.Name, emitNew ? " new" : "");
-                        Paren();
-                        Comma(AllSpecifiableFields(node), field => string.Format("{0} {1}", GetField(node, field.Name).Type, ToCamelCase(field.Name)));
-                        UnParen();
-                        Blank();
-                        Brace();
-                        if (AllSpecifiableFields(node).Any())
-                        {
-                            Write("if ");
-                            Paren();
-                            Or(AllSpecifiableFields(node), notEquals);
-                            UnParen();
-                            Blank();
-                            Brace();
-                            Write("var result = new {0}", node.Name);
-                            var fields = new[] { "this.Syntax" }.Concat(AllSpecifiableFields(node).Select(f => ToCamelCase(f.Name))).Concat(new[] { "this.HasErrors" });
-                            ParenList(fields);
-                            WriteLine(";");
-                            WriteLine("result.CopyAttributes(this);");
-                            WriteLine("return result;");
-                            Unbrace();
-                        }
-                        WriteLine("return this;");
-                        Unbrace();
-                        break;
-
-                        string notEquals(Field field)
-                        {
-                            var parameterName = ToCamelCase(field.Name);
-                            var fieldName = field.Name;
-
-                            if (TypeIsTypeSymbol(field))
-                                return $"!TypeSymbol.Equals({parameterName}, this.{fieldName}, TypeCompareKind.ConsiderEverything)";
-
-                            if (TypeIsSymbol(field))
-                                return $"!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals({parameterName}, this.{fieldName})";
-
-                            if (IsValueType(field.Type) && field.Type[^1] == '?')
-                                return $"!{parameterName}.Equals(this.{fieldName})";
-
-                            if (GetGenericType(field.Type) == "OneOrMany")
-                                return $"!{parameterName}.SequenceEqual({fieldName}, Symbols.SymbolEqualityComparer.ConsiderEverything)";
-
-                            return $"{parameterName} != this.{fieldName}";
-                        }
-                    }
+                    WriteUpdatedMethodCSharp(node, emitNew);
+                    break;
 
                 case TargetLanguage.VB:
-                    {
-                        Blank();
-                        Write("Public{0} Function Update", emitNew ? " Shadows" : "");
-                        Paren();
-                        Comma(AllSpecifiableFields(node), field => string.Format("{1} As {0}", field.Type, ToCamelCase(field.Name)));
-                        UnParen();
-                        WriteLine(" As {0}", node.Name);
-                        Indent();
-
-                        if (AllSpecifiableFields(node).Any())
-                        {
-                            Write("If ");
-                            Or(AllSpecifiableFields(node), notEquals);
-                            WriteLine(" Then");
-                            Indent();
-                            Write("Dim result = New {0}", node.Name);
-                            var fields = new[] { "Me.Syntax" }.Concat(AllSpecifiableFields(node).Select(f => ToCamelCase(f.Name))).Concat(new[] { "Me.HasErrors" });
-                            ParenList(fields);
-                            WriteLine("");
-                            WriteLine("result.CopyAttributes(Me)");
-                            WriteLine("Return result");
-                            Outdent();
-                            WriteLine("End If");
-                        }
-                        WriteLine("Return Me");
-
-                        Outdent();
-                        WriteLine("End Function");
-                        break;
-
-                        string notEquals(Field field)
-                        {
-                            var parameterName = ToCamelCase(field.Name);
-                            var fieldName = field.Name;
-
-                            if (!IsValueType(field.Type))
-                                return $"{parameterName} IsNot Me.{fieldName}";
-
-                            if (GetGenericType(field.Type) == "OneOrMany")
-                                return $"Not {parameterName}.SequenceEqual({fieldName}, Symbols.SymbolEqualityComparer.ConsiderEverything)";
-
-                            return $"{parameterName} <> Me.{fieldName}";
-                        }
-                    }
+                    WriteUpdatedMethodVB(node, emitNew);
+                    break;
 
                 default:
                     throw new ArgumentException("Unexpected target language", nameof(_targetLang));
+            }
+        }
+
+        private void WriteUpdatedMethodCSharp(Node node, bool emitNew)
+        {
+            Blank();
+            Write("public{1} {0} Update", node.Name, emitNew ? " new" : "");
+            Paren();
+            Comma(AllSpecifiableFields(node), field => string.Format("{0} {1}", GetField(node, field.Name).Type, ToCamelCase(field.Name)));
+            UnParen();
+            Blank();
+            Brace();
+            if (AllSpecifiableFields(node).Any())
+            {
+                Write("if ");
+                Paren();
+                Or(AllSpecifiableFields(node), notEquals);
+                UnParen();
+                Blank();
+                Brace();
+                Write("var result = new {0}", node.Name);
+                var fields = new[] { "this.Syntax" }.Concat(AllSpecifiableFields(node).Select(f => ToCamelCase(f.Name))).Concat(new[] { "this.HasErrors" });
+                ParenList(fields);
+                WriteLine(";");
+                WriteLine("result.CopyAttributes(this);");
+                WriteLine("return result;");
+                Unbrace();
+            }
+            WriteLine("return this;");
+            Unbrace();
+
+            string notEquals(Field field)
+            {
+                var parameterName = ToCamelCase(field.Name);
+                var fieldName = field.Name;
+
+                if (TypeIsTypeSymbol(field))
+                    return $"!TypeSymbol.Equals({parameterName}, this.{fieldName}, TypeCompareKind.ConsiderEverything)";
+
+                if (TypeIsSymbol(field))
+                    return $"!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals({parameterName}, this.{fieldName})";
+
+                if (IsValueType(field.Type) && field.Type[^1] == '?')
+                    return $"!{parameterName}.Equals(this.{fieldName})";
+
+                if (GetGenericType(field.Type) == "OneOrMany")
+                    return $"!{parameterName}.SequenceEqual({fieldName})";
+
+                return $"{parameterName} != this.{fieldName}";
+            }
+        }
+
+        private void WriteUpdatedMethodVB(Node node, bool emitNew)
+        {
+            Blank();
+            Write("Public{0} Function Update", emitNew ? " Shadows" : "");
+            Paren();
+            Comma(AllSpecifiableFields(node), field => string.Format("{1} As {0}", field.Type, ToCamelCase(field.Name)));
+            UnParen();
+            WriteLine(" As {0}", node.Name);
+            Indent();
+
+            if (AllSpecifiableFields(node).Any())
+            {
+                Write("If ");
+                Or(AllSpecifiableFields(node), notEquals);
+                WriteLine(" Then");
+                Indent();
+                Write("Dim result = New {0}", node.Name);
+                var fields = new[] { "Me.Syntax" }.Concat(AllSpecifiableFields(node).Select(f => ToCamelCase(f.Name))).Concat(new[] { "Me.HasErrors" });
+                ParenList(fields);
+                WriteLine("");
+                WriteLine("result.CopyAttributes(Me)");
+                WriteLine("Return result");
+                Outdent();
+                WriteLine("End If");
+            }
+            WriteLine("Return Me");
+
+            Outdent();
+            WriteLine("End Function");
+
+            string notEquals(Field field)
+            {
+                var parameterName = ToCamelCase(field.Name);
+                var fieldName = field.Name;
+
+                if (!IsValueType(field.Type))
+                    return $"{parameterName} IsNot Me.{fieldName}";
+
+                if (GetGenericType(field.Type) == "OneOrMany")
+                    return $"Not {parameterName}.SequenceEqual({fieldName})";
+
+                return $"{parameterName} <> Me.{fieldName}";
             }
         }
 
