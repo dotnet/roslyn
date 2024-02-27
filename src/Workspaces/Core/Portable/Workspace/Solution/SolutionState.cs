@@ -220,6 +220,8 @@ namespace Microsoft.CodeAnalysis
                 _lazyAnalyzers);
         }
 
+        public ImmutableDictionary<string, ImmutableArray<DocumentId>> FilePathToDocumentIdsMap => _filePathToDocumentIdsMap;
+
         /// <summary>
         /// The version of the most recently modified project.
         /// </summary>
@@ -404,25 +406,6 @@ namespace Microsoft.CodeAnalysis
                 dependencyGraph: newDependencyGraph);
         }
 
-        public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedAndRemovedDocuments(
-            ArrayBuilder<TextDocumentState> documentsToAdd,
-            ArrayBuilder<TextDocumentState> documentsToRemove)
-        {
-            if (documentsToRemove.Count == 0 && documentsToAdd.Count == 0)
-                return _filePathToDocumentIdsMap;
-
-            var builder = _filePathToDocumentIdsMap.ToBuilder();
-
-            // Add first, then remove.  This helps avoid the case where a filepath now sees no documents, so we remove
-            // the entry entirely for it in the dictionary, only to add it back in.  Adding then removing will at least
-            // keep the entry, but increase the docs for it, then lower it back down.
-
-            AddDocumentFilePaths(documentsToAdd, builder);
-            RemoveDocumentFilePaths(documentsToRemove, builder);
-
-            return builder.ToImmutable();
-        }
-
         public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
         {
             var builder = _filePathToDocumentIdsMap.ToBuilder();
@@ -433,16 +416,17 @@ namespace Microsoft.CodeAnalysis
         private static void AddDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
         {
             foreach (var documentState in documentStates)
-            {
-                var filePath = documentState.FilePath;
+                AddDocumentFilePath(documentState, builder);
+        }
 
-                if (RoslynString.IsNullOrEmpty(filePath))
-                {
-                    continue;
-                }
+        public static void AddDocumentFilePath(TextDocumentState documentState, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        {
+            var filePath = documentState.FilePath;
 
-                builder.MultiAdd(filePath, documentState.Id);
-            }
+            if (RoslynString.IsNullOrEmpty(filePath))
+                return;
+
+            builder.MultiAdd(filePath, documentState.Id);
         }
 
         public ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
@@ -455,21 +439,19 @@ namespace Microsoft.CodeAnalysis
         private static void RemoveDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
         {
             foreach (var documentState in documentStates)
-            {
-                var filePath = documentState.FilePath;
+                RemoveDocumentFilePath(documentState, builder);
+        }
 
-                if (RoslynString.IsNullOrEmpty(filePath))
-                {
-                    continue;
-                }
+        public static void RemoveDocumentFilePath(TextDocumentState documentState, ImmutableDictionary<string, ImmutableArray<DocumentId>>.Builder builder)
+        {
+            var filePath = documentState.FilePath;
+            if (RoslynString.IsNullOrEmpty(filePath))
+                return;
 
-                if (!builder.TryGetValue(filePath, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentState.Id))
-                {
-                    throw new ArgumentException($"The given documentId was not found in '{nameof(_filePathToDocumentIdsMap)}'.");
-                }
+            if (!builder.TryGetValue(filePath, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentState.Id))
+                throw new ArgumentException($"The given documentId was not found in '{nameof(_filePathToDocumentIdsMap)}'.");
 
-                builder.MultiRemove(filePath, documentState.Id);
-            }
+            builder.MultiRemove(filePath, documentState.Id);
         }
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateFilePathToDocumentIdsMapWithFilePath(DocumentId documentId, string? oldFilePath, string? newFilePath)

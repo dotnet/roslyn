@@ -46,3 +46,9 @@ virtual Microsoft.CodeAnalysis.SyntaxContextReceiverCreator.Invoke() -> Microsof
 virtual Microsoft.CodeAnalysis.SyntaxReceiverCreator.Invoke() -> Microsoft.CodeAnalysis.ISyntaxReceiver!
 static Microsoft.CodeAnalysis.DocumentationCommentId.CreateDeclarationId(Microsoft.CodeAnalysis.ISymbol! symbol) -> string?
 *REMOVED*static Microsoft.CodeAnalysis.DocumentationCommentId.CreateDeclarationId(Microsoft.CodeAnalysis.ISymbol! symbol) -> string!
+[RSEXPERIMENTAL001]Microsoft.CodeAnalysis.SemanticModelOptions
+[RSEXPERIMENTAL001]Microsoft.CodeAnalysis.SemanticModelOptions.None = 0 -> Microsoft.CodeAnalysis.SemanticModelOptions
+[RSEXPERIMENTAL001]Microsoft.CodeAnalysis.SemanticModelOptions.IgnoreAccessibility = 1 -> Microsoft.CodeAnalysis.SemanticModelOptions
+[RSEXPERIMENTAL001]Microsoft.CodeAnalysis.SemanticModelOptions.DisableNullableAnalysis = 2 -> Microsoft.CodeAnalysis.SemanticModelOptions
+[RSEXPERIMENTAL001]Microsoft.CodeAnalysis.Compilation.GetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree! syntaxTree, Microsoft.CodeAnalysis.SemanticModelOptions options) -> Microsoft.CodeAnalysis.SemanticModel!
+abstract Microsoft.CodeAnalysis.SemanticModel.NullableAnalysisIsDisabled.get -> bool
