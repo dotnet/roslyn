@@ -7,24 +7,25 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Debugging;
-
-internal readonly struct TupleElementNamesInfo
+namespace Microsoft.CodeAnalysis.Debugging
 {
-    internal readonly ImmutableArray<string> ElementNames;
-    internal readonly int SlotIndex; // Locals only
-    internal readonly string LocalName;
-    internal readonly int ScopeStart; // Constants only
-    internal readonly int ScopeEnd; // Constants only
-
-    internal TupleElementNamesInfo(ImmutableArray<string> elementNames, int slotIndex, string localName, int scopeStart, int scopeEnd)
+    internal readonly struct TupleElementNamesInfo
     {
-        Debug.Assert(!elementNames.IsDefault);
+        internal readonly ImmutableArray<string> ElementNames;
+        internal readonly int SlotIndex; // Locals only
+        internal readonly string LocalName;
+        internal readonly int ScopeStart; // Constants only
+        internal readonly int ScopeEnd; // Constants only
 
-        ElementNames = elementNames;
-        SlotIndex = slotIndex;
-        LocalName = localName;
-        ScopeStart = scopeStart;
-        ScopeEnd = scopeEnd;
+        internal TupleElementNamesInfo(ImmutableArray<string> elementNames, int slotIndex, string localName, int scopeStart, int scopeEnd)
+        {
+            Debug.Assert(!elementNames.IsDefault);
+
+            ElementNames = elementNames;
+            SlotIndex = slotIndex;
+            LocalName = localName;
+            ScopeStart = scopeStart;
+            ScopeEnd = scopeEnd;
+        }
     }
 }
