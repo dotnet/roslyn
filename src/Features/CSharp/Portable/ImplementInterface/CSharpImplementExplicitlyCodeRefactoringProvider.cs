@@ -126,6 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                     return;
                 }
 
+                // Have to make sure we've got a simple name for the rewrite below to be legal.
                 if (identifierName is not SimpleNameSyntax)
                     return;
 
