@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
@@ -69,6 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 if (!TryConvertExpressionBodyToStatement(body, semicolonToken, !returnsVoid, out var convertedStatement))
                 {
                     return;
+                }
+
+                if (convertedStatement is ReturnStatementSyntax { Expression: not null } convertedReturn &&
+                    body is ArrowExpressionClauseSyntax arrowClause &&
+                    arrowClause.ArrowToken.TrailingTrivia.IndexOf(SyntaxKind.EndOfLineTrivia) < 0)
+                {
+                    var whiteSpaceTrivia = convertedReturn.Expression.DescendantTrivia().Where(static tr => tr.IsWhitespace() && !tr.IsElastic());
+                    convertedStatement = convertedStatement.ReplaceTrivia(whiteSpaceTrivia, (_, tr) => tr.AsElastic());
                 }
 
                 // Add the new statement as the first/last statement of the new block 
