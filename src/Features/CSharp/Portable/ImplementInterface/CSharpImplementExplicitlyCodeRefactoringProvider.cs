@@ -126,6 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                     return;
                 }
 
+                if (identifierName is not SimpleNameSyntax)
+                    return;
+
                 // Accessing the member not off of <dot>.  i.e just plain `Goo()`.  Replace with
                 // ((IGoo)this).Goo();
                 var generator = editor.Generator;
