@@ -1114,9 +1114,9 @@ internal sealed partial class SolutionCompilationState
 
             if (oldProjectState != newProjectState)
             {
-                CheckDocumentStates(filePathToDocumentIdsMapBuilder, oldProjectState.DocumentStates, newProjectState.DocumentStates);
-                CheckDocumentStates(filePathToDocumentIdsMapBuilder, oldProjectState.AdditionalDocumentStates, newProjectState.AdditionalDocumentStates);
-                CheckDocumentStates(filePathToDocumentIdsMapBuilder, oldProjectState.AnalyzerConfigDocumentStates, newProjectState.AnalyzerConfigDocumentStates);
+                AddMissingOrChangedFilePathMappings(filePathToDocumentIdsMapBuilder, oldProjectState.DocumentStates, newProjectState.DocumentStates);
+                AddMissingOrChangedFilePathMappings(filePathToDocumentIdsMapBuilder, oldProjectState.AdditionalDocumentStates, newProjectState.AdditionalDocumentStates);
+                AddMissingOrChangedFilePathMappings(filePathToDocumentIdsMapBuilder, oldProjectState.AnalyzerConfigDocumentStates, newProjectState.AnalyzerConfigDocumentStates);
             }
         }
 
@@ -1140,7 +1140,7 @@ internal sealed partial class SolutionCompilationState
 
         return newCompilationState;
 
-        static void CheckDocumentStates<TDocumentState>(
+        static void AddMissingOrChangedFilePathMappings<TDocumentState>(
             FilePathToDocumentIdsMap.Builder filePathToDocumentIdsMapBuilder,
             TextDocumentStates<TDocumentState> oldStates,
             TextDocumentStates<TDocumentState> newStates) where TDocumentState : TextDocumentState
