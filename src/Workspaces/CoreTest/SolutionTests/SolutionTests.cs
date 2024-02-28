@@ -4719,5 +4719,21 @@ class C
                 Assert.Equal("// source2", forkedGeneratedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
             }
         }
+
+        [Fact]
+        public async Task TestFrozenPartialSolutionOtherLanguage()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("TypeScript", "TypeScript", "TypeScript");
+            project = project.AddDocument("Extra.ts", SourceText.From("class Extra { }")).Project;
+
+            // Freeze should have no impact on non-c#/vb projects.
+            var frozenSolution = project.Solution.WithFrozenPartialCompilations(CancellationToken.None);
+            var frozenProject = frozenSolution.Projects.Single();
+            Assert.Single(frozenProject.Documents);
+
+            var frozenCompilation = await frozenProject.GetCompilationAsync();
+            Assert.Null(frozenCompilation);
+        }
     }
 }

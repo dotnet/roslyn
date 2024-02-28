@@ -4,22 +4,21 @@
 
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SymbolMapping
+namespace Microsoft.CodeAnalysis.SymbolMapping;
+
+internal class SymbolMappingResult
 {
-    internal class SymbolMappingResult
+    public Project Project { get; }
+    public ISymbol Symbol { get; }
+
+    internal SymbolMappingResult(Project project, ISymbol symbol)
     {
-        public Project Project { get; }
-        public ISymbol Symbol { get; }
+        Contract.ThrowIfNull(project);
+        Contract.ThrowIfNull(symbol);
 
-        internal SymbolMappingResult(Project project, ISymbol symbol)
-        {
-            Contract.ThrowIfNull(project);
-            Contract.ThrowIfNull(symbol);
-
-            Project = project;
-            Symbol = symbol;
-        }
-
-        public Solution Solution => Project.Solution;
+        Project = project;
+        Symbol = symbol;
     }
+
+    public Solution Solution => Project.Solution;
 }

@@ -4,15 +4,14 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.SolutionCrawler
+namespace Microsoft.CodeAnalysis.SolutionCrawler;
+
+internal static class SolutionCrawlerTimeSpan
 {
-    internal static class SolutionCrawlerTimeSpan
-    {
-        public static readonly TimeSpan ActiveFileWorkerBackOff = TimeSpan.FromMilliseconds(100);
-        public static readonly TimeSpan AllFilesWorkerBackOff = TimeSpan.FromMilliseconds(1500);
-        public static readonly TimeSpan EntireProjectWorkerBackOff = TimeSpan.FromMilliseconds(5000);
-        public static readonly TimeSpan SemanticChangeBackOff = TimeSpan.FromMilliseconds(100);
-        public static readonly TimeSpan ProjectPropagationBackOff = TimeSpan.FromMilliseconds(500);
-        public static readonly TimeSpan PreviewBackOff = TimeSpan.FromMilliseconds(500);
-    }
+    public static readonly TimeSpan ActiveFileWorkerBackOff = TimeSpan.FromMilliseconds(100);
+    public static readonly TimeSpan AllFilesWorkerBackOff = TimeSpan.FromMilliseconds(1500);
+    public static readonly TimeSpan EntireProjectWorkerBackOff = TimeSpan.FromMilliseconds(5000);
+    public static readonly TimeSpan SemanticChangeBackOff = TimeSpan.FromMilliseconds(100);
+    public static readonly TimeSpan ProjectPropagationBackOff = TimeSpan.FromMilliseconds(500);
+    public static readonly TimeSpan PreviewBackOff = TimeSpan.FromMilliseconds(500);
 }

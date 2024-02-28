@@ -9,30 +9,29 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavInfo;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library;
+
+internal abstract class AbstractLibraryService : ILibraryService
 {
-    internal abstract class AbstractLibraryService : ILibraryService
+    public Guid LibraryId { get; }
+    public __SymbolToolLanguage PreferredLanguage { get; }
+
+    public SymbolDisplayFormat TypeDisplayFormat { get; }
+    public SymbolDisplayFormat MemberDisplayFormat { get; }
+
+    public NavInfoFactory NavInfoFactory { get; }
+
+    protected AbstractLibraryService(
+        Guid libraryId,
+        __SymbolToolLanguage preferredLanguage,
+        SymbolDisplayFormat typeDisplayFormat,
+        SymbolDisplayFormat memberDisplayFormat)
     {
-        public Guid LibraryId { get; }
-        public __SymbolToolLanguage PreferredLanguage { get; }
+        this.LibraryId = libraryId;
+        this.PreferredLanguage = preferredLanguage;
+        this.TypeDisplayFormat = typeDisplayFormat;
+        this.MemberDisplayFormat = memberDisplayFormat;
 
-        public SymbolDisplayFormat TypeDisplayFormat { get; }
-        public SymbolDisplayFormat MemberDisplayFormat { get; }
-
-        public NavInfoFactory NavInfoFactory { get; }
-
-        protected AbstractLibraryService(
-            Guid libraryId,
-            __SymbolToolLanguage preferredLanguage,
-            SymbolDisplayFormat typeDisplayFormat,
-            SymbolDisplayFormat memberDisplayFormat)
-        {
-            this.LibraryId = libraryId;
-            this.PreferredLanguage = preferredLanguage;
-            this.TypeDisplayFormat = typeDisplayFormat;
-            this.MemberDisplayFormat = memberDisplayFormat;
-
-            this.NavInfoFactory = new NavInfoFactory(this);
-        }
+        this.NavInfoFactory = new NavInfoFactory(this);
     }
 }

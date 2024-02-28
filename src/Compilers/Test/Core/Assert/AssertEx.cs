@@ -76,11 +76,6 @@ namespace Roslyn.Test.Utilities
                     }
                 }
 
-                if (x.GetType() != y.GetType())
-                {
-                    return false;
-                }
-
                 if (x is IEquatable<T> equatable)
                 {
                     return equatable.Equals(y);
@@ -96,10 +91,7 @@ namespace Roslyn.Test.Utilities
                     return comparable.CompareTo(y) == 0;
                 }
 
-                var enumerableX = x as IEnumerable;
-                var enumerableY = y as IEnumerable;
-
-                if (enumerableX != null && enumerableY != null)
+                if (x is IEnumerable enumerableX && y is IEnumerable enumerableY)
                 {
                     var enumeratorX = enumerableX.GetEnumerator();
                     var enumeratorY = enumerableY.GetEnumerator();

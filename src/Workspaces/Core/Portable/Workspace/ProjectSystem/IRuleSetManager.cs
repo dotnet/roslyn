@@ -5,10 +5,9 @@
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
+namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+
+internal interface IRuleSetManager : IWorkspaceService
 {
-    internal interface IRuleSetManager : IWorkspaceService
-    {
-        IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>> GetOrCreateRuleSet(string ruleSetFileFullPath);
-    }
+    IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>> GetOrCreateRuleSet(string ruleSetFileFullPath);
 }

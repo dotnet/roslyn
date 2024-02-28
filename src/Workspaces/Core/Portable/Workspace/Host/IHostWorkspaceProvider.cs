@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+internal interface IHostWorkspaceProvider
 {
-    internal interface IHostWorkspaceProvider
-    {
-        Workspace Workspace { get; }
-    }
+    Workspace Workspace { get; }
 }

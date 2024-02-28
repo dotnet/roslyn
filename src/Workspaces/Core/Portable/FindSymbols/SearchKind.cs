@@ -4,30 +4,29 @@
 
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindSymbols
+namespace Microsoft.CodeAnalysis.FindSymbols;
+
+internal enum SearchKind
 {
-    internal enum SearchKind
-    {
-        /// <summary>
-        /// Use an case-sensitive comparison when searching for matching items.
-        /// </summary>
-        Exact,
+    /// <summary>
+    /// Use an case-sensitive comparison when searching for matching items.
+    /// </summary>
+    Exact,
 
-        /// <summary>
-        /// Use a case-insensitive comparison when searching for matching items.
-        /// </summary>
-        ExactIgnoreCase,
+    /// <summary>
+    /// Use a case-insensitive comparison when searching for matching items.
+    /// </summary>
+    ExactIgnoreCase,
 
-        /// <summary>
-        /// Use a fuzzy comparison when searching for matching items. Fuzzy matching allows for 
-        /// a certain amount of misspellings, missing words, etc. See <see cref="SpellChecker"/> for 
-        /// more details.
-        /// </summary>
-        Fuzzy,
+    /// <summary>
+    /// Use a fuzzy comparison when searching for matching items. Fuzzy matching allows for 
+    /// a certain amount of misspellings, missing words, etc. See <see cref="SpellChecker"/> for 
+    /// more details.
+    /// </summary>
+    Fuzzy,
 
-        /// <summary>
-        /// Search term is matched in a custom manner (i.e. with a user provided predicate).
-        /// </summary>
-        Custom
-    }
+    /// <summary>
+    /// Search term is matched in a custom manner (i.e. with a user provided predicate).
+    /// </summary>
+    Custom
 }

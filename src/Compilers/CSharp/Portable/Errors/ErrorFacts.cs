@@ -2349,7 +2349,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptorContainingTypeCannotBeGeneric:
                 case ErrorCode.ERR_InterceptorPathNotInCompilation:
                 case ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate:
-                case ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate:
                 case ErrorCode.ERR_InterceptorPositionBadToken:
                 case ErrorCode.ERR_InterceptorLineOutOfRange:
                 case ErrorCode.ERR_InterceptorCharacterOutOfRange:

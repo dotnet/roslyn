@@ -285,8 +285,8 @@ try {
 
   if ($bootstrapDir -eq "") {
     Write-Host "Building bootstrap compiler"
-    Exec-Script (Join-Path $PSScriptRoot "make-bootstrap.ps1") "-name determinism -ci:$ci"
     $bootstrapDir = Join-Path $ArtifactsDir "bootstrap" "determinism"
+    Exec-Script (Join-Path $PSScriptRoot "make-bootstrap.ps1") "-output $bootstrapDir -ci:$ci"
   }
 
   Run-Test

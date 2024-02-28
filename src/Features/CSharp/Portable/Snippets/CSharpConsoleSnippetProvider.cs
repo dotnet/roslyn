@@ -23,21 +23,20 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
-{
-    [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpConsoleSnippetProvider : AbstractConsoleSnippetProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpConsoleSnippetProvider()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
-        protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
-        {
-            var node = token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
-            return node;
-        }
+[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+internal sealed class CSharpConsoleSnippetProvider : AbstractConsoleSnippetProvider
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpConsoleSnippetProvider()
+    {
+    }
+
+    protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
+    {
+        var node = token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
+        return node;
     }
 }

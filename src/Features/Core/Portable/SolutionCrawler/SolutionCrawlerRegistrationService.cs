@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 foreach (var provider in lazyProviders)
                 {
-                    if (provider.Metadata.WorkspaceKinds?.Any(wk => wk == kind) == true)
+                    if (provider.Metadata.WorkspaceKinds.Any(wk => wk == kind))
                     {
                         lazyProvider = provider;
                         return true;
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         continue;
                     }
 
-                    foreach (var kind in lazyProvider.Metadata.WorkspaceKinds!)
+                    foreach (var kind in lazyProvider.Metadata.WorkspaceKinds)
                     {
                         Debug.Assert(set.Add(kind));
                     }
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         private static bool IsDefaultProvider(IncrementalAnalyzerProviderMetadata providerMetadata)
-            => providerMetadata.WorkspaceKinds == null || providerMetadata.WorkspaceKinds.Count == 0;
+            => providerMetadata.WorkspaceKinds is [];
 
         internal TestAccessor GetTestAccessor()
         {

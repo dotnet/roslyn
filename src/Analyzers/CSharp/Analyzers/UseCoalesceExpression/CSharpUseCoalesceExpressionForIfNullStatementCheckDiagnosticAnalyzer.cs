@@ -14,62 +14,61 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UseCoalesceExpression
+namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UseCoalesceExpression;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal class CSharpUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer :
+    AbstractUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer<
+        SyntaxKind,
+        ExpressionSyntax,
+        StatementSyntax,
+        VariableDeclaratorSyntax,
+        IfStatementSyntax>
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer :
-        AbstractUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer<
-            SyntaxKind,
-            ExpressionSyntax,
-            StatementSyntax,
-            VariableDeclaratorSyntax,
-            IfStatementSyntax>
+    protected override SyntaxKind IfStatementKind
+        => SyntaxKind.IfStatement;
+
+    protected override ISyntaxFacts SyntaxFacts
+        => CSharpSyntaxFacts.Instance;
+
+    protected override bool IsSingle(VariableDeclaratorSyntax declarator)
+        => true;
+
+    protected override SyntaxNode GetDeclarationNode(VariableDeclaratorSyntax declarator)
+        => declarator;
+
+    protected override ExpressionSyntax GetConditionOfIfStatement(IfStatementSyntax ifStatement)
+        => ifStatement.Condition;
+
+    protected override bool IsNullCheck(ExpressionSyntax condition, [NotNullWhen(true)] out ExpressionSyntax? checkedExpression)
     {
-        protected override SyntaxKind IfStatementKind
-            => SyntaxKind.IfStatement;
-
-        protected override ISyntaxFacts SyntaxFacts
-            => CSharpSyntaxFacts.Instance;
-
-        protected override bool IsSingle(VariableDeclaratorSyntax declarator)
-            => true;
-
-        protected override SyntaxNode GetDeclarationNode(VariableDeclaratorSyntax declarator)
-            => declarator;
-
-        protected override ExpressionSyntax GetConditionOfIfStatement(IfStatementSyntax ifStatement)
-            => ifStatement.Condition;
-
-        protected override bool IsNullCheck(ExpressionSyntax condition, [NotNullWhen(true)] out ExpressionSyntax? checkedExpression)
+        if (condition is BinaryExpressionSyntax(SyntaxKind.EqualsExpression) { Right: LiteralExpressionSyntax(SyntaxKind.NullLiteralExpression) } binary)
         {
-            if (condition is BinaryExpressionSyntax(SyntaxKind.EqualsExpression) { Right: LiteralExpressionSyntax(SyntaxKind.NullLiteralExpression) } binary)
-            {
-                checkedExpression = binary.Left;
-                return true;
-            }
-            else if (condition is IsPatternExpressionSyntax { Pattern: ConstantPatternSyntax { Expression: LiteralExpressionSyntax(SyntaxKind.NullLiteralExpression) } } isPattern)
-            {
-                checkedExpression = isPattern.Expression;
-                return true;
-            }
-
-            checkedExpression = null;
-            return false;
+            checkedExpression = binary.Left;
+            return true;
         }
-
-        protected override bool TryGetEmbeddedStatement(IfStatementSyntax ifStatement, [NotNullWhen(true)] out StatementSyntax? whenTrueStatement)
+        else if (condition is IsPatternExpressionSyntax { Pattern: ConstantPatternSyntax { Expression: LiteralExpressionSyntax(SyntaxKind.NullLiteralExpression) } } isPattern)
         {
-            whenTrueStatement = ifStatement.Statement is BlockSyntax { Statements.Count: 1 } block
-                ? block.Statements[0]
-                : ifStatement.Statement;
-
+            checkedExpression = isPattern.Expression;
             return true;
         }
 
-        protected override bool HasElseBlock(IfStatementSyntax ifStatement)
-            => ifStatement.Else != null;
-
-        protected override StatementSyntax? TryGetPreviousStatement(IfStatementSyntax ifStatement)
-            => ifStatement.GetPreviousStatement();
+        checkedExpression = null;
+        return false;
     }
+
+    protected override bool TryGetEmbeddedStatement(IfStatementSyntax ifStatement, [NotNullWhen(true)] out StatementSyntax? whenTrueStatement)
+    {
+        whenTrueStatement = ifStatement.Statement is BlockSyntax { Statements.Count: 1 } block
+            ? block.Statements[0]
+            : ifStatement.Statement;
+
+        return true;
+    }
+
+    protected override bool HasElseBlock(IfStatementSyntax ifStatement)
+        => ifStatement.Else != null;
+
+    protected override StatementSyntax? TryGetPreviousStatement(IfStatementSyntax ifStatement)
+        => ifStatement.GetPreviousStatement();
 }

@@ -6,36 +6,35 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.MoveToNamespace
+namespace Microsoft.CodeAnalysis.MoveToNamespace;
+
+internal partial class MoveToNamespaceAnalysisResult
 {
-    internal partial class MoveToNamespaceAnalysisResult
+    public static readonly MoveToNamespaceAnalysisResult Invalid = new();
+
+    public bool CanPerform { get; }
+    public Document Document { get; }
+    public SyntaxNode SyntaxNode { get; }
+    public string OriginalNamespace { get; }
+    public ContainerType Container { get; }
+    public ImmutableArray<string> Namespaces { get; }
+
+    public MoveToNamespaceAnalysisResult(
+        Document document,
+        SyntaxNode syntaxNode,
+        string originalNamespace,
+        ImmutableArray<string> namespaces,
+        ContainerType container)
     {
-        public static readonly MoveToNamespaceAnalysisResult Invalid = new();
-
-        public bool CanPerform { get; }
-        public Document Document { get; }
-        public SyntaxNode SyntaxNode { get; }
-        public string OriginalNamespace { get; }
-        public ContainerType Container { get; }
-        public ImmutableArray<string> Namespaces { get; }
-
-        public MoveToNamespaceAnalysisResult(
-            Document document,
-            SyntaxNode syntaxNode,
-            string originalNamespace,
-            ImmutableArray<string> namespaces,
-            ContainerType container)
-        {
-            CanPerform = true;
-            Document = document;
-            SyntaxNode = syntaxNode;
-            OriginalNamespace = originalNamespace;
-            Container = container;
-            Namespaces = namespaces;
-        }
-
-        private MoveToNamespaceAnalysisResult()
-            => CanPerform = false;
-
+        CanPerform = true;
+        Document = document;
+        SyntaxNode = syntaxNode;
+        OriginalNamespace = originalNamespace;
+        Container = container;
+        Namespaces = namespaces;
     }
+
+    private MoveToNamespaceAnalysisResult()
+        => CanPerform = false;
+
 }
