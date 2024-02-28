@@ -200,7 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode queryClause = null,
             bool isMethodGroupConversion = false,
             RefKind? returnRefKind = null,
-            TypeSymbol delegateOrFunctionPointerType = null) where T : Symbol
+            TypeSymbol delegateOrFunctionPointerType = null,
+            bool isParamsModifierValidation = false) where T : Symbol
         {
             Debug.Assert(!this.Succeeded, "Don't ask for diagnostic info on a successful overload resolution result.");
 
@@ -509,7 +510,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (receiver is null)
                                 {
                                     Debug.Assert(firstSupported.Member is MethodSymbol { MethodKind: MethodKind.Constructor });
-                                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingConstructor, location);
+                                    diagnostics.Add(
+                                        isParamsModifierValidation ?
+                                            ErrorCode.ERR_ParamsCollectionMissingConstructor :
+                                            ErrorCode.ERR_CollectionExpressionMissingConstructor,
+                                        location);
                                 }
                                 else
                                 {

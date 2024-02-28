@@ -1380,12 +1380,9 @@ class Program
                 // (20,9): error CS1501: No overload for method 'Test' takes 2 arguments
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(20, 9),
-
-                // PROTOTYPE(ParamsCollections): Reword to include params collection?
-
-                // (23,22): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+                // (23,22): error CS9511: Non-array params collection type must have an applicable constructor that can be called with no arguments.
                 //     static void Test(params MyCollection a)
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "params MyCollection a").WithLocation(23, 22)
+                Diagnostic(ErrorCode.ERR_ParamsCollectionMissingConstructor, "params MyCollection a").WithLocation(23, 22)
                 );
         }
 
@@ -1518,12 +1515,9 @@ class Program
                 // (17,9): error CS1501: No overload for method 'Test' takes 2 arguments
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(17, 9),
-
-                // PROTOTYPE(ParamsCollections): The error looks somewhat confusing. It can be interpreted as though an addition of an extension method might help.
-
-                // (20,22): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
+                // (20,22): error CS0117: 'MyCollection' does not contain a definition for 'Add'
                 //     static void Test(params MyCollection a)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "params MyCollection a").WithArguments("MyCollection", "Add").WithLocation(20, 22)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "params MyCollection a").WithArguments("MyCollection", "Add").WithLocation(20, 22)
                 );
         }
 
@@ -1659,9 +1653,9 @@ class Program
                 // (22,9): error CS1501: No overload for method 'Test' takes 2 arguments
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(22, 9),
-                // (25,22): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
+                // (25,22): error CS0117: 'MyCollection' does not contain a definition for 'Add'
                 //     static void Test(params MyCollection a)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "params MyCollection a").WithArguments("MyCollection", "Add").WithLocation(25, 22)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "params MyCollection a").WithArguments("MyCollection", "Add").WithLocation(25, 22)
                 );
         }
 
@@ -2157,11 +2151,10 @@ class Program
 """;
             var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
 
-            // PROTOTYPE(ParamsCollections): Report more specific error saying that extension methods are ignored? 
             comp.VerifyDiagnostics(
-                // (24,22): error CS0117: 'MyCollection' does not contain a definition for 'Add'
+                // (24,22): error CS9510: 'MyCollection' does not contain a definition for a suitable instance 'Add' method
                 //     static void Test(params MyCollection a)
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "params MyCollection a").WithArguments("MyCollection", "Add").WithLocation(24, 22)
+                Diagnostic(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, "params MyCollection a").WithArguments("MyCollection").WithLocation(24, 22)
                 );
         }
 
@@ -4529,9 +4522,9 @@ class C1 : IEnumerable<char>
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
 
             comp.VerifyDiagnostics(
-                // (7,27): error CS1061: 'C1' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'C1' could be found (are you missing a using directive or an assembly reference?)
+                // (7,27): error CS0117: 'C1' does not contain a definition for 'Add'
                 //     public static void M1(params C1 x)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "params C1 x").WithArguments("C1", "Add").WithLocation(7, 27)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "params C1 x").WithArguments("C1", "Add").WithLocation(7, 27)
                 );
         }
 
@@ -9355,26 +9348,33 @@ class Program
         Expression<System.Action> e2 = () => Test(1);
         Expression<System.Action> e3 = () => Test(2, 3);
         Expression<System.Action> e4 = () => Test([]);
+
+        Expression<System.Action> e5 = () => Test2();
+        Expression<System.Action> e6 = () => Test2(1);
+        Expression<System.Action> e7 = () => Test2(2, 3);
     }
 
     static void Test(params System.Collections.Generic.IEnumerable<long> a)
+    {
+    }
+
+    static void Test2(params long[] a)
     {
     }
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
-            // PROTOTYPE(ParamsCollections): report more specific error.
             comp.VerifyDiagnostics(
-                // (8,46): error CS9175: An expression tree may not contain a collection expression.
+                // (8,46): error CS9509: An expression tree may not contain an expanded form of non-array params collection parameter.
                 //         Expression<System.Action> e1 = () => Test();
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "Test()").WithLocation(8, 46),
-                // (9,46): error CS9175: An expression tree may not contain a collection expression.
+                Diagnostic(ErrorCode.ERR_ParamsCollectionExpressionTree, "Test()").WithLocation(8, 46),
+                // (9,46): error CS9509: An expression tree may not contain an expanded form of non-array params collection parameter.
                 //         Expression<System.Action> e2 = () => Test(1);
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "Test(1)").WithLocation(9, 46),
-                // (10,46): error CS9175: An expression tree may not contain a collection expression.
+                Diagnostic(ErrorCode.ERR_ParamsCollectionExpressionTree, "Test(1)").WithLocation(9, 46),
+                // (10,46): error CS9509: An expression tree may not contain an expanded form of non-array params collection parameter.
                 //         Expression<System.Action> e3 = () => Test(2, 3);
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "Test(2, 3)").WithLocation(10, 46),
+                Diagnostic(ErrorCode.ERR_ParamsCollectionExpressionTree, "Test(2, 3)").WithLocation(10, 46),
                 // (11,51): error CS9175: An expression tree may not contain a collection expression.
                 //         Expression<System.Action> e4 = () => Test([]);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, "[]").WithLocation(11, 51)
@@ -12183,6 +12183,190 @@ class Program
         }
 
         [Fact]
+        public void EmbedAttribute_13_ParamCollectionAttributeNotPortedInNoPia()
+        {
+            var comAssembly = CreateCompilationWithMscorlib40(@"
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+[assembly: ImportedFromTypeLib(""test.dll"")]
+[assembly: Guid(""9784f9a1-594a-4351-8f69-0fd2d2df03d3"")]
+[ComImport()]
+[Guid(""9784f9a1-594a-4351-8f69-0fd2d2df03d3"")]
+public interface Test
+{
+    int Method(params IEnumerable<int> x);
+}");
+
+            // We want to test attribute embedding 
+            Assert.Null(comAssembly.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor));
+
+            CompileAndVerify(comAssembly, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                var method = type.GetMethod("Method");
+                var parameter = method.Parameters.Single();
+                VerifyParamsAndAttribute(parameter, isParamCollection: true);
+            });
+
+            var code = @"
+class User
+{
+    public void M(Test p)
+    {
+        p.Method(0);
+    }
+}";
+
+            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+
+            var compilation_CompilationReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.ToMetadataReference(embedInteropTypes: true) });
+            CompileAndVerify(compilation_CompilationReference, symbolValidator: symbolValidator);
+
+            var compilation_BinaryReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) });
+            CompileAndVerify(compilation_BinaryReference, symbolValidator: symbolValidator);
+
+            void symbolValidator(ModuleSymbol module)
+            {
+                // Attribute is not embedded
+                if (!module.GlobalNamespace.GetMembers("System").IsEmpty)
+                {
+                    Assert.Empty(((NamespaceSymbol)module.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers("ParamCollectionAttribute"));
+                }
+
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                var method = type.GetMethod("Method");
+                var parameter = method.Parameters.Single();
+
+                // Attribute is not applied
+                VerifyParamsAndAttribute(parameter, isParamCollection: false);
+            }
+        }
+
+        [Fact]
+        public void ParamCollectionAttributeNotPortedInNoPia_01()
+        {
+            var comAssembly = CreateCompilationWithMscorlib40(@"
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+[assembly: ImportedFromTypeLib(""test.dll"")]
+[assembly: Guid(""9784f9a1-594a-4351-8f69-0fd2d2df03d3"")]
+[ComImport()]
+[Guid(""9784f9a1-594a-4351-8f69-0fd2d2df03d3"")]
+public interface Test
+{
+    int Method(params IEnumerable<int> x);
+}" + ParamCollectionAttributeSource);
+
+            Assert.NotNull(comAssembly.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor));
+
+            CompileAndVerify(comAssembly, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                var method = type.GetMethod("Method");
+                var parameter = method.Parameters.Single();
+                VerifyParamsAndAttribute(parameter, isParamCollection: true);
+            });
+
+            var code = @"
+class User
+{
+    public void M(Test p)
+    {
+        p.Method(0);
+    }
+}";
+
+            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+
+            var compilation_CompilationReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.ToMetadataReference(embedInteropTypes: true) });
+            CompileAndVerify(compilation_CompilationReference, symbolValidator: symbolValidator);
+
+            var compilation_BinaryReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) });
+            CompileAndVerify(compilation_BinaryReference, symbolValidator: symbolValidator);
+
+            void symbolValidator(ModuleSymbol module)
+            {
+                // Attribute is not embedded
+                if (!module.GlobalNamespace.GetMembers("System").IsEmpty)
+                {
+                    Assert.Empty(((NamespaceSymbol)module.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers("ParamCollectionAttribute"));
+                }
+
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                var method = type.GetMethod("Method");
+                var parameter = method.Parameters.Single();
+
+                // Attribute is not applied
+                VerifyParamsAndAttribute(parameter, isParamCollection: false);
+            }
+        }
+
+        [Fact]
+        public void ParamCollectionAttributeNotPortedInNoPia_02()
+        {
+            var comp1 = CreateCompilationWithMscorlib40(ParamCollectionAttributeSource, options: TestOptions.ReleaseDll);
+            var comp1Ref = comp1.EmitToImageReference();
+
+            var comAssembly = CreateCompilationWithMscorlib40(@"
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+[assembly: ImportedFromTypeLib(""test.dll"")]
+[assembly: Guid(""9784f9a1-594a-4351-8f69-0fd2d2df03d3"")]
+[ComImport()]
+[Guid(""9784f9a1-594a-4351-8f69-0fd2d2df03d3"")]
+public interface Test
+{
+    int Method(params IEnumerable<int> x);
+}", references: [comp1Ref]);
+
+            Assert.NotNull(comAssembly.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor));
+
+            CompileAndVerify(comAssembly, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                var method = type.GetMethod("Method");
+                var parameter = method.Parameters.Single();
+                VerifyParamsAndAttribute(parameter, isParamCollection: true);
+            });
+
+            var code = @"
+class User
+{
+    public void M(Test p)
+    {
+        p.Method(0);
+    }
+}";
+
+            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+
+            var compilation_CompilationReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comp1Ref, comAssembly.ToMetadataReference(embedInteropTypes: true) });
+            CompileAndVerify(compilation_CompilationReference, symbolValidator: symbolValidator);
+
+            var compilation_BinaryReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comp1Ref, comAssembly.EmitToImageReference(embedInteropTypes: true) });
+            CompileAndVerify(compilation_BinaryReference, symbolValidator: symbolValidator);
+
+            void symbolValidator(ModuleSymbol module)
+            {
+                // Attribute is not embedded
+                if (!module.GlobalNamespace.GetMembers("System").IsEmpty)
+                {
+                    Assert.Empty(((NamespaceSymbol)module.GlobalNamespace.GetMember("System.Runtime.CompilerServices")).GetMembers("ParamCollectionAttribute"));
+                }
+
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                var method = type.GetMethod("Method");
+                var parameter = method.Parameters.Single();
+
+                // Attribute is not applied
+                VerifyParamsAndAttribute(parameter, isParamCollection: false);
+            }
+        }
+
+        [Fact]
         public void ConsumeAcrossAssemblyBoundary_01_Method()
         {
             var src1 = """
@@ -13565,15 +13749,9 @@ class Program
                 // (26,9): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Test(2, 3)").WithArguments("MyCollection1.F").WithLocation(26, 9),
-
-                // PROTOTYPE(ParamsCollections): I am not sure if we really want an error to be reported for params parameter in this case.
-                //                               Need to confirm that. If we do, perhaps the error should have a wording tailored for 'params'.
-                //                               The current wording looks confusing. 
-
-                // (29,22): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.
+                // (29,22): error CS9508: Constructor 'MyCollection1.MyCollection1()' leaves required member 'MyCollection1.F' uninitialized.
                 //     static void Test(params MyCollection1 a)
-                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "params MyCollection1 a").WithArguments("MyCollection1.F").WithLocation(29, 22),
-
+                Diagnostic(ErrorCode.ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember, "params").WithArguments("MyCollection1.MyCollection1()", "MyCollection1.F").WithLocation(29, 22),
                 // (44,27): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.
                 //         MyCollection1 b = [1];
                 Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "[1]").WithArguments("MyCollection1.F").WithLocation(44, 27),
@@ -13679,6 +13857,138 @@ class C2 : C1
 
             VerifyParams(comp.GetMember<MethodSymbol>("C1.Test").Parameters.Single());
             VerifyParams(comp.GetMember<MethodSymbol>("C2.Test").Parameters.Single());
+        }
+
+        [Fact]
+        public void NullableAnalysis_01()
+        {
+            var src = """
+#nullable enable
+
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable<string>
+{
+    IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw null!;
+    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+    public void Add(string? l) => throw null!;
+}
+
+class Program
+{
+    static void Test_1(string? x, string y, string? z, string u, string? v, string w, string? s)
+    {
+        Test1();
+        Test1(x);
+        Test1(y);
+        Test1(z, u, v);
+        Test1(w, s);
+    }
+
+    static void Test_2(string? x, string y, string? z, string u, string? v, string w, string? s)
+    {
+        Test2();
+        Test2(x);
+        Test2(y);
+        Test2(z, u, v);
+        Test2(w, s);
+    }
+
+    static void Test1(params MyCollection paramsParameter)
+    {
+    }
+
+    static void Test2(params string[] paramsParameter)
+    {
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+
+            comp.VerifyDiagnostics(
+                // (18,15): warning CS8604: Possible null reference argument for parameter 'paramsParameter' in 'void Program.Test1(params MyCollection paramsParameter)'.
+                //         Test1(x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("paramsParameter", "void Program.Test1(params MyCollection paramsParameter)").WithLocation(18, 15),
+                // (20,15): warning CS8604: Possible null reference argument for parameter 'paramsParameter' in 'void Program.Test1(params MyCollection paramsParameter)'.
+                //         Test1(z, u, v);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "z").WithArguments("paramsParameter", "void Program.Test1(params MyCollection paramsParameter)").WithLocation(20, 15),
+                // (20,21): warning CS8604: Possible null reference argument for parameter 'paramsParameter' in 'void Program.Test1(params MyCollection paramsParameter)'.
+                //         Test1(z, u, v);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "v").WithArguments("paramsParameter", "void Program.Test1(params MyCollection paramsParameter)").WithLocation(20, 21),
+                // (21,18): warning CS8604: Possible null reference argument for parameter 'paramsParameter' in 'void Program.Test1(params MyCollection paramsParameter)'.
+                //         Test1(w, s);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("paramsParameter", "void Program.Test1(params MyCollection paramsParameter)").WithLocation(21, 18),
+                // (27,15): warning CS8604: Possible null reference argument for parameter 'paramsParameter' in 'void Program.Test2(params string[] paramsParameter)'.
+                //         Test2(x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("paramsParameter", "void Program.Test2(params string[] paramsParameter)").WithLocation(27, 15),
+                // (29,15): warning CS8604: Possible null reference argument for parameter 'paramsParameter' in 'void Program.Test2(params string[] paramsParameter)'.
+                //         Test2(z, u, v);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "z").WithArguments("paramsParameter", "void Program.Test2(params string[] paramsParameter)").WithLocation(29, 15),
+                // (29,21): warning CS8604: Possible null reference argument for parameter 'paramsParameter' in 'void Program.Test2(params string[] paramsParameter)'.
+                //         Test2(z, u, v);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "v").WithArguments("paramsParameter", "void Program.Test2(params string[] paramsParameter)").WithLocation(29, 21),
+                // (30,18): warning CS8604: Possible null reference argument for parameter 'paramsParameter' in 'void Program.Test2(params string[] paramsParameter)'.
+                //         Test2(w, s);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("paramsParameter", "void Program.Test2(params string[] paramsParameter)").WithLocation(30, 18)
+                );
+        }
+
+        [Fact]
+        public void NullableAnalysis_02_GenericInference()
+        {
+            var src = """
+#nullable enable
+
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection<T> : IEnumerable<T>
+{
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+    public void Add(T? l) => throw null!;
+}
+
+class Program
+{
+    static void Test_1(string? x, string y, string? z, string u, string? v, string w, string? s)
+    {
+        Test1(x) = null;
+        Test1(y) = null;
+        Test1(z, u, v) = null;
+        Test1(w, s) = null;
+    }
+
+    static void Test_2(string? x, string y, string? z, string u, string? v, string w, string? s)
+    {
+        Test2(x) = null;
+        Test2(y) = null;
+        Test2(z, u, v) = null;
+        Test2(w, s) = null;
+    }
+
+    static ref T Test1<T>(params MyCollection<T> paramsParameter)
+    {
+        throw null!;
+    }
+
+    static ref T Test2<T>(params T[] paramsParameter)
+    {
+        throw null!;
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+
+            comp.VerifyDiagnostics(
+                // (18,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         Test1(y) = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(18, 20),
+                // (26,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         Test2(y) = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(26, 20)
+                );
         }
 
         [Fact]

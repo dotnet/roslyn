@@ -5610,24 +5610,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        private static ImmutableSegmentedDictionary<string, Symbol> GetMembersRequiringInitialization(MethodSymbol constructor)
+        {
+            if (!constructor.ShouldCheckRequiredMembers() ||
+                constructor.ContainingType.HasRequiredMembersError) // An error will be reported on the constructor if from source, or a use-site diagnostic will be reported on the use if from metadata.
+            {
+                return ImmutableSegmentedDictionary<string, Symbol>.Empty;
+            }
+
+            return constructor.ContainingType.AllRequiredMembers;
+        }
+
         internal static void CheckRequiredMembersInObjectInitializer(
             MethodSymbol constructor,
             ImmutableArray<BoundExpression> initializers,
             SyntaxNode creationSyntax,
             BindingDiagnosticBag diagnostics)
         {
-            if (!constructor.ShouldCheckRequiredMembers())
-            {
-                return;
-            }
-
-            if (constructor.ContainingType.HasRequiredMembersError)
-            {
-                // An error will be reported on the constructor if from source, or a use-site diagnostic will be reported on the use if from metadata.
-                return;
-            }
-
-            var requiredMembers = constructor.ContainingType.AllRequiredMembers;
+            ImmutableSegmentedDictionary<string, Symbol> requiredMembers = GetMembersRequiringInitialization(constructor);
 
             if (requiredMembers.Count == 0)
             {
@@ -5638,7 +5638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (initializers.IsDefaultOrEmpty)
             {
-                reportMembers();
+                ReportMembersRequiringInitialization(creationSyntax, requiredMembersBuilder, diagnostics);
                 return;
             }
 
@@ -5684,29 +5684,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            reportMembers();
+            ReportMembersRequiringInitialization(creationSyntax, requiredMembersBuilder, diagnostics);
+        }
 
-            void reportMembers()
+        private static void ReportMembersRequiringInitialization(SyntaxNode creationSyntax, ImmutableSegmentedDictionary<string, Symbol>.Builder requiredMembersBuilder, BindingDiagnosticBag diagnostics)
+        {
+            if (requiredMembersBuilder.Count == 0)
             {
-                if (requiredMembersBuilder.Count == 0)
-                {
-                    // Avoid Location allocation.
-                    return;
-                }
+                // Avoid Location allocation.
+                return;
+            }
 
-                Location location = creationSyntax switch
-                {
-                    ObjectCreationExpressionSyntax { Type: { } type } => type.Location,
-                    BaseObjectCreationExpressionSyntax { NewKeyword: { } newKeyword } => newKeyword.GetLocation(),
-                    AttributeSyntax { Name: { } name } => name.Location,
-                    _ => creationSyntax.Location
-                };
+            Location location = creationSyntax switch
+            {
+                ObjectCreationExpressionSyntax { Type: { } type } => type.Location,
+                BaseObjectCreationExpressionSyntax { NewKeyword: { } newKeyword } => newKeyword.GetLocation(),
+                AttributeSyntax { Name: { } name } => name.Location,
+                _ => creationSyntax.Location
+            };
 
-                foreach (var (_, member) in requiredMembersBuilder)
-                {
-                    // Required member '{0}' must be set in the object initializer or attribute constructor.
-                    diagnostics.Add(ErrorCode.ERR_RequiredMemberMustBeSet, location, member);
-                }
+            foreach (var (_, member) in requiredMembersBuilder)
+            {
+                // Required member '{0}' must be set in the object initializer or attribute constructor.
+                diagnostics.Add(ErrorCode.ERR_RequiredMemberMustBeSet, location, member);
             }
         }
 #nullable disable
@@ -6661,7 +6661,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out MemberResolutionResult<MethodSymbol> memberResolutionResult,
             out ImmutableArray<MethodSymbol> candidateConstructors,
             bool allowProtectedConstructorsOfBaseType,
-            out CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            out CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            bool isParamsModifierValidation = false)
         {
             // Get accessible constructors for performing overload resolution.
             ImmutableArray<MethodSymbol> allInstanceConstructors;
@@ -6746,7 +6747,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result.ReportDiagnostics(
                         binder: this, location: errorLocation, nodeOpt: null, diagnostics,
                         name: errorName, receiver: null, invokedExpression: null, analyzedArguments,
-                        memberGroup: candidateConstructors, typeContainingConstructors, delegateTypeBeingInvoked: null);
+                        memberGroup: candidateConstructors, typeContainingConstructors, delegateTypeBeingInvoked: null,
+                        isParamsModifierValidation: isParamsModifierValidation);
                 }
             }
 
@@ -7617,7 +7619,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (boundLeft.Kind == BoundKind.TypeExpression ||
                     boundLeft.Kind == BoundKind.BaseReference ||
-                    node.Kind() == SyntaxKind.AwaitExpression && plainName == WellKnownMemberNames.GetResult)
+                    (node.Kind() == SyntaxKind.AwaitExpression && plainName == WellKnownMemberNames.GetResult) ||
+                    (Flags.Includes(BinderFlags.CollectionExpressionConversionValidation | BinderFlags.CollectionInitializerAddMethod) && name is ParameterSyntax))
                 {
                     Error(diagnostics, ErrorCode.ERR_NoSuchMember, name, boundLeft.Type, plainName);
                 }

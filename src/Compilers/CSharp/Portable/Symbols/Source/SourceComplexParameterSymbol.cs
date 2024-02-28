@@ -1569,7 +1569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-                            if (!binder.HasCollectionExpressionApplicableConstructor(syntax, Type, out MethodSymbol? constructor, isExpanded: out _, diagnostics))
+                            if (!binder.HasCollectionExpressionApplicableConstructor(syntax, Type, out MethodSymbol? constructor, isExpanded: out _, diagnostics, isParamsModifierValidation: true))
                             {
                                 return;
                             }
@@ -1589,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (addMethods[0].IsStatic) // No need to check other methods, extensions are never mixed with instance methods
                             {
                                 Debug.Assert(addMethods[0].IsExtensionMethod);
-                                diagnostics.Add(ErrorCode.ERR_NoSuchMember, syntax, Type, WellKnownMemberNames.CollectionInitializerAddMethodName);
+                                diagnostics.Add(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, syntax, Type);
                                 return;
                             }
 
