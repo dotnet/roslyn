@@ -2202,7 +2202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorLineOutOfRange = 9142,
         ERR_InterceptorCharacterOutOfRange = 9143,
         ERR_InterceptorSignatureMismatch = 9144,
-        ERR_InterceptorPathNotInCompilationWithUnmappedCandidate = 9145,
+        // ERR_InterceptorPathNotInCompilationWithUnmappedCandidate = 9145,
         ERR_InterceptorMethodMustBeOrdinary = 9146,
         ERR_InterceptorMustReferToStartOfTokenPosition = 9147,
         ERR_InterceptorMustHaveMatchingThisParameter = 9148,

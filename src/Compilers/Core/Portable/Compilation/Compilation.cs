@@ -303,28 +303,33 @@ namespace Microsoft.CodeAnalysis
         /// <param name="ignoreAccessibility">
         /// True if the SemanticModel should ignore accessibility rules when answering semantic questions.
         /// </param>
+#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
         public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility = false)
-            => CommonGetSemanticModel(syntaxTree, ignoreAccessibility);
+#pragma warning restore RS0027
+#pragma warning disable RSEXPERIMENTAL001 // internal usage of experimental API
+            => GetSemanticModel(syntaxTree, ignoreAccessibility ? SemanticModelOptions.IgnoreAccessibility : SemanticModelOptions.None);
+#pragma warning restore RSEXPERIMENTAL001
+
+        [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
+        public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options)
+            => CommonGetSemanticModel(syntaxTree, options);
 
         /// <summary>
         /// Gets a <see cref="SemanticModel"/> for the given <paramref name="syntaxTree"/>.
-        /// If <see cref="SemanticModelProvider"/> is non-null, it attempts to use <see cref="SemanticModelProvider.GetSemanticModel(SyntaxTree, Compilation, bool)"/>
-        /// to get a semantic model. Otherwise, it creates a new semantic model using <see cref="CreateSemanticModel(SyntaxTree, bool)"/>.
+        /// If <see cref="SemanticModelProvider"/> is non-null, it attempts to use <see cref="SemanticModelProvider.GetSemanticModel(SyntaxTree, Compilation, SemanticModelOptions)"/>
+        /// to get a semantic model. Otherwise, it creates a new semantic model using <see cref="CreateSemanticModel(SyntaxTree, SemanticModelOptions)"/>.
         /// </summary>
-        /// <param name="syntaxTree"></param>
-        /// <param name="ignoreAccessibility"></param>
-        /// <returns></returns>
-        protected abstract SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility);
+        [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
+        protected abstract SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options);
 
         /// <summary>
         /// Creates a new <see cref="SemanticModel"/> for the given <paramref name="syntaxTree"/>.
-        /// Unlike the <see cref="GetSemanticModel(SyntaxTree, bool)"/> and <see cref="CommonGetSemanticModel(SyntaxTree, bool)"/>,
+        /// Unlike the <see cref="GetSemanticModel(SyntaxTree, bool)"/> and <see cref="CommonGetSemanticModel(SyntaxTree, SemanticModelOptions)"/>,
         /// it does not attempt to use the <see cref="SemanticModelProvider"/> to get a semantic model, but instead always creates a new semantic model.
         /// </summary>
-        /// <param name="syntaxTree"></param>
-        /// <param name="ignoreAccessibility"></param>
-        /// <returns></returns>
-        internal abstract SemanticModel CreateSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility);
+#pragma warning disable RSEXPERIMENTAL001 // internal usage of experimental API
+        internal abstract SemanticModel CreateSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options);
+#pragma warning restore RSEXPERIMENTAL001 // internal usage of experimental API
 
         /// <summary>
         /// Returns a new INamedTypeSymbol representing an error type with the given name and arity
@@ -1134,11 +1139,9 @@ namespace Microsoft.CodeAnalysis
         // hash code conflicts, but seems to do the trick. The size is mostly arbitrary. My guess
         // is that there are maybe a couple dozen analyzers in the solution and each one has
         // ~0-2 unique well-known types, and the chance of hash collision is very low.
-        private readonly ConcurrentCache<string, INamedTypeSymbol?> _getTypeCache =
-            new ConcurrentCache<string, INamedTypeSymbol?>(50, ReferenceEqualityComparer.Instance);
+        private ConcurrentCache<string, INamedTypeSymbol?>? _getTypeCache;
 
-        private readonly ConcurrentCache<string, ImmutableArray<INamedTypeSymbol>> _getTypesCache =
-            new ConcurrentCache<string, ImmutableArray<INamedTypeSymbol>>(50, ReferenceEqualityComparer.Instance);
+        private ConcurrentCache<string, ImmutableArray<INamedTypeSymbol>>? _getTypesCache;
 
         /// <summary>
         /// Gets the type within the compilation's assembly and all referenced assemblies (other than
@@ -1182,12 +1185,15 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public INamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
-            if (!_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out INamedTypeSymbol? val))
+            var getTypeCache = RoslynLazyInitializer.EnsureInitialized(
+                ref _getTypeCache, static () => new ConcurrentCache<string, INamedTypeSymbol?>(50, ReferenceEqualityComparer.Instance));
+
+            if (!getTypeCache.TryGetValue(fullyQualifiedMetadataName, out INamedTypeSymbol? val))
             {
                 val = CommonGetTypeByMetadataName(fullyQualifiedMetadataName);
-                var result = _getTypeCache.TryAdd(fullyQualifiedMetadataName, val);
+                var result = getTypeCache.TryAdd(fullyQualifiedMetadataName, val);
                 Debug.Assert(result
-                 || !_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var addedType) // Could fail if the type was already evicted from the cache
+                 || !getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var addedType) // Could fail if the type was already evicted from the cache
                  || ReferenceEquals(addedType, val));
             }
             return val;
@@ -1210,12 +1216,15 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public ImmutableArray<INamedTypeSymbol> GetTypesByMetadataName(string fullyQualifiedMetadataName)
         {
-            if (!_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out ImmutableArray<INamedTypeSymbol> val))
+            var getTypesCache = RoslynLazyInitializer.EnsureInitialized(
+                ref _getTypesCache, static () => new ConcurrentCache<string, ImmutableArray<INamedTypeSymbol>>(50, ReferenceEqualityComparer.Instance));
+
+            if (!getTypesCache.TryGetValue(fullyQualifiedMetadataName, out ImmutableArray<INamedTypeSymbol> val))
             {
                 val = getTypesByMetadataNameImpl();
-                var result = _getTypesCache.TryAdd(fullyQualifiedMetadataName, val);
+                var result = getTypesCache.TryAdd(fullyQualifiedMetadataName, val);
                 Debug.Assert(result
-                    || !_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out var addedArray) // Could fail if the type was already evicted from the cache
+                    || !getTypesCache.TryGetValue(fullyQualifiedMetadataName, out var addedArray) // Could fail if the type was already evicted from the cache
                     || Enumerable.SequenceEqual(addedArray, val, ReferenceEqualityComparer.Instance));
             }
 

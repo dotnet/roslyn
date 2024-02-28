@@ -6,22 +6,21 @@
 
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp.Simplification
-{
-    internal partial class CSharpEscapingReducer
-    {
-        private class Rewriter : AbstractReductionRewriter
-        {
-            public Rewriter(ObjectPool<IReductionRewriter> pool)
-                : base(pool)
-            {
-            }
+namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
-            public override SyntaxToken VisitToken(SyntaxToken token)
-            {
-                var newToken = base.VisitToken(token);
-                return SimplifyToken(newToken, s_simplifyIdentifierToken);
-            }
+internal partial class CSharpEscapingReducer
+{
+    private class Rewriter : AbstractReductionRewriter
+    {
+        public Rewriter(ObjectPool<IReductionRewriter> pool)
+            : base(pool)
+        {
+        }
+
+        public override SyntaxToken VisitToken(SyntaxToken token)
+        {
+            var newToken = base.VisitToken(token);
+            return SimplifyToken(newToken, s_simplifyIdentifierToken);
         }
     }
 }

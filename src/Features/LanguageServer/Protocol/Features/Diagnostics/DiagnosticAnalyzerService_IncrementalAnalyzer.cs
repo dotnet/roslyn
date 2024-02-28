@@ -12,8 +12,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     [ExportIncrementalAnalyzerProvider(
-        highPriorityForActiveFile: true, name: WellKnownSolutionCrawlerAnalyzers.Diagnostic,
-        workspaceKinds: [WorkspaceKind.Host, WorkspaceKind.Interactive])]
+        name: WellKnownSolutionCrawlerAnalyzers.Diagnostic,
+        workspaceKinds: [WorkspaceKind.Host, WorkspaceKind.Interactive],
+        highPriorityForActiveFile: true)]
     internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
     {
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)

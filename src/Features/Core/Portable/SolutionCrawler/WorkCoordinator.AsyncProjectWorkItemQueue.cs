@@ -9,89 +9,88 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SolutionCrawler
+namespace Microsoft.CodeAnalysis.SolutionCrawler;
+
+internal partial class SolutionCrawlerRegistrationService
 {
-    internal partial class SolutionCrawlerRegistrationService
+    internal partial class WorkCoordinator
     {
-        internal partial class WorkCoordinator
+        private sealed class AsyncProjectWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace) : AsyncWorkItemQueue<ProjectId>(progressReporter, workspace)
         {
-            private sealed class AsyncProjectWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace) : AsyncWorkItemQueue<ProjectId>(progressReporter, workspace)
+            private readonly Dictionary<ProjectId, WorkItem> _projectWorkQueue = [];
+
+            protected override int WorkItemCount_NoLock => _projectWorkQueue.Count;
+
+            public override Task WaitAsync(CancellationToken cancellationToken)
             {
-                private readonly Dictionary<ProjectId, WorkItem> _projectWorkQueue = [];
-
-                protected override int WorkItemCount_NoLock => _projectWorkQueue.Count;
-
-                public override Task WaitAsync(CancellationToken cancellationToken)
+                if (!HasAnyWork)
                 {
-                    if (!HasAnyWork)
-                    {
-                        Logger.Log(FunctionId.WorkCoordinator_AsyncWorkItemQueue_LastItem);
-                    }
-
-                    return base.WaitAsync(cancellationToken);
+                    Logger.Log(FunctionId.WorkCoordinator_AsyncWorkItemQueue_LastItem);
                 }
 
-                protected override bool TryTake_NoLock(ProjectId key, out WorkItem workInfo)
-                {
-                    if (!_projectWorkQueue.TryGetValue(key, out workInfo))
-                    {
-                        workInfo = default;
-                        return false;
-                    }
+                return base.WaitAsync(cancellationToken);
+            }
 
-                    return _projectWorkQueue.Remove(key);
+            protected override bool TryTake_NoLock(ProjectId key, out WorkItem workInfo)
+            {
+                if (!_projectWorkQueue.TryGetValue(key, out workInfo))
+                {
+                    workInfo = default;
+                    return false;
                 }
 
-                protected override bool TryTakeAnyWork_NoLock(
-                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph,
-                    out WorkItem workItem)
+                return _projectWorkQueue.Remove(key);
+            }
+
+            protected override bool TryTakeAnyWork_NoLock(
+                ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph,
+                out WorkItem workItem)
+            {
+                // there must be at least one item in the map when this is called unless host is shutting down.
+                if (_projectWorkQueue.Count == 0)
                 {
-                    // there must be at least one item in the map when this is called unless host is shutting down.
-                    if (_projectWorkQueue.Count == 0)
-                    {
-                        workItem = default;
-                        return false;
-                    }
-
-                    var projectId = GetBestProjectId_NoLock(_projectWorkQueue, preferableProjectId, dependencyGraph);
-                    if (TryTake_NoLock(projectId, out workItem))
-                    {
-                        return true;
-                    }
-
-                    throw ExceptionUtilities.Unreachable();
+                    workItem = default;
+                    return false;
                 }
 
-                protected override bool AddOrReplace_NoLock(WorkItem item)
+                var projectId = GetBestProjectId_NoLock(_projectWorkQueue, preferableProjectId, dependencyGraph);
+                if (TryTake_NoLock(projectId, out workItem))
                 {
-                    var key = item.ProjectId;
-                    Cancel_NoLock(key);
-                    // now document work
-
-                    // see whether we need to update
-                    if (_projectWorkQueue.TryGetValue(key, out var existingWorkItem))
-                    {
-                        // replace it.
-                        _projectWorkQueue[key] = existingWorkItem.With(item.InvocationReasons, item.ActiveMember, item.SpecificAnalyzers, item.AsyncToken);
-                        return false;
-                    }
-
-                    // okay, it is new one
-                    // always hold onto the most recent one for the same project
-                    _projectWorkQueue.Add(key, item);
-
                     return true;
                 }
 
-                protected override void Dispose_NoLock()
-                {
-                    foreach (var workItem in _projectWorkQueue.Values)
-                    {
-                        workItem.AsyncToken.Dispose();
-                    }
+                throw ExceptionUtilities.Unreachable();
+            }
 
-                    _projectWorkQueue.Clear();
+            protected override bool AddOrReplace_NoLock(WorkItem item)
+            {
+                var key = item.ProjectId;
+                Cancel_NoLock(key);
+                // now document work
+
+                // see whether we need to update
+                if (_projectWorkQueue.TryGetValue(key, out var existingWorkItem))
+                {
+                    // replace it.
+                    _projectWorkQueue[key] = existingWorkItem.With(item.InvocationReasons, item.ActiveMember, item.SpecificAnalyzers, item.AsyncToken);
+                    return false;
                 }
+
+                // okay, it is new one
+                // always hold onto the most recent one for the same project
+                _projectWorkQueue.Add(key, item);
+
+                return true;
+            }
+
+            protected override void Dispose_NoLock()
+            {
+                foreach (var workItem in _projectWorkQueue.Values)
+                {
+                    workItem.AsyncToken.Dispose();
+                }
+
+                _projectWorkQueue.Clear();
             }
         }
     }

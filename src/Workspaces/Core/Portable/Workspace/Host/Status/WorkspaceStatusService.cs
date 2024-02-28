@@ -11,33 +11,32 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+[ExportWorkspaceService(typeof(IWorkspaceStatusService), ServiceLayer.Default), Shared]
+internal sealed class WorkspaceStatusService : IWorkspaceStatusService
 {
-    [ExportWorkspaceService(typeof(IWorkspaceStatusService), ServiceLayer.Default), Shared]
-    internal sealed class WorkspaceStatusService : IWorkspaceStatusService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public WorkspaceStatusService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspaceStatusService()
-        {
-        }
+    }
 
-        event EventHandler IWorkspaceStatusService.StatusChanged
-        {
-            add { }
-            remove { }
-        }
+    event EventHandler IWorkspaceStatusService.StatusChanged
+    {
+        add { }
+        remove { }
+    }
 
-        public Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
-        {
-            // by the default, we are always fully loaded
-            return Task.CompletedTask;
-        }
+    public Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
+    {
+        // by the default, we are always fully loaded
+        return Task.CompletedTask;
+    }
 
-        public Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
-        {
-            // by the default, we are always fully loaded
-            return SpecializedTasks.True;
-        }
+    public Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
+    {
+        // by the default, we are always fully loaded
+        return SpecializedTasks.True;
     }
 }

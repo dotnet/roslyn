@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
+
+internal interface ITypeGenerator
 {
-    internal interface ITypeGenerator
-    {
-        ITypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank);
-        ITypeSymbol CreatePointerTypeSymbol(ITypeSymbol pointedAtType);
-        ITypeSymbol Construct(INamedTypeSymbol namedType, ITypeSymbol[] typeArguments);
-    }
+    ITypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank);
+    ITypeSymbol CreatePointerTypeSymbol(ITypeSymbol pointedAtType);
+    ITypeSymbol Construct(INamedTypeSymbol namedType, ITypeSymbol[] typeArguments);
 }
