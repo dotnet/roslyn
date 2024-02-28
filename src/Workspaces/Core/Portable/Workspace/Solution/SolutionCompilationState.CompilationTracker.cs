@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis
                         // other.  It also means that if we're in the process of parsing documents in that chain, that
                         // we'll see the results of how far we've gotten if someone asks for a frozen snapshot midway
                         // through.
-                        var initialProjectState = this.ProjectState.RemoveAllDocuments();
+                        var initialProjectState = this.ProjectState.RemoveAllNormalDocuments();
                         var initialCompilation = this.CreateEmptyCompilation();
 
                         var translationActionsBuilder = ImmutableList.CreateBuilder<TranslationAction>();
@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis
 
                     // Transition us to a state that only has documents for the files we've already parsed.
                     var frozenProjectState = this.ProjectState
-                        .RemoveAllDocuments()
+                        .RemoveAllNormalDocuments()
                         .AddDocuments(documentsWithTreesBuilder.ToImmutableAndClear());
 
                     // Defer creating these compilations.  It's common to freeze projects (as part of a solution freeze)
