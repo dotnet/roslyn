@@ -119,7 +119,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _builder = new StringBuilder();
             _identBuffer = new char[32];
             _cache = new LexerCache();
-            _createQuickTokenFunction = this.CreateQuickToken;
             _allowPreprocessorDirectives = allowPreprocessorDirectives;
             _interpolationFollowedByColon = interpolationFollowedByColon;
         }
@@ -2273,31 +2272,22 @@ top:
                         TextWindow.CharacterWindow,
                         TextWindow.LexemeRelativeStart,
                         width,
-                        hashCode);
-
-                    if (trivia is null)
-                    {
-                        trivia = CreateWhitespaceTrivia();
-                        _cache.AddTrivia(
-                            TextWindow.CharacterWindow,
-                            TextWindow.LexemeRelativeStart,
-                            width,
-                            hashCode,
-                            trivia);
-                    }
+                        hashCode,
+                        CreateWhitespaceTrivia,
+                        TextWindow);
 
                     return trivia;
                 }
                 else
                 {
-                    return CreateWhitespaceTrivia();
+                    return CreateWhitespaceTrivia(TextWindow);
                 }
             }
         }
 
-        private SyntaxTrivia CreateWhitespaceTrivia()
+        private static SyntaxTrivia CreateWhitespaceTrivia(SlidingTextWindow textWindow)
         {
-            return SyntaxFactory.Whitespace(TextWindow.GetText(intern: true));
+            return SyntaxFactory.Whitespace(textWindow.GetText(intern: true));
         }
 
         private void LexDirectiveAndExcludedTrivia(
@@ -2431,16 +2421,15 @@ top:
             var errors = this.GetErrors(leadingTriviaWidth: 0);
 
             var directiveTriviaCache = _directiveTriviaCache;
-            if (directiveTriviaCache is not null)
-            {
-                directiveTriviaCache.Clear();
-                _directiveTriviaCache = null;
-            }
+            directiveTriviaCache?.Clear();
+            _directiveTriviaCache = null;
 
             this.LexDirectiveTrailingTrivia(info.Kind == SyntaxKind.EndOfDirectiveToken, ref directiveTriviaCache);
 
+            var token = Create(in info, null, directiveTriviaCache, errors);
             _directiveTriviaCache = directiveTriviaCache;
-            return Create(in info, null, directiveTriviaCache, errors);
+
+            return token;
         }
 
         public SyntaxToken LexEndOfDirectiveWithOptionalPreprocessingMessage()
@@ -2473,11 +2462,8 @@ top:
 
             // now try to consume the EOL if there.
             var directiveTriviaCache = _directiveTriviaCache;
-            if (directiveTriviaCache is not null)
-            {
-                directiveTriviaCache.Clear();
-                _directiveTriviaCache = null;
-            }
+            directiveTriviaCache?.Clear();
+            _directiveTriviaCache = null;
 
             this.LexDirectiveTrailingTrivia(includeEndOfLine: true, ref directiveTriviaCache);
             var trailing = directiveTriviaCache?.ToListNode();

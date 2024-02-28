@@ -61,23 +61,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return kind != SyntaxKind.None;
         }
 
-        internal SyntaxTrivia? LookupTrivia(
-            char[] textBuffer,
-            int keyStart,
-            int keyLength,
-            int hashCode)
-        {
-            return _triviaMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
-        }
-
-        internal void AddTrivia(
+        internal SyntaxTrivia? LookupTrivia<TArg>(
             char[] textBuffer,
             int keyStart,
             int keyLength,
             int hashCode,
-            SyntaxTrivia value)
+            Func<TArg, SyntaxTrivia> createTriviaFunction,
+            TArg data)
         {
-            _triviaMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
+            var value = _triviaMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
+
+            if (value == null)
+            {
+                value = createTriviaFunction(data);
+                _triviaMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
+            }
+
+            return value;
         }
 
         // TODO: remove this when done tweaking this cache.
@@ -101,12 +101,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 #endif
 
-        internal SyntaxToken LookupToken(
+        internal SyntaxToken LookupToken<TArg>(
             char[] textBuffer,
             int keyStart,
             int keyLength,
             int hashCode,
-            Func<SyntaxToken> createTokenFunction)
+            Func<TArg, SyntaxToken> createTokenFunction,
+            TArg data)
         {
             var value = _tokenMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
 
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #if COLLECT_STATS
                     Miss();
 #endif
-                value = createTokenFunction();
+                value = createTokenFunction(data);
                 _tokenMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
             }
             else
