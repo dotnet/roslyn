@@ -5,17 +5,16 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 
-namespace Microsoft.CodeAnalysis.BraceMatching
-{
-    [DataContract]
-    internal readonly record struct BraceMatchingOptions(
-        [property: DataMember(Order = 0)] HighlightingOptions HighlightingOptions)
-    {
-        public BraceMatchingOptions()
-            : this(HighlightingOptions.Default)
-        {
-        }
+namespace Microsoft.CodeAnalysis.BraceMatching;
 
-        public static readonly BraceMatchingOptions Default = new();
+[DataContract]
+internal readonly record struct BraceMatchingOptions(
+    [property: DataMember(Order = 0)] HighlightingOptions HighlightingOptions)
+{
+    public BraceMatchingOptions()
+        : this(HighlightingOptions.Default)
+    {
     }
+
+    public static readonly BraceMatchingOptions Default = new();
 }

@@ -7,10 +7,9 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Snippets
+namespace Microsoft.CodeAnalysis.Snippets;
+
+internal interface IRoslynLSPSnippetExpander
 {
-    internal interface IRoslynLSPSnippetExpander
-    {
-        bool CanExpandSnippet();
-    }
+    bool CanExpandSnippet();
 }

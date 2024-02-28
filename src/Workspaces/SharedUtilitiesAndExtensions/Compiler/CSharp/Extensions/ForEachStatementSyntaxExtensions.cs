@@ -6,22 +6,21 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+internal static class ForEachStatementSyntaxExtensions
 {
-    internal static class ForEachStatementSyntaxExtensions
+    public static bool IsTypeInferred(this CommonForEachStatementSyntax forEachStatement, SemanticModel semanticModel)
     {
-        public static bool IsTypeInferred(this CommonForEachStatementSyntax forEachStatement, SemanticModel semanticModel)
+        switch (forEachStatement.Kind())
         {
-            switch (forEachStatement.Kind())
-            {
-                case SyntaxKind.ForEachStatement:
-                    return ((ForEachStatementSyntax)forEachStatement).Type.IsTypeInferred(semanticModel);
-                case SyntaxKind.ForEachVariableStatement:
-                    return (((ForEachVariableStatementSyntax)forEachStatement).Variable as DeclarationExpressionSyntax)?.Type
-                        .IsTypeInferred(semanticModel) == true;
-                default:
-                    return false;
-            }
+            case SyntaxKind.ForEachStatement:
+                return ((ForEachStatementSyntax)forEachStatement).Type.IsTypeInferred(semanticModel);
+            case SyntaxKind.ForEachVariableStatement:
+                return (((ForEachVariableStatementSyntax)forEachStatement).Variable as DeclarationExpressionSyntax)?.Type
+                    .IsTypeInferred(semanticModel) == true;
+            default:
+                return false;
         }
     }
 }

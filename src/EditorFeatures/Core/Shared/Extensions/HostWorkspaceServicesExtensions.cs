@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                         .Where(lz => !string.IsNullOrEmpty(lz.Metadata.DefaultContentType))
                         .Select(lz => (lz.Metadata.Language, lz.Metadata.DefaultContentType))
                         .Distinct()
-                        .ToDictionary(lz => lz.Language, lz => lz.DefaultContentType);
+                        .ToDictionary(lz => lz.Language, lz => lz.DefaultContentType)!;
             }
 
             // We can't do anything special, so fall back to the expensive path
@@ -102,26 +102,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 Select(lazy => lazy.Value).ToList();
         }
 
-        internal static IList<T> SelectMatchingExtensionValues<T>(
-            this SolutionServices workspaceServices,
-            IEnumerable<Lazy<T, OrderableLanguageAndRoleMetadata>> items,
-            IContentType contentType,
-            ITextViewRoleSet roleSet)
-        {
-            if (items == null)
-            {
-                return SpecializedCollections.EmptyList<T>();
-            }
-
-            return items.Where(lazy =>
-                {
-                    var metadata = lazy.Metadata;
-                    return LanguageMatches(metadata.Language, contentType, workspaceServices) &&
-                        RolesMatch(metadata.Roles, roleSet);
-                }).
-                Select(lazy => lazy.Value).ToList();
-        }
-
         private static bool LanguageMatches(
             string language,
             IContentType contentType,
@@ -129,13 +109,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         {
             var defaultContentType = GetDefaultContentTypeName(workspaceServices, language);
             return (defaultContentType != null) ? contentType.IsOfType(defaultContentType) : false;
-        }
-
-        private static bool RolesMatch(
-            IEnumerable<string> roles,
-            ITextViewRoleSet roleSet)
-        {
-            return (roles == null) || (roleSet == null) || roleSet.ContainsAll(roles);
         }
     }
 }

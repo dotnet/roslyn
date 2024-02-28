@@ -21,80 +21,79 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+internal sealed class CSharpConstructorSnippetProvider : AbstractConstructorSnippetProvider
 {
-    [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpConstructorSnippetProvider : AbstractConstructorSnippetProvider
+    private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
-        private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-        {
-            SyntaxKind.PublicKeyword,
-            SyntaxKind.PrivateKeyword,
-            SyntaxKind.ProtectedKeyword,
-            SyntaxKind.InternalKeyword,
-            SyntaxKind.StaticKeyword,
-        };
+        SyntaxKind.PublicKeyword,
+        SyntaxKind.PrivateKeyword,
+        SyntaxKind.ProtectedKeyword,
+        SyntaxKind.InternalKeyword,
+        SyntaxKind.StaticKeyword,
+    };
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpConstructorSnippetProvider()
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpConstructorSnippetProvider()
+    {
+    }
+
+    protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
+    {
+        var syntaxContext = (CSharpSyntaxContext)context.SyntaxContext;
+
+        var precedingModifiers = syntaxContext.PrecedingModifiers;
+
+        if (!(precedingModifiers.All(SyntaxFacts.IsAccessibilityModifier) ||
+            precedingModifiers.Count == 1 && precedingModifiers.Single() == SyntaxKind.StaticKeyword))
         {
+            return false;
         }
 
-        protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
-        {
-            var syntaxContext = (CSharpSyntaxContext)context.SyntaxContext;
+        return
+            syntaxContext.IsMemberDeclarationContext(
+                validModifiers: s_validModifiers,
+                validTypeDeclarations: SyntaxKindSet.ClassStructRecordTypeDeclarations,
+                canBePartial: true,
+                cancellationToken: cancellationToken);
+    }
 
-            var precedingModifiers = syntaxContext.PrecedingModifiers;
+    protected override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+        var syntaxContext = (CSharpSyntaxContext)document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
 
-            if (!(precedingModifiers.All(SyntaxFacts.IsAccessibilityModifier) ||
-                precedingModifiers.Count == 1 && precedingModifiers.Single() == SyntaxKind.StaticKeyword))
-            {
-                return false;
-            }
+        var containingType = syntaxContext.ContainingTypeDeclaration;
+        Contract.ThrowIfNull(containingType);
 
-            return
-                syntaxContext.IsMemberDeclarationContext(
-                    validModifiers: s_validModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassStructRecordTypeDeclarations,
-                    canBePartial: true,
-                    cancellationToken: cancellationToken);
-        }
+        var containingTypeSymbol = semanticModel.GetDeclaredSymbol(containingType, cancellationToken);
+        Contract.ThrowIfNull(containingTypeSymbol);
 
-        protected override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var syntaxContext = (CSharpSyntaxContext)document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+        var generator = SyntaxGenerator.GetGenerator(document);
+        var constructorDeclaration = generator.ConstructorDeclaration(
+            containingTypeName: containingType.Identifier.ToString(),
+            accessibility: syntaxContext.PrecedingModifiers.Any() ? Accessibility.NotApplicable : (containingTypeSymbol.IsAbstract ? Accessibility.Protected : Accessibility.Public));
 
-            var containingType = syntaxContext.ContainingTypeDeclaration;
-            Contract.ThrowIfNull(containingType);
+        return new TextChange(TextSpan.FromBounds(position, position), constructorDeclaration.NormalizeWhitespace().ToFullString());
+    }
 
-            var containingTypeSymbol = semanticModel.GetDeclaredSymbol(containingType, cancellationToken);
-            Contract.ThrowIfNull(containingTypeSymbol);
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
+    {
+        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ConstructorDeclarationSyntax>(
+            caretTarget,
+            static d => d.Body!,
+            sourceText);
+    }
 
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var constructorDeclaration = generator.ConstructorDeclaration(
-                containingTypeName: containingType.Identifier.ToString(),
-                accessibility: syntaxContext.PrecedingModifiers.Any() ? Accessibility.NotApplicable : (containingTypeSymbol.IsAbstract ? Accessibility.Protected : Accessibility.Public));
-
-            return new TextChange(TextSpan.FromBounds(position, position), constructorDeclaration.NormalizeWhitespace().ToFullString());
-        }
-
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-        {
-            return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ConstructorDeclarationSyntax>(
-                caretTarget,
-                static d => d.Body!,
-                sourceText);
-        }
-
-        protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-        {
-            return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ConstructorDeclarationSyntax>(
-                document,
-                FindSnippetAnnotation,
-                static d => d.Body!,
-                cancellationToken);
-        }
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
+    {
+        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ConstructorDeclarationSyntax>(
+            document,
+            FindSnippetAnnotation,
+            static d => d.Body!,
+            cancellationToken);
     }
 }

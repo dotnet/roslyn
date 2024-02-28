@@ -7,17 +7,16 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
+namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
+
+internal abstract class AbstractElseSnippetProvider : AbstractStatementSnippetProvider
 {
-    internal abstract class AbstractElseSnippetProvider : AbstractStatementSnippetProvider
-    {
-        public override string Identifier => "else";
+    public override string Identifier => "else";
 
-        public override string Description => FeaturesResources.else_statement;
+    public override string Description => FeaturesResources.else_statement;
 
-        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsElseClause;
+    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsElseClause;
 
-        protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-            => [];
-    }
+    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        => [];
 }

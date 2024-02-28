@@ -14,22 +14,21 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.StackTraceExplorer;
+
+/// <summary>
+/// A line from <see cref="StackTraceAnalyzer.Parse(string, CancellationToken)"/> that
+/// was parsed by <see cref="StackFrameParser"/>
+/// </summary>
+internal sealed class ParsedStackFrame(
+    StackFrameTree tree) : ParsedFrame
 {
-    /// <summary>
-    /// A line from <see cref="StackTraceAnalyzer.Parse(string, CancellationToken)"/> that
-    /// was parsed by <see cref="StackFrameParser"/>
-    /// </summary>
-    internal sealed class ParsedStackFrame(
-        StackFrameTree tree) : ParsedFrame
+    public readonly StackFrameTree Tree = tree;
+
+    public StackFrameCompilationUnit Root => Tree.Root;
+
+    public override string ToString()
     {
-        public readonly StackFrameTree Tree = tree;
-
-        public StackFrameCompilationUnit Root => Tree.Root;
-
-        public override string ToString()
-        {
-            return Tree.Text.CreateString();
-        }
+        return Tree.Text.CreateString();
     }
 }

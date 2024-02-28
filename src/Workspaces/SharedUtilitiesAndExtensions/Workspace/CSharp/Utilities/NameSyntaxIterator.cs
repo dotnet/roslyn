@@ -8,39 +8,38 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Utilities
+namespace Microsoft.CodeAnalysis.CSharp.Utilities;
+
+internal class NameSyntaxIterator : IEnumerable<NameSyntax>
 {
-    internal class NameSyntaxIterator : IEnumerable<NameSyntax>
+    private readonly NameSyntax _name;
+
+    public NameSyntaxIterator(NameSyntax name)
+        => _name = name ?? throw new ArgumentNullException(nameof(name));
+
+    public IEnumerator<NameSyntax> GetEnumerator()
     {
-        private readonly NameSyntax _name;
+        var nodes = new LinkedList<NameSyntax>();
 
-        public NameSyntaxIterator(NameSyntax name)
-            => _name = name ?? throw new ArgumentNullException(nameof(name));
-
-        public IEnumerator<NameSyntax> GetEnumerator()
+        var currentNode = _name;
+        while (true)
         {
-            var nodes = new LinkedList<NameSyntax>();
-
-            var currentNode = _name;
-            while (true)
+            if (currentNode.Kind() == SyntaxKind.QualifiedName)
             {
-                if (currentNode.Kind() == SyntaxKind.QualifiedName)
-                {
-                    var qualifiedName = currentNode as QualifiedNameSyntax;
-                    nodes.AddFirst(qualifiedName.Right);
-                    currentNode = qualifiedName.Left;
-                }
-                else
-                {
-                    nodes.AddFirst(currentNode);
-                    break;
-                }
+                var qualifiedName = currentNode as QualifiedNameSyntax;
+                nodes.AddFirst(qualifiedName.Right);
+                currentNode = qualifiedName.Left;
             }
-
-            return nodes.GetEnumerator();
+            else
+            {
+                nodes.AddFirst(currentNode);
+                break;
+            }
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-            => GetEnumerator();
+        return nodes.GetEnumerator();
     }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        => GetEnumerator();
 }

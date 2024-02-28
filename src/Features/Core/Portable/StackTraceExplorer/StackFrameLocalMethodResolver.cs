@@ -10,37 +10,36 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.StackTraceExplorer;
+
+internal class StackFrameLocalMethodResolver : AbstractStackTraceSymbolResolver
 {
-    internal class StackFrameLocalMethodResolver : AbstractStackTraceSymbolResolver
+    public override async Task<IMethodSymbol?> TryGetBestMatchAsync(
+        Project project,
+        INamedTypeSymbol type,
+        StackFrameSimpleNameNode methodNode,
+        StackFrameParameterList methodArguments,
+        StackFrameTypeArgumentList? methodTypeArguments,
+        CancellationToken cancellationToken)
     {
-        public override async Task<IMethodSymbol?> TryGetBestMatchAsync(
-            Project project,
-            INamedTypeSymbol type,
-            StackFrameSimpleNameNode methodNode,
-            StackFrameParameterList methodArguments,
-            StackFrameTypeArgumentList? methodTypeArguments,
-            CancellationToken cancellationToken)
+        if (methodNode is not StackFrameLocalMethodNameNode localMethodNameNode)
         {
-            if (methodNode is not StackFrameLocalMethodNameNode localMethodNameNode)
-            {
-                return null;
-            }
-
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            if (compilation is null)
-            {
-                return null;
-            }
-
-            var containingMethodName = localMethodNameNode.EncapsulatingMethod.Identifier.ToString();
-            var semanticFacts = project.GetRequiredLanguageService<ISemanticFactsService>();
-            var candidateFunctions = type.GetMembers()
-                .Where(member => member.Name == containingMethodName)
-                .SelectMany(member => semanticFacts.GetLocalFunctionSymbols(compilation, member, cancellationToken))
-                .ToImmutableArray();
-
-            return TryGetBestMatch(candidateFunctions, methodTypeArguments, methodArguments);
+            return null;
         }
+
+        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+        if (compilation is null)
+        {
+            return null;
+        }
+
+        var containingMethodName = localMethodNameNode.EncapsulatingMethod.Identifier.ToString();
+        var semanticFacts = project.GetRequiredLanguageService<ISemanticFactsService>();
+        var candidateFunctions = type.GetMembers()
+            .Where(member => member.Name == containingMethodName)
+            .SelectMany(member => semanticFacts.GetLocalFunctionSymbols(compilation, member, cancellationToken))
+            .ToImmutableArray();
+
+        return TryGetBestMatch(candidateFunctions, methodTypeArguments, methodArguments);
     }
 }

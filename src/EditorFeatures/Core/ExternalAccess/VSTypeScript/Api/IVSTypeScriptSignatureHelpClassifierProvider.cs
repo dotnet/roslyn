@@ -6,10 +6,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal interface IVSTypeScriptSignatureHelpClassifierProvider
 {
-    internal interface IVSTypeScriptSignatureHelpClassifierProvider
-    {
-        IClassifier Create(ITextBuffer textBuffer, ClassificationTypeMap typeMap);
-    }
+    IClassifier Create(ITextBuffer textBuffer, ClassificationTypeMap typeMap);
 }

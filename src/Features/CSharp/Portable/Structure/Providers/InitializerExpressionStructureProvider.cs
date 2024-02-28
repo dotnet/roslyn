@@ -10,61 +10,60 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Structure
+namespace Microsoft.CodeAnalysis.CSharp.Structure;
+
+internal class InitializerExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<InitializerExpressionSyntax>
 {
-    internal class InitializerExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<InitializerExpressionSyntax>
+    protected override void CollectBlockSpans(
+        SyntaxToken previousToken,
+        InitializerExpressionSyntax node,
+        ref TemporaryArray<BlockSpan> spans,
+        BlockStructureOptions options,
+        CancellationToken cancellationToken)
     {
-        protected override void CollectBlockSpans(
-            SyntaxToken previousToken,
-            InitializerExpressionSyntax node,
-            ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptions options,
-            CancellationToken cancellationToken)
+        if (node.Parent is InitializerExpressionSyntax)
         {
-            if (node.Parent is InitializerExpressionSyntax)
-            {
-                // We have something like:
-                //
-                //      new Dictionary<int, string>
-                //      {
-                //          ...
-                //          {
-                //              ...
-                //          },
-                //          ...
-                //      }
-                //
-                //  In this case, we want to collapse the "{ ... }," (including the comma).
+            // We have something like:
+            //
+            //      new Dictionary<int, string>
+            //      {
+            //          ...
+            //          {
+            //              ...
+            //          },
+            //          ...
+            //      }
+            //
+            //  In this case, we want to collapse the "{ ... }," (including the comma).
 
-                var nextToken = node.CloseBraceToken.GetNextToken();
-                var end = nextToken.Kind() == SyntaxKind.CommaToken
-                    ? nextToken.Span.End
-                    : node.Span.End;
+            var nextToken = node.CloseBraceToken.GetNextToken();
+            var end = nextToken.Kind() == SyntaxKind.CommaToken
+                ? nextToken.Span.End
+                : node.Span.End;
 
-                spans.Add(new BlockSpan(
-                    isCollapsible: true,
-                    textSpan: TextSpan.FromBounds(node.SpanStart, end),
-                    hintSpan: TextSpan.FromBounds(node.SpanStart, end),
-                    type: BlockTypes.Expression));
-            }
-            else
-            {
-                // Parent is something like:
-                //
-                //      new Dictionary<int, string> {
-                //          ...
-                //      }
-                //
-                // The collapsed textspan should be from the   >   to the   }
-                //
-                // However, the hint span should be the entire object creation.
+            spans.Add(new BlockSpan(
+                isCollapsible: true,
+                textSpan: TextSpan.FromBounds(node.SpanStart, end),
+                hintSpan: TextSpan.FromBounds(node.SpanStart, end),
+                type: BlockTypes.Expression));
+        }
+        else
+        {
+            // Parent is something like:
+            //
+            //      new Dictionary<int, string> {
+            //          ...
+            //      }
+            //
+            // The collapsed textspan should be from the   >   to the   }
+            //
+            // However, the hint span should be the entire object creation.
 
-                spans.Add(new BlockSpan(
-                    isCollapsible: true,
-                    textSpan: TextSpan.FromBounds(previousToken.Span.End, node.Span.End),
-                    hintSpan: node.Parent.Span,
-                    type: BlockTypes.Expression));
-            }
+            spans.Add(new BlockSpan(
+                isCollapsible: true,
+                textSpan: TextSpan.FromBounds(previousToken.Span.End, node.Span.End),
+                hintSpan: node.Parent.Span,
+                type: BlockTypes.Expression));
         }
     }
 }
