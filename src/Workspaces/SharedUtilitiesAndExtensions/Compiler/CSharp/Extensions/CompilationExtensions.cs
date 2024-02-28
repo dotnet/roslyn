@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+internal static class CompilationExtensions
 {
-    internal static class CompilationExtensions
-    {
-        public static LanguageVersion LanguageVersion(this Compilation compilation)
-            => ((CSharpCompilation)compilation).LanguageVersion;
-    }
+    public static LanguageVersion LanguageVersion(this Compilation compilation)
+        => ((CSharpCompilation)compilation).LanguageVersion;
 }

@@ -7,15 +7,14 @@ using System.Composition;
 using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
+namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
+
+[ExportLanguageService(typeof(IAddAccessibilityModifiersService), LanguageNames.CSharp), Shared]
+internal class CSharpAddAccessibilityModifiersService : CSharpAddAccessibilityModifiers, IAddAccessibilityModifiersService
 {
-    [ExportLanguageService(typeof(IAddAccessibilityModifiersService), LanguageNames.CSharp), Shared]
-    internal class CSharpAddAccessibilityModifiersService : CSharpAddAccessibilityModifiers, IAddAccessibilityModifiersService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpAddAccessibilityModifiersService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpAddAccessibilityModifiersService()
-        {
-        }
     }
 }

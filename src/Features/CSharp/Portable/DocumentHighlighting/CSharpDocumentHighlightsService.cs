@@ -18,56 +18,55 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
+namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting;
+
+[ExportLanguageService(typeof(IDocumentHighlightsService), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class CSharpDocumentHighlightsService(
+    [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata>> services) : AbstractDocumentHighlightsService(LanguageNames.CSharp,
+          CSharpEmbeddedLanguagesProvider.Info,
+          CSharpSyntaxKinds.Instance,
+          services)
 {
-    [ExportLanguageService(typeof(IDocumentHighlightsService), LanguageNames.CSharp), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class CSharpDocumentHighlightsService(
-        [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata>> services) : AbstractDocumentHighlightsService(LanguageNames.CSharp,
-              CSharpEmbeddedLanguagesProvider.Info,
-              CSharpSyntaxKinds.Instance,
-              services)
+    protected override async Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
+        Document document, ISymbol symbol, CancellationToken cancellationToken)
     {
-        protected override async Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
-            Document document, ISymbol symbol, CancellationToken cancellationToken)
+        // The FindRefs engine won't find references through 'var' for performance reasons.
+        // Also, they are not needed for things like rename/sig change, and the normal find refs
+        // feature.  However, we would like the results to be highlighted to get a good experience
+        // while editing (especially since highlighting may have been invoked off of 'var' in
+        // the first place).
+        //
+        // So we look for the references through 'var' directly in this file and add them to the
+        // results found by the engine.
+        using var _ = ArrayBuilder<Location>.GetInstance(out var results);
+
+        if (symbol is INamedTypeSymbol && symbol.Name != "var")
         {
-            // The FindRefs engine won't find references through 'var' for performance reasons.
-            // Also, they are not needed for things like rename/sig change, and the normal find refs
-            // feature.  However, we would like the results to be highlighted to get a good experience
-            // while editing (especially since highlighting may have been invoked off of 'var' in
-            // the first place).
-            //
-            // So we look for the references through 'var' directly in this file and add them to the
-            // results found by the engine.
-            using var _ = ArrayBuilder<Location>.GetInstance(out var results);
+            var originalSymbol = symbol.OriginalDefinition;
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            if (symbol is INamedTypeSymbol && symbol.Name != "var")
+            var descendants = root.DescendantNodes();
+            var semanticModel = (SemanticModel?)null;
+
+            foreach (var type in descendants.OfType<IdentifierNameSyntax>())
             {
-                var originalSymbol = symbol.OriginalDefinition;
-                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                var descendants = root.DescendantNodes();
-                var semanticModel = (SemanticModel?)null;
-
-                foreach (var type in descendants.OfType<IdentifierNameSyntax>())
+                if (type.IsVar)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    semanticModel ??= await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                    if (type.IsVar)
-                    {
-                        semanticModel ??= await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var boundSymbol = semanticModel.GetSymbolInfo(type, cancellationToken).Symbol;
+                    boundSymbol = boundSymbol?.OriginalDefinition;
 
-                        var boundSymbol = semanticModel.GetSymbolInfo(type, cancellationToken).Symbol;
-                        boundSymbol = boundSymbol?.OriginalDefinition;
-
-                        if (originalSymbol.Equals(boundSymbol))
-                            results.Add(type.GetLocation());
-                    }
+                    if (originalSymbol.Equals(boundSymbol))
+                        results.Add(type.GetLocation());
                 }
             }
-
-            return results.ToImmutable();
         }
+
+        return results.ToImmutable();
     }
 }

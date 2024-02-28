@@ -5,22 +5,21 @@
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<SaveCommandArgs>
 {
-    internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<SaveCommandArgs>
+    public CommandState GetCommandState(SaveCommandArgs args)
+        => GetCommandState();
+
+    public bool ExecuteCommand(SaveCommandArgs args, CommandExecutionContext context)
     {
-        public CommandState GetCommandState(SaveCommandArgs args)
-            => GetCommandState();
-
-        public bool ExecuteCommand(SaveCommandArgs args, CommandExecutionContext context)
+        if (_renameService.ActiveSession != null)
         {
-            if (_renameService.ActiveSession != null)
-            {
-                _renameService.ActiveSession.Commit();
-                SetFocusToTextView(args.TextView);
-            }
-
-            return false;
+            _renameService.ActiveSession.Commit();
+            SetFocusToTextView(args.TextView);
         }
+
+        return false;
     }
 }

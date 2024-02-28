@@ -4,11 +4,10 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal static class PredefinedBuildTools
 {
-    internal static class PredefinedBuildTools
-    {
-        public static readonly string Build = FeaturesResources.Compiler2;
-        public static readonly string Live = FeaturesResources.Live;
-    }
+    public static readonly string Build = FeaturesResources.Compiler2;
+    public static readonly string Live = FeaturesResources.Live;
 }

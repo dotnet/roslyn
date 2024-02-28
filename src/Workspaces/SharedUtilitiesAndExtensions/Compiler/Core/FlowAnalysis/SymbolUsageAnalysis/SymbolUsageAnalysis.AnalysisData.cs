@@ -13,249 +13,248 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
+namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis;
+
+internal static partial class SymbolUsageAnalysis
 {
-    internal static partial class SymbolUsageAnalysis
+    /// <summary>
+    /// Core analysis data to drive the operation <see cref="Walker"/>
+    /// for operation tree based analysis OR control flow graph based analysis.
+    /// </summary>
+    private abstract class AnalysisData : IDisposable
     {
         /// <summary>
-        /// Core analysis data to drive the operation <see cref="Walker"/>
-        /// for operation tree based analysis OR control flow graph based analysis.
+        /// Pooled <see cref="BasicBlockAnalysisData"/> allocated during analysis with the
+        /// current <see cref="AnalysisData"/> instance, which will be freed during <see cref="Dispose"/>.
         /// </summary>
-        private abstract class AnalysisData : IDisposable
+        private readonly ArrayBuilder<BasicBlockAnalysisData> _allocatedBasicBlockAnalysisDatas;
+
+        /// <summary>
+        /// Set of locals/parameters which are passed by reference to other method calls.
+        /// </summary>
+        private readonly PooledHashSet<ISymbol> _referenceTakenSymbolsBuilder;
+
+        protected AnalysisData()
         {
-            /// <summary>
-            /// Pooled <see cref="BasicBlockAnalysisData"/> allocated during analysis with the
-            /// current <see cref="AnalysisData"/> instance, which will be freed during <see cref="Dispose"/>.
-            /// </summary>
-            private readonly ArrayBuilder<BasicBlockAnalysisData> _allocatedBasicBlockAnalysisDatas;
+            _allocatedBasicBlockAnalysisDatas = ArrayBuilder<BasicBlockAnalysisData>.GetInstance();
+            _referenceTakenSymbolsBuilder = PooledHashSet<ISymbol>.GetInstance();
+            CurrentBlockAnalysisData = CreateBlockAnalysisData();
+            AdditionalConditionalBranchAnalysisData = CreateBlockAnalysisData();
+        }
 
-            /// <summary>
-            /// Set of locals/parameters which are passed by reference to other method calls.
-            /// </summary>
-            private readonly PooledHashSet<ISymbol> _referenceTakenSymbolsBuilder;
+        /// <summary>
+        /// Map from each (symbol, write) to a boolean indicating if the value assigned
+        /// at the write is read on some control flow path.
+        /// For example, consider the following code:
+        /// <code>
+        ///     int x = 0;
+        ///     x = 1;
+        ///     Console.WriteLine(x);
+        /// </code>
+        /// This map will have two entries for 'x':
+        ///     1. Key = (symbol: x, write: 'int x = 0')
+        ///        Value = 'false', because value assigned to 'x' here **is never** read. 
+        ///     2. Key = (symbol: x, write: 'x = 1')
+        ///        Value = 'true', because value assigned to 'x' here **may be** read on
+        ///        some control flow path.
+        /// </summary>
+        protected abstract PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
 
-            protected AnalysisData()
+        /// <summary>
+        /// Set of locals/parameters that are read at least once.
+        /// </summary>
+        protected abstract PooledHashSet<ISymbol> SymbolsReadBuilder { get; }
+
+        /// <summary>
+        /// Set of lambda/local functions whose invocations are currently being analyzed to prevent
+        /// infinite recursion for analyzing code with recursive lambda/local function calls.
+        /// </summary>
+        protected abstract PooledHashSet<IMethodSymbol> LambdaOrLocalFunctionsBeingAnalyzed { get; }
+
+        /// <summary>
+        /// Current block analysis data used for analysis.
+        /// </summary>
+        public BasicBlockAnalysisData CurrentBlockAnalysisData { get; }
+
+        /// <summary>
+        /// Block analysis data used for an additional conditional branch.
+        /// </summary>
+        public BasicBlockAnalysisData AdditionalConditionalBranchAnalysisData { get; }
+
+        /// <summary>
+        /// Creates an immutable <see cref="SymbolUsageResult"/> for the current analysis data.
+        /// </summary>
+        public SymbolUsageResult ToResult()
+            => new(SymbolsWriteBuilder.ToImmutableDictionary(),
+                                     SymbolsReadBuilder.ToImmutableHashSet());
+
+        public BasicBlockAnalysisData AnalyzeLocalFunctionInvocation(IMethodSymbol localFunction, CancellationToken cancellationToken)
+        {
+            Debug.Assert(localFunction.IsLocalFunction());
+
+            // Use the original definition of the local function for flow analysis.
+            localFunction = localFunction.OriginalDefinition;
+
+            if (!LambdaOrLocalFunctionsBeingAnalyzed.Add(localFunction))
             {
-                _allocatedBasicBlockAnalysisDatas = ArrayBuilder<BasicBlockAnalysisData>.GetInstance();
-                _referenceTakenSymbolsBuilder = PooledHashSet<ISymbol>.GetInstance();
-                CurrentBlockAnalysisData = CreateBlockAnalysisData();
-                AdditionalConditionalBranchAnalysisData = CreateBlockAnalysisData();
+                ResetState();
+                return CurrentBlockAnalysisData;
+            }
+            else
+            {
+                var result = AnalyzeLocalFunctionInvocationCore(localFunction, cancellationToken);
+                LambdaOrLocalFunctionsBeingAnalyzed.Remove(localFunction);
+                return result;
+            }
+        }
+
+        public BasicBlockAnalysisData AnalyzeLambdaInvocation(IFlowAnonymousFunctionOperation lambda, CancellationToken cancellationToken)
+        {
+            if (!LambdaOrLocalFunctionsBeingAnalyzed.Add(lambda.Symbol))
+            {
+                ResetState();
+                return CurrentBlockAnalysisData;
+            }
+            else
+            {
+                var result = AnalyzeLambdaInvocationCore(lambda, cancellationToken);
+                LambdaOrLocalFunctionsBeingAnalyzed.Remove(lambda.Symbol);
+                return result;
+            }
+        }
+
+        protected abstract BasicBlockAnalysisData AnalyzeLocalFunctionInvocationCore(IMethodSymbol localFunction, CancellationToken cancellationToken);
+        protected abstract BasicBlockAnalysisData AnalyzeLambdaInvocationCore(IFlowAnonymousFunctionOperation lambda, CancellationToken cancellationToken);
+
+        // Methods specific to flow capture analysis for CFG based dataflow analysis.
+        public abstract bool IsLValueFlowCapture(CaptureId captureId);
+        public abstract bool IsRValueFlowCapture(CaptureId captureId);
+        public abstract void OnLValueCaptureFound(ISymbol symbol, IOperation operation, CaptureId captureId);
+        public abstract void OnLValueDereferenceFound(CaptureId captureId);
+
+        // Methods specific to delegate analysis to track potential delegate invocation targets for CFG based dataflow analysis.
+        public abstract bool IsTrackingDelegateCreationTargets { get; }
+        public abstract void SetTargetsFromSymbolForDelegate(IOperation write, ISymbol symbol);
+        public abstract void SetLambdaTargetForDelegate(IOperation write, IFlowAnonymousFunctionOperation lambdaTarget);
+        public abstract void SetLocalFunctionTargetForDelegate(IOperation write, IMethodReferenceOperation localFunctionTarget);
+        public abstract void SetEmptyInvocationTargetsForDelegate(IOperation write);
+        public abstract bool TryGetDelegateInvocationTargets(IOperation write, out ImmutableHashSet<IOperation> targets);
+
+        protected static PooledDictionary<(ISymbol Symbol, IOperation Write), bool> CreateSymbolsWriteMap(
+            ImmutableArray<IParameterSymbol> parameters)
+        {
+            var symbolsWriteMap = PooledDictionary<(ISymbol Symbol, IOperation Write), bool>.GetInstance();
+            return UpdateSymbolsWriteMap(symbolsWriteMap, parameters);
+        }
+
+        protected static PooledDictionary<(ISymbol Symbol, IOperation Write), bool> UpdateSymbolsWriteMap(
+            PooledDictionary<(ISymbol Symbol, IOperation Write), bool> symbolsWriteMap,
+            ImmutableArray<IParameterSymbol> parameters)
+        {
+            // Mark parameters as being written from the value provided at the call site.
+            // Note that the write operation is "null" as there is no corresponding IOperation for parameter definition.
+            foreach (var parameter in parameters)
+            {
+                (ISymbol, IOperation) key = (parameter, null);
+                if (!symbolsWriteMap.ContainsKey(key))
+                {
+                    symbolsWriteMap.Add(key, false);
+                }
             }
 
-            /// <summary>
-            /// Map from each (symbol, write) to a boolean indicating if the value assigned
-            /// at the write is read on some control flow path.
-            /// For example, consider the following code:
-            /// <code>
-            ///     int x = 0;
-            ///     x = 1;
-            ///     Console.WriteLine(x);
-            /// </code>
-            /// This map will have two entries for 'x':
-            ///     1. Key = (symbol: x, write: 'int x = 0')
-            ///        Value = 'false', because value assigned to 'x' here **is never** read. 
-            ///     2. Key = (symbol: x, write: 'x = 1')
-            ///        Value = 'true', because value assigned to 'x' here **may be** read on
-            ///        some control flow path.
-            /// </summary>
-            protected abstract PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
+            return symbolsWriteMap;
+        }
 
-            /// <summary>
-            /// Set of locals/parameters that are read at least once.
-            /// </summary>
-            protected abstract PooledHashSet<ISymbol> SymbolsReadBuilder { get; }
+        public BasicBlockAnalysisData CreateBlockAnalysisData()
+        {
+            var instance = BasicBlockAnalysisData.GetInstance();
+            TrackAllocatedBlockAnalysisData(instance);
+            return instance;
+        }
 
-            /// <summary>
-            /// Set of lambda/local functions whose invocations are currently being analyzed to prevent
-            /// infinite recursion for analyzing code with recursive lambda/local function calls.
-            /// </summary>
-            protected abstract PooledHashSet<IMethodSymbol> LambdaOrLocalFunctionsBeingAnalyzed { get; }
+        public void TrackAllocatedBlockAnalysisData(BasicBlockAnalysisData allocatedData)
+            => _allocatedBasicBlockAnalysisDatas.Add(allocatedData);
 
-            /// <summary>
-            /// Current block analysis data used for analysis.
-            /// </summary>
-            public BasicBlockAnalysisData CurrentBlockAnalysisData { get; }
-
-            /// <summary>
-            /// Block analysis data used for an additional conditional branch.
-            /// </summary>
-            public BasicBlockAnalysisData AdditionalConditionalBranchAnalysisData { get; }
-
-            /// <summary>
-            /// Creates an immutable <see cref="SymbolUsageResult"/> for the current analysis data.
-            /// </summary>
-            public SymbolUsageResult ToResult()
-                => new(SymbolsWriteBuilder.ToImmutableDictionary(),
-                                         SymbolsReadBuilder.ToImmutableHashSet());
-
-            public BasicBlockAnalysisData AnalyzeLocalFunctionInvocation(IMethodSymbol localFunction, CancellationToken cancellationToken)
+        public void OnReadReferenceFound(ISymbol symbol)
+        {
+            if (symbol.Kind == SymbolKind.Discard)
             {
-                Debug.Assert(localFunction.IsLocalFunction());
-
-                // Use the original definition of the local function for flow analysis.
-                localFunction = localFunction.OriginalDefinition;
-
-                if (!LambdaOrLocalFunctionsBeingAnalyzed.Add(localFunction))
-                {
-                    ResetState();
-                    return CurrentBlockAnalysisData;
-                }
-                else
-                {
-                    var result = AnalyzeLocalFunctionInvocationCore(localFunction, cancellationToken);
-                    LambdaOrLocalFunctionsBeingAnalyzed.Remove(localFunction);
-                    return result;
-                }
+                return;
             }
 
-            public BasicBlockAnalysisData AnalyzeLambdaInvocation(IFlowAnonymousFunctionOperation lambda, CancellationToken cancellationToken)
+            // Mark all the current reaching writes of symbol as read.
+            if (SymbolsWriteBuilder.Count != 0)
             {
-                if (!LambdaOrLocalFunctionsBeingAnalyzed.Add(lambda.Symbol))
-                {
-                    ResetState();
-                    return CurrentBlockAnalysisData;
-                }
-                else
-                {
-                    var result = AnalyzeLambdaInvocationCore(lambda, cancellationToken);
-                    LambdaOrLocalFunctionsBeingAnalyzed.Remove(lambda.Symbol);
-                    return result;
-                }
-            }
-
-            protected abstract BasicBlockAnalysisData AnalyzeLocalFunctionInvocationCore(IMethodSymbol localFunction, CancellationToken cancellationToken);
-            protected abstract BasicBlockAnalysisData AnalyzeLambdaInvocationCore(IFlowAnonymousFunctionOperation lambda, CancellationToken cancellationToken);
-
-            // Methods specific to flow capture analysis for CFG based dataflow analysis.
-            public abstract bool IsLValueFlowCapture(CaptureId captureId);
-            public abstract bool IsRValueFlowCapture(CaptureId captureId);
-            public abstract void OnLValueCaptureFound(ISymbol symbol, IOperation operation, CaptureId captureId);
-            public abstract void OnLValueDereferenceFound(CaptureId captureId);
-
-            // Methods specific to delegate analysis to track potential delegate invocation targets for CFG based dataflow analysis.
-            public abstract bool IsTrackingDelegateCreationTargets { get; }
-            public abstract void SetTargetsFromSymbolForDelegate(IOperation write, ISymbol symbol);
-            public abstract void SetLambdaTargetForDelegate(IOperation write, IFlowAnonymousFunctionOperation lambdaTarget);
-            public abstract void SetLocalFunctionTargetForDelegate(IOperation write, IMethodReferenceOperation localFunctionTarget);
-            public abstract void SetEmptyInvocationTargetsForDelegate(IOperation write);
-            public abstract bool TryGetDelegateInvocationTargets(IOperation write, out ImmutableHashSet<IOperation> targets);
-
-            protected static PooledDictionary<(ISymbol Symbol, IOperation Write), bool> CreateSymbolsWriteMap(
-                ImmutableArray<IParameterSymbol> parameters)
-            {
-                var symbolsWriteMap = PooledDictionary<(ISymbol Symbol, IOperation Write), bool>.GetInstance();
-                return UpdateSymbolsWriteMap(symbolsWriteMap, parameters);
-            }
-
-            protected static PooledDictionary<(ISymbol Symbol, IOperation Write), bool> UpdateSymbolsWriteMap(
-                PooledDictionary<(ISymbol Symbol, IOperation Write), bool> symbolsWriteMap,
-                ImmutableArray<IParameterSymbol> parameters)
-            {
-                // Mark parameters as being written from the value provided at the call site.
-                // Note that the write operation is "null" as there is no corresponding IOperation for parameter definition.
-                foreach (var parameter in parameters)
-                {
-                    (ISymbol, IOperation) key = (parameter, null);
-                    if (!symbolsWriteMap.ContainsKey(key))
+                CurrentBlockAnalysisData.ForEachCurrentWrite(
+                    symbol,
+                    static (write, arg) =>
                     {
-                        symbolsWriteMap.Add(key, false);
-                    }
-                }
-
-                return symbolsWriteMap;
+                        arg.self.SymbolsWriteBuilder[(arg.symbol, write)] = true;
+                    },
+                    (symbol, self: this));
             }
 
-            public BasicBlockAnalysisData CreateBlockAnalysisData()
+            // Mark the current symbol as read.
+            SymbolsReadBuilder.Add(symbol);
+        }
+
+        public void OnWriteReferenceFound(ISymbol symbol, IOperation operation, bool maybeWritten, bool isRef)
+        {
+            var symbolAndWrite = (symbol, operation);
+            if (symbol.Kind == SymbolKind.Discard)
             {
-                var instance = BasicBlockAnalysisData.GetInstance();
-                TrackAllocatedBlockAnalysisData(instance);
-                return instance;
+                // Skip discard symbols and also for already processed writes (back edge from loops).
+                return;
             }
 
-            public void TrackAllocatedBlockAnalysisData(BasicBlockAnalysisData allocatedData)
-                => _allocatedBasicBlockAnalysisDatas.Add(allocatedData);
-
-            public void OnReadReferenceFound(ISymbol symbol)
+            if (_referenceTakenSymbolsBuilder.Contains(symbol))
             {
-                if (symbol.Kind == SymbolKind.Discard)
-                {
-                    return;
-                }
-
-                // Mark all the current reaching writes of symbol as read.
-                if (SymbolsWriteBuilder.Count != 0)
-                {
-                    CurrentBlockAnalysisData.ForEachCurrentWrite(
-                        symbol,
-                        static (write, arg) =>
-                        {
-                            arg.self.SymbolsWriteBuilder[(arg.symbol, write)] = true;
-                        },
-                        (symbol, self: this));
-                }
-
-                // Mark the current symbol as read.
-                SymbolsReadBuilder.Add(symbol);
+                // Skip tracking writes for reference taken symbols as the written value may be read from a different variable.
+                return;
             }
 
-            public void OnWriteReferenceFound(ISymbol symbol, IOperation operation, bool maybeWritten, bool isRef)
+            // Add a new write for the given symbol at the given operation.
+            CurrentBlockAnalysisData.OnWriteReferenceFound(symbol, operation, maybeWritten);
+
+            if (isRef)
             {
-                var symbolAndWrite = (symbol, operation);
-                if (symbol.Kind == SymbolKind.Discard)
-                {
-                    // Skip discard symbols and also for already processed writes (back edge from loops).
-                    return;
-                }
-
-                if (_referenceTakenSymbolsBuilder.Contains(symbol))
-                {
-                    // Skip tracking writes for reference taken symbols as the written value may be read from a different variable.
-                    return;
-                }
-
-                // Add a new write for the given symbol at the given operation.
-                CurrentBlockAnalysisData.OnWriteReferenceFound(symbol, operation, maybeWritten);
-
-                if (isRef)
-                {
-                    _referenceTakenSymbolsBuilder.Add(symbol);
-                }
-
-                // Only mark as unused write if we are processing it for the first time (not from back edge for loops)
-                if (!SymbolsWriteBuilder.ContainsKey(symbolAndWrite) &&
-                    !maybeWritten)
-                {
-                    SymbolsWriteBuilder.Add((symbol, operation), false);
-                }
+                _referenceTakenSymbolsBuilder.Add(symbol);
             }
 
-            /// <summary>
-            /// Resets all the currently tracked symbol writes to be conservatively marked as read.
-            /// </summary>
-            public void ResetState()
+            // Only mark as unused write if we are processing it for the first time (not from back edge for loops)
+            if (!SymbolsWriteBuilder.ContainsKey(symbolAndWrite) &&
+                !maybeWritten)
             {
-                foreach (var symbol in SymbolsWriteBuilder.Keys.Select(d => d.symbol).ToArray())
-                {
-                    OnReadReferenceFound(symbol);
-                }
+                SymbolsWriteBuilder.Add((symbol, operation), false);
             }
+        }
 
-            public void SetCurrentBlockAnalysisDataFrom(BasicBlockAnalysisData newBlockAnalysisData)
+        /// <summary>
+        /// Resets all the currently tracked symbol writes to be conservatively marked as read.
+        /// </summary>
+        public void ResetState()
+        {
+            foreach (var symbol in SymbolsWriteBuilder.Keys.Select(d => d.symbol).ToArray())
             {
-                Debug.Assert(newBlockAnalysisData != null);
-                CurrentBlockAnalysisData.SetAnalysisDataFrom(newBlockAnalysisData);
+                OnReadReferenceFound(symbol);
             }
+        }
 
-            public virtual void Dispose()
+        public void SetCurrentBlockAnalysisDataFrom(BasicBlockAnalysisData newBlockAnalysisData)
+        {
+            Debug.Assert(newBlockAnalysisData != null);
+            CurrentBlockAnalysisData.SetAnalysisDataFrom(newBlockAnalysisData);
+        }
+
+        public virtual void Dispose()
+        {
+            foreach (var instance in _allocatedBasicBlockAnalysisDatas)
             {
-                foreach (var instance in _allocatedBasicBlockAnalysisDatas)
-                {
-                    instance.Dispose();
-                }
-
-                _allocatedBasicBlockAnalysisDatas.Free();
-                _referenceTakenSymbolsBuilder.Free();
+                instance.Dispose();
             }
+
+            _allocatedBasicBlockAnalysisDatas.Free();
+            _referenceTakenSymbolsBuilder.Free();
         }
     }
 }

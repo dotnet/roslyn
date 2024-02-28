@@ -8,23 +8,22 @@ using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
-namespace Microsoft.CodeAnalysis
-{
-    /// <summary>
-    /// Provide a way for users to turn on and off analyzing workspace for compiler diagnostics
-    /// </summary>
-    internal static class DiagnosticProvider
-    {
-        public static void Enable(Workspace workspace)
-        {
-            var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
-            service.Register(workspace);
-        }
+namespace Microsoft.CodeAnalysis;
 
-        public static void Disable(Workspace workspace)
-        {
-            var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
-            service.Unregister(workspace);
-        }
+/// <summary>
+/// Provide a way for users to turn on and off analyzing workspace for compiler diagnostics
+/// </summary>
+internal static class DiagnosticProvider
+{
+    public static void Enable(Workspace workspace)
+    {
+        var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+        service.Register(workspace);
+    }
+
+    public static void Disable(Workspace workspace)
+    {
+        var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+        service.Unregister(workspace);
     }
 }

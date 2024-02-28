@@ -7,20 +7,19 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.PickMembers
-{
-    internal interface IPickMembersService : IWorkspaceService
-    {
-        PickMembersResult PickMembers(
-            string title, ImmutableArray<ISymbol> members,
-            ImmutableArray<PickMembersOption> options = default,
-            bool selectAll = true);
-    }
+namespace Microsoft.CodeAnalysis.PickMembers;
 
-    internal class PickMembersOption(string id, string title, bool value)
-    {
-        public string Id { get; } = id;
-        public string Title { get; } = title;
-        public bool Value { get; set; } = value;
-    }
+internal interface IPickMembersService : IWorkspaceService
+{
+    PickMembersResult PickMembers(
+        string title, ImmutableArray<ISymbol> members,
+        ImmutableArray<PickMembersOption> options = default,
+        bool selectAll = true);
+}
+
+internal class PickMembersOption(string id, string title, bool value)
+{
+    public string Id { get; } = id;
+    public string Title { get; } = title;
+    public bool Value { get; set; } = value;
 }
