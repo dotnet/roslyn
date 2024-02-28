@@ -39,6 +39,7 @@ jobs:
       softwareVersionNum: $(NBGV_MajorMinorVersion)
       isLargeApp: false
       toolVersion: Latest
+      preserveLogsFolder: true
     env:
       AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
 
