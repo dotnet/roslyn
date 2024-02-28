@@ -4,19 +4,18 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+/// <summary>
+/// data that will be used in an interval tree related to suppressing wrapping operations.
+/// </summary>
+internal class SuppressWrappingData(TextSpan textSpan, bool ignoreElastic)
 {
-    /// <summary>
-    /// data that will be used in an interval tree related to suppressing wrapping operations.
-    /// </summary>
-    internal class SuppressWrappingData(TextSpan textSpan, bool ignoreElastic)
-    {
-        public TextSpan TextSpan { get; } = textSpan;
-        public bool IgnoreElastic { get; } = ignoreElastic;
+    public TextSpan TextSpan { get; } = textSpan;
+    public bool IgnoreElastic { get; } = ignoreElastic;
 
 #if DEBUG
-        public override string ToString()
-            => $"Suppress wrapping on '{TextSpan}' with IgnoreElastic={IgnoreElastic}";
+    public override string ToString()
+        => $"Suppress wrapping on '{TextSpan}' with IgnoreElastic={IgnoreElastic}";
 #endif
-    }
 }

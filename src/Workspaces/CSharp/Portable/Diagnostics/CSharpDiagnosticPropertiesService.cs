@@ -9,19 +9,18 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
+namespace Microsoft.CodeAnalysis.CSharp.Diagnostics;
+
+[ExportLanguageService(typeof(IDiagnosticPropertiesService), LanguageNames.CSharp), Shared]
+internal class CSharpDiagnosticPropertiesService : AbstractDiagnosticPropertiesService
 {
-    [ExportLanguageService(typeof(IDiagnosticPropertiesService), LanguageNames.CSharp), Shared]
-    internal class CSharpDiagnosticPropertiesService : AbstractDiagnosticPropertiesService
+    private static readonly Compilation s_compilation = CSharpCompilation.Create("empty");
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpDiagnosticPropertiesService()
     {
-        private static readonly Compilation s_compilation = CSharpCompilation.Create("empty");
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpDiagnosticPropertiesService()
-        {
-        }
-
-        protected override Compilation GetCompilation() => s_compilation;
     }
+
+    protected override Compilation GetCompilation() => s_compilation;
 }

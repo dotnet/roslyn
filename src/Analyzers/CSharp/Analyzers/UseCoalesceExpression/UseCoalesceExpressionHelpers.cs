@@ -5,14 +5,13 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression
+namespace Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression;
+
+internal static class UseCoalesceExpressionHelpers
 {
-    internal static class UseCoalesceExpressionHelpers
+    public static bool IsTargetTyped(SemanticModel semanticModel, ConditionalExpressionSyntax conditional, CancellationToken cancellationToken)
     {
-        public static bool IsTargetTyped(SemanticModel semanticModel, ConditionalExpressionSyntax conditional, CancellationToken cancellationToken)
-        {
-            var conversion = semanticModel.GetConversion(conditional, cancellationToken);
-            return conversion.IsConditionalExpression;
-        }
+        var conversion = semanticModel.GetConversion(conditional, cancellationToken);
+        return conversion.IsConditionalExpression;
     }
 }
