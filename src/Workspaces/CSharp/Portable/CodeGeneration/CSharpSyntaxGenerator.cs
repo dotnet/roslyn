@@ -808,9 +808,10 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
                         x.Kind() == SyntaxKind.AbstractKeyword
                         || x.Kind() == SyntaxKind.VirtualKeyword
                         || x.Kind() == SyntaxKind.PublicKeyword);
+                    var modifiersToken = SyntaxFactory.TokenList(abstractVirtualModifiers);
+                    modifiersToken = modifiersToken.Insert(0, SyntaxFactory.Token(SyntaxKind.StaticKeyword));
                     return operatorDeclaration
-                        .WithModifiers(SyntaxTokenList.Create(abstractVirtualModifiers.ToArray()))
-                        .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
+                        .WithModifiers(modifiersToken)
                         .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                         .WithBody(null);
 
