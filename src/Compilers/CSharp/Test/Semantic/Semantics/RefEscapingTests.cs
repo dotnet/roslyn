@@ -7971,6 +7971,27 @@ public struct Vec4
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedUnaryOperator_RefStruct_Scoped()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static R operator !(scoped R r) => default;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        return !new R(0);
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
         public void UserDefinedLogicalOperator_RefStruct()
         {
             var source = """
@@ -8030,6 +8051,125 @@ public struct Vec4
                 // (29,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         return s; // 4
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(29, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedLogicalOperator_RefStruct_Scoped_Left()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static bool operator true(R r) => true;
+                    public static bool operator false(R r) => false;
+                    public static R operator |(scoped R x, R y) => default;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        return new R(1) || new R(2);
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (13,16): error CS8347: Cannot use a result of 'R.operator |(scoped R, R)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) || new R(2)").WithArguments("R.operator |(scoped R, R)", "y").WithLocation(13, 16),
+                // (13,28): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(2)").WithArguments("R.R(in int)", "i").WithLocation(13, 28),
+                // (13,34): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(13, 34));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedLogicalOperator_RefStruct_Scoped_Right()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static bool operator true(R r) => true;
+                    public static bool operator false(R r) => false;
+                    public static R operator |(R x, scoped R y) => default;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        return new R(1) || new R(2);
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (13,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(13, 16),
+                // (13,16): error CS8347: Cannot use a result of 'R.operator |(R, scoped R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) || new R(2)").WithArguments("R.operator |(R, scoped R)", "x").WithLocation(13, 16),
+                // (13,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(13, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedLogicalOperator_RefStruct_Scoped_Both()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static bool operator true(R r) => true;
+                    public static bool operator false(R r) => false;
+                    public static R operator |(scoped R x, scoped R y) => default;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        return new R(1) || new R(2);
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedLogicalOperator_RefStruct_Scoped_None()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static bool operator true(R r) => true;
+                    public static bool operator false(R r) => false;
+                    public static R operator |(R x, R y) => default;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        return new R(1) || new R(2);
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (13,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(13, 16),
+                // (13,16): error CS8347: Cannot use a result of 'R.operator |(R, R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) || new R(2)").WithArguments("R.operator |(R, R)", "x").WithLocation(13, 16),
+                // (13,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(13, 22));
         }
     }
 }
