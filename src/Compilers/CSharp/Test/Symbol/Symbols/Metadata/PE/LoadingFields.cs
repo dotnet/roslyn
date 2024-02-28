@@ -4,12 +4,12 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
@@ -139,6 +139,19 @@ class Program
             var compilation = CreateCompilationWithILAndMscorlib40(text, il, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"Value1
 Value2");
+        }
+
+        [Fact]
+        public void TestLoadFieldsOfReadOnlySpanFromCorlib()
+        {
+            var comp = CreateCompilation("", targetFramework: TargetFramework.Net60);
+
+            var readOnlySpanType = comp.GetTypeByMetadataName("System.ReadOnlySpan`1");
+            Assert.NotNull(readOnlySpanType);
+            Assert.Equal(SpecialType.System_ReadOnlySpan_T, readOnlySpanType.SpecialType);
+
+            var fields = readOnlySpanType.GetMembers().OfType<FieldSymbol>();
+            Assert.NotEmpty(fields);
         }
     }
 }
