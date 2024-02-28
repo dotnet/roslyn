@@ -2,7 +2,7 @@
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
   <Import Project="$(RepositoryEngineeringDir)targets\PackageProject.props"/>
-  <Import Project="Sign.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+  <Import Project="../tools/Sign.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
 
   <!-- Sign tool parallelism limits. -->
   <PropertyGroup>
