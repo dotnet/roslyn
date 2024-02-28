@@ -45,8 +45,8 @@ try {
 
   if ($bootstrapDir -eq "") {
     Write-Host "Building bootstrap compiler"
-    Exec-Script (Join-Path $PSScriptRoot "make-bootstrap.ps1") "-name correctness -ci:$ci"
     $bootstrapDir = Join-Path $ArtifactsDir "bootstrap" "correctness"
+    Exec-Script (Join-Path $PSScriptRoot "make-bootstrap.ps1") "-output $bootstrapDir -ci:$ci"
   }
 
   Write-Host "Building Roslyn"

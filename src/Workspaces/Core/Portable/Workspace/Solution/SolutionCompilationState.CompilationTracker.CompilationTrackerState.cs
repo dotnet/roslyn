@@ -42,27 +42,16 @@ internal partial class SolutionCompilationState
             /// The best compilation that is available that source generators have not ran on. May be an
             /// in-progress, full declaration, a final compilation.
             /// </summary>
-            public Compilation CompilationWithoutGeneratedDocuments { get; }
+            public abstract Compilation CompilationWithoutGeneratedDocuments { get; }
 
             public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
 
             protected CompilationTrackerState(
                 bool isFrozen,
-                Compilation compilationWithoutGeneratedDocuments,
                 CompilationTrackerGeneratorInfo generatorInfo)
             {
                 IsFrozen = isFrozen;
-                CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
                 GeneratorInfo = generatorInfo;
-
-#if DEBUG
-                // As a sanity check, we should never see the generated trees inside of the compilation that should
-                // not have generated trees.
-                foreach (var generatedDocument in generatorInfo.Documents.States.Values)
-                {
-                    Contract.ThrowIfTrue(compilationWithoutGeneratedDocuments.SyntaxTrees.Contains(generatedDocument.GetSyntaxTree(CancellationToken.None)));
-                }
-#endif
             }
         }
 
@@ -72,11 +61,7 @@ internal partial class SolutionCompilationState
         /// </summary>
         private sealed class InProgressState : CompilationTrackerState
         {
-            /// <summary>
-            /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
-            /// the state of the project prior to the mutation.
-            /// </summary>
-            public ImmutableList<TranslationAction> PendingTranslationActions { get; }
+            public readonly Lazy<Compilation> LazyCompilationWithoutGeneratedDocuments;
 
             /// <summary>
             /// The result of taking the original completed compilation that had generated documents and updating
@@ -84,39 +69,59 @@ internal partial class SolutionCompilationState
             /// correct snapshot in that the generators have not been rerun, but may be reusable if the generators
             /// are later found to give the same output.
             /// </summary>
-            public Compilation? StaleCompilationWithGeneratedDocuments { get; }
+            public readonly Lazy<Compilation?> LazyStaleCompilationWithGeneratedDocuments;
 
-            private InProgressState(
+            /// <summary>
+            /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
+            /// the state of the project prior to the mutation.
+            /// </summary>
+            public ImmutableList<TranslationAction> PendingTranslationActions { get; }
+
+            public override Compilation CompilationWithoutGeneratedDocuments => LazyCompilationWithoutGeneratedDocuments.Value;
+
+            public InProgressState(
                 bool isFrozen,
-                Compilation compilationWithoutGeneratedDocuments,
+                Lazy<Compilation> compilationWithoutGeneratedDocuments,
                 CompilationTrackerGeneratorInfo generatorInfo,
-                Compilation? staleCompilationWithGeneratedDocuments,
+                Lazy<Compilation?> staleCompilationWithGeneratedDocuments,
                 ImmutableList<TranslationAction> pendingTranslationActions)
-                : base(isFrozen,
-                       compilationWithoutGeneratedDocuments,
-                       generatorInfo)
+                : base(isFrozen, generatorInfo)
             {
                 // Note: Intermediate projects can be empty.
                 Contract.ThrowIfTrue(pendingTranslationActions is null);
 
+                LazyCompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
+                LazyStaleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments;
                 PendingTranslationActions = pendingTranslationActions;
-                StaleCompilationWithGeneratedDocuments = staleCompilationWithGeneratedDocuments;
+
+#if DEBUG
+                // As a sanity check, we should never see the generated trees inside of the compilation that should
+                // not have generated trees.
+                foreach (var generatedDocument in generatorInfo.Documents.States.Values)
+                {
+                    Contract.ThrowIfTrue(this.CompilationWithoutGeneratedDocuments.SyntaxTrees.Contains(generatedDocument.GetSyntaxTree(CancellationToken.None)));
+                }
+#endif
             }
 
-            public static InProgressState Create(
+            public InProgressState(
                 bool isFrozen,
                 Compilation compilationWithoutGeneratedDocuments,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 Compilation? staleCompilationWithGeneratedDocuments,
                 ImmutableList<TranslationAction> pendingTranslationActions)
+                : this(
+                      isFrozen,
+                      new Lazy<Compilation>(() => compilationWithoutGeneratedDocuments),
+                      generatorInfo,
+                      // Extracted as a method call to prevent captures.
+                      staleCompilationWithGeneratedDocuments is null ? s_lazyNullCompilation : CreateLazyCompilation(staleCompilationWithGeneratedDocuments),
+                      pendingTranslationActions)
             {
-                Contract.ThrowIfTrue(pendingTranslationActions is null);
-
-                // If we don't have any intermediate projects to process, just initialize our
-                // DeclarationState now. We'll pass false for generatedDocumentsAreFinal because this is being called
-                // if our referenced projects are changing, so we'll have to rerun to consume changes.
-                return new InProgressState(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo, staleCompilationWithGeneratedDocuments, pendingTranslationActions);
             }
+
+            private static Lazy<Compilation?> CreateLazyCompilation(Compilation? staleCompilationWithGeneratedDocuments)
+                => new(() => staleCompilationWithGeneratedDocuments);
         }
 
         /// <summary>
@@ -156,6 +161,8 @@ internal partial class SolutionCompilationState
             /// </summary>
             public readonly Compilation FinalCompilationWithGeneratedDocuments;
 
+            public override Compilation CompilationWithoutGeneratedDocuments { get; }
+
             private FinalCompilationTrackerState(
                 bool isFrozen,
                 Compilation finalCompilationWithGeneratedDocuments,
@@ -163,12 +170,13 @@ internal partial class SolutionCompilationState
                 bool hasSuccessfullyLoaded,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 UnrootedSymbolSet unrootedSymbolSet)
-                : base(isFrozen, compilationWithoutGeneratedDocuments, generatorInfo)
+                : base(isFrozen, generatorInfo)
             {
                 Contract.ThrowIfNull(finalCompilationWithGeneratedDocuments);
 
                 // As a policy, all partial-state projects are said to have incomplete references, since the
                 // state has no guarantees.
+                this.CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
                 HasSuccessfullyLoaded = hasSuccessfullyLoaded && !isFrozen;
                 FinalCompilationWithGeneratedDocuments = finalCompilationWithGeneratedDocuments;
                 UnrootedSymbolSet = unrootedSymbolSet;
@@ -180,6 +188,15 @@ internal partial class SolutionCompilationState
                     // necessary that would be unable to share source symbols.
                     Debug.Assert(object.ReferenceEquals(finalCompilationWithGeneratedDocuments, compilationWithoutGeneratedDocuments));
                 }
+
+#if DEBUG
+                // As a sanity check, we should never see the generated trees inside of the compilation that should
+                // not have generated trees.
+                foreach (var generatedDocument in generatorInfo.Documents.States.Values)
+                {
+                    Contract.ThrowIfTrue(compilationWithoutGeneratedDocuments.SyntaxTrees.Contains(generatedDocument.GetSyntaxTree(CancellationToken.None)));
+                }
+#endif
             }
 
             /// <param name="projectId">Not held onto</param>
