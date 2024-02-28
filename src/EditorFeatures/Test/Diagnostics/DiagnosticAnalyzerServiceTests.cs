@@ -50,8 +50,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             var workspace = new AdhocWorkspace(s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(additionalParts).GetHostServices());
 
+#if false
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+#endif
 
             return workspace;
         }
@@ -658,8 +660,10 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         internal async Task TestAdditionalFileAnalyzer(bool registerFromInitialize, bool testMultiple, BackgroundAnalysisScope analysisScope)
         {
             using var workspace = CreateWorkspace();
+#if false
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+#endif
 
             var globalOptions = GetGlobalOptions(workspace);
             globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
@@ -790,8 +794,11 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var analyzerReference = new AnalyzerImageReference(analyzers.ToImmutableArray());
 
             using var workspace = EditorTestWorkspace.CreateCSharp("class A {}", composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService)));
+
+#if false
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+#endif
 
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
 
@@ -926,8 +933,11 @@ class A
                 typeof(TestDocumentTrackingService));
 
             using var workspace = new EditorTestWorkspace(composition);
+
+#if false
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+#endif
 
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, isSourceGenerated);
@@ -1043,8 +1053,11 @@ class A
 
             using var workspace = EditorTestWorkspace.CreateCSharp(source,
                 composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService)));
+
+#if false
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+#endif
 
             var analyzer = new CancellationTestAnalyzer(actionKind);
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
@@ -1291,8 +1304,11 @@ class A
         internal async Task TestGeneratorProducedDiagnostics(bool fullSolutionAnalysis, bool analyzeProject, TestHost testHost)
         {
             using var workspace = EditorTestWorkspace.CreateCSharp("// This file will get a diagnostic", composition: s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.WithTestHostParts(testHost));
+
+#if false
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+#endif
 
             var globalOptions = workspace.GetService<IGlobalOptionService>();
 

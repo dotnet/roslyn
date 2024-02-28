@@ -5,30 +5,29 @@
 using System;
 using Microsoft.CodeAnalysis.CommentSelection;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+[Obsolete]
+internal readonly struct VSTypeScriptCommentSelectionInfo
 {
-    [Obsolete]
-    internal readonly struct VSTypeScriptCommentSelectionInfo
+    internal readonly CommentSelectionInfo UnderlyingObject;
+
+    internal VSTypeScriptCommentSelectionInfo(CommentSelectionInfo underlyingObject)
     {
-        internal readonly CommentSelectionInfo UnderlyingObject;
+        UnderlyingObject = underlyingObject;
+    }
 
-        internal VSTypeScriptCommentSelectionInfo(CommentSelectionInfo underlyingObject)
-        {
-            UnderlyingObject = underlyingObject;
-        }
-
-        public VSTypeScriptCommentSelectionInfo(
-            bool supportsSingleLineComment,
-            bool supportsBlockComment,
-            string singleLineCommentString,
-            string blockCommentStartString,
-            string blockCommentEndString) : this(new(
-                supportsSingleLineComment,
-                supportsBlockComment,
-                singleLineCommentString,
-                blockCommentStartString,
-                blockCommentEndString))
-        {
-        }
+    public VSTypeScriptCommentSelectionInfo(
+        bool supportsSingleLineComment,
+        bool supportsBlockComment,
+        string singleLineCommentString,
+        string blockCommentStartString,
+        string blockCommentEndString) : this(new(
+            supportsSingleLineComment,
+            supportsBlockComment,
+            singleLineCommentString,
+            blockCommentStartString,
+            blockCommentEndString))
+    {
     }
 }

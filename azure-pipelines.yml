@@ -425,13 +425,15 @@ stages:
       - template: eng/pipelines/variables-build.yml
         parameters:
           configuration: Debug
+      - name: bootstrapDir
+        value: $(Build.SourcesDirectory)/artifacts/bootstrap/determinism
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - script: eng/make-bootstrap.cmd -name determinism
+      - pwsh: eng/make-bootstrap.ps1 -output $(bootstrapDir)
         displayName: Build Bootstrap Compiler
 
-      - script: eng/test-determinism.cmd -configuration Debug -bootstrapDir $(Build.SourcesDirectory)/artifacts/bootstrap/determinism
+      - pwsh: eng/test-determinism.ps1 -configuration Debug -bootstrapDir $(bootstrapDir)
         displayName: Build - Validate determinism
 
       - template: eng/pipelines/publish-logs.yml

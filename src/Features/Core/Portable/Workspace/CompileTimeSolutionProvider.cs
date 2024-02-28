@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal sealed class CompileTimeSolutionProvider : ICompileTimeSolutionProvider
     {
-        [ExportWorkspaceServiceFactory(typeof(ICompileTimeSolutionProvider), WorkspaceKind.Host), Shared]
+        [ExportWorkspaceServiceFactory(typeof(ICompileTimeSolutionProvider), [WorkspaceKind.Host]), Shared]
         private sealed class Factory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]

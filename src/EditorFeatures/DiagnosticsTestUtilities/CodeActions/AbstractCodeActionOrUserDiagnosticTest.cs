@@ -301,7 +301,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var ps = parameters ?? TestParameters.Default;
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
 
+#if false
             workspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, false);
+#endif
 
             var (actions, _) = await GetCodeActionsAsync(workspace, ps);
             var offeredActions = Environment.NewLine + string.Join(Environment.NewLine, actions.Select(action => action.Title));
@@ -495,7 +497,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-                workspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, false);
+#if false
+            workspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, false);
+#endif
 
                 // Ideally this check would always run, but there are several hundred tests that would need to be
                 // updated with {|Unnecessary:|} spans.
@@ -709,7 +713,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             using (var expectedWorkspace = TestWorkspace.Create(expectedText, composition: composition))
             {
-                expectedWorkspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, false);
+#if false
+            workspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, false);
+#endif
 
                 var expectedSolution = expectedWorkspace.CurrentSolution;
                 Assert.Equal(expectedSolution.Projects.Count(), newSolution.Projects.Count());

@@ -44,8 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
         private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansAsync(string content)
         {
             using var workspace = EditorTestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
+
+#if false
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+#endif
+
             return await GetTagSpansAsync(workspace);
         }
 
@@ -55,8 +59,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
                 files: [],
                 sourceGeneratedFiles: new[] { content },
                 composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
+
+#if false
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+#endif
 
             return await GetTagSpansAsync(workspace);
         }

@@ -88,6 +88,9 @@ namespace Microsoft.CodeAnalysis
             get { return false; }
         }
 
+        [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
+        public abstract bool NullableAnalysisIsDisabled { get; }
+
         /// <summary>
         /// Gets symbol information about a syntax node.
         /// </summary>

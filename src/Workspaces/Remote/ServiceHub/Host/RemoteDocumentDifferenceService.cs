@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class RemoteDocumentDifferenceService : IDocumentDifferenceService
     {
-        [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.CSharp, layer: WorkspaceKind.Host), Shared]
+        [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.CSharp, layer: ServiceLayer.Host), Shared]
         internal sealed class CSharpDocumentDifferenceService : RemoteDocumentDifferenceService
         {
             [ImportingConstructor]
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.VisualBasic, layer: WorkspaceKind.Host), Shared]
+        [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.VisualBasic, layer: ServiceLayer.Host), Shared]
         internal sealed class VisualBasicDocumentDifferenceService : AbstractDocumentDifferenceService
         {
             [ImportingConstructor]
